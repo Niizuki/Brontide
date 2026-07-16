@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Fabric.Extensions.Flow</AssemblyName>
+    <RootNamespace>Fabric.Extensions.Flow</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fabric.Core\Fabric.Core.csproj" />
+  </ItemGroup>
+</Project>

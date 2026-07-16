@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Fabric.Vocabularies.Cooling</AssemblyName>
+    <RootNamespace>Fabric.Vocabularies.Cooling</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fabric.Core\Fabric.Core.csproj" />
+  </ItemGroup>
+</Project>

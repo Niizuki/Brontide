@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Fabric.Core</AssemblyName>
+    <RootNamespace>Fabric.Core</RootNamespace>
+  </PropertyGroup>
+</Project>
