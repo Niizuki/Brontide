@@ -157,6 +157,15 @@ public sealed class TargetedEnrichmentTests
             "authority separation",
             system.Domain.Shapes,
             [system.CopyProvider()]);
+
+        Assert.That(
+            () => AvailableValue.Direct(
+                "authority",
+                ShapeValue.Scalar(BuiltInShapes.Text, system.PointerCapability),
+                "attempted Capability transfer"),
+            Throws.ArgumentException,
+            "a Capability must not be representable as shaped scalar information");
+
         var result = composition.Resolve(
             system.PointerMove,
             system.ThermalContext,
@@ -199,7 +208,7 @@ public sealed class TargetedEnrichmentTests
                 pointerTarget = genesis.Actor("PointerTarget");
                 StoreActor = genesis.Actor("TelemetryConsumer");
                 store = genesis.Actor("TelemetryStore");
-                genesis.Shape(ShapeDefinition.Scalar(TemperatureShape));
+                genesis.Shape(ShapeDefinition.Scalar<long>(TemperatureShape));
                 genesis.Shape(ShapeDefinition.Record(TelemetryShape, FragmentPolicy.Closed,
                     RecordField.Required("temperature", TemperatureShape)));
                 genesis.Shape(ShapeDefinition.Record(PointerShape, FragmentPolicy.Open,

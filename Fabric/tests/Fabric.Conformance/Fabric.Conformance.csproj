@@ -18,6 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Fabric.Core\Fabric.Core.csproj" />
+    <ProjectReference Include="..\..\src\Fabric.Extensions.Flow\Fabric.Extensions.Flow.csproj" />
     <ProjectReference Include="..\..\src\Fabric.Vocabularies.Cooling\Fabric.Vocabularies.Cooling.csproj" />
   </ItemGroup>
 </Project>

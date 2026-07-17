@@ -27,7 +27,7 @@ public sealed class WorkedAttackTests
             plugin = genesis.Actor("PluginActor");
             deploymentTarget = genesis.Actor("DeploymentTarget");
 
-            genesis.Shape(ShapeDefinition.Scalar(environmentShape));
+            genesis.Shape(ShapeDefinition.Scalar<string>(environmentShape));
             genesis.Shape(ShapeDefinition.Record(requestShape, FragmentPolicy.Closed,
                 RecordField.Required("deployment", BuiltInShapes.Text),
                 RecordField.Required("environment", environmentShape)));

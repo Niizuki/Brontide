@@ -15,7 +15,7 @@ public sealed class ShapeConformanceTests
         var velocity = ShapeReference.Parse("Velocity", 1);
         var direction = ShapeReference.Parse("Bob:Direction", 1);
         var directional = FragmentReference.Parse("Bob:DirectionalVelocity", 1);
-        registry.Register(ShapeDefinition.Scalar(direction));
+        registry.Register(ShapeDefinition.Scalar<string>(direction));
         registry.Register(ShapeDefinition.Record(velocity, FragmentPolicy.Open,
             RecordField.Required("speed", BuiltInShapes.Signed64)));
         registry.Register(DeclaredFragmentDefinition.Attached(directional, velocity,
@@ -55,11 +55,18 @@ public sealed class ShapeConformanceTests
         registry.Register(ShapeDefinition.Record(v2, FragmentPolicy.Open,
             RecordField.Required("value", BuiltInShapes.Text),
             RecordField.Optional("comment", BuiltInShapes.Text)));
+        var laterValue = ShapeValue.Record(
+            v2,
+            ("value", ShapeValue.Text("stable")),
+            ("comment", ShapeValue.Text("optional addition")));
+        var earlierProjection = registry.Project(laterValue, ShapeContract.For(v1));
 
         Assert.That(() => registry.Register(
             ShapeDefinition.Record(ShapeReference.Parse("Example.Record", 3), FragmentPolicy.Open,
                 RecordField.Required("value", BuiltInShapes.Signed64))),
             Throws.TypeOf<ShapeRegistrationException>());
+        Assert.That(earlierProjection.IsValid, Is.True, earlierProjection.Message);
+        Assert.That(((RecordShapeValue)earlierProjection.Value!).Fields.Keys, Is.EqualTo(new[] { "value" }));
     }
 
     [Test]

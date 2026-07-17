@@ -162,6 +162,7 @@ public sealed class ExecutionContext
 {
     private readonly AuthorityDomain _domain;
     private readonly List<DomainEvent> _events = [];
+    private bool _active = true;
 
     internal ExecutionContext(
         AuthorityDomain domain,
@@ -187,6 +188,7 @@ public sealed class ExecutionContext
         Capability? originAuthority = null,
         TemporalMark? occurredAt = null)
     {
+        EnsureActive();
         var emitted = _domain.EmitEvent(
             Execution.Target,
             kind,
@@ -210,28 +212,46 @@ public sealed class ExecutionContext
         Capability? originAuthority = null,
         TemporalMark? occurredAt = null)
     {
-        var emitted = _domain.EmitEvent(
+        EnsureActive();
+        var emitted = _domain.EmitEventFromAuthorizedExecution(
+            Execution,
             Execution.Initiator,
             kind,
             assertion,
             origin,
             originAuthority,
-            new OccurrenceReference(Execution.Id.Value),
             occurredAt);
         _events.Add(emitted);
         return emitted;
     }
 
-    public ActivityReference CreateActivity(CanonicalName kind) =>
-        _domain.CreateActivity(Execution.Target, kind);
+    public ActivityReference CreateActivity(CanonicalName kind)
+    {
+        EnsureActive();
+        return _domain.CreateActivity(Execution.Target, kind);
+    }
 
     public Outcome CompleteActivity(
         ActivityReference activity,
         OutcomeStatus status = OutcomeStatus.Completed,
         ShapeContract? detailsShape = null,
         ShapeValue? details = null,
-        string message = "activity completed") =>
-        _domain.EmitActivityOutcome(Execution.Target, activity, status, detailsShape, details, message);
+        string message = "activity completed")
+    {
+        EnsureActive();
+        return _domain.EmitActivityOutcome(Execution.Target, activity, status, detailsShape, details, message);
+    }
+
+    internal void Deactivate() => _active = false;
+
+    private void EnsureActive()
+    {
+        if (!_active)
+        {
+            throw new InvalidOperationException(
+                "Execution effects and derived occurrences may be created only while the Operation handler is active.");
+        }
+    }
 }
 
 public sealed record ExecutionResult(

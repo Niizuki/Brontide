@@ -46,4 +46,64 @@ public sealed class OutcomeConformanceTests
         Assert.That(failed.Outcome.DetailsShape!.Canonical, Is.EqualTo(detailsShape));
         Assert.That(failed.Outcome.Details!.Reference, Is.EqualTo(detailsShape));
     }
+
+    [Test]
+    [SpecSection("14.2")]
+    [SpecSection("21.2")]
+    [SpecSection("25")]
+    public async Task Successful_macro_operation_can_create_an_activity_that_terminates_later()
+    {
+        ActorReference worker = null!;
+        ActorReference platform = null!;
+        Capability capability = null!;
+        ActivityReference activity = default;
+        Outcome terminalActivityOutcome = null!;
+        var start = OperationReference.Parse("Audit.Start");
+        var complete = OperationReference.Parse("Audit.Complete");
+        var domain = AuthorityDomain.Create("macro-outcome", genesis =>
+        {
+            worker = genesis.Actor("AuditWorker");
+            platform = genesis.Actor("AuditPlatform");
+            genesis.Operation(
+                start,
+                platform,
+                ShapeContract.Unit,
+                ShapeContract.For(BuiltInShapes.Activity),
+                "create a long-lived audit activity",
+                context =>
+                {
+                    activity = context.CreateActivity(CanonicalName.Parse("Audit.Activity"));
+                    return OperationEffect.SucceededAsync(
+                        ShapeValue.Record(
+                            BuiltInShapes.Activity,
+                            ("id", ShapeValue.Text(activity.Value.ToString("N"))),
+                            ("kind", ShapeValue.Text(activity.Kind.ToString()))));
+                });
+            genesis.Operation(
+                complete,
+                platform,
+                ShapeContract.Unit,
+                ShapeContract.Unit,
+                "complete the audit activity",
+                context =>
+                {
+                    terminalActivityOutcome = context.CompleteActivity(activity);
+                    return OperationEffect.SucceededAsync(ShapeValue.Unit);
+                });
+            capability = genesis.Grant(worker, platform, [start, complete]);
+        });
+
+        var started = await domain.ExecuteAsync(worker, start, capability, ShapeValue.Unit);
+        var completed = await domain.ExecuteAsync(worker, complete, capability, ShapeValue.Unit);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(started.Outcome.Status, Is.EqualTo(OutcomeStatus.Succeeded));
+            Assert.That(started.Outcome.Result!.RequireField("id").RequireScalar<string>(),
+                Is.EqualTo(activity.Value.ToString("N")));
+            Assert.That(completed.Outcome.Status, Is.EqualTo(OutcomeStatus.Succeeded));
+            Assert.That(terminalActivityOutcome.Status, Is.EqualTo(OutcomeStatus.Completed));
+            Assert.That(terminalActivityOutcome.TerminalFor, Is.EqualTo(TerminalReference.For(activity)));
+        });
+    }
 }

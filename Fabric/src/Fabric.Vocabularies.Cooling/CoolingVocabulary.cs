@@ -19,8 +19,8 @@ public static class CoolingVocabulary
         ActorReference coolingSystem,
         CoolingPlant plant)
     {
-        genesis.Shape(ShapeDefinition.Scalar(TemperatureShape));
-        genesis.Shape(ShapeDefinition.Scalar(FanSpeedShape));
+        genesis.Shape(ShapeDefinition.Scalar<long>(TemperatureShape));
+        genesis.Shape(ShapeDefinition.Scalar<long>(FanSpeedShape));
         genesis.Event(
             TemperatureChanged,
             ShapeContract.For(TemperatureShape),

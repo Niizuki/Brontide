@@ -461,6 +461,11 @@ Atlas does not require implementations to hide these differences.
 Instead, higher-level Atlas specifications may describe them explicitly and allow systems to
 reason about them.
 
+The Composition direction (§18.1) treats topology, latency, cost, capacity, availability, and
+related properties as explicit selection characteristics of Components and their bindings. `Local`
+and `remote` are useful projections of those characteristics for a particular observer, not the
+two architectural kinds of computation.
+
 This larger environment is not a bolt-on use case for Atlas.
 It is one of the principal motivations for defining a common Actor, authority, contract, and
 occurrence model in the first place.
@@ -645,6 +650,14 @@ implementation.
 The binding between an Actor and the runtime machinery realising it is owned by the implementation,
 and it is a security boundary: when that machinery is replaced, existing
 Capabilities held by that Actor must not silently transfer to an unrelated successor.
+
+Atlas does not require that machinery to be dynamically replaceable. If an implementation retains
+the same Actor reference while replacing the machinery realising it, the replacement MUST preserve
+that Actor's identity, declared Atlas contracts, and authority relationships. If those properties
+cannot be preserved, the implementation MUST expose a successor Actor or an explicit rebinding
+rather than silently presenting replacement as continuity. State transfer, quiescence, rollback,
+and the treatment of in-progress Executions are not supplied by Actor identity; a Component
+claiming hot-swappability must declare those semantics separately (§18.1).
 
 ### 6.6 Operations are scale-agnostic
 
@@ -2146,6 +2159,283 @@ would not enlarge Base, weaken the Embedded Test, or become a second privileged 
 Architecture 0.3 does not define, name, or reserve such a Profile. It should be introduced only
 when repeated real Profile requirements reveal a stable common bundle.
 
+### 18.1 Work in progress: Composition and Components
+
+Atlas uses *component* when discussing composition and Fabric/Linen interchange, but the category
+must not inherit the scale or packaging model of conventional application frameworks.
+
+A **Component** is a scale-independent, bounded unit of composition that declares the Atlas
+contracts it provides and requires. A Component boundary may enclose a function library, firmware
+subsystem, process, device, service, cluster, data centre, organisational system, or another
+recursively composed environment. Physical size, address-space placement, language, transport,
+and deployment mechanism do not determine whether something is a Component.
+
+Component is not a ninth Atlas Base term and is not an authority-bearing participant. An Actor is
+a participant in authority relationships; a Component is a unit of composition. One Component may
+realise several Actors, one Actor may be realised by several Components, and a Component may
+contain other Components. Capabilities are held and presented by Actors. Loading, attaching, or
+binding a Component grants no authority by itself.
+
+A Component with an Atlas-visible boundary declares, as applicable:
+
+- the Profiles, Extensions, and Domain Vocabularies it provides and requires;
+- the Operations it provides or consumes, including their input and output Shapes;
+- required Declared Fragments and open-Shape fragment policy;
+- the Actor relationships and authority requirements visible at its boundary;
+- selection characteristics and requirements relevant to placement or binding; and
+- its binding model and, where applicable, Slots, Classes, and lifecycle limitations that narrow
+  its composition or substitutability claims.
+
+The contract describes observable Atlas semantics, not a private language type, object model,
+package format, process protocol, or wire encoding. Two Components may realise the same contract
+through entirely different internal machinery.
+
+#### Selection characteristics and the local/remote projection
+
+A Component contract says what semantic and authority relationships a Component supports.
+**Selection characteristics** describe the operational circumstances under which a particular
+Component or binding may be suitable. They allow selection among contract-compatible Components
+at a resolution finer than `local` or `remote`.
+
+Selection characteristics may include:
+
+- topological placement and proximity relationships;
+- authority-domain, isolation, and data-residency boundaries, including supporting attestations;
+- measured or promised latency, jitter, bandwidth, and throughput;
+- monetary cost, energy cost, or resource consumption;
+- capacity, current load, admission requirements, and queue limits;
+- availability, maintenance state, reliability, and correlated failure domain; and
+- required hardware, accelerators, devices, or environmental conditions.
+
+This list is not a ratified catalogue. Portable characteristics require canonical definitions and
+Shapes, including units and interpretation, so that a latency, price, capacity, or distance is not
+reduced to an ambiguous scalar (§16). Characteristics may be static constraints, time-bounded
+claims, current observations, estimates, or policy-derived values; their form and freshness must
+remain visible.
+
+A Component descriptor may publish characteristics about its Component, but self-description is a
+claim, not proof. An Actor realised by a Host may measure latency, a guardian Actor may report
+current capacity, a deployment Actor may supply topological placement, and an Identity or
+Distributed mechanism may attest a boundary. Each value must remain attributable to the Actor or
+implementation mechanism responsible for asserting or observing it. Selection policy decides
+which claims it accepts and may require independent verification.
+
+Topology is relational and observer-dependent, not one universal graph (§16.6). The same Component
+may be near one Actor and distant from another; a network service may remain inside one authority
+domain, while an in-process Component may cross a separately protected domain. `Local` therefore
+does not imply low latency, low cost, shared trust, or high availability, and `remote` does not
+imply their opposites.
+
+This does not make the `local`/`remote` distinction meaningless or undesirable. Implementations
+MAY collapse the richer selection surface to those labels for user interfaces, summaries,
+discovery views, diagnostics, and coarse policy defaults. A concise interface often should. Such a
+label is an intentionally lossy, observer-relative projection: it MUST NOT silently imply latency,
+trust, authority-domain, cost, capacity, availability, or failure guarantees that its projection
+rule does not define. A Profile or implementation relying on the distinction for behaviour SHOULD
+state how the labels are derived and from whose perspective. Architectural selection and
+interoperability claims remain grounded in the underlying characteristics when the distinction
+matters.
+
+Atlas intentionally does not define **Remote Service** as a separate Component category. A service
+reached through a network is a Component whose current binding has particular transport,
+topological, authority-domain, latency, cost, and failure characteristics. A library, device,
+service, cluster, and data centre may implement the same Component contract while exposing very
+different selection characteristics.
+
+This intentionally brings hot swapping, device replacement, service failover, and data-centre
+cutover into one composition model. The concepts are not identical: remoteness alone does not make
+a Component hot-swappable, and a hot-swappable Component need not be remote. They converge only
+when a Hot-swap Host, Slot, Class, and conforming Component establish the replacement contract
+defined below.
+
+Hot-swap Class membership establishes semantic and lifecycle eligibility. A Host's policy may
+further filter eligible Components by their current selection characteristics without changing
+their Class conformance. Failure to meet a particular latency, cost, topology, capacity, or
+availability policy makes a Component unsuitable for that binding at that time; it does not by
+itself make the Component semantically non-conforming.
+
+A **Component binding** associates a Component with a surrounding composition at its declared
+contract boundary. Binding does not supply Capabilities implicitly and does not change the
+canonical names or meanings of the bound contracts. The binding model distinguishes establishment
+time from replacement guarantees:
+
+- A **statically bound Component** has its participation fixed before the containing composition
+  becomes active, whether by compilation, linking, firmware image construction, configuration, or
+  deployment.
+- A **runtime-bound Component** may be selected or attached while the containing composition is
+  active. Runtime binding alone does not imply that the Component can later be detached or
+  replaced.
+
+#### Work in progress: the default portable binding
+
+Composition requires a paved road as well as permission for specialised machinery. If every host
+invents its ordinary seam independently, Components are composable only after bespoke integration;
+if Atlas mandates one object model or call mechanism, ordinary composition pays for generality it
+may not need. The proposed **Atlas Portable Binding** is therefore a first-party default binding
+for general-purpose Component interchange, not the implementation model of Atlas Base.
+
+An implementation or Component does not become non-conforming to Base merely because it does not
+support the Portable Binding. A host or Component claiming support for a particular Portable
+Binding version must preserve that version's complete observable contract. Authors remain free to
+realise it through generated types, handwritten code, compiler lowering, static tables, reflection,
+native interoperation, or another mechanism. The portable contract must never require a common
+language object model or runtime library.
+
+A **Binding Plan** is the scoped agreement established for one Component binding. It may be
+constructed at compile time, link time, deployment, or runtime. It may exist as explicit data or be
+compiled completely into direct calls and static storage. A Binding Plan establishes, as applicable:
+
+- the negotiated Operations, Shapes, versions, required Declared Fragments, and canonical
+  projection rules;
+- the Actor endpoints and how Capabilities are presented, represented, or continued without
+  becoming shaped ambient authority;
+- whether each interaction is a call, asynchronous exchange, or Flow;
+- the representation selected for each boundary value;
+- memory domain, allocation, alignment, mutability, ownership, borrowing, lifetime, and release;
+- readiness and completion synchronisation;
+- framing, batching, buffering, backpressure, delivery, and admission limits; and
+- failure, withdrawal, termination, and replacement-generation behaviour.
+
+The proposed portable binary realisation uses a length-delimited framing layer and a restricted,
+schema-guided CBOR representation for ordinary inline values. Contract establishment exchanges
+canonical names, Shape and Fragment identities, versions, and authority requirements. The active
+binding may then assign compact binding-scoped numeric identifiers to those canonical identities.
+Such identifiers have no portable meaning outside their Binding Plan and never replace canonical
+identity in manifests, signatures, persistence, or conformance claims.
+
+Schema-guided CBOR is not a collection of self-describing JSON-like objects. Once an Operation and
+its input Shape are established, each Item need not repeat the Operation name, Shape name, field
+names, or full descriptor. Shape remains the type system; CBOR is one portable representation of a
+value already governed by that Shape. The exact CBOR subset, scalar mappings, canonicalisation,
+field and Fragment identifier rules, bounds, and treatment of unknown preserved data remain to be
+defined and measured. JSON and BSON may be diagnostic, logging, persistence, or alternative
+binding encodings, but neither defines the Portable Binding's semantics.
+
+The same binding supports two default payload forms:
+
+- an **inline shaped value**, owned by the receiving interaction and encoded through the portable
+  representation; and
+- a **referenced shaped resource**, which leaves bulk or device-specific data in an explicitly
+  described buffer, memory domain, stream, device allocation, or other future `Resource`, while
+  carrying the representation, access, ownership, lifetime, integrity, and synchronisation needed
+  to use it safely.
+
+The referenced form is part of the seam, not a bypass around it. A video frame, tensor, command
+buffer, or bulk record may cross the portable binding as a compact typed reference while the data
+remains in shared, device-local, registered, or otherwise suitable memory. A sender and receiver
+that do not share a compatible representation may use an attributable adapter or the inline
+fallback within declared size and resource limits. They must reject the binding or Item when the
+fallback is unsupported or violates a required cost, latency, copy, memory-domain, or admission
+constraint; a catastrophic implicit copy is not successful negotiation.
+
+A specialised binding may replace the physical realisation without replacing the Component
+contract. A generated direct call, function table, fixed-size ring, shared-memory queue, native ABI,
+device queue, or network transport may lower the same Binding Plan. Negotiation and canonical-name
+resolution occur before the hot path. A conforming high-rate realisation need not allocate a generic
+value, perform string lookup, serialise CBOR, or materialise a complete Interaction for every Item.
+Conversely, an ordinary seam may use the same Binding Plan machinery and select a direct inline
+call; the portable design is not intentionally a slow path.
+
+Shared representations require stronger rules than copied values. A Binding Plan must identify an
+immutable borrowing interval, exclusive ownership transfer, copy-on-submit rule, versioned
+integrity rule, or another mechanism preventing mutation after validation. It must also define
+release and completion so a producer cannot reuse storage while a consumer or device still holds
+it. A buffer, device, or session handle is a Resource reference unless the authority domain
+explicitly recognises it as a Capability representation; structural possession alone grants no
+authority (§16).
+
+#### Where mapping lives
+
+Atlas Base defines canonical Shape identity, compatibility, projection, and authority semantics.
+It does not contain or require a universal **mapping engine**. The mechanism that maps private
+language values, numeric binding identifiers, CBOR values, native layouts, and resource references
+to the already agreed Atlas contracts belongs to the Component binding realisation and normally
+runs in host or generated binding machinery.
+
+This representation mapping may be a compiler-generated function, a static table, a trusted host
+subsystem, or a separately replaceable Component. Making it a Component is useful when it is
+independently selected, shared, inspected, metered, remote, or hot-swapped; it is not required when
+the same work can be erased into a direct call. In either form, a representation mapper may not
+invent Shape compatibility, authority, provenance, or guarantees absent from the declared
+contracts.
+
+Representation mapping must be distinguished from **semantic adaptation**. Mapping a C# record,
+an F# record, CBOR fields, and a Rust structure that all realise the same Shape preserves one
+contract. Translating between differently named Shapes or Operations, changing units, filling
+meaningful missing information, dropping required semantics, or interpreting an authored native
+contract as a standard one changes the contract. Such work must be exposed as an explicit Adapter
+Component or attributable declared transformation with its own provided and required contracts,
+costs, failure behaviour, and ordinary Capability requirements. A hidden mapping engine must fail
+binding rather than silently manufacture semantic interoperability.
+
+A **Replacement Slot** is a declared Component binding at which one occupying Component may be
+substituted for another under a defined lifecycle. Replacement may require quiescence or restart of
+the containing composition unless a stronger guarantee is declared. A slot is a logical
+composition boundary; it does not imply a physical connector, memory location, process boundary,
+or loader.
+
+A **Hot-swap Slot** is a Replacement Slot whose active binding may change without terminating the
+Component that owns the slot or its containing composition. A **Hot-swap Host Component** is a
+Component that exposes one or more Hot-swap Slots. The Host defines each Slot's boundary, declares
+what may occupy it, and coordinates or delegates activation and cutover. A Component may be a Host
+for Components inside it while itself occupying a Hot-swap Slot at a larger composition boundary.
+
+A **Hot-swap Class** is the declared conformance class of Components eligible to occupy a
+particular kind of Hot-swap Slot. It is defined by a required Component contract, dependency
+closure, and replacement protocol. It is not a source-language class, inheritance relationship,
+package family, or set inferred from similarly spelled names. One Hot-swap Class may have many
+independent implementations, and one Component may implement more than one Hot-swap Class.
+
+A **Hot-swappable Component** is a Component that declares conformance to a particular Hot-swap
+Class and fulfils that Class's candidate-side replacement obligations. Hot-swappability is
+therefore relative, not universal: a Component may be hot-swappable in a Slot accepting one Class
+and ineligible for a Slot requiring another, even when both Slots expose some of the same
+Operations.
+
+Interchangeability and hot-swappability are distinct. **Interchangeability** is a compatibility
+relationship between Components under declared contracts. **Hot-swappability** is an operational
+claim made jointly by a Host's Slot, its accepted Hot-swap Class, and a Component conforming to that
+Class. A Component can be interchangeable but not hot-swappable, and a Hot-swap Slot can support
+hot swapping only among Components in its declared Class.
+
+Each Hot-swap Slot MUST declare the Hot-swap Class it accepts. Each Hot-swappable Component MUST
+declare the Class or Classes it implements. Matching identifiers alone are insufficient: the Host
+MUST establish compatible contracts and dependency closure before activation. The Slot and Class
+contracts together MUST identify the replacement boundary and define or explicitly disclaim:
+
+- whether compatibility is established by construction or runtime negotiation;
+- the identity of Actors before and after replacement (§6.5);
+- how authority is established for successor Actors and withdrawn or bounded for displaced Actors,
+  without silent Capability transfer;
+- state transfer or deliberate state loss;
+- the handling of admitted and in-progress Executions and Flows;
+- interruption, quiescence, failure, and rollback behaviour; and
+- the cutover point at which the old binding ceases and the new binding becomes active.
+
+Canonical Atlas contract names do not encode binding time. A standard Shape remains standard when
+loaded dynamically, and an authored Shape remains authored when compiled statically. When a
+portable Component or Hot-swap Class identity is exposed, it follows the authored-name rules of
+§22, such as `Bob:PointerDriver`; source-language symbols and package names have no Atlas standing
+unless they are explicitly mapped to such an identity.
+
+The term **plugin** remains valid implementation or product terminology for a host-managed,
+runtime-bound Component. It is not the architectural category: a plugin need not be detachable or
+hot-swappable, and a hot-swappable mouse, remote service, or data centre need not be a plugin.
+
+For example, a workstation or receiver may be a Hot-swap Host Component exposing a device Slot. A
+mouse conforming to the Slot's Hot-swap Class is a Hot-swappable Component while exposing several
+Actors and standard Input contracts. At another scale, a traffic-management Component may host a
+Slot whose eligible Components are entire data centres. Each data centre may itself be a composite
+Host containing thousands of Components and Actors. Replacement is evaluated at the declared Slot,
+Class, and contract; Atlas does not privilege the smaller scale.
+
+This section records the composition direction and vocabulary for experimentation. The exact
+Component descriptor, Slot and Class representation, Binding Plan, Portable Binding framing and
+CBOR profile, resource-reference contract, binding occurrence model, negotiation mechanism, and
+conformance contract remain to be established through Fabric/Linen interchange and systems at
+different scales. Until then, Component and the proposed Portable Binding do not enlarge Atlas
+Base or imply a universal runtime loader, mapper, or transport.
+
 ## 19. Architectural Extensions: Flow and Event Distribution
 
 An **Architectural Extension** adds a generic computational concept to Atlas.
@@ -2155,6 +2445,7 @@ Possible future extensions include:
 ```
 Channel
 Resource
+Composition
 Discovery
 Runtime
 Topology
@@ -2177,6 +2468,11 @@ An extension may depend on another extension.
 For example, a future `Distributed` extension might require communication semantics defined by
 `Channel`. A future `Lifecycle` extension might describe long-running Executions and persistent
 activities initiated by them.
+
+A future `Composition` extension may ratify the Component, binding, and replacement direction in
+§18.1. Static composition must remain possible without a loader or dynamic allocation. Runtime
+binding and hot swapping may compose with `Discovery`, `Lifecycle`, `State`, or `Transaction`, but
+must not acquire their guarantees merely by using the word Component.
 
 Extensions should remain domain-neutral.
 `Channel` may describe communication. It should not define how headphones transmit audio.
@@ -2703,6 +2999,15 @@ Database.Migrate
 Audit.Start
 ```
 
+Unqualified, independently referenced canonical names are reserved for concepts ratified by an
+Atlas specification. Every portable semantic concept with an independently referenced identity
+that is not so ratified MUST use an authored canonical name of the form
+`AuthorityPath:ConceptPath`. Names scoped inside an already authored enclosing contract, such as
+the unqualified fields of an authored Shape, inherit that enclosing authorship (§16.1). An
+implementation MUST NOT expose implementation-specific or privately authored functionality under
+an unqualified canonical name merely because that functionality is compiled in, bundled by
+default, or supplied by a widely used implementation.
+
 Dots expose stable structural segments for parsing, grouping, discovery, prefix-block
 declaration, and explicit syntactic filters. They do not create authority or semantic
 subsumption. Supporting
@@ -2726,6 +3031,12 @@ Erste:Audit
 Everything before `:` identifies the claimed namespace authority or authoring chain. Everything
 after it identifies the concept defined by that authority.
 
+This qualification records claimed **authorship**, not **Origin** in the sense of §15. Origin
+describes what kind of cause produced an occurrence; an Authority Path identifies who claims to
+have defined a semantic contract. Binding time does not affect either rule:
+`Bob:DirectionalVelocity` remains authored when compiled into firmware, while a dynamically
+obtained `Velocity` remains a standard Shape.
+
 Authority Paths are hierarchical. In:
 
 ```
@@ -2741,6 +3052,14 @@ not establish that Logitech authorised the `MX` subnamespace. Registry bindings,
 delegated namespace authority, or other verification mechanisms belong to governance and future
 Identity or Distributed specifications. An unverified authored name remains attributable only to
 the party that actually presented it.
+
+Authored qualification applies to portable semantic definitions, including Operations, Shapes,
+Declared Fragments, Constraint types, extension concepts, and portable Component or Hot-swap Class
+identities. It does not turn every runtime object into a canonical semantic name. In particular, a
+Capability is a particular target-recognised grant (§10), not merely a permission name: its
+authority provenance comes from Genesis and Delegation. An authored Capability template or
+Constraint type uses an authored name; an individual grant retains its own identity, holder,
+target, scope, and derivation.
 
 A qualified name is not normative Atlas functionality solely because an Atlas implementation
 exposes it. An organisation may initially define `Erste:Audit`. If a sufficiently general audit
@@ -3394,11 +3713,24 @@ Where both stacks implement the same Profile, Extension, and Domain Vocabulary c
 component should be usable within a Fabric environment and a Fabric component within a Linen
 environment without either side depending on the other's private types or conventions.
 
+Component has the scale-independent meaning described in §18.1. The first interchange proof may
+use process-sized Components because they are practical test instruments; that does not restrict a
+Component to a process, package, or application module. Interchange tests substitutability under
+declared contracts. Runtime binding and hot swapping are stronger, separate claims and require the
+additional replacement semantics defined there.
+
 Shape is central to this test (§16). Shared Operation names and Capability semantics do not create
 interoperability when the components disagree about the structures those Operations and
 Constraints carry. Fabric and Linen may use different language types and encodings; their shared
 input and output Shape identities, Declared Fragment identities, versions, and compatibility
 rules are the architectural contract.
+
+The interchange experiment should prototype the proposed Atlas Portable Binding rather than
+allowing its first process protocol to become an accidental private convention. Fabric and Linen
+should implement the binding independently, including Shape-guided inline values, binding-scoped
+identifiers, authority presentation, and at least one referenced-resource or pooled-buffer path.
+The experiment supplies evidence for the binding; agreement between the two implementations does
+not ratify it by itself.
 
 Interchangeability is always scoped to the declared contracts. A Fabric or Linen component that
 requires additional Profiles, extensions, vocabularies, authored Operations, Shapes, or Declared
@@ -3503,6 +3835,12 @@ phone, wearable, server, peripheral, and remote compute environment may particip
 computational environment. Resources may be selected according to topology, trust, latency,
 cost, and availability rather than a binary distinction between local and remote.
 
+Section 18.1 applies this direction to Components explicitly. A remote service is not a separate
+architectural species: it is a Component with a particular observable placement and operational
+envelope. Conversely, a physically local Component may cross a stronger authority or failure
+boundary than a remote Component. Selection therefore operates over attributable, scoped
+characteristics rather than inferring behaviour from location labels.
+
 Atlas Base does not define this environment. The anticipated Architectural Extensions are
 intended, in substantial part, to make such environments possible.
 
@@ -3565,6 +3903,19 @@ The invocation principle (§13.6) requires that authority travel with requests; 
 request/response representation, error propagation across boundaries, delivery semantics —
 awaits the `Channel` extension. Until it exists, the principle constrains implementations
 without fully equipping them.
+
+**Portable Component Binding and mapping.**
+Section 18.1 proposes the Atlas Portable Binding and a scoped Binding Plan as the general-purpose
+seam. Its exact framing, schema-guided CBOR subset, scalar and field mappings, numeric dictionary,
+resource-reference representation, ownership and synchronisation rules, bounds, negotiation,
+fallback behaviour, and conformance surface remain open. Fabric/Linen interchange must compare an
+independently implemented portable path with direct-call, pooled-buffer, and process-isolated
+realisations. The resulting evidence must distinguish protocol cost from implementation cost.
+
+Base defines compatibility but contains no mapping engine. Experiments must determine the minimum
+host mapping responsibilities and when a mapper should be exposed as a Component. They must keep
+representation mapping within one Shape contract separate from semantic adaptation between
+different Shapes or Operations; the latter must not disappear into trusted host machinery.
 
 **Flow conformance.**
 Section 19.1 defines Flow's architectural placement and candidate recovery contract, not a
@@ -3636,6 +3987,23 @@ ratifying their dependency sets. The Database Profile is specifically an archite
 acceptance test: provider-specific calls must remain possible while Atlas supplies sufficient
 generic authority, Base Shape, Flow, State, Resource, Transaction, and Outcome machinery to integrate
 the provider as a first-class participant.
+
+**Composition and hot swapping.**
+Section 18.1 defines provisional scale-independent Component terminology and distinguishes static
+binding, runtime binding, replacement, interchangeability, and hot-swappability. The Component
+descriptor, recursive composition rules, Binding Plan representation, Hot-swap Slot and Class
+representation, dependency negotiation, attachment and replacement occurrences, state handoff,
+failure atomicity, rollback, interruption guarantees, and treatment of in-progress work remain
+open. Fabric/Linen interchange, device replacement, service failover, and data-centre-scale
+substitution should test whether one contract model survives all these cases without making a
+package loader, mapping engine, or deployment orchestrator part of Atlas Base.
+
+The same section treats topology, authority-domain boundaries, latency, cost, capacity,
+availability, and related values as attributable selection characteristics rather than reducing
+placement to `local` or `remote`. Their portable Shapes and units, provenance, attestation,
+freshness, measurement semantics, aggregation, privacy, and policy language remain open. A
+Component descriptor's self-claim must not silently become a verified placement or service-level
+guarantee.
 
 **Fabric and Linen interchange.**
 Passing the same conformance suite is necessary but not sufficient evidence of component
@@ -3756,11 +4124,36 @@ general-purpose systems without acquiring privileged status or changing Base.
 Atlas grows through Architectural Extensions, Profiles, and Domain Vocabularies. Profiles declare
 direct dependencies in `uses:` blocks and may use other Profiles; conformance expands through the
 transitive dependency closure without repeating indirect requirements. Standard names use
-unqualified Concept Paths. In authored names, `:` separates a hierarchical Authority Path from
-its Concept Path, as in `Logitech.MX:Input.Scroll.SmartShift`. Names are structurally legible and
-semantically opaque. Declaration prefix blocks reduce repetition in documents but expand to
-canonical names before use. Ratification freezes a canonical name's semantics forever; additive
-availability remains governed by Profiles and discovery.
+unqualified Concept Paths, which are reserved for ratified Atlas concepts. In authored names, `:`
+separates a hierarchical Authority Path from its Concept Path, as in
+`Logitech.MX:Input.Scroll.SmartShift`. Names are structurally legible and semantically opaque.
+Declaration prefix blocks reduce repetition in documents but expand to canonical names before use.
+Ratification freezes a canonical name's semantics forever; additive availability remains governed
+by Profiles and discovery.
+
+Beyond Base, a Component is a scale-independent unit of composition declaring the Atlas contracts
+it provides and requires. Components and Actors are distinct: Components define composition
+boundaries; Actors participate in authority. Bindings may be static or runtime-established. A
+Hot-swap Host Component exposes a Hot-swap Slot for a declared Hot-swap Class; a Hot-swappable
+Component conforms to that Class and its replacement obligations. Their joint contract must state
+compatibility, Actor identity, authority, state, in-progress work, interruption, and rollback
+semantics rather than treating live replacement as an automatic consequence of shared names.
+Remote services are not a separate Component kind: `local` and `remote` are projections of richer,
+attributable selection characteristics such as topology, authority domain, latency, cost, capacity,
+availability, and failure domain. These characteristics guide selection among compatible
+Components without changing their semantic contract identities. Implementations may still present
+the useful `local`/`remote` shorthand in user interfaces and summaries, provided it remains a
+declared, lossy projection rather than a source of unstated guarantees.
+
+The proposed Atlas Portable Binding supplies a default general-purpose seam without defining one
+implementation model. A scoped Binding Plan fixes contracts, authority, representation, memory and
+resource handling, synchronisation, delivery, and lifecycle before the hot path. Its portable
+binary direction uses compact framing and schema-guided CBOR for ordinary inline values, while
+referenced shaped resources permit pooled, shared, device-local, registered, or otherwise
+specialised data paths within the same seam. Static and native bindings may compile the plan into
+direct calls or specialised machinery. Mapping between private representations of one Shape belongs
+to binding or host machinery; semantic adaptation between different contracts remains an explicit
+Component-level relationship rather than a Base mapping service.
 
 Unspecified behaviour is open by presumption; the guaranteed surface is the normative text; the
 attested surface is what conformance suites test.
@@ -3890,6 +4283,46 @@ historical diff between Architectures 0.2 and 0.3.
 
 **Changes in 0.4:**
 
+- **§18.1 — Scale-independent Component terminology introduced as work in progress.** A Component
+  is a bounded unit of composition declaring provided and required Atlas contracts. It may range
+  from a library or device to a service, data centre, or recursively composed environment. A
+  Component is distinct from an Actor and gains no authority merely by being loaded or bound.
+
+- **§18.1 — Static binding, runtime binding, replacement, and hot swapping distinguished.** A
+  Hot-swap Host Component exposes a Hot-swap Slot for a declared Hot-swap Class; a Hot-swappable
+  Component declares conformance to that Class and its candidate-side obligations.
+  Hot-swappability is a joint operational claim, not an intrinsic property inferred from shared
+  Operations. The Slot and Class contracts must define Actor continuity, authority establishment,
+  state handoff, in-progress work, interruption, failure, and rollback semantics. `Plugin` remains
+  host-specific terminology rather than the scale-independent architectural category.
+
+- **§18.1 and §33 — Atlas Portable Binding proposed as the default Component seam.** A scoped
+  Binding Plan may be established statically or dynamically and records contract, authority,
+  representation, resource ownership and lifetime, synchronisation, delivery, and replacement
+  decisions. The candidate portable binary realisation uses compact framing and schema-guided CBOR
+  for inline shaped values while supporting referenced shaped resources for pooled, shared,
+  device-local, registered, or other specialised data paths. Native and direct bindings may lower
+  the same plan without materialising a generic object or serialised Interaction on the hot path.
+  Base defines Shape and authority semantics but contains no universal mapping engine;
+  representation mapping belongs to binding machinery, while semantic adaptation must remain an
+  explicit Adapter Component or attributable declared transformation.
+
+- **§5, §18.1, and §32 — Remote services placed inside the Component model.** `Local` and `remote`
+  are treated as observer-relative projections of richer selection characteristics, including
+  topology, authority-domain boundaries, latency, cost, capacity, availability, and failure domain.
+  A Component descriptor may publish such characteristics, but self-description remains an
+  attributable claim rather than proof; hosting Actors, guardians, measurements, and attestation
+  may provide independent values. Implementations may still use `local` and `remote` as useful
+  lossy projections for user interfaces, summaries, and coarse policies, without treating them as
+  sources of unstated guarantees. Hot swapping, device replacement, service failover, and
+  data-centre cutover deliberately share one binding model without becoming identical concepts.
+
+- **§22 — Authored qualification made explicit.** Unqualified canonical names are reserved for
+  ratified Atlas concepts. Portable non-standard concepts use
+  `AuthorityPath:ConceptPath` regardless of whether they are compiled statically or loaded
+  dynamically. Authorship is distinguished from occurrence Origin, and Capability grant identity
+  remains distinct from authored semantic definitions.
+
 - **§16.6 — Enrichment recorded as a work-in-progress design direction.** Enrichment is proposed
   as an addition-only composition mechanism that supplies previously absent Shape fragments from
   information already available to the composition. It may copy, project, reshape, combine, or
@@ -3935,7 +4368,7 @@ historical diff between Architectures 0.2 and 0.3.
   conflict resolution, and experimental validation across Fabric and Linen are now tracked
   explicitly.
 
-Architecture 0.4 makes no change to the eight Atlas Base terms and does not ratify Enrichment or
-value propagation. The additions are intentionally marked as work in progress so that static,
-dynamic, embedded, and distributed composition models can be tested before normative semantics are
-chosen.
+Architecture 0.4 makes no change to the eight Atlas Base terms and does not ratify Enrichment,
+value propagation, the Component model, or the proposed Atlas Portable Binding. The additions are
+intentionally marked as work in progress so that static, dynamic, embedded, and distributed
+composition models can be tested before normative semantics are chosen.

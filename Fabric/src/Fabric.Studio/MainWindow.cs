@@ -68,11 +68,11 @@ public sealed class MainWindow : Window
             var result = await EventDistributionScenario.RunAsync();
             return $"Published to {result.Subscriptions.Length} independent observers; replay origin {result.Replay.Interaction.Origin}.";
         }));
-        actions.Children.Add(Button("Pointer Flow", (_, _) =>
+        actions.Children.Add(Button("Pointer Flow", async (_, _) =>
         {
-            var result = PointerFlowScenario.Run();
-            return ValueTask.FromResult(
-                $"Dropped position {result.InitialRead.Gaps.Single().FromPosition}; replayed {result.Replay.Items.Single().SourcePosition} as {result.Replay.Items.Single().Interaction.Origin}.");
+            var result = await PointerFlowScenario.RunAsync();
+            return
+                $"Denied spoofed origin, dropped position {result.InitialRead.Gaps.Single().FromPosition}, and replayed {result.Replay.Items.Single().SourcePosition} as {result.Replay.Items.Single().Interaction.Origin}.";
         }));
         actions.Children.Add(Button("Audit macro", async (_, _) =>
         {

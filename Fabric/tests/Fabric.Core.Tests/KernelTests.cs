@@ -98,6 +98,37 @@ public sealed class KernelTests
             ShapeContract.For(BuiltInShapes.Text)).IsValid, Is.False);
     }
 
+    [Test]
+    public void Scalar_carriers_are_typed_immutable_and_cannot_contain_authority()
+    {
+        ActorReference holder = null!;
+        ActorReference target = null!;
+        Capability capability = null!;
+        var operation = OperationReference.Parse("Example.Authority");
+        _ = AuthorityDomain.Create("scalar-authority", genesis =>
+        {
+            holder = genesis.Actor("Holder");
+            target = genesis.Actor("Target");
+            genesis.Operation(operation, target, ShapeContract.Unit, ShapeContract.Unit, "authority",
+                _ => OperationEffect.SucceededAsync(ShapeValue.Unit));
+            capability = genesis.Grant(holder, target, [operation]);
+        });
+        var registry = ShapeRegistry.CreateWithBuiltIns();
+        var semanticText = ShapeReference.Parse("Example.SemanticText", 1);
+        registry.Register(ShapeDefinition.Scalar<string>(semanticText));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(() => ShapeDefinition.Scalar<Capability>(ShapeReference.Parse("Example.Capability", 1)),
+                Throws.ArgumentException);
+            Assert.That(() => ShapeValue.Scalar(BuiltInShapes.Text, capability), Throws.ArgumentException);
+            Assert.That(() => ShapeValue.Scalar(semanticText, new HashSet<string>()), Throws.ArgumentException);
+            Assert.That(registry.Project(
+                ShapeValue.Scalar(semanticText, 42L),
+                ShapeContract.For(semanticText)).IsValid, Is.False);
+        });
+    }
+
     private sealed class ManualTimeProvider(DateTimeOffset now) : TimeProvider
     {
         private DateTimeOffset _now = now;

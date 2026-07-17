@@ -121,7 +121,56 @@ public sealed class AuthorityDomain
         OriginClass origin = OriginClass.Unverified,
         Capability? originAuthority = null,
         OccurrenceReference? causation = null,
-        TemporalMark? occurredAt = null)
+        TemporalMark? occurredAt = null) =>
+        EmitEventCore(
+            emitter,
+            kind,
+            assertion,
+            origin,
+            originAuthority,
+            causation,
+            occurredAt,
+            authorityAlreadyEvaluated: false);
+
+    internal DomainEvent EmitEventFromAuthorizedExecution(
+        ExecutionRecord execution,
+        ActorReference emitter,
+        EventReference kind,
+        ShapeValue assertion,
+        OriginClass origin,
+        Capability? originAuthority,
+        TemporalMark? occurredAt)
+    {
+        ArgumentNullException.ThrowIfNull(execution);
+        if (origin != OriginClass.Unverified &&
+            (execution.Interaction.Origin != origin ||
+             !ReferenceEquals(execution.Initiator, emitter) ||
+             !ReferenceEquals(execution.AuthorityPresentation.Capability, originAuthority)))
+        {
+            throw new AtlasDenialException(
+                "An Event may inherit asserted origin only from its already-authorised initiating Execution.");
+        }
+
+        return EmitEventCore(
+            emitter,
+            kind,
+            assertion,
+            origin,
+            originAuthority,
+            new OccurrenceReference(execution.Id.Value),
+            occurredAt,
+            authorityAlreadyEvaluated: true);
+    }
+
+    private DomainEvent EmitEventCore(
+        ActorReference emitter,
+        EventReference kind,
+        ShapeValue assertion,
+        OriginClass origin,
+        Capability? originAuthority,
+        OccurrenceReference? causation,
+        TemporalMark? occurredAt,
+        bool authorityAlreadyEvaluated)
     {
         EnsureActor(emitter);
         EventDefinition definition;
@@ -139,7 +188,7 @@ public sealed class AuthorityDomain
             throw new AtlasDenialException($"Event assertion denied: {shape.Message}");
         }
 
-        EnsureOriginAuthority(emitter, origin, originAuthority);
+        EnsureOriginAuthority(emitter, origin, originAuthority, authorityAlreadyEvaluated);
         var emitted = new DomainEvent(
             new InteractionContext(
                 emitter,
@@ -407,6 +456,10 @@ public sealed class AuthorityDomain
         {
             effect = InternalFailure($"Operation handler failed: {exception.Message}");
         }
+        finally
+        {
+            context.Deactivate();
+        }
 
         Outcome outcome;
         if (effect.Succeeded)
@@ -603,7 +656,8 @@ public sealed class AuthorityDomain
     private void EnsureOriginAuthority(
         ActorReference emitter,
         OriginClass origin,
-        Capability? originAuthority)
+        Capability? originAuthority,
+        bool authorityAlreadyEvaluated)
     {
         if (origin == OriginClass.Unverified)
         {
@@ -616,13 +670,55 @@ public sealed class AuthorityDomain
             throw new AtlasDenialException($"Origin {origin} requires a Capability held by the emitter.");
         }
 
-        var grant = originAuthority.EffectiveConstraints().OfType<OriginGrantConstraint>().FirstOrDefault();
-        var allowed = grant is not null &&
-            ((originAuthority.IsPrimordial && origin == grant.GrantedClass) ||
-             (!originAuthority.IsPrimordial && origin == OriginClass.Derived));
+        var constraints = originAuthority.EffectiveConstraints().ToArray();
+        if (constraints.Any(constraint =>
+                constraint.Name == StandardConstraintNames.OriginGrant && constraint is not OriginGrantConstraint))
+        {
+            throw new AtlasDenialException("Origin authority has an invalid origin-grant representation.");
+        }
+
+        var grants = constraints.OfType<OriginGrantConstraint>().ToArray();
+        var allowed = grants.Length > 0 && grants.All(grant =>
+            (originAuthority.IsPrimordial && origin == grant.GrantedClass) ||
+            (!originAuthority.IsPrimordial && origin == OriginClass.Derived));
         if (!allowed)
         {
             throw new AtlasDenialException($"Origin {origin} exceeds the Capability's origin ceiling.");
+        }
+
+        if (authorityAlreadyEvaluated)
+        {
+            return;
+        }
+
+        var trustedNow = TimeProvider?.GetUtcNow();
+        foreach (var constraint in constraints)
+        {
+            switch (constraint)
+            {
+                case OriginGrantConstraint:
+                    break;
+                case WallClockValidityConstraint window when trustedNow is null:
+                    throw new AtlasDenialException(
+                        "Origin authority denied: target has no trusted clock; fail-closed.");
+                case WallClockValidityConstraint window when
+                    (window.NotBefore is not null && trustedNow < window.NotBefore) ||
+                    (window.NotAfter is not null && trustedNow >= window.NotAfter):
+                    throw new AtlasDenialException(
+                        "Origin authority denied: trusted time is outside the validity window.");
+                case WallClockValidityConstraint:
+                    break;
+                case LivenessLeaseConstraint lease when
+                    trustedNow is null || !lease.Lease.IsAlive(trustedNow.Value):
+                    throw new AtlasDenialException(
+                        "Origin authority denied: liveness lease is expired or no trusted clock exists.");
+                case LivenessLeaseConstraint:
+                    break;
+                default:
+                    throw new AtlasDenialException(
+                        $"Origin authority denied: constraint '{constraint.Name}' cannot be evaluated " +
+                        "outside its authorised Execution context; fail-closed.");
+            }
         }
     }
 

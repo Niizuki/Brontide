@@ -28,7 +28,7 @@ public static class WorkedAttackStudioScene
             buildAgent = genesis.Actor("BuildAgent");
             plugin = genesis.Actor("PluginActor");
             target = genesis.Actor("DeploymentTarget");
-            genesis.Shape(ShapeDefinition.Scalar(environment));
+            genesis.Shape(ShapeDefinition.Scalar<string>(environment));
             genesis.Shape(ShapeDefinition.Record(request, FragmentPolicy.Closed,
                 RecordField.Required("deployment", BuiltInShapes.Text),
                 RecordField.Required("environment", environment)));

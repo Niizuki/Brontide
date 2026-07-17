@@ -76,7 +76,8 @@ public sealed class ShapeDefinition
         IEnumerable<RecordField>? fields = null,
         ShapeReference? elementShape = null,
         IEnumerable<KeyValuePair<string, ShapeReference>>? alternatives = null,
-        IEnumerable<FragmentReference>? includedFragments = null)
+        IEnumerable<FragmentReference>? includedFragments = null,
+        Type? scalarRepresentation = null)
     {
         Reference = reference;
         Kind = kind;
@@ -85,6 +86,7 @@ public sealed class ShapeDefinition
         ElementShape = elementShape;
         Alternatives = (alternatives ?? []).ToImmutableDictionary(StringComparer.Ordinal);
         IncludedFragments = (includedFragments ?? []).Distinct().ToImmutableArray();
+        ScalarRepresentation = scalarRepresentation;
     }
 
     public ShapeReference Reference { get; }
@@ -94,9 +96,11 @@ public sealed class ShapeDefinition
     public ShapeReference? ElementShape { get; }
     public ImmutableDictionary<string, ShapeReference> Alternatives { get; }
     public ImmutableArray<FragmentReference> IncludedFragments { get; }
+    internal Type? ScalarRepresentation { get; }
 
     public static ShapeDefinition Unit(ShapeReference reference) => new(reference, ShapeKind.Unit);
-    public static ShapeDefinition Scalar(ShapeReference reference) => new(reference, ShapeKind.Scalar);
+    public static ShapeDefinition Scalar<T>(ShapeReference reference) =>
+        new(reference, ShapeKind.Scalar, scalarRepresentation: ScalarRepresentations.RequireSupported(typeof(T)));
     public static ShapeDefinition Opaque(ShapeReference reference) => new(reference, ShapeKind.Opaque);
     public static ShapeDefinition Sequence(ShapeReference reference, ShapeReference element) =>
         new(reference, ShapeKind.Sequence, elementShape: element);
@@ -118,6 +122,52 @@ public sealed class ShapeDefinition
         IEnumerable<RecordField> fields,
         IEnumerable<FragmentReference> includedFragments) =>
         new(reference, ShapeKind.Record, fragmentPolicy, fields, includedFragments: includedFragments);
+}
+
+internal static class ScalarRepresentations
+{
+    private static readonly ImmutableHashSet<Type> Supported = new[]
+    {
+        typeof(bool),
+        typeof(byte),
+        typeof(sbyte),
+        typeof(short),
+        typeof(ushort),
+        typeof(int),
+        typeof(uint),
+        typeof(long),
+        typeof(ulong),
+        typeof(float),
+        typeof(double),
+        typeof(decimal),
+        typeof(char),
+        typeof(string),
+        typeof(Guid),
+        typeof(DateTime),
+        typeof(DateTimeOffset),
+        typeof(TimeSpan)
+    }.ToImmutableHashSet();
+
+    public static Type RequireSupported(Type representation)
+    {
+        ArgumentNullException.ThrowIfNull(representation);
+        if (!Supported.Contains(representation))
+        {
+            throw new ArgumentException(
+                $"Scalar representation {representation.FullName} is not an approved immutable carrier. " +
+                "Use records, sequences, choices, or opaque bytes for other values.",
+                nameof(representation));
+        }
+
+        return representation;
+    }
+
+    public static object RequireSupportedValue(object? value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        _ = RequireSupported(value.GetType());
+        return value;
+    }
 }
 
 public sealed class DeclaredFragmentDefinition
@@ -161,7 +211,7 @@ public abstract class ShapeValue
     public static ShapeValue Unit { get; } = new UnitShapeValue();
 
     public static ShapeValue Scalar<T>(ShapeReference reference, T value) =>
-        new ScalarShapeValue(reference, value!);
+        new ScalarShapeValue(reference, ScalarRepresentations.RequireSupportedValue(value));
 
     public static ShapeValue Text(string value) => Scalar(BuiltInShapes.Text, value);
     public static ShapeValue Signed64(long value) => Scalar(BuiltInShapes.Signed64, value);
@@ -211,9 +261,12 @@ public sealed class UnitShapeValue : ShapeValue
     internal UnitShapeValue() : base(BuiltInShapes.Unit) { }
 }
 
-public sealed class ScalarShapeValue(ShapeReference reference, object value) : ShapeValue(reference)
+public sealed class ScalarShapeValue : ShapeValue
 {
-    public object Value { get; } = value;
+    internal ScalarShapeValue(ShapeReference reference, object value)
+        : base(reference) => Value = ScalarRepresentations.RequireSupportedValue(value);
+
+    public object Value { get; }
 }
 
 public sealed class RecordShapeValue : ShapeValue
@@ -274,16 +327,16 @@ public sealed class ShapeRegistry
     {
         var registry = new ShapeRegistry();
         registry.Register(ShapeDefinition.Unit(BuiltInShapes.Unit));
-        registry.Register(ShapeDefinition.Scalar(BuiltInShapes.Boolean));
-        registry.Register(ShapeDefinition.Scalar(BuiltInShapes.Signed64));
-        registry.Register(ShapeDefinition.Scalar(BuiltInShapes.Text));
+        registry.Register(ShapeDefinition.Scalar<bool>(BuiltInShapes.Boolean));
+        registry.Register(ShapeDefinition.Scalar<long>(BuiltInShapes.Signed64));
+        registry.Register(ShapeDefinition.Scalar<string>(BuiltInShapes.Text));
         registry.Register(ShapeDefinition.Opaque(BuiltInShapes.Bytes));
         registry.Register(ShapeDefinition.Sequence(BuiltInShapes.OperationSet, BuiltInShapes.Text));
         registry.Register(ShapeDefinition.Record(BuiltInShapes.TimeWindow, FragmentPolicy.Closed,
             RecordField.Optional("not-before", BuiltInShapes.Text),
             RecordField.Optional("not-after", BuiltInShapes.Text)));
-        registry.Register(ShapeDefinition.Scalar(BuiltInShapes.Lease));
-        registry.Register(ShapeDefinition.Scalar(BuiltInShapes.OriginClass));
+        registry.Register(ShapeDefinition.Scalar<string>(BuiltInShapes.Lease));
+        registry.Register(ShapeDefinition.Scalar<string>(BuiltInShapes.OriginClass));
         registry.Register(ShapeDefinition.Record(BuiltInShapes.Details, FragmentPolicy.Closed,
             RecordField.Required("message", BuiltInShapes.Text)));
         registry.Register(ShapeDefinition.Record(BuiltInShapes.Activity, FragmentPolicy.Closed,
@@ -441,9 +494,11 @@ public sealed class ShapeRegistry
             ShapeKind.Unit => value is UnitShapeValue
                 ? Valid(value)
                 : ShapeProjectionResult.Invalid($"{accepted.Canonical} requires unit."),
-            ShapeKind.Scalar => value is ScalarShapeValue
-                ? Valid(new ScalarShapeValue(accepted.Canonical, ((ScalarShapeValue)value).Value))
-                : ShapeProjectionResult.Invalid($"{accepted.Canonical} requires a scalar."),
+            ShapeKind.Scalar => value is ScalarShapeValue scalar &&
+                scalar.Value.GetType() == acceptedDefinition.ScalarRepresentation
+                ? Valid(new ScalarShapeValue(accepted.Canonical, scalar.Value))
+                : ShapeProjectionResult.Invalid(
+                    $"{accepted.Canonical} requires a {acceptedDefinition.ScalarRepresentation?.Name} scalar."),
             ShapeKind.Opaque => value is OpaqueShapeValue opaque
                 ? Valid(new OpaqueShapeValue(accepted.Canonical, opaque.Bytes.ToArray()))
                 : ShapeProjectionResult.Invalid($"{accepted.Canonical} requires opaque data."),
@@ -697,6 +752,10 @@ public sealed class ShapeRegistry
             {
                 throw new ShapeRegistrationException($"Shape {later.Reference} changes explicit Fragment inclusion.");
             }
+        }
+        else if (earlier.Kind == ShapeKind.Scalar && earlier.ScalarRepresentation != later.ScalarRepresentation)
+        {
+            throw new ShapeRegistrationException($"Shape {later.Reference} changes its scalar representation.");
         }
         else if (earlier.ElementShape != later.ElementShape ||
                  !earlier.Alternatives.OrderBy(pair => pair.Key).SequenceEqual(later.Alternatives.OrderBy(pair => pair.Key)))

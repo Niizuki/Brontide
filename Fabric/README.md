@@ -1,12 +1,15 @@
 # Fabric 0.2
 
 Fabric is the .NET 10 / Avalonia implementation and showcase of Atlas Architecture 0.4. The
-solution implements milestones M0 through M9 from `Fabric-Implementation-Plan-0.2.md`.
+solution implements the functional scope of milestones M0 through M9 from
+`Fabric-Implementation-Plan-0.2.md`. Current gate evidence and the one historical limitation are
+recorded in `docs/milestone-evidence.md`.
 
 ## Build and test
 
-The exact SDK is pinned in `global.json`. NuGet versions use Central Package Management in
-`Directory.Packages.props`; warnings are errors solution-wide.
+The stable .NET 10.0.301 SDK and C# 14 are pinned in `global.json` and `Directory.Build.props`.
+NuGet versions use Central Package Management in `Directory.Packages.props`; warnings are errors
+solution-wide.
 
 ```powershell
 dotnet restore .\Fabric.sln
@@ -33,7 +36,7 @@ Fabric Studio opens on the virtual-device board. Its actions expose:
 - the §29.4 secure/weakened attack toggle;
 - the headless Cooling scenario;
 - capability-gated Event Distribution and derived-origin replay;
-- pointer Flow gap detection and replay; and
+- capability-gated pointer Flow opening and Item publication, gap detection, and replay; and
 - an `Audit.Start` macro Operation that creates and later terminally completes an activity.
 
 ## Dependency rule
