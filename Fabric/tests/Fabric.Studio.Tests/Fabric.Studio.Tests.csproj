@@ -18,6 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Fabric.Core\Fabric.Core.csproj" />
+    <ProjectReference Include="..\..\src\Fabric.Experimental.Composition\Fabric.Experimental.Composition.csproj" />
     <ProjectReference Include="..\..\src\Fabric.Studio\Fabric.Studio.csproj" />
   </ItemGroup>
 </Project>

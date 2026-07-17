@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Fabric.Experimental.Composition</AssemblyName>
+    <RootNamespace>Fabric.Experimental.Composition</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fabric.Core\Fabric.Core.csproj" />
+  </ItemGroup>
+</Project>

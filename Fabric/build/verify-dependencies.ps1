@@ -15,7 +15,7 @@ $violations = $references | Where-Object {
     ($_.Project -eq 'Fabric.Core') -or
     ($_.Project -like 'Fabric.Extensions.*' -and $_.Reference -ne 'Fabric.Core') -or
     ($_.Project -like 'Fabric.Vocabularies.*' -and $_.Reference -ne 'Fabric.Core') -or
-    ($_.Project -eq 'Fabric.Experimental.Enrichment' -and $_.Reference -ne 'Fabric.Core')
+    ($_.Project -like 'Fabric.Experimental.*' -and $_.Reference -ne 'Fabric.Core')
 }
 
 if ($violations) {

@@ -16,10 +16,17 @@ repository.
 | M7 | Experimental extension test covers capability-gated publication/observation, fan-out, emitter preservation, and replay | Green provisional-extension evidence |
 | M8 | Experimental extension test covers checked `Flow.Open`, independently authorised Item publication, `Flow.GapDetected`, checked replay, and derived replay origin; §15 conformance covers spoof resistance | Green provisional-extension evidence |
 | M9 | Studio scene plus section-cited Outcome conformance cover delegated `Audit.Start`, activity creation, and later terminal completion | Green |
+| Architecture 0.5 delta | Experimental composition tests cover explicit dependency strength, optional boxed boundaries, non-inferred accelerator eligibility, visible provider substitution, operational observations, vector execution, and fallback | Green experimental evidence; not represented as ratified Component, Binding Plan, system-service, or optimisation semantics |
 
 The M0 test-first requirement is a process gate. Fabric's source and tests originally arrived in one
 commit, so the repository cannot prove that the expected failures were observed before their
 implementations. This limitation is documented rather than represented as reconstructed evidence.
+
+The Architecture 0.5 image workspace supplies Fabric-local evidence only. A real Linen Component
+and cross-machine or cross-authority-domain binding are not present and remain outstanding
+cross-stack evidence. GPU execution is intentionally separate: it is a planned experimental
+sideline project, not a required part of this milestone or a substitute for the current vector
+evidence.
 
 The repeatable current verification is:
 

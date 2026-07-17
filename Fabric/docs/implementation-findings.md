@@ -1,5 +1,30 @@
 # Fabric implementation findings
 
+## Architecture 0.5 composition guardrails and evidence boundary
+
+- **Atlas sections:** 6.12–6.14, 18.2, 30.1, 32.2, 33
+- **Minimal scenario:** the image workspace executes one semantic `Fabric:Image.Invert` Operation
+  first through a small CPU module, adopts execution history, searchable metadata, and shared
+  workspace state independently, replaces its metadata provider, and requests acceleration for a
+  larger workload.
+- **Observed result:** the transformation module has no system-facility dependencies or inferred
+  execution properties. Dependency requirements retain generic-contract, stronger-Profile,
+  system-preference, and provider-specific strength. The vector provider is selected only when it
+  explicitly claims purity, determinism, batchability, and accelerator compatibility. Selection,
+  placement, representation, boundaries, batching, copies, retries, fallback, provider, failure
+  domain, Outcome, and timing are returned as one structured experimental explanation. Opaque boxed
+  Components remain valid descriptors without exposing private dependencies.
+- **Expected result:** Architecture 0.5 requires operational truth and explicit optimisation claims
+  while deliberately leaving the portable Component descriptor, dependency negotiation, execution
+  explanation, and optimisation-property vocabularies open.
+- **Classification:** experimental result
+- **Current disposition:** keep the implementation in `Fabric.Experimental.Composition` and its
+  tests outside normative conformance. The vector path uses `System.Numerics` and is identified as a
+  vector provider, not a GPU. Real Linen interchange and cross-machine/cross-domain binding remain
+  outstanding cross-stack evidence. GPU execution is separately classified as a planned
+  experimental sideline project; its compilation, copy, dispatch, failure, and fallback evidence is
+  neither simulated nor counted against the current showcase.
+
 ## Targeted Enrichment failure attribution
 
 - **Atlas section:** 16.6

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
+using Fabric.Experimental.Composition;
 using Fabric.Extensions.Events;
 using Fabric.Extensions.Flow;
 using Fabric.Studio.Scenes;
@@ -16,7 +17,7 @@ public sealed class MainWindow : Window
 
     public MainWindow()
     {
-        Title = "Fabric Studio 0.2 — authority made visible";
+        Title = "Fabric Studio 0.2 — Atlas 0.5 evidence";
         Width = 1280;
         Height = 780;
         MinWidth = 900;
@@ -78,6 +79,20 @@ public sealed class MainWindow : Window
         {
             var result = await MacroOperationScene.RunAsync();
             return string.Join(Environment.NewLine, result.Transcript);
+        }));
+        actions.Children.Add(Button("Atlas 0.5 image workspace", async (_, _) =>
+        {
+            var result = await ImageWorkspaceShowcase.RunAsync();
+            var stageFour = result.StageFour.Explanation.Provider;
+            return string.Join(
+                Environment.NewLine,
+                $"Stage 1: {result.StageOne.Explanation.Provider.SelectedComponent.Name} ({result.StageOne.Explanation.Provider.Placement})",
+                $"Stage 2: {string.Join(", ", result.StageTwoAdoptions.Select(adoption => adoption.Resolution.Facility!.Component))}",
+                $"Stage 3: {result.StageThreeSubstitution.Previous.Provider} → {result.StageThreeSubstitution.Replacement.Provider}",
+                $"Stage 4: {stageFour.SelectedComponent.Name} ({stageFour.Placement}); batch={stageFour.BatchSize}; copies={stageFour.Copies}",
+                $"Boundary: {string.Join(", ", stageFour.CrossedBoundaries)}",
+                $"Outstanding cross-stack evidence: {string.Join("; ", result.OutstandingCrossStackEvidence)}",
+                $"Experimental sideline projects: {string.Join("; ", result.ExperimentalSidelineProjects)}");
         }));
 
         var grid = new Grid
