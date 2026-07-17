@@ -22,4 +22,19 @@ if ($violations) {
     $violations | Format-Table | Out-String | Write-Error
 }
 
+$foreignReferences = $projects | Where-Object {
+    (Get-Content -Raw -LiteralPath $_.FullName) -match '(?i)Linen[.\\/]'
+}
+
+if ($foreignReferences) {
+    $foreignReferences.FullName | Out-String | Write-Error
+}
+
+$foreignAssemblies = Get-ChildItem -Path "$PSScriptRoot\.." -Recurse -File -Filter 'Linen*.dll' |
+    Where-Object { $_.FullName -match '[\\/]bin[\\/]' }
+
+if ($foreignAssemblies) {
+    $foreignAssemblies.FullName | Out-String | Write-Error
+}
+
 Write-Host "Fabric project dependency direction is valid ($($references.Count) project references checked)."

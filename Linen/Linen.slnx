@@ -9,6 +9,7 @@
     <Project Path="src/Linen.Vocabularies.Cooling/Linen.Vocabularies.Cooling.fsproj" />
     <Project Path="src/Linen.Vocabularies.Imaging/Linen.Vocabularies.Imaging.fsproj" />
     <Project Path="src/Linen.Binding/Linen.Binding.fsproj" />
+    <Project Path="src/Linen.Interchange.Provider/Linen.Interchange.Provider.fsproj" />
     <Project Path="src/Linen.Host/Linen.Host.fsproj" />
   </Folder>
   <Folder Name="/tests/">

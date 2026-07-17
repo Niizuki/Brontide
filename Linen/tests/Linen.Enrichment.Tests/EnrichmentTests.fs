@@ -72,3 +72,62 @@ type EnrichmentTests() =
             Assert.That(fields["name"], Is.EqualTo(TextValue "base"))
             Assert.That(fragments.ContainsKey fragment, Is.True)
         | _ -> Assert.Fail "Enrichment changed the base value kind."
+
+    [<Test>]
+    member _.``pointer temperature Enrichment is targeted local additive and route free`` () =
+        let pointerMove: OperationReference =
+            { Name = name "input.pointer.move"
+              Version = 1 }
+
+        let thermalContext: FragmentReference =
+            { Name = name "experiment.thermal-context"
+              Version = 1 }
+
+        let declaration: TargetedEnrichmentDeclaration =
+            { Name = name "linen.enrichment.thermal-from-telemetry"
+              Target = pointerMove
+              Fragment = thermalContext
+              RequiredSources = Set.singleton "telemetry"
+              Derive =
+                fun values ->
+                    match values["telemetry"] with
+                    | RecordValue(fields, _) ->
+                        match Map.tryFind "temperature" fields with
+                        | Some temperature ->
+                            Ok(RecordValue(Map.ofList [ "temperature", temperature ], Map.empty))
+                        | None -> Error "Telemetry has no temperature."
+                    | _ -> Error "Telemetry must be a record." }
+
+        let pointerInput =
+            RecordValue(
+                Map.ofList [ "x", IntegerValue 10L; "y", IntegerValue 20L ],
+                Map.empty
+            )
+
+        let telemetry =
+            { Key = "telemetry"
+              Value = RecordValue(Map.ofList [ "temperature", IntegerValue 31L ], Map.empty)
+              Provenance = "result of explicit DeviceTelemetry.Read Execution" }
+
+        let resolved =
+            TargetedEnrichment.resolve pointerMove thermalContext declaration [ telemetry ] pointerInput
+            |> Result.defaultWith failwith
+
+        match resolved.Input with
+        | RecordValue(fields, fragments) ->
+            Assert.That(fields["x"], Is.EqualTo(IntegerValue 10L))
+            Assert.That(fragments.ContainsKey thermalContext, Is.True)
+            Assert.That(resolved.Sources["telemetry"], Does.StartWith "result of explicit")
+        | _ -> Assert.Fail "Enrichment changed the pointer value kind."
+
+        Assert.That(
+            TargetedEnrichment.resolve pointerMove thermalContext declaration [] pointerInput
+            |> Result.isError,
+            Is.True
+        )
+
+        Assert.That(
+            typeof<TargetedEnrichmentDeclaration>.GetProperties()
+            |> Seq.exists (fun property -> property.Name.Contains "Route"),
+            Is.False
+        )

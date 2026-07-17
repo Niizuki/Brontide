@@ -5,8 +5,11 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Linen.Model\Linen.Model.fsproj" />
+    <ProjectReference Include="..\Linen.Kernel\Linen.Kernel.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Binding.fs" />
+    <Compile Include="PortableBinding.fs" />
+    <Compile Include="CoolingBindingHost.fs" />
   </ItemGroup>
 </Project>

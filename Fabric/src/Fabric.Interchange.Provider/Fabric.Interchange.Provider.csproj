@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Fabric.Interchange.Provider</AssemblyName>
+    <RootNamespace>Fabric.Interchange.Provider</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fabric.Experimental.Binding\Fabric.Experimental.Binding.csproj" />
+    <ProjectReference Include="..\Fabric.Vocabularies.Cooling\Fabric.Vocabularies.Cooling.csproj" />
+  </ItemGroup>
+</Project>

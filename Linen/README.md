@@ -5,6 +5,11 @@ Fabric, but does not reference Fabric assemblies or reuse Fabric CLR types. The 
 are meant to support, challenge, and eventually substitute for one another through the explicit
 external binding seam.
 
+The current repository-wide programme is
+[`Atlas-Interchange-Implementation-Plan-0.1.md`](../Atlas-Interchange-Implementation-Plan-0.1.md).
+Its first proof is implemented: Fabric-hosts-Linen and Linen-hosts-Fabric Cooling both execute
+across real process boundaries under the same neutral contract and acceptance matrix.
+
 The implementation currently provides:
 
 - an immutable `World` and pure `World.step` authority kernel;
@@ -15,6 +20,8 @@ The implementation currently provides:
 - deterministic CPU imaging, boxed application boundaries, provider opposition and selection
   explanations, and visible optimisation eligibility;
 - a tagged JSON ShapeValue codec and versioned external manifest negotiation;
+- an independently implemented version-2 portable-binding experiment, host adapter, and provider
+  endpoint with structured operational observations;
 - a headless host and five F# test assemblies.
 
 There is deliberately no `global.json`. Linen targets .NET 10 and uses the SDK selected by the
@@ -31,5 +38,15 @@ dotnet run --project .\src\Linen.Host\Linen.Host.fsproj -nologo
 .\build\verify-boundaries.ps1
 ```
 
-See `docs/milestone-evidence.md` for the implemented boundary and the work intentionally deferred
-until the Fabric/Linen entanglement experiment.
+The ordinary solution test run executes fixture and boundary tests and skips the foreign-process
+cases unless `ATLAS_FABRIC_PROVIDER` names a built endpoint. Run the complete two-way clean gate,
+including both real foreign processes, from the repository root:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build\verify-interchange.ps1
+```
+
+See [`docs/integration-guide.md`](./docs/integration-guide.md) for the binding quick reference.
+
+See `docs/milestone-evidence.md` for the implemented first boundary and the Event/Flow, Macro
+Operation, mixed-image-workspace, machine, and authority-federation work intentionally deferred.

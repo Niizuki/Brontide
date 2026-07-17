@@ -8,6 +8,11 @@
 **First proof:** two-way Cooling component interchange with Fabric
 **Decisive proof:** a mixed Fabric/Linen image workspace with visible composition boundaries
 
+**Current execution note:** Linen's native foundations through M9 are recorded in
+`Linen/docs/milestone-evidence.md`. Cross-stack M5/M6 execution is now governed by
+`Atlas-Interchange-Implementation-Plan-0.1.md`; §9 below is retained as the historical bootstrap
+sequence for the Linen implementation.
+
 ---
 
 ## 1. Stance
@@ -461,6 +466,10 @@ evidence that the repository cannot reproduce.
   a vector loop. GPU execution remains an experimental sideline and is not a Linen milestone.
 
 ## 9. Immediate next actions
+
+These were the immediate actions at the start of Linen 0.2. They are retained as plan history and
+must not be read as the repository's current next-work list. The active cross-stack sequence is in
+`Atlas-Interchange-Implementation-Plan-0.1.md`.
 
 1. Create `Linen/Linen.slnx` and the M0 F# projects only. Do not add `global.json`; target .NET 10
    through project configuration and verify normal installed-SDK resolution.

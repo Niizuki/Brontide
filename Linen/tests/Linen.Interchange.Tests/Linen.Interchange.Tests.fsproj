@@ -11,8 +11,15 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Linen.Model\Linen.Model.fsproj" />
+    <ProjectReference Include="..\..\src\Linen.Kernel\Linen.Kernel.fsproj" />
     <ProjectReference Include="..\..\src\Linen.Binding\Linen.Binding.fsproj" />
+    <ProjectReference Include="..\..\src\Linen.Experimental.Enrichment\Linen.Experimental.Enrichment.fsproj" />
     <ProjectReference Include="..\..\src\Linen.Vocabularies.Cooling\Linen.Vocabularies.Cooling.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\interchange\**\*"
+          Link="interchange\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="InterchangeTests.fs" />

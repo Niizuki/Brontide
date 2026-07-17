@@ -29,4 +29,19 @@ public sealed class CoolingConformanceTests
                 Is.EqualTo(4));
         });
     }
+
+    [Test]
+    public async Task Binary_component_maps_enabled_state_to_native_fan_operations()
+    {
+        var component = BinaryCoolingComponent.Create();
+
+        var enabled = await component.SetEnabledAsync(true);
+        var disabled = await component.SetEnabledAsync(false);
+
+        Assert.That(enabled.Outcome.Status, Is.EqualTo(OutcomeStatus.Succeeded));
+        Assert.That(disabled.Outcome.Status, Is.EqualTo(OutcomeStatus.Succeeded));
+        Assert.That(component.CoolingEnabled, Is.False);
+        Assert.That(component.Revision, Is.EqualTo(2));
+        Assert.That(component.EffectCount, Is.EqualTo(2));
+    }
 }

@@ -193,3 +193,67 @@ public static class CoolingScenario
             transcript.ToImmutable());
     }
 }
+
+/// <summary>
+/// A small public binary Cooling component used by external hosts. It maps the binary contract to
+/// the native Fan.SetSpeed/Fan.Stop Operations without exposing the private plant representation.
+/// </summary>
+public sealed class BinaryCoolingComponent
+{
+    private readonly CoolingPlant _plant;
+
+    private BinaryCoolingComponent(
+        AuthorityDomain domain,
+        ActorReference actor,
+        Capability capability,
+        CoolingPlant plant)
+    {
+        Domain = domain;
+        Actor = actor;
+        Capability = capability;
+        _plant = plant;
+    }
+
+    public AuthorityDomain Domain { get; }
+    public ActorReference Actor { get; }
+    public Capability Capability { get; }
+    public bool CoolingEnabled => _plant.FanSpeed > 0;
+    public long Revision { get; private set; }
+    public int EffectCount => _plant.EffectCount;
+
+    public static BinaryCoolingComponent Create(long temperature = 20)
+    {
+        ActorReference actor = null!;
+        ActorReference target = null!;
+        Capability capability = null!;
+        var plant = new CoolingPlant(temperature);
+        var domain = AuthorityDomain.Create("Binary Cooling component", genesis =>
+        {
+            actor = genesis.Actor("BinaryCoolingController");
+            target = genesis.Actor("BinaryCoolingPlant");
+            CoolingVocabulary.Register(genesis, target, plant);
+            capability = genesis.Grant(
+                actor,
+                target,
+                [CoolingVocabulary.FanSetSpeed, CoolingVocabulary.FanStop]);
+        });
+        return new BinaryCoolingComponent(domain, actor, capability, plant);
+    }
+
+    public async ValueTask<ExecutionResult> SetEnabledAsync(bool enabled)
+    {
+        var result = await Domain.ExecuteAsync(
+            Actor,
+            enabled ? CoolingVocabulary.FanSetSpeed : CoolingVocabulary.FanStop,
+            Capability,
+            enabled
+                ? ShapeValue.Scalar(CoolingVocabulary.FanSpeedShape, 100L)
+                : ShapeValue.Unit).ConfigureAwait(false);
+        if (result.Outcome.Status == OutcomeStatus.Succeeded)
+        {
+            Revision++;
+        }
+
+        return result;
+    }
+}

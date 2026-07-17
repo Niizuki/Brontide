@@ -311,7 +311,33 @@ module World =
                 | _ -> Ok()
             | _ -> Error "The value does not match the declared shape."
 
-    let projectRecord (target: ShapeReference) (value: ShapeValue) (world: World) =
+    let validateContract
+        (target: ShapeReference)
+        (requiredFragments: Set<FragmentReference>)
+        (value: ShapeValue)
+        (world: World)
+        =
+        match validateValue target value world, value with
+        | Error message, _ -> Error message
+        | Ok(), RecordValue(_, fragments) ->
+            let missing =
+                requiredFragments
+                |> Seq.tryFind (fun reference -> not (Map.containsKey reference fragments))
+
+            match missing with
+            | Some reference ->
+                Error
+                    $"The required fragment {CanonicalName.value reference.Name}@{reference.Version} is missing."
+            | None -> Ok()
+        | Ok(), _ when Set.isEmpty requiredFragments -> Ok()
+        | Ok(), _ -> Error "Only record Shapes can require authored fragments."
+
+    let projectRecordWithFragments
+        (target: ShapeReference)
+        (requiredFragments: Set<FragmentReference>)
+        (value: ShapeValue)
+        (world: World)
+        =
         match Map.tryFind target world.Shapes, value with
         | Some definition, RecordValue(fields, fragments) ->
             match definition.Body with
@@ -325,15 +351,19 @@ module World =
                 let projectedFragments =
                     fragments
                     |> Map.filter (fun reference _ ->
-                        definition.IsOpenToFragments
-                        || Set.contains reference definition.AcceptedFragments)
+                        Set.contains reference definition.AcceptedFragments
+                        || Set.contains reference requiredFragments)
 
                 let projected = RecordValue(projectedFields, projectedFragments)
 
-                validateValue target projected world |> Result.map (fun () -> projected)
+                validateContract target requiredFragments projected world
+                |> Result.map (fun () -> projected)
             | _ -> Error "The projection target is not a record shape."
         | None, _ -> Error "The projection target is unknown."
         | _, _ -> Error "Only record values can be projected."
+
+    let projectRecord (target: ShapeReference) (value: ShapeValue) (world: World) =
+        projectRecordWithFragments target Set.empty value world
 
     let private allocateExecution (world: World) =
         ({ Scope = world.Scope

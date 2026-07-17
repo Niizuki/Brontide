@@ -7,6 +7,12 @@ solution retains the functional scope of milestones M0 through M9 from the Archi
 the one historical limitation are recorded in `docs/milestone-evidence.md`,
 `docs/implementation-findings.md`, and `docs/experimental-and-sideline-projects.md`.
 
+The current repository-wide programme is
+[`Atlas-Interchange-Implementation-Plan-0.1.md`](../Atlas-Interchange-Implementation-Plan-0.1.md).
+Fabric now owns an independently implemented experimental host adapter and provider endpoint for
+the process-isolated Cooling proof. The retained tests execute a real Linen provider process; no
+Fabric project references Linen assemblies or private types.
+
 Architecture 0.5 does not change Atlas Base and does not ratify Component descriptors, system
 service discovery, execution explanation, or optimisation-property vocabularies. Their Fabric
 realisations therefore live in `Fabric.Experimental.Composition`, not `Fabric.Core` or normative
@@ -25,6 +31,16 @@ dotnet build .\Fabric.sln --no-restore
 dotnet test .\Fabric.sln --no-build
 .\build\verify-dependencies.ps1
 ```
+
+The ordinary solution test run executes fixture and boundary tests and skips the foreign-process
+cases unless `ATLAS_LINEN_PROVIDER` names a built endpoint. Run the complete two-way clean gate,
+including both real foreign processes, from the repository root:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build\verify-interchange.ps1
+```
+
+See [`docs/integration-guide.md`](./docs/integration-guide.md) for the binding quick reference.
 
 Tests use NUnit 4, the NUnit adapter and analyzers, plus NSubstitute for collaboration boundaries.
 The Enrichment and Architecture 0.5 composition tests are marked `Experimental` and are deliberately
@@ -62,4 +78,6 @@ Fabric Studio opens on the virtual-device board. Its actions expose:
 
 `Fabric.Core` has no project dependency. Extensions, vocabularies, and experimental projects
 reference only Core. Studio composes all projects and is referenced only by its test project. The
-dependency verification script checks the mechanically enforceable part of this rule.
+experimental provider endpoint composes vocabulary and binding projects without becoming Studio.
+The dependency verifier also rejects Linen project references and foreign Linen assemblies in
+Fabric outputs.

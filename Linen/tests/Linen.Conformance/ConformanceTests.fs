@@ -158,6 +158,91 @@ type BaseConformance() =
         Assert.That(World.registerShape (definition v1 []) withV2 |> Result.isError, Is.True)
 
     [<Test>]
+    member _.``open Velocity accepts and canonically projects an authored DirectionalVelocity Fragment`` () =
+        let world = World.create(Guid.Parse "718b889d-7723-4cb7-a7a3-b8d777242530")
+
+        let velocity: ShapeReference =
+            { Name = name "Velocity"
+              Version = 1 }
+
+        let direction: ShapeReference =
+            { Name = name "Bob.Direction"
+              Version = 1 }
+
+        let fragmentShape: ShapeReference =
+            { Name = name "Bob.DirectionalVelocity.Fields"
+              Version = 1 }
+
+        let directional: FragmentReference =
+            { Name = name "Bob.DirectionalVelocity"
+              Version = 1 }
+
+        let velocityDefinition: ShapeDefinition =
+            { Reference = velocity
+              Description = "Open velocity Shape"
+              Body =
+                RecordShape
+                    [ { Name = "speed"
+                        Shape = BuiltIn.integerShape
+                        Required = true } ]
+              AcceptedFragments = Set.empty
+              IsOpenToFragments = true }
+
+        let directionDefinition: ShapeDefinition =
+            { Reference = direction
+              Description = "Direction"
+              Body = ScalarShape Text
+              AcceptedFragments = Set.empty
+              IsOpenToFragments = false }
+
+        let fragmentShapeDefinition: ShapeDefinition =
+            { Reference = fragmentShape
+              Description = "Directional fields"
+              Body =
+                RecordShape
+                    [ { Name = "direction"
+                        Shape = direction
+                        Required = true } ]
+              AcceptedFragments = Set.empty
+              IsOpenToFragments = false }
+
+        let withVelocity = World.registerShape velocityDefinition world |> get
+        let withDirection = World.registerShape directionDefinition withVelocity |> get
+        let withFragmentShape = World.registerShape fragmentShapeDefinition withDirection |> get
+
+        let ready =
+            World.registerFragment
+                { Reference = directional
+                  Description = "Bob's authored velocity direction"
+                  Shape = fragmentShape }
+                withFragmentShape
+            |> get
+
+        let composed =
+            RecordValue(
+                Map.ofList [ "speed", IntegerValue 12L ],
+                Map.ofList
+                    [ directional,
+                      RecordValue(Map.ofList [ "direction", TextValue "north" ], Map.empty) ]
+            )
+
+        let canonical = World.projectRecord velocity composed ready |> get
+        let required =
+            World.projectRecordWithFragments velocity (Set.singleton directional) composed ready
+            |> get
+
+        let baseOnly = RecordValue(Map.ofList [ "speed", IntegerValue 12L ], Map.empty)
+
+        Assert.That(World.validateValue velocity composed ready |> Result.isOk, Is.True)
+        Assert.That(canonical, Is.EqualTo(RecordValue(Map.ofList [ "speed", IntegerValue 12L ], Map.empty)))
+        Assert.That(required, Is.EqualTo composed)
+        Assert.That(
+            World.validateContract velocity (Set.singleton directional) baseOnly ready
+            |> Result.isError,
+            Is.True
+        )
+
+    [<Test>]
     member _.``delegated capabilities cannot broaden authority`` () =
         let _, world = prepareWorld ()
 

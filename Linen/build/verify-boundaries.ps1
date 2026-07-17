@@ -14,6 +14,7 @@ $expectedProjects = @(
     'Linen.Vocabularies.Cooling',
     'Linen.Vocabularies.Imaging',
     'Linen.Binding',
+    'Linen.Interchange.Provider',
     'Linen.Host',
     'Linen.Conformance',
     'Linen.Enrichment.Tests',
@@ -65,6 +66,15 @@ if ($kernelReferences.Count -ne 1 -or $kernelContent -notmatch 'Linen[.]Model') 
 
 if ($modelContent -match 'Experimental' -or $kernelContent -match 'Experimental') {
     $failures.Add('Experimental projects must not flow into Linen.Model or Linen.Kernel.')
+}
+
+$foreignAssemblies = Get-ChildItem -Path $linenRoot -Recurse -File -Filter 'Fabric*.dll' |
+    Where-Object { $_.FullName -match '[\\/]bin[\\/]' }
+
+if ($foreignAssemblies) {
+    $foreignAssemblies | ForEach-Object {
+        $failures.Add("Linen output contains foreign Fabric assembly '$($_.FullName)'.")
+    }
 }
 
 if ($failures.Count -gt 0) {

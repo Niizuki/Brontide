@@ -8,6 +8,11 @@
 **First showcase:** the virtual device board
 **Execution model:** milestone-by-milestone delegation to Codex
 
+**Current execution note:** Fabric 0.2 and its isolated Architecture 0.5 composition evidence are
+recorded in `docs/milestone-evidence.md`. The next Fabric work is the Fabric-owned half of
+`../Atlas-Interchange-Implementation-Plan-0.1.md`; this plan remains the historical source for the
+completed Fabric milestone semantics.
+
 ---
 
 ## 1. Stance

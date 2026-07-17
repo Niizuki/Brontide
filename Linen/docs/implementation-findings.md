@@ -18,6 +18,29 @@ The binding package uses a versioned manifest and a tagged JSON `ShapeValue` cod
 reference Fabric, load another implementation's assemblies, exchange `System.Type`, or treat an
 exception as a portable Outcome. This gives the later entanglement experiment a falsifiable seam.
 
+The version-2 experiment has now crossed real process boundaries in both directions. Host authority
+remains in `World.step`; request, Execution, and occurrence ids are distinct binding-scoped types;
+and the provider receives no Capability. Exact manifest negotiation, required Fragment checks,
+semantic failure details, optional Fragment forwarding, and provider-process failure all remain
+visible without a shared runtime assembly.
+
+## Canonical projection must not retain unsupported authored Fragments
+
+The Velocity/DirectionalVelocity conformance case exposed that Linen's canonical record projection
+was retaining every registered Fragment merely because the Shape was open. Openness permits valid
+input; it does not claim understanding. `World.projectRecord` now removes unsupported Fragments,
+while `projectRecordWithFragments` retains explicitly required Fragments and the portable binding
+keeps the original complete value separately when it claims transparent forwarding.
+
+## First interchange is evidence, not ratification
+
+The same Cooling matrix passes with Fabric hosting Linen and Linen hosting Fabric. The neutral
+binary contract maps natively to Linen `SetCoolingEnabled`; Fabric declares its binary-to-fan
+Adapter separately. No information promised by the neutral contract is lost, but Linen's target
+and measured temperature fields are deliberately outside the output projection. This supports the
+Component/Shape/authority model while leaving the descriptor vocabulary, universal observation,
+machine transport, Capability federation, Event/Flow recovery, bulk resources, and hot-swap open.
+
 ## Composition must preserve support and opposition
 
 Provider preferences and opposition are distinct inputs. An opposed provider is rejected visibly;

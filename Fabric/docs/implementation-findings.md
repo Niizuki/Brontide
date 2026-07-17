@@ -23,7 +23,29 @@
   vector provider, not a GPU. Real Linen interchange and cross-machine/cross-domain binding remain
   outstanding cross-stack evidence. GPU execution is separately classified as a planned
   experimental sideline project; its compilation, copy, dispatch, failure, and fallback evidence is
-  neither simulated nor counted against the current showcase.
+  neither simulated nor counted against the current showcase. Cooling interchange is now real
+  cross-stack evidence, but the mixed image workspace and machine boundary remain outstanding.
+
+## First portable-binding experiment separates authority from invocation
+
+- **Atlas sections:** 16, 18.1-18.2, 30, 33
+- **Minimal scenario:** Fabric hosts a Linen Cooling provider and Linen hosts a Fabric Cooling
+  provider through protocol-versioned JSON lines while a denied host request, unknown Constraint,
+  missing required Fragment, semantic failure, and provider crash are exercised.
+- **Observed result:** exact contract negotiation and host authority can remain entirely native.
+  The provider needs accepted shaped input plus binding-scoped identifiers, not a serialized
+  Capability. Optional authored data can be ignored by the semantic provider yet preserved by the
+  binding. Provider selection, copies, boundary, authority point, mapping/Adapter obligations,
+  interruption, retry, fallback, failure domain, Outcome, and explicit clock time fit one
+  inspectable experimental observation in both stacks.
+- **Expected result:** Architecture 0.5 asks interchange to discover the minimum portable seam
+  without allowing either implementation's private model to become Atlas.
+- **Classification:** experimental cross-stack result
+- **Current disposition:** retain protocol version 2, its descriptor, and observation types in
+  experimental binding projects. The Fabric binary-to-fan mapping is an explicit semantic Adapter;
+  it loses no information promised by the neutral binary contract. Propose no Architecture 0.6
+  ratification yet: Event/Flow, bulk resources, a machine boundary, and a third implementation are
+  still absent.
 
 ## Targeted Enrichment failure attribution
 

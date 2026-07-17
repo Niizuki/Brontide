@@ -1,0 +1,79 @@
+{
+  "protocolVersion": 2,
+  "component": { "name": "interchange.tests.cooling-component", "version": 1 },
+  "provider": { "name": "interchange.tests.fixture-provider", "version": 1 },
+  "operations": [
+    {
+      "reference": { "name": "interchange.tests.cooling.set-enabled", "version": 1 },
+      "inputShape": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "outputShape": { "name": "interchange.tests.cooling.result", "version": 1 },
+      "requiredFragments": [
+        { "name": "interchange.tests.cooling.host-context", "version": 1 }
+      ],
+      "authority": {
+        "hostDecisionRequired": true,
+        "constraintPolicy": "fail-closed"
+      }
+    }
+  ],
+  "shapes": [
+    {
+      "reference": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "open",
+      "fields": [
+        { "name": "loop", "shape": { "name": "Text", "version": 1 }, "required": true },
+        { "name": "enabled", "shape": { "name": "Boolean", "version": 1 }, "required": true },
+        { "name": "failureMode", "shape": { "name": "Text", "version": 1 }, "required": false }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.cooling.result", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "fields": [
+        { "name": "loop", "shape": { "name": "Text", "version": 1 }, "required": true },
+        { "name": "coolingEnabled", "shape": { "name": "Boolean", "version": 1 }, "required": true },
+        { "name": "revision", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
+        { "name": "providerEffectCount", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.cooling.details", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "fields": [
+        { "name": "code", "shape": { "name": "Text", "version": 1 }, "required": true },
+        { "name": "message", "shape": { "name": "Text", "version": 1 }, "required": true }
+      ]
+    }
+  ],
+  "fragments": [
+    {
+      "reference": { "name": "interchange.tests.cooling.host-context", "version": 1 },
+      "hostShape": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "fields": [
+        { "name": "requesterLabel", "shape": { "name": "Text", "version": 1 }, "required": true }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "kind": "profile",
+      "reference": { "name": "interchange.tests.cooling-profile", "version": 1 },
+      "strength": "required",
+      "providerSpecific": false
+    },
+    {
+      "kind": "binding",
+      "reference": { "name": "interchange.tests.inline-tagged-json", "version": 1 },
+      "strength": "required",
+      "providerSpecific": true
+    }
+  ],
+  "binding": {
+    "representations": ["inline-tagged-json"],
+    "crossedBoundaries": ["process"],
+    "limitations": ["single-invocation", "no-capability-transfer", "no-referenced-resources"]
+  }
+}
