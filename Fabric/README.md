@@ -7,7 +7,8 @@ recorded in `docs/milestone-evidence.md`.
 
 ## Build and test
 
-The stable .NET 10.0.301 SDK and C# 14 are pinned in `global.json` and `Directory.Build.props`.
+The SDK policy in `global.json` accepts stable .NET 10 feature bands from 10.0.100 onward, while
+`Directory.Build.props` selects C# 14.
 NuGet versions use Central Package Management in `Directory.Packages.props`; warnings are errors
 solution-wide.
 
