@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Linen.Model/Linen.Model.fsproj" />
+    <Project Path="src/Linen.Kernel/Linen.Kernel.fsproj" />
+    <Project Path="src/Linen.Extensions.Events/Linen.Extensions.Events.fsproj" />
+    <Project Path="src/Linen.Extensions.Flow/Linen.Extensions.Flow.fsproj" />
+    <Project Path="src/Linen.Experimental.Enrichment/Linen.Experimental.Enrichment.fsproj" />
+    <Project Path="src/Linen.Experimental.Composition/Linen.Experimental.Composition.fsproj" />
+    <Project Path="src/Linen.Vocabularies.Cooling/Linen.Vocabularies.Cooling.fsproj" />
+    <Project Path="src/Linen.Vocabularies.Imaging/Linen.Vocabularies.Imaging.fsproj" />
+    <Project Path="src/Linen.Binding/Linen.Binding.fsproj" />
+    <Project Path="src/Linen.Host/Linen.Host.fsproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Linen.Conformance/Linen.Conformance.fsproj" />
+    <Project Path="tests/Linen.Enrichment.Tests/Linen.Enrichment.Tests.fsproj" />
+    <Project Path="tests/Linen.Composition.Tests/Linen.Composition.Tests.fsproj" />
+    <Project Path="tests/Linen.Kernel.Tests/Linen.Kernel.Tests.fsproj" />
+    <Project Path="tests/Linen.Interchange.Tests/Linen.Interchange.Tests.fsproj" />
+  </Folder>
+</Solution>

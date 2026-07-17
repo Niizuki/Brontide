@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Linen.Experimental.Enrichment</AssemblyName>
+    <RootNamespace>Linen.Experimental.Enrichment</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Linen.Model\Linen.Model.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Enrichment.fs" />
+  </ItemGroup>
+</Project>

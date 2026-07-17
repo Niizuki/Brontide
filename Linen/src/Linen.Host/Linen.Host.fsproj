@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Linen.Host</AssemblyName>
+    <RootNamespace>Linen.Host</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Linen.Model\Linen.Model.fsproj" />
+    <ProjectReference Include="..\Linen.Kernel\Linen.Kernel.fsproj" />
+    <ProjectReference Include="..\Linen.Extensions.Events\Linen.Extensions.Events.fsproj" />
+    <ProjectReference Include="..\Linen.Extensions.Flow\Linen.Extensions.Flow.fsproj" />
+    <ProjectReference Include="..\Linen.Experimental.Enrichment\Linen.Experimental.Enrichment.fsproj" />
+    <ProjectReference Include="..\Linen.Experimental.Composition\Linen.Experimental.Composition.fsproj" />
+    <ProjectReference Include="..\Linen.Vocabularies.Cooling\Linen.Vocabularies.Cooling.fsproj" />
+    <ProjectReference Include="..\Linen.Vocabularies.Imaging\Linen.Vocabularies.Imaging.fsproj" />
+    <ProjectReference Include="..\Linen.Binding\Linen.Binding.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+</Project>

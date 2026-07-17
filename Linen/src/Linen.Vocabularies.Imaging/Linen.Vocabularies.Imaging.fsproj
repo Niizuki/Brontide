@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Linen.Vocabularies.Imaging</AssemblyName>
+    <RootNamespace>Linen.Vocabularies.Imaging</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Linen.Model\Linen.Model.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Imaging.fs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Linen.Extensions.Flow</AssemblyName>
+    <RootNamespace>Linen.Extensions.Flow</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Linen.Model\Linen.Model.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Flow.fs" />
+  </ItemGroup>
+</Project>
