@@ -21,6 +21,7 @@ $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $requestPath = Join-Path $repositoryRoot 'conformance\reviews\review-request.json'
+. (Join-Path $PSScriptRoot 'independent-review-common.ps1')
 
 function Read-JsonFile {
     param([Parameter(Mandatory = $true)][string]$Path)
@@ -43,8 +44,8 @@ $stackRequest = $stackRequest[0]
 
 $requirementsPath = Get-RepositoryPath ([string]$request.requirements.path)
 $matrixPath = Get-RepositoryPath ([string]$stackRequest.matrixPath)
-$requirementsHash = (Get-FileHash -LiteralPath $requirementsPath -Algorithm SHA256).Hash
-$matrixHash = (Get-FileHash -LiteralPath $matrixPath -Algorithm SHA256).Hash
+$requirementsHash = Get-CanonicalTextHash $requirementsPath
+$matrixHash = Get-CanonicalTextHash $matrixPath
 if ($requirementsHash -ne $request.requirements.sha256) {
     throw 'The requirement vocabulary no longer matches the pinned review request.'
 }

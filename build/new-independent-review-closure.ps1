@@ -9,6 +9,7 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $requestPath = Join-Path $repositoryRoot 'conformance\reviews\review-request.json'
 $request = Get-Content -Raw -LiteralPath $requestPath -Encoding UTF8 | ConvertFrom-Json
+. (Join-Path $PSScriptRoot 'independent-review-common.ps1')
 
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'verify-independent-review.ps1')
 if ($LASTEXITCODE -ne 0) {
@@ -30,7 +31,7 @@ foreach ($stackRequest in @($request.stacks)) {
     $attestations += [ordered]@{
         stack = [string]$stackRequest.stack
         path = [string]$stackRequest.attestationPath
-        sha256 = (Get-FileHash -LiteralPath $attestationPath -Algorithm SHA256).Hash
+        sha256 = Get-CanonicalTextHash $attestationPath
     }
 }
 

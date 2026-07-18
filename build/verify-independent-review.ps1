@@ -12,6 +12,7 @@ $pending = [System.Collections.Generic.List[string]]::new()
 $passingReviews = @{}
 $reviewers = @{}
 $closureComplete = $false
+. (Join-Path $PSScriptRoot 'independent-review-common.ps1')
 
 function Read-JsonFile {
     param([Parameter(Mandatory = $true)][string]$Path)
@@ -50,7 +51,7 @@ function Test-Hash {
         return $false
     }
 
-    $actualHash = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
+    $actualHash = Get-CanonicalTextHash $Path
     if ($actualHash -ne $ExpectedHash) {
         $failures.Add("$Label hash changed: expected $ExpectedHash, found $actualHash.")
         return $false

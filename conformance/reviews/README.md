@@ -10,7 +10,8 @@ The pinned request is [`review-request.json`](./review-request.json). It fixes t
 requirement vocabulary, per-stack evidence matrices, correction-closing commits, and the expected
 record paths. Any change to a pinned matrix or vocabulary invalidates the request instead of
 silently changing what the reviewer was asked to inspect. Verification needs the pinned Git objects
-locally; CI therefore checks out full history.
+locally; CI therefore checks out full history. Record hashes use canonical UTF-8 text with LF line
+endings so the same content has the same digest on Windows and CI checkouts.
 
 ## What requires a person
 
