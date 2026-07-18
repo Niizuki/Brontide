@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Brontide.Minimal.Kernel</AssemblyName>
+    <RootNamespace>Brontide.Minimal.Kernel</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Kernel.fs" />
+  </ItemGroup>
+</Project>

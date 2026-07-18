@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Brontide.Minimal.Model/Brontide.Minimal.Model.fsproj" />
+    <Project Path="src/Brontide.Minimal.Kernel/Brontide.Minimal.Kernel.fsproj" />
+    <Project Path="src/Brontide.Minimal.Extensions.Events/Brontide.Minimal.Extensions.Events.fsproj" />
+    <Project Path="src/Brontide.Minimal.Extensions.Flow/Brontide.Minimal.Extensions.Flow.fsproj" />
+    <Project Path="src/Brontide.Minimal.Experimental.Enrichment/Brontide.Minimal.Experimental.Enrichment.fsproj" />
+    <Project Path="src/Brontide.Minimal.Experimental.Composition/Brontide.Minimal.Experimental.Composition.fsproj" />
+    <Project Path="src/Brontide.Minimal.Vocabularies.Cooling/Brontide.Minimal.Vocabularies.Cooling.fsproj" />
+    <Project Path="src/Brontide.Minimal.Vocabularies.Imaging/Brontide.Minimal.Vocabularies.Imaging.fsproj" />
+    <Project Path="src/Brontide.Minimal.Binding/Brontide.Minimal.Binding.fsproj" />
+    <Project Path="src/Brontide.Minimal.Interchange.Provider/Brontide.Minimal.Interchange.Provider.fsproj" />
+    <Project Path="src/Brontide.Minimal.Host/Brontide.Minimal.Host.fsproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Brontide.Minimal.Conformance/Brontide.Minimal.Conformance.fsproj" />
+    <Project Path="tests/Brontide.Minimal.Enrichment.Tests/Brontide.Minimal.Enrichment.Tests.fsproj" />
+    <Project Path="tests/Brontide.Minimal.Composition.Tests/Brontide.Minimal.Composition.Tests.fsproj" />
+    <Project Path="tests/Brontide.Minimal.Kernel.Tests/Brontide.Minimal.Kernel.Tests.fsproj" />
+    <Project Path="tests/Brontide.Minimal.Interchange.Tests/Brontide.Minimal.Interchange.Tests.fsproj" />
+  </Folder>
+</Solution>

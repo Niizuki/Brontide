@@ -1,12 +1,12 @@
 # Cooling interchange fixture 0.1
 
-This directory is the neutral, data-only contract for the first Fabric/Linen interchange proof.
+This directory is the neutral, data-only contract for the first Reference/Minimal interchange proof.
 It contains no CLR project, generated runtime type, shared exception, or dependency-injection
-registration. Fabric and Linen parse the same files into independently implemented binding types.
+registration. Brontide Reference Stack and Brontide Minimal Stack parse the same files into independently implemented binding types.
 
 The test protocol is version 2. Each UTF-8 JSON-lines message is one complete JSON object on one
 line. Standard input and output carry protocol messages; standard error is diagnostic only.
-Version 1 remains Linen's historical manifest/value seam and is not upgraded in place.
+Version 1 remains Brontide Minimal Stack's historical manifest/value seam and is not upgraded in place.
 
 The authored contract is `interchange.tests.cooling.set-enabled` version 1. Its input and output
 Shapes have independent identities. The input is open to authored Fragments and requires
@@ -15,7 +15,7 @@ authority evaluation. A provider receives accepted invocation data, never a Capa
 
 `manifest-v2.json` is the golden descriptor. `values/` and `messages/` contain positive and
 fail-closed fixtures. `contract-matrix.md` records the native mappings and the one deliberate
-semantic Adapter on the Fabric side.
+semantic Adapter on the Brontide Reference Stack side.
 
 Run the complete clean interchange gate from the repository root:
 
@@ -24,4 +24,4 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build\verify-interchan
 ```
 
 The protocol and descriptor are experimental test instruments. Passing these fixtures does not
-ratify an Atlas Portable Binding.
+ratify an Brontide Portable Binding.

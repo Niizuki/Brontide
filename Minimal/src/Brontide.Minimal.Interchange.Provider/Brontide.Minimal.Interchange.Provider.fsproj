@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Brontide.Minimal.Interchange.Provider</AssemblyName>
+    <RootNamespace>Brontide.Minimal.Interchange.Provider</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Vocabularies.Cooling\Brontide.Minimal.Vocabularies.Cooling.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+</Project>

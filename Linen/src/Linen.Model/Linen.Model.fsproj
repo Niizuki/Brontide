@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <AssemblyName>Linen.Model</AssemblyName>
-    <RootNamespace>Linen.Model</RootNamespace>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="Model.fs" />
-  </ItemGroup>
-</Project>

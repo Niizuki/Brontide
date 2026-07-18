@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Brontide.Minimal.Extensions.Flow</AssemblyName>
+    <RootNamespace>Brontide.Minimal.Extensions.Flow</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Flow.fs" />
+  </ItemGroup>
+</Project>

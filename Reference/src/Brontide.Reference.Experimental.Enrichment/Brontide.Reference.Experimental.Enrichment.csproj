@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Brontide.Reference.Experimental.Enrichment</AssemblyName>
+    <RootNamespace>Brontide.Reference.Experimental.Enrichment</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brontide.Reference.Core\Brontide.Reference.Core.csproj" />
+  </ItemGroup>
+</Project>

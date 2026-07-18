@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Brontide.Minimal.Experimental.Composition</AssemblyName>
+    <RootNamespace>Brontide.Minimal.Experimental.Composition</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Vocabularies.Imaging\Brontide.Minimal.Vocabularies.Imaging.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Composition.fs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <GenerateProgramFile>false</GenerateProgramFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Kernel\Brontide.Minimal.Kernel.fsproj" />
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Extensions.Events\Brontide.Minimal.Extensions.Events.fsproj" />
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Extensions.Flow\Brontide.Minimal.Extensions.Flow.fsproj" />
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Vocabularies.Cooling\Brontide.Minimal.Vocabularies.Cooling.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="KernelTests.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+</Project>

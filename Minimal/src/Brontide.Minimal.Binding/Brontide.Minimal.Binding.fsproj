@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Brontide.Minimal.Binding</AssemblyName>
+    <RootNamespace>Brontide.Minimal.Binding</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Kernel\Brontide.Minimal.Kernel.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Binding.fs" />
+    <Compile Include="PortableBinding.fs" />
+    <Compile Include="CoolingBindingHost.fs" />
+  </ItemGroup>
+</Project>

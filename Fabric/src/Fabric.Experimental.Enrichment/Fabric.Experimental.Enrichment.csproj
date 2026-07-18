@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <AssemblyName>Fabric.Experimental.Enrichment</AssemblyName>
-    <RootNamespace>Fabric.Experimental.Enrichment</RootNamespace>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Fabric.Core\Fabric.Core.csproj" />
-  </ItemGroup>
-</Project>

@@ -1,9 +1,9 @@
-# Atlas agent instructions
+# Brontide agent instructions
 
-Atlas is an architecture specification with two deliberately independent .NET 10 implementations:
+Brontide is an architecture specification with two deliberately independent .NET 10 implementations:
 
-- `Fabric/` is the C#/Avalonia implementation and interactive showcase.
-- `Linen/` is the F# implementation and headless counterpoint.
+- `Reference/` is the C#/Avalonia implementation and interactive showcase.
+- `Minimal/` is the F# implementation and headless counterpoint.
 
 The implementations should support, challenge, and eventually substitute for one another without
 collapsing into the same codebase. Architecture decisions and implementation claims must remain
@@ -13,30 +13,30 @@ honest about which behaviour is normative, experimental, implemented, or deferre
 
 Use this order when sources disagree:
 
-1. The latest `Atlas-Architecture-*.md` document in the repository root for current architectural
+1. The latest `Brontide-Architecture-*.md` document in the repository root for current architectural
    semantics. Determine the latest architecture from the available versioned filenames; do not
    hard-code a particular architecture filename or version in agent guidance.
 2. The implementation plan and milestone-evidence documents relevant to that architecture.
 3. Executable conformance tests and current code.
-4. Earlier `Atlas-Architecture-*.md` documents only for historical context.
+4. Earlier `Brontide-Architecture-*.md` documents only for historical context.
 
 Follow the latest architecture's own normative, provisional, and non-ratified classifications.
 Keep provisional or non-ratified work in explicitly experimental projects and do not present it as
-Atlas Base conformance.
+Brontide Base conformance.
 
 ## Ground rules
 
-- **Keep Fabric and Linen independent.** Neither implementation may reference the other's projects,
+- **Keep Brontide Reference Stack and Brontide Minimal Stack independent.** Neither implementation may reference the other's projects,
   assemblies, private CLR types, dependency-injection container, or exceptions. Cross-stack work
   uses explicit external manifests, versioned data contracts, Shape projection, and process
   boundaries. Implement a concept natively on each side rather than adding an in-process
   compatibility layer.
-- **Preserve dependency direction.** `Fabric.Core` has no project dependency; Fabric extensions,
-  vocabularies, and experiments depend only on Core; Studio is the composition root. `Linen.Model`
-  has no project dependency; `Linen.Kernel` depends only on Model; extensions, vocabularies,
+- **Preserve dependency direction.** `Brontide.Reference.Core` has no project dependency; Brontide Reference Stack extensions,
+  vocabularies, and experiments depend only on Core; Studio is the composition root. `Brontide.Minimal.Model`
+  has no project dependency; `Brontide.Minimal.Kernel` depends only on Model; extensions, vocabularies,
   experiments, and Binding stay outside Model/Kernel; Host is the composition root.
 - **Base stays small.** Host services, UI concerns, persistence, transport, provider selection,
-  acceleration, and experimental composition do not belong in Fabric Core or Linen Model/Kernel.
+  acceleration, and experimental composition do not belong in Brontide Reference Stack Core or Brontide Minimal Stack Model/Kernel.
 - **Prefer strongly typed identifiers.** Public surfaces take and return a distinct identifier type
   for each identity space rather than a bare string, number, or universally shaped identifier. An
   Actor id, Capability id, Shape id, Operation id, Execution id, Occurrence id, Activity id,
@@ -59,7 +59,7 @@ Atlas Base conformance.
   suppress a warning merely to make a gate pass; fix it or document why a narrowly scoped
   suppression is correct.
 - **Do not add an SDK pin.** The repository intentionally has no `global.json`. Target .NET 10 and
-  use the SDK selected by the environment. Linen's `MSBuildToolsPath` copy of the selected SDK's
+  use the SDK selected by the environment. Brontide Minimal Stack's `MSBuildToolsPath` copy of the selected SDK's
   `FSharp.Core.dll` is a runtime-output workaround, not permission to pin a version or path.
 - **Tests accompany behaviour.** Add or update the nearest native test suite for semantic changes.
   Keep normative conformance evidence separate from Enrichment, Composition, GPU, and other
@@ -103,26 +103,26 @@ Atlas Base conformance.
   a real consumer would, keep commands non-interactive, print plain-text diagnostics, and return a
   non-zero exit code on failure.
 
-### Fabric / C#
+### Brontide Reference Stack / C#
 
 - Represent public identity spaces with dedicated value types, normally immutable `readonly record
   struct` values or an existing local strongly-typed-id abstraction. Keep construction validation
   close to the type and expose the backing primitive only at serialization and external gateways.
-- Keep C# package references versionless and let `Fabric/Directory.Packages.props` own all NuGet
-  versions. `Fabric/Directory.Build.props` owns the warning-as-error policy.
+- Keep C# package references versionless and let `Reference/Directory.Packages.props` own all NuGet
+  versions. `Reference/Directory.Build.props` owns the warning-as-error policy.
 
-### Linen / F#
+### Brontide Minimal Stack / F#
 
 - Represent identity spaces with distinct immutable types, normally private single-case unions,
   opaque records, or struct records with controlled construction. Issuer-controlled references must
   not expose a public construction path that bypasses validation.
-- Keep F# package references versionless and let `Linen/Directory.Packages.props` own all NuGet
-  versions. `Linen/Directory.Build.props` owns the warning-as-error policy.
+- Keep F# package references versionless and let `Minimal/Directory.Packages.props` own all NuGet
+  versions. `Minimal/Directory.Build.props` owns the warning-as-error policy.
 
 ## Documentation
 
 - Keep documentation self-contained; do not depend on reasoning that lives only in another repo or
-  chat. External code may be mentioned for comparison, but Atlas decisions belong here.
+  chat. External code may be mentioned for comparison, but Brontide decisions belong here.
 - Finalizing an architecture document version includes a plan for the next version. Before a
   version is declared complete, its changelog section must carry a "Direction for <next version>"
   passage naming what that version chases, in priority order, and its explicit non-goals (the
@@ -131,7 +131,7 @@ Atlas Base conformance.
   `implementation-findings.md`, or `experimental-and-sideline-projects.md` when a change alters a
   claimed milestone, architectural boundary, known limitation, or experiment status.
 - Record the difference between local/native evidence and actual cross-stack interoperability. A
-  local fixture that simulates an external runtime is not Fabric ↔ Linen proof.
+  local fixture that simulates an external runtime is not Brontide Reference Stack ↔ Brontide Minimal Stack proof.
 - Keep implementation-owned docs with their implementation. Put repository-wide architectural
   material at the root or in a future root `docs/` tree when no single implementation owns it.
 - If ADRs are introduced, use one self-contained `ADR-<topic>.md` per decision with `Date` and
@@ -141,28 +141,28 @@ Atlas Base conformance.
 
 Run commands from the repository root unless a section says otherwise.
 
-Fabric:
+Brontide:
 
 ```powershell
-dotnet restore .\Fabric\Fabric.sln
-dotnet build .\Fabric\Fabric.sln --no-restore
-dotnet test .\Fabric\Fabric.sln --no-build
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Fabric\build\verify-dependencies.ps1
+dotnet restore .\Reference\Brontide.Reference.sln
+dotnet build .\Reference\Brontide.Reference.sln --no-restore
+dotnet test .\Reference\Brontide.Reference.sln --no-build
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Reference\build\verify-dependencies.ps1
 ```
 
-Linen:
+Brontide:
 
 ```powershell
-dotnet restore .\Linen\Linen.slnx
-dotnet build .\Linen\Linen.slnx --no-restore
-dotnet test .\Linen\Linen.slnx --no-build
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Linen\build\verify-boundaries.ps1
+dotnet restore .\Minimal\Brontide.Minimal.slnx
+dotnet build .\Minimal\Brontide.Minimal.slnx --no-restore
+dotnet test .\Minimal\Brontide.Minimal.slnx --no-build
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Minimal\build\verify-boundaries.ps1
 ```
 
 Scope verification to the changed implementation or project when the dependency boundary is clear.
 Run the complete implementation suite when changing shared build files, solution files, Core,
 Model, Kernel, public semantic contracts, or project references, and whenever the impact is
-uncertain. Changes spanning Fabric and Linen require both suites and both dependency guards.
+uncertain. Changes spanning Brontide Reference Stack and Brontide Minimal Stack require both suites and both dependency guards.
 
 Tests should be hermetic by default. Do not call production systems or require live credentials in
 ordinary test runs. Any future live probe must be explicit, credential-gated, safe for a dedicated
@@ -180,7 +180,7 @@ sandbox target here in the same change.
   workflow requires it.
 - There is no task/ticket naming scheme. Do not invent task identifiers, issue numbers, lane names,
   or mandatory prefixes.
-- When a branch is useful, choose a short descriptive name. A plain name such as `linen-binding` or
+- When a branch is useful, choose a short descriptive name. A plain name such as `Brontide Minimal Stack-binding` or
   `docs-agent-guidance` is fine; follow an explicitly requested name when one is given.
 - Commit subjects should be concise and describe the change. Conventional Commit form is welcome
   (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `build:`, `chore:`), but a scope is optional and

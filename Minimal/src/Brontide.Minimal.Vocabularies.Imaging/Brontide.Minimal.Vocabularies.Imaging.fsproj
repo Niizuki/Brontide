@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Brontide.Minimal.Vocabularies.Imaging</AssemblyName>
+    <RootNamespace>Brontide.Minimal.Vocabularies.Imaging</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Imaging.fs" />
+  </ItemGroup>
+</Project>

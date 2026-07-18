@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Brontide.Minimal.Host</AssemblyName>
+    <RootNamespace>Brontide.Minimal.Host</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Kernel\Brontide.Minimal.Kernel.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Extensions.Events\Brontide.Minimal.Extensions.Events.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Extensions.Flow\Brontide.Minimal.Extensions.Flow.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Experimental.Enrichment\Brontide.Minimal.Experimental.Enrichment.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Experimental.Composition\Brontide.Minimal.Experimental.Composition.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Vocabularies.Cooling\Brontide.Minimal.Vocabularies.Cooling.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Vocabularies.Imaging\Brontide.Minimal.Vocabularies.Imaging.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+</Project>

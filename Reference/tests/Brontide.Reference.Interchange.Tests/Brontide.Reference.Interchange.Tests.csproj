@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="NUnit3TestAdapter">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Brontide.Reference.Core\Brontide.Reference.Core.csproj" />
+    <ProjectReference Include="..\..\src\Brontide.Reference.Experimental.Binding\Brontide.Reference.Experimental.Binding.csproj" />
+    <ProjectReference Include="..\..\src\Brontide.Reference.Experimental.Enrichment\Brontide.Reference.Experimental.Enrichment.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\interchange\**\*"
+          Link="interchange\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

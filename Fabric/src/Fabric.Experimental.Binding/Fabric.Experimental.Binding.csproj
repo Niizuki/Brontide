@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <AssemblyName>Fabric.Experimental.Binding</AssemblyName>
-    <RootNamespace>Fabric.Experimental.Binding</RootNamespace>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Fabric.Core\Fabric.Core.csproj" />
-  </ItemGroup>
-</Project>

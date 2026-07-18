@@ -1,8 +1,8 @@
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$fabricSolution = Join-Path $repositoryRoot 'Fabric\Fabric.sln'
-$linenSolution = Join-Path $repositoryRoot 'Linen\Linen.slnx'
+$referenceSolution = Join-Path $repositoryRoot 'Reference\Brontide.Reference.sln'
+$minimalSolution = Join-Path $repositoryRoot 'Minimal\Brontide.Minimal.slnx'
 
 function Invoke-Checked {
     param(
@@ -16,26 +16,26 @@ function Invoke-Checked {
     }
 }
 
-Invoke-Checked { dotnet restore $fabricSolution }
-Invoke-Checked { dotnet restore $linenSolution }
-Invoke-Checked { dotnet build $fabricSolution --no-restore }
-Invoke-Checked { dotnet build $linenSolution --no-restore }
-Invoke-Checked { dotnet test $fabricSolution --no-build }
-Invoke-Checked { dotnet test $linenSolution --no-build }
+Invoke-Checked { dotnet restore $referenceSolution }
+Invoke-Checked { dotnet restore $minimalSolution }
+Invoke-Checked { dotnet build $referenceSolution --no-restore }
+Invoke-Checked { dotnet build $minimalSolution --no-restore }
+Invoke-Checked { dotnet test $referenceSolution --no-build }
+Invoke-Checked { dotnet test $minimalSolution --no-build }
 
-$env:ATLAS_LINEN_PROVIDER = Join-Path $repositoryRoot 'Linen\src\Linen.Interchange.Provider\bin\Debug\net10.0\Linen.Interchange.Provider.exe'
-$env:ATLAS_FABRIC_PROVIDER = Join-Path $repositoryRoot 'Fabric\src\Fabric.Interchange.Provider\bin\Debug\net10.0\Fabric.Interchange.Provider.exe'
-
-Invoke-Checked {
-    dotnet test (Join-Path $repositoryRoot 'Fabric\tests\Fabric.Interchange.Tests\Fabric.Interchange.Tests.csproj') --no-build --filter 'Category=CrossProcess'
-}
-Invoke-Checked {
-    dotnet test (Join-Path $repositoryRoot 'Linen\tests\Linen.Interchange.Tests\Linen.Interchange.Tests.fsproj') --no-build --filter 'Category=CrossProcess'
-}
+$env:BRONTIDE_MINIMAL_PROVIDER = Join-Path $repositoryRoot 'Minimal\src\Brontide.Minimal.Interchange.Provider\bin\Debug\net10.0\Brontide.Minimal.Interchange.Provider.exe'
+$env:BRONTIDE_REFERENCE_PROVIDER = Join-Path $repositoryRoot 'Reference\src\Brontide.Reference.Interchange.Provider\bin\Debug\net10.0\Brontide.Reference.Interchange.Provider.exe'
 
 Invoke-Checked {
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'Fabric\build\verify-dependencies.ps1')
+    dotnet test (Join-Path $repositoryRoot 'Reference\tests\Brontide.Reference.Interchange.Tests\Brontide.Reference.Interchange.Tests.csproj') --no-build --filter 'Category=CrossProcess'
 }
 Invoke-Checked {
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'Linen\build\verify-boundaries.ps1')
+    dotnet test (Join-Path $repositoryRoot 'Minimal\tests\Brontide.Minimal.Interchange.Tests\Brontide.Minimal.Interchange.Tests.fsproj') --no-build --filter 'Category=CrossProcess'
+}
+
+Invoke-Checked {
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'Reference\build\verify-dependencies.ps1')
+}
+Invoke-Checked {
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'Minimal\build\verify-boundaries.ps1')
 }

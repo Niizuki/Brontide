@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Brontide.Reference.Interchange.Provider</AssemblyName>
+    <RootNamespace>Brontide.Reference.Interchange.Provider</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brontide.Reference.Experimental.Binding\Brontide.Reference.Experimental.Binding.csproj" />
+    <ProjectReference Include="..\Brontide.Reference.Vocabularies.Cooling\Brontide.Reference.Vocabularies.Cooling.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>Brontide.Reference.Studio</AssemblyName>
+    <RootNamespace>Brontide.Reference.Studio</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brontide.Reference.Core\Brontide.Reference.Core.csproj" />
+    <ProjectReference Include="..\Brontide.Reference.Experimental.Composition\Brontide.Reference.Experimental.Composition.csproj" />
+    <ProjectReference Include="..\Brontide.Reference.Experimental.Enrichment\Brontide.Reference.Experimental.Enrichment.csproj" />
+    <ProjectReference Include="..\Brontide.Reference.Extensions.Events\Brontide.Reference.Extensions.Events.csproj" />
+    <ProjectReference Include="..\Brontide.Reference.Extensions.Flow\Brontide.Reference.Extensions.Flow.csproj" />
+    <ProjectReference Include="..\Brontide.Reference.Vocabularies.Cooling\Brontide.Reference.Vocabularies.Cooling.csproj" />
+    <ProjectReference Include="..\Brontide.Reference.Vocabularies.Input\Brontide.Reference.Vocabularies.Input.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Brontide.Reference.Vocabularies.Input</AssemblyName>
+    <RootNamespace>Brontide.Reference.Vocabularies.Input</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brontide.Reference.Core\Brontide.Reference.Core.csproj" />
+  </ItemGroup>
+</Project>

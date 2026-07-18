@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Brontide.Minimal.Model</AssemblyName>
+    <RootNamespace>Brontide.Minimal.Model</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Model.fs" />
+  </ItemGroup>
+</Project>

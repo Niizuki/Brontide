@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <GenerateProgramFile>false</GenerateProgramFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Vocabularies.Imaging\Brontide.Minimal.Vocabularies.Imaging.fsproj" />
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Experimental.Composition\Brontide.Minimal.Experimental.Composition.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CompositionTests.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+</Project>
