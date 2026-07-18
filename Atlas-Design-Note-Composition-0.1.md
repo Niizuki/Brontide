@@ -135,8 +135,13 @@ binding or activation still establishes the actual Actor and Capability relation
 Attribute sources SHOULD describe sufficiently stable expectations for composition, such as an
 advertised locality relationship, durability class, residency, expected-latency class, or supported
 storage Form. An Operation may expose a dynamic observation, but one changed measurement does not
-implicitly recompose, rebind, or migrate a system. A definition relying on dynamic Attributes must
-declare observation freshness and the policy or Router semantics that react to change.
+implicitly recompose, rebind, or migrate a system. Attribute-constrained bindings are resolved
+exactly once, at composition or activation resolution. The resolver evaluates Definition
+Constraints against Attribute values obtained at that moment and records their effective values
+and provenance in the resolved definition. A later Attribute change never invalidates, rebinds,
+or migrates an active binding; reacting to change is not a binding semantic and belongs to
+Routers and future lifecycle policy. It is the composition author's responsibility to constrain
+sufficiently stable Attributes; the recorded resolution is the guarantee record.
 
 A **Definition Constraint** is a Shape-typed declarative predicate used for Parameter validation,
 Attribute requirements, provider selection, Store binding, or another composition decision. It
@@ -161,6 +166,17 @@ The base candidate operators include equality and inequality, ordered comparison
 membership, containment, subset, intersection, and logical composition. The referenced Shapes
 determine which comparisons are meaningful; a string does not acquire numeric ordering merely
 because a parser accepts `<`.
+
+Evaluation with unrecognised atoms is defined once, structurally: an unrecognised atomic
+Constraint anywhere within a composite expression makes the entire expression unevaluatable.
+Unevaluatable never resolves to a truth value — `Not`, `AnyOf`, and `AllOf` never convert an
+unrecognised atom into `false` and then reason from it; naive per-atom fail-closed evaluation
+would otherwise make `Not(unknown)` evaluate as satisfied, a privilege-escalation path. In
+authority context — the expression carried by a Capability — an unevaluatable expression causes
+denial of the Execution under §10.1, with no partial credit for recognised branches. In
+selection context — composition, Store-role requirements, provider selection — an unevaluatable
+expression is unsatisfiable and the candidate is excluded; a resolver SHOULD record the
+exclusion and the unrecognised atom in its explanatory record.
 
 For example:
 

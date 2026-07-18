@@ -123,6 +123,10 @@ Atlas Base conformance.
 
 - Keep documentation self-contained; do not depend on reasoning that lives only in another repo or
   chat. External code may be mentioned for comparison, but Atlas decisions belong here.
+- Finalizing an architecture document version includes a plan for the next version. Before a
+  version is declared complete, its changelog section must carry a "Direction for <next version>"
+  passage naming what that version chases, in priority order, and its explicit non-goals (the
+  latest architecture document's changelog shows the pattern).
 - Update the affected implementation's `README.md`, `milestone-evidence.md`,
   `implementation-findings.md`, or `experimental-and-sideline-projects.md` when a change alters a
   claimed milestone, architectural boundary, known limitation, or experiment status.

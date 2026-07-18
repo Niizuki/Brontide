@@ -100,6 +100,12 @@ additive, migratory, and compatibility rules for Corpus versions remain provisio
 Corpus lifecycle may include reversible or irreversible data migration without reinterpreting its
 unchanged semantic fields.
 
+A Corpus MUST declare its concurrent-access semantics — what several simultaneously authorised
+Actors may assume when operating on one Dataset. The declaration may be as modest as
+single-writer with enforcement left to authority, or external coordination required; it may not
+be absent. Following the pattern of §10.3 withdrawal declarations, stating the obligation is
+required even while richer coordination, State, and Transaction semantics remain open.
+
 A Component may introduce or author a Corpus, but authorship does not make the Corpus part of the
 Component. The relationships are many-to-many:
 
@@ -151,6 +157,20 @@ Shape, not a special escape hatch for "multiple Shapes."
 A **Dataset** is a concrete, independently identifiable body of information conforming to one
 Corpus version. It records its Dataset identity, Corpus reference, Store-role bindings, custodian,
 authority relationships, lifecycle metadata, and provenance as applicable.
+
+A Capability governing Dataset access designates the Dataset, its Store roles, or its bound
+Stores as targets under the ordinary designation rules of §10.2: resolved at grant time, bound,
+and recorded. Datasets are created dynamically, so Dataset creation authority is an instance of
+the open Genesis-versus-authorised-issuance question (§12, §33): an Originator's authority to
+create a Dataset is attributable issuance by an already authorised Actor, not domain-level
+Genesis, and the future `Resource` extension must keep that distinction explicit.
+
+Dataset identity is a property of the Dataset record itself, independent of the content of any
+single Store role. A Corpus declares which Store roles are identity-bearing. The failure or
+absence of a Store bound to a role that is not identity-bearing does not fork, duplicate, or
+destroy the Dataset; it makes that role's content unavailable under the role's declared absence
+or failure behaviour. Exact atomicity and failure semantics across several roles remain open
+(§33), but Dataset identity does not depend on them.
 
 The definitional owner of a Corpus, custodian of a Dataset, provider of its Store, Actor authorised
 to access it, and Component selected as its default manager are separate relationships. A user may
@@ -259,8 +279,8 @@ Corpus:
 
 `Core`, `Metadata`, and `Diagnostics` are locally resolvable Store-role names, not globally
 unqualified Atlas concepts. Under Strict notation their candidate expanded identities are
-`Fabric:Editor.Project.Store.Core`, `Fabric:Editor.Project.Store.Metadata`, and
-`Fabric:Editor.Project.Store.Diagnostics`; the Corpus version remains a separate field. The exact
+`Fabric:Editor.Project#Store.Core`, `Fabric:Editor.Project#Store.Metadata`, and
+`Fabric:Editor.Project#Store.Diagnostics`; the Corpus version remains a separate field. The exact
 typed-member grammar is provisional (§22.4).
 
 ## Store
@@ -291,7 +311,7 @@ Capabilities permitting the relevant Actors to execute those Operations.
 For example:
 
 ```
-store-role: Fabric:Editor.Project.Store.Core
+store-role: Fabric:Editor.Project#Store.Core
 
 requires:
     vocabulary: Storage 2

@@ -7,7 +7,7 @@ An Introduction to the Atlas Computational Model
 > *Actors execute Operations by presenting explicit and bounded Capabilities.*
 
 **Status:** Early Draft (0.7 revision in progress; governed by Atlas-Architecture-0.7-Change-Plan.md)
-**Version:** 0.7 (see §35 for changes from Architecture 0.7; earlier diffs are retained in
+**Version:** 0.7 (see §35 for changes from Architecture 0.6; earlier diffs are retained in
 Atlas-Architecture-Change-History.md)
 **Notation:** NonStrict (§22.4). Normative identities expand to the same canonical form as Strict
 notation; explanatory examples may use locally resolvable shorthand.
@@ -124,8 +124,8 @@ An Outcome says *this Execution or activity ended like this*.
 
 Executions, Events, and Outcomes compose a common named and versioned structural fragment called
 **Interaction**. Interaction supplies attribution, identity, correlation, causation, origin, and
-optional temporal placement where present. It is not an occurrence, superclass, or additional
-Base primitive, and composing it does not make the distinct occurrence semantics interchangeable.
+optional temporal placement where present. Composing it does not make the distinct occurrence
+semantics interchangeable.
 Replaying an Event repeats an assertion; replaying an Execution may repeat an effect. An Event
 carries no authority for an observer to react. An Execution is evaluated using an explicit
 Capability.
@@ -804,7 +804,8 @@ Operations, but the relationship comes from the vocabulary, never from the dots.
 Likewise, an authored namespace such as `Logitech.MX:` is structurally subordinate to the
 `Logitech` namespace, but the syntax alone does not prove that Logitech authorised it. §22
 defines canonical names, authored namespaces, verification boundaries, and declaration prefix
-blocks.
+blocks. Where a typed member identity is exposed, its member kind is carried by a distinct
+member separator (§22.4), never by dot segments.
 
 ### 6.11 Interaction is composition, not ontology
 
@@ -935,9 +936,9 @@ Genesis
 ```
 
 Operation is a semantic contract. Execution and Event are distinct occurrence forms, and Outcome
-is a specialised Event. Execution and Event compose the standard Interaction fragment, which is
-defined using Shape rather than admitted as a ninth Base term. Flow is a first-party
-Architectural Extension expressed through Base terms (§19.1).
+is a specialised Event. Execution and Event compose the standard Interaction fragment, defined
+using Shape (§13.2). Flow is a first-party Architectural Extension expressed through Base terms
+(§19.1).
 
 These terms remain provisional. Atlas 0.x is intended to discover whether they are genuinely
 fundamental and whether their current boundaries are correct.
@@ -1002,6 +1003,24 @@ domain-relative, as names are in SPKI/SDSI and as capability references are in e
 operating system.
 
 Each authority domain's implementation is its own trusted computing base (see §28).
+
+The grant machinery itself lives in that trusted computing base — and therefore wherever the
+domain boundary lives. There is deliberately no single home; this is §6.8 applied to the most
+security-critical machinery. Three responsibilities are separable and may live in different
+places within one system. Minting (Genesis, §12) lives in domain initialisation policy: a
+compiled authority table, boot-time construction, an attachment policy. Representation and
+custody (§10.4) are unprescribed: a static entry, a kernel object, an unforgeable reference, a
+cryptographic credential. Evaluation (§10.1, §13.5) is decentralised to targets by design —
+Atlas has no central reference monitor as an architectural concept; domain machinery may act on
+behalf of targets at their boundaries.
+
+The characteristic homes follow the implementation depths of §27. In firmware, the mechanism is
+the image structure itself, with no runtime machinery. In a hosted or native runtime, custody
+lives in the runtime's or kernel's trusted computing base — with the Capsicum lesson of §31 for
+hosted implementations: the seam with the ambient-authority host is where the model leaks. At
+the cross-domain tier, custody dissolves into cryptography, and the four Actor-reference
+properties of §9.1 are the portable contract the representation must preserve. In every home,
+Capabilities do not travel between trust boundaries; authorisation happens at each boundary.
 
 ## 9. Actor
 
@@ -1160,6 +1179,15 @@ privilege-escalation window against older implementations; with it, older implem
 degrade to *stricter*, never to *wrong* — which also makes Constraint evolution version-safe
 (§23).
 
+Where Constraints compose into expressions (recursive Definition Constraints, §18.1), the
+fail-closed rule extends structurally: an unrecognised atomic Constraint anywhere within a
+composite expression makes the entire expression unevaluatable, and an unevaluatable expression
+carried by a Capability causes denial, with no partial credit for recognised branches.
+Unevaluatable never resolves to a truth value — in particular, `Not`, `AnyOf`, and `AllOf`
+never convert an unrecognised atom into `false` and then reason from it. In selection contexts
+the same poisoning rule applies with a different consequence: the expression is unsatisfiable
+and the candidate is excluded (§18.1).
+
 Constraint types and their meanings are defined by Domain Vocabularies and extensions. Base
 defines only the composition rule and the fail-closed rule. A Constraint's authorisation meaning
 MUST be a narrowing predicate over an Execution. Bookkeeping needed to evaluate rate, capacity, or
@@ -1199,8 +1227,10 @@ Recommended design stance for dynamic domains:
 
 > *Authority defaults to mortal. Immortality is the explicit exception.*
 
-Mortality is the cheap majority of revocation, available now; full revocation semantics remain
-an open question (§33).
+Concretely: where a domain supports dynamic Delegation, a granting Actor SHOULD attach wall-clock
+or liveness-scoped validity to new grants, and an unbounded grant SHOULD be an explicit,
+attributable choice rather than an omission. Mortality is the cheap majority of revocation,
+available now; full revocation semantics remain an open question (§33).
 
 Withdrawal of authority and cancellation of accepted work are distinct. Withdrawal denies new
 Executions and renewals; it does not retroactively undo committed effects. Every extension or
@@ -1696,7 +1726,7 @@ expects an implementation-specific object with different fields. Likewise, a Cap
 Constraint cannot be evaluated consistently if the participants disagree about the structure of
 the value it constrains.
 
-Shape is therefore part of Atlas Base in Architecture 0.3.
+Shape is therefore part of Atlas Base (since Architecture 0.3).
 
 Every Operation declares one input Shape and one independent output Shape. An Execution's input
 value conforms to the Operation's input Shape; a successful Outcome's result value conforms to its
@@ -1727,7 +1757,7 @@ name for every such composition.
 
 The version belongs to the Shape and is independent of the Atlas Architecture version, Profile
 versions, and transport encoding. Capability instances are grants identified through their
-holder, scope, and derivation; Architecture 0.3 does not assign semantic versions to individual
+holder, scope, and derivation; Atlas does not assign semantic versions to individual
 Capability objects. Shapes are explicitly versioned because their structural contracts evolve.
 
 At minimum, a Base Shape system must be capable of expressing:
@@ -1813,7 +1843,7 @@ that newer host version. Breaking Fragment semantics require a new Fragment name
 
 A **Shape fragment** is an arbitrary subset or projection of one complete Shape. Calling part of a
 Shape a fragment does not make it a separate input, output, or value: the enclosing structure
-remains one Shape. Fragment is a subordinate concept within Shape, not a ninth Atlas Base term.
+remains one Shape. Fragment is a subordinate concept within Shape (§7.1).
 
 Any participant may form an unnamed fragment locally by projecting an arbitrary subset of a
 Shape. Such a fragment is useful for implementation, inspection, or explanation, but has no
@@ -2132,11 +2162,16 @@ The settled definitions and invariants, retained here because other sections rel
   composition.
 - An **Attribute** is a value obtained through a specified Atlas Operation — identified by
   its source Operation, vocabulary version, result Shape, and result path, under ordinary
-  Capability evaluation — never a free-floating label.
+  Capability evaluation — never a free-floating label. Attribute-constrained bindings are
+  resolved exactly once, at composition or activation resolution, recording effective values
+  and provenance; a later Attribute change never rebinds — reaction belongs to Routers and
+  future lifecycle policy.
 - A **Definition Constraint** is a Shape-typed declarative predicate used for selection and
   validation, composing recursively through `AllOf`, `AnyOf`, and `Not`. It selects or
   validates without granting authority; carried by a Capability, it conjoins under the Base
-  narrowing algebra (§10.1).
+  narrowing algebra (§10.1). An unrecognised atom anywhere within a composite expression makes
+  the whole expression unevaluatable: denial in authority context (§10.1), candidate exclusion
+  in selection context.
 - `Local` and `remote` are observer-relative, intentionally lossy projections of richer
   selection characteristics. They must not imply latency, trust, authority-domain, cost,
   capacity, or failure guarantees their projection rule does not define, and Remote Service
@@ -2191,6 +2226,13 @@ The settled invariants, retained here because other sections rely on them:
   current backing Store. Within the recorded Mediation direction (§18.1), the Router is the
   storage instantiation of Selection. Mirror and Backup remain declarative Store
   Relationships.
+- Dataset identity is a property of the Dataset record itself, independent of any single
+  Store role's content; a Corpus declares which Store roles are identity-bearing. Capability
+  designation of Datasets follows §10.2, and Dataset creation authority is an instance of the
+  open Genesis-versus-authorised-issuance question (§12, §33).
+- A Corpus MUST declare its concurrent-access semantics. The declaration may be modest —
+  single-writer with enforcement left to authority, or external coordination required — but it
+  may not be absent.
 - Removing software and removing information are independent decisions: uninstalling a
   Component does not imply deletion of Durable Datasets on which it operated.
 
@@ -2318,8 +2360,8 @@ would burden systems that do not need them.
 This distinction prevents Atlas itself from becoming a specification of every device and
 industry.
 
-Architecture 0.3 identifies `Flow` and `Event Distribution` as first-party extension directions
-and defines their architectural placement. Their complete conformance contracts remain to be
+This architecture identifies `Flow` and `Event Distribution` as first-party extension directions
+(first recorded in 0.3) and defines their architectural placement. Their complete conformance contracts remain to be
 ratified.
 
 ### 19.1 Flow
@@ -2739,8 +2781,8 @@ MUST contain:
   by every Event assertion, Outcome result or details value, and Constraint parameter, or explicit
   references to the specifications that define them (§16).
 - **Corpora and storage semantics, where applicable** — each Corpus name, owner, version, kind,
-  Form, participating Shapes, lifecycle and migration rules, Store roles, absence behaviours, and
-  Component-Corpus roles; plus Store Operations and Attribute sources, or explicit references to
+  Form, participating Shapes, lifecycle and migration rules, concurrent-access
+  semantics, Store roles, absence behaviours, and Component-Corpus roles; plus Store Operations and Attribute sources, or explicit references to
   the specifications that define them (§18.2).
 - **Constraint types** — the Constraints it defines for use with the Base algebra (§10.1), including
   the Shape of every carried value; and any Definition Constraint operators or Attribute paths it
@@ -2996,19 +3038,19 @@ name, or a uniquely resolvable canonical prefix. It MUST NOT use ambiguous short
 abbreviation must have one normalisation into Strict form. NonStrict permits shorthand; it never
 requires shorthand.
 
-The candidate canonical identity for a typed member extends the existing Concept Path rather than
-inventing another authorship separator or embedding a version:
+The candidate canonical identity for a typed member uses a distinct member separator rather
+than overloading dot segments or inventing another authorship separator:
 
 ```
-<AuthorityPath>:<DefinitionPath>.<MemberKind>.<MemberName>
+CanonicalName := [AuthorityPath ":"] ConceptPath ["#" MemberKind "." MemberName]
 ```
 
 For example:
 
 ```
 Fabric:Editor.Project
-Fabric:Editor.Project.Store.Core
-Fabric:Editor.Project.Parameter.HistoryDepth
+Fabric:Editor.Project#Store.Core
+Fabric:Editor.Project#Parameter.HistoryDepth
 ```
 
 The Corpus version is carried separately:
@@ -3016,14 +3058,20 @@ The Corpus version is carried separately:
 ```
 corpus-name: Fabric:Editor.Project
 corpus-version: 3
-store-role-name: Fabric:Editor.Project.Store.Core
+store-role-name: Fabric:Editor.Project#Store.Core
 ```
 
-This form preserves the one colon meaning already defined by §22: `Fabric` is the Authority Path;
-everything after the colon is the Concept Path. Typed member segments prevent a Store role and
-Parameter with the same local spelling from colliding. The exact member-kind catalogue, escaping,
-and whether all member categories require typed segments remain provisional with the canonical-name
-grammar itself.
+This form preserves the one colon meaning already defined by §22 — `Fabric` is the Authority
+Path; everything after the colon is the Concept Path — while keeping every dot segment
+semantically opaque (§6.10). Encoding member kind as ordinary dot segments was rejected: an
+ordinary authored namespace could legitimately produce the identical canonical string with a
+different referent, and canonical names that are frozen, signed, and referenced by Capabilities
+must have exactly one meaning forever. Reserving member-kind words was likewise rejected,
+because every future member kind would retroactively collide with names already ratified —
+unacceptable in an append-only namespace. The member separator also prevents a Store role and a
+Parameter with the same local spelling from colliding. `#` is the working candidate glyph; the
+final glyph, escaping rules, the member-kind catalogue, and whether all member categories
+require typed segments remain provisional with the canonical-name grammar itself.
 
 In this document's declared NonStrict notation:
 
@@ -3085,7 +3133,9 @@ The supporting rules:
   implementation claiming a version that includes it. Deprecation is guidance for new designs,
   not permission to drop support.
 - **Unknown semantics fail safely.** An implementation encountering an unknown Constraint type
-  denies (§10.1); encountering an unknown origin class, treats it as unverified (§15);
+  denies (§10.1); encountering an unrecognised atom within a composite Constraint expression
+  treats the whole expression as unevaluatable and denies (§10.1); encountering an unknown
+  origin class, treats it as unverified (§15);
   encountering an unknown Operation rejects an Execution that names it; encountering an unknown
   extension occurrence does not process it or claim support for its semantics;
   encountering an unrecognised Shape with no compatible recognised lineage rejects it where
@@ -3476,6 +3526,30 @@ And:
 
 And:
     removing, redefining, or changing the Shape of speed is rejected as incompatible
+```
+
+Composite Constraint conformance includes the unknown-atom poisoning rule (§10.1, §18.1):
+
+```
+Given:
+    Actor B holds Capability Y permitting Fan.Stop
+
+And:
+    Y carries the Constraint Not(Example:Exposure in {Public})
+
+When:
+    an implementation that does not recognise Example:Exposure evaluates an Execution
+    presenting Y
+
+Then:
+    the expression is unevaluatable and the Execution is denied
+
+And:
+    Not of an unrecognised atom is never evaluated as satisfied
+
+And:
+    a resolver evaluating AnyOf of an unrecognised atom and a matching atom for provider
+    selection excludes the candidate and records the unrecognised atom
 ```
 
 One implementation may enforce this through static firmware structure.
@@ -3930,7 +4004,7 @@ tomorrow's.
 ## 33. Open Questions
 
 Architecture 0.7 preserves the current Base, composition, Profile, and implementation directions;
-§35 records the changes from Architecture 0.7, and Atlas-Architecture-Change-History.md retains
+§35 records the changes from Architecture 0.6, and Atlas-Architecture-Change-History.md retains
 the historical diffs from Architectures 0.2 through 0.5. The following remain genuinely open.
 
 **Revocation beyond mortality.**
@@ -3983,7 +4057,7 @@ durable replay, and failure behaviour for multi-source fan-in remain to be speci
 Event must never become an implicit grant for reactive authority.
 
 **Interaction composition representation.**
-Architecture 0.3 defines semantic fields, not a wire encoding. The minimum identity rules,
+The architecture defines semantic fields, not a wire encoding. The minimum identity rules,
 protected fragment data, and compact reuse of shared context need stress-testing.
 `emitted-at` is signed integer milliseconds in a named time domain; the standard time-domain
 registry and richer uncertainty semantics remain open.
@@ -4038,8 +4112,8 @@ specification must either retain that caveat or find terminology that removes th
 pretending private application information is system-integrated.
 
 Corpus-version compatibility, irreversible migration, partial restoration, semantic identity
-across import/export, Dataset splitting, Dataset custody, and selection of default managers require
-Fabric/Linen evidence. The mostly closed Form list — Opaque, Record, Collection, Map, Graph,
+across import/export, identity-bearing Store roles, Dataset splitting, Dataset custody, and
+selection of default managers require Fabric/Linen evidence. The mostly closed Form list — Opaque, Record, Collection, Map, Graph,
 Journal, and Stream — must be stress-tested against documents, media projects, encrypted vaults,
 game saves, time series, directory-like structures, event-sourced systems, and live telemetry.
 
@@ -4085,9 +4159,10 @@ ambient configuration system under the Parameter name.
 
 **Strict notation and canonical member identity.**
 Section 22.4 distinguishes Strict canonical declarations from NonStrict deterministic shorthand
-without changing semantics. The candidate typed member path
-`Authority:Definition.MemberKind.MemberName`, the member-kind catalogue, normalisation record,
-escaping, collision rules, and interaction with declaration prefix blocks require ratification.
+without changing semantics. The candidate typed member identity
+`Authority:Definition#MemberKind.MemberName`, the member separator glyph, the member-kind
+catalogue, normalisation record, escaping, and interaction with declaration prefix blocks
+require ratification.
 Tooling must prove that NonStrict documents expand uniquely and that signed or machine-actionable
 artifacts never depend on contextual inference.
 
@@ -4274,8 +4349,8 @@ by Profiles and discovery.
 Atlas documents declare Strict or NonStrict notation. Strict definitions use expanded canonical
 names and explicit version and binding fields; NonStrict documents may use deterministic shorthand
 that normalises to the same model. Authorship retains the single `AuthorityPath:ConceptPath`
-separator, typed members extend the Concept Path, and versions remain separate claims rather than
-becoming part of a canonical name. Architecture 0.7 itself uses NonStrict explanatory notation.
+separator, typed members use a distinct member separator (§22.4), and versions remain separate
+claims rather than becoming part of a canonical name. Architecture 0.7 itself uses NonStrict explanatory notation.
 
 Beyond Base, a Component is a scale-independent unit of composition declaring the Atlas contracts
 it provides and requires. Components and Actors are distinct: Components define composition
@@ -4307,8 +4382,8 @@ cannot introduce new structure. Attribute requirements are not ambient labels: t
 Operation, vocabulary claim, result Shape, and result path that provide a value under ordinary
 Capability evaluation. Definition Constraints compare those values or validate Parameters through
 Shape-appropriate atomic relations and recursively composable `AllOf`, `AnyOf`, and `Not` groups.
-They select and validate without granting authority, and their effective values and matching
-branches should remain explainable.
+They select and validate without granting authority; an unrecognised atom fails the whole
+expression closed; and their effective values and matching branches should remain explainable.
 
 Persistent information is provisionally modelled through Corpus, Dataset, Store roles, Stores, and
 Routers. A Corpus is an authored, versioned semantic definition independent of the Components that
@@ -4391,12 +4466,64 @@ Changes applied so far:
 - **Router endpoint guarantees stated.** The Attributes of a logical Store endpoint presented
   by a Router are the Router's own declared guarantees, not those of any current backing
   Store (recorded in the Persistent Information design note and the §18.2 summary).
-- **§35–§38 — Historical changelogs relocated.** This document now carries only its own
-  diff.
+- **Historical changelogs relocated.** The per-version diffs formerly at §35–§38 of
+  Architecture 0.6 now live in `Atlas-Architecture-Change-History.md`; this document carries
+  only its own diff (§35).
+- **§10.1, §18.1, §23, and §29.2 — Composite Constraint evaluation defined.** An unrecognised
+  atomic Constraint anywhere within a composite expression makes the entire expression
+  unevaluatable; unevaluatable never resolves to a truth value. In authority context this
+  causes denial with no partial credit for recognised branches; in selection context the
+  candidate is excluded and the exclusion recorded. A conformance example covers `Not` and
+  `AnyOf` with unrecognised atoms.
+- **§6.10, §22.4, §33, and §34 — Typed member identities use a distinct member separator.**
+  The candidate grammar is `[AuthorityPath ":"] ConceptPath ["#" MemberKind "." MemberName]`,
+  keeping every dot segment semantically opaque and every canonical string unambiguous.
+  Dot-segment member kinds and reserved member-kind words are both rejected and recorded.
+- **§18.1 and the Composition design note — Attribute-constrained bindings resolve once.**
+  Resolution evaluates Definition Constraints against Attribute values obtained at that
+  moment and records effective values and provenance. A later Attribute change never
+  invalidates, rebinds, or migrates an active binding; reaction belongs to Routers and future
+  lifecycle policy.
+- **§18.2, §21.1, and the Persistent Information design note — Dataset authority, identity,
+  and concurrency rectified.** Capability designation of Datasets follows §10.2; Dataset
+  creation is an instance of the Genesis-versus-issuance question (§12, §33); Dataset
+  identity is a property of the Dataset record, with Corpus-declared identity-bearing Store
+  roles; and every Corpus MUST declare concurrent-access semantics.
+- **§8 — Authority-machinery placement assembled.** One passage states where minting, custody,
+  and evaluation live across the firmware, hosted or native runtime, and cross-domain homes.
 
-Planned changes not yet applied: composite Definition Constraint evaluation with unknown
-atoms; the typed-member separator grammar; static-once binding resolution; Dataset authority,
-identity, and concurrency; the §18.2 Genesis cross-reference; the where-authority-machinery-
-lives passage; and the full editorial pass.
+- **C7 — Editorial pass applied.** Per-section "not a ninth Base term" disclaimers are reduced
+  to each concept's defining statement plus the §7.1 registry; the §10.3 mortal-by-default
+  stance now states its SHOULD concretely; stale present-tense "Architecture 0.3"
+  self-references are made timeless; the front-matter changes-from reference and the
+  former-§35–§38 note are corrected; all section cross-references are verified; fail-closed
+  statements are confirmed to cite §10.1 at every normative site.
+
+All planned changes (C1–C8) have been applied.
 
 Architecture 0.7 makes no change to the eight Atlas Base terms.
+
+### 35.1 Direction for 0.8
+
+Architecture 0.7 was the consolidation release. 0.8 is planned as the evidence release: Fabric
+and Linen already interconnect at a basic level, and 0.8 closes the three gaps that prevent that
+interchange from producing architectural evidence.
+
+1. **Portable Component Binding and the Shape floor (§16, §18.1).** The standard scalar
+   catalogue, canonical projection, and the schema-guided Portable Binding are the prerequisites
+   for exchanging a real component between Fabric and Linen. Every §33 question that awaits
+   Fabric/Linen evidence — Corpus migration, hot-swap, Attributes — queues behind this seam.
+2. **Channel (§13.6).** The invocation principle currently constrains implementations without
+   equipping them. Cross-process interchange forces request/response representation, error
+   propagation, and delivery semantics into existence regardless; defining `Channel` alongside
+   the experiment prevents one implementation's ad hoc answer from becoming the architecture by
+   accident (§6.8).
+3. **Flow conformance (§19.1).** The first ratified extension contract. Event Distribution
+   depends on it, the revocation question terminates in it (what in-flight Flows do when
+   authority dies, §10.3, §33), and ratifying it exercises the extension machinery itself —
+   versioning, Profiles, conformance shape — on a real subject for the first time.
+
+Explicit non-goals for 0.8: the `Identity` and `Distributed` extensions (cross-domain
+representation waits for proven intra-domain interchange), `Presentation` and `Workspace`, and
+accelerator eligibility. Revocation beyond mortality advances only as far as Flow ratification
+forces it; the declaration requirements of §10.3 already fence the rest.

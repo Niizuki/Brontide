@@ -344,8 +344,16 @@ exists, against the 0.7 text.
   §35 changelog; section numbering unchanged); C8 (Mediation section written into the
   Composition design note; §6.9, §18.2, and §26.1 pop-out sentences applied); C4 (Router
   endpoint-guarantee wording applied in the Persistent Information design note and the §18.2
-  summary).
-- **Pending:** C1, C2, C3, C5, C7 (including C7a).
+  summary); C1 (poisoning rule in §10.1, §18.1 summary, §23, §29.2 conformance example, and
+  the Composition design note); C2 (`#` member separator in §6.10, §22.4, §33, §34, and the
+  Persistent Information design note examples); C3 (static-once binding resolution in the
+  §18.1 summary and the Composition design note); C5 (Dataset designation, Genesis
+  cross-reference, identity-bearing Store roles, and the concurrent-access MUST-declare in
+  the §18.2 summary, §21.1, §33, and the Persistent Information design note); C7a
+  (authority-machinery passage in §8); C7 (full editorial pass: disclaimer deduplication into
+  the §7.1 registry, §10.3 mortality stance concretised, stale version self-references made
+  timeless, cross-references verified, fail-closed §10.1 citations confirmed).
+- **Pending:** none.
 
 ## 6. Source of decisions
 
