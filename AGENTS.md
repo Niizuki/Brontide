@@ -9,19 +9,23 @@ The implementations should support, challenge, and eventually substitute for one
 collapsing into the same codebase. Architecture decisions and implementation claims must remain
 honest about which behaviour is normative, experimental, implemented, or deferred.
 
-## Source of truth
+## Source-of-truth routing
 
-Use this order when sources disagree:
+Route a claim by document status, not merely by the highest version number:
 
-1. The latest `Brontide-Architecture-*.md` document in the repository root for current architectural
-   semantics. Determine the latest architecture from the available versioned filenames; do not
-   hard-code a particular architecture filename or version in agent guidance.
-2. The implementation plan and milestone-evidence documents relevant to that architecture.
-3. Executable conformance tests and current code.
-4. Earlier `Brontide-Architecture-*.md` documents only for historical context.
+1. For architectural design, use the latest `Brontide-Architecture-*.md` document and preserve its
+   own draft, normative, provisional, and ratification labels.
+2. For claims about what is implemented, use the root `README.md`, the implementation plan and
+   milestone evidence for the implemented architecture baseline, and then executable evidence.
+3. For delivery of a later draft, use the implementation plan targeting that draft. A plan is not
+   implementation evidence.
+4. Use earlier architecture documents for the semantics of an implemented older baseline and for
+   historical context; do not silently project later draft rules into an older conformance claim.
 
-Follow the latest architecture's own normative, provisional, and non-ratified classifications.
-Keep provisional or non-ratified work in explicitly experimental projects and do not present it as
+The root `Brontide-Temporary-Implementation-Correction-Plan-0.1.md` controls known corrective gaps
+until its deletion gate is satisfied. It takes priority over optimistic implementation prose, but it
+is not architecture and must never be cited as evidence that a correction is complete. Keep
+provisional or non-ratified work in explicitly experimental projects and do not present it as
 Brontide Base conformance.
 
 ## Ground rules

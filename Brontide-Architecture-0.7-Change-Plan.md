@@ -2,11 +2,10 @@
 
 ## Architecture 0.7 Change Plan
 
-**Status:** Working plan, agreed baseline for the 0.7 edit
+**Status:** Executed change plan; retained as the edit record for the 0.7 Complete Draft
 **Baseline:** Brontide-Architecture-0.6.md
-**Purpose:** Record every decided change, decided rule, deferred fix, and open decision for
-Architecture 0.7 before the edit begins, so the 5,500-line revision is executed against an
-explicit contract rather than accumulated conversation.
+**Purpose:** Record the decided changes, rules, deferred fixes, and open decisions against which
+the Architecture 0.7 document edit was executed.
 
 This plan is not a specification. Where it states candidate normative wording, that wording is a
 drafting starting point and is subject to the editorial pass.
@@ -307,11 +306,12 @@ Persistence expansion beyond the C4/C5 rectifications is held until Brontide Ref
 first Corpus evidence. The existing interchange sequence (Event/Flow gate, then Macro Operation
 exchange, then the mixed image workspace) remains the pacing mechanism.
 
-Following this plan's approval and the 0.7 edit, two new implementation-plan documents are
-authored:
+Following this plan's approval and the completed 0.7 document edit, the two follow-on
+implementation plans are:
 
 ```
-Brontide-Reference-Stack-Implementation-Plan-0.3.md   — targets Architecture 0.7; adds first Corpus/Dataset/
+Reference/Brontide-Reference-Stack-Implementation-Plan-0.3.md
+                                    — targets Architecture 0.7; adds first Corpus/Dataset/
                                       Store-role experimental evidence (Opaque first), C1
                                       composite-constraint conformance tests, and C3 static
                                       binding-resolution records.
@@ -321,8 +321,9 @@ Brontide-Minimal-Stack-Implementation-Plan-0.3.md    — independent counterpart
                                       are stated precisely enough.
 ```
 
-Scope details for both are deliberately not fixed here; they are written after the 0.7 text
-exists, against the 0.7 text.
+Their scope is defined in those documents against the completed 0.7 text. Known implementation
+corrections remain separate in
+`Brontide-Temporary-Implementation-Correction-Plan-0.1.md`.
 
 ---
 
@@ -353,7 +354,9 @@ exists, against the 0.7 text.
   (authority-machinery passage in §8); C7 (full editorial pass: disclaimer deduplication into
   the §7.1 registry, §10.3 mortality stance concretised, stale version self-references made
   timeless, cross-references verified, fail-closed §10.1 citations confirmed).
-- **Pending:** none.
+- **Document-edit pending:** none.
+- **Follow-on:** the Reference and Minimal 0.3 implementation plans are authored. Implementation
+  evidence and Architecture 0.7 ratification remain pending and are outside this edit plan.
 
 ## 6. Source of decisions
 

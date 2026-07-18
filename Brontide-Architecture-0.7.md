@@ -6,11 +6,16 @@ An Introduction to the Brontide Computational Model
 
 > *Actors execute Operations by presenting explicit and bounded Capabilities.*
 
-**Status:** Early Draft (0.7 revision in progress; governed by Brontide-Architecture-0.7-Change-Plan.md)
+**Status:** Complete Draft (document edit complete; implementation evidence pending; not ratified)
 **Version:** 0.7 (see §35 for changes from Architecture 0.6; earlier diffs are retained in
 Brontide-Architecture-Change-History.md)
 **Notation:** NonStrict (§22.4). Normative identities expand to the same canonical form as Strict
 notation; explanatory examples may use locally resolvable shorthand.
+
+Implementation work is routed through
+`Reference/Brontide-Reference-Stack-Implementation-Plan-0.3.md` and
+`Brontide-Minimal-Stack-Implementation-Plan-0.3.md`. Their completion would provide evidence for
+ratification review; neither plan changes this document's status by itself.
 
 ---
 
@@ -171,9 +176,10 @@ It is not a kernel and it is not an operating system. It defines a computational
 that may be implemented by firmware, runtimes, operating systems, distributed environments, or
 future systems designed around Brontide directly.
 
-The first implementation of Brontide is named **Brontide Reference Stack**. A second, independently implemented full
-stack named **Brontide Minimal Stack** is planned to test whether Brontide components are genuinely composable and
-interchangeable rather than merely compatible with Brontide Reference Stack's internal model.
+The first implementation of Brontide is named **Brontide Reference Stack**. The second,
+independently implemented stack is named **Brontide Minimal Stack**. Their deliberately narrow
+interchange evidence tests whether Brontide components can be composable and interchangeable rather
+than merely compatible with Brontide Reference Stack's internal model.
 
 Brontide Reference Stack and Brontide Minimal Stack exist to explore and validate Brontide.
 Neither implementation is the definition of Brontide.
@@ -3689,10 +3695,11 @@ Brontide must not adopt a concept solely because Brontide Reference Stack implem
 Brontide Reference Stack is an experiment, implementation, and source of evidence.
 It is not the specification.
 
-**Brontide Minimal Stack** is planned as a second, deliberately independent full-stack implementation. Its primary
-purpose is narrower: to test Brontide composability and substitutability. Brontide Minimal Stack implements its own
-components rather than treating Brontide Reference Stack as the hidden platform, and favours a lean implementation
-surface where Brontide Reference Stack favours a practical showcase.
+**Brontide Minimal Stack** is the second, deliberately independent implementation. Its primary
+purpose is narrower: to test Brontide composability and substitutability. Brontide Minimal Stack
+implements its own components rather than treating Brontide Reference Stack as the hidden platform,
+and favours a lean implementation surface where Brontide Reference Stack favours a practical
+showcase.
 
 The proof is component interchange, not merely two programs passing the same conformance suite.
 Where both stacks implement the same Profile, Extension, and Domain Vocabulary contracts, a Brontide Minimal Stack
@@ -4428,10 +4435,10 @@ Brontide does not define an operating system.
 It defines a common computational architecture upon which firmware, runtimes, devices,
 distributed environments, organisational systems, and operating systems may build.
 
-Brontide Reference Stack is the first practical implementation and showcase of Brontide. Brontide Minimal Stack is the planned second,
-independent full-stack implementation and composability test. Interchange of components between
-their stacks is intended to reveal where an apparent Brontide contract is actually a private
-implementation convention.
+Brontide Reference Stack is the first practical implementation and showcase of Brontide. Brontide
+Minimal Stack is the second, independent implementation and composability test. Interchange of
+components between their stacks is intended to reveal where an apparent Brontide contract is
+actually a private implementation convention.
 
 The decisive application demonstration is a staged image-processing workspace that begins as a
 small local CPU composition, adopts system-native facilities incrementally, visibly substitutes
@@ -4446,8 +4453,9 @@ Brontide Minimal Stack is not Brontide.
 This section records the changes introduced since Architecture 0.6. The historical diffs from
 Architectures 0.2 through 0.5 are retained in `Brontide-Architecture-Change-History.md`.
 
-The 0.7 revision is in progress and governed by `Brontide-Architecture-0.7-Change-Plan.md`.
-Changes applied so far:
+The 0.7 document edit is complete and its executed edit contract is retained in
+`Brontide-Architecture-0.7-Change-Plan.md`. Implementation evidence and ratification remain
+pending. Changes applied:
 
 - **§16.6, §18.1, and §18.2 — Work-in-progress material extracted into companion design
   notes.** Enrichment and value propagation, Composition and Components, and
@@ -4505,9 +4513,9 @@ Architecture 0.7 makes no change to the eight Brontide Base terms.
 
 ### 35.1 Direction for 0.8
 
-Architecture 0.7 was the consolidation release. 0.8 is planned as the evidence release: Brontide Reference Stack
-and Brontide Minimal Stack already interconnect at a basic level, and 0.8 closes the three gaps that prevent that
-interchange from producing architectural evidence.
+Architecture 0.7 is the consolidation draft. 0.8 is planned as the evidence revision: Brontide
+Reference Stack and Brontide Minimal Stack already interconnect at a basic level, and 0.8 closes the
+three gaps that prevent that interchange from producing architectural evidence.
 
 1. **Portable Component Binding and the Shape floor (§16, §18.1).** The standard scalar
    catalogue, canonical projection, and the schema-guided Portable Binding are the prerequisites

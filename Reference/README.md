@@ -7,6 +7,12 @@ solution retains the functional scope of milestones M0 through M9 from the Archi
 the one historical limitation are recorded in `docs/milestone-evidence.md`,
 `docs/implementation-findings.md`, and `docs/experimental-and-sideline-projects.md`.
 
+Architecture 0.7 is now a complete, unratified draft. Reference delivery of its new requirements is
+planned in
+[`Brontide-Reference-Stack-Implementation-Plan-0.3.md`](./Brontide-Reference-Stack-Implementation-Plan-0.3.md).
+Nothing in that plan upgrades the current Architecture 0.5 implementation claim until the planned
+evidence is accepted.
+
 The current repository-wide programme is
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../Brontide-Interchange-Implementation-Plan-0.1.md).
 Brontide Reference Stack now owns an independently implemented experimental host adapter and provider endpoint for

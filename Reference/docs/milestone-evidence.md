@@ -4,6 +4,10 @@ This file records the retained evidence for Brontide Reference Stack Implementat
 current behavioural evidence from historical process claims that cannot be reconstructed from the
 repository.
 
+This is Architecture 0.5 baseline evidence. Architecture 0.7 work is planned in
+[`Brontide-Reference-Stack-Implementation-Plan-0.3.md`](../Brontide-Reference-Stack-Implementation-Plan-0.3.md);
+no table entry below is evidence of 0.7 conformance.
+
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../Brontide-Interchange-Implementation-Plan-0.1.md).
 Brontide Reference Stack now retains an experimental, Brontide Reference Stack-owned host adapter and provider endpoint for the neutral

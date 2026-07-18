@@ -5,6 +5,12 @@ Brontide Reference Stack, but does not reference Brontide Reference Stack assemb
 are meant to support, challenge, and eventually substitute for one another through the explicit
 external binding seam.
 
+Architecture 0.7 is now a complete, unratified draft. Minimal delivery of its new requirements is
+planned in
+[`Brontide-Minimal-Stack-Implementation-Plan-0.3.md`](../Brontide-Minimal-Stack-Implementation-Plan-0.3.md).
+Nothing in that plan upgrades the current Architecture 0.5 implementation claim until the planned
+evidence is accepted.
+
 The current repository-wide programme is
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../Brontide-Interchange-Implementation-Plan-0.1.md).
 Its first proof is implemented: Brontide Reference Stack-hosts-Brontide Minimal Stack and Brontide Minimal Stack-hosts-Brontide Reference Stack Cooling both execute

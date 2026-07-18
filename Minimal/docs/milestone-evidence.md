@@ -4,6 +4,12 @@ This document distinguishes implemented Brontide Minimal Stack behaviour from cr
 remain Brontide Minimal Stack-only evidence; the separately retained foreign-process tests are now actual
 Reference/Minimal Cooling interchange evidence.
 
+This is Architecture 0.5 baseline evidence. Architecture 0.7 work is planned in
+[`Brontide-Minimal-Stack-Implementation-Plan-0.3.md`](../../Brontide-Minimal-Stack-Implementation-Plan-0.3.md);
+no table entry below is evidence of 0.7 conformance. The temporary correction plan controls known
+claim gaps, so the M1 summary must not be read as proof of every Base requirement until that plan's
+applicable gates close.
+
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../Brontide-Interchange-Implementation-Plan-0.1.md).
 It closes the M3/M4 prerequisites relevant to interchange, completes the external binding surface,

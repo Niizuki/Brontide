@@ -4,6 +4,9 @@ This directory is the neutral, data-only contract for the first Reference/Minima
 It contains no CLR project, generated runtime type, shared exception, or dependency-injection
 registration. Brontide Reference Stack and Brontide Minimal Stack parse the same files into independently implemented binding types.
 
+This fixture is narrow Architecture 0.5-era experimental evidence. It does not establish
+Architecture 0.7 conformance or a general portable binding protocol.
+
 The test protocol is version 2. Each UTF-8 JSON-lines message is one complete JSON object on one
 line. Standard input and output carry protocol messages; standard error is diagnostic only.
 Version 1 remains Brontide Minimal Stack's historical manifest/value seam and is not upgraded in place.
