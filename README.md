@@ -39,6 +39,11 @@ Exact boundary assumptions are recorded in
 source-cost inventory is [`interchange/binding-measurements.json`](./interchange/binding-measurements.json).
 The current correction finding/deletion-gate status is summarized in
 [`docs/implementation-correction-status.md`](./docs/implementation-correction-status.md).
+Independent verification is coordinated by the checked
+[`conformance/reviews/review-request.json`](./conformance/reviews/review-request.json) and the
+[`independent-review workflow`](./conformance/reviews/README.md). The repository gate validates any
+review records that exist and automatically refuses deletion of the temporary plan unless both
+stack attestations and the explicit closure authorization are complete.
 
 Implementation-owned status and limitations are recorded in the
 [Brontide Reference Stack milestone evidence](./Reference/docs/milestone-evidence.md) and

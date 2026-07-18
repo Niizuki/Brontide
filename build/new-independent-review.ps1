@@ -1,0 +1,148 @@
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory = $true)]
+    [ValidateSet('Reference', 'Minimal')]
+    [string]$Stack,
+
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$ReviewerId,
+
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$ReviewerName,
+
+    [string]$OutputPath,
+
+    [switch]$Force
+)
+
+$ErrorActionPreference = 'Stop'
+
+$repositoryRoot = Split-Path -Parent $PSScriptRoot
+$requestPath = Join-Path $repositoryRoot 'conformance\reviews\review-request.json'
+
+function Read-JsonFile {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    Get-Content -Raw -LiteralPath $Path -Encoding UTF8 | ConvertFrom-Json
+}
+
+function Get-RepositoryPath {
+    param([Parameter(Mandatory = $true)][string]$RelativePath)
+
+    [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $RelativePath))
+}
+
+$request = Read-JsonFile $requestPath
+$stackRequest = @($request.stacks | Where-Object { $_.stack -eq $Stack })
+if ($stackRequest.Count -ne 1) {
+    throw "The review request must contain exactly one '$Stack' stack entry."
+}
+$stackRequest = $stackRequest[0]
+
+$requirementsPath = Get-RepositoryPath ([string]$request.requirements.path)
+$matrixPath = Get-RepositoryPath ([string]$stackRequest.matrixPath)
+$requirementsHash = (Get-FileHash -LiteralPath $requirementsPath -Algorithm SHA256).Hash
+$matrixHash = (Get-FileHash -LiteralPath $matrixPath -Algorithm SHA256).Hash
+if ($requirementsHash -ne $request.requirements.sha256) {
+    throw 'The requirement vocabulary no longer matches the pinned review request.'
+}
+if ($matrixHash -ne $stackRequest.matrixSha256) {
+    throw "The $Stack evidence matrix no longer matches the pinned review request."
+}
+
+& git -C $repositoryRoot cat-file -e "$($request.reviewTargetCommit)^{commit}" 2>$null
+if ($LASTEXITCODE -ne 0) {
+    throw "Review target commit '$($request.reviewTargetCommit)' is not available locally."
+}
+
+$master = Read-JsonFile $requirementsPath
+$matrix = Read-JsonFile $matrixPath
+$matrixById = @{}
+foreach ($entry in @($matrix.requirements)) {
+    $matrixById[[string]$entry.requirementId] = $entry
+}
+
+$packetRequirements = @(
+    foreach ($requirement in @($master.requirements | Where-Object { @($_.appliesTo) -contains $Stack })) {
+        $entry = $matrixById[[string]$requirement.id]
+        if ($null -eq $entry) {
+            throw "$Stack matrix is missing '$($requirement.id)'. Run verify-evidence.ps1 first."
+        }
+
+        [ordered]@{
+            requirementId = [string]$requirement.id
+            architectureSection = [string]$requirement.section
+            summary = [string]$requirement.summary
+            component = [string]$entry.component
+            claimedStatus = [string]$entry.status
+            matrixRationale = [string]$entry.rationale
+            positiveEvidence = @($entry.positiveEvidence)
+            negativeEvidence = @($entry.negativeEvidence)
+            review = [ordered]@{
+                architectureReviewed = $false
+                positiveEvidenceReviewed = $false
+                negativeEvidenceReviewed = $false
+                testsRun = @()
+                verdict = 'unreviewed'
+                rationale = ''
+                dispositionEvidence = $null
+            }
+        }
+    }
+)
+
+$packet = [ordered]@{
+    schemaVersion = 1
+    architectureRevision = [string]$request.architectureRevision
+    stack = $Stack
+    reviewTargetCommit = [string]$request.reviewTargetCommit
+    reviewer = [ordered]@{
+        id = $ReviewerId
+        name = $ReviewerName
+        independent = $false
+        independenceStatement = ''
+        conflicts = @()
+    }
+    reviewedAt = ''
+    gate = [ordered]@{
+        commit = [string]$request.reviewTargetCommit
+        command = '.\build\verify-interchange.ps1'
+        result = 'unreviewed'
+        environment = ''
+        notes = ''
+    }
+    requirements = $packetRequirements
+    overallVerdict = 'unreviewed'
+    attestation = [ordered]@{
+        attestedBy = ''
+        statement = ''
+        externalRecord = ''
+    }
+}
+
+if ([string]::IsNullOrWhiteSpace($OutputPath)) {
+    $destination = Get-RepositoryPath ([string]$stackRequest.attestationPath)
+}
+elseif ([System.IO.Path]::IsPathRooted($OutputPath)) {
+    $destination = [System.IO.Path]::GetFullPath($OutputPath)
+}
+else {
+    $destination = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $OutputPath))
+}
+
+if ((Test-Path -LiteralPath $destination) -and -not $Force) {
+    throw "Review packet '$destination' already exists. Use -Force only when intentionally replacing it."
+}
+
+$destinationDirectory = Split-Path -Parent $destination
+if (-not (Test-Path -LiteralPath $destinationDirectory)) {
+    New-Item -ItemType Directory -Path $destinationDirectory | Out-Null
+}
+
+$json = $packet | ConvertTo-Json -Depth 12
+[System.IO.File]::WriteAllText($destination, $json + [Environment]::NewLine, [System.Text.UTF8Encoding]::new($false))
+
+Write-Host "Created $Stack independent-review packet: $destination"
+Write-Host "Review the pinned commit $($request.reviewTargetCommit); do not change generated evidence snapshots."

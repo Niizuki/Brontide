@@ -161,3 +161,10 @@ This temporary plan may be deleted only when all of the following are true:
 
 Until then, this file is the controlling record for known corrective gaps. Deleting it is not
 itself evidence that the gaps were fixed.
+
+The checked [independent-review workflow](./conformance/reviews/README.md) makes these last review
+conditions mechanically enforceable. `build/verify-independent-review.ps1` validates any review
+records in progress; `build/verify-independent-review.ps1 -RequireComplete` requires two complete
+stack attestations and an authorized closing record. If this temporary plan is absent, the verifier
+enables that strict mode automatically as part of the full repository gate. These controls check
+coverage and traceability but do not replace the reviewer's architectural judgment.
