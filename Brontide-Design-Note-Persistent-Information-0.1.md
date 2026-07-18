@@ -292,7 +292,7 @@ do not create Store subtypes.
 
 Store identity is logical rather than physical. One filesystem mount or database server may expose
 several Stores with independent authority, retention, or lifecycle policies. Conversely, a Store
-may use implementation-internal physical redundancy without exposing every disk as a Brontide Store.
+may use implementation-internal physical redundancy without exposing every disk as an Brontide Store.
 If independently governed placement, failure, authority, or retention must be visible to Brontide, it
 is represented through distinct Stores, Store relationships, or a Router rather than hidden inside
 one ambiguous Store identity.

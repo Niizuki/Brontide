@@ -130,7 +130,7 @@ Replaying an Event repeats an assertion; replaying an Execution may repeat an ef
 carries no authority for an observer to react. An Execution is evaluated using an explicit
 Capability.
 
-Values crossing a Brontide boundary are described by Shapes. A Shape is a named, versioned
+Values crossing an Brontide boundary are described by Shapes. A Shape is a named, versioned
 abstract structural contract that allows independently implemented participants to agree on
 complete input and output structures, Event assertions, Outcome results, and Constraint values
 without requiring the same language types, object model, or wire encoding. A Shape is never the
@@ -182,10 +182,10 @@ Neither implementation is the definition of Brontide.
 
 Brontide is intended to describe systems at radically different scales.
 
-At one extreme, a Brontide implementation may be a small microcontroller.
+At one extreme, an Brontide implementation may be a small microcontroller.
 It may contain several Actors represented by static structures and direct function dispatch.
 
-At another extreme, a Brontide environment may span personal devices, servers, peripherals, remote
+At another extreme, an Brontide environment may span personal devices, servers, peripherals, remote
 infrastructure, human participants, autonomous computational systems, and organisational
 services.
 
@@ -386,4 +386,4144 @@ This is the central distinction in Brontide:
 > *Implementation machinery is local to the system. Actor, authority, contract, and occurrence
 > boundaries are architectural.*
 
-## 5. The Maximal Brontide Envirë;ŞÚ$z{-®éÜj×â6&–Æ—G’à ¤'&öçF–FR&6R—2–çFVçF–öæÆÇ’6ÖÆÂæB×W7B6F—6g’F†RVÖ&VFFVBFW7C¢Ö–7&ö6öçG&öÆÆW"v—F†÷W@¦â÷W&F–ær7—7FVÒÂæWGv÷&¶–ærÂf—'GVÂÖVÖ÷'’Â÷"G–æÖ–2ÆÆö6F–öâ–×ÆVÖVçG2WfW'’&6P§&WV—&VÖVçBv—F‚7FF–27G'V7GW&Râ&6R†2V–v‡BFW&×3¢7F÷"Â6&–Æ—G’Â6†RÂFVÆVvF–öâÀ¤÷W&F–öâÂW†V7WF–öâÂWfVçBÂæB÷WF6öÖRâ6†R6F—6f–W2F†RVÖ&VFFVBFW7BF‡&÷Vv‚6ö×–ÆR×F–ÖP§6–væGW&W2æB7FF–2F&ÆW2v†–ÆR&VÖ–æ–æræV6W76'’f÷"w&VVÖVçB&WGvVVâ–æFWVæFVç@¦–×ÆVÖVçFF–öç2âg&WVVçFÇ’FWÆ÷–VB6öæ6WG27V6‚2G&ç67F–öâ&VÖ–âW‡FVç6–öç2v†VâF†W’&P¦æ÷BæV6W76'’FòF†BÖ–æ–×VÒâgWGW&R6öçfVæ–Væ6R&öf–ÆRÖ’6öÆÆV7B6öÖÖöâW‡FVç6–öç2f÷ ¦vVæW&Â×W'÷6R7—7FV×2v—F†÷WB7V—&–ær&—f–ÆVvVB7FGW2÷"6†æv–ær&6Rà ¤'&öçF–FRw&÷w2F‡&÷Vv‚&6†—FV7GW&ÂW‡FVç6–öç2Â&öf–ÆW2ÂæBFöÖ–âfö6'VÆ&–W2â&öf–ÆW2FV6Æ&P¦F—&V7BFWVæFVæ6–W2–âW6W3¦&Æö6·2æBÖ’W6R÷F†W"&öf–ÆW3²6öæf÷&Öæ6RW‡æG2F‡&÷Vv‚F†P§G&ç6—F—fRFWVæFVæ7’6Æ÷7W&Rv—F†÷WB&WVF–ær–æF—&V7B&WV—&VÖVçG2â7FæF&BæÖW2W6P§VçVÆ–f–VB6öæ6WBF‡2Âv†–6‚&R&W6W'fVBf÷"&F–f–VB'&öçF–FR6öæ6WG2â–âWF†÷&VBæÖW2Â¦ §6W&FW2†–W&&6†–6ÂWF†÷&—G’F‚g&öÒ—G26öæ6WBF‚Â2–à¦Æöv—FV6‚äÕƒ¤–çWBå67&öÆÂå6Ö'E6†–gFâæÖW2&R7G'V7GW&ÆÇ’ÆVv–&ÆRæB6VÖçF–6ÆÇ’÷VRà¤FV6Æ&F–öâ&Vf—‚&Æö6·2&VGV6R&WWF—F–öâ–âFö7VÖVçG2'WBW‡æBFò6æöæ–6ÂæÖW2&Vf÷&RW6Rà¥&F–f–6F–öâg&VW¦W26æöæ–6ÂæÖRw26VÖçF–72f÷&WfW#²FF—F—fRf–Æ&–Æ—G’&VÖ–ç2v÷fW&æV@¦'’&öf–ÆW2æBF—66÷fW'’à ¤'&öçF–FRFö7VÖVçG2FV6Æ&R7G&–7B÷"æöå7G&–7Bæ÷FF–öââ7G&–7BFVf–æ—F–öç2W6RW‡æFVB6æöæ–6À¦æÖW2æBW‡Æ–6—BfW'6–öâæB&–æF–ærf–VÆG3²æöå7G&–7BFö7VÖVçG2Ö’W6RFWFW&Ö–æ—7F–26†÷'F†æ@§F†Bæ÷&ÖÆ—6W2FòF†R6ÖRÖöFVÂâWF†÷'6†—&WF–ç2F†R6–ævÆRWF†÷&—G•Fƒ¤6öæ6WEF† §6W&F÷"ÂG—VBÖVÖ&W'2W6RF—7F–æ7BÖVÖ&W"6W&F÷"Œ*s#"ãB’ÂæBfW'6–öç2&VÖ–â6W&FP¦6Æ–×2&F†W"F†â&V6öÖ–ær'Böb6æöæ–6ÂæÖRâ&6†—FV7GW&Rãr—G6VÆbW6W2æöå7G&–7BW‡ÆæF÷'’æ÷FF–öâà ¤&W–öæB&6RÂ6ö×öæVçB—266ÆRÖ–æFWVæFVçBVæ—Böb6ö×÷6—F–öâFV6Æ&–ærF†R'&öçF–FR6öçG&7G0¦—B&÷f–FW2æB&WV—&W2â6ö×öæVçG2æB7F÷'2&RF—7F–æ7C¢6ö×öæVçG2FVf–æR6ö×÷6—F–öà¦&÷VæF&–W3²7F÷'2'F–6—FR–âWF†÷&—G’â&–æF–æw2Ö’&R7FF–2÷"'VçF–ÖRÖW7F&Æ—6†VBâ¤†÷B×7v†÷7B6ö×öæVçBW‡÷6W2†÷B×7v6Æ÷Bf÷"FV6Æ&VB†÷B×7v6Æ73²†÷B×7v&ÆP¤6ö×öæVçB6öæf÷&×2FòF†B6Æ72æB—G2&WÆ6VÖVçBö&Æ–vF–öç2âF†V—"¦ö–çB6öçG&7B×W7B7FFP¦6ö×F–&–Æ—G’Â7F÷"–FVçF—G’ÂWF†÷&—G’Â7FFRÂ–â×&öw&W72v÷&²Â–çFW''WF–öâÂæB&öÆÆ&6°§6VÖçF–72&F†W"F†âG&VF–ærÆ—fR&WÆ6VÖVçB2âWFöÖF–26öç6WVVæ6Röb6†&VBæÖW2à¥&VÖ÷FR6W'f–6W2&Ræ÷B6W&FR6ö×öæVçB¶–æC¢Æö6ÆæB&VÖ÷FV&R&ö¦V7F–öç2öb&–6†W"À¦6&–Æ—G’ÖFW&—fVBGG&–'WFW27V6‚2F÷öÆöw’ÂWF†÷&—G’FöÖ–âÂÆFVæ7’Â6÷7BÂ66—G’À¦f–Æ&–Æ—G’ÂæBf–ÇW&RFöÖ–ââF†W6RGG&–'WFW2wV–FR6VÆV7F–öâÖöær6ö×F–&ÆP¤6ö×öæVçG2v—F†÷WB6†æv–ærF†V—"6VÖçF–26öçG&7B–FVçF—F–W2â–×ÆVÖVçFF–öç2Ö’7F–ÆÂ&W6Vç@§F†RW6VgVÂÆö6Æö&VÖ÷FV6†÷'F†æB–âW6W"–çFW&f6W2æB7VÖÖ&–W2Â&÷f–FVB—B&VÖ–ç2¦FV6Æ&VBÂÆ÷77’&ö¦V7F–öâ&F†W"F†â6÷W&6RöbVç7FFVBwV&çFVW2à ¥F†R&÷÷6VB'&öçF–FR÷'F&ÆR&–æF–ær7WÆ–W2FVfVÇBvVæW&Â×W'÷6R6VÒv—F†÷WBFVf–æ–æröæP¦–×ÆVÖVçFF–öâÖöFVÂâ66÷VB&–æF–ærÆâf—†W26öçG&7G2ÂWF†÷&—G’Â&W&W6VçFF–öâÂÖVÖ÷'’æ@§&W6÷W&6R†æFÆ–ærÂ7–æ6‡&öæ—6F–öâÂFVÆ—fW'’ÂæBÆ–fV7–6ÆR&Vf÷&RF†R†÷BF‚â—G2÷'F&ÆP¦&–æ'’F—&V7F–öâW6W26ö×7Bg&Ö–æræB66†VÖÖwV–FVB4$õ"f÷"÷&F–æ'’–æÆ–æRfÇVW2Âv†–ÆP§&VfW&Væ6VB6†VB&W6÷W&6W2W&Ö—BööÆVBÂ6†&VBÂFWf–6RÖÆö6ÂÂ&Vv—7FW&VBÂ÷"÷F†W'v—6P§7V6–Æ—6VBFFF‡2v—F†–âF†R6ÖR6VÒâ7FF–2æBæF—fR&–æF–æw2Ö’6ö×–ÆRF†RÆâ–çFğ¦F—&V7B6ÆÇ2÷"7V6–Æ—6VBÖ6†–æW'’âÖ–ær&WGvVVâ&—fFR&W&W6VçFF–öç2öböæR6†R&VÆöæw0§Fò&–æF–ær÷"†÷7BÖ6†–æW'“²6VÖçF–2FFF–öâ&WGvVVâF–ffW&VçB6öçG&7G2&VÖ–ç2âW‡Æ–6—@¤6ö×öæVçBÖÆWfVÂ&VÆF–öç6†—&F†W"F†â&6RÖ–ær6W'f–6Rà ¤6ö×÷6—F–öâÖ’W‡÷6R6†RÖFW67&–&VB&ÖWFW'2â6ö×÷6—F–öâ&ÖWFW'26†RF†R&W6öÇfV@¦&6†—FV7GW&S²7F—fF–öâ&ÖWFW'2f–ÆÂ&W6÷W&6R6Æ÷G2Ç&VG’FV6Æ&VB'’F†B&6†—FV7GW&Ræ@¦6ææ÷B–çG&öGV6RæWr7G'V7GW&RâGG&–'WFR&WV—&VÖVçG2&Ræ÷BÖ&–VçBÆ&VÇ3¢F†W’–FVçF–g’F†P¤÷W&F–öâÂfö6'VÆ'’6Æ–ÒÂ&W7VÇB6†RÂæB&W7VÇBF‚F†B&÷f–FRfÇVRVæFW"÷&F–æ'¤6&–Æ—G’WfÇVF–öââFVf–æ—F–öâ6öç7G&–çG26ö×&RF†÷6RfÇVW2÷"fÆ–FFR&ÖWFW'2F‡&÷Vv€¥6†RÖ&÷&–FRFöÖ–2&VÆF–öç2æB&V7W'6—fVÇ’6ö×÷6&ÆRÆÄöfÂç”öfÂæBæ÷Fw&÷W2à¥F†W’6VÆV7BæBfÆ–FFRv—F†÷WBw&çF–ærWF†÷&—G“²âVç&V6övæ—6VBFöÒf–Ç2F†Rv†öÆP¦W‡&W76–öâ6Æ÷6VC²æBF†V—"VffV7F—fRfÇVW2æBÖF6†–ær'&æ6†W26†÷VÆB&VÖ–âW‡Æ–æ&ÆRà ¥W'6—7FVçB–æf÷&ÖF–öâ—2&÷f—6–öæÆÇ’ÖöFVÆÆVBF‡&÷Vv‚6÷'W2ÂFF6WBÂ7F÷&R&öÆW2Â7F÷&W2Âæ@¥&÷WFW'2â6÷'W2—2âWF†÷&VBÂfW'6–öæVB6VÖçF–2FVf–æ—F–öâ–æFWVæFVçBöbF†R6ö×öæVçG2F†@¦÷W&FRöâ—BâFF6WB—2öæR6öæ7&WFR&öG’6öæf÷&Ö–ærFò6÷'W2âÔÆWfVÂ–æf÷&ÖF–öâ&VÖ–ç0¦÷WG6–FRF†RÖöFVÂf÷"6ö×F–&–Æ—G“²â÷VR6÷'W2v—fW2'&öçF–FRÆ–fV7–6ÆRVæFW'7FæF–ærv—F†÷W@¦6öçFVçB–çFW'&WFF–öã²7G'V7GW&VB6÷'W2W6W2&V6÷&BÂ6öÆÆV7F–öâÂÖÂw&‚Â¦÷W&æÂÂ÷"7G&VĞ¤f÷&Òv—F‚&V7W'6—fVÇ’6ö×÷6VB6†W2â6ö×öæVçBÔ6÷'W2&öÆW2FW67&–&R6ö×F–&–Æ—G’Âæ÷@¦WF†÷&—G’â&VÖ÷f–ær6ö×öæVçBFöW2æ÷B–×Ç’&VÖ÷f–ær—G2FF6WG2à ¤V6‚6÷'W2FVf–æW2&WV—&VB÷"÷F–öæÂ7F÷&R&öÆW2æBW‡Æ–6—B'6Væ6R&V†f–÷W"âWfW'’&öÆRö`¦FF6WB&–æG2FòöæRÆöv–6Â7F÷&RVæGö–çC²6WfW&Â&öÆW2Ö’6†&RöæR7F÷&RÂæB&÷WFW"Ö§&W6VçBF†R7F÷&R6öçG&7Bv†–ÆRÇ––ærW‡Æ–6—BöÆ–7’7&÷72&6¶–ær7F÷&W2â6–×ÆRÖ—'&÷"æ@¤&6·W&VÆF–öç6†—2&VÖ–âFV6Æ&F—fR7F÷&RF÷öÆöw’Âv†–ÆR6öæF—F–öæÂfÆÆ&6²ÂF–W&–ærÀ§6†&F–ærÂæB&VÆFVBG–æÖ–2FV6—6–öç2&VÆöærFò&÷WFW'2â7F÷&R&WV—&VÖVçG2æÖRW†7B÷W&F–öç0¦æB6öç7G&–â6&–Æ—G’ÖFW&—fVBGG&–'WFW2&F†W"F†âGF6†–ærVæFVf–æVBÆö6ÆÂf7FÂ÷ ¦GW&&ÆVÆ&VÇ2à ¤vVæW&Â×W'÷6RVçf—&öæÖVçBÖ’öffW"÷F–öæÂ7—7FVÒÖæF—fR6ö×öæVçG2f÷"WfVçG2ÂW'6—7FVæ6RÀ¤6÷'W2æB7F÷&RÖævVÖVçBÂ7FFRÂ–FVçF—G’Â&W6VçFF–öâÂv÷&·76RÂvV"Â66†VGVÆ–ærÀ¦ö'6W'f&–Æ—G’Â6ö×–ÆF–öâÂæB66VÆW&F–öââÆ–6F–öç2Ö’F÷BF†W6Rf6–Æ—F–W2–æ7&VÖVçFÆÇ¦æBÖ’6öçG&–'WFRF†V—"÷vâ÷W&F–öç2&6²FòF†RVçf—&öæÖVçBâF†W’Ö’Ç6ò&VÖ–â&÷†VBÂv—F€§&—fFRWF†VçF–6F–öâÂFF&6RÂWfVçG2Â&VæFW&–ærÂæB–çFW&æÂ6ö×÷6—F–öââ'&öçF–FR6öæf÷&Öæ6P¦Æ–W2FòF†R6öçG&7G2F†W’6Æ–ÒÂæ÷BFòâö&Æ–vF–öâFòW‡÷6RF†V—"–çFW&–÷"à ¥6–×ÆR'F–6—F–öâæB6÷†—7F–6FVBW†V7WF–öâ&R6ö×F–&ÆRv†Vâ7G&öævW"&÷W'F–W2&VÖ–à¦W‡Æ–6—Bâ6ÖÆÂÖöGVÆRÖ’W‡÷6Râ÷&F–æ'’÷W&F–öâv†–ÆRF†R7W'&÷VæF–ær6ö×÷6—F–öâFG0¦†—7F÷'’Â6V7W&—G’Â6VÆV7F–öâÂ&F6†–ærÂ&VÖ÷FRÆ6VÖVçBÂ÷"66VÆW&F÷"W†V7WF–öââW&—G’À¦FWFW&Ö–æ—6ÒÂ&WÆ’6fWG’Â&F6†&–Æ—G’Â&VÆö6F&–Æ—G’ÂæBuR6ö×F–&–Æ—G’×W7B&RFV6Æ&VBæ@§FW7FVC²6VÖçF–2÷'F&–Æ—G’FöW2æ÷BW&6RÆFVæ7’Â6÷–W2Â&W&W6VçFF–öâÂWF†÷&—G’Â÷"f–ÇW&P¦&÷VæF&–W2à ¤FWfVÆ÷W"G'W7BFWVæG2öâ÷W&F–öæÂÆVv–&–Æ—G’â6öæf÷&Ö–ærVçf—&öæÖVçB6†÷VÆBÖ¶R&÷f–FW §6VÆV7F–öâÂVç&–6†ÖVçBÂ&–æF–ærÆç2Â7&÷76VB&÷VæF&–W2Â&WG&–W2ÂVÖ—GFVBö67W'&Væ6W2Â÷WF6öÖW2À§F–Ö–ærÂæB6W6Æ—G’W‡Æ–æ&ÆRv—F†÷WB6Æ–Ö–ærf—6–&–Æ—G’–çFò÷VR&—fFR6ö×öæVçG2â7—7FVĞ§6W'f–6W26†÷VÆB&Wv&B'F–6—F–öâv—F‚–çFW&÷W&&–Æ—G’æB–ç7V7F–öâ&F†W"F†âÖ¶R&—fFP¦ÖV6†æ—6×2–ÆÆVv—F–ÖFRF‡&÷Vv‚FööÆ–ær&W77W&Rà ¥Vç7V6–f–VB&V†f–÷W"—2÷Vâ'’&W7V×F–öã²F†RwV&çFVVB7W&f6R—2F†Ræ÷&ÖF—fRFW‡C²F†P¦GFW7FVB7W&f6R—2v†B6öæf÷&Öæ6R7V—FW2FW7Bà ¤'&öçF–FRFöW2æ÷BFVf–æRâ÷W&F–ær7—7FVÒà¤—BFVf–æW26öÖÖöâ6ö×WFF–öæÂ&6†—FV7GW&RWöâv†–6‚f—&×v&RÂ'VçF–ÖW2ÂFWf–6W2À¦F—7G&–'WFVBVçf—&öæÖVçG2Â÷&væ—6F–öæÂ7—7FV×2ÂæB÷W&F–ær7—7FV×2Ö’'V–ÆBà ¤'&öçF–FR&VfW&Væ6R7F6²—2F†Rf—'7B&7F–6Â–×ÆVÖVçFF–öâæB6†÷v66Röb'&öçF–FRâ'&öçF–FRÖ–æ–ÖÂ7F6²—2F†RÆææVB6V6öæBÀ¦–æFWVæFVçBgVÆÂ×7F6²–×ÆVÖVçFF–öâæB6ö×÷6&–Æ—G’FW7Bâ–çFW&6†ævRöb6ö×öæVçG2&WGvVVà§F†V—"7F6·2—2–çFVæFVBFò&WfVÂv†W&Râ&VçB'&öçF–FR6öçG&7B—27GVÆÇ’&—fFP¦–×ÆVÖVçFF–öâ6öçfVçF–öâà ¥F†RFV6—6—fRÆ–6F–öâFVÖöç7G&F–öâ—27FvVB–ÖvR×&ö6W76–ærv÷&·76RF†B&Vv–ç22§6ÖÆÂÆö6Â5R6ö×÷6—F–öâÂF÷G27—7FVÒÖæF—fRf6–Æ—F–W2–æ7&VÖVçFÆÇ’Âf—6–&Ç’7V'7F—GWFW0¤'&öçF–FR&VfW&Væ6R7F6²æB'&öçF–FRÖ–æ–ÖÂ7F6²6ö×öæVçG2ÂæBÖ÷fW2âW‡Æ–6—FÇ’VÆ–v–&ÆRG&ç6f÷&ÖF–öâFòâ66VÆW&F÷ §v—F†÷WB6†æv–ær—G26VÖçF–2÷W&F–öââ—G2W'÷6R—2Wf–FVæ6RÂæ÷B7V7F6ÆRà ¤'&öçF–FR&VfW&Væ6R7F6²—2æ÷B'&öçF–FRà¤'&öçF–FRÖ–æ–ÖÂ7F6²—2æ÷B'&öçF–FRà ¢223Râ6†ævW2g&öÒã` ¥F†—26V7F–öâ&V6÷&G2F†R6†ævW2–çG&öGV6VB6–æ6R&6†—FV7GW&RãbâF†R†—7F÷&–6ÂF–fg2g&öĞ¤&6†—FV7GW&W2ã"F‡&÷Vv‚ãR&R&WF–æVB–â'&öçF–FRÔ&6†—FV7GW&RÔ6†ævRÔ†—7F÷'’æÖFà ¥F†Rãr&Wf—6–öâ—2–â&öw&W72æBv÷fW&æVB'’'&öçF–FRÔ&6†—FV7GW&RÓãrÔ6†ævRÕÆâæÖFà¤6†ævW2Æ–VB6òf#  ¢Ò¢¬*sbãbÂ*s‚ãÂæB*s‚ã"(	Bv÷&²Ö–â×&öw&W72ÖFW&–ÂW‡G&7FVB–çFò6ö×æ–öâFW6–và¢æ÷FW2â¢¢Vç&–6†ÖVçBæBfÇVR&÷vF–öâÂ6ö×÷6—F–öâæB6ö×öæVçG2Âæ@¢6÷'W2ôFF6WBõ7F÷&Rõ&÷WFW"æ÷rÆ—fR–â'&öçF–FRÔFW6–vâÔæ÷FRÔVç&–6†ÖVçBÓãæÖFÀ¢'&öçF–FRÔFW6–vâÔæ÷FRÔ6ö×÷6—F–öâÓãæÖFÂæ@¢'&öçF–FRÔFW6–vâÔæ÷FRÕW'6—7FVçBÔ–æf÷&ÖF–öâÓãæÖFâF†R&6†—FV7GW&RFö7VÖVçB&WF–ç2V6€¢6V7F–öâw26WGFÆVBFVf–æ—F–öç2æB–çf&–çG2v—F‚ö–çFW#²6V7F–öâçVÖ&W&–ær—0¢Væ6†ævVBà¢Ò¢¬*srã(	BFW&Ò7FGW2&Vv—7G'’FFVBâ¢¢F†R7FGW2öbWfW'’æÖVB6öæ6WB—2&V6÷&FVBöæ6RÀ¢&WÆ6–ær66GFW&VBW"×6V7F–öâ7FGW2F—66Æ–ÖW'2à¢Ò¢¬*sbã’Â*s‚ã"ÂæB*s#bã(	BÖVF–F–öâF—&V7F–öâ7W&f6VBâ¢¢F†R6ö×÷6—F–öâFW6–vâæ÷FP¢&V6÷&G2ÖVF–F–öâ2FV6Æ&VB&VÆF–öç6†—v—F‚6VÆV7F–öâÂF—7G&–'WF–öâÂæB&&—G&F–öà¢7V6–W2ÂVæf÷&6VB'’WF†÷&—G’F÷öÆöw’âF†R*sbã’ÖVF–F–ær7F÷"æBF†R*s#bãwV&F–à¢&RæÖVB&&—G&F–öâ–ç7Fæ6W3²F†R&÷WFW"—2æÖVBF†R7F÷&vR–ç7FçF–F–öâö`¢6VÆV7F–öâà¢Ò¢¥&÷WFW"VæGö–çBwV&çFVW27FFVBâ¢¢F†RGG&–'WFW2öbÆöv–6Â7F÷&RVæGö–çB&W6VçFV@¢'’&÷WFW"&RF†R&÷WFW"w2÷vâFV6Æ&VBwV&çFVW2Âæ÷BF†÷6Röbç’7W'&VçB&6¶–æp¢7F÷&R‡&V6÷&FVB–âF†RW'6—7FVçB–æf÷&ÖF–öâFW6–vâæ÷FRæBF†R*s‚ã"7VÖÖ'’’à¢Ò¢¤†—7F÷&–6Â6†ævVÆöw2&VÆö6FVBâ¢¢F†RW"×fW'6–öâF–fg2f÷&ÖW&Ç’B*s3^(	<*s3‚ö`¢&6†—FV7GW&Rãbæ÷rÆ—fR–â'&öçF–FRÔ&6†—FV7GW&RÔ6†ævRÔ†—7F÷'’æÖF²F†—2Fö7VÖVçB6'&–W0¢öæÇ’—G2÷vâF–fbŒ*s3R’à¢Ò¢¬*sãÂ*s‚ãÂ*s#2ÂæB*s#’ã"(	B6ö×÷6—FR6öç7G&–çBWfÇVF–öâFVf–æVBâ¢¢âVç&V6övæ—6V@¢FöÖ–26öç7G&–çBç—v†W&Rv—F†–â6ö×÷6—FRW‡&W76–öâÖ¶W2F†RVçF—&RW‡&W76–öà¢VæWfÇVF&ÆS²VæWfÇVF&ÆRæWfW"&W6öÇfW2FòG'WF‚fÇVRâ–âWF†÷&—G’6öçFW‡BF†—0¢6W6W2FVæ–Âv—F‚æò'F–Â7&VF—Bf÷"&V6övæ—6VB'&æ6†W3²–â6VÆV7F–öâ6öçFW‡BF†P¢6æF–FFR—2W†6ÇVFVBæBF†RW†6ÇW6–öâ&V6÷&FVBâ6öæf÷&Öæ6RW†×ÆR6÷fW'2æ÷Fæ@¢ç”öfv—F‚Vç&V6övæ—6VBFö×2à¢Ò¢¬*sbãÂ*s#"ãBÂ*s32ÂæB*s3B(	BG—VBÖVÖ&W"–FVçF—F–W2W6RF—7F–æ7BÖVÖ&W"6W&F÷"â¢ ¢F†R6æF–FFRw&ÖÖ"—2´WF†÷&—G•F‚#¢%Ò6öæ6WEF‚²"2"ÖVÖ&W$¶–æB"â"ÖVÖ&W$æÖUÖÀ¢¶VW–ærWfW'’F÷B6VvÖVçB6VÖçF–6ÆÇ’÷VRæBWfW'’6æöæ–6Â7G&–ærVæÖ&–wV÷W2à¢F÷B×6VvÖVçBÖVÖ&W"¶–æG2æB&W6W'fVBÖVÖ&W"Ö¶–æBv÷&G2&R&÷F‚&V¦V7FVBæB&V6÷&FVBà¢Ò¢¬*s‚ãæBF†R6ö×÷6—F–öâFW6–vâæ÷FR(	BGG&–'WFRÖ6öç7G&–æVB&–æF–æw2&W6öÇfRöæ6Râ¢ ¢&W6öÇWF–öâWfÇVFW2FVf–æ—F–öâ6öç7G&–çG2v–ç7BGG&–'WFRfÇVW2ö'F–æVBBF†@¢ÖöÖVçBæB&V6÷&G2VffV7F—fRfÇVW2æB&÷fVææ6RâÆFW"GG&–'WFR6†ævRæWfW ¢–çfÆ–FFW2Â&V&–æG2Â÷"Ö–w&FW2â7F—fR&–æF–æs²&V7F–öâ&VÆöæw2Fò&÷WFW'2æBgWGW&P¢Æ–fV7–6ÆRöÆ–7’à¢Ò¢¬*s‚ã"Â*s#ãÂæBF†RW'6—7FVçB–æf÷&ÖF–öâFW6–vâæ÷FR(	BFF6WBWF†÷&—G’Â–FVçF—G’À¢æB6öæ7W'&Væ7’&V7F–f–VBâ¢¢6&–Æ—G’FW6–væF–öâöbFF6WG2föÆÆ÷w2*sã#²FF6W@¢7&VF–öâ—2â–ç7Fæ6RöbF†RvVæW6—2×fW'7W2Ö—77Væ6RVW7F–öâŒ*s"Â*s32“²FF6W@¢–FVçF—G’—2&÷W'G’öbF†RFF6WB&V6÷&BÂv—F‚6÷'W2ÖFV6Æ&VB–FVçF—G’Ö&V&–ær7F÷&P¢&öÆW3²æBWfW'’6÷'W2ÕU5BFV6Æ&R6öæ7W'&VçBÖ66W726VÖçF–72à¢Ò¢¬*s‚(	BWF†÷&—G’ÖÖ6†–æW'’Æ6VÖVçB76VÖ&ÆVBâ¢¢öæR76vR7FFW2v†W&RÖ–çF–ærÂ7W7FöG’À¢æBWfÇVF–öâÆ—fR7&÷72F†Rf—&×v&RÂ†÷7FVB÷"æF—fR'VçF–ÖRÂæB7&÷72ÖFöÖ–â†öÖW2à ¢Ò¢¤3r(	BVF—F÷&–Â72Æ–VBâ¢¢W"×6V7F–öâ&æ÷Bæ–çF‚&6RFW&Ò"F—66Æ–ÖW'2&R&VGV6V@¢FòV6‚6öæ6WBw2FVf–æ–ær7FFVÖVçBÇW2F†R*srã&Vv—7G'“²F†R*sã2Ö÷'FÂÖ'’ÖFVfVÇ@¢7Fæ6Ræ÷r7FFW2—G24„õTÄB6öæ7&WFVÇ“²7FÆR&W6VçB×FVç6R$&6†—FV7GW&Rã2 ¢6VÆb×&VfW&Væ6W2&RÖFRF–ÖVÆW73²F†Rg&öçBÖÖGFW"6†ævW2Ög&öÒ&VfW&Væ6RæBF†P¢f÷&ÖW"Ü*s3^(	<*s3‚æ÷FR&R6÷'&V7FVC²ÆÂ6V7F–öâ7&÷72×&VfW&Væ6W2&RfW&–f–VC²f–ÂÖ6Æ÷6V@¢7FFVÖVçG2&R6öæf—&ÖVBFò6—FR*sãBWfW'’æ÷&ÖF—fR6—FRà ¤ÆÂÆææVB6†ævW2„3(	43‚’†fR&VVâÆ–VBà ¤&6†—FV7GW&RãrÖ¶W2æò6†ævRFòF†RV–v‡B'&öçF–FR&6RFW&×2à ¢2223RãF—&V7F–öâf÷"ã€ ¤&6†—FV7GW&Rãrv2F†R6öç6öÆ–FF–öâ&VÆV6Râã‚—2ÆææVB2F†RWf–FVæ6R&VÆV6S¢'&öçF–FR&VfW&Væ6R7F6°¦æB'&öçF–FRÖ–æ–ÖÂ7F6²Ç&VG’–çFW&6öææV7BB&6–2ÆWfVÂÂæBã‚6Æ÷6W2F†RF‡&VRv2F†B&WfVçBF†@¦–çFW&6†ævRg&öÒ&öGV6–ær&6†—FV7GW&ÂWf–FVæ6Rà £â¢¥÷'F&ÆR6ö×öæVçB&–æF–æræBF†R6†RfÆö÷"Œ*sbÂ*s‚ã’â¢¢F†R7FæF&B66Æ ¢6FÆöwVRÂ6æöæ–6Â&ö¦V7F–öâÂæBF†R66†VÖÖwV–FVB÷'F&ÆR&–æF–ær&RF†R&W&WV—6—FW0¢f÷"W†6†æv–ær&VÂ6ö×öæVçB&WGvVVâ'&öçF–FR&VfW&Væ6R7F6²æB'&öçF–FRäÖ–æ–ÖÂâWfW'’*s32VW7F–öâF†Bv—G0¢&VfW&Væ6RôÖ–æ–ÖÂWf–FVæ6R(	B6÷'W2Ö–w&F–öâÂ†÷B×7vÂGG&–'WFW2(	BVWVW2&V†–æBF†—26VÒà£"â¢¤6†ææVÂŒ*s2ãb’â¢¢F†R–çfö6F–öâ&–æ6—ÆR7W'&VçFÇ’6öç7G&–ç2–×ÆVÖVçFF–öç2v—F†÷W@¢WV—–ærF†VÒâ7&÷72×&ö6W72–çFW&6†ævRf÷&6W2&WVW7B÷&W7öç6R&W&W6VçFF–öâÂW'&÷ ¢&÷vF–öâÂæBFVÆ—fW'’6VÖçF–72–çFòW†—7FVæ6R&Vv&FÆW73²FVf–æ–ær6†ææVÆÆöæw6–FP¢F†RW‡W&–ÖVçB&WfVçG2öæR–×ÆVÖVçFF–öâw2B†ö2ç7vW"g&öÒ&V6öÖ–ærF†R&6†—FV7GW&R'¢66–FVçBŒ*sbã‚’à£2â¢¤fÆ÷r6öæf÷&Öæ6RŒ*s’ã’â¢¢F†Rf—'7B&F–f–VBW‡FVç6–öâ6öçG&7BâWfVçBF—7G&–'WF–öà¢FWVæG2öâ—BÂF†R&Wfö6F–öâVW7F–öâFW&Ö–æFW2–â—B‡v†B–âÖfÆ–v‡BfÆ÷w2Fòv†Và¢WF†÷&—G’F–W2Â*sã2Â*s32’ÂæB&F–g––ær—BW†W&6—6W2F†RW‡FVç6–öâÖ6†–æW'’—G6VÆb(	@¢fW'6–öæ–ærÂ&öf–ÆW2Â6öæf÷&Öæ6R6†R(	Böâ&VÂ7V&¦V7Bf÷"F†Rf—'7BF–ÖRà ¤W‡Æ–6—BæöâÖvöÇ2f÷"ãƒ¢F†R–FVçF—G–æBF—7G&–'WFVFW‡FVç6–öç2†7&÷72ÖFöÖ–à§&W&W6VçFF–öâv—G2f÷"&÷fVâ–çG&ÖFöÖ–â–çFW&6†ævR’Â&W6VçFF–öææBv÷&·76VÂæ@¦66VÆW&F÷"VÆ–v–&–Æ—G’â&Wfö6F–öâ&W–öæBÖ÷'FÆ—G’Gfæ6W2öæÇ’2f"2fÆ÷r&F–f–6F–öà¦f÷&6W2—C²F†RFV6Æ&F–öâ&WV—&VÖVçG2öb*sã2Ç&VG’fVæ6RF†R&W7Bà
+## 5. The Maximal Brontide Environment
+
+The Embedded Test defines the minimum environment in which Brontide must remain meaningful.
+It does not define the upper ambition of Brontide.
+
+A maximal Brontide implementation may expose a computational environment containing many cooperating
+systems:
+
+```
+Actors:
+    Human
+    BuildAgent
+    CodeReviewAgent
+    OperationsSystem
+    AuditSystem
+    MusicController
+    MousePointer
+    HeadsetController
+
+Devices and systems:
+    Workstation
+    Laptop
+    Phone
+    Headphones
+    Mouse
+    Home server
+    Remote compute
+    Corporate infrastructure
+
+Available functionality:
+    computation
+    presentation
+    input
+    storage
+    sensors
+    specialised accelerators
+    organisational operations
+```
+
+An Actor may receive authority on one device and use it through functionality realised
+elsewhere.
+
+A human Actor may initiate work from a laptop.
+The resulting Execution may occur on a workstation.
+An automated Actor may inspect the result.
+That Actor may request intervention from another Actor with authority to clarify business intent.
+The responding Actor may happen to be human.
+
+A mouse may expose standard Input Operations and Events directly.
+A headset may expose standard Audio, Input, and Sensor Operations and Events without requiring the host
+system to understand the manufacturer's internal software architecture.
+
+A corporate system may expose:
+
+```
+Database.Migrate
+Audit.Start
+Audit.Cancel
+Deployment.Begin
+Deployment.Rollback
+Accounting.ClosePeriod
+```
+
+These Operations may be requested by human or non-human Actors possessing the required
+Capabilities.
+
+The semantic identity of the Operation is visible to the Brontide environment.
+Its authority requirements can therefore be explicit.
+Its Delegation history can be inspected where the implementation preserves provenance.
+Its Outcome can be represented according to the relevant specification.
+Its implementation may involve hundreds of conventional API calls without reducing the
+architectural Operation to those calls.
+
+In such an environment, the boundary of a physical device is not assumed to be the natural
+boundary of computation. Likewise, the boundary of a process or service API is not assumed to be
+the natural boundary of semantic action.
+
+Local and remote systems may differ substantially in latency, trust, availability, cost, or
+bandwidth. Small and large Operations may differ substantially in duration, consequence,
+reversibility, or implementation complexity.
+
+Brontide does not require implementations to hide these differences.
+Instead, higher-level Brontide specifications may describe them explicitly and allow systems to
+reason about them.
+
+The Composition direction (Â§18.1) treats topology, latency, cost, capacity, availability, and
+related properties as explicit selection characteristics of Components and their bindings. `Local`
+and `remote` are useful projections of those characteristics for a particular observer, not the
+two architectural kinds of computation.
+
+This larger environment is not a bolt-on use case for Brontide.
+It is one of the principal motivations for defining a common Actor, authority, contract, and
+occurrence model in the first place.
+
+The purpose of a minimal Base is to allow this environment to be assembled from coherent
+architectural parts rather than defining a workstation, network, enterprise workflow engine, or
+distributed runtime as the universal foundation.
+
+## 6. Design Principles
+
+### 6.1 Actors are universal participants
+
+An Actor is a participant in the Brontide authority model.
+
+Actor is intentionally broader than conventional operating system concepts such as process or
+user.
+
+An Actor may be realised by:
+
+- a firmware subsystem,
+- a state machine,
+- a conventional program,
+- a service,
+- a process,
+- several cooperating processes,
+- a device controller,
+- a peripheral,
+- a human interaction endpoint,
+- an autonomous system,
+- a composite or organisational system,
+- or another computational participant.
+
+A physical device is not necessarily identical to one Actor.
+
+A mouse may expose separate Actors for pointer interaction and configuration.
+A workstation may host thousands of Actors.
+A human may participate through one persistent Actor or several context-specific Actors,
+depending on specifications outside Brontide Base.
+A corporate platform may present one Actor at a defined architectural boundary while internally
+containing thousands of services and Executions.
+
+Brontide does not require these participants to be treated as identical.
+An implementation may expose relevant characteristics through extensions or policies.
+
+The Base architectural relationship remains common:
+
+> *An Actor participates by presenting explicitly available Capabilities.*
+
+### 6.2 Authority is explicit
+
+An Actor does not gain authority merely because it runs in a particular place.
+
+Execution inside a process, user session, machine, trusted network, or organisational system is
+not itself an Brontide grant of authority.
+
+Authority is represented through Capabilities.
+An Actor may present only Capabilities available to it.
+
+This does not require every implementation to use sophisticated runtime checks.
+
+A microcontroller may enforce authority through its static structure.
+A general-purpose operating system may validate Capabilities dynamically.
+A distributed system may use cryptographically verifiable authority.
+
+All may implement the same Brontide semantics.
+
+### 6.3 Authority is bounded
+
+A Capability grants defined authority.
+It does not grant general access to the system surrounding its target.
+
+For example, authority to stop a motor does not imply authority to change its speed.
+
+```
+Motor.Stop
+```
+
+is not equivalent to:
+
+```
+Motor.Control
+```
+
+Likewise:
+
+```
+Audit.Start
+```
+
+does not necessarily imply:
+
+```
+Audit.Cancel
+Audit.ModifyScope
+Audit.DeleteRecord
+```
+
+The semantic size of an Operation does not make its authority broader.
+
+Boundedness extends to the *presentation* of an Execution as well as its effect: authority to
+execute an Operation does not include authority to present that Execution as coming from a
+particular kind of source (see Â§15, Origin). Masquerade is amplification.
+
+The architectural requirement:
+
+> *Possession of authority must not imply authority outside its effective bounds.*
+
+How bounds are expressed and evaluated is defined in Â§10 and Â§11.
+
+### 6.4 Delegation is fundamental
+
+Systems routinely act on behalf of other systems.
+
+A user starts a program.
+A service calls another service.
+A controller authorises a subsystem.
+An autonomous Actor asks another Actor to complete part of a task.
+An operations platform authorises a migration worker.
+An organisation authorises a system to begin an audit.
+
+Most computing platforms represent these relationships through several unrelated mechanisms.
+Brontide treats Delegation directly.
+
+An Actor that possesses delegable authority may derive narrower authority for another Actor.
+
+```
+Actor A holds Capability MotorGrant:
+    permitted-operations:
+        Motor.SetSpeed
+        Motor.Stop
+
+Actor A derives Capability EmergencyGrant:
+    from: MotorGrant
+    for: Actor B
+    adding:
+        permitted-operation: Motor.Stop
+```
+
+Actor B may stop the motor.
+Actor B does not gain `Motor.SetSpeed`.
+
+The same rule applies at larger scale.
+
+```
+OperationsSystem holds Capability DatabaseGrant:
+    permitted-operations:
+        Database.Migrate
+        Database.Backup.Create
+        Database.Restore
+
+OperationsSystem derives Capability CustomerMigrationGrant:
+    from: DatabaseGrant
+    for: MigrationController
+    adding:
+        permitted-operation: Database.Migrate
+        target: CustomerDatabase
+        maximum-version: 42
+```
+
+The MigrationController gains authority for the delegated migration.
+It does not gain unrestricted database administration.
+
+> *Delegation must not increase effective authority.*
+
+Brontide considers this constraint fundamental enough to belong in the Base architecture. Â§11
+defines the structural rule that guarantees it.
+
+### 6.5 Actors are not runtime contexts
+
+An Actor is not a synonym for a process, thread, service, task, or machine.
+
+On an embedded device, several Actors may be represented by a single firmware image.
+On a larger system, one Actor may be realised by several processes, services, or runtime contexts.
+An Actor may persist while the machinery currently realising it is replaced.
+A large Actor may represent a stable system boundary while its internal implementation changes
+completely.
+
+These behaviours are not required by Brontide Base.
+The distinction exists so that Brontide does not inherit the execution model of its first
+implementation.
+
+The binding between an Actor and the runtime machinery realising it is owned by the implementation,
+and it is a security boundary: when that machinery is replaced, existing
+Capabilities held by that Actor must not silently transfer to an unrelated successor.
+
+Brontide does not require that machinery to be dynamically replaceable. If an implementation retains
+the same Actor reference while replacing the machinery realising it, the replacement MUST preserve
+that Actor's identity, declared Brontide contracts, and authority relationships. If those properties
+cannot be preserved, the implementation MUST expose a successor Actor or an explicit rebinding
+rather than silently presenting replacement as continuity. State transfer, quiescence, rollback,
+and the treatment of in-progress Executions are not supplied by Actor identity; a Component
+claiming hot-swappability must declare those semantics separately (Â§18.1).
+
+### 6.6 Operations are scale-agnostic
+
+Brontide does not distinguish between "small" and "large" Operations at the Base architectural
+level.
+
+The following may all be Operations:
+
+```
+Register.Read
+Fan.Stop
+Input.Pointer.Motion
+File.Convert
+Database.Migrate
+Audit.Start
+Deployment.Rollback
+```
+
+Their duration, complexity, consequence, and implementation differ radically.
+
+Their common architectural property is that each defines semantically meaningful activity which
+an Actor may attempt through an authorised Execution.
+
+An Execution may be realised through one primitive action.
+It may also be realised through a large internal system involving many Actors, Operations, and
+further Executions.
+Brontide does not require the internal implementation graph to be exposed at every architectural
+boundary.
+
+A system may therefore expose:
+
+```
+Audit.Start
+```
+
+without requiring the requesting Actor to individually orchestrate:
+
+```
+Evidence.Collect
+Reviewer.Assign
+Scope.Validate
+Record.Create
+Notification.Send
+```
+
+The system implementing `Audit.Start` remains responsible for preserving the authority semantics
+of all Brontide Executions within the implementation where Brontide applies.
+
+This scale independence is intentional.
+
+Brontide seeks to describe meaningful computational action rather than equating architectural
+Operations with machine instructions, function calls, API requests, or individual messages.
+
+### 6.7 Interoperability should follow semantics
+
+Brontide aims to allow independently implemented systems to cooperate through common architectural
+and domain semantics.
+
+A mouse should not need a vendor-specific host application merely to expose standard pointer
+configuration. A headset should not need a manufacturer's private software environment merely to
+expose standard audio or sensor functionality.
+
+Likewise, an automated Actor and a human Actor should not require completely unrelated Delegation
+models merely because their implementations differ.
+
+A system exposing `Database.Migrate` should be able to communicate more semantic information than
+a generic opaque API endpoint named `/execute`.
+
+Shared names without shared Shapes are likewise insufficient. Two components do not implement the
+same `Fan.SetSpeed` contract if one accepts a scalar speed and the other requires an unrelated
+record, even when both print the same Operation name in an inspector.
+
+Brontide does not attempt to eliminate specialised functionality.
+It provides a standard semantic space in which common functionality may be represented directly.
+Non-standard functionality remains possible and visibly non-standard.
+
+### 6.8 No implementation defines the architecture
+
+Brontide Reference Stack is initially expected to run on existing operating systems, particularly Linux.
+
+A Linux implementation may use processes, namespaces, sockets, file descriptors, cgroups, or
+device files. These are valid implementation tools. They are not automatically Brontide concepts.
+
+Likewise, an embedded implementation may use interrupts, static dispatch tables, and direct
+function calls. A future operating system may implement Brontide through kernel-native Capabilities
+and message endpoints.
+
+Brontide should describe all of these systems without pretending that one implementation is the
+natural form of the others.
+
+A concept belongs in Brontide because it is required by the Brontide model, not because Brontide Reference Stack happens
+to need it.
+
+Brontide Minimal Stack provides a second guard. It is intended as an independent full-stack implementation rather
+than a thin alternative front end over Brontide.Reference. Where Brontide Reference Stack and Brontide Minimal Stack components implement the
+same Brontide contracts, they should be interchangeable despite different internal structures. A
+concept that exists only because both implementations copied the same accidental design has not
+passed this test.
+
+The openness presumption (Â§29.1) is the enforcement mechanism for this principle: because
+unspecified behaviour is never guaranteed, no implementation's accidents â€” including Brontide Reference Stack's
+or Brontide Minimal Stack's â€”
+can quietly become the de facto standard.
+
+### 6.9 Authority is permission, not precedence
+
+Two fully authorised Actors may act in conflict: a cooling controller sets fan speed while an
+emergency handler stops the fan.
+
+> *Possession of authority confers permission, not precedence. Ordering, priority, and conflict
+> resolution between authorised Operations are defined by Domain Vocabularies or extensions,
+> never inferred from the authority model.*
+
+Two patterns cover most cases without Base machinery. A vocabulary may declare conflict semantics
+for its Operations (a Fan vocabulary may state that `Fan.Stop` latches and supersedes
+`Fan.SetSpeed` until released). A contested resource may be fronted by a mediating Actor that
+holds the direct Capability and exposes arbitrated Operations.
+
+Base only disclaims what it does not provide, so that no one assumes it does.
+
+In the recorded Mediation direction (Â§18.1), the mediating-Actor pattern is an instance of
+Arbitration.
+
+### 6.10 Names are structurally legible and semantically opaque
+
+Brontide names have parseable namespace and concept segments. Implementations may preserve, group,
+route, display, and discover names using that structure.
+
+No authority, compatibility, or implication relationship follows from lexical ancestry unless an
+Brontide specification explicitly defines one. `Motor.Control` does not imply `Motor.Stop` because
+of its spelling. A Domain Vocabulary MAY define a Capability template that permits both
+Operations, but the relationship comes from the vocabulary, never from the dots.
+
+Likewise, an authored namespace such as `Logitech.MX:` is structurally subordinate to the
+`Logitech` namespace, but the syntax alone does not prove that Logitech authorised it. Â§22
+defines canonical names, authored namespaces, verification boundaries, and declaration prefix
+blocks. Where a typed member identity is exposed, its member kind is carried by a distinct
+member separator (Â§22.4), never by dot segments.
+
+### 6.11 Interaction is composition, not ontology
+
+Execution, Event, Outcome, and extension-defined occurrences may compose the Interaction fragment
+defined in Â§13. Sharing that structure does not make their semantics interchangeable. Interaction
+is not itself an occurrence and does not establish an inheritance hierarchy.
+
+> *Composition with Interaction guarantees only its named structural and attribution semantics.
+> It does not imply the semantics of Execution, Event, Outcome, or any extension occurrence.*
+
+Every Base occurrence and every extension-defined occurrence MUST state:
+
+- its definition,
+- the semantics it adds,
+- its required invariants,
+- the behaviours it explicitly does not provide,
+- and a minimal embedded realisation where the Embedded Test applies.
+
+This is the **Interaction fence**. Common facilities such as identity, attribution, correlation,
+causation, provenance, and optional temporal placement may be composed through Interaction.
+Semantic name, target, value, authority, effect, truth, delivery, ordering, replay, persistence,
+cancellation, and lifecycle remain with the composing occurrence or its specification.
+
+### 6.12 Simple participation, sophisticated composition
+
+Brontide should allow a Component to be simple even when the environment around it is sophisticated.
+A small module may declare one Operation, its input and output Shapes, and the authority required at
+its boundary without understanding persistence, identity, networking, scheduling, remote execution,
+or specialised acceleration.
+
+The surrounding composition may then, under explicit contracts:
+
+- authenticate or otherwise establish participating Actors;
+- record and distribute Events and Outcomes;
+- persist state or execution history;
+- apply declared Enrichments;
+- select another compatible implementation;
+- batch or relocate suitable work; and
+- lower an eligible implementation to a vector, GPU, or other accelerator path.
+
+These facilities do not make the original Component more complex. The composition becomes more
+capable around a small declared boundary.
+
+This is progressive sophistication, not automatic equivalence. A Component gains no property merely
+because the environment would benefit from it. Purity, determinism, replay safety, batchability,
+vectorisability, relocatability, and accelerator compatibility are separate attributable claims or
+contracts. A system MUST NOT silently infer them from an ordinary Operation or hide the operational
+consequences of using them.
+
+### 6.13 System participation is rewarded, not required
+
+A general-purpose Brontide environment may offer persistence, Event Distribution, identity,
+authorisation support, Presentation, Workspace, Web, scheduling, compilation, acceleration,
+observability, and other facilities as system-provided Components or Profiles. Their presence does
+not make them mandatory for applications.
+
+An application may use its own database, event mechanism, identity system, rendering engine,
+scheduler, or other private machinery. It may expose only a narrow Brontide boundary, or no internal
+Brontide composition at all, and remain a valid application in the surrounding environment.
+
+> *System-native services provide additional interoperability, composition, and inspection. They
+> do not confer basic legitimacy on an application.*
+
+Tools and Profiles must therefore distinguish generic requirements, stronger optional facilities,
+and provider-specific dependencies. An application that requires Event semantics, one that benefits
+from durable replay, and one that specifically requires a Brontide Reference Stack persistence contract make three
+different claims. Flattening them into one dependency would turn convenience into hidden lock-in.
+
+### 6.14 Semantic portability preserves operational truth
+
+An Operation may retain its semantic identity across in-process, cross-process, remote, batched, or
+accelerated execution. This does not make those executions operationally identical.
+
+When an implementation crosses a representation, authority-domain, transport, device, or failure
+boundary, the selected binding and its observable characteristics must remain inspectable. Relevant
+facts include placement, serialisation or representation mapping, retries, batching, copies,
+admission, selected provider, and failure domain.
+
+> *Semantic location independence must not become invisible distribution.*
+
+Brontide may make substitution and relocation possible while still allowing a developer to answer
+where work ran, what boundary it crossed, which guarantees applied, and why a provider was selected.
+
+### 6.15 Persistent information is independent of Components
+
+Conventional applications often treat their persistent information as an implementation detail
+inside the application's installation or private directory. Brontide must permit that compatibility
+model, but it should not make application ownership the architectural default.
+
+Where information participates in the Corpus model (Â§18.2), the persistent body is independently
+addressable. Components declare which Corpora they understand and what roles they can perform;
+authority determines which concrete Datasets they may actually access. Authorship of a Corpus is
+not ownership of every Dataset conforming to it, and uninstalling, replacing, deactivating, or
+hot-swapping a Component does not by itself remove those Datasets.
+
+> *Components operate on persistent information; persistent information is not inherently part of
+> the Components that operate on it.*
+
+This separation permits several Components to share one Corpus, one Component to use several
+Corpora, provider replacement without obligatory export/import, and data lifecycle decisions that
+remain distinct from software lifecycle decisions. Opaque and conventionally private information
+remain valid where interoperability or system understanding is unavailable or inappropriate.
+
+## 7. Brontide Base
+
+Brontide Base defines the smallest common computational model recognised as Brontide.
+
+Architecture 0.7 retains eight Base terms:
+
+```
+Actor
+Capability
+Shape
+Delegation
+Operation
+Execution
+Event
+Outcome
+```
+
+Brontide Base also recognises two scoping concepts that describe the responsibilities of
+implementations rather than adding
+participant-facing objects:
+
+```
+Authority Domain
+Genesis
+```
+
+Operation is a semantic contract. Execution and Event are distinct occurrence forms, and Outcome
+is a specialised Event. Execution and Event compose the standard Interaction fragment, defined
+using Shape (Â§13.2). Flow is a first-party Architectural Extension expressed through Base terms
+(Â§19.1).
+
+These terms remain provisional. Brontide 0.x is intended to discover whether they are genuinely
+fundamental and whether their current boundaries are correct.
+
+Base membership is determined by architectural necessity, not frequency of use. A concept does
+not enter Base merely because most workstations, applications, or large systems are expected to
+implement it. `Resource`, `State`, `Transaction`, `Persistence`, `Presentation`, and
+`Workspace` remain extension directions (Â§19), however common some of them may become. Every Base
+term must remain necessary to the smallest meaningful Brontide system and must survive the Embedded
+Test (Â§3).
+
+Shape enters Base in 0.3 not because it is expected to be common, but because independent
+implementations cannot preserve Operation, Event, Outcome, and Constraint contracts while
+disagreeing about the structure of their values (Â§16).
+
+Conformance to Brontide always implies conformance to Brontide Base.
+For this reason, implementations do not list Base as a separately supported feature.
+
+A system claims:
+
+```
+Brontide 0.7
+```
+
+and then lists any additional extensions, profiles, and domain vocabularies it supports.
+
+### 7.1 Term status registry
+
+The status of every named Brontide concept is recorded here once, replacing per-section status
+disclaimers. The registry is an index; normative force remains with each concept's defining
+section or design note.
+
+| Term | Status |
+| --- | --- |
+| Actor, Capability, Shape, Delegation, Operation, Execution, Event, Outcome | Brontide Base (eight terms) |
+| Authority Domain, Genesis | Scoping concepts; implementation responsibilities, not participant-facing objects |
+| Interaction | Standard reusable Declared Fragment (`Interaction 1`); not a Base term, occurrence, or superclass |
+| Shape fragment, Declared Fragment | Subordinate concepts within Shape |
+| Flow, Event Distribution | First-party Architectural Extension directions; placement defined (Â§19), conformance unratified |
+| Channel, Resource, Composition, Discovery, Runtime, Topology, Distributed, Identity, Persistence, Realtime, Presentation, Workspace, Intent, State, Transaction, Lifecycle, Time | Provisional extension names (Â§19); no accepted extensions implied |
+| Component, Binding Plan, Portable Binding, Replacement Slot, Hot-swap Slot, Hot-swap Class, Parameter, Attribute, Definition Constraint | Work in progress; Composition design note (Â§18.1) |
+| Mediation, Selection, Distribution, Arbitration, Router, Distributor, Arbiter | Recorded direction; Composition design note (Â§18.1) |
+| Enrichment, value propagation | Work in progress; Enrichment design note (Â§16.6) |
+| Corpus, Dataset, Store, Store role, Store Relationship (Mirror, Backup) | Work in progress; Persistent Information design note (Â§18.2) |
+| Dot-relative declarations, Structured Data extension, Remote Service category, `@version` name suffixes | Rejected; design history retained where instructive |
+
+## 8. Authority Domains
+
+An **authority domain** is the scope within which one implementation is responsible for
+preserving Brontide authority semantics.
+
+A firmware image is an authority domain.
+An operating system instance is an authority domain.
+A distributed deployment sharing one trust root may be one authority domain.
+
+Brontide Base defines authority semantics *within* a domain. Cooperation *between* domains â€” mutual
+identification, attestation, and cryptographic representation of authority â€” is real, important,
+and deferred to the `Identity` and `Distributed` extensions. This is deliberate: requiring global
+identity in Base would fail the Embedded Test and would repeat the mistake of global naming
+schemes, which collapse under their own registration bureaucracy. Identity in Brontide is
+domain-relative, as names are in SPKI/SDSI and as capability references are in every capability
+operating system.
+
+Each authority domain's implementation is its own trusted computing base (see Â§28).
+
+The grant machinery itself lives in that trusted computing base â€” and therefore wherever the
+domain boundary lives. There is deliberately no single home; this is Â§6.8 applied to the most
+security-critical machinery. Three responsibilities are separable and may live in different
+places within one system. Minting (Genesis, Â§12) lives in domain initialisation policy: a
+compiled authority table, boot-time construction, an attachment policy. Representation and
+custody (Â§10.4) are unprescribed: a static entry, a kernel object, an unforgeable reference, a
+cryptographic credential. Evaluation (Â§10.1, Â§13.5) is decentralised to targets by design â€”
+Brontide has no central reference monitor as an architectural concept; domain machinery may act on
+behalf of targets at their boundaries.
+
+The characteristic homes follow the implementation depths of Â§27. In firmware, the mechanism is
+the image structure itself, with no runtime machinery. In a hosted or native runtime, custody
+lives in the runtime's or kernel's trusted computing base â€” with the Capsicum lesson of Â§31 for
+hosted implementations: the seam with the ambient-authority host is where the model leaks. At
+the cross-domain tier, custody dissolves into cryptography, and the four Actor-reference
+properties of Â§9.1 are the portable contract the representation must preserve. In every home,
+Capabilities do not travel between trust boundaries; authorisation happens at each boundary.
+
+## 9. Actor
+
+An **Actor** is a participant capable of presenting authority within an Brontide system.
+
+An Actor may:
+
+- hold Capabilities,
+- present Capabilities,
+- initiate Executions of Operations,
+- emit Events,
+- receive delegated authority,
+- and delegate authority where permitted.
+
+Actor is the common participant abstraction of Brontide.
+Its definition deliberately does not depend on implementation nature or scale.
+
+A process may be an Actor.
+A peripheral may expose an Actor.
+A human may participate as an Actor.
+An autonomous system may be an Actor.
+A firmware subsystem may be an Actor.
+A complete software platform or composite system may expose an Actor at an architectural
+boundary.
+
+These statements do not imply that Brontide considers a human, process, mouse, and corporate
+platform equivalent. They imply that each may participate in the same authority model.
+
+### 9.1 Actor references
+
+Every authority relationship presupposes that the implementation can answer two questions:
+*which Actor initiated this Execution* (attribution), and *which Actor was this authority
+granted to* (designation). If either answer can be forged or confused, the authority model
+collapses regardless of how well Capabilities are represented.
+
+An **Actor reference** is a designator for an Actor, provided by the implementation, with the
+following properties within its authority domain:
+
+1. **Unforgeable** â€” an Actor cannot fabricate a reference it was not given by the
+   implementation.
+2. **Unambiguous** â€” a reference designates at most one Actor at any given time.
+3. **Stable** â€” a reference remains valid for at least the lifetime of the authority
+   relationships that mention it.
+4. **Comparable** â€” the implementation can decide whether two references designate the same
+   Actor.
+
+Brontide Base does not define the representation of Actor references, global Actor identity, Actor
+discovery, or cross-domain Actor authentication.
+
+All four properties are satisfiable by a compile-time index on a microcontroller where the static
+program structure prevents Actors from fabricating or dispatching arbitrary indices. Integer
+equality then supplies comparison at negligible runtime cost. An unrestricted integer in shared
+writable memory is not unforgeable merely because it was assigned at compile time. A dynamic
+implementation may use kernel-protected opaque references. A cross-domain implementation may use
+cryptographic keys â€” at which point the four properties are exactly what the cryptographic
+representation must preserve, which is what makes movement between representations coherent.
+
+The comparability property forbids uncorrelatable aliasing within a domain: if one Actor could
+hold two references the implementation cannot connect, any future revocation or audit keyed on
+"the Actor" would silently fail for the alias.
+
+Brontide Base does not define Actor persistence, discovery of Actors, or runtime placement.
+
+Brontide Base requires only that Actors participating in an authority relationship can be
+distinguished to the extent necessary to preserve that relationship â€” and the four properties
+above are that extent, made precise.
+
+## 10. Capability
+
+A **Capability** is a target-recognised, explicit and presentable grant of authority.
+
+A Capability authorises its holder to execute one or more defined Operations within an effective
+scope. It references the canonical Operations recognised by the target. Each Operation declares
+its input and output Shapes and required Declared Fragments, so that structural recognition is
+part of the Capability contract transitively rather than repeated as a second list.
+
+Recognition does not imply that the holder understands the Operation, that an Execution is
+currently available, or that an attempted Execution will succeed. It means that the target can
+identify and evaluate the referenced Operation and its structural contract. A purported grant
+whose Operation or required Shapes are not recognised by the target cannot authorise an Execution
+there.
+Additional fragments on an open Shape never broaden the Capability: a target may act on stronger
+fragment semantics only where the recognised Operation contract and presented authority cover
+them.
+
+A Capability is not merely a permission name.
+It represents authority recognised by the Brontide implementation.
+
+Names such as the following identify Operations, not Capability objects:
+
+```
+Temperature.Read
+Fan.SetSpeed
+Fan.Stop
+Database.Migrate
+Audit.Start
+```
+
+A Capability is a particular grant, for example:
+
+```
+Capability CoolingGrant:
+    holder: CoolingController
+    permitted-operations:
+        Temperature.Read
+        Fan.SetSpeed
+        Fan.Stop
+    target: CoolingSystem
+```
+
+The notation `CoolingController holds Fan.Stop` is permitted as explanatory shorthand for
+"CoolingController holds a Capability authorising `Fan.Stop`". Normative examples use explicit
+Capability identities whenever derivation or comparison matters.
+
+### 10.1 Constraints
+
+A Capability may carry Constraints. These may constrain:
+
+- the permitted Operation,
+- the target,
+- a value or quantity,
+- system state,
+- rate or capacity (see Â§26),
+- temporal validity (Â§10.3),
+- origin assertion (Â§15),
+- further Delegation,
+- or another property defined by an Brontide extension or Domain Vocabulary.
+
+For example:
+
+```
+Capability MigrationGrant:
+    permitted-operation: Database.Migrate
+    target: CustomerDatabase
+    maximum-version: 42
+```
+
+or:
+
+```
+Capability AuditGrant:
+    permitted-operation: Audit.Start
+    organisation: Erste
+    scope: FinancialControls
+```
+
+Brontide Base does not prescribe a Constraint syntax. It prescribes the Constraint *algebra*:
+
+> Constraints only ever narrow. Effective authority is evaluated when an Execution is presented,
+> at the target's authorisation boundary, as the conjunction of all
+> Constraints along the derivation chain (Â§11). A Constraint that the evaluating implementation
+> cannot interpret MUST cause denial.
+
+The fail-closed rule is not optional politeness. Without it, every future Constraint type is a
+privilege-escalation window against older implementations; with it, older implementations
+degrade to *stricter*, never to *wrong* â€” which also makes Constraint evolution version-safe
+(Â§23).
+
+Where Constraints compose into expressions (recursive Definition Constraints, Â§18.1), the
+fail-closed rule extends structurally: an unrecognised atomic Constraint anywhere within a
+composite expression makes the entire expression unevaluatable, and an unevaluatable expression
+carried by a Capability causes denial, with no partial credit for recognised branches.
+Unevaluatable never resolves to a truth value â€” in particular, `Not`, `AnyOf`, and `AllOf`
+never convert an unrecognised atom into `false` and then reason from it. In selection contexts
+the same poisoning rule applies with a different consequence: the expression is unsatisfiable
+and the candidate is excluded (Â§18.1).
+
+Constraint types and their meanings are defined by Domain Vocabularies and extensions. Base
+defines only the composition rule and the fail-closed rule. A Constraint's authorisation meaning
+MUST be a narrowing predicate over an Execution. Bookkeeping needed to evaluate rate, capacity, or
+liveness MAY change state, but evaluating a Constraint must not itself grant authority or cause
+the requested domain effect.
+
+Every Constraint type that carries a value MUST declare the Shape of that value (Â§16). A target
+that cannot establish Shape compatibility for a presented Constraint value cannot evaluate the
+Constraint and therefore denies under the fail-closed rule. Shared Constraint names without
+shared value structure do not constitute shared authority semantics.
+
+### 10.2 Designation of targets
+
+Where a Capability or Delegation designates a target by name (`target: CustomerDatabase`), the
+name SHOULD be resolved at grant or delegation time, within the namespace of the *granting*
+Actor's domain, and the resulting binding recorded in the Capability. Authorisation-time (late)
+resolution is permitted only where the vocabulary explicitly declares it, and the resolving
+namespace must be identified.
+
+*Resolve early, bind, record.* A name that means one thing when authority is granted and another
+when an Execution is authorised is a time-of-check/time-of-use vulnerability wearing a convenience
+costume.
+
+### 10.3 Temporal validity and mortality
+
+Two temporal Constraint families are recognised:
+
+- **Wall-clock validity** (`not-after`, `not-before`) â€” for domains with real time. Conjunction
+  along a chain takes the intersection of windows. A domain without a clock denies wall-clock-
+  bounded Capabilities under the fail-closed rule, and is simply granted non-temporal ones.
+- **Liveness-scoped validity** â€” authority valid only while its grantor actively maintains it
+  (lease renewal), or scoped to an enclosing session, attachment, or Flow where the `Flow`
+  extension is present. Doing nothing kills the authority. This costs a tick counter and
+  therefore passes the Embedded Test.
+
+Recommended design stance for dynamic domains:
+
+> *Authority defaults to mortal. Immortality is the explicit exception.*
+
+Concretely: where a domain supports dynamic Delegation, a granting Actor SHOULD attach wall-clock
+or liveness-scoped validity to new grants, and an unbounded grant SHOULD be an explicit,
+attributable choice rather than an omission. Mortality is the cheap majority of revocation,
+available now; full revocation semantics remain an open question (Â§33).
+
+Withdrawal of authority and cancellation of accepted work are distinct. Withdrawal denies new
+Executions and renewals; it does not retroactively undo committed effects. Every extension or
+Domain Vocabulary that defines a continuing relationship or long-running activity MUST state:
+
+- whether withdrawal terminates existing work,
+- the maximum revocation horizon,
+- any safe checkpoint or commit-point behaviour,
+- the terminal Outcome produced,
+- and whether compensation is available as a separate authorised Operation.
+
+The common declaration is required even while the exact `Lifecycle` and `Flow` revocation
+protocols remain open.
+
+### 10.4 Representation
+
+Brontide Base does not prescribe how Capabilities are represented.
+
+An implementation might use:
+
+- a static table entry,
+- an unforgeable reference,
+- a kernel object,
+- a cryptographic credential,
+- or another mechanism.
+
+The representation may differ.
+The effective authority must not.
+
+## 11. Delegation
+
+**Delegation** is the derivation of authority from one Actor to another.
+
+An Actor may delegate only authority it is permitted to delegate.
+The resulting authority must remain within the effective authority available to the delegating
+Actor.
+
+Brontide guarantees this structurally rather than by comparison:
+
+> A Delegation derives a Capability that is the delegator's Capability plus zero or more added
+> Constraints. A Delegation MUST NOT express authority any other way.
+
+The derived Capability designates a new holder and records its parent. Changing the designated
+holder and adding the derivation link are the mechanics of Delegation; they do not rewrite the
+Operation set, target, or other effective authority inherited from the parent.
+
+Narrowing therefore holds *by construction*. No implementation ever computes whether one
+authority expression is a subset of another â€” an undecidable comparison in general, and the rock
+on which independent implementations would otherwise disagree. The delegator narrows
+syntactically (adds Constraints, no evaluation needed, works offline and in static tables); the
+target's implementation evaluates semantically at authorisation time (Â§10.1).
+
+For example:
+
+```
+CoolingController holds Capability CoolingGrant:
+    permitted-operations:
+        Fan.SetSpeed
+        Fan.Stop
+
+CoolingController derives Capability EmergencyGrant:
+    from: CoolingGrant
+    for: EmergencyHandler
+    adding:
+        permitted-operation: Fan.Stop
+```
+
+The EmergencyHandler may stop the fan.
+It does not gain unrestricted fan control.
+
+At a larger scale:
+
+```
+OperationsSystem holds Capability AuditGrant:
+    permitted-operations:
+        Audit.Start
+        Audit.Suspend
+        Audit.DeleteRecord
+
+OperationsSystem derives Capability CoordinatorGrant:
+    from: AuditGrant
+    for: AuditCoordinator
+    adding:
+        permitted-operation: Audit.Start
+        organisation: Erste
+        scope: FinancialControls
+```
+
+The AuditCoordinator may initiate the authorised audit.
+It does not gain unrestricted Audit administration.
+
+Delegation may be dynamic. It may also be completely static.
+An embedded Brontide implementation may define every Delegation relationship at build time â€” a
+static delegation table represents pre-evaluated Constraints.
+A distributed system may create and withdraw Delegations at runtime.
+Both models are compatible with the architectural concept.
+
+Delegations form a derivation graph: every derived Capability records what it was derived from,
+where the implementation preserves provenance. This graph is the structure against which any
+future revocation semantics will be defined (revoking a Delegation invalidates its derivation
+subtree), which is why revocation can remain open (Â§33) without contaminating the Base model.
+
+Patterns requiring *amplification* â€” two authorities combining into more than their sum â€” are
+not expressible as Delegation, deliberately. They are modelled as an Actor exposing a new
+Capability whose implementation internally uses its own authority (Â§25). Amplification becomes a
+service boundary, not a delegation rule; the delegation calculus stays monotonic and auditable.
+
+## 12. Genesis: The Origin of Authority
+
+Delegation describes how authority flows. It does not describe how authority comes to exist.
+Every derivation chain needs a root.
+
+> Every Capability is either **primordial** â€” created by the authority domain itself â€” or
+> **derived** through Delegation. Every derivation chain terminates in a primordial Capability.
+> After domain initialisation, no authority comes into existence except by derivation, unless a
+> **Genesis occurrence** happens. Genesis occurrences are implementation- or extension-defined,
+> but MUST be enumerable and attributable to the domain's own policy.
+
+This is conservation of authority: authority is never created mid-flight, only at named,
+attributable moments.
+
+"Genesis occurrence" names the policy occurrence at which authority is introduced. Where that
+occurrence is exposed to Brontide participants, it is represented as an Event under Â§14. Event
+Distribution is not required; an embedded domain may record Genesis only in its static primordial
+table.
+
+The embedded case satisfies it trivially â€” the compiled-in authority table *is* the primordial
+set, and there are no Genesis occurrences. A dynamic operating system satisfies it by constructing
+initial authority at boot and deriving everything else. Device attachment is the canonical
+Genesis occurrence: the host's attachment policy mints the new device's Capabilities at the moment of
+attachment (see Â§24). Domain federation, when defined by the Distributed extension, will be
+another.
+
+Genesis occurrences are also where origin classes are anchored (Â§15): a Genesis occurrence is precisely a
+moment when the domain *observes* a fact worth vouching for.
+
+## 13. Operation, Execution, and Interaction
+
+An **Operation** is a named semantic contract for a requested effect. An **Execution** is one
+concrete attempt to execute an Operation at a target. Operation defines what may be requested;
+Execution records that it was attempted in a particular authority and attribution context.
+
+Operation is not an occurrence, message, function, or implementation object. Execution is an
+occurrence, but its existence does not assert delivery, authorisation, start, or success. A denied
+request is still an Execution whose requested effect did not begin.
+
+### 13.1 Operation
+
+Every Operation declares:
+
+- a canonical semantic name;
+- the requested effect and its normative observable semantics;
+- one complete input Shape;
+- one separate, complete output Shape;
+- and the target or provider semantics against which authority is evaluated.
+
+The input Shape describes the complete set of values supplied to request the effect. Several
+apparent function parameters are fields or other constituents of that one Shape, not several
+Operation-level Shapes. The output Shape independently describes the complete successful return
+value. `Unit 1` is used where either side has no value. Input and output Shape names, versions,
+Declared Fragments, and evolution are independent; compatibility of one never implies
+compatibility of the other.
+
+Declaring an output Shape does not promise that an Execution completes, returns synchronously, or
+delivers an Outcome. It defines only the abstract structure of a successful return value wherever
+the completion mechanism exposes one. Failure and rejection details are not results and use
+separately declared Shapes.
+
+An Operation is defined by semantic meaning, not implementation size. `Fan.Stop` may be realised
+almost directly by hardware. `Database.Migrate` may take several minutes and coordinate many
+services. `Audit.Start` may create an activity involving systems and humans over a much longer
+period. One Execution may internally initiate further Executions without changing the identity of
+the outer Operation.
+
+### 13.2 Interaction composition
+
+**Interaction** is the standard reusable Declared Fragment through which occurrence attribution
+and common contextual relationships are composed. It is named and versioned as `Interaction 1`.
+It is not an occurrence, superclass, Interaction form, or ninth Base term.
+
+Execution and Event include Interaction explicitly; Outcome composes it as a specialised Event
+(Â§14.2). An extension-defined occurrence MAY include it. Inclusion is composition, not
+inheritance: the including occurrence retains its own identity and semantics.
+
+Interaction defines:
+
+- the Actor responsible for initiating or emitting the occurrence;
+- an optional occurrence identity or reference;
+- optional correlation with a larger context;
+- optional causation by another occurrence;
+- optional origin information (Â§15); and
+- an optional `emitted-at` Temporal Mark.
+
+Semantic name, target, presented Capability, input value, assertion value, result, and form-specific
+status do not belong to Interaction. They remain in Execution, Event, Outcome, or the extension
+occurrence that owns their meaning.
+
+Base does not require a universal object, header, payload encoding, runtime Shape descriptor,
+dynamic metadata, or allocation. A direct call, static callback, shared-memory descriptor,
+network frame, or another mechanism may establish the same Interaction composition by
+construction. An identity is required only where another recognised relationship â€” such as
+Outcome's `terminal-for` â€” refers to the occurrence, and it need be stable only for the lifetime
+of that relationship.
+
+Interaction is the first standard reusable Declared Fragment. A Shape explicitly including a
+reusable fragment adopts its exact fields and invariants. This differs from an independently
+authored fragment attached to an open Shape: explicit host inclusion is required, and structural
+reuse creates no implicit compatibility between the host Shapes (Â§16.3).
+
+### 13.3 Temporal Marks
+
+An occurrence composing Interaction MAY carry `emitted-at`, meaning the time at which its
+responsible Actor made it available at an Brontide boundary. For direct embedded dispatch, the
+boundary may be a function call. For a distributed implementation, it may be entry into Brontide
+communication machinery.
+
+When present, `emitted-at` contains:
+
+```
+emitted-at:
+    milliseconds: <signed integer>
+    time-domain: <time-domain reference>
+    uncertainty-milliseconds: <non-negative integer, optional>
+```
+
+All Base temporal values are signed integer milliseconds from an epoch defined by their time
+domain. Floating-point values and formatted date strings are not Base temporal representations.
+Zero is a valid value, never an unknown sentinel. A time domain defines the epoch, clock
+progression, and comparison rules. Temporal Marks from different domains are comparable only
+where a specification defines compatibility between those domains.
+
+`emitted-at` is optional. Absence means that no emission time was supplied. Absence of
+`uncertainty-milliseconds` means unknown or unreported uncertainty, not zero uncertainty. Richer
+clock synchronisation, trust, drift, logical clocks, and sub-millisecond representation belong to
+a future `Time` extension.
+
+An emitted time is an attributable clock claim by the responsible Actor. Capability temporal
+validity (Â§10.3) MUST be evaluated using the target authority domain's trusted clock, never a
+sender-supplied Temporal Mark. Forwarding or redelivery MUST NOT overwrite the original
+`emitted-at`. A newly derived occurrence receives its own identity and emission time and may
+identify the original through causation.
+
+### 13.4 The Interaction fence
+
+Interaction supplies structure and nothing more. In particular, composing Interaction does not
+provide:
+
+- authority to cause an effect;
+- truth;
+- delivery or a response;
+- ordering;
+- persistence;
+- replay;
+- cancellation;
+- lifecycle; or
+- flow control.
+
+An implementation may preserve or route a structurally valid occurrence composing Interaction
+where policy permits, even when it does not understand the occurrence's semantic form. It MUST
+NOT infer Execution, Event, Outcome, or extension semantics merely from the common fragment. Each
+occurrence specification defines what it adds and explicitly fences what it does not provide
+(Â§6.11).
+
+### 13.5 Execution
+
+An **Execution** is an occurrence through which an Actor attempts one Operation by presenting a
+Capability at the target's authority boundary.
+
+Conceptually:
+
+```
+initiating Actor
+    initiates Execution of Operation
+    presenting Capability
+to target or provider Actor
+```
+
+Execution composes Interaction and adds:
+
+- the referenced Operation;
+- the target or provider boundary;
+- the presented Capability;
+- an input value conforming to the Operation's input Shape; and
+- authorisation evaluation at the target boundary.
+
+Execution requires:
+
+- that the initiating Actor is attributable;
+- that the Capability designates that Actor;
+- that the target recognises the Operation, its input and output Shapes, and their required
+  Declared Fragments;
+- that the complete input value conforms to the Operation's input Shape;
+- that the target evaluates every Constraint it recognises and denies every Constraint it does
+  not recognise; and
+- that the requested effect begins only after successful authorisation.
+
+An Execution may be rejected before the effect begins, accepted and fail, or complete
+successfully. Execution alone does not provide delivery, idempotency, ordering, cancellation,
+rollback, completion, or a particular invocation mechanism. Replaying an Execution may repeat an
+effect; an Operation contract itself is reusable rather than replayable.
+
+A minimal embedded Execution is a direct call or static dispatch entry whose initiating Actor,
+Capability, Operation, input Shape, and target are fixed or checked by program structure. No
+message allocation, runtime identity, scheduler, or dynamic lookup is required. An Execution may
+also be realised through inter-process communication, a network message, workflow, distributed
+orchestration, hardware instruction sequence, or another mechanism.
+
+Brontide standardises Operation, Execution, Interaction composition, Shape, and authority semantics,
+not a call mechanism.
+
+### 13.6 The invocation principle
+
+When an Actor initiates an Execution in response to another Actor's request, the effective
+authority evaluated MUST be attributable to that request â€” either Capabilities presented with the
+request, or authority the responding Actor explicitly and deliberately presents as its own,
+recorded as such. Implementations MUST NOT default to evaluating the responding Actor's ambient
+authority on behalf of requesters.
+
+Where an implementation preserves Delegation provenance, an Execution initiated on behalf of a
+requester SHOULD carry the requester's place in the chain, so that audit and policy can
+distinguish the provider or deputy from the initiator.
+
+A responding Actor that holds real authority and serves less-privileged requesters is a *deputy*;
+a deputy that presents its own Capability based on requester-supplied designations is a confused
+deputy. The full request-carrying mechanics belong to future communication extensions; the
+principle belongs in Base so implementations do not default into the vulnerability while waiting
+for those mechanisms. A worked example appears in Â§29.4.
+
+## 14. Event and Outcome
+
+An **Event** is an immutable, attributable assertion by an Actor that something happened.
+
+Assertion is deliberate language. Brontide records who emitted the Event, its semantic name, and
+available provenance. Brontide does not thereby guarantee that the assertion is true.
+
+Event composes Interaction and adds:
+
+- assertion semantics,
+- a canonical semantic name and subject,
+- a declared Shape for any assertion value,
+- and immutability after emission.
+
+Event requires:
+
+- preservation of emitter attribution and provenance,
+- that replay repeats the assertion rather than the asserted occurrence,
+- and that forwarding does not silently replace the original emitter with an intermediary.
+
+Event alone does not provide truth, delivery, observation, fan-out, ordering, persistence, replay
+availability, or authority for an observer to react. In particular, receiving an Event does not
+grant an Actor authority to perform an Operation. An Actor that reacts using its own authority
+must do so deliberately and remain attributable as the initiator of the resulting Execution.
+
+Constructing an Event within an Actor's own boundary is not authority over another Actor. Making
+that Event observable across a protected boundary may require admission, publication, or
+observation Capabilities defined by an extension or Domain Vocabulary. Any asserted origin class
+requires the authority described in Â§15.
+
+An Event MAY carry `occurred-at` in addition to the common `emitted-at`. `occurred-at` uses the
+Temporal Mark representation of Â§13.3 and describes the emitter's claim about when the asserted
+occurrence happened. The two values may differ.
+
+Base defines Event ontology, not event-distribution infrastructure. A direct return, callback,
+static dispatch, state transition, or another observable mechanism may realise an Event. General
+publication, observation, fan-out, subscriptions, filtering, persistence, and replay belong to
+the `Event Distribution` extension (Â§19.2).
+
+### 14.1 Minimal Event realisation
+
+A microcontroller may represent an Event through a static callback selected by a compile-time
+Event kind. The Event's emitter is established by the static call path; its semantic name is a
+table index; no queue, allocation, clock, Event bus, or observer discovery is required.
+
+This satisfies the Embedded Test while preserving the difference between an Execution attempting
+an Operation and an Event asserting an occurrence.
+
+### 14.2 Outcome
+
+An **Outcome** is an Event that terminates one identifiable Execution, activity, or extension-
+defined continuing relationship.
+
+Outcome adds:
+
+- a mandatory `terminal-for` relationship,
+- a terminal status,
+- and an optional result value with a declared Shape.
+
+For an Outcome terminating an Execution, a successful result value conforms to the executed
+Operation's independently declared output Shape (Â§13.1). Rejection or failure diagnostics are
+`details`, not a result, and use their own declared Shapes. This relationship does not make the
+output Shape part of the input Shape and does not require synchronous return.
+
+The terminated subject must be identifiable for at least as long as the Outcome relationship is
+relevant. An Outcome is final relative to that subject. An Execution may complete successfully by
+creating a longer-lived activity; the activity later terminates through its own Outcome.
+
+Outcome does not by itself provide rollback, compensation, persistence, lifecycle history, or
+delivery to an observer. A minimal embedded Outcome is a direct return or static status value that
+distinguishes authorised success, authority rejection, and authorised failure.
+
+At minimum, Brontide preserves the distinction between:
+
+- successful authorised completion,
+- rejection because sufficient authority was not present,
+- and failure during an otherwise authorised Execution,
+
+where an observable result exists at the relevant boundary. Extensions and Domain Vocabularies
+may define additional terminal statuses such as cancellation, authority withdrawal, or
+compensation.
+
+For example:
+
+```
+Outcome:
+    terminal-for: AuditStart-7
+    status: succeeded
+    result:
+        created-activity: Audit-318
+
+Event:
+    kind: Audit.Progress
+    activity: Audit-318
+    completed: 60%
+
+Outcome:
+    terminal-for: Audit-318
+    status: completed
+```
+
+Brontide Base does not define the lifecycle of `Audit-318` or a universal error taxonomy. A future
+`Lifecycle` extension and specialised Domain Vocabularies define richer activity states and
+Outcomes.
+
+## 15. Origin: Provenance of Effect
+
+Brontide provenance has two components. The Delegation chain answers *by what authority* an Execution
+or assertion occurred. The **origin class** answers *what kind of cause* produced the occurrence
+or effect â€” a physical transducer, a human act, an autonomous computation, derived or replayed
+data.
+
+The two are orthogonal: a remote-desktop tool may have impeccable authority and still must not
+look like a mouse. A consent record is only as strong as the claim that a *human* produced the
+approval. A replayed sensor reading with a valid chain is still not a live measurement.
+
+The polarity of this mechanism is its most important property. A scheme in which suspicious
+sources must label themselves fails immediately â€” attackers do not self-label. Brontide inverts the
+burden:
+
+> **Origin assertion is authority.** An Execution or Event emission MAY assert an origin
+> class only if the authority under which it occurs grants that assertion. Absent a granted
+> assertion, the occurrence carries only its Interaction attribution and available provenance; its
+> origin class is **unverified** â€” the default.
+
+Software that obtains injection authority without an origin grant produces effects marked
+unverified-origin *automatically*: looking like a device is a privilege it was never granted.
+The burden of proof sits on the trusted.
+
+> **Origin grants do not survive Delegation.** A delegated Capability asserts at most
+> `Origin.Derived`. Origin classes are re-established only by genesis-grade grants: the
+> authority domain, or a guardian acting as it, vouching directly â€” as it does at device
+> attachment or through a trusted human-input path.
+
+Without this rule, a device could delegate its device-ness to companion software and masquerade
+would return one hop downstream, laundered through a valid chain. Origin is genesis attribution
+(Â§12) made portable: droppable along a chain, never gainable. The fail-closed rule (Â§10.1)
+covers implementations that do not recognise an asserted class.
+
+The class taxonomy â€” `Origin.Device`, `Origin.Human`, `Origin.Autonomous`, `Origin.Derived` â€”
+and guardian vouching rules belong to an `Origin` vocabulary, not Base. Domain Vocabularies
+consume origin classes; they do not define local markings. At the cross-domain tier, origin
+claims become signed assertions, compatible in spirit with content-credential systems (C2PA)
+that build this mechanism as a bolt-on because no platform layer offers it.
+
+Precedents confirming the demand: Windows has flagged injected input for two decades
+(advisory and spoofable, because it is a flag rather than an authority); financial regulation
+mandates algorithmic-order flagging; media provenance is being retrofitted cryptographically.
+Three independent partial rebuilds of one missing primitive. Brontide provides it once, generally,
+with enforcement instead of etiquette.
+
+In the presence of autonomous Actors, "was a human actually in the loop" becomes a mechanically
+checkable property of the provenance record.
+
+## 16. Shape: Structure Across Implementations
+
+A **Shape** is the complete abstract structural contract for one value used at an Brontide boundary.
+It has one canonical named and versioned definition and may compose named and versioned Declared
+Fragments. Shape describes admissible structure and types; it is never the value, object, memory,
+or encoded bytes that conform to that contract.
+
+Operation names alone are insufficient for interoperability. Two implementations may both
+recognise `Fan.SetSpeed`, yet remain incompatible if one expects a signed integer and the other
+expects an implementation-specific object with different fields. Likewise, a Capability
+Constraint cannot be evaluated consistently if the participants disagree about the structure of
+the value it constrains.
+
+Shape is therefore part of Brontide Base (since Architecture 0.3).
+
+Every Operation declares one input Shape and one independent output Shape. An Execution's input
+value conforms to the Operation's input Shape; a successful Outcome's result value conforms to its
+output Shape. Event assertion values, failure details, and Constraint values likewise conform to
+their separately declared Shapes. Absence of a value is represented by the unit Shape or
+established as unit by construction. This does not require a serialised schema reference. A direct
+call may establish Shapes through a statically known contract; an embedded implementation may use
+a compile-time table; a distributed representation may carry explicit Shape references.
+
+Shape provides structure, not authority. Possessing, constructing, or understanding a value
+conforming to a Shape grants no Capability and authorises no Execution. Shape also does not by
+itself establish the domain meaning of a field. That meaning belongs to the Domain Vocabulary or authored
+specification that defines the Shape and the Operation, Event, Constraint, or other contract using it.
+
+### 16.1 Shape identity and structure
+
+A Shape reference contains:
+
+```
+shape-name: <canonical name>
+shape-version: <positive integer>
+```
+
+An open record Shape may additionally be composed with Declared Fragments (Â§16.3). The complete
+composed Shape is identified by its canonical Shape reference together with the unordered set of
+Fragment references that are included, present, or required. Brontide does not require a new combined
+name for every such composition.
+
+The version belongs to the Shape and is independent of the Brontide Architecture version, Profile
+versions, and transport encoding. Capability instances are grants identified through their
+holder, scope, and derivation; Brontide does not assign semantic versions to individual
+Capability objects. Shapes are explicitly versioned because their structural contracts evolve.
+
+At minimum, a Base Shape system must be capable of expressing:
+
+- **unit** â€” no value;
+- **scalar** â€” a value with a canonical scalar Shape, not merely an implementation-local type;
+- **record** â€” named fields, each referring to another Shape;
+- **sequence** â€” zero or more values of one declared Shape;
+- **choice** â€” one value selected from named alternatives; and
+- **opaque** â€” uninterpreted data whose declared Shape and integrity may still be preserved.
+
+Shape references compose recursively. A record Shape may contain fields described by other Shapes;
+those Shapes may themselves be records, sequences, choices, or further compositions. A contract
+that names one root Shape therefore permits an arbitrarily composed set of Shape definitions
+without repeatedly introducing a separate "multiple Shapes" case. Multiplicity of Shape
+definitions belongs to Shape composition; multiplicity of conforming values belongs to a sequence
+Shape or, in the Corpus model, to the declared Corpus Form (Â§18.2).
+
+The exact standard scalar catalogue remains provisional. A Shape specification MUST NOT assume
+that a CLR `int`, a C `int`, a JSON number, and a machine register are equivalent merely because
+an implementation uses the same informal word for them.
+
+A record field declaration contains:
+
+```
+field-name: <canonical field name>
+field-shape: <Shape reference>
+presence: required | optional
+```
+
+An unqualified canonical field name is defined by the authority responsible for its enclosing
+Shape and is scoped to that Shape lineage. A field contributed through a named fragment is scoped
+additionally by that fragment's identity and author. Field identity is therefore the enclosing
+Shape lineage, owning fragment, and canonical field name; two unrelated Shapes or fragments do
+not make their respective `speed` fields interchangeable merely by spelling them alike.
+
+Record field order is not semantically significant. Repetition is expressed through a sequence
+Shape rather than by assigning special meaning to repeated field names. Absence of an optional
+field means absence; an implementation MUST NOT invent an implicit default unless the defining
+Shape or Domain Vocabulary specifies one normatively.
+
+Two Shapes are not compatible merely because their fields happen to look alike. Canonical Shape
+identity and declared fragment composition carry the contract. This prevents values such as
+milliseconds, distances, identifiers, and monetary quantities from becoming interchangeable
+merely because each happens to use an integer representation.
+
+### 16.2 Shape versions
+
+Versions of one canonical Shape form a monotonic, backward-compatible lineage.
+
+A later version MAY add optional fields or other explicitly additive declarations. It MUST NOT:
+
+- remove or rename an existing field;
+- change an existing field's Shape;
+- change an optional field to required;
+- reinterpret an existing field;
+- change a record between open and closed fragment policy; or
+- otherwise make a value valid under an earlier version invalid or differently meaningful.
+
+A breaking structural or semantic change requires a new canonical Shape name. A larger version
+number is not permission to reinterpret an existing contract.
+
+An implementation claiming support for version *N* of a Shape supports the complete contract of
+every earlier version in that Shape's lineage. An implementation accepting an earlier version
+MUST accept a valid value of a later same-name version through the earlier projection and ignore
+optional additions it does not understand, because later versions are additive by definition.
+It MUST NOT claim support for the later version merely because it can project away all of that
+version's additions.
+
+Shape versions describe the accepted value contract, not a particular serialisation. Multiple
+wire encodings or in-memory representations may realise the same Shape version where they
+preserve its observable semantics.
+
+Declared Fragment versions form independent, monotonic lineages and obey the same additive rule.
+Changing a Fragment never silently versions a Shape that includes or accepts it, and changing the
+Shape never silently versions the Fragment. A reusable Fragment does not name one host; each host
+explicitly includes the required Fragment version. An authored attached Fragment declares the
+earliest compatible version of its host Shape and remains attachable to later same-name versions
+because those versions are additive. A Fragment that requires newer canonical structure names
+that newer host version. Breaking Fragment semantics require a new Fragment name.
+
+### 16.3 Shape Fragments and composition
+
+A **Shape fragment** is an arbitrary subset or projection of one complete Shape. Calling part of a
+Shape a fragment does not make it a separate input, output, or value: the enclosing structure
+remains one Shape. Fragment is a subordinate concept within Shape (Â§7.1).
+
+Any participant may form an unnamed fragment locally by projecting an arbitrary subset of a
+Shape. Such a fragment is useful for implementation, inspection, or explanation, but has no
+portable identity, version, authorship, conformance meaning, or right to be required by another
+participant. Brontide assigns architectural significance only to **Declared Fragments**: Fragments
+that are named, versioned, authored, and normatively specified with exact membership and
+invariants.
+
+Every record Shape has a **canonical fragment** containing the fields specified by the authority
+responsible for that Shape. The canonical fragment shares the Shape's canonical name and version;
+it does not acquire a redundant Fragment identity. A record Shape also declares one of two
+Fragment policies:
+
+```
+fragment-policy: open | closed
+```
+
+There are two ways a Declared Fragment participates in a Shape:
+
+- **explicit inclusion** â€” the Shape's own specification includes a reusable Declared Fragment
+  and adopts its exact fields and invariants; or
+- **authored attachment** â€” another authority attaches its Declared Fragment to a Shape whose
+  Fragment policy is open.
+
+Explicit inclusion is permitted regardless of Fragment policy because the host Shape opts in.
+One Declared Fragment may be explicitly included by several unrelated Shapes; this reuses exact
+structure but creates no compatibility between those host Shapes. `Interaction 1` is the first
+standard reusable Declared Fragment: Execution and Event include it to share attribution,
+correlation, causation, origin, and temporal structure (Â§13.2).
+
+Only the authority responsible for a Shape may add unqualified fields to later versions of that
+Shape's canonical fragment. An open record additionally permits another authority to define a
+Declared authored Fragment that contributes fields. Such a Fragment:
+
+- has its own canonical authored name and positive integer version;
+- names its host Shape lineage and earliest compatible version;
+- owns an exact, non-overlapping set of fields under its author's namespace;
+- may define requirements for its own fields but cannot remove, rename, replace, constrain, or
+  reinterpret fields owned by the canonical or another fragment; and
+- remains independently projectable from the complete composed Shape.
+
+For example:
+
+```
+Shape Velocity 1:
+    kind: record
+    fragment-policy: open
+    canonical-fragment:
+        required speed: Integer.Signed64 1
+
+Fragment Bob:DirectionalVelocity 1:
+    for-shape: Velocity 1
+    fields:
+        required direction: Bob:Direction 1
+```
+
+The complete composed Shape to which a value may conform is:
+
+```
+Velocity 1 + Bob:DirectionalVelocity 1
+```
+
+This is one Shape composed from its canonical fragment and Bob's Declared Fragment, not two
+input values. Alice may add an independent fragment without requiring Bob, Alice, or the
+canonical author to mint a combined Shape name.
+
+A participant that accepts the open Shape `Velocity 1` MUST accept the valid canonical projection
+of that composed value, consume `speed`, and ignore fragments it does not understand. It MUST NOT
+claim that it understood or honoured Bob's `direction`. If direction is required for the intended
+effect, the relevant Operation input, Operation output, Event, Constraint, or Profile must require
+`Velocity 1 + Bob:DirectionalVelocity 1` explicitly. A sender cannot attach Bob's fragment and
+assume that a participant accepting only the canonical fragment will act upon it.
+
+An authored Fragment may enrich the base contract; it cannot condition or reinterpret it. If
+the meaning of an inherited field changes when an authored fragment is present, the composition
+is not compatible and must use a new canonical Shape contract. Unknown-fragment tolerance would
+be unsafe otherwise: a canonical consumer would appear to accept the value while performing a
+different semantic operation from the one the sender intended.
+
+A closed record rejects authored fragment attachment. Closed Shapes are appropriate where
+accepting unrecognised structure would make validation, signing, hashing, or safety semantics
+ambiguous.
+
+### 16.4 Matching, projection, and unknown structure
+
+An Operation, Event, Outcome details contract, or Constraint type declares the complete Shape it
+accepts: a canonical Shape reference and any Declared Fragments it includes or requires. The
+target evaluates Shape compatibility before interpreting or acting on the value.
+
+At minimum:
+
+- a missing required field causes rejection;
+- an existing field with an incompatible Shape causes rejection;
+- an unknown Shape with no recognised compatible lineage causes rejection where interpretation is
+  required;
+- every Declared Fragment required by the accepted Shape must be present at a compatible version
+  and valid under that Fragment's contract;
+- a value of an open Shape carrying additional well-formed fragments MUST be accepted as its
+  recognised canonical projection;
+- unrequired fragments MUST NOT affect validity of the canonical projection; an implementation
+  ignores Fragments it does not understand and MAY process a Declared Fragment it explicitly
+  supports without claiming that the canonical fragment required that behaviour;
+- projection never implies support for the projected-away fragments;
+- a closed Shape rejects authored fragments; and
+- Shape compatibility never substitutes for Capability evaluation.
+
+An Actor that merely routes an opaque value MAY preserve a Shape it does not understand where
+policy permits. An intermediary claiming lossless forwarding MUST preserve unknown fragment
+references, their fields, and canonical Shape identity. If it drops fragments or fields and
+constructs a new value, that value is a projection or derivation rather than the original and must
+be attributable as such where provenance applies.
+
+Structural compatibility is deliberately directional. Every
+`Velocity 1 + Bob:DirectionalVelocity 1` value has a valid `Velocity 1` projection; an arbitrary
+`Velocity 1` value does not satisfy an expression requiring Bob's fragment.
+
+Compatibility does not bypass admission or authority. A target may still reject an otherwise
+compatible value under declared size, rate, capacity, or resource Constraints (Â§26), but an open
+Shape implementation must not reject a valid canonical projection merely because it carries
+well-formed authored Fragments the implementation does not understand. A Fragment cannot carry
+an authority restriction that a canonical consumer is expected to ignore; authority remains in
+Capabilities and unknown Capability Constraints continue to fail closed (Â§10.1).
+
+### 16.5 Representation and the Embedded Test
+
+Brontide Base defines Shape semantics, not a schema language, reflection API, object model, memory
+layout, or universal wire encoding.
+
+An implementation may realise Shapes through:
+
+- compile-time function signatures and static tables;
+- language-native generated types;
+- compact numeric Shape and field identifiers;
+- runtime descriptors;
+- schema registries; or
+- another representation preserving the same contracts.
+
+A microcontroller may support a fixed set of Shapes compiled into its dispatch tables, reject
+unsupported Shape versions, and use no dynamic allocation or reflection. Shape therefore passes
+the Embedded Test: the structural agreement is mandatory, while dynamic schema machinery is not.
+
+Independent implementations such as Brontide Reference Stack and Brontide Minimal Stack may use entirely different internal types.
+Their components are interoperable only where translation between those types preserves the same
+named input and output Shapes, versions, required Declared Fragments, fields, and projection
+semantics. This is the cross-implementation pressure that makes Shape fundamental rather than
+merely convenient.
+
+### 16.6 Enrichment and value propagation (extracted design direction)
+
+> **Work in progress.** The full design direction is recorded in
+> `Brontide-Design-Note-Enrichment-0.1.md`. It is not a normative Brontide mechanism, adds no Base
+> term, and defines no conformance requirements.
+
+The settled boundaries, retained here because other sections rely on them:
+
+- An Enrichment adds previously absent information constructed from information already
+  available to the composition. It never replaces, removes, constrains, or reinterprets
+  information already present.
+- Obtaining a value is an Operation. Capability invocation, sensor reads, provider queries,
+  and other effectful acquisition must remain visible as ordinary Brontide Operations and must
+  not be hidden inside an Enrichment.
+- Enrichment concerns information described by Shapes and Declared Fragments. It cannot
+  create, issue, derive, delegate, transfer, bind, broaden, or combine Capabilities.
+- Targeted Enrichment declares availability at a named consumer, Operation boundary, or
+  bounded scope. Ambient Enrichment, if retained, requires an explicit scope and explicit
+  consumer declaration; the unsafe case is undeclared global consumption, not global storage.
+- Systems are not necessarily topological. Graphs describe particular views â€” an Execution
+  trace, a deployment composition, a Flow â€” rather than the universal form of an Brontide
+  system.
+
+## 17. A Minimal Brontide System
+
+Consider a microcontroller controlling temperature and cooling.
+
+It defines:
+
+```
+Actors:
+    SensorReader
+    CoolingController
+    SafetySupervisor
+```
+
+It recognises:
+
+```
+Operations:
+    Temperature.Read
+    Fan.SetSpeed
+    Fan.Stop
+
+Events:
+    Sensor.Temperature.Changed
+```
+
+It associates statically known Shapes with the values carried by Executions and Events:
+
+```
+Temperature.Read:
+    input: Unit 1
+    output: Sensor.Temperature 1
+
+Fan.SetSpeed:
+    input: Fan.Speed 1
+    output: Unit 1
+
+Fan.Stop:
+    input: Unit 1
+    output: Unit 1
+
+Sensor.Temperature.Changed:
+    value: Sensor.Temperature 1
+```
+
+Its authority relationships are:
+
+```
+Capability SensorGrant:
+    holder: SensorReader
+    permitted-operation: Temperature.Read
+
+Capability CoolingGrant:
+    holder: CoolingController
+    permitted-operations:
+        Temperature.Read
+        Fan.SetSpeed
+        Fan.Stop
+
+Capability SafetyGrant:
+    holder: SafetySupervisor
+    permitted-operations:
+        Temperature.Read
+        Fan.SetSpeed
+        Fan.Stop
+```
+
+The SafetySupervisor may derive an EmergencyGrant from SafetyGrant by adding the Constraint
+`permitted-operation: Fan.Stop` and designating an EmergencyHandler as the new holder.
+
+The complete implementation may use static structures.
+
+The static authority table is the primordial Capability set (Â§12); there are no Genesis occurrences.
+Actor references are compile-time indices whose permitted uses are fixed by program structure
+(Â§9.1). Executions are direct calls and Events are callbacks with static semantic identifiers;
+both compose Interaction by construction. Every
+Delegation is a build-time entry â€” pre-evaluated Constraints (Â§11). Shapes are compile-time
+signatures and table entries; no runtime descriptor or serialisation is present. No clock is
+present, so `emitted-at` is omitted.
+
+No process model is required.
+No network is required.
+No persistent identity is required.
+No filesystem is required.
+No dynamic memory allocation is required.
+
+This is an Brontide system.
+
+A much larger Brontide system may use radically different machinery and expose Operations,
+Executions, and Events of radically different scale while preserving the same Base semantics.
+
+## 18. Growing Beyond the Base
+
+Brontide Base is intentionally insufficient for most complete computing environments.
+This is expected.
+
+Brontide grows through three additional forms of specification:
+
+```
+Architectural Extensions
+Profiles
+Domain Vocabularies
+```
+
+They solve different problems.
+
+The Base provides a common Actor, authority, Operation, Execution, Event, and Shape model.
+Extensions allow larger systems to introduce additional architectural concepts without making
+those concepts mandatory for every Brontide implementation.
+Profiles define useful interoperability expectations.
+Domain Vocabularies allow Actors implemented by independent systems to agree on the semantic
+meaning of common Operations, Events, Outcomes, and Shapes.
+
+Together, these mechanisms are intended to allow Brontide to scale from embedded systems to highly
+connected computational and organisational environments without treating either extreme as an
+exception.
+
+In practice, Profiles â€” not Base â€” are expected to be the unit of interoperability that software
+targets, as instruction-set profiles are in comparable ecosystems. Base is the shared semantic
+core; a Profile is what a developer writes against.
+
+A future Profile may group a broad set of commonly expected extensions and vocabularies for
+general-purpose environments. Such a convenience Profile would remain an ordinary Profile: it
+would not enlarge Base, weaken the Embedded Test, or become a second privileged conformance tier.
+Architecture 0.7 does not define, name, or reserve such a Profile. It should be introduced only
+when repeated real Profile requirements reveal a stable common bundle.
+
+### 18.1 Composition and Components (extracted design direction)
+
+> **Work in progress.** The full composition direction â€” Component contracts, Parameters,
+> Attributes, Definition Constraints, selection characteristics, bindings, Slots, Classes,
+> hot swapping, the proposed Brontide Portable Binding, representation mapping, and the recorded
+> Mediation direction â€” is in `Brontide-Design-Note-Composition-0.1.md`. None of it enlarges
+> Brontide Base.
+
+The settled definitions and invariants, retained here because other sections rely on them:
+
+- A **Component** is a scale-independent, bounded unit of composition that declares the Brontide
+  contracts it provides and requires. A Component is not an Actor and is not
+  authority-bearing: loading, attaching, or binding a Component grants no authority by
+  itself. One Component may realise several Actors; one Actor may be realised by several
+  Components; a Component may contain other Components.
+- A **Parameter** is a named, Shape-described input to an architectural definition.
+  **Composition Parameters** are bound while constructing a composition and may select
+  declared architectural structure; **Activation Parameters** are bound at activation, may
+  fill declared resource slots, and must not introduce structure absent from the resolved
+  composition.
+- An **Attribute** is a value obtained through a specified Brontide Operation â€” identified by
+  its source Operation, vocabulary version, result Shape, and result path, under ordinary
+  Capability evaluation â€” never a free-floating label. Attribute-constrained bindings are
+  resolved exactly once, at composition or activation resolution, recording effective values
+  and provenance; a later Attribute change never rebinds â€” reaction belongs to Routers and
+  future lifecycle policy.
+- A **Definition Constraint** is a Shape-typed declarative predicate used for selection and
+  validation, composing recursively through `AllOf`, `AnyOf`, and `Not`. It selects or
+  validates without granting authority; carried by a Capability, it conjoins under the Base
+  narrowing algebra (Â§10.1). An unrecognised atom anywhere within a composite expression makes
+  the whole expression unevaluatable: denial in authority context (Â§10.1), candidate exclusion
+  in selection context.
+- `Local` and `remote` are observer-relative, intentionally lossy projections of richer
+  selection characteristics. They must not imply latency, trust, authority-domain, cost,
+  capacity, or failure guarantees their projection rule does not define, and Remote Service
+  is not a separate Component category.
+- Interchangeability is a compatibility relationship between Components; hot-swappability is
+  a joint operational claim made by a Host's Slot, its accepted Hot-swap Class, and a
+  conforming Component. Live replacement semantics are declared, never inferred from shared
+  names.
+- The proposed **Brontide Portable Binding** is a first-party default seam for Component
+  interchange, not the implementation model of Brontide Base. A **Binding Plan** fixes
+  contracts, authority presentation, representation, resource ownership, synchronisation,
+  delivery, and lifecycle before the hot path. Representation mapping within one Shape
+  contract belongs to binding machinery; semantic adaptation between contracts is an explicit
+  Adapter Component.
+- **Mediation** is the recorded direction for declared intermediation: a relationship whose
+  species â€” Selection, Distribution, Arbitration â€” are distinguished by cardinality and
+  characteristic obligation, realised by dedicated Components (Router, Distributor, Arbiter),
+  host machinery, or static construction, and enforced by authority topology rather than
+  discovery.
+
+### 18.2 Corpus, Dataset, Store, and Router (extracted design direction)
+
+> **Work in progress.** The full persistent-information direction â€” Corpus kinds and Forms,
+> the information-integration ladder, Dataset lifecycle, Component-Corpus roles, Store roles
+> and absence behaviour, Stores, Store Relationships, and Router â€” is in
+> `Brontide-Design-Note-Persistent-Information-0.1.md`. None of it enlarges Brontide Base, ratifies
+> a Storage vocabulary, requires a database, or makes Structured integration mandatory.
+
+The model separates five questions:
+
+```
+Shape       What is the structure of one value?
+Corpus      What does an independently addressable body of information mean?
+Dataset     Which concrete body of information is this?
+Store role  What placement and lifecycle purpose does one part of that Dataset have?
+Store       Which concrete logical resource retains that part?
+```
+
+The settled invariants, retained here because other sections rely on them:
+
+- A **Corpus** is an authored, versioned definition of a meaningful, independently
+  addressable body of information; a **Dataset** is one concrete body conforming to one
+  Corpus version. Corpus authorship is not Dataset ownership, and the relationships are
+  many-to-many.
+- Components declare Corpus roles as compatibility claims; Capabilities govern what Actors
+  may actually do to Datasets and Stores. Neither declaration nor binding grants authority.
+- Each Corpus-defined Store role of a Dataset binds to exactly one logical Store endpoint;
+  several roles may share a Store; every optional role declares one explicit absence
+  behaviour (`UseRole`, `Discard`, `Recompute`, or `DisableFeature`).
+- A **Router** presents a Store-compatible contract while delegating to backing Stores under
+  explicit rules. Its endpoint Attributes are its own declared guarantees, not those of any
+  current backing Store. Within the recorded Mediation direction (Â§18.1), the Router is the
+  storage instantiation of Selection. Mirror and Backup remain declarative Store
+  Relationships.
+- Dataset identity is a property of the Dataset record itself, independent of any single
+  Store role's content; a Corpus declares which Store roles are identity-bearing. Capability
+  designation of Datasets follows Â§10.2, and Dataset creation authority is an instance of the
+  open Genesis-versus-authorised-issuance question (Â§12, Â§33).
+- A Corpus MUST declare its concurrent-access semantics. The declaration may be modest â€”
+  single-writer with enforcement left to authority, or external coordination required â€” but it
+  may not be absent.
+- Removing software and removing information are independent decisions: uninstalling a
+  Component does not imply deletion of Durable Datasets on which it operated.
+
+### 18.3 Optional system-native services and boxed compositions
+
+A general-purpose Brontide operating environment may participate much more deeply in application
+composition than a conventional operating system. Instead of supplying only processes, files,
+sockets, windows, users, and devices, it may offer replaceable Components implementing common
+Profiles, Extensions, and Domain Vocabularies.
+
+Candidate system-native facilities include:
+
+- Event Distribution, history, replay, and observability;
+- Corpus, Dataset, Store, State, Persistence, Resource, Transaction, and database integration;
+- Identity, authorisation support, credentials, and policy;
+- Presentation, Workspace, input, and document or Web engines;
+- scheduling, remote execution, admission, and resource selection; and
+- compilation, batching, vector execution, and specialised accelerators.
+
+"System-native" means that the environment can discover, select, govern, and compose the facility.
+It does not mean one globally privileged implementation, a mandatory kernel service, or a facility
+that every application must consume. Several providers may implement the same declared contract;
+an application may constrain selection, provide its own implementation, or decline the facility.
+
+The relationship is reciprocal. An application may consume system-provided persistence or identity
+while contributing its own semantic Operations to the surrounding environment. An image editor may
+use Event Distribution and expose `Image.Edit`; a browser composition may use system identity while
+exposing document rendering; a simulation may use system scheduling while exposing model execution
+to tools. The boundary between application and system becomes a declared matter of composition and
+policy rather than a fixed caste boundary.
+
+Brontide also permits a **boxed composition**: an application whose database, identity, event system,
+renderer, scheduler, and internal modules remain private. The box may expose a narrow set of Brontide
+Operations at its edge or participate only as a conventionally hosted program. Its private interior
+need not be decomposed, inspectable, or replaceable for the application to be valid.
+
+Native participation should therefore be incremental. Adopting system Events should not require
+adopting system persistence; adopting Presentation should not require system identity; and using a
+system-selected accelerator should not force the application's database into the same composition.
+Tools may provide richer inspection and recovery where declared contracts make them possible, but
+must not misrepresent opaque private mechanisms as non-conforming merely because they remain
+private.
+
+To preserve honest portability, dependency strength must be visible. A Component may require a
+generic contract, require a stronger Profile such as durable Event replay, prefer a system-provided
+implementation, or require a specific authored provider contract. Selection and packaging must not
+collapse these claims into an undifferentiated "uses the system service" flag.
+
+## 19. Architectural Extensions: Flow and Event Distribution
+
+An **Architectural Extension** adds a generic computational concept to Brontide.
+
+Possible future extensions include:
+
+```
+Channel
+Resource
+Composition
+Discovery
+Runtime
+Topology
+Distributed
+Identity
+Persistence
+Realtime
+Presentation
+Workspace
+Intent
+State
+Transaction
+Lifecycle
+Time
+```
+
+These names are provisional and do not imply accepted Brontide extensions.
+
+An extension may depend on another extension.
+For example, a future `Distributed` extension might require communication semantics defined by
+`Channel`. A future `Lifecycle` extension might describe long-running Executions and persistent
+activities initiated by them.
+
+A future `Composition` extension may ratify the Component, Parameter, Attribute, Constraint,
+binding, and replacement direction in Â§18.1. A future `Persistence`, `Resource`, or dedicated
+specification may ratify the Corpus, Dataset, Store, and Router direction in Â§18.2. Static
+composition must remain possible without a loader or dynamic allocation. Runtime binding and hot
+swapping may compose with `Discovery`, `Lifecycle`, `State`, or `Transaction`, but must not acquire
+their guarantees merely by using the word Component.
+
+Extensions should remain domain-neutral.
+`Channel` may describe communication. It should not define how headphones transmit audio.
+`Lifecycle` may describe the state of ongoing activity. It should not define the stages of a
+financial audit.
+
+Several provisional directions illustrate this rule. `Workspace` may describe application-facing
+organisation of views, navigation contexts, tabs or panes, history, bookmarks, and provider-
+supplied hierarchies, while `Presentation` describes the surfaces through which those views are
+made perceptible and interactive. Neither facility is reserved for a system shell or Web runtime;
+ordinary applications participate through the same extensions.
+
+`State` may describe an identifiable observable condition, revisions, and authorised transitions
+without implying a storage engine, query language, data model, or durability. It remains distinct
+from a Corpus, which defines the semantic intent and lifecycle of independently addressable
+information (Â§18.2). `Transaction` may
+describe a declared commit and atomicity relationship over participating effects, but must state
+its isolation, durability, failure, withdrawal, and compensation semantics rather than implying
+universal rollback. `Structured Data` is not retained as an Architectural Extension direction;
+the provisional Corpus model uses Base Shape and explicit Forms without imposing a universal
+database model, while database-specific structure belongs in Profiles and Domain Vocabularies.
+Observable-condition semantics remain in `State`, and created-resource semantics remain in
+`Resource` and related extensions.
+
+Shape and Transaction illustrate opposite results under the same Base criterion. Shape is Base
+because independent implementations must agree on value structure to share Operation, Execution,
+Event, and Constraint semantics, even when that agreement is realised entirely by static
+construction (Â§16.5). Transaction remains an extension despite likely broad use because an
+Execution may already be implemented atomically without exposing cross-effect transaction
+semantics.
+
+Likewise, an Execution may be implemented atomically without Brontide observing a Transaction.
+The `Transaction` extension becomes relevant when commit, isolation, participation, or atomicity
+semantics are exposed across multiple visible effects, Operations, Actors, or Resources. Including
+the name in Base without those guarantees would be empty; requiring the guarantees universally
+would burden systems that do not need them.
+
+This distinction prevents Brontide itself from becoming a specification of every device and
+industry.
+
+This architecture identifies `Flow` and `Event Distribution` as first-party extension directions
+(first recorded in 0.3) and defines their architectural placement. Their complete conformance contracts remain to be
+ratified.
+
+### 19.1 Flow
+
+A **Flow** is an extension-defined, continuing relationship that carries a sequence of
+Executions, Events, Outcomes, or typed Items under shared authority and delivery context.
+
+Flow is not an Brontide Base term or Base occurrence form.
+
+> *Base does not understand Flow. Flow understands Base.*
+
+The extension is expressed through Base Operations, Events, and Outcomes:
+
+```
+Flow.Open             Operation
+Flow.Opened           Outcome
+Flow.Item             extension-defined occurrence
+Flow.Acknowledge      Operation
+Flow.GapDetected      Event
+Flow.RequestReplay    Operation
+Flow.Resume           Operation
+Flow.Cancel           Operation
+Flow.Closed           Outcome
+```
+
+`Flow.Opened` terminates the opening Execution and identifies the created Flow. `Flow.Closed`
+terminates the Flow relationship. The Flow itself is the extension-defined context that relates
+the occurrences between those points.
+
+Flow adds:
+
+- a Flow identity,
+- declared participants or participant roles,
+- an Item Shape,
+- continuing authorisation,
+- positions or cursors where ordering or recovery is declared,
+- a delivery and recovery contract,
+- backpressure or admission behaviour,
+- and termination semantics.
+
+Flow does not provide reliability, replay, total ordering, persistence, lossless delivery,
+recovery, or exactly-once effects unless an extension version or Profile explicitly declares the
+relevant behaviour.
+
+#### 19.1.1 Flow Items and common context
+
+A Flow carries Executions, Events, Outcomes, or the extension-defined `Flow.Item` occurrence
+carrying typed data. Each occurrence may compose Interaction for attribution and correlation. The
+Flow context may add:
+
+```
+flow-id
+position
+source-position
+item-shape
+integrity metadata
+```
+
+Stable context â€” participants, semantic name, origin requirements, encoding, Item Shape, and
+authority â€” may be negotiated once at establishment and inherited by Items. An implementation is
+not required to allocate or serialise a complete Interaction component for every high-rate Item.
+A video frame
+may be a compact `Flow.Item` under shared context; a bulk record may be a typed `Flow.Item`; an
+Event Flow carries complete Events with Flow positions attached by the extension.
+
+A Flow carrying Executions MUST NOT become an authority tunnel. Either each Execution is
+independently authorised, or the establishing Capability explicitly grants the continuing class
+of Operations and their Constraints. Arbitrary effectful data cannot inherit authority merely
+by travelling inside an authorised Flow.
+
+#### 19.1.2 Recovery contract
+
+A Flow declares the recovery properties on which its endpoints may rely. Candidate properties
+include:
+
+```
+ordering
+delivery
+replay support
+retention
+acknowledgement mode
+gap policy
+resume behaviour
+revocation horizon
+```
+
+Reliable Flows may expose opaque cursors, cumulative or selective acknowledgement, replay ranges,
+retention until acknowledgement, and resumption after reconnection. Ephemeral Flows may declare
+that obsolete Items are skipped rather than replayed. File transfer, bulk import, Event replay,
+video, audio, and pointer input therefore use the same extension without pretending that their
+recovery needs are identical.
+
+Brontide SHOULD standardise at-most-once and at-least-once delivery, stable Item identities,
+deduplication support, and idempotency keys. It must not promise universal exactly-once effects;
+those require cooperation from the receiving domain or transaction system.
+
+#### 19.1.3 Programmer-facing use
+
+Flow is an application-facing Brontide facility, not machinery reserved for Brontide Reference Stack or system
+services. Language bindings SHOULD expose typed Items, asynchronous iteration or an equivalent
+stream abstraction, cancellation, cursors, acknowledgement, and declared recovery behaviour.
+Programs and Domain Vocabularies may define Item Shapes and use the same Flow semantics as device,
+media, Event Distribution, and system infrastructure.
+
+An implementation may optimise a Flow internally, but it must not make standard recovery or
+authority semantics available only to privileged platform components when its conformance claim
+offers them to applications.
+
+#### 19.1.4 Base-only participants
+
+A Base-only Actor may preserve or route a Flow occurrence and its Interaction composition where
+policy permits. It does not thereby understand Flow identity, positions, ordering,
+acknowledgement, gaps, replay,
+resumption, backpressure, or termination, and MUST NOT claim to be a Flow endpoint.
+
+An Actor that does not support Flow rejects an Execution of `Flow.Open` as unsupported. It must
+not silently accept and treat subsequent Items as unrelated Events. An explicit adapter MAY downgrade a Flow
+to individual occurrences, but it must declare every lost guarantee.
+
+A routing intermediary need not understand Flow semantics if it preserves the Interaction
+composition and extension metadata exactly. The actual endpoints and any intermediary that
+modifies Flow state or guarantees MUST support the extension.
+
+A minimal embedded Flow may use compile-time producer and consumer roles, a fixed-size buffer or
+direct handoff, and integer positions. Networking, dynamic subscription, persistence, and
+allocation are not required by the extension's architectural structure.
+
+### 19.2 Event Distribution
+
+Event is Base ontology (Â§14). Publication, observation, subscriptions, fan-out, fan-in,
+filtering, groups, persistence, and replay are infrastructure defined by the **Event Distribution**
+extension.
+
+Two authorities are ordinary Capabilities over standard Operations:
+
+```
+Capability PublicationGrant:
+    permitted-operation: Event.Publish
+    subject: <Event subject>
+
+Capability ObservationGrant:
+    permitted-operation: Event.Observe
+    subject: <Event subject>
+```
+
+Executing `Event.Publish` publishes an Event. A successful Execution of `Event.Observe`
+establishes a Flow of Events; its Outcome identifies the subscription and Flow. Capability
+mortality (Â§10.3) and the Flow's
+revocation contract determine termination.
+
+Broadcast is mediated. Fan-out is performed by an Event mediator Actor, not by an ambient bus.
+Each observer receives an independently authorised subscription and Flow with its own cursor,
+backpressure, retention, and delivery contract. One slow observer does not implicitly block the
+others.
+
+Fan-in is likewise mediated. Events from multiple publishers may be merged into one observer
+Flow, but every Event preserves:
+
+- its original emitting Actor,
+- its Event identity,
+- its source position where present,
+- its origin and provenance,
+- and any mediator-assigned Flow position.
+
+The mediator must not launder multiple sources into its own origin. Replayed Events assert at
+most `Origin.Derived` (Â§15), so replay cannot impersonate a live source.
+
+Subscriptions may constrain subjects, structured name prefixes, publishers, authority domains,
+origin classes, rate, retention, or assertion Shapes. Prefix matching is a syntactic selection over
+the structured names of Â§22; it does not create semantic implication between those names.
+
+Groups are mediated subscription sets. Authority to join, observe, or publish to a group is
+explicit and delegable. A received Event carries no authority for a subscriber to initiate a
+resulting Execution (Â§14); a reactive Actor either presents authority deliberately as its own or
+receives authority explicitly attributable to the initiating request.
+
+Event names and subject taxonomies belong to Domain Vocabularies
+(`Sensor.Temperature.Changed`, `Deployment.Completed`). Event Distribution defines how those
+Base Events move. A Base-only implementation may still realise an Event through direct return,
+callback, or static dispatch without implementing this extension.
+
+A minimal Event Distribution implementation is a static mediator dispatch table with
+compile-time publishers and observers. Fan-out is a fixed sequence of calls; no ambient bus,
+dynamic discovery, queue, or network is required.
+
+## 20. Profiles
+
+A **Profile** is a named interoperability contract.
+
+Profiles group extensions and Domain Vocabularies, may require other Profiles, and may impose
+additional behavioural requirements.
+
+A Profile declares its direct dependencies with a `uses:` block. The block may name Profiles,
+Architectural Extensions, and Domain Vocabularies:
+
+```
+Interactive Peripheral Profile uses:
+    Connected Endpoint Profile 0.1
+    Event Distribution 0.1
+    Input 0.1
+```
+
+The block form is equivalent to repeating `uses` for every entry. The plural block removes
+repetition without changing meaning; entries are independent and may be reordered without changing
+one another.
+
+Profile dependencies are transitive. Conformance to `Interactive Peripheral Profile` in the
+example therefore includes every requirement of `Connected Endpoint Profile 0.1`; the declaring
+Profile does not repeat that Profile's extensions or vocabularies. The full requirement set is the
+transitive dependency closure. Circular Profile dependencies are invalid.
+
+A Profile is not a level in an inheritance hierarchy.
+A device or system may conform to several Profiles simultaneously.
+
+Possible examples include:
+
+```
+Connected Endpoint
+Interactive Peripheral
+Audio Endpoint
+Compute Node
+Personal Workstation
+Operational System
+Interactive Application
+Web
+Database
+```
+
+A future Connected Endpoint Profile might declare:
+
+```
+Connected Endpoint Profile uses:
+    Channel
+    Discovery
+    Flow
+```
+
+A future Interactive Peripheral Profile could then use it and add:
+
+```
+Interactive Peripheral Profile uses:
+    Connected Endpoint Profile
+    Event Distribution
+    Input
+
+Behaviour:
+    defined connection-loss semantics
+    Capability withdrawal reporting
+    standard configuration discovery
+```
+
+A future Operational System Profile might require defined behaviour for long-running Executions,
+Event delivery, Flow recovery, audit provenance, or activity lifecycle reporting.
+
+A headset might conform to both:
+
+```
+Interactive Peripheral
+Audio Endpoint
+```
+
+A smart monitor might conform to:
+
+```
+Interactive Peripheral
+Audio Endpoint
+Compute Node
+```
+
+Profiles describe useful combinations of Brontide behaviour without forcing all Brontide
+implementations into a device or system hierarchy.
+
+A mouse and a corporate operations platform may both implement Brontide while making very different
+interoperability claims.
+
+A Profile names the exact minimum versions of its direct dependencies (Â§23). Its expanded
+transitive dependency closure makes the conformance claim complete and reproducible without
+requiring every Profile to restate requirements already carried by another Profile.
+
+### 20.1 Work-in-progress Profile directions
+
+The following Profile directions are intentionally incomplete. Recording them establishes the
+architectural target and tests whether Brontide provides sufficient primitives; it does not ratify
+their final dependency sets or Domain Vocabularies.
+
+An **Interactive Application Profile** may compose the shared facilities used by ordinary
+applications and system-provided content:
+
+```
+Interactive Application Profile uses:
+    Presentation
+    Workspace
+```
+
+`Presentation` and `Workspace` are application-facing facilities. A conventional application,
+filesystem navigator, settings surface, and Web implementation may all expose views through the
+same subsystem while retaining their own Actors, Operations, Events, and specialised behaviour.
+Tabs, panes, history, bookmarks, and trees are therefore not intrinsically browser or filesystem
+features. A bookmark or history entry identifies a context; it does not preserve or grant the
+authority needed to reopen it.
+
+A future **Web Profile** may use the Interactive Application Profile rather than repeating its
+requirements:
+
+```
+Web Profile uses:
+    Interactive Application Profile
+    Resource
+    Runtime
+    Channel
+    Identity
+    Intent
+    Flow
+```
+
+The exact list remains provisional. The architectural direction is that Web content uses the same
+Presentation and Workspace facilities as ordinary applications while adding Web-specific
+runtime, identity, navigation, and communication semantics.
+
+A future **Database Profile** is likewise benched as a recognised direction. Its purpose is to
+make database providers first-class Brontide participants without defining a universal query
+language, relational model, or lowest-common-denominator database API. A provider exposes one or
+more Actors, obtains and evaluates Capabilities normally, declares the Domain Vocabularies and
+Shapes it supports, declares which Corpus Forms and Store Operations it implements, uses Flows
+where transfer is potentially unbounded, and declares any State, Transaction, Persistence,
+consistency, or Event Distribution semantics on which clients may rely. A database provider may
+realise a Store without making Store synonymous with database.
+
+Provider and application Operations remain legitimate authored vocabulary. PostgreSQL, a graph
+database, an embedded store, and a business application may expose different Operations while
+sharing Brontide authority, attribution, Execution, Interaction composition, Flow, Shape, and Outcome
+semantics. Portable
+database behaviour requires a separately ratified common vocabulary; it is not implied merely by
+conformance to the Database Profile.
+
+The acceptance test for this direction is architectural: Brontide primitives must be sufficient to
+construct a useful Database Profile and provider integration without adding database-specific
+terms to Base. Detailed database semantics are deliberately deferred.
+
+## 21. Domain Vocabularies
+
+A **Domain Vocabulary** defines standard Brontide-native semantic concepts for a particular field.
+
+Brontide does not need to know what a mouse is.
+
+An Input vocabulary may define:
+
+```
+Input.Pointer.Motion
+Input.Pointer.Button
+Input.Scroll.Resistance
+```
+
+An Audio vocabulary may define:
+
+```
+Audio.Playback
+Audio.Capture
+Audio.Volume
+```
+
+A Sensor vocabulary may define:
+
+```
+Sensor.Temperature.Observe
+Sensor.Orientation.Observe
+Sensor.Temperature.Changed
+Sensor.Orientation.Changed
+```
+
+A database operations vocabulary may define:
+
+```
+Database.Migrate
+Database.Backup.Create
+Database.Restore
+```
+
+An audit vocabulary may define:
+
+```
+Audit.Start
+Audit.Suspend
+Audit.Resume
+Audit.Complete
+```
+
+These concepts use the Brontide authority model.
+
+Domain Vocabularies allow independent devices and implementations to agree on semantic meaning
+without Brontide Base needing to standardise every type of hardware, software system, or
+organisational activity.
+
+They are a major part of Brontide interoperability.
+
+The common Actor model defines who may participate.
+Capabilities define what authority is available.
+Operations define semantically meaningful action.
+Executions record concrete attempts of those Operations.
+Events define attributable assertions about occurrences.
+Outcomes define terminal completion and optional result values.
+Domain Vocabularies allow independently developed participants to agree on what those
+contracts and occurrences mean.
+
+### 21.1 What a vocabulary must contain
+
+A Domain Vocabulary is not a list of names. To earn its interoperability claims, every vocabulary
+MUST contain:
+
+- **Scope** â€” what is covered and, explicitly, what is not.
+- **Model** â€” the Actors and authority directions involved.
+- **Contracts, occurrences, and Capabilities** â€” Operations, Events, Outcomes,
+  extension-defined occurrences, and the authority directions relevant to them, with normative
+  observable semantics.
+- **Shapes** â€” the independent input and output Shapes of every Operation, including their
+  required Declared Fragments; and the canonical names, versions, and required Fragments accepted
+  by every Event assertion, Outcome result or details value, and Constraint parameter, or explicit
+  references to the specifications that define them (Â§16).
+- **Corpora and storage semantics, where applicable** â€” each Corpus name, owner, version, kind,
+  Form, participating Shapes, lifecycle and migration rules, concurrent-access
+  semantics, Store roles, absence behaviours, and Component-Corpus roles; plus Store Operations and Attribute sources, or explicit references to
+  the specifications that define them (Â§18.2).
+- **Constraint types** â€” the Constraints it defines for use with the Base algebra (Â§10.1), including
+  the Shape of every carried value; and any Definition Constraint operators or Attribute paths it
+  standardises for composition (Â§18.1).
+- **Conflict semantics** â€” what happens when authorised Operations collide (Â§6.9), and any
+  ordering assumptions made about Events or extension-defined sequences.
+- **Fences** â€” the predictable traps: behaviours a reasonable client would wrongly assume are
+  guaranteed, explicitly declared unspecified (Â§29.1).
+- **Verification surface** â€” which semantics are covered by conformance tests and which are
+  trusted (Â§29.3).
+
+The Input.Pointer vocabulary draft accompanies this specification as the template.
+
+### 21.2 Interoperability claims are graded by precision
+
+Conformance is the only mechanism, but vocabularies differ in how much their specifications pin
+down, and therefore in what conformance buys:
+
+For device-class vocabularies (Input, Audio, Sensor), full specification of observable semantics
+is achievable and expected: any conforming implementation is substitutable for any other.
+
+For organisational vocabularies (Audit, Deployment), full substitutability is neither achievable
+nor the goal. Their value is **uniform participation**: the Operation gains explicit authority
+requirements, attenuable Delegation, inspectable provenance, standard Outcome distinctions, and
+compatibility with every generic tool that understands those things â€” Capability inspectors,
+delegation viewers, policy engines, audit trails â€” none of which need to know what an audit *is*.
+
+Base semantics are always fully substitutable. Vocabulary semantics are substitutable to the
+degree the vocabulary's precision earns â€” and the vocabulary's verification surface (Â§21.1)
+makes that degree visible rather than assumed.
+
+## 22. Names, Authorship, Declaration Prefix Blocks, and Notation Strictness
+
+Brontide names are structurally legible and semantically opaque (Â§6.10).
+
+A canonical name has one of two forms:
+
+```
+ConceptPath
+AuthorityPath:ConceptPath
+```
+
+with the provisional grammar:
+
+```
+CanonicalName  := [AuthorityPath ":"] ConceptPath
+AuthorityPath  := Segment ("." Segment)*
+ConceptPath    := Segment ("." Segment)*
+```
+
+The exact allowed characters within `Segment`, escaping rules, and namespace registration
+process remain open for ratification. A canonical name contains no relative notation.
+
+### 22.1 Standard Brontide names
+
+Standard Brontide concepts use unqualified Concept Paths. Current and anticipated examples include:
+
+```
+Actor
+Capability
+Shape
+Operation
+Execution
+Interaction
+Event
+Velocity
+Flow.Open
+Input.Pointer.Motion
+Audio.Playback
+Database.Migrate
+Audit.Start
+```
+
+Unqualified, independently referenced canonical names are reserved for concepts ratified by an
+Brontide specification. Every portable semantic concept with an independently referenced identity
+that is not so ratified MUST use an authored canonical name of the form
+`AuthorityPath:ConceptPath`. Names scoped inside an already authored enclosing contract, such as
+the unqualified fields of an authored Shape, inherit that enclosing authorship (Â§16.1). An
+implementation MUST NOT expose implementation-specific or privately authored functionality under
+an unqualified canonical name merely because that functionality is compiled in, bundled by
+default, or supplied by a widely used implementation.
+
+Dots expose stable structural segments for parsing, grouping, discovery, prefix-block
+declaration, and explicit syntactic filters. They do not create authority or semantic
+subsumption. Supporting
+`Input.Pointer` does not by spelling alone imply support for every name beginning with those
+segments.
+
+### 22.2 Authored names
+
+The colon `:` separates an **Authority Path** from its authored Concept Path:
+
+```
+Linux:CGroup
+Vulkan:Device
+USB:HID
+Logitech.MX:Input.Scroll.SmartShift
+Sony.Headphones:Audio.AcousticOptimizer
+Brontide:PredictivePlacement
+Erste:Audit
+```
+
+Everything before `:` identifies the claimed namespace authority or authoring chain. Everything
+after it identifies the concept defined by that authority.
+
+This qualification records claimed **authorship**, not **Origin** in the sense of Â§15. Origin
+describes what kind of cause produced an occurrence; an Authority Path identifies who claims to
+have defined a semantic contract. Binding time does not affect either rule:
+`Bob:DirectionalVelocity` remains authored when compiled into firmware, while a dynamically
+obtained `Velocity` remains a standard Shape.
+
+Authority Paths are hierarchical. In:
+
+```
+Logitech.MX:Input.Scroll.SmartShift
+```
+
+`Logitech` is the high-level namespace authority and `MX` is a subordinate authoring namespace.
+This structure allows an organisation, standards body, project, team, product family, or
+individual to subdivide authorship without flattening the result into one opaque vendor string.
+
+Syntax is a claim, not proof. Parsing `Logitech.MX` identifies the claimed relationship; it does
+not establish that Logitech authorised the `MX` subnamespace. Registry bindings, signatures,
+delegated namespace authority, or other verification mechanisms belong to governance and future
+Identity or Distributed specifications. An unverified authored name remains attributable only to
+the party that actually presented it.
+
+Authored qualification applies to portable semantic definitions, including Operations, Shapes,
+Declared Fragments, Constraint types, Corpora, Store roles, Attribute sources, Parameters,
+extension concepts, and portable Component or Hot-swap Class identities. It does not turn every
+runtime object into a canonical semantic name. In particular, a Capability is a particular target-
+recognised grant (Â§10), not merely a permission name: its authority provenance comes from Genesis
+and Delegation. An authored Capability template or Constraint type uses an authored name; an
+individual grant retains its own identity, holder, target, scope, and derivation. A Dataset and
+Store likewise have concrete resource identities; they do not become canonical semantic
+definitions merely because their Corpus or Store-role contracts have authored names.
+
+A qualified name is not normative Brontide functionality solely because an Brontide implementation
+exposes it. An organisation may initially define `Erste:Audit`. If a sufficiently general audit
+vocabulary is later ratified, the system may expose `Audit.Start` with appropriate Constraints
+and metadata.
+
+Brontide may reserve an authored namespace for proposals incubated by the Brontide project. Such names
+remain non-standard until ratified into an unqualified Brontide Concept Path.
+
+For example:
+
+```
+Logitech:Input.Scroll.Resistance
+Razer:Input.Scroll.Resistance
+```
+
+might contribute to:
+
+```
+Input.Scroll.Resistance
+```
+
+Promotion into the standard Brontide vocabulary is **ratification**, with the consequences defined
+in Â§23.
+
+### 22.3 Declaration prefix blocks
+
+Specifications frequently declare several neighbouring concepts. Brontide documents MAY group such
+declarations under an explicit prefix block introduced by `within`:
+
+```
+within Logitech.MX:Input.Pointer:
+    Motion
+    Button
+    Button.Pressure
+```
+
+expands to:
+
+```
+Logitech.MX:Input.Pointer.Motion
+Logitech.MX:Input.Pointer.Button
+Logitech.MX:Input.Pointer.Button.Pressure
+```
+
+Likewise:
+
+```
+within KitchenWG:Kitchen.Toaster:
+    Temperature
+    Power.Draw
+    Completion.Estimate
+```
+
+expands to:
+
+```
+KitchenWG:Kitchen.Toaster.Temperature
+KitchenWG:Kitchen.Toaster.Power.Draw
+KitchenWG:Kitchen.Toaster.Completion.Estimate
+```
+
+The rules are:
+
+- a block opens with `within` followed by a canonical prefix â€” an Authority Path, the leading
+  segments of a Concept Path, or both;
+- every declaration inside the block expands to the block's prefix plus its own segments;
+- declarations inside a block are mutually independent: inserting, removing, or reordering
+  lines never changes the expansion of any other line;
+- blocks do not nest, and a block ends at the next `within`, the next canonical declaration,
+  or the end of its enclosing structure;
+- expansion depends only on the enclosing block's stated prefix, never on document position
+  beyond that block.
+
+Prefix blocks are document notation only. Capabilities, signatures, hashes, wire
+representations, discovery records, conformance tests, and ratification records MUST use expanded
+canonical names. Moving text within a document must never silently change an already issued
+Capability or signed semantic identity.
+
+> **Note â€” design history.** Earlier drafts used dot-relative declarations (`..Button`,
+> `...Pressure`), in which each leading dot retained one segment of the previous fully expanded
+> declaration. The notation was rejected. Expansion depended on the previous declaration and
+> therefore on document position: inserting or reordering a line silently changed the meaning of
+> every line below it, and the dot-counting inverted familiar path intuition (more dots retained
+> *more* context). These are unacceptable failure modes in precisely the documents whose contents
+> ratification freezes forever (Â§23). Prefix blocks keep the brevity while making every line's
+> expansion independent of its neighbours and locally visible.
+
+### 22.4 Strict and NonStrict notation
+
+An Brontide document or machine-readable definition SHOULD declare its **notation strictness**:
+
+```
+notation: Strict | NonStrict
+```
+
+Strictness changes notation and permitted inference only. It MUST NOT change the resolved
+architectural model, normative force, authority, compatibility, or lifecycle semantics. A
+NonStrict document may use fully explicit Strict notation whenever clarity benefits.
+
+A **Strict** document:
+
+- uses expanded canonical names wherever an architectural identity is referenced;
+- carries versions in their defined version fields rather than treating them as name text;
+- identifies member kinds and owning definition paths where the canonical grammar requires them;
+- makes Parameter binding stages, defaults, and Attribute-source Operations explicit; and
+- does not rely on prefix-block, enclosing-definition, previous-line, or similarly contextual
+  shorthand in its canonical declaration set.
+
+Strict notation is appropriate for package manifests, signed definitions, conformance fixtures,
+interchange contracts, generated bindings, policy, and canonical ratification records. Human prose
+may quote or explain Strict definitions without every sentence becoming machine syntax.
+
+A **NonStrict** document may use deterministic, locally visible abbreviations such as Â§22.3
+`within` blocks, a Store role declared as `name: Core` inside one Corpus, a locally scoped Parameter
+name, or a uniquely resolvable canonical prefix. It MUST NOT use ambiguous shorthand, and every
+abbreviation must have one normalisation into Strict form. NonStrict permits shorthand; it never
+requires shorthand.
+
+The candidate canonical identity for a typed member uses a distinct member separator rather
+than overloading dot segments or inventing another authorship separator:
+
+```
+CanonicalName := [AuthorityPath ":"] ConceptPath ["#" MemberKind "." MemberName]
+```
+
+For example:
+
+```
+Brontide:Editor.Project
+Brontide:Editor.Project#Store.Core
+Brontide:Editor.Project#Parameter.HistoryDepth
+```
+
+The Corpus version is carried separately:
+
+```
+corpus-name: Brontide:Editor.Project
+corpus-version: 3
+store-role-name: Brontide:Editor.Project#Store.Core
+```
+
+This form preserves the one colon meaning already defined by Â§22 â€” `Brontide Reference Stack` is the Authority
+Path; everything after the colon is the Concept Path â€” while keeping every dot segment
+semantically opaque (Â§6.10). Encoding member kind as ordinary dot segments was rejected: an
+ordinary authored namespace could legitimately produce the identical canonical string with a
+different referent, and canonical names that are frozen, signed, and referenced by Capabilities
+must have exactly one meaning forever. Reserving member-kind words was likewise rejected,
+because every future member kind would retroactively collide with names already ratified â€”
+unacceptable in an append-only namespace. The member separator also prevents a Store role and a
+Parameter with the same local spelling from colliding. `#` is the working candidate glyph; the
+final glyph, escaping rules, the member-kind catalogue, and whether all member categories
+require typed segments remain provisional with the canonical-name grammar itself.
+
+In this document's declared NonStrict notation:
+
+```
+Corpus:
+    name: Brontide:Editor.Project
+    corpus-version: 3
+    stores:
+        - name: Core
+```
+
+normalises to the Strict identities above. A normaliser SHOULD be able to emit that expansion and
+record any inferred owner, scope, version source, default, or Parameter binding. A document without
+a strictness declaration MUST NOT be assumed Strict; legacy prose is treated as NonStrict unless a
+governing specification says otherwise.
+
+## 23. Versioning and Ratification
+
+The versioning problem for an authority model is concrete: a Capability granted against one
+version of a vocabulary may be presented to an implementation of a later version. Whether it
+still means the same thing must not be a matter of luck.
+
+Brontide eliminates the problem rather than managing it, with one discipline borrowed from the
+systems that got evolution right:
+
+> **Ratified names are immutable.** Once a concept â€” Operation, Execution, Interaction,
+> Event, Capability, Shape, Declared Fragment, Shape field, Constraint type, Corpus, Store role,
+> Attribute source, Parameter, Event subject, or Outcome distinction â€” is ratified
+> into a vocabulary, extension, or Base, its
+> normative semantics are frozen forever. A change in meaning is a new name. Vocabularies are
+> append-only namespaces: versions add concepts and may deprecate them; they never remove or
+> repurpose them.
+
+Capabilities reference canonical names; ratified names mean one thing forever; therefore
+Capabilities do not carry vocabulary versions merely to defend against semantic reinterpretation.
+Implementations may still differ in which additive concepts they support. Profiles and discovery
+handle that availability skew.
+
+Shapes and Declared Fragments additionally carry their own explicit structural versions (Â§16.2).
+Those versions are monotonic and additive: they identify which optional structure is available,
+never a breaking reinterpretation of a canonical name. Authored fragments compose with an open
+Shape without mutating its canonical fragment or requiring a new name for every combination
+(Â§16.3).
+
+Corpus definitions likewise carry an explicit version separate from the canonical Corpus name
+(Â§18.2). Their exact compatibility and migration rules remain provisional in Architecture 0.7;
+versioning may describe a lifecycle transition but may never silently reinterpret a ratified
+canonical name. Store-role and Parameter identities remain members of their owning definition
+rather than gaining hidden meaning from document position (Â§22.4).
+
+The supporting rules:
+
+- **Version numbers are claims, not name parts.** `Input.Pointer 1.2` is a conformance claim:
+  all concepts ratified through 1.2, with their frozen semantics. Minor versions are purely
+  additive, so claims are comparable numerically â€” a 1.3 implementation satisfies every 1.1
+  client. There are no breaking versions of a vocabulary, by construction; a fundamentally
+  different model is a new vocabulary with a new name, and both may coexist indefinitely.
+- **Deprecation marks, never breaks.** A deprecated concept remains normatively binding for any
+  implementation claiming a version that includes it. Deprecation is guidance for new designs,
+  not permission to drop support.
+- **Unknown semantics fail safely.** An implementation encountering an unknown Constraint type
+  denies (Â§10.1); encountering an unrecognised atom within a composite Constraint expression
+  treats the whole expression as unevaluatable and denies (Â§10.1); encountering an unknown
+  origin class, treats it as unverified (Â§15);
+  encountering an unknown Operation rejects an Execution that names it; encountering an unknown
+  extension occurrence does not process it or claim support for its semantics;
+  encountering an unrecognised Shape with no compatible recognised lineage rejects it where
+  interpretation is required; and encountering an unrequired fragment on an open recognised
+  Shape ignores it for canonical projection without claiming its semantics (Â§16.4).
+  The fail-closed rules adopted for security ensure older implementations degrade to stricter or
+  unavailable behaviour rather than silently reinterpret authority.
+- **Profiles pin and compose.** A Profile names exact minimum versions of its direct dependencies.
+  Required Profiles contribute their own pinned dependency closures transitively (Â§20), so Profile
+  conformance claims remain complete and reproducible without restating every indirect requirement.
+- **Base freezes hardest.** Brontide Base pre-1.0 may change freely â€” that is what 0.x means. At
+  1.0, the core terms' semantics freeze under the same append-only rule as everything else.
+- **Ratification is the freezing moment.** When a name is promoted from a non-standard namespace
+  into the standard vocabulary (Â§22), its semantics freeze irreversibly. The governance process
+  must therefore include semantic review *before* ratification; that irreversibility is the
+  point, not a hazard.
+
+The openness presumption (Â§29.1) covers the remainder: unspecified behaviour may change at any
+version, which is precisely why relying on it is non-conforming.
+
+## 24. Devices and Brontide
+
+A device does not need to run a conventional operating system to implement Brontide.
+
+A device may itself participate in Brontide through one or more Actors.
+
+A mouse may expose separate Actors concerned with pointer input and configuration.
+
+Conceptually:
+
+```
+MousePointer
+    emits Input.Pointer.Motion
+    emits Input.Pointer.Button
+
+MouseConfiguration
+    exposes Input.Pointer.Sensitivity
+    exposes Input.Pointer.PollingRate
+```
+
+The physical mouse is not the architectural primitive.
+The Actors through which it participates are.
+
+Note the direction of authority: publishing pointer input into the host's input system requires
+authority over that system, even though the delivered Input occurrence is an Event.
+The host grants publication and admission Capabilities to the device's Actors at attachment â€” a
+Genesis occurrence (Â§12) under the host's attachment policy, typically liveness-scoped (Â§10.3) so that
+detachment kills the authority with nothing to revoke, and typically carrying the
+`Origin.Device` assertion grant (Â§15) because attachment is the moment the host observes the
+physical fact it is vouching for.
+
+Attachment is not cross-domain interaction, even though the device has its own implementation.
+The host's attachment machinery creates Actors within the host's own authority domain that
+represent the attached device. The binding between those Actors and the physical device is the
+Actorâ€“Execution binding of Â§6.5 â€” owned by the host implementation and, per Â§28, part of its
+trusted computing base. A device's internal Brontide domain, where one exists, remains distinct;
+attachment does not join the two domains architecturally. This is also what entitles the host to
+grant the `Origin.Device` assertion: the vouching is intra-domain, made by the host's own trusted
+machinery about a physical fact it directly observed. Where a future `Distributed` extension
+defines attested federation, attachment MAY be upgraded to a verified cross-domain relationship,
+and the Genesis occurrence becomes informed by attestation rather than by host policy alone.
+
+A Base-only embedded connection may deliver the Events through static dispatch. A connected
+peripheral may use Event Distribution and a Flow of Input Events. The Event meaning remains the
+same; only the delivery contract changes.
+
+One consequence deserves emphasis: synthetic input injection by unauthorised software becomes an
+unauthorised Execution, mechanically denied â€” and injection by *authorised* software
+(accessibility tools, remote desktop) is visibly distinguishable from device input, because
+looking like a device is an authority those tools are not granted. This property is not a
+feature of the Input vocabulary; it falls out of the Base model.
+
+A manufacturer may additionally expose:
+
+```
+Logitech.MX:Input.Scroll.SmartShift
+```
+
+A host that understands the standard Input vocabulary can immediately interact with standard
+functionality. It does not require a Logitech-specific application merely to configure pointer
+sensitivity or polling behaviour.
+
+The same model may apply to headphones.
+
+A headset might expose Actors providing:
+
+```
+Audio.Playback
+Audio.Capture
+Audio.Volume
+Input.Media.PlayPause
+Sensor.WearState.Changed
+```
+
+and additionally:
+
+```
+Sony.Headphones:Audio.AcousticOptimizer
+```
+
+An Brontide-compatible system already understands the standard concepts.
+The manufacturer remains free to innovate outside the standard.
+Brontide makes the boundary visible.
+
+## 25. Systems and Macro-Scale Operations
+
+Brontide Actors may represent system boundaries larger than a process or device.
+
+A system may expose an Actor through which other Actors interact with its semantic
+functionality.
+
+For example:
+
+```
+DatabasePlatform
+    exposes Database.Migrate
+    exposes Database.Backup.Create
+
+AuditPlatform
+    exposes Audit.Start
+    exposes Audit.Suspend
+
+DeploymentPlatform
+    exposes Deployment.Begin
+    exposes Deployment.Rollback
+```
+
+The internal implementation of such a system may contain many processes, services, databases,
+queues, users, and further Actors.
+
+Brontide does not require those internals to be visible to every caller.
+The exposed Actor represents the architectural boundary at which authority is exercised.
+
+This allows a system to communicate more than transport-level intent.
+
+A conventional API request may state:
+
+```
+POST /jobs
+```
+
+with an implementation-specific payload.
+
+An Brontide Operation may state semantically:
+
+```
+Audit.Start
+    organisation: Erste
+    scope: FinancialControls
+```
+
+The exact metadata model is outside Brontide Base and remains to be specified.
+
+The architectural difference is that the Operation's semantic identity and required authority are
+first-class. Its Outcome may identify a created long-lived activity; that activity may emit Events
+and later terminate through another Outcome. This supports richer policy, Delegation,
+observability, discovery, recovery, and interoperability in higher-level Brontide specifications.
+
+Brontide does not require every API call to become an Brontide Operation.
+Brontide Operations should represent semantic actions at boundaries where explicit authority and
+interoperable meaning are useful â€” a boundary is worth an Operation where uniform exposure is
+valuable even if substitution is not (Â§21.2).
+
+## 26. Admission: Interacting with Bounded Capacity
+
+Every Actor has bounded capacity. A human has limited attention. An autonomous Actor has limited
+compute. A device has a limited duty cycle. A service has a limited queue.
+
+Requesting service from an Actor consumes that Actor's capacity.
+
+> An Actor, or a guardian acting for it, MAY treat the right to request as authority: an
+> **admission Capability**, granted, attenuated, and delegated like any other. Where admission
+> is capability-guarded, an unauthorised request is denied by the standard authority machinery
+> before it reaches the expensive capacity it targets.
+
+Validation, transport, and rejection still consume bounded front-door resources; admission is not
+a claim to eliminate physical or network-level denial-of-service. It prevents unauthorised
+requesters from reaching more valuable attention, compute, device duty cycle, or service queues
+and limits amplification after the authority boundary.
+
+Spam and prompt-flooding of autonomous Actors can therefore become unauthorised Executions rather
+than only application-specific categories; rate limits are ordinary Constraints (`max-rate`,
+liveness-scoped leases); and admission composes with Delegation â€” a service granted admission to
+an agent may delegate narrower admission to its own sub-workers.
+
+### 26.1 The human seam
+
+Human interaction endpoints are the strictest instance of admission, in two layers.
+
+**Admission before presentation.** A request to interact with a human Actor carries its
+Delegation chain like any other Execution. The human's guardian implementation (operating system,
+device, agent shell) applies policy *before anything renders*: chains that do not terminate in a
+trusted primordial root, or that arrive from unverified or non-whitelisted origins, are refused
+or quarantined mechanically. The naive attack population never reaches the person. Requesting a
+human's attention is itself an Operation, requiring a Capability granted by the human's guardian
+â€” which makes phishing not a UX failure but an unauthorised Execution, denied by the same
+machinery that denies any other Execution.
+
+**Bound consent.** For requests that pass admission, "the human approved it" must mean
+approved-as-shown, by a verified human act â€” not that some process holding the human's delegated
+authority clicked a button. Following the pattern of Â§10.3, Base states the obligation rather
+than the mechanism. The `Intent`/`Presentation` extensions MUST define:
+
+- how an approval record identifies the presentation the human actually acted upon,
+- how the guardian vouches the origin class (Â§15) of the response through its trusted input
+  path,
+- and how both bind to the resulting Delegation record.
+
+One possible realisation hashes the presentation artifact into the Delegation record; the choice
+of mechanism is not Base semantics.
+
+The full presentation mechanics belong to those extensions. Base carries only the principle:
+human participation flows through guarded, recordable interaction endpoints, and humans differ
+from other bounded-capacity Actors in policy strictness, not in mechanism. In the recorded
+Mediation direction (Â§18.1), the guardian is an Arbiter over human attention.
+
+## 27. Brontide and Existing Systems
+
+Brontide is deliberately agnostic about implementation depth.
+
+A firmware system may implement the Brontide model directly:
+
+```
+Brontide
+  â†“
+Firmware
+  â†“
+Hardware
+```
+
+A hosted runtime may implement Brontide above an existing operating system:
+
+```
+Brontide software
+  â†“
+Brontide runtime
+  â†“
+Host adapter
+  â†“
+Linux
+```
+
+An operating system may implement Brontide through native services:
+
+```
+Brontide software
+  â†“
+Native Brontide services
+  â†“
+Kernel
+```
+
+A future operating system may use Brontide as its primary computational architecture.
+
+These are implementation choices.
+
+Brontide should allow movement between them without requiring Brontide-native software to adopt an
+entirely new authority model.
+
+The same freedom applies at the application boundary. One application may be deeply composed with
+system-native Event, Corpus, Store, State, Identity, Presentation, Web, scheduling, and accelerator
+Components.
+Another may remain a single opaque process with private authentication, storage, and rendering.
+Both are legitimate hosted applications. Brontide conformance applies only to the boundaries and
+contracts they actually claim.
+
+Conversely, a system-native window need not imply a monolithic system-owned application. A browser
+surface, for example, may compose a Web or document engine, execution engine, renderer, security
+policy, credential provider, history, and Workspace presentation from separately selected
+Components. Replacement of any part remains subject to the explicit compatibility and lifecycle
+semantics of Â§18.1; composability does not make hot swapping automatic.
+
+This is particularly important for hosted implementations.
+
+Linux may be used because it already solves difficult hardware and compatibility problems.
+The Brontide architecture must not therefore become Linux-shaped.
+
+Existing systems are substrates and integration targets.
+They are not the ontology of Brontide.
+
+## 28. Threat Model
+
+**In scope.** Brontide's authority semantics are designed to withstand: malicious or compromised
+Actors within an authority domain attempting to forge, amplify, or replay authority; confused
+deputies exercising authority on behalf of unauthorised requesters; masquerade â€” presenting an
+effect as originating from a source class it did not (Â§15); malicious peers in cross-domain
+interaction presenting invalid or over-broad Delegation chains; malformed Shape values attempting
+to exploit ambiguity between implementations; authored fragments attempting to reinterpret a
+canonical Shape or smuggle authority through ignored structure; and reliance on unspecified
+behaviour as an escalation path.
+
+**Out of scope.** Brontide does not defend against compromise of the authority domain's own
+implementation â€” each domain's implementation is its trusted computing base, and a domain that
+lies about its enforcement lies about everything. Side channels, physical attacks, and
+denial-of-service below the admission model (Â§26) are likewise outside the authority model,
+though extensions and Profiles MAY address availability.
+
+**Information flow.** Brontide constrains *access* at every architectural boundary; it does not
+constrain *re-propagation* after delivery. An Actor authorised to observe data may thereafter
+transmit what it observed. Exfiltration by an authorised observer is out of scope; unauthorised
+observation is in scope. The positive claim Brontide does make is **legibility**: because
+observation is capability-gated, every first hop of every data flow is an explicit,
+attributable, auditable grant â€” delegations of observation are visible data-sharing decisions.
+Brontide cannot prevent a betrayal of trust; it guarantees the trust was explicit and the betrayer
+is identifiable.
+
+**Cross-domain trust** extends exactly as far as verification of the other domain's attestation,
+and no further.
+
+## 29. Conformance
+
+Brontide conformance is behavioural.
+
+An implementation conforms to an Brontide specification when it preserves the observable semantics
+required by that specification.
+
+### 29.1 The openness presumption
+
+> Any behaviour not explicitly specified by an Brontide specification is unspecified. Unspecified
+> behaviour is presumed open to change between implementations and between versions of an
+> implementation. Reliance on unspecified behaviour is non-conforming use.
+
+Stated once, here, inherited by every extension, Profile, and Domain Vocabulary.
+
+This clause exists because its absence has a known outcome: where a specification is silent, the
+first popular implementation's behaviour becomes the de facto contract, accident by accident,
+until the implementation *is* the specification and can never change. The presumption ensures
+Brontide's de facto behaviour can never quietly become its de jure contract â€” including Brontide Reference Stack's
+(Â§6.8).
+
+The presumption alone is insufficient â€” ecosystems depend on de facto behaviour despite
+universal disclaimers. Vocabularies therefore additionally SHOULD fence predictable traps: the
+small set of behaviours a reasonable client will wrongly assume are guaranteed (Â§21.1).
+
+### 29.2 The conformance shape
+
+For example:
+
+```
+Given:
+    Actor A holds Capability X permitting:
+        Fan.SetSpeed
+        Fan.Stop
+
+And:
+    X permits Delegation
+
+When:
+    A derives Capability Y for Actor B from X
+
+And:
+    Y adds permitted-operation: Fan.Stop
+
+Then:
+    B may execute Fan.Stop using Y
+
+And:
+    B may not execute Fan.SetSpeed using Y
+```
+
+Shape conformance includes additive cross-implementation compatibility:
+
+```
+Given:
+    Velocity 1 is an open record Shape
+    whose canonical fragment requires speed
+
+And:
+    Bob:DirectionalVelocity 1 is a Declared Fragment for Velocity 1
+    and requires direction
+
+When:
+    a component accepting Velocity 1 receives a valid value shaped as
+    Velocity 1 + Bob:DirectionalVelocity 1
+
+Then:
+    it accepts and processes the Velocity 1 projection
+
+And:
+    it ignores Bob:DirectionalVelocity 1 if it does not understand that fragment
+
+And:
+    it does not claim support for Bob:DirectionalVelocity 1
+
+And:
+    a component requiring Velocity 1 + Bob:DirectionalVelocity 1
+    rejects a value carrying only Velocity 1
+
+And:
+    removing, redefining, or changing the Shape of speed is rejected as incompatible
+```
+
+Composite Constraint conformance includes the unknown-atom poisoning rule (Â§10.1, Â§18.1):
+
+```
+Given:
+    Actor B holds Capability Y permitting Fan.Stop
+
+And:
+    Y carries the Constraint Not(Example:Exposure in {Public})
+
+When:
+    an implementation that does not recognise Example:Exposure evaluates an Execution
+    presenting Y
+
+Then:
+    the expression is unevaluatable and the Execution is denied
+
+And:
+    Not of an unrecognised atom is never evaluated as satisfied
+
+And:
+    a resolver evaluating AnyOf of an unrecognised atom and a matching atom for provider
+    selection excludes the candidate and records the unrecognised atom
+```
+
+One implementation may enforce this through static firmware structure.
+Another may use kernel Capabilities.
+Another may use cryptographically verifiable Delegation records.
+
+The internal mechanism is not the conformance target.
+The effective behaviour is.
+
+The scale of an Operation does not change this requirement.
+An implementation exposing `Audit.Start` must preserve the authority semantics attached to that
+Operation just as an embedded implementation must preserve the authority semantics attached to
+`Fan.Stop`.
+
+### 29.3 Verifiable and verified
+
+Two claims that must not be conflated:
+
+> A specification is **verifiable** to the extent that its normative semantics are mechanically
+> testable. An implementation is **verified** with respect to a specification when it has passed
+> that specification's conformance suite, attested by a named party against a named suite
+> version.
+
+The boundary between verifiable and trusted falls *within* every occurrence, not between
+occurrence forms:
+
+- **Brontide mechanics** â€” Operation and Execution invariants, Interaction composition, Shape
+  identity, version compatibility and projection, Capability recognition, authority evaluation,
+  attenuation, Delegation validity, Event attribution and immutability, Outcome distinctions, and
+  declared extension transitions â€” MUST be verifiable wherever their observable semantics apply.
+- **Domain effect** â€” that the fan physically stops, that an audit meaningfully occurs â€” is
+  verifiable in degrees. Each Domain Vocabulary MUST declare which of its domain semantics are
+  covered by conformance tests and which are trusted (Â§21.1).
+
+The two rules compose:
+
+> The guaranteed surface of an Brontide specification is its normative text; the *attested* surface
+> is what its conformance suite tests; everything else is unspecified and open.
+
+The suite is evidence, not definition â€” the prose specification remains normative.
+
+Where a domain effect is not mechanically verifiable, Brontide does not pretend trust away; it
+makes trust attributable. The responsible party is the Actor exposing the Operation, and the
+Delegation chain records who granted what through whom. The design rule: *mechanically verify
+everything verifiable; for the remainder, ensure the trusted party is explicit, named, and
+reachable through provenance.*
+
+Attestation is flat â€” "verified against suite X version N, attested by P" â€” not graded
+certification levels.
+
+Brontide should be accompanied by conformance tests wherever normative behaviour can be tested
+mechanically. Profile conformance requires satisfaction of the extensions, vocabularies, and
+additional behavioural requirements defined by that Profile. Non-standard functionality must not
+silently satisfy normative Brontide requirements unless a specification explicitly defines such an
+integration.
+
+### 29.4 A worked attack
+
+A specification of an authority model should show an attack failing, not only delegation
+working.
+
+```
+OperationsSystem holds Capability DeploymentGrant:
+    permitted-operations:
+        Deployment.Approve
+        Deployment.Rollback
+
+OperationsSystem derives Capability StagingApproval:
+    from: DeploymentGrant
+    for: BuildAgent
+    adding:
+        permitted-operation: Deployment.Approve
+        environment: staging
+
+BuildAgent exposes:
+    CI.RequestApproval
+
+PluginActor holds:
+    CI.RequestApproval
+```
+
+A compromised `PluginActor` initiates an Execution of `CI.RequestApproval` naming deployment
+`#1234` â€” which targets production.
+
+If `BuildAgent` responds by executing its own `Deployment.Approve` against the resolved
+deployment, the outcome depends on rules this specification makes normative:
+
+1. The target's implementation evaluates the `environment: staging` Constraint when the Execution
+   is presented
+   (Â§10.1), finds production, and denies. The attack fails.
+2. Had the target not understood the Constraint, it would deny under the fail-closed rule
+   (Â§10.1) rather than approve. Without fail-closed evaluation, every Constraint-vocabulary
+   evolution step is a privilege-escalation window.
+3. Had `BuildAgent` "already checked" the environment at request time, the check would have
+   validated the *request's claim*, not the resolved deployment â€” which is why evaluation is
+   placed at the authority boundary, when the Execution is presented.
+4. Under the invocation principle (Â§13.6), `BuildAgent` must not silently use broader
+   ambient authority on requester-supplied designations. The request carries only
+   `CI.RequestApproval`; `PluginActor` holds no deployment authority. If `BuildAgent` deliberately
+   presents `StagingApproval` as its own policy decision, that choice is recorded and the staging
+   Constraint still denies production. Provenance records both the initiator and the deputy.
+
+## 30. Brontide, Brontide Reference Stack, and Brontide Minimal Stack
+
+Brontide Reference Stack is the first implementation of Brontide.
+
+Its purpose is to test whether the Brontide model remains useful when applied to larger and
+heterogeneous systems.
+
+Brontide Reference Stack is expected to explore areas such as:
+
+- multiple cooperating devices,
+- resource discovery and selection,
+- remote execution,
+- persistent identity,
+- humans and autonomous Actors participating in common Delegation relationships,
+- semantic device integration,
+- macro-scale semantic Operations,
+- and modular application environments.
+
+These are not arbitrary features attached to Brontide after the fact.
+The desire to describe such systems coherently is one of the reasons Brontide exists.
+They are not part of Brontide Base because Brontide attempts to derive them from smaller architectural
+concepts and explicit extensions.
+
+Brontide Reference Stack may experiment with concepts before Brontide standardises them.
+Brontide Reference Stack-specific functionality uses the `Brontide:` namespace.
+
+For example:
+
+```
+Brontide:PredictivePlacement
+```
+
+Brontide must not adopt a concept solely because Brontide Reference Stack implements it.
+
+Brontide Reference Stack is an experiment, implementation, and source of evidence.
+It is not the specification.
+
+**Brontide Minimal Stack** is planned as a second, deliberately independent full-stack implementation. Its primary
+purpose is narrower: to test Brontide composability and substitutability. Brontide Minimal Stack implements its own
+components rather than treating Brontide Reference Stack as the hidden platform, and favours a lean implementation
+surface where Brontide Reference Stack favours a practical showcase.
+
+The proof is component interchange, not merely two programs passing the same conformance suite.
+Where both stacks implement the same Profile, Extension, and Domain Vocabulary contracts, a Brontide Minimal Stack
+component should be usable within a Brontide Reference Stack environment and a Brontide Reference Stack component within a Brontide Minimal Stack
+environment without either side depending on the other's private types or conventions.
+
+Component has the scale-independent meaning described in Â§18.1. The first interchange proof may
+use process-sized Components because they are practical test instruments; that does not restrict a
+Component to a process, package, or application module. Interchange tests substitutability under
+declared contracts. Runtime binding and hot swapping are stronger, separate claims and require the
+additional replacement semantics defined there.
+
+Shape is central to this test (Â§16). Shared Operation names and Capability semantics do not create
+interoperability when the components disagree about the structures those Operations and
+Constraints carry. Brontide Reference Stack and Brontide Minimal Stack may use different language types and encodings; their shared
+input and output Shape identities, Declared Fragment identities, versions, and compatibility
+rules are the architectural contract.
+
+The interchange experiment should prototype the proposed Brontide Portable Binding rather than
+allowing its first process protocol to become an accidental private convention. Brontide Reference Stack and Brontide Minimal Stack
+should implement the binding independently, including Shape-guided inline values, binding-scoped
+identifiers, authority presentation, and at least one referenced-resource or pooled-buffer path.
+The experiment supplies evidence for the binding; agreement between the two implementations does
+not ratify it by itself.
+
+Interchangeability is always scoped to the declared contracts. A Brontide Reference Stack or Brontide Minimal Stack component that
+requires additional Profiles, extensions, vocabularies, authored Operations, Shapes, or Declared
+Fragments is not substitutable for a component lacking those requirements, and must expose
+that difference explicitly. This is expected composition, not a failure of Brontide.
+
+Brontide Minimal Stack-specific functionality uses the `Brontide:` namespace. Brontide must not adopt a concept merely
+because Brontide Reference Stack and Brontide Minimal Stack both happen to implement it.
+
+Brontide Reference Stack and Brontide Minimal Stack are complementary experiments and sources of evidence.
+Neither is the specification.
+
+### 30.1 A decisive demonstration
+
+The most useful Brontide demonstration should not merely show that a small application can be built.
+It should make simplicity, incremental system participation, implementation substitution, and
+optimisation visible in one coherent workflow.
+
+A collaborative image-processing workspace is a suitable test because it begins as an ordinary
+application while exercising typed values, bulk resources, persistent history, presentation,
+remote work, and accelerator-friendly transformations.
+
+**Stage one: a small local composition.**
+The first version contains independently understandable Components for an image source, resize or
+filter Operation, metadata extraction, thumbnail presentation, and history presentation. It runs
+locally on a CPU with no database, network, shared identity provider, or distributed Event service.
+The source should remain small enough that a new developer can understand and modify one module
+without learning the complete environment.
+
+**Stage two: incremental system participation.**
+Without rewriting the transformation Components, the composition adopts system-provided Event
+persistence, execution history, undo or replay, searchable metadata, permission-aware access, and
+shared Workspace state. Each adoption is a separate declared dependency and may be removed or
+replaced independently. The demonstration must show which added facility supplies each behaviour.
+
+**Stage three: explicit substitution.**
+While preserving the logical workspace, the environment replaces selected Components: an image
+decoder, a persistence provider, an identity provider, the Web or presentation engine, and a
+metadata implementation. At least one Brontide Reference Stack Component should be replaced by a Brontide Minimal Stack Component and
+at least one stage should move to another machine or authority domain. A visible binding and
+Execution view should show the selected provider, crossed boundaries, representation choices,
+authority, state handoff, and any interruption or retry. Continuity must come from declared
+replacement semantics, not a staged illusion.
+
+**Stage four: optimisation without application redesign.**
+The same composition then processes a workload large enough to make placement material. A pure,
+deterministic, batchable transformation may be selected for compilation or lowering to a GPU or
+other accelerator provider. The application continues to request the same semantic Operation; the
+Binding Plan and implementation expose batching, buffers, copies, compilation, dispatch, failure,
+and fallback. The demonstration must not imply that arbitrary code is accelerator-compatible or
+that the CPU and accelerator paths have identical operational characteristics.
+
+**Final proof: one mixed system.**
+The resulting workflow should contain Brontide Reference Stack, Brontide Minimal Stack, and third-party Components in one composition,
+for example a Brontide Reference Stack scheduler, Brontide Minimal Stack Event store, Brontide Reference Stack accelerator provider, Brontide Minimal Stack identity
+provider, third-party thumbnail Component, and separately selected presentation engine. One
+complete workflow across them supplies stronger evidence than two isolated reference stacks.
+
+The demonstration succeeds only if it proves:
+
+- a simple module remains simple;
+- system facilities can be adopted incrementally;
+- substitutions and operational boundaries are inspectable;
+- optimisation follows explicit eligibility rather than magic; and
+- the application remains coherent across independently implemented stacks.
+
+Its final claim is therefore not that Brontide Reference Stack is modular. It is that Brontide is not Brontide Reference Stack, and Brontide Minimal Stack
+is not Brontide either.
+
+## 31. Related Work
+
+Brontide stands in a lineage, deliberately. Most of its hard sub-problems have been solved at least
+once, and the failures are as instructive as the successes.
+
+**Capability operating systems.** KeyKOS, EROS, and Coyotos proved that capabilities-as-the-only-
+authority is viable for a whole system, and contributed the revocation-via-indirection pattern.
+seL4 demonstrated formally verified capability enforcement; its capability derivation tree is
+the structure Brontide's Delegation graph abstractly is (Â§11), and the framing against which future
+revocation semantics will be defined. Capsicum demonstrated the hybrid adoption path â€” capability
+discipline coexisting with an ambient-authority host â€” which is the strategic position of Brontide Reference Stack
+on Linux; its lesson is that the seam is where the model leaks.
+
+**Distributed object capabilities.** The E language and CapTP (today OCapN) contain the deepest
+treatment of capabilities across machine boundaries â€” unforgeable remote references, membranes â€”
+and the definitive analysis of confused deputies, which Â§13.6 inherits. Macaroons proved
+monotonic caveat-based attenuation in production and is the direct source of Â§11's structural
+rule; its bearer-token weakness motivates proof-of-possession representations at the
+cross-domain tier. Biscuit extends the same idea with offline public-key attenuation. UCAN is
+Brontide's nearest relative in ambition â€” humans, services, and devices in one delegation model.
+SPKI/SDSI is the direct intellectual ancestor: authorization rather than identity certificates,
+and local names rather than global ones (Â§8); its failure to deploy teaches that being right is
+insufficient without a coexistence path.
+
+**Contrast cases.** Zanzibar-style relationship-based access control is the opposite
+architecture â€” authority as a central database queried at check time rather than held, delegable
+references â€” and the default assumption Brontide must explain itself against. OAuth 2 scopes are
+the incumbent for cross-organisation delegation: coarse, non-attenuable, with delegation bolted
+on; Brontide is in part "what scopes should have been." The WebAssembly component model shows the
+industry independently converging on capability-secure boundaries at yet another scale.
+
+**Vocabulary governance.** USB HID is the existence proof that device-class vocabularies can
+achieve full substitutability with vendor extension space. Bluetooth profiles show the median
+outcome (fragmentation); UPnP shows the failure mode (no conformance teeth â€” hence Â§29.3);
+Matter shows the modern cost (certification requires institutions); schema.org shows vocabulary
+sprawl when adding terms is free (hence ratification discipline, Â§23).
+
+Brontide's distinctive synthesis is one authority model spanning `Fan.Stop` to
+`Accounting.ClosePeriod`, with semantic Operations, Executions, and Events first-class at every
+scale; the
+Embedded Test as a standards-design constraint; and humans and autonomous systems as peers in one
+delegation calculus. Individual mechanisms have precedents. Their combination and intended scope
+are the architectural claim Brontide Reference Stack must test.
+
+## 32. Authors' Discussion: The Larger Direction
+
+Brontide Base is intentionally much smaller than the systems that motivated it.
+This is a deliberate tension.
+
+The authors consider interoperability between radically different computational participants to
+be central to the larger Brontide direction.
+
+A future Brontide environment may contain:
+
+```
+Humans
+Applications
+Services
+Autonomous systems
+Peripheral devices
+Embedded controllers
+Workstations
+Servers
+Remote infrastructure
+Organisational systems
+```
+
+Brontide does not seek to erase the differences between them.
+It seeks to give them a common language for participation, authority, Delegation, attributable
+Events, and meaningful action.
+
+The Actor abstraction is central to this goal.
+
+A human asking an autonomous Actor to review code and an autonomous Actor asking a human to
+clarify intent initiate structurally similar Executions. Both involve one Actor requesting
+participation from another â€” and both, under Â§26, involve admission to a bounded-capacity
+participant.
+
+A process authorising a worker and an embedded controller authorising a safety subsystem
+likewise involve bounded authority and Delegation. At larger scale, an operations system
+authorising a migration or an organisation initiating an audit may follow the same architectural
+rules.
+
+The size of the action changes.
+The authority model need not.
+
+The authors are also particularly interested in computing environments where the boundary of a
+physical device is no longer treated as the natural boundary of computation. A workstation,
+phone, wearable, server, peripheral, and remote compute environment may participate in one
+computational environment. Resources may be selected according to topology, trust, latency,
+cost, and availability rather than a binary distinction between local and remote.
+
+Section 18.1 applies this direction to Components explicitly. A remote service is not a separate
+architectural species: it is a Component with a particular observable placement and operational
+envelope. Conversely, a physically local Component may cross a stronger authority or failure
+boundary than a remote Component. Selection therefore operates over attributable, scoped
+characteristics rather than inferring behaviour from location labels.
+
+Brontide Base does not define this environment. The anticipated Architectural Extensions are
+intended, in substantial part, to make such environments possible.
+
+Semantic interoperability is another major direction.
+
+Applications, devices, and larger software systems currently bundle large amounts of meaning
+inside implementation-specific interfaces. A mouse exposes configuration through a vendor
+application. A headset exposes semantic device state through proprietary software. A corporate
+system may expose an operation such as beginning an audit only through undocumented combinations
+of API endpoints, payload conventions, workflow state, and organisational knowledge.
+
+Standard Brontide-native Domain Vocabularies may allow systems to expose more of that semantic
+structure directly.
+
+Because occurrences can compose the standard Interaction fragment, an implementation may remain
+structurally capable of attribution, routing, preservation, and discovery even when it does not
+understand a domain concept. Installing or discovering a vocabulary, Profile, or adapter may add semantic
+understanding without changing the underlying authority relationship. Understanding a concept
+does not itself grant authority to execute its Operation.
+
+A mouse exposing standard configuration Operations should not require a vendor-specific
+configuration application for routine settings. A headset exposing standard Audio, Input, and
+Sensor concepts should remain fully usable without installing a manufacturer's private software
+environment. A system exposing `Audit.Start` should be able to make the action, its authority
+boundary, and relevant metadata visible as semantic concepts rather than requiring every
+participant to infer them from transport details.
+
+These directions are not accidental uses of Brontide.
+They are part of the reason for defining Brontide.
+
+### 32.1 Applications and systems as reciprocal compositions
+
+Traditional operating systems provide coarse resources while applications repeatedly build their
+own event buses, databases, identity systems, plugin mechanisms, schedulers, browser runtimes,
+observability, and distributed coordination. Brontide creates the possibility of exposing these as
+ordinary, replaceable system capabilities without freezing one implementation into the operating
+system architecture.
+
+The environment would not say *this is the database* or *this is the browser*. It would expose
+available Corpus, Store, State, Persistence, Transaction, Web, Presentation, Workspace, Identity,
+or other contracts together with capability-derived Attributes. One composition may select an in-memory Store,
+another a local embedded provider, another a remote distributed provider, and another an
+application-owned implementation that exposes only selected Operations back to the environment.
+
+A browser may become a composition rather than a sovereign application boundary: document and
+network processing, script execution, rendering, security policy, profile and credential provision,
+history, and presentation can be separate Components. A documentation viewer, IDE preview, game
+launcher, and conventional browser may share an engine without sharing presentation or policy. A
+single presentation may select different compatible engines for different workloads, subject to
+the explicit substitution rules of Â§18.1.
+
+Identity and authorisation support may be composed similarly. An application may request that an
+Actor be established or authorised for a particular boundary while constraining acceptable
+providers: local identity, enterprise identity, a passkey provider, anonymous session,
+application-owned login, or delegated remote identity. The Capability evaluated for the resulting
+Execution remains explicit; using an identity provider must not become ambient authority.
+
+The reciprocity matters. Applications do not merely consume the environment. They contribute
+Operations, Events, Shapes, and Components back into it. The boundary between "system" and
+"application" becomes a choice of composition, policy, authority, and opacity rather than a fixed
+architectural caste. Section 18.3 preserves the equally important opposite choice: an application
+may remain a box.
+
+### 32.2 Developer trust is an architectural requirement
+
+Brontide asks developers to accept composition across more boundaries than conventional application
+platforms. That trust must be earned through observable constraints.
+
+**Do not recreate transparent distributed objects.**
+Shared Operation semantics may allow selection across placement boundaries, but latency, partial
+failure, serialisation, retries, and failure domains remain real. Tooling and traces must expose
+them. "It might be remote" is not an adequate failure model.
+
+**Do not let optionality become nominal interoperability.**
+If every provider assigns different meanings to identity, failure, cancellation, time, streams, or
+transactions, the ecosystem becomes a collection of bespoke adapters. Shared Shapes, Profiles,
+Domain Vocabularies, graded interoperability claims, and explicit semantic Adapter Components are
+the guardrails. Structural coincidence is not compatibility.
+
+**Do not build a god-platform by architectural pressure.**
+A service is not meaningfully optional if only the system Event service can be debugged, only the
+system identity provider is recognised by tooling, or only the system store participates in
+recovery. System participation may unlock richer common behaviour, but private mechanisms must
+remain legitimate, their boundaries must remain honestly opaque, and provider-specific advantages
+must be declared as such. Migration into and out of system-native services should be testable where
+portable contracts are claimed.
+
+**Make executions explainable.**
+Composition increases the number of plausible failure sites: invalid Shape, Enrichment, provider
+selection, authority rejection, remote placement, retry, accelerator lowering, Event replay,
+persistence, or stale presentation. An Brontide environment should provide a structured explanation
+of what happened, including the submitted Execution, applied Enrichments, selected implementation,
+Binding Plan, crossed boundaries, emitted occurrences, Outcome, timing, and causality. Logs may
+support this explanation; a search through unrelated logs is not the explanation model.
+
+**Make dependency gravity explicit.**
+Useful platforms create gravity. A Component that requires generic Event semantics, benefits from
+durable Event Distribution, or depends on a provider-specific recovery guarantee must state those
+different dependency strengths. Developers should be able to identify which interoperability they
+gain and which portability they give up.
+
+**Do not promise universal acceleration.**
+Ordinary code may allocate, mutate, throw, recurse, perform I/O, call arbitrary libraries, or depend
+on nondeterminism. Brontide should accelerate implementations that declare and satisfy the relevant
+execution properties, not market every Operation as automatically GPU-compatible. Profiling,
+eligibility, compilation failure, fallback, and representation costs must remain visible.
+
+**Let the model unfold progressively.**
+The first useful experience should be: create a module, expose an Operation, bind another module,
+execute it, and inspect what happened. Remote execution, persistence, security, replay, and
+acceleration should become discoverable layers rather than vocabulary required before the first
+result.
+
+The purpose of keeping Base small is not to minimise the ambition of the architecture.
+It is to avoid permanently embedding the shape of today's largest systems into the foundation of
+tomorrow's.
+
+## 33. Open Questions
+
+Architecture 0.7 preserves the current Base, composition, Profile, and implementation directions;
+Â§35 records the changes from Architecture 0.6, and Brontide-Architecture-Change-History.md retains
+the historical diffs from Architectures 0.2 through 0.5. The following remain genuinely open.
+
+**Revocation beyond mortality.**
+Liveness-scoped authority (Â§10.3) covers the common cases cheaply. Immediate revocation of
+long-lived authority, the precise semantics of the revocation horizon, and the fate of in-flight
+Operations and Flows when authority dies mid-execution remain unresolved. Brontide should
+distinguish authority withdrawal from cancellation of an already accepted activity. Long-running
+Operations likely need declared safe checkpoints, commit points, compensation Operations, and a
+maximum revocation horizon. The Delegation derivation graph (Â§11) is the structure authority
+withdrawal will prune; `Lifecycle` and `Flow` must define what existing work then does.
+
+**Cross-domain interaction.**
+Base authority semantics are defined within a domain (Â§8). Mutual identification, attestation,
+the cryptographic representation of Capabilities and origin claims, and defence against a
+hostile domain vouching falsely are the substance of the `Identity` and `Distributed`
+extensions, and the largest body of unfinished work in the Brontide direction. Device attachment no
+longer waits for this work: Â§24 handles attachment entirely within the host domain, with attested
+federation as a later upgrade.
+
+**Channel.**
+The invocation principle (Â§13.6) requires that authority travel with requests; the mechanism â€”
+request/response representation, error propagation across boundaries, delivery semantics â€”
+awaits the `Channel` extension. Until it exists, the principle constrains implementations
+without fully equipping them.
+
+**Portable Component Binding and mapping.**
+Section 18.1 proposes the Brontide Portable Binding and a scoped Binding Plan as the general-purpose
+seam. Its exact framing, schema-guided CBOR subset, scalar and field mappings, numeric dictionary,
+resource-reference representation, ownership and synchronisation rules, bounds, negotiation,
+fallback behaviour, and conformance surface remain open. Reference/Minimal interchange must compare an
+independently implemented portable path with direct-call, pooled-buffer, and process-isolated
+realisations. The resulting evidence must distinguish protocol cost from implementation cost.
+
+Base defines compatibility but contains no mapping engine. Experiments must determine the minimum
+host mapping responsibilities and when a mapper should be exposed as a Component. They must keep
+representation mapping within one Shape contract separate from semantic adaptation between
+different Shapes or Operations; the latter must not disappear into trusted host machinery.
+
+**Flow conformance.**
+Section 19.1 defines Flow's architectural placement and candidate recovery contract, not a
+ratified protocol. Cursor identity, ordering scopes, acknowledgement modes, replay retention,
+gap repair, reconnection, multi-source sequencing, backpressure, and revocation interaction need
+precise semantics. Flow must remain efficient for video and input while remaining recoverable for
+files, bulk records, and durable Event streams.
+
+**Event Distribution defaults.**
+The mediator model, independently authorised subscriptions, and provenance preservation are
+clear. Default delivery guarantees, group semantics, filter expressiveness, loop prevention,
+durable replay, and failure behaviour for multi-source fan-in remain to be specified. A received
+Event must never become an implicit grant for reactive authority.
+
+**Interaction composition representation.**
+The architecture defines semantic fields, not a wire encoding. The minimum identity rules,
+protected fragment data, and compact reuse of shared context need stress-testing.
+`emitted-at` is signed integer milliseconds in a named time domain; the standard time-domain
+registry and richer uncertainty semantics remain open.
+
+**Shape catalogue and composition.**
+Section 16 defines independent input and output Shapes, additive same-name evolution, arbitrary
+fragments as projections, named and versioned Declared Fragments, open-record composition, and
+canonical projection. The exact standard scalar catalogue, recursive Shapes, evolution of choices,
+canonicalisation for signing and hashing, host-version requirements for fragments, cross-fragment
+invariants, descriptor discovery, and representation negotiation remain to be specified. Brontide Reference Stack
+and Brontide Minimal Stack must demonstrate that unknown Declared Fragments can be ignored for a canonical
+projection without losing them in components claiming transparent forwarding.
+
+**Enrichment, ambient scope, and propagation.**
+Section 16.6 records a non-normative design direction for adding absent fragments from already
+available information and carrying values without making intermediate modules semantic consumers.
+Targeted Enrichment has a comparatively clear boundary. Global storage is not prohibited, but
+storage, discoverability, authority, scoped availability, and declared consumption must remain
+distinct. Ambient Enrichment, propagation across dynamic direct calls, conflict resolution,
+provenance, expiry, confidentiality, and the carrier scope that reconciles a module heap with
+observable execution graphs remain unresolved. Enrichment must not become hidden Capability
+invocation, undeclared global consumption, or authority amplification. Whether composition needs a
+separate Capability-binding or authority-provisioning mechanism also remains open.
+
+**Is Actor sufficiently universal?**
+Actor must be stress-tested against embedded systems, human participation, autonomous systems,
+devices, composite systems, and conventional software without becoming so broad that it loses
+architectural meaning.
+
+**Genesis and resource creation.**
+Genesis roots authority, but dynamic systems routinely create new resources and issue authority
+over them as the result of authorised Operations. The future `Resource` extension must distinguish
+domain-level Genesis from attributable issuance by an Actor already authorised to create or
+administer a resource, without turning Genesis into an unconstrained minting escape hatch.
+
+**Resource, State, and Transaction.**
+The candidate `Resource` extension concerns identity, lifetime, and authority over created things;
+`State` concerns observable condition, revisions, and authorised transitions; `Transaction`
+concerns declared commit and atomicity relationships. Their exact boundaries, composition, and
+minimal contracts remain open. None may assume a database, filesystem, persistence mechanism,
+universal rollback, or one data model merely because those are important consumers. Their
+relationship to Dataset identity, Store retention, Corpus migration, and transactions spanning
+several Corpus Store roles must be made explicit without collapsing the terms.
+
+**Corpus, Dataset, and integration terminology.**
+Section 18.2 provisionally adopts Corpus for the semantic definition and Dataset for a concrete
+body of information. Corpus is intentionally near-stable but remains open to a clearly superior
+non-composite term before terminology freeze; Dataset must be tested against small configuration
+records as well as large collections. The App-Level â†’ Opaque Corpus â†’ Structured Corpus ladder is
+useful but categorically asymmetric because App-Level information is not a Corpus. The final
+specification must either retain that caveat or find terminology that removes the ambiguity without
+pretending private application information is system-integrated.
+
+Corpus-version compatibility, irreversible migration, partial restoration, semantic identity
+across import/export, identity-bearing Store roles, Dataset splitting, Dataset custody, and
+selection of default managers require Reference/Minimal evidence. The mostly closed Form list â€” Opaque, Record, Collection, Map, Graph,
+Journal, and Stream â€” must be stress-tested against documents, media projects, encrypted vaults,
+game saves, time series, directory-like structures, event-sourced systems, and live telemetry.
+
+**Store roles, Stores, Store Relationships, and Routers.**
+The base direction binds each Corpus Store role of a Dataset to exactly one logical Store, permits
+several roles to share a Store, and makes independently governed placement visible as distinct
+Stores. The exact atomicity and failure semantics when one Dataset uses several roles remain open.
+The absence behaviours `UseRole`, `Discard`, `Recompute`, and `DisableFeature` need conformance
+tests, especially across migration and rollback.
+
+Mirror and Backup are candidate static Store Relationships; their consistency, recovery point,
+retention, deletion propagation, authority, and failure reporting are not yet ratified. Router owns
+policy-driven fallback, tiering, sharding, jurisdictional selection, and similar decisions while
+presenting a Store-compatible contract. Experiments must establish how much Router topology is
+visible, which guarantees describe the logical endpoint rather than its current backing Store, and
+how tools explain migrations, copies, outages, and fallback without exposing confidential policy.
+
+**Attributes and recursive Definition Constraints.**
+Section 18.1 replaces free-floating selection labels with values obtained through exact Brontide
+Operations, Shapes, and ordinary Capability presentation. The portable description Operations,
+Shape paths, comparison vocabulary, units, reference perspective, freshness, provenance, and
+attestation model remain open. `AllOf`, `AnyOf`, and `Not` are recursively composable over atomic
+Constraints; Brontide Reference Stack and Brontide Minimal Stack must prove deterministic evaluation and explanation of nested branch
+matches. The relationship between this candidate expression language and the Base Capability
+Constraint algebra must remain explicit so provider selection never grants authority and a future
+operator cannot widen delegated authority accidentally.
+
+Dynamic Attributes are permitted but deliberately do not trigger automatic rebinding. The final
+Composition and Router specifications must define when an observation becomes a declared profile,
+what policy reacts to changes, and how oscillation, stale values, confidentiality, and unavailable
+Attribute providers are handled.
+
+**Parameters and definition language.**
+Composition Parameters may shape resolved architecture; Activation Parameters may fill declared
+resource slots but may not introduce new architectural structure. The exact boundary for
+credentials, Actor identities, Store selection, optional features, and provider choice needs
+testing. Defaults and context-derived values must remain reproducible and attributable.
+
+Parameter scope, explicit forwarding, derived values, parameterised Corpora, parameters containing
+other parameterised definitions, cycle detection, partial application, and whether comments or
+annotations carry any machine semantics remain open. Architecture 0.7 does not admit a hidden
+ambient configuration system under the Parameter name.
+
+**Strict notation and canonical member identity.**
+Section 22.4 distinguishes Strict canonical declarations from NonStrict deterministic shorthand
+without changing semantics. The candidate typed member identity
+`Authority:Definition#MemberKind.MemberName`, the member separator glyph, the member-kind
+catalogue, normalisation record, escaping, and interaction with declaration prefix blocks
+require ratification.
+Tooling must prove that NonStrict documents expand uniquely and that signed or machine-actionable
+artifacts never depend on contextual inference.
+
+**Presentation and Workspace.**
+`Presentation` and `Workspace` are intended to be shared, application-facing facilities rather
+than private machinery of a shell, filesystem navigator, or Web implementation. The boundary
+between surfaces and interaction on one side, and views, navigation contexts, tabs, panes,
+history, bookmarks, and provider-supplied hierarchies on the other, requires a dedicated
+specification. Saved navigation must identify a context without silently preserving authority.
+
+**Work-in-progress Profiles.**
+Section 20.1 records Interactive Application, Web, and Database as Profile directions without
+ratifying their dependency sets. The Database Profile is specifically an architectural
+acceptance test: provider-specific calls must remain possible while Brontide supplies sufficient
+generic authority, Base Shape, Flow, State, Resource, Transaction, and Outcome machinery to integrate
+the provider as a first-class participant.
+
+**Optional system services and boxed applications.**
+Section 18.3 permits deep application/system composition and an opaque boxed application as equally
+valid choices. The portable discovery, preference, dependency-strength, migration, and fallback
+contracts for system-provided Event, Corpus, Store, State, Identity, Presentation, Web, scheduling,
+and accelerator facilities remain open. Tooling must show richer support for participating Components without
+quietly treating private mechanisms as defective or making one provider mandatory in practice.
+
+**Execution explanation and debugging.**
+Interaction, Origin, Enrichment, Binding Plans, Events, and Outcomes provide pieces of a structured
+explanation model, but Brontide does not yet define the minimum trace that answers what happened. The
+identity and retention of traces, confidentiality of Shape values, representation of provider
+selection and crossed boundaries, causal linkage across domains, sampling, redaction, and behaviour
+for opaque Components require a dedicated specification. Debuggability must not require every
+private application mechanism to become Brontide-visible.
+
+**Optimisation and accelerator eligibility.**
+Purity, determinism, replay safety, batchability, vectorisability, relocatability, and accelerator
+compatibility are candidate execution properties, not consequences of Operation conformance. Their
+portable definitions, attestation, compiler responsibility, fallback rules, numerical equivalence,
+resource and copy accounting, profiling semantics, and interaction with authority and failure remain
+open. Brontide Reference Stack and Brontide Minimal Stack should demonstrate the same semantic transformation through CPU and GPU paths
+without hiding their operational differences or requiring an application redesign.
+
+**Composition and hot swapping.**
+Section 18.1 defines provisional scale-independent Component terminology and distinguishes static
+binding, runtime binding, replacement, interchangeability, and hot-swappability. The Component
+descriptor, recursive composition rules, Binding Plan representation, Hot-swap Slot and Class
+representation, dependency negotiation, attachment and replacement occurrences, state handoff,
+failure atomicity, rollback, interruption guarantees, and treatment of in-progress work remain
+open. Reference/Minimal interchange, device replacement, service failover, and data-centre-scale
+substitution should test whether one contract model survives all these cases without making a
+package loader, mapping engine, or deployment orchestrator part of Brontide Base.
+
+The same section treats topology, authority-domain boundaries, latency, cost, capacity,
+availability, and related values as capability-derived Attributes rather than reducing placement to
+`local` or `remote`. Their source Operations, portable Shapes and units, provenance, attestation,
+freshness, measurement semantics, aggregation, privacy, and policy language remain open. A
+Component descriptor's self-claim must not silently become a verified placement or service-level
+guarantee.
+
+**Brontide Reference Stack and Brontide Minimal Stack interchange.**
+Passing the same conformance suite is necessary but not sufficient evidence of component
+interchangeability. The component boundary, binding metadata, Shape negotiation, host services,
+and minimum adapter responsibilities must be discovered by exchanging real Brontide Reference Stack and Brontide Minimal Stack
+components without allowing either implementation's private object model to become an Brontide
+contract.
+
+**Conformance inside composite Actors.**
+When a platform exposes one Actor at its boundary (Â§25) while containing thousands of internal
+services, what does conformance require of the interior? "Where Brontide applies" needs a
+definition with edges.
+
+**Authored namespace verification.**
+Authority Paths are structurally hierarchical (Â§22), but syntax is not proof. Registry,
+signature, delegated namespace authority, collision handling, display-name safety, and recovery
+from compromised authoring keys require a governance and Identity design.
+
+**Where does an Architectural Extension end and a Domain Vocabulary begin?**
+Some concepts are clearly architectural; others clearly domain-specific. The boundary should be
+defined carefully enough to prevent Brontide from absorbing every semantic standard built on top of
+it.
+
+## 34. Summary
+
+Brontide is an open specification for actor-centric, capability-based computing and
+interoperability.
+
+Its core principle is:
+
+> *Actors execute Operations by presenting explicit and bounded Capabilities.*
+
+An Actor is defined by participation in the Brontide authority model rather than by implementation
+form or scale. A process, firmware subsystem, peripheral, human, autonomous system, or composite
+organisational system may participate through Actors. Brontide does not claim these participants are
+equivalent; it provides a common architectural model through which they may cooperate.
+
+Operation is a stable named contract for a requested effect. It declares one input Shape and one
+independent output Shape. Execution is one concrete attempt to execute an Operation by presenting
+a Capability at the target authority boundary. It carries the input value and occurrence-specific
+context; it may be rejected before effect begins, accepted and fail, or complete successfully.
+Replaying an Execution may repeat an effect.
+
+Capability is a target-recognised explicit grant. It authorises named Operations and therefore
+binds transitively to those Operations' Shapes and required Declared Fragments. Recognition means
+the target can interpret and evaluate that authority; it does not promise holder understanding,
+current availability, or success. Unrecognised semantics and Constraints fail closed, and extra
+Shape structure can never broaden authority.
+
+Interaction is a named and versioned reusable Declared Fragment, not an occurrence, superclass, or
+Base term. Execution and Event include it, Outcome composes it through Event, and extension
+occurrences may include it to compose actor attribution, optional occurrence identity,
+correlation, causation, origin, and temporal placement.
+Interaction provides no semantic name, target, value, authority, result, effect, truth, delivery,
+ordering, replay, persistence, or lifecycle semantics.
+
+Shape is the named, versioned structural contract for values carried at Brontide boundaries. Every
+Operation has one complete input Shape and one separate, independently evolving output Shape.
+Shape is always an abstract contract, never the value, object, memory, or bytes. An Execution
+carries an input value conforming to its Operation's input Shape. A successful Outcome may carry a
+`result` value conforming to the output Shape; rejection and failure diagnostics are `details`
+with their own Shape. Shape identity is semantic rather than implementation-local. Versions evolve
+additively, and breaking change requires a new canonical name.
+
+A Shape fragment is any projection of a Shape. Portable fragment contracts are named, versioned,
+and specified as Declared Fragments. An open Shape may accept compatible authored fragments, and
+any Shape may explicitly include reusable Declared Fragments such as `Interaction 1`. Explicitly
+including the same reusable fragment does not make otherwise unrelated Shapes compatible. A
+component accepting an open canonical Shape processes its canonical projection and may ignore
+unknown optional fragments without claiming their semantics; a component requiring a fragment
+rejects its absence. Shapes and fragments grant no authority.
+
+Event is an immutable, attributable assertion that something happened. Replaying an Event repeats
+the assertion, and receiving one grants no authority to react. Outcome is a specialised Event that
+terminates one identifiable Execution, activity, or extension-defined occurrence and may carry a
+result. Optional `emitted-at` is an attributable Temporal Mark, not authority or global causality.
+
+Authority is represented through Capabilities, within authority domains whose implementations
+are responsible for preserving Brontide semantics. Authority originates at genesis â€” primordial
+grants and enumerable, attributable Genesis occurrences â€” and thereafter only narrows: Delegation
+derives authority by adding Constraints, never by rewriting, so that delegation cannot amplify
+by construction. Constraints are evaluated when an Execution is presented and fail closed.
+Authority defaults to mortal where domains are dynamic.
+
+Operations are scale-agnostic: a register write and an audit initiation share one authority
+model, and a large Operation keeps its semantic identity at the boundary where it is executed
+regardless of the machinery beneath. When one Actor acts on another's request, a Capability
+attributable to the request â€” or a Capability the responder deliberately presents as its own â€”
+must be evaluated and recorded, never silently replaced by ambient authority.
+
+Flow is a first-party Architectural Extension, not a Base form. A Flow is a continuing
+relationship carrying a sequence of Executions, Events, Outcomes, or typed Items under shared
+authority and delivery context.
+It defines positions, acknowledgement, backpressure, recovery, replay, and termination only as
+declared by its contract. Occurrences may compose Interaction for common attribution and context.
+Base-only Actors may preserve or route structurally understood occurrences but do not thereby
+understand Flow or qualify as endpoints.
+
+Event is Base ontology; Event Distribution is infrastructure. The extension defines publishing,
+observation, subscriptions, mediated fan-out and fan-in, filtering, groups, persistence, and
+replay. Subscriptions use Flows while preserving the original emitter, origin, and provenance of
+every Event.
+
+Provenance answers two questions: the Delegation chain records *by what authority*; origin
+classes record *what kind of cause* â€” asserted only under granted authority, unverified by
+default, never surviving Delegation. Interacting with any bounded-capacity participant â€” human
+attention or agent compute â€” may itself require an admission Capability.
+
+Brontide Base is intentionally small and must satisfy the Embedded Test: a microcontroller without
+an operating system, networking, virtual memory, or dynamic allocation implements every Base
+requirement with static structure. Base has eight terms: Actor, Capability, Shape, Delegation,
+Operation, Execution, Event, and Outcome. Shape satisfies the Embedded Test through compile-time
+signatures and static tables while remaining necessary for agreement between independent
+implementations. Frequently deployed concepts such as Transaction remain extensions when they are
+not necessary to that minimum. A future convenience Profile may collect common extensions for
+general-purpose systems without acquiring privileged status or changing Base.
+
+Brontide grows through Architectural Extensions, Profiles, and Domain Vocabularies. Profiles declare
+direct dependencies in `uses:` blocks and may use other Profiles; conformance expands through the
+transitive dependency closure without repeating indirect requirements. Standard names use
+unqualified Concept Paths, which are reserved for ratified Brontide concepts. In authored names, `:`
+separates a hierarchical Authority Path from its Concept Path, as in
+`Logitech.MX:Input.Scroll.SmartShift`. Names are structurally legible and semantically opaque.
+Declaration prefix blocks reduce repetition in documents but expand to canonical names before use.
+Ratification freezes a canonical name's semantics forever; additive availability remains governed
+by Profiles and discovery.
+
+Brontide documents declare Strict or NonStrict notation. Strict definitions use expanded canonical
+names and explicit version and binding fields; NonStrict documents may use deterministic shorthand
+that normalises to the same model. Authorship retains the single `AuthorityPath:ConceptPath`
+separator, typed members use a distinct member separator (Â§22.4), and versions remain separate
+claims rather than becoming part of a canonical name. Architecture 0.7 itself uses NonStrict explanatory notation.
+
+Beyond Base, a Component is a scale-independent unit of composition declaring the Brontide contracts
+it provides and requires. Components and Actors are distinct: Components define composition
+boundaries; Actors participate in authority. Bindings may be static or runtime-established. A
+Hot-swap Host Component exposes a Hot-swap Slot for a declared Hot-swap Class; a Hot-swappable
+Component conforms to that Class and its replacement obligations. Their joint contract must state
+compatibility, Actor identity, authority, state, in-progress work, interruption, and rollback
+semantics rather than treating live replacement as an automatic consequence of shared names.
+Remote services are not a separate Component kind: `local` and `remote` are projections of richer,
+capability-derived Attributes such as topology, authority domain, latency, cost, capacity,
+availability, and failure domain. These Attributes guide selection among compatible
+Components without changing their semantic contract identities. Implementations may still present
+the useful `local`/`remote` shorthand in user interfaces and summaries, provided it remains a
+declared, lossy projection rather than a source of unstated guarantees.
+
+The proposed Brontide Portable Binding supplies a default general-purpose seam without defining one
+implementation model. A scoped Binding Plan fixes contracts, authority, representation, memory and
+resource handling, synchronisation, delivery, and lifecycle before the hot path. Its portable
+binary direction uses compact framing and schema-guided CBOR for ordinary inline values, while
+referenced shaped resources permit pooled, shared, device-local, registered, or otherwise
+specialised data paths within the same seam. Static and native bindings may compile the plan into
+direct calls or specialised machinery. Mapping between private representations of one Shape belongs
+to binding or host machinery; semantic adaptation between different contracts remains an explicit
+Component-level relationship rather than a Base mapping service.
+
+Composition may expose Shape-described Parameters. Composition Parameters shape the resolved
+architecture; Activation Parameters fill resource slots already declared by that architecture and
+cannot introduce new structure. Attribute requirements are not ambient labels: they identify the
+Operation, vocabulary claim, result Shape, and result path that provide a value under ordinary
+Capability evaluation. Definition Constraints compare those values or validate Parameters through
+Shape-appropriate atomic relations and recursively composable `AllOf`, `AnyOf`, and `Not` groups.
+They select and validate without granting authority; an unrecognised atom fails the whole
+expression closed; and their effective values and matching branches should remain explainable.
+
+Persistent information is provisionally modelled through Corpus, Dataset, Store roles, Stores, and
+Routers. A Corpus is an authored, versioned semantic definition independent of the Components that
+operate on it. A Dataset is one concrete body conforming to a Corpus. App-Level information remains
+outside the model for compatibility; an Opaque Corpus gives Brontide lifecycle understanding without
+content interpretation; a Structured Corpus uses Record, Collection, Map, Graph, Journal, or Stream
+Form with recursively composed Shapes. Component-Corpus roles describe compatibility, not
+authority. Removing a Component does not imply removing its Datasets.
+
+Each Corpus defines required or optional Store roles and explicit absence behaviour. Every role of
+a Dataset binds to one logical Store endpoint; several roles may share one Store, and a Router may
+present the Store contract while applying explicit policy across backing Stores. Simple Mirror and
+Backup relationships remain declarative Store topology, while conditional fallback, tiering,
+sharding, and related dynamic decisions belong to Routers. Store requirements name exact Operations
+and constrain capability-derived Attributes rather than attaching undefined `local`, `fast`, or
+`durable` labels.
+
+A general-purpose environment may offer optional system-native Components for Events, persistence,
+Corpus and Store management, State, identity, Presentation, Workspace, Web, scheduling,
+observability, compilation, and acceleration. Applications may adopt these facilities incrementally
+and may contribute their own Operations back to the environment. They may also remain boxed, with
+private authentication, database, events, rendering, and internal composition. Brontide conformance
+applies to the contracts they claim, not to an obligation to expose their interior.
+
+Simple participation and sophisticated execution are compatible when stronger properties remain
+explicit. A small module may expose an ordinary Operation while the surrounding composition adds
+history, security, selection, batching, remote placement, or accelerator execution. Purity,
+determinism, replay safety, batchability, relocatability, and GPU compatibility must be declared and
+tested; semantic portability does not erase latency, copies, representation, authority, or failure
+boundaries.
+
+Developer trust depends on operational legibility. A conforming environment should make provider
+selection, Enrichment, Binding Plans, crossed boundaries, retries, emitted occurrences, Outcomes,
+timing, and causality explainable without claiming visibility into opaque private Components. System
+services should reward participation with interoperability and inspection rather than make private
+mechanisms illegitimate through tooling pressure.
+
+Unspecified behaviour is open by presumption; the guaranteed surface is the normative text; the
+attested surface is what conformance suites test.
+
+Brontide does not define an operating system.
+It defines a common computational architecture upon which firmware, runtimes, devices,
+distributed environments, organisational systems, and operating systems may build.
+
+Brontide Reference Stack is the first practical implementation and showcase of Brontide. Brontide Minimal Stack is the planned second,
+independent full-stack implementation and composability test. Interchange of components between
+their stacks is intended to reveal where an apparent Brontide contract is actually a private
+implementation convention.
+
+The decisive application demonstration is a staged image-processing workspace that begins as a
+small local CPU composition, adopts system-native facilities incrementally, visibly substitutes
+Brontide Reference Stack and Brontide Minimal Stack Components, and moves an explicitly eligible transformation to an accelerator
+without changing its semantic Operation. Its purpose is evidence, not spectacle.
+
+Brontide Reference Stack is not Brontide.
+Brontide Minimal Stack is not Brontide.
+
+## 35. Changes from 0.6
+
+This section records the changes introduced since Architecture 0.6. The historical diffs from
+Architectures 0.2 through 0.5 are retained in `Brontide-Architecture-Change-History.md`.
+
+The 0.7 revision is in progress and governed by `Brontide-Architecture-0.7-Change-Plan.md`.
+Changes applied so far:
+
+- **Â§16.6, Â§18.1, and Â§18.2 â€” Work-in-progress material extracted into companion design
+  notes.** Enrichment and value propagation, Composition and Components, and
+  Corpus/Dataset/Store/Router now live in `Brontide-Design-Note-Enrichment-0.1.md`,
+  `Brontide-Design-Note-Composition-0.1.md`, and
+  `Brontide-Design-Note-Persistent-Information-0.1.md`. The architecture document retains each
+  section's settled definitions and invariants with a pointer; section numbering is
+  unchanged.
+- **Â§7.1 â€” Term status registry added.** The status of every named concept is recorded once,
+  replacing scattered per-section status disclaimers.
+- **Â§6.9, Â§18.2, and Â§26.1 â€” Mediation direction surfaced.** The Composition design note
+  records Mediation as a declared relationship with Selection, Distribution, and Arbitration
+  species, enforced by authority topology. The Â§6.9 mediating Actor and the Â§26.1 guardian
+  are named Arbitration instances; the Router is named the storage instantiation of
+  Selection.
+- **Router endpoint guarantees stated.** The Attributes of a logical Store endpoint presented
+  by a Router are the Router's own declared guarantees, not those of any current backing
+  Store (recorded in the Persistent Information design note and the Â§18.2 summary).
+- **Historical changelogs relocated.** The per-version diffs formerly at Â§35â€“Â§38 of
+  Architecture 0.6 now live in `Brontide-Architecture-Change-History.md`; this document carries
+  only its own diff (Â§35).
+- **Â§10.1, Â§18.1, Â§23, and Â§29.2 â€” Composite Constraint evaluation defined.** An unrecognised
+  atomic Constraint anywhere within a composite expression makes the entire expression
+  unevaluatable; unevaluatable never resolves to a truth value. In authority context this
+  causes denial with no partial credit for recognised branches; in selection context the
+  candidate is excluded and the exclusion recorded. A conformance example covers `Not` and
+  `AnyOf` with unrecognised atoms.
+- **Â§6.10, Â§22.4, Â§33, and Â§34 â€” Typed member identities use a distinct member separator.**
+  The candidate grammar is `[AuthorityPath ":"] ConceptPath ["#" MemberKind "." MemberName]`,
+  keeping every dot segment semantically opaque and every canonical string unambiguous.
+  Dot-segment member kinds and reserved member-kind words are both rejected and recorded.
+- **Â§18.1 and the Composition design note â€” Attribute-constrained bindings resolve once.**
+  Resolution evaluates Definition Constraints against Attribute values obtained at that
+  moment and records effective values and provenance. A later Attribute change never
+  invalidates, rebinds, or migrates an active binding; reaction belongs to Routers and future
+  lifecycle policy.
+- **Â§18.2, Â§21.1, and the Persistent Information design note â€” Dataset authority, identity,
+  and concurrency rectified.** Capability designation of Datasets follows Â§10.2; Dataset
+  creation is an instance of the Genesis-versus-issuance question (Â§12, Â§33); Dataset
+  identity is a property of the Dataset record, with Corpus-declared identity-bearing Store
+  roles; and every Corpus MUST declare concurrent-access semantics.
+- **Â§8 â€” Authority-machinery placement assembled.** One passage states where minting, custody,
+  and evaluation live across the firmware, hosted or native runtime, and cross-domain homes.
+
+- **C7 â€” Editorial pass applied.** Per-section "not a ninth Base term" disclaimers are reduced
+  to each concept's defining statement plus the Â§7.1 registry; the Â§10.3 mortal-by-default
+  stance now states its SHOULD concretely; stale present-tense "Architecture 0.3"
+  self-references are made timeless; the front-matter changes-from reference and the
+  former-Â§35â€“Â§38 note are corrected; all section cross-references are verified; fail-closed
+  statements are confirmed to cite Â§10.1 at every normative site.
+
+All planned changes (C1â€“C8) have been applied.
+
+Architecture 0.7 makes no change to the eight Brontide Base terms.
+
+### 35.1 Direction for 0.8
+
+Architecture 0.7 was the consolidation release. 0.8 is planned as the evidence release: Brontide Reference Stack
+and Brontide Minimal Stack already interconnect at a basic level, and 0.8 closes the three gaps that prevent that
+interchange from producing architectural evidence.
+
+1. **Portable Component Binding and the Shape floor (Â§16, Â§18.1).** The standard scalar
+   catalogue, canonical projection, and the schema-guided Portable Binding are the prerequisites
+   for exchanging a real component between Brontide Reference Stack and Brontide.Minimal. Every Â§33 question that awaits
+   Reference/Minimal evidence â€” Corpus migration, hot-swap, Attributes â€” queues behind this seam.
+2. **Channel (Â§13.6).** The invocation principle currently constrains implementations without
+   equipping them. Cross-process interchange forces request/response representation, error
+   propagation, and delivery semantics into existence regardless; defining `Channel` alongside
+   the experiment prevents one implementation's ad hoc answer from becoming the architecture by
+   accident (Â§6.8).
+3. **Flow conformance (Â§19.1).** The first ratified extension contract. Event Distribution
+   depends on it, the revocation question terminates in it (what in-flight Flows do when
+   authority dies, Â§10.3, Â§33), and ratifying it exercises the extension machinery itself â€”
+   versioning, Profiles, conformance shape â€” on a real subject for the first time.
+
+Explicit non-goals for 0.8: the `Identity` and `Distributed` extensions (cross-domain
+representation waits for proven intra-domain interchange), `Presentation` and `Workspace`, and
+accelerator eligibility. Revocation beyond mortality advances only as far as Flow ratification
+forces it; the declaration requirements of Â§10.3 already fence the rest.

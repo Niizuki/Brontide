@@ -6,7 +6,7 @@
 **Extracted from:** Brontide Architecture 0.6, §16.6; the architecture document retains a
 summary section under the same number.
 **Scope:** Records a design direction. Nothing in this note is a normative Brontide
-mechanism, adds a Brontide Base term, or defines conformance requirements.
+mechanism, adds an Brontide Base term, or defines conformance requirements.
 
 References of the form §N refer to the Brontide Architecture specification.
 
@@ -148,7 +148,7 @@ module holding suitable authority may directly execute an Operation exposed by a
 choice may be dynamic, recursive, distributed, or dependent on runtime information.
 
 Graphs remain useful and sometimes precise, but they describe particular views rather than the
-universal form of a Brontide system. A graph may represent one concrete Execution trace, a deployment
+universal form of an Brontide system. A graph may represent one concrete Execution trace, a deployment
 composition, a Flow, a workflow, a dependency view, or a diagnostic representation. A declared
 composition may establish stable edges for one bounded purpose, while the surrounding system still
 has no single global topology. The graph of causal relationships produced by actual Executions is

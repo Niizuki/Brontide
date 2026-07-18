@@ -178,7 +178,7 @@ historical diff between Architectures 0.2 and 0.3.
   accepted as implicit global context.
 
 - **§16.6 — Global storage separated from ambient availability.** A globally reachable store is
-  permitted as a Brontide participant or future Resource and State facility, but reading it remains
+  permitted as an Brontide participant or future Resource and State facility, but reading it remains
   an Operation with explicit authority, failure, latency, consistency, and Outcome semantics. The
   draft distinguishes storage, discoverability, authority, scoped availability, and declared
   consumption. An obtained value may feed an Enrichment without making store access implicit.
