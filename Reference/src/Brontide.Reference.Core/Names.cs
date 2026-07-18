@@ -13,7 +13,7 @@ public readonly record struct CanonicalName : IComparable<CanonicalName>
     {
         if (!TryParse(value, out var name))
         {
-            throw new FormatException($"'{value}' is not a Brontide canonical name.");
+            throw new FormatException($"'{value}' is not an Brontide canonical name.");
         }
 
         return name;

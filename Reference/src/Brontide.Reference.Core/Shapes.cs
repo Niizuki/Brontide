@@ -360,7 +360,76 @@ public sealed class ShapeRegistry
         lock (_gate)
         {
             return _shapes.ContainsKey(contract.Canonical) &&
-                contract.Required÷¾-¢G§²ÚîÆ­yÕ.Name == host.Name)
+                contract.RequiredFragments.All(_fragments.ContainsKey);
+        }
+    }
+
+    public void Register(ShapeDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        lock (_gate)
+        {
+            if (_shapes.ContainsKey(definition.Reference))
+            {
+                throw new ShapeRegistrationException($"Shape {definition.Reference} is already registered.");
+            }
+
+            foreach (var included in definition.IncludedFragments)
+            {
+                if (!_fragments.TryGetValue(included, out var fragment) || fragment.IsAuthoredAttachment)
+                {
+                    throw new ShapeRegistrationException(
+                        $"Shape {definition.Reference} can explicitly include only a registered reusable Fragment; {included} is not one.");
+                }
+            }
+
+            var lineage = _shapes.Values
+                .Where(candidate => candidate.Reference.Name == definition.Reference.Name)
+                .Append(definition)
+                .OrderBy(candidate => candidate.Reference.Version)
+                .ToArray();
+            for (var index = 1; index < lineage.Length; index++)
+            {
+                EnsureAdditive(lineage[index - 1], lineage[index]);
+            }
+
+            _shapes.Add(definition.Reference, definition);
+        }
+    }
+
+    public void Register(DeclaredFragmentDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        lock (_gate)
+        {
+            if (_fragments.ContainsKey(definition.Reference))
+            {
+                throw new ShapeRegistrationException($"Fragment {definition.Reference} is already registered.");
+            }
+
+            if (definition.IsAuthoredAttachment)
+            {
+                var host = definition.EarliestHost!.Value;
+                if (!_shapes.TryGetValue(host, out var hostDefinition))
+                {
+                    throw new ShapeRegistrationException($"Fragment {definition.Reference} names unknown host {host}.");
+                }
+
+                if (hostDefinition.Kind != ShapeKind.Record || hostDefinition.FragmentPolicy != Brontide.Reference.Core.FragmentPolicy.Open)
+                {
+                    throw new ShapeRegistrationException($"Authored Fragment {definition.Reference} requires an open record host.");
+                }
+
+                var collision = definition.Fields.Keys.FirstOrDefault(hostDefinition.Fields.ContainsKey);
+                if (collision is not null)
+                {
+                    throw new ShapeRegistrationException($"Fragment field '{collision}' overlaps the canonical fragment.");
+                }
+
+
+                var siblingCollision = _fragments.Values
+                    .Where(fragment => fragment.IsAuthoredAttachment &&
+                        fragment.EarliestHost!.Value.Name == host.Name)
                     .SelectMany(fragment => fragment.Fields.Keys)
                     .FirstOrDefault(definition.Fields.ContainsKey);
                 if (siblingCollision is not null)
