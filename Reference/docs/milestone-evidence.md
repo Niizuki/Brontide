@@ -1,17 +1,24 @@
 # Brontide Reference Stack milestone evidence
 
+The mechanically checked source for Architecture 0.5 requirement status is
+[`../conformance/architecture-0.5.json`](../conformance/architecture-0.5.json). This document is the
+narrative summary; `build/verify-evidence.ps1` rejects missing, duplicate, stale, or unreferenced
+requirement IDs and stale evidence anchors.
+
 This file records the retained evidence for Brontide Reference Stack Implementation Plan 0.2. It distinguishes
 current behavioural evidence from historical process claims that cannot be reconstructed from the
 repository.
 
-This is Architecture 0.5 baseline evidence. Architecture 0.7 work is planned in
-[`Brontide-Reference-Stack-Implementation-Plan-0.3.md`](../Brontide-Reference-Stack-Implementation-Plan-0.3.md);
-no table entry below is evidence of 0.7 conformance.
+This is Architecture 0.5 baseline evidence. Current architectural design is sourced from
+[Architecture 0.7](../../Brontide-Architecture-0.7.md), while its Reference delivery status is
+routed by [`architecture-0.7-delivery.md`](./architecture-0.7-delivery.md) and planned in
+[`Brontide-Reference-Stack-Implementation-Plan-0.3.md`](../Brontide-Reference-Stack-Implementation-Plan-0.3.md).
+No table entry below is evidence of 0.7 conformance.
 
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../Brontide-Interchange-Implementation-Plan-0.1.md).
-Brontide Reference Stack now retains an experimental, Brontide Reference Stack-owned host adapter and provider endpoint for the neutral
-Cooling fixture. It exchanges process data only and does not alter the normative status of Brontide Reference Stack
+Brontide Reference Stack now retains experimental, Brontide Reference Stack-owned host adapters and provider endpoints for the neutral
+Cooling and Catalog/resource fixtures. They exchange process data only and do not alter the normative status of Brontide Reference Stack
 Core, Architecture 0.5 Composition, or the proposed portable binding.
 
 | Milestone | Retained evidence | Status |
@@ -27,7 +34,7 @@ Core, Architecture 0.5 Composition, or the proposed portable binding.
 | M8 | Experimental extension test covers checked `Flow.Open`, independently authorised Item publication, `Flow.GapDetected`, checked replay, and derived replay origin; §15 conformance covers spoof resistance | Green provisional-extension evidence |
 | M9 | Studio scene plus section-cited Outcome conformance cover delegated `Audit.Start`, activity creation, and later terminal completion | Green |
 | Architecture 0.5 delta | Experimental composition tests cover explicit dependency strength, optional boxed boundaries, non-inferred accelerator eligibility, visible provider substitution, operational observations, vector execution, and fallback | Green experimental evidence; not represented as ratified Component, Binding Plan, system-service, or optimisation semantics |
-| Interchange P0-P4 | Neutral fixtures; independent v2 manifest/value/message implementations; Brontide Reference Stack host adapter and provider endpoint; real two-way foreign-process tests; dependency/output audit | Green experimental cross-stack evidence; protocol and observation format remain unratified |
+| Interchange P0-P4 plus correction breadth | Neutral Cooling and Catalog fixtures; independent protocol/value implementations; real two-way foreign-process tests; malformed/version/replay/payload vectors; source-cost inventory; dependency/output audit | Green experimental cross-stack evidence; both protocols and observation formats remain unratified |
 
 The M0 test-first requirement is a process gate. Brontide Reference Stack's source and tests originally arrived in one
 commit, so the repository cannot prove that the expected failures were observed before their
@@ -39,13 +46,20 @@ cross-authority-domain binding remain outstanding. GPU execution is intentionall
 sideline project, not a required part of this milestone or a substitute for the current vector
 evidence.
 
-## First interchange gate
+## Interchange gates
 
-Phases P0-P4 are retained as executable evidence. Exact versions negotiate before invocation;
+Cooling phases P0-P4 are retained as executable evidence. Exact versions negotiate before invocation;
 authority and unknown Constraints fail closed in the Brontide Reference Stack host; the required host-context
 Fragment is locally enriched; optional authored data is canonically ignored and transparently
 forwarded; failed semantic Outcomes and provider-process failures stay explicit; and no Capability,
 exception, private CLR type, assembly, static state, or service container crosses the seam.
+
+The correction breadth proof adds Catalog batch upsert and lookup in one provider session. It
+retains nested/repeated tags, returns explicit missing-item failures, refuses an out-of-scope
+provider resource before mutation, rejects malformed/unknown/version-skew/replay vectors, and caps
+each line at 65,536 UTF-8 bytes. Both host directions run independent implementations. The measured
+binding inventory and exact limits live under `interchange/`; the measurement gate prevents silent
+source-cost drift.
 
 The next cross-stack gate is Event/Flow evidence, followed by Macro Operation exchange and the mixed
 image workspace. The current result does not claim a machine boundary, Capability federation,

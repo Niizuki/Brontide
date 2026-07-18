@@ -250,8 +250,7 @@ module PortableContract =
           Version = reference.Version }
 
     let operationReference (reference: PortableReference) : OperationReference =
-        { Name = CanonicalName.create reference.Name
-          Version = reference.Version }
+        { Name = CanonicalName.create reference.Name }
 
     let command loop enabled failureMode requesterLabel forwardingNote =
         let canonicalFields =

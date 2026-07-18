@@ -2,9 +2,10 @@
 
 ## Reference/Minimal Interchange Implementation Plan 0.1
 
-**Status:** Execution-ready working plan
+**Status:** Implemented experimental programme; retained as the plan and evidence index
 **Date:** 2026-07-17
-**Companion to:** Brontide Architecture 0.5
+**Architecture target:** [Brontide Architecture 0.7](./Brontide-Architecture-0.7.md), Complete Draft
+**Evidence baseline:** Brontide Architecture 0.5
 **First proof:** two-way Cooling component interchange across a process boundary
 **Decisive later proof:** a mixed Reference/Minimal/independent-provider image workspace
 
@@ -16,7 +17,7 @@ descriptor, protocol, and binding observation remain unratified test instruments
 ## 1. Purpose
 
 Brontide Reference Stack and Brontide Minimal Stack now provide independent native evidence for Brontide. That is necessary, but it is
-not yet the architectural proof described by Architecture 0.5 §30: a Component implemented by one
+not yet the architectural proof described by Architecture 0.7 §30: a Component implemented by one
 stack must be usable from the other through declared Brontide contracts without sharing either
 implementation's private object model.
 
@@ -50,13 +51,14 @@ The repository begins this programme with both native gates green:
   `Temperature.Read`, `Fan.SetSpeed`, and `Fan.Stop` scenario; Brontide Minimal Stack exposes
   `Brontide Minimal Stack.cooling.apply`. Structural resemblance is not interchangeability.
 
-The following native gaps are relevant to the exchange and must be closed before its final gate:
+The following native gaps were prerequisites and are now retained as executable evidence:
 
-- Brontide Minimal Stack M3 still needs the Velocity and authored-Fragment conformance cases.
-- Brontide Minimal Stack M4 still needs the Architecture 0.5 §16.6 pointer-temperature Enrichment scenario.
-- The Brontide Minimal Stack manifest does not yet describe Shapes per Operation, required Fragments, authority
-  requirements, dependency strength, provider identity, or binding limitations.
-- Brontide Reference Stack has no external experimental binding endpoint.
+- Brontide Minimal Stack M3 retains the Velocity and authored-Fragment conformance cases.
+- Brontide Minimal Stack M4 retains the pointer-temperature Enrichment scenario, now classified
+  against Architecture 0.7 §16.6 as non-normative design-direction evidence.
+- The independent binding manifests describe Shapes per Operation, required Fragments, authority
+  requirements, dependency strength, provider identity, and binding limitations.
+- Both stacks own external experimental binding endpoints and native host adapters.
 
 Brontide Minimal Stack M8 Macro Operation, cross-stack Flow recovery, a machine boundary, the mixed image workspace,
 and GPU execution are later phases. They do not block the first Cooling proof.
@@ -199,8 +201,8 @@ requests do not reach the Brontide Reference Stack effect.
 3. Measure Adapter code and information loss in both directions.
 4. Record each discovered obligation as a Brontide Reference Stack gap, Brontide Minimal Stack gap, binding gap, or Brontide ambiguity.
 5. Update both milestone-evidence documents and both implementation-findings documents.
-6. Decide which findings justify an Architecture 0.6 proposal. Passing the experiment alone does
-   not ratify its protocol or descriptor format.
+6. Record which findings inform the Architecture 0.8 Portable Binding, Channel, and Flow evidence
+   programme. Passing the experiment alone does not ratify its protocol or descriptor format.
 
 **Gate P4:** both directions are repeatable from a clean build, all acceptance cases are retained
 as executable tests, the operational observations are inspectable, and the evidence documents make
@@ -274,6 +276,6 @@ The first interchange proof does not include:
 - GPU compilation, dispatch, or fallback.
 
 The intended sequence after P4 is cross-stack Event/Flow evidence, Macro Operation exchange, and
-then the mixed-stack image workspace from Architecture 0.5 §30.1. Referenced-resource and
+then the mixed-stack image workspace from Architecture 0.7 §30.1. Referenced-resource and
 pooled-buffer paths belong with that larger data experiment. GPU execution remains an independent
 sideline and cannot substitute for any interchange gate.

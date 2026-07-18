@@ -76,7 +76,7 @@ module Manifest =
         { ProtocolVersion = 1
           Implementation = implementation
           Shapes = shapes |> Seq.map (fun shape -> wireReference shape.Name shape.Version) |> Set.ofSeq
-          Operations = operations |> Seq.map (fun operation -> wireReference operation.Name operation.Version) |> Set.ofSeq }
+          Operations = operations |> Seq.map (fun operation -> wireReference operation.Name 1) |> Set.ofSeq }
 
     let negotiate
         (requiredShapes: Set<WireReference>)

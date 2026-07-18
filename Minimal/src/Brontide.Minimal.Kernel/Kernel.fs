@@ -7,15 +7,20 @@ type World =
     private
         { Scope: Guid
           NextReference: int64
+          AuthorityActor: ActorReference
           Actors: Map<ActorReference, Actor>
           Capabilities: Map<CapabilityReference, Capability>
-          Grants: Map<ActorReference, Set<CapabilityReference>>
           Shapes: Map<ShapeReference, ShapeDefinition>
           Fragments: Map<FragmentReference, FragmentDefinition>
           Constraints: Map<ConstraintReference, ConstraintDefinition>
           Operations: Map<OperationReference, OperationDefinition>
+          EventDefinitions: Map<EventReference, EventDefinition>
+          Executions: ExecutionAudit list
           Events: Event list
-          Provenance: ProvenanceClaim list }
+          Provenance: ProvenanceClaim list
+          GenesisOccurrences: GenesisOccurrence list
+          TimeDomain: TimeDomainReference
+          LastLogicalTime: int64 }
 
 type ConstraintContext =
     { Request: ExecutionRequest
@@ -23,18 +28,47 @@ type ConstraintContext =
       LogicalTime: int64 }
 
 type ConstraintEvaluator = ShapeValue -> ConstraintContext -> Result<unit, string>
-type OperationHandler = ExecutionRequest -> Result<ShapeValue * EventDraft list * (CanonicalName * string) list, string>
 
+type OperationFailure =
+    { Reason: string
+      DetailsShape: ShapeReference option
+      Details: ShapeValue option }
+
+[<RequireQualifiedAccess>]
+module OperationFailure =
+    let withoutDetails reason =
+        { Reason = reason
+          DetailsShape = None
+          Details = None }
+
+    let withDetails detailsShape details reason =
+        { Reason = reason
+          DetailsShape = Some detailsShape
+          Details = Some details }
+
+type OperationHandler =
+    ExecutionRequest -> Result<ShapeValue * EventDraft list * (CanonicalName * string) list, OperationFailure>
 type Environment =
-    { LogicalTime: int64
+    { TrustedTime: TemporalMark
       ConstraintEvaluators: Map<ConstraintReference, ConstraintEvaluator>
       Handlers: Map<OperationReference, OperationHandler> }
-
 type StepResult =
     { World: World
       Outcome: ExecutionOutcome
       EmittedEvents: Event list
       Provenance: ProvenanceClaim list }
+
+type GenesisContext internal (scope: Guid) =
+    let mutable active = true
+
+    member internal _.EnsureActive(worldScope: Guid) =
+        if not active then
+            invalidOp "A completed Genesis context cannot introduce authority."
+
+        if scope <> worldScope then
+            invalidOp "A Genesis context cannot introduce authority into another domain."
+
+    member internal _.Complete() = active <- false
 
 [<RequireQualifiedAccess>]
 module World =
@@ -45,7 +79,7 @@ module World =
           AcceptedFragments = Set.empty
           IsOpenToFragments = false }
 
-    let create (scope: Guid) : World =
+    let create (scope: Guid) (timeDomain: TimeDomainReference) : World =
         let shapes =
             [ builtInShape BuiltIn.unitShape UnitShape
               builtInShape BuiltIn.booleanShape (ScalarShape Boolean)
@@ -56,39 +90,98 @@ module World =
             |> Seq.map (fun definition -> definition.Reference, definition)
             |> Map.ofSeq
 
+        let authorityReference = ActorReference.issue scope 1L
+        let authorityActor =
+            { Reference = authorityReference
+              Name = CanonicalName.create "Brontide.Minimal:AuthorityDomain" }
+
         { Scope = scope
-          NextReference = 1L
-          Actors = Map.empty
+          NextReference = 2L
+          AuthorityActor = authorityReference
+          Actors = Map.ofList [ authorityReference, authorityActor ]
           Capabilities = Map.empty
-          Grants = Map.empty
           Shapes = shapes
           Fragments = Map.empty
           Constraints = Map.empty
           Operations = Map.empty
+          EventDefinitions = Map.empty
+          Executions = []
           Events = []
-          Provenance = [] }
+          Provenance = []
+          GenesisOccurrences = []
+          TimeDomain = timeDomain
+          LastLogicalTime = Int64.MinValue }
 
     let scope (world: World) = world.Scope
     let actors (world: World) = world.Actors |> Map.toSeq |> Seq.map snd |> Seq.toList
     let shapes (world: World) = world.Shapes |> Map.toSeq |> Seq.map snd |> Seq.toList
     let operations (world: World) = world.Operations |> Map.toSeq |> Seq.map snd |> Seq.toList
+    let capabilities (world: World) = world.Capabilities |> Map.toSeq |> Seq.map snd |> Seq.toList
+    let executions (world: World) = world.Executions
     let events (world: World) = world.Events
     let provenance (world: World) = world.Provenance
-
+    let genesisOccurrences (world: World) = world.GenesisOccurrences
+    let timeDomain (world: World) = world.TimeDomain
+    let lastLogicalTime (world: World) = world.LastLogicalTime
     let tryFindShape (reference: ShapeReference) (world: World) = Map.tryFind reference world.Shapes
     let tryFindOperation (reference: OperationReference) (world: World) = Map.tryFind reference world.Operations
+    let tryFindCapability (reference: CapabilityReference) (world: World) =
+        Map.tryFind reference world.Capabilities
 
-    let issueActor (name: CanonicalName) (world: World) =
-        let reference: ActorReference =
-            { Scope = world.Scope
-              Value = world.NextReference }
+    let genesis
+        (policy: CanonicalName)
+        (recordedAt: TemporalMark)
+        (initialize: GenesisContext -> World -> 'T * World)
+        (world: World)
+        =
+        if recordedAt.TimeDomain <> world.TimeDomain then
+            Error "Genesis must use the authority domain's trusted time domain."
+        elif recordedAt.Milliseconds < world.LastLogicalTime then
+            Error "Genesis time cannot move backwards."
+        else
+            let context = GenesisContext(world.Scope)
+            let actorsBefore = world.Actors |> Map.keys |> Set.ofSeq
+            let capabilitiesBefore = world.Capabilities |> Map.keys |> Set.ofSeq
 
-        let actor = { Reference = reference; Name = name }
+            try
+                let value, initialized = initialize context world
+                context.Complete()
 
-        actor,
-        { world with
-            NextReference = world.NextReference + 1L
-            Actors = Map.add reference actor world.Actors }
+                if initialized.Scope <> world.Scope then
+                    invalidOp "Genesis returned a World from another authority domain."
+
+                let introducedActors =
+                    initialized.Actors
+                    |> Map.keys
+                    |> Set.ofSeq
+                    |> fun issued -> Set.difference issued actorsBefore
+                    |> Set.toList
+
+                let introducedCapabilities =
+                    initialized.Capabilities
+                    |> Map.keys
+                    |> Set.ofSeq
+                    |> fun issued -> Set.difference issued capabilitiesBefore
+                    |> Set.toList
+
+                let occurrence = OccurrenceReference.issue initialized.Scope initialized.NextReference
+
+                let genesisRecord =
+                    { Occurrence = occurrence
+                      Policy = policy
+                      IntroducedActors = introducedActors
+                      IntroducedCapabilities = introducedCapabilities
+                      RecordedAt = recordedAt }
+
+                Ok(
+                    value,
+                    { initialized with
+                        NextReference = initialized.NextReference + 1L
+                        GenesisOccurrences = initialized.GenesisOccurrences @ [ genesisRecord ]
+                        LastLogicalTime = recordedAt.Milliseconds }
+                )
+            finally
+                context.Complete()
 
     let registerShape (definition: ShapeDefinition) (world: World) =
         if definition.Reference.Version < 1 then
@@ -104,11 +197,41 @@ module World =
                 |> Seq.map _.Version
                 |> Seq.toList
 
-            if
-                previousVersions
-                |> List.exists (fun version -> version >= definition.Reference.Version)
-            then
+            let previousDefinition =
+                world.Shapes
+                |> Map.toSeq
+                |> Seq.map snd
+                |> Seq.filter (fun candidate -> candidate.Reference.Name = definition.Reference.Name)
+                |> Seq.sortByDescending _.Reference.Version
+                |> Seq.tryHead
+
+            let preservesLineage previous current =
+                match previous.Body, current.Body with
+                | UnitShape, UnitShape -> true
+                | ScalarShape previousKind, ScalarShape currentKind -> previousKind = currentKind
+                | SequenceShape previousElement, SequenceShape currentElement -> previousElement = currentElement
+                | ChoiceShape previousCases, ChoiceShape currentCases -> previousCases = currentCases
+                | OpaqueShape previousMediaType, OpaqueShape currentMediaType -> previousMediaType = currentMediaType
+                | RecordShape previousFields, RecordShape currentFields ->
+                    previous.IsOpenToFragments = current.IsOpenToFragments
+                    && Set.isSubset previous.AcceptedFragments current.AcceptedFragments
+                    && (previousFields
+                        |> List.forall (fun field ->
+                            currentFields
+                            |> List.exists (fun candidate ->
+                                candidate.Name = field.Name
+                                && candidate.Shape = field.Shape
+                                && candidate.Required = field.Required)))
+                    && (currentFields
+                        |> List.filter (fun field ->
+                            previousFields |> List.exists (fun candidate -> candidate.Name = field.Name) |> not)
+                        |> List.forall (fun field -> not field.Required))
+                | _ -> false
+
+            if previousVersions |> List.exists (fun version -> version >= definition.Reference.Version) then
                 Error "Shape versions must be registered additively."
+            elif previousDefinition |> Option.exists (fun previous -> not (preservesLineage previous definition)) then
+                Error "A later Shape version must preserve its lineage and may add only optional structure."
             else
                 Ok
                     { world with
@@ -133,9 +256,7 @@ module World =
         if not (Map.containsKey parameterShape world.Shapes) then
             Error "The constraint parameter shape is not registered."
         else
-            let reference: ConstraintReference =
-                { Scope = world.Scope
-                  Value = world.NextReference }
+            let reference = ConstraintReference.issue world.Scope world.NextReference
 
             let definition =
                 { Reference = reference
@@ -152,7 +273,9 @@ module World =
 
     let registerOperation (definition: OperationDefinition) (world: World) =
         if Map.containsKey definition.Reference world.Operations then
-            Error "That operation version is already registered."
+            Error "That operation is already registered."
+        elif not (Map.containsKey definition.Target world.Actors) then
+            Error "The operation target is not an issued Actor in this domain."
         elif not (Map.containsKey definition.CommandShape world.Shapes) then
             Error "The command shape is not registered."
         elif not (Map.containsKey definition.ResultShape world.Shapes) then
@@ -167,77 +290,15 @@ module World =
                 { world with
                     Operations = Map.add definition.Reference definition world.Operations }
 
-    let createCapability
-        (name: CanonicalName)
-        (operations: Set<OperationReference>)
-        (parent: CapabilityReference option)
-        (world: World)
-        =
-        let missingOperation =
-            operations
-            |> Seq.tryFind (fun operation -> not (Map.containsKey operation world.Operations))
-
-        match missingOperation, parent with
-        | Some _, _ -> Error "A capability refers to an unknown operation."
-        | None, Some parentReference when not (Map.containsKey parentReference world.Capabilities) ->
-            Error "The parent capability is unknown."
-        | None, Some parentReference ->
-            let parentCapability = world.Capabilities[parentReference]
-
-            if not (Set.isSubset operations parentCapability.Operations) then
-                Error "A delegated capability cannot broaden its parent."
-            else
-                let reference: CapabilityReference =
-                    { Scope = world.Scope
-                      Value = world.NextReference }
-
-                let capability =
-                    { Reference = reference
-                      Name = name
-                      Operations = operations
-                      Parent = parent }
-
-                Ok(
-                    capability,
-                    { world with
-                        NextReference = world.NextReference + 1L
-                        Capabilities = Map.add reference capability world.Capabilities }
-                )
-        | None, None ->
-            let reference: CapabilityReference =
-                { Scope = world.Scope
-                  Value = world.NextReference }
-
-            let capability =
-                { Reference = reference
-                  Name = name
-                  Operations = operations
-                  Parent = None }
-
-            Ok(
-                capability,
-                { world with
-                    NextReference = world.NextReference + 1L
-                    Capabilities = Map.add reference capability world.Capabilities }
-            )
-
-    let grant (actor: ActorReference) (capability: CapabilityReference) (world: World) =
-        if not (Map.containsKey actor world.Actors) then
-            Error "The actor is unknown."
-        elif not (Map.containsKey capability world.Capabilities) then
-            Error "The capability is unknown."
+    let registerEvent (definition: EventDefinition) (world: World) =
+        if Map.containsKey definition.Reference world.EventDefinitions then
+            Error "That Event is already registered."
+        elif not (Map.containsKey definition.AssertionShape world.Shapes) then
+            Error "The Event assertion Shape is not registered."
         else
-            let grants = Map.tryFind actor world.Grants |> Option.defaultValue Set.empty
-
             Ok
                 { world with
-                    Grants = Map.add actor (Set.add capability grants) world.Grants }
-
-    let isAuthorized (actor: ActorReference) (operation: OperationReference) (world: World) =
-        Map.tryFind actor world.Grants
-        |> Option.defaultValue Set.empty
-        |> Seq.choose (fun reference -> Map.tryFind reference world.Capabilities)
-        |> Seq.exists (fun capability -> Set.contains operation capability.Operations)
+                    EventDefinitions = Map.add definition.Reference definition world.EventDefinitions }
 
     let private validateScalar kind value =
         match kind, value with
@@ -311,6 +372,119 @@ module World =
                 | _ -> Ok()
             | _ -> Error "The value does not match the declared shape."
 
+    let private validateConstraintRequirements (requirements: ConstraintRequirement list) (world: World) =
+        requirements
+        |> List.tryPick (fun requirement ->
+            match Map.tryFind requirement.Constraint world.Constraints with
+            | None -> Some "A Capability refers to an unknown Constraint."
+            | Some definition ->
+                match validateValue definition.ParameterShape requirement.Parameters world with
+                | Ok() -> None
+                | Error message -> Some("A Capability Constraint value is invalid: " + message))
+        |> Option.map Error
+        |> Option.defaultValue (Ok())
+
+    let internal issueGenesisActor (context: GenesisContext) (name: CanonicalName) (world: World) =
+        context.EnsureActive world.Scope
+        let reference = ActorReference.issue world.Scope world.NextReference
+        let actor = { Reference = reference; Name = name }
+
+        actor,
+        { world with
+            NextReference = world.NextReference + 1L
+            Actors = Map.add reference actor world.Actors }
+
+    let internal issuePrimordialCapability
+        (context: GenesisContext)
+        (name: CanonicalName)
+        (holder: ActorReference)
+        (target: ActorReference)
+        (operations: Set<OperationReference>)
+        (constraints: ConstraintRequirement list)
+        (delegationAllowed: bool)
+        (world: World)
+        =
+        context.EnsureActive world.Scope
+
+        let operationsRecognized =
+            operations
+            |> Seq.forall (fun operation ->
+                match Map.tryFind operation world.Operations with
+                | Some definition -> definition.Target = target
+                | None -> false)
+
+        if not (Map.containsKey holder world.Actors) then
+            Error "The Capability holder is not an issued Actor in this domain."
+        elif not (Map.containsKey target world.Actors) then
+            Error "The Capability target is not an issued Actor in this domain."
+        elif Set.isEmpty operations then
+            Error "A Capability must authorize at least one Operation."
+        elif not operationsRecognized then
+            Error "A Capability Operation is unknown or belongs to another target."
+        else
+            match validateConstraintRequirements constraints world with
+            | Error message -> Error message
+            | Ok() ->
+                let reference = CapabilityReference.issue world.Scope world.NextReference
+
+                let capability =
+                    { Reference = reference
+                      Name = name
+                      Holder = holder
+                      Target = target
+                      Operations = operations
+                      AddedConstraints = constraints
+                      Parent = None
+                      IssuedBy = None
+                      DelegationAllowed = delegationAllowed }
+
+                Ok(
+                    capability,
+                    { world with
+                        NextReference = world.NextReference + 1L
+                        Capabilities = Map.add reference capability world.Capabilities }
+                )
+
+    let delegateCapability
+        (name: CanonicalName)
+        (delegator: ActorReference)
+        (newHolder: ActorReference)
+        (parentReference: CapabilityReference)
+        (addedConstraints: ConstraintRequirement list)
+        (world: World)
+        =
+        match Map.tryFind parentReference world.Capabilities with
+        | None -> Error "The parent Capability is unknown."
+        | Some parent when parent.Holder <> delegator ->
+            Error "Only the Capability holder may delegate it."
+        | Some parent when not parent.DelegationAllowed ->
+            Error "The parent Capability does not permit further Delegation."
+        | Some _ when not (Map.containsKey newHolder world.Actors) ->
+            Error "The delegated Capability holder is unknown."
+        | Some parent ->
+            match validateConstraintRequirements addedConstraints world with
+            | Error message -> Error message
+            | Ok() ->
+                let reference = CapabilityReference.issue world.Scope world.NextReference
+
+                let capability =
+                    { Reference = reference
+                      Name = name
+                      Holder = newHolder
+                      Target = parent.Target
+                      Operations = parent.Operations
+                      AddedConstraints = addedConstraints
+                      Parent = Some parent.Reference
+                      IssuedBy = Some delegator
+                      DelegationAllowed = parent.DelegationAllowed }
+
+                Ok(
+                    capability,
+                    { world with
+                        NextReference = world.NextReference + 1L
+                        Capabilities = Map.add reference capability world.Capabilities }
+                )
+
     let validateContract
         (target: ShapeReference)
         (requiredFragments: Set<FragmentReference>)
@@ -366,113 +540,314 @@ module World =
         projectRecordWithFragments target Set.empty value world
 
     let private allocateExecution (world: World) =
-        ({ Scope = world.Scope
-           Value = world.NextReference }: ExecutionReference),
+        ExecutionReference.issue world.Scope world.NextReference,
         { world with NextReference = world.NextReference + 1L }
 
-    let private deny (request: ExecutionRequest) (reason: string) (world: World) =
+    let private allocateOccurrence (world: World) =
+        OccurrenceReference.issue world.Scope world.NextReference,
+        { world with NextReference = world.NextReference + 1L }
+
+    let private observableTime (environment: Environment) (world: World) =
+        if
+            environment.TrustedTime.TimeDomain = world.TimeDomain
+            && environment.TrustedTime.Milliseconds >= world.LastLogicalTime
+            && environment.TrustedTime.UncertaintyMilliseconds |> Option.forall (fun value -> value >= 0L)
+        then
+            environment.TrustedTime
+        else
+            { Milliseconds = if world.LastLogicalTime = Int64.MinValue then 0L else world.LastLogicalTime
+              TimeDomain = world.TimeDomain
+              UncertaintyMilliseconds = None }
+
+    let private recordExecution
+        (request: ExecutionRequest)
+        (status: ExecutionStatus)
+        (reason: string option)
+        (recordedAt: TemporalMark)
+        (execution: ExecutionReference)
+        (world: World)
+        =
+        let audit =
+            { Execution = execution
+              Initiator = request.Initiator
+              Target = request.Target
+              PresentedCapability = request.PresentedCapability
+              Operation = request.Operation
+              Status = status
+              Reason = reason
+              Occurrence = request.Occurrence
+              RecordedAt = recordedAt }
+
+        { world with
+            Executions = world.Executions @ [ audit ]
+            LastLogicalTime = max world.LastLogicalTime recordedAt.Milliseconds }
+
+    let private finishWithoutEffects
+        (environment: Environment)
+        (status: ExecutionStatus)
+        (request: ExecutionRequest)
+        (reason: string)
+        (detailsShape: ShapeReference option)
+        (details: ShapeValue option)
+        (world: World)
+        =
         let execution, nextWorld = allocateExecution world
+        let occurrence, afterOccurrence = allocateOccurrence nextWorld
+        let recordedAt = observableTime environment world
+        let emitter =
+            if Map.containsKey request.Target world.Actors then request.Target else world.AuthorityActor
+
+        let outcomeEvent =
+            { Reference = BuiltIn.executionOutcomeEvent
+              Occurrence = occurrence
+              Emitter = emitter
+              CausedBy = execution
+              Payload = details |> Option.defaultValue UnitValue
+              EmittedAt = recordedAt
+              OccurredAt = None }
+
+        let recordedWorld =
+            recordExecution request status (Some reason) recordedAt execution afterOccurrence
+
+        let nextWorld = { recordedWorld with Events = recordedWorld.Events @ [ outcomeEvent ] }
 
         { World = nextWorld
           Outcome =
-            { Execution = execution
+            { Event = outcomeEvent
+              Execution = execution
+              TerminalFor = execution
               Operation = request.Operation
-              Status = Denied
+              Status = status
               Result = None
-              Reason = Some reason }
-          EmittedEvents = []
+              DetailsShape = detailsShape
+              Details = details
+              Reason = Some reason
+              EmittedAt = recordedAt }
+          EmittedEvents = [ outcomeEvent ]
           Provenance = [] }
+
+    let private deny environment request reason world =
+        finishWithoutEffects environment Denied request reason None None world
+
+    let private fail environment request (failure: OperationFailure) world =
+        match failure.DetailsShape, failure.Details with
+        | None, None ->
+            finishWithoutEffects environment Failed request failure.Reason None None world
+        | Some shape, Some details ->
+            match validateValue shape details world with
+            | Ok() ->
+                finishWithoutEffects
+                    environment
+                    Failed
+                    request
+                    failure.Reason
+                    (Some shape)
+                    (Some details)
+                    world
+            | Error message ->
+                finishWithoutEffects
+                    environment
+                    Failed
+                    request
+                    ("The handler returned invalid failure details: " + message)
+                    None
+                    None
+                    world
+        | _ ->
+            finishWithoutEffects
+                environment
+                Failed
+                request
+                "The handler must provide both a failure-details Shape and value."
+                None
+                None
+                world
+
+    let private capabilityChain (capability: Capability) (world: World) =
+        let rec collect current accumulated =
+            match current.Parent with
+            | None -> current :: accumulated
+            | Some parentReference ->
+                match Map.tryFind parentReference world.Capabilities with
+                | Some parent -> collect parent (current :: accumulated)
+                | None -> invalidOp "A Capability derivation chain is internally incomplete."
+
+        collect capability []
+
+    let private validateEventDraft (draft: EventDraft) (world: World) =
+        if not (Map.containsKey draft.Emitter world.Actors) then
+            Error "An emitted Event names an unknown emitter."
+        else
+            match Map.tryFind draft.Reference world.EventDefinitions with
+            | None -> Error "An emitted Event is not registered."
+            | Some definition ->
+                match validateValue definition.AssertionShape draft.Payload world with
+                | Error message -> Error("An emitted Event assertion is invalid: " + message)
+                | Ok() ->
+                    match draft.OccurredAt |> Option.bind _.UncertaintyMilliseconds with
+                    | Some uncertainty when uncertainty < 0L ->
+                        Error "An Event Temporal Mark cannot have negative uncertainty."
+                    | _ -> Ok()
 
     let step (environment: Environment) (world: World) (request: ExecutionRequest) =
         match Map.tryFind request.Operation world.Operations with
-        | None -> deny request "The requested operation is unknown." world
-        | Some operation when not (Map.containsKey request.Actor world.Actors) ->
-            deny request "The requesting actor is unknown." world
-        | Some _ when not (isAuthorized request.Actor request.Operation world) ->
-            deny request "The actor has no capability for this operation." world
+        | _ when environment.TrustedTime.TimeDomain <> world.TimeDomain ->
+            deny environment request "The target has no trusted clock for the supplied time domain." world
+        | _ when environment.TrustedTime.Milliseconds < world.LastLogicalTime ->
+            deny environment request "Trusted logical time cannot move backwards." world
+        | _ when environment.TrustedTime.UncertaintyMilliseconds |> Option.exists (fun value -> value < 0L) ->
+            deny environment request "Trusted time uncertainty cannot be negative." world
+        | None -> deny environment request "The requested Operation is unknown." world
+        | Some operation when not (Map.containsKey request.Initiator world.Actors) ->
+            deny environment request "The initiating Actor is unknown." world
+        | Some operation when not (Map.containsKey request.Target world.Actors) ->
+            deny environment request "The target Actor is unknown." world
+        | Some operation when operation.Target <> request.Target ->
+            deny environment request "The Operation is not recognized by the requested target." world
+        | Some operation when not (Map.containsKey request.PresentedCapability world.Capabilities) ->
+            deny environment request "The presented Capability was not issued by this authority domain." world
         | Some operation ->
-            match validateValue operation.CommandShape request.Command world with
-            | Error message -> deny request message world
-            | Ok() ->
-                let context =
-                    { Request = request
-                      Operation = operation
-                      LogicalTime = environment.LogicalTime }
+            let capability = world.Capabilities[request.PresentedCapability]
 
-                let constraintFailure =
-                    operation.Constraints
-                    |> List.tryPick (fun requirement ->
-                        match Map.tryFind requirement.Constraint environment.ConstraintEvaluators with
-                        | None -> Some "A required constraint has no evaluator."
-                        | Some evaluator ->
-                            match evaluator requirement.Parameters context with
-                            | Ok() -> None
-                            | Error message -> Some message)
+            if capability.Holder <> request.Initiator then
+                deny environment request "The presented Capability does not designate the initiating Actor." world
+            elif capability.Target <> request.Target then
+                deny environment request "The presented Capability does not designate the requested target." world
+            elif not (Set.contains request.Operation capability.Operations) then
+                deny environment request "The presented Capability does not authorize the requested Operation." world
+            else
+                match validateValue operation.CommandShape request.Command world with
+                | Error message -> deny environment request message world
+                | Ok() ->
+                    let context =
+                        { Request = request
+                          Operation = operation
+                          LogicalTime = environment.TrustedTime.Milliseconds }
 
-                match constraintFailure with
-                | Some message -> deny request message world
-                | None ->
-                    match Map.tryFind operation.Reference environment.Handlers with
-                    | None -> deny request "The operation has no pure handler." world
-                    | Some handler ->
-                        match handler request with
-                        | Error message ->
-                            let execution, nextWorld = allocateExecution world
+                    let effectiveConstraints =
+                        operation.Constraints
+                        @ (capabilityChain capability world |> List.collect _.AddedConstraints)
 
-                            { World = nextWorld
-                              Outcome =
-                                { Execution = execution
-                                  Operation = operation.Reference
-                                  Status = Failed
-                                  Result = None
-                                  Reason = Some message }
-                              EmittedEvents = []
-                              Provenance = [] }
-                        | Ok(result, eventDrafts, claimDrafts) ->
-                            match validateValue operation.ResultShape result world with
-                            | Error message -> deny request ("The handler returned an invalid result: " + message) world
-                            | Ok() ->
-                                let execution, afterExecution = allocateExecution world
+                    let constraintFailure =
+                        effectiveConstraints
+                        |> List.tryPick (fun requirement ->
+                            match Map.tryFind requirement.Constraint environment.ConstraintEvaluators with
+                            | None -> Some "A required Constraint has no evaluator."
+                            | Some evaluator ->
+                                match evaluator requirement.Parameters context with
+                                | Ok() -> None
+                                | Error message -> Some message)
 
-                                let events, afterEvents =
-                                    eventDrafts
-                                    |> List.fold
-                                        (fun (events, state) draft ->
-                                            let occurrence: OccurrenceReference =
-                                                { Scope = state.Scope
-                                                  Value = state.NextReference }
+                    match constraintFailure with
+                    | Some message -> deny environment request message world
+                    | None ->
+                        match Map.tryFind operation.Reference environment.Handlers with
+                        | None -> deny environment request "The Operation has no pure handler." world
+                        | Some handler ->
+                            match handler request with
+                            | Error failure -> fail environment request failure world
+                            | Ok(result, eventDrafts, claimDrafts) ->
+                                match validateValue operation.ResultShape result world with
+                                | Error message ->
+                                    fail
+                                        environment
+                                        request
+                                        (OperationFailure.withoutDetails
+                                            ("The handler returned an invalid result: " + message))
+                                        world
+                                | Ok() ->
+                                    match
+                                        eventDrafts
+                                        |> List.tryPick (fun draft ->
+                                            match validateEventDraft draft world with
+                                            | Ok() -> None
+                                            | Error message -> Some message)
+                                    with
+                                    | Some message ->
+                                        fail environment request (OperationFailure.withoutDetails message) world
+                                    | None ->
+                                        let execution, afterExecution = allocateExecution world
 
-                                            let event =
-                                                { Reference = draft.Reference
-                                                  Occurrence = occurrence
-                                                  CausedBy = execution
-                                                  Payload = draft.Payload }
+                                        let events, afterEvents =
+                                            eventDrafts
+                                            |> List.fold
+                                                (fun (events, state) draft ->
+                                                    let occurrence =
+                                                        OccurrenceReference.issue state.Scope state.NextReference
 
-                                            event :: events,
-                                            { state with NextReference = state.NextReference + 1L })
-                                        ([], afterExecution)
+                                                    let event =
+                                                        { Reference = draft.Reference
+                                                          Occurrence = occurrence
+                                                          Emitter = draft.Emitter
+                                                          CausedBy = execution
+                                                          Payload = draft.Payload
+                                                          EmittedAt = environment.TrustedTime
+                                                          OccurredAt = draft.OccurredAt }
 
-                                let emittedEvents = List.rev events
+                                                    event :: events,
+                                                    { state with NextReference = state.NextReference + 1L })
+                                                ([], afterExecution)
 
-                                let claims =
-                                    claimDrafts
-                                    |> List.map (fun (predicate, objectValue) ->
-                                        { Subject = string execution.Value
-                                          Predicate = predicate
-                                          Object = objectValue
-                                          CausedBy = execution })
+                                        let emittedEvents = List.rev events
+                                        let outcomeOccurrence, afterOutcome = allocateOccurrence afterEvents
 
-                                let nextWorld =
-                                    { afterEvents with
-                                        Events = afterEvents.Events @ emittedEvents
-                                        Provenance = afterEvents.Provenance @ claims }
+                                        let outcomeEvent =
+                                            { Reference = BuiltIn.executionOutcomeEvent
+                                              Occurrence = outcomeOccurrence
+                                              Emitter = request.Target
+                                              CausedBy = execution
+                                              Payload = result
+                                              EmittedAt = environment.TrustedTime
+                                              OccurredAt = None }
 
-                                { World = nextWorld
-                                  Outcome =
-                                    { Execution = execution
-                                      Operation = operation.Reference
-                                      Status = Succeeded
-                                      Result = Some result
-                                      Reason = None }
-                                  EmittedEvents = emittedEvents
-                                  Provenance = claims }
+                                        let claims =
+                                            claimDrafts
+                                            |> List.map (fun (predicate, objectValue) ->
+                                                { Subject = string (ExecutionReference.value execution)
+                                                  Predicate = predicate
+                                                  Object = objectValue
+                                                  CausedBy = execution })
+
+                                        let recordedWorld =
+                                            recordExecution
+                                                request
+                                                Succeeded
+                                                None
+                                                environment.TrustedTime
+                                                execution
+                                                afterOutcome
+
+                                        let nextWorld =
+                                            { recordedWorld with
+                                                Events = recordedWorld.Events @ emittedEvents @ [ outcomeEvent ]
+                                                Provenance = recordedWorld.Provenance @ claims }
+
+                                        { World = nextWorld
+                                          Outcome =
+                                            { Event = outcomeEvent
+                                              Execution = execution
+                                              TerminalFor = execution
+                                              Operation = operation.Reference
+                                              Status = Succeeded
+                                              Result = Some result
+                                              DetailsShape = None
+                                              Details = None
+                                              Reason = None
+                                              EmittedAt = environment.TrustedTime }
+                                          EmittedEvents = emittedEvents @ [ outcomeEvent ]
+                                          Provenance = claims }
+
+[<RequireQualifiedAccess>]
+module Genesis =
+    let actor context name world = World.issueGenesisActor context name world
+
+    let capability context name holder target operations constraints delegationAllowed world =
+        World.issuePrimordialCapability
+            context
+            name
+            holder
+            target
+            operations
+            constraints
+            delegationAllowed
+            world

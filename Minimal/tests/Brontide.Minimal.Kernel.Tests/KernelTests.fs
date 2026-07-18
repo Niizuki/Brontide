@@ -3,6 +3,7 @@ namespace Brontide.Minimal.Kernel.Tests
 open System
 open NUnit.Framework
 open Brontide.Minimal.Model
+open Brontide.Minimal.Kernel
 open Brontide.Minimal.Extensions.Events
 open Brontide.Minimal.Extensions.Flow
 open Brontide.Minimal.Vocabularies.Cooling
@@ -10,6 +11,62 @@ open Brontide.Minimal.Vocabularies.Cooling
 [<TestFixture>]
 type NativeSemanticsTests() =
     let name value = CanonicalName.create value
+
+    let issuedExecution () =
+        let timeDomain = TimeDomainReference.create (name "Brontide.Minimal.Tests:FlowClock")
+        let operation: OperationReference = { Name = name "Brontide.Minimal.Tests:Flow.ExecutionSource" }
+        let initial = World.create (Guid.NewGuid()) timeDomain
+
+        let (holder, target, capability), ready =
+            World.genesis
+                (name "Brontide.Minimal.Tests:FlowPolicy")
+                { Milliseconds = 0L; TimeDomain = timeDomain; UncertaintyMilliseconds = None }
+                (fun genesis world ->
+                    let holder, world = Genesis.actor genesis (name "Brontide.Minimal.Tests:FlowHolder") world
+                    let target, world = Genesis.actor genesis (name "Brontide.Minimal.Tests:FlowTarget") world
+                    let world =
+                        World.registerOperation
+                            { Reference = operation
+                              Description = "Issue an opaque Execution reference for Flow tests."
+                              Target = target.Reference
+                              CommandShape = BuiltIn.unitShape
+                              ResultShape = BuiltIn.unitShape
+                              Constraints = [] }
+                            world
+                        |> Result.defaultWith failwith
+
+                    let capability, world =
+                        Genesis.capability
+                            genesis
+                            (name "Brontide.Minimal.Tests:FlowGrant")
+                            holder.Reference
+                            target.Reference
+                            (Set.singleton operation)
+                            []
+                            false
+                            world
+                        |> Result.defaultWith failwith
+
+                    ((holder, target, capability), world))
+                initial
+            |> Result.defaultWith failwith
+
+        World.step
+            { TrustedTime =
+                { Milliseconds = 1L
+                  TimeDomain = timeDomain
+                  UncertaintyMilliseconds = None }
+              ConstraintEvaluators = Map.empty
+              Handlers = Map.ofList [ operation, fun _ -> Ok(UnitValue, [], []) ] }
+            ready
+            { Initiator = holder.Reference
+              Target = target.Reference
+              PresentedCapability = capability.Reference
+              Operation = operation
+              Command = UnitValue
+              Occurrence = None
+              Context = Map.empty }
+        |> _.Outcome.Execution
 
     [<Test>]
     member _.``Cooling closes the loop in both directions`` () =
@@ -47,8 +104,7 @@ type NativeSemanticsTests() =
     [<Test>]
     member _.``flow fan-out waits and fan-in becomes ready once dependencies complete`` () =
         let operation: OperationReference =
-            { Name = name "brontide-minimal.tests.flow-operation"
-              Version = 1 }
+            { Name = name "Brontide.Minimal.Tests:Flow.Operation" }
 
         let acquire = name "brontide-minimal.tests.acquire"
         let cool = name "brontide-minimal.tests.cool"
@@ -66,13 +122,12 @@ type NativeSemanticsTests() =
                 [ step acquire []; step cool [ acquire ]; step inspect [ acquire ]; step finish [ cool; inspect ] ]
             |> Result.defaultWith failwith
 
-        let execution value: ExecutionReference =
-            { Scope = Guid.Empty; Value = value }
+        let execution = issuedExecution ()
 
         let state0 = Flow.start definition
-        let state1 = Flow.markRunning acquire (execution 1L) definition state0 |> Result.defaultWith failwith
+        let state1 = Flow.markRunning acquire execution definition state0 |> Result.defaultWith failwith
         let state2 = Flow.complete acquire UnitValue definition state1 |> Result.defaultWith failwith
-        let state3 = Flow.markRunning cool (execution 2L) definition state2 |> Result.defaultWith failwith
+        let state3 = Flow.markRunning cool execution definition state2 |> Result.defaultWith failwith
         let state4 = Flow.complete cool UnitValue definition state3 |> Result.defaultWith failwith
 
         let readyAfterAcquire = Flow.readySteps state2 |> Set.ofList
@@ -81,15 +136,14 @@ type NativeSemanticsTests() =
         Assert.That(Set.count readyAfterAcquire, Is.EqualTo 2)
         Assert.That(Flow.readySteps state4, Does.Not.Contain finish)
 
-        let state5 = Flow.markRunning inspect (execution 3L) definition state4 |> Result.defaultWith failwith
+        let state5 = Flow.markRunning inspect execution definition state4 |> Result.defaultWith failwith
         let state6 = Flow.complete inspect UnitValue definition state5 |> Result.defaultWith failwith
         Assert.That(Flow.readySteps state6, Does.Contain finish)
 
     [<Test>]
     member _.``flow definitions reject cycles`` () =
         let operation: OperationReference =
-            { Name = name "brontide-minimal.tests.operation"
-              Version = 1 }
+            { Name = name "Brontide.Minimal.Tests:Operation" }
 
         let a = name "brontide-minimal.tests.a"
         let b = name "brontide-minimal.tests.b"

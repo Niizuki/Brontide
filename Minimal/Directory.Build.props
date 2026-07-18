@@ -5,8 +5,10 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
+    <!-- Temporary selected-SDK runtime-output workaround; see ../docs/sdk-policy.md. -->
+    <BrontideEnableSdkFSharpCoreWorkaround Condition="'$(BrontideEnableSdkFSharpCoreWorkaround)' == ''">true</BrontideEnableSdkFSharpCoreWorkaround>
   </PropertyGroup>
-  <ItemGroup Condition="Exists('$(MSBuildToolsPath)\FSharp\FSharp.Core.dll')">
+  <ItemGroup Condition="'$(BrontideEnableSdkFSharpCoreWorkaround)' == 'true' and Exists('$(MSBuildToolsPath)\FSharp\FSharp.Core.dll')">
     <None Include="$(MSBuildToolsPath)\FSharp\FSharp.Core.dll"
           Link="FSharp.Core.dll"
           CopyToOutputDirectory="PreserveNewest"

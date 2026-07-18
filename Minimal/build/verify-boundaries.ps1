@@ -16,6 +16,7 @@ $expectedProjects = @(
     'Brontide.Minimal.Binding',
     'Brontide.Minimal.Interchange.Provider',
     'Brontide.Minimal.Host',
+    'Brontide.Minimal.Benchmarks',
     'Brontide.Minimal.Conformance',
     'Brontide.Minimal.Enrichment.Tests',
     'Brontide.Minimal.Composition.Tests',

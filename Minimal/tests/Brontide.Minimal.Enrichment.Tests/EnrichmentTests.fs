@@ -76,8 +76,7 @@ type EnrichmentTests() =
     [<Test>]
     member _.``pointer temperature Enrichment is targeted local additive and route free`` () =
         let pointerMove: OperationReference =
-            { Name = name "input.pointer.move"
-              Version = 1 }
+            { Name = name "Brontide.Minimal.Tests:Input.Pointer.Move" }
 
         let thermalContext: FragmentReference =
             { Name = name "experiment.thermal-context"

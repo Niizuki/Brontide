@@ -1,13 +1,17 @@
 # Brontide Minimal Stack Implementation Plan 0.3
 
 Status: Planned  
-Architecture target: Brontide Architecture 0.7 Complete Draft  
+Architecture target: [Brontide Architecture 0.7](Brontide-Architecture-0.7.md), Complete Draft
+
 Implementation baseline: Minimal Stack 0.2 / Architecture 0.5 evidence
+
+Delivery ledger: [Minimal Architecture 0.7 delivery](Minimal/docs/architecture-0.7-delivery.md)
 
 ## 1. Purpose
 
-This is the Minimal stack's independent delivery plan for the normative changes completed in the
-Architecture 0.7 document edit. It supersedes Plan 0.2 only for new 0.7 work; Plan 0.2 and its
+This is the Minimal stack's independent delivery plan for the changes completed in the
+[Architecture 0.7 document edit](Brontide-Architecture-0.7-Change-Plan.md). It supersedes Plan 0.2
+only for new 0.7 work; Plan 0.2 and its
 milestone evidence remain the record of the Architecture 0.5 implementation baseline.
 
 Before this plan can support an implementation claim, the applicable gates in
@@ -29,6 +33,15 @@ below creates evidence for review; it does not change that status by itself.
   correction plan.
 - Share only data-only interchange fixtures and expected observations with Reference.
 
+### 2.1 Complete Architecture 0.7 coverage
+
+The implementation-owned
+[Architecture 0.7 delivery ledger](Minimal/docs/architecture-0.7-delivery.md) maps every executed
+0.7 change C1-C8 to an owner, planned evidence, and status boundary. M1-M4 implement C1-C5. C6 and
+C7 require documentation and classification review rather than invented runtime behavior. C8
+remains a recorded, non-ratified direction and must not produce a `Mediator` conformance claim. M6
+tracks the separate Architecture 0.8 handoff named in §35.1.
+
 ## 3. Phase M0 — independent delta ledger
 
 Goal: make the exact 0.5-to-0.7 delta reviewable before production changes.
@@ -41,6 +54,7 @@ Deliverables:
 3. Write Minimal-native failing vectors for M1 through M4 before reading the corresponding
    Reference implementation work.
 4. Record the Architecture revision and commit used for the review.
+5. Keep the delivery ledger synchronized with the stable requirement-ID inventory.
 
 Exit evidence:
 

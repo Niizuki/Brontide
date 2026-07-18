@@ -1,0 +1,33 @@
+name: repository-gate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-gate:
+    name: Full gate (.NET ${{ matrix.dotnet }})
+    runs-on: windows-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet: ['10.0.100', '10.0.4xx']
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install supported .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+          dotnet-quality: ga
+
+      - name: Run build, complete test inventory, cross-process providers, and repository controls
+        shell: powershell
+        run: .\build\verify-interchange.ps1

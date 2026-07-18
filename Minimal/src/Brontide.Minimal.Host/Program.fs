@@ -46,7 +46,8 @@ let private runComposition () =
         explanation.Accepted.Head
 
 let private printBoundary () =
-    let world = World.create(Guid.Parse "b28127d6-9708-4bee-8a30-2a40a17f4bf9")
+    let timeDomain = TimeDomainReference.create (name "Brontide.Minimal.Host:LogicalTime")
+    let world = World.create (Guid.Parse "b28127d6-9708-4bee-8a30-2a40a17f4bf9") timeDomain
     let manifest = Manifest.ofMinimal "brontide-minimal-fsharp" (World.shapes world |> Seq.map _.Reference) Seq.empty
     printfn "Binding manifest: %s" (Manifest.toJson manifest)
 

@@ -1,0 +1,19 @@
+{
+  "protocolVersion": 1,
+  "component": "interchange.tests.catalog-component",
+  "contractVersion": 1,
+  "resourceBoundary": "provider-scoped-resource-handle",
+  "payloadLimitBytes": 65536,
+  "operations": [
+    {
+      "name": "interchange.tests.catalog.upsert-items",
+      "inputShape": "interchange.tests.catalog.upsert-command@1",
+      "outputShape": "interchange.tests.catalog.upsert-result@1"
+    },
+    {
+      "name": "interchange.tests.catalog.find-items",
+      "inputShape": "interchange.tests.catalog.find-command@1",
+      "outputShape": "interchange.tests.catalog.find-result@1"
+    }
+  ]
+}

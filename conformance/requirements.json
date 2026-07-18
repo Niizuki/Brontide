@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "architectureRevision": "0.5",
+  "requirements": [
+    {
+      "id": "BR-05-NAME-001",
+      "section": "22",
+      "summary": "Canonical names parse ConceptPath and AuthorityPath:ConceptPath without relative or ambiguous notation.",
+      "aliases": ["ARCH-0.5-22-NAMES"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-NAME-002",
+      "section": "23",
+      "summary": "Vocabulary versions are claims rather than semantic identity; only Shapes and Declared Fragments carry structural versions.",
+      "aliases": ["ARCH-0.5-23-VERSION-IDENTITY"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-AUTH-001",
+      "section": "9.1",
+      "summary": "Actor and authority references are issuer-controlled, unambiguous, stable, and comparable within an authority domain.",
+      "aliases": ["ARCH-0.5-9.1-ACTOR-REFERENCES"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-CAP-001",
+      "section": "10,13.5",
+      "summary": "An Execution explicitly presents a Capability whose holder, target, and Operation scope match the request at the target boundary.",
+      "aliases": ["ARCH-0.5-10-CAPABILITY", "ARCH-0.5-13.5-EXECUTION-AUTHORITY"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-CAP-002",
+      "section": "10.1",
+      "summary": "Every effective Capability Constraint is evaluated conjunctively and unknown or failed Constraints deny before effects.",
+      "aliases": ["ARCH-0.5-10.1-FAIL-CLOSED"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-DELEGATION-001",
+      "section": "11",
+      "summary": "Delegation changes the holder, preserves inherited target and Operation scope, appends Constraints, and records its parent and issuer.",
+      "aliases": ["ARCH-0.5-11-ATTENUATION"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-GENESIS-001",
+      "section": "12",
+      "summary": "Primordial authority and later Genesis occurrences are bounded, enumerable, and attributable to domain policy.",
+      "aliases": ["ARCH-0.5-12-GENESIS"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-EXEC-001",
+      "section": "13.5,13.6",
+      "summary": "The requested effect begins only after explicit target-side authority, Shape, and Constraint validation.",
+      "aliases": ["ARCH-0.5-13.5-EFFECT-GATE"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-EXEC-002",
+      "section": "13.5,28",
+      "summary": "Rejected attempts remain observable Executions while protected command payloads are excluded from denial audit records.",
+      "aliases": ["ARCH-0.5-13.5-REJECTED-EXECUTION"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-TIME-001",
+      "section": "10.3,13.3",
+      "summary": "Trusted target time is explicit, scoped to a time domain, monotonic where claimed, and distinct from attributable sender marks.",
+      "aliases": ["ARCH-0.5-13.3-TEMPORAL-MARK"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-EVENT-001",
+      "section": "14",
+      "summary": "Events are immutable assertions that preserve emitter attribution, causation, declared Shape, and original temporal claims.",
+      "aliases": ["ARCH-0.5-14-EVENT-ATTRIBUTION"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-OUTCOME-001",
+      "section": "14.2",
+      "summary": "An Outcome is a terminal Event for one identifiable Execution or activity, with distinct success result and failure detail Shapes.",
+      "aliases": ["ARCH-0.5-14.2-OUTCOME"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-SHAPE-001",
+      "section": "16.1,16.5",
+      "summary": "Shape identity is semantic and supports unit, scalar, record, sequence, choice, and opaque contracts without CLR assignability.",
+      "aliases": ["ARCH-0.5-16.1-SHAPE-IDENTITY"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-SHAPE-002",
+      "section": "16.2",
+      "summary": "Same-name Shape versions are monotonic and additive; breaking structure or meaning requires a new canonical name.",
+      "aliases": ["ARCH-0.5-16.2-ADDITIVE-VERSIONS"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-SHAPE-003",
+      "section": "16.3,16.4",
+      "summary": "Open Shapes accept valid authored Fragments through canonical projection, required Fragments fail closed, and closed Shapes reject attachment.",
+      "aliases": ["ARCH-0.5-16.4-PROJECTION"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-05-INTERCHANGE-001",
+      "section": "30",
+      "summary": "Cross-stack component evidence crosses an external boundary without sharing implementation-private runtime types or authority objects.",
+      "aliases": ["ARCH-0.5-30-INTERCHANGE"],
+      "appliesTo": ["Reference", "Minimal"]
+    }
+  ]
+}

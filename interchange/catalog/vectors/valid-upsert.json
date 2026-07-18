@@ -1,0 +1,1 @@
+{"protocolVersion":1,"kind":"invoke","requestId":"11111111-1111-1111-1111-111111111111","executionId":"21111111-1111-1111-1111-111111111111","operation":"interchange.tests.catalog.upsert-items","resource":{"provider":"catalog-sandbox","id":"shared"},"input":{"items":[{"id":"alpha","title":"Alpha","tags":["nested","repeated"]},{"id":"beta","title":"Beta","tags":["second"]}]}}

@@ -3,9 +3,11 @@
 ## Design Note: Composition and Components
 
 **Status:** Work-in-progress design note, version 0.1
-**Extracted from:** Brontide Architecture 0.6, §18.1; the architecture document retains a
-summary section under the same number. The Mediation section is new in this note, recorded
-per the 0.7 change plan.
+**Originally extracted from:** Brontide Architecture 0.6, §18.1
+
+**Current architecture context:** [Brontide Architecture 0.7](./Brontide-Architecture-0.7.md),
+§18.1; the current architecture document retains a summary section under the same number. The
+Mediation section is recorded as a non-ratified direction by the 0.7 change plan.
 **Scope:** Records design directions. Nothing in this note enlarges Brontide Base,
 ratifies the Component model or the Brontide Portable Binding, or defines conformance
 requirements.
@@ -57,7 +59,7 @@ changes a Component's private behaviour normally belongs in a Dataset. A Paramet
 when its value shapes architectural resolution or fills a resource slot intentionally left open by
 that resolution.
 
-Architecture 0.6 distinguishes two binding stages:
+Architecture 0.7 distinguishes two binding stages:
 
 - A **Composition Parameter** is bound while constructing a composition or generation. It MAY
   select or omit Components, requirements, Store roles, provider classes, or other declared
@@ -97,7 +99,7 @@ parameters:
 Parameter scope is lexical. A nested or composed definition does not capture a similarly named
 Parameter implicitly; forwarding or deriving a value is explicit. Whether one Parameter may
 declare, expand, or parameterise another definition, and the exact treatment of comments or
-annotations in a future definition language, remain open (§33). Architecture 0.6 admits
+annotations in a future definition language, remain open (§33). Architecture 0.7 admits
 Shape-composed Parameter values but does not ratify parameter-generating parameters.
 
 ## Attributes and recursive definition Constraints
@@ -452,7 +454,7 @@ Base or imply a universal runtime loader, mapper, or transport.
 
 ## Mediation (recorded direction)
 
-Router-shaped mediation appears repeatedly in Architecture 0.6: the Event mediator delegates
+Router-shaped mediation appears repeatedly in Architecture 0.7: the Event mediator delegates
 fan-out and fan-in under explicit rules with provenance preservation (§19.2); the
 traffic-management example hosts data-centre-scale Components (§18.1); the mediating Actor of
 §6.9 and the guardian of §26.1 front contested and bounded resources; and selection machinery

@@ -1,32 +1,35 @@
 # Brontide Reference Stack 0.2
 
-Brontide Reference Stack is the .NET 10 / Avalonia implementation and showcase of Brontide Architecture 0.5. The
-solution retains the functional scope of milestones M0 through M9 from the Architecture 0.4
-`Brontide-Reference-Stack-Implementation-Plan-0.2.md` and adds isolated experimental evidence for the Architecture
-0.5 composition guardrails. Current gate evidence, experiment limits, sideline-project status, and
-the one historical limitation are recorded in `docs/milestone-evidence.md`,
-`docs/implementation-findings.md`, and `docs/experimental-and-sideline-projects.md`.
+Brontide Reference Stack is the independent .NET 10 / Avalonia implementation and showcase. New
+architectural work targets
+[`Brontide-Architecture-0.7.md`](../Brontide-Architecture-0.7.md), a complete draft whose
+implementation evidence and ratification are still pending. The current executable evidence
+baseline remains Architecture 0.5: the solution retains milestones M0 through M9 from the older
+Implementation Plan 0.2 and isolated experimental evidence for its composition guardrails.
 
-Architecture 0.7 is now a complete, unratified draft. Reference delivery of its new requirements is
-planned in
+Reference delivery of the complete Architecture 0.7 change set is routed by
+[`docs/architecture-0.7-delivery.md`](./docs/architecture-0.7-delivery.md) and planned in
 [`Brontide-Reference-Stack-Implementation-Plan-0.3.md`](./Brontide-Reference-Stack-Implementation-Plan-0.3.md).
 Nothing in that plan upgrades the current Architecture 0.5 implementation claim until the planned
-evidence is accepted.
+evidence is accepted. Current gate evidence, experiment limits, sideline-project status, and the
+one historical limitation are recorded in `docs/milestone-evidence.md`,
+`docs/implementation-findings.md`, and `docs/experimental-and-sideline-projects.md`.
 
 The current repository-wide programme is
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../Brontide-Interchange-Implementation-Plan-0.1.md).
-Brontide Reference Stack now owns an independently implemented experimental host adapter and provider endpoint for
-the process-isolated Cooling proof. The retained tests execute a real Brontide Minimal Stack provider process; no
+Brontide Reference Stack now owns independently implemented experimental hosts and provider endpoints for the
+process-isolated Cooling and Catalog/resource proofs. The retained tests execute a real Brontide Minimal Stack provider process; no
 Brontide Reference Stack project references Brontide Minimal Stack assemblies or private types.
 
-Architecture 0.5 does not change Brontide Base and does not ratify Component descriptors, system
+Architecture 0.7 makes no change to Brontide Base and does not ratify Component descriptors, system
 service discovery, execution explanation, or optimisation-property vocabularies. Their Brontide Reference Stack
 realisations therefore live in `Brontide.Reference.Experimental.Composition`, not `Brontide.Reference.Core` or normative
 conformance.
 
 ## Build and test
 
-The repository does not pin an SDK version or feature band. Use an installed .NET 10 SDK;
+The repository deliberately has no `global.json`; [`../docs/sdk-policy.md`](../docs/sdk-policy.md)
+defines and continuously checks the supported .NET 10 SDK range and CI feature bands.
 `Directory.Build.props` selects C# 14.
 NuGet versions use Central Package Management in `Directory.Packages.props`; warnings are errors
 solution-wide.
@@ -47,6 +50,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build\verify-interchan
 ```
 
 See [`docs/integration-guide.md`](./docs/integration-guide.md) for the binding quick reference.
+See [`../docs/public-boundaries.md`](../docs/public-boundaries.md) for payload, timeout, cleanup,
+redaction, replay, and denial-of-service assumptions.
 
 Tests use NUnit 4, the NUnit adapter and analyzers, plus NSubstitute for collaboration boundaries.
 The Enrichment and Architecture 0.5 composition tests are marked `Experimental` and are deliberately

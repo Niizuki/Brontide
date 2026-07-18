@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-07-18",
+  "method": "Physical UTF-8 source lines as returned by PowerShell Get-Content; blank and comment lines are included.",
+  "generatedCodePolicy": "Neither experimental binding uses generated runtime code. Generated source lines are therefore zero; all listed source is independently authored manual code.",
+  "stacks": [
+    {
+      "name": "Reference",
+      "language": "C#",
+      "files": [
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/CoolingContract.cs", "manualSourceLines": 213 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/PortableContract.cs", "manualSourceLines": 325 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/PortableProtocol.cs", "manualSourceLines": 372 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/ShapeValueCodec.cs", "manualSourceLines": 215 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/PortableProviderEndpoint.cs", "manualSourceLines": 170 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/ReferenceCoolingBindingHost.cs", "manualSourceLines": 250 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/CatalogBinding.cs", "manualSourceLines": 674 }
+      ],
+      "manualSourceLines": 2219,
+      "generatedSourceLines": 0,
+      "totalSourceLines": 2219
+    },
+    {
+      "name": "Minimal",
+      "language": "F#",
+      "files": [
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Binding.fs", "manualSourceLines": 327 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/PortableBinding.fs", "manualSourceLines": 1092 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/CoolingBindingHost.fs", "manualSourceLines": 404 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/CatalogBinding.fs", "manualSourceLines": 673 }
+      ],
+      "manualSourceLines": 2496,
+      "generatedSourceLines": 0,
+      "totalSourceLines": 2496
+    }
+  ],
+  "buildContribution": {
+    "status": "method-recorded-not-gated",
+    "rationale": "An incremental project build is dominated by SDK startup, dependency state, and machine cache. A timing threshold would not be portable enough for CI; source cost is the stable comparison.",
+    "referenceCommand": "Measure-Command { dotnet build .\\Reference\\src\\Brontide.Reference.Experimental.Binding\\Brontide.Reference.Experimental.Binding.csproj --no-restore -nologo }",
+    "minimalCommand": "Measure-Command { dotnet build .\\Minimal\\src\\Brontide.Minimal.Binding\\Brontide.Minimal.Binding.fsproj --no-restore -nologo }"
+  }
+}

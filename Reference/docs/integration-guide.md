@@ -8,7 +8,10 @@
   JSON object per line.
 - Evaluate Brontide Reference Stack Actor, Capability, target, Operation, Shape, and Constraints before starting the
   provider process. Never serialize a Capability.
-- Treat protocol version 2, its manifest, and `ExperimentalBindingObservation` as experimental.
+- Treat Cooling protocol version 2, Catalog protocol version 1, their manifests, and all binding
+  observations as experimental.
+- Enforce the Catalog 65,536-byte line limit, exact field sets, process-local replay set, and
+  provider-scoped resource check before semantic mutation.
 
 ## Quick reference
 
@@ -20,6 +23,14 @@ from an already available host-local value.
 `Brontide.Reference.Interchange.Provider` serves the same contract using `BinaryCoolingComponent`. It maps
 enabled to native `Fan.SetSpeed(100)` and disabled to `Fan.Stop`. `--reject-protocol` and
 `--crash-after-activation` are deterministic test modes.
+
+With `--catalog`, the provider serves `upsert-items` followed by `find-items` against ephemeral
+provider-owned state. `CatalogProcessClient.RunScenarioAsync` verifies nested/repeated items,
+explicit missing-item failure, and normal shutdown in one process. A resource other than
+`catalog-sandbox/shared` returns `resource-refused`; the handle never conveys authority.
+
+See [`../../docs/public-boundaries.md`](../../docs/public-boundaries.md) for exact payload, timeout,
+cleanup, replay, redaction, and threat assumptions.
 
 Ordinary tests skip real Brontide Minimal Stack launch when `BRONTIDE_MINIMAL_PROVIDER` is absent. Use the root
 `build/verify-interchange.ps1` command for the required two-way process evidence.

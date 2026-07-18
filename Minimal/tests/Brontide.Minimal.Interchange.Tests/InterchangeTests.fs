@@ -2,6 +2,7 @@ namespace Brontide.Minimal.Interchange.Tests
 
 open System
 open System.IO
+open System.Text.Json
 open NUnit.Framework
 open Brontide.Minimal.Model
 open Brontide.Minimal.Kernel
@@ -159,10 +160,108 @@ type InterchangeTests() =
         Assert.That(PortableValueCodec.decode duplicate |> Result.isError, Is.True)
         Assert.That(PortableValueCodec.decode exceptionValue |> Result.isError, Is.True)
 
+    [<Test>]
+    member _.``neutral Catalog manifest has two operations and a resource boundary`` () =
+        let manifest =
+            File.ReadAllText(fixture [| "catalog"; "manifest-v1.json" |])
+            |> CatalogManifestCodec.decode
+
+        let roundTrip = CatalogManifestCodec.encode manifest |> CatalogManifestCodec.decode
+
+        Assert.That(roundTrip.Operations, Has.Length.EqualTo 2)
+        Assert.That(roundTrip.ResourceBoundary, Is.EqualTo "provider-scoped-resource-handle")
+        Assert.That(roundTrip.PayloadLimitBytes, Is.EqualTo 65536)
+
+    [<Test>]
+    member _.``Catalog endpoint rejects malformed unknown version replay and oversized vectors`` () =
+        let vector name =
+            File.ReadAllText(fixture [| "catalog"; "vectors"; name |]).TrimEnd()
+
+        let valid = vector "valid-upsert.json"
+        let lines =
+            [ vector "malformed.json"
+              vector "unknown-field.json"
+              vector "unknown-variant.json"
+              vector "version-skew.json"
+              valid
+              vector "replay.json"
+              "{\"padding\":\"" + String('x', CatalogContract.payloadLimitBytes + 1) + "\"}"
+              "{\"protocolVersion\":1,\"kind\":\"shutdown\",\"requestId\":\"91111111-1111-1111-1111-111111111111\"}" ]
+
+        use input = new StringReader(String.concat Environment.NewLine lines)
+        use output = new StringWriter()
+
+        let exitCode =
+            CatalogProviderEndpoint.runWith input output (fun invocation ->
+                CatalogProviderReply.stored invocation.Items.Length)
+
+        let responses =
+            output.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+
+        let codes =
+            responses
+            |> Array.choose (fun response ->
+                use document = JsonDocument.Parse response
+                let mutable code = Unchecked.defaultof<JsonElement>
+
+                if document.RootElement.TryGetProperty("code", &code) then
+                    code.GetString() |> Option.ofObj
+                else
+                    None)
+
+        Assert.That(exitCode, Is.Zero)
+        Assert.That(responses, Has.Length.EqualTo lines.Length)
+        Assert.That(codes, Does.Contain "invalid-message")
+        Assert.That(codes, Does.Contain "unknown-field")
+        Assert.That(codes, Does.Contain "unknown-operation")
+        Assert.That(codes, Does.Contain "unsupported-version")
+        Assert.That(codes, Does.Contain "replay")
+
 [<TestFixture>]
 [<Category("CrossProcess")>]
 type MinimalHostsReferenceTests() =
     let referenceProvider arguments = portableLaunch "BRONTIDE_REFERENCE_PROVIDER" arguments
+
+    [<Test>]
+    member _.``Catalog nested batch two operations and explicit failure cross the Reference process`` () =
+        let items: CatalogItem list =
+            [ { Id = "alpha"
+                Title = "Alpha"
+                Tags = [ "nested"; "repeated" ] }
+              { Id = "beta"
+                Title = "Beta"
+                Tags = [ "second" ] } ]
+
+        let result =
+            CatalogProcessClient.runScenario
+                (referenceProvider [ "--catalog" ])
+                (TimeSpan.FromSeconds 10.0)
+                { Provider = "catalog-sandbox"; Id = "shared" }
+                items
+
+        Assert.That(result.ProviderStarts, Is.EqualTo 1)
+        Assert.That(result.Upsert.Succeeded, Is.True)
+        Assert.That(result.Upsert.Stored, Is.EqualTo 2L)
+        Assert.That(result.Find.Succeeded, Is.True)
+        Assert.That(result.Find.Items, Has.Length.EqualTo 2)
+        Assert.That(result.Find.Items.Head.Tags = [ "nested"; "repeated" ], Is.True)
+        Assert.That(result.Missing.Succeeded, Is.False)
+        Assert.That(result.Missing.Code, Is.EqualTo(Some "missing-items"))
+        Assert.That(result.Missing.MissingIds = [ "missing-item" ], Is.True)
+
+    [<Test>]
+    member _.``Catalog provider refuses a resource handle outside its declared scope`` () =
+        let result =
+            CatalogProcessClient.runScenario
+                (referenceProvider [ "--catalog" ])
+                (TimeSpan.FromSeconds 10.0)
+                { Provider = "catalog-sandbox"; Id = "outside-scope" }
+                [ { Id = "alpha"; Title = "Alpha"; Tags = [ "scope-test" ] } ]
+
+        Assert.That(result.Upsert.Succeeded, Is.False)
+        Assert.That(result.Upsert.Code, Is.EqualTo(Some "resource-refused"))
+        Assert.That(result.Find.Succeeded, Is.False)
+        Assert.That(result.Find.Code, Is.EqualTo(Some "resource-refused"))
 
     [<Test>]
     member _.``compatible activation success forwarding provenance and host Enrichment are visible`` () =

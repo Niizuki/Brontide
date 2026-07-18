@@ -4,6 +4,11 @@
     <RootNamespace>Brontide.Minimal.Model</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Brontide.Minimal.Kernel</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Model.fs" />
   </ItemGroup>
 </Project>

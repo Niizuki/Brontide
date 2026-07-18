@@ -1,5 +1,11 @@
 # Brontide Reference Stack implementation findings
 
+These findings describe retained implementation evidence, including historical Architecture 0.5
+results. New architectural decisions come from
+[Architecture 0.7](../../Brontide-Architecture-0.7.md); planned Reference responses are classified
+in [`architecture-0.7-delivery.md`](./architecture-0.7-delivery.md). A historical finding is not
+silently upgraded to 0.7 evidence.
+
 ## Architecture 0.5 composition guardrails and evidence boundary
 
 - **Brontide sections:** 6.12–6.14, 18.2, 30.1, 32.2, 33
@@ -43,9 +49,9 @@
 - **Classification:** experimental cross-stack result
 - **Current disposition:** retain protocol version 2, its descriptor, and observation types in
   experimental binding projects. The Brontide Reference Stack binary-to-fan mapping is an explicit semantic Adapter;
-  it loses no information promised by the neutral binary contract. Propose no Architecture 0.6
-  ratification yet: Event/Flow, bulk resources, a machine boundary, and a third implementation are
-  still absent.
+  it loses no information promised by the neutral binary contract. Treat the result as input to
+  the Architecture 0.8 Portable Binding and Channel work, not as ratification: Event/Flow, bulk
+  resources, a machine boundary, and a third implementation are still absent.
 
 ## Targeted Enrichment failure attribution
 
@@ -116,3 +122,19 @@
 - **Classification:** plan gap
 - **Current disposition:** documented in `docs/milestone-evidence.md`; current behavioural gates are
   repeatable, but historical evidence is not claimed or fabricated.
+
+## Catalog/resource interchange widens experimental evidence
+
+- **Brontide section:** Architecture 0.7 §30 interchange challenge, retained Architecture 0.5
+  evidence baseline, and implementation correction plan
+- **Minimal scenario:** upsert nested/repeated catalog items, find them through a second Operation,
+  request a missing item, replay a request, cross an out-of-scope resource handle, and exceed the
+  protocol line limit against the independently implemented Minimal provider.
+- **Observed result:** both host directions preserve item order/tags, return shaped failure,
+  refuse the resource before mutation, and visibly reject malformed, unknown, version-skewed,
+  replayed, and over-limit input.
+- **Classification:** experimental cross-stack result
+- **Current disposition:** retain Catalog v1 beside Cooling v2 as a separate proof. The 65,536-byte
+  limit, depth 32, process-local replay window, ephemeral provider state, and lack of Capability
+  transfer are public limits. Do not infer persistence, network isolation, authority federation, or
+  portable-binding ratification.

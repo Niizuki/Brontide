@@ -3,6 +3,33 @@ using Brontide.Reference.Vocabularies.Cooling;
 
 var crashAfterActivation = args.Contains("--crash-after-activation", StringComparer.Ordinal);
 var rejectProtocol = args.Contains("--reject-protocol", StringComparer.Ordinal);
+if (args.Contains("--catalog", StringComparer.Ordinal))
+{
+    var catalog = new Dictionary<string, CatalogItem>(StringComparer.Ordinal);
+    var catalogEndpoint = new CatalogProviderEndpoint(invocation =>
+    {
+        if (invocation.Resource != new CatalogResourceReference("catalog-sandbox", "shared"))
+        {
+            return CatalogProviderReply.Failure("resource-refused");
+        }
+
+        if (invocation.Operation == CatalogContract.UpsertOperation)
+        {
+            foreach (var item in invocation.Items)
+            {
+                catalog[item.Id] = item;
+            }
+            return CatalogProviderReply.StoredItems(invocation.Items.Length);
+        }
+
+        var missing = invocation.ItemIds.Where(id => !catalog.ContainsKey(id)).ToArray();
+        return missing.Length == 0
+            ? CatalogProviderReply.FoundItems(invocation.ItemIds.Select(id => catalog[id]))
+            : CatalogProviderReply.Failure("missing-items", missing);
+    });
+    return await catalogEndpoint.RunAsync(Console.In, Console.Out, CancellationToken.None);
+}
+
 var cooling = BinaryCoolingComponent.Create();
 var endpoint = new PortableCoolingProviderEndpoint(
     "brontide-reference-csharp-provider",

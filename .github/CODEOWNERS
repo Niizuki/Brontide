@@ -1,0 +1,9 @@
+# The repository owner reviews architecture, authority, public API, and cross-stack changes.
+* @Niizuki
+
+/Brontide-Architecture-*.md @Niizuki
+/conformance/ @Niizuki
+/Reference/src/Brontide.Reference.Core/ @Niizuki
+/Minimal/src/Brontide.Minimal.Model/ @Niizuki
+/Minimal/src/Brontide.Minimal.Kernel/ @Niizuki
+/interchange/ @Niizuki

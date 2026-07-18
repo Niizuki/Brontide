@@ -63,6 +63,7 @@ type MinimalCoolingBindingHost(
     let requiredManifest = PortableContract.manifest "brontide-minimal-host-requirement" |> transform
     let scope = Guid.NewGuid()
     let name value = CanonicalName.create value
+    let timeDomain = TimeDomainReference.create (name "Brontide.Minimal.Interchange:HostClock")
     let shape reference = PortableContract.shapeReference reference
     let fragment reference = PortableContract.fragmentReference reference
     let operation = PortableContract.operationReference PortableContract.operation
@@ -88,7 +89,7 @@ type MinimalCoolingBindingHost(
         | Ok value -> value
         | Error message -> failwith message
 
-    let mutable initial = World.create scope
+    let mutable initial = World.create scope timeDomain
 
     let hostContextShape: ShapeReference =
         { Name = name "interchange.tests.cooling.host-context.fields"
@@ -188,30 +189,49 @@ type MinimalCoolingBindingHost(
                 [ { Constraint = definition.Reference
                     Parameters = TextValue "must fail closed" } ]
 
-    let operationDefinition: OperationDefinition =
-        { Reference = operation
-          Description = "Neutral binary Cooling through a foreign process provider"
-          CommandShape = commandShape
-          ResultShape = resultShape
-          Constraints = constraintRequirement }
+    let (authorizedActor, deniedActor, targetActor, capability), ready =
+        World.genesis
+            (name "Brontide.Minimal.Interchange:HostBootstrapPolicy")
+            { Milliseconds = clock.GetUtcNow().ToUnixTimeMilliseconds()
+              TimeDomain = timeDomain
+              UncertaintyMilliseconds = None }
+            (fun genesis world ->
+                let authorizedActor, world =
+                    Genesis.actor genesis (name "Brontide.Minimal.Interchange:AuthorizedRequester") world
 
-    do initial <- World.registerOperation operationDefinition initial |> get
+                let deniedActor, world =
+                    Genesis.actor genesis (name "Brontide.Minimal.Interchange:DeniedRequester") world
 
-    let authorizedActor, afterAuthorizedActor =
-        World.issueActor (name "brontide-minimal.interchange.authorized-requester") initial
+                let targetActor, world =
+                    Genesis.actor genesis (name "Brontide.Minimal.Interchange:CoolingTarget") world
 
-    let deniedActor, afterDeniedActor =
-        World.issueActor (name "brontide-minimal.interchange.denied-requester") afterAuthorizedActor
+                let operationDefinition: OperationDefinition =
+                    { Reference = operation
+                      Description = "Neutral binary Cooling through a foreign process provider"
+                      Target = targetActor.Reference
+                      CommandShape = commandShape
+                      ResultShape = resultShape
+                      Constraints = constraintRequirement }
 
-    let capability, afterCapability =
-        World.createCapability
-            (name "brontide-minimal.interchange.cooling-capability")
-            (Set.singleton operation)
-            None
-            afterDeniedActor
+                let world = World.registerOperation operationDefinition world |> get
+
+                let capability, world =
+                    Genesis.capability
+                        genesis
+                        (name "Brontide.Minimal.Interchange:CoolingCapability")
+                        authorizedActor.Reference
+                        targetActor.Reference
+                        (Set.singleton operation)
+                        []
+                        false
+                        world
+                    |> get
+
+                ((authorizedActor, deniedActor, targetActor, capability), world))
+            initial
         |> get
 
-    let mutable world = World.grant authorizedActor.Reference capability.Reference afterCapability |> get
+    let mutable world = ready
     let mutable providerStarts = 0
     let mutable currentIds: (BindingRequestId * BindingExecutionId * BindingOccurrenceId) option = None
     let mutable exchange: MinimalExchangeFacts option = None
@@ -238,10 +258,10 @@ type MinimalCoolingBindingHost(
                       ProviderProcessFailure = false
                       FailureDomain = "host-shape" }
 
-            Error message
+            Error(OperationFailure.withoutDetails message)
         | Ok() ->
             match currentIds with
-            | None -> Error "No Brontide.Minimal binding invocation is active."
+            | None -> Error(OperationFailure.withoutDetails "No Brontide.Minimal binding invocation is active.")
             | Some(requestId, executionId, occurrenceId) ->
                 providerStarts <- providerStarts + 1
 
@@ -275,7 +295,12 @@ type MinimalCoolingBindingHost(
                             [ name "brontide-minimal.interchange.provider", result.Provider ]
                         )
                     else
-                        Error(detailsMessage result.Value)
+                        Error(
+                            OperationFailure.withDetails
+                                detailsShape
+                                result.Value
+                                (detailsMessage result.Value)
+                        )
                 | Error failure ->
                     exchange <-
                         Some
@@ -288,7 +313,7 @@ type MinimalCoolingBindingHost(
                               ProviderProcessFailure = failure.ProviderProcessFailure
                               FailureDomain = failure.FailureDomain }
 
-                    Error failure.Message
+                    Error(OperationFailure.withoutDetails failure.Message)
 
     member _.AuthorizedActor = authorizedActor
     member _.DeniedActor = deniedActor
@@ -310,12 +335,17 @@ type MinimalCoolingBindingHost(
 
             try
                 let environment: Environment =
-                    { LogicalTime = started.UtcTicks
+                    { TrustedTime =
+                        { Milliseconds = started.ToUnixTimeMilliseconds()
+                          TimeDomain = timeDomain
+                          UncertaintyMilliseconds = None }
                       ConstraintEvaluators = Map.empty
                       Handlers = Map.ofList [ operation, handler ] }
 
                 let request: ExecutionRequest =
-                    { Actor = actor
+                    { Initiator = actor
+                      Target = targetActor.Reference
+                      PresentedCapability = capability.Reference
                       Operation = operation
                       Command = command
                       Occurrence = None

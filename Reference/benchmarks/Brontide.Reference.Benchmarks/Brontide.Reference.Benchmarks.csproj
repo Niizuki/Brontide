@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Brontide.Reference.Benchmarks</AssemblyName>
+    <RootNamespace>Brontide.Reference.Benchmarks</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Brontide.Reference.Core\Brontide.Reference.Core.csproj" />
+    <ProjectReference Include="..\..\src\Brontide.Reference.Experimental.Binding\Brontide.Reference.Experimental.Binding.csproj" />
+  </ItemGroup>
+</Project>

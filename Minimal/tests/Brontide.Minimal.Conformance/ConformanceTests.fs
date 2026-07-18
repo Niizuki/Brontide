@@ -1,6 +1,7 @@
 namespace Brontide.Minimal.Conformance
 
 open System
+open Microsoft.FSharp.Reflection
 open NUnit.Framework
 open Brontide.Minimal.Model
 open Brontide.Minimal.Kernel
@@ -12,126 +13,476 @@ module private Helpers =
         | Ok value -> value
         | Error message -> failwith message
 
-    let operationReference: OperationReference =
-        { Name = name "brontide-minimal.tests.echo"
-          Version = 1 }
+    let timeDomain = TimeDomainReference.create (name "Brontide.Minimal.Tests:LogicalTime")
+
+    let mark milliseconds =
+        { Milliseconds = milliseconds
+          TimeDomain = timeDomain
+          UncertaintyMilliseconds = None }
+
+    let echoOperation: OperationReference =
+        { Name = name "Brontide.Minimal.Tests:Echo" }
+
+    let otherOperation: OperationReference =
+        { Name = name "Brontide.Minimal.Tests:Other" }
+
+    let echoedEvent: EventReference =
+        { Name = name "Brontide.Minimal.Tests:Echoed" }
+
+    type Fixture =
+        { Holder: Actor
+          Stranger: Actor
+          Target: Actor
+          OtherTarget: Actor
+          Capability: Capability
+          Constraint: ConstraintDefinition
+          World: World }
 
     let prepareWorld () =
-        let initial = World.create(Guid.Parse "63a31bb8-c202-45ae-a44e-276c24677e87")
-        let actor, withActor = World.issueActor (name "brontide-minimal.tests.actor") initial
+        let initial = World.create (Guid.NewGuid()) timeDomain
 
-        let operation: OperationDefinition =
-            { Reference = operationReference
-              Description = "Echo a text value."
-              CommandShape = BuiltIn.textShape
-              ResultShape = BuiltIn.textShape
-              Constraints = [] }
-
-        let withOperation = World.registerOperation operation withActor |> get
-
-        let capability, withCapability =
-            World.createCapability
-                (name "brontide-minimal.tests.echo-capability")
-                (Set.singleton operationReference)
-                None
-                withOperation
+        let constraintDefinition, withConstraint =
+            World.registerConstraint
+                (name "Brontide.Minimal.Tests:PermitEcho")
+                BuiltIn.textShape
+                "Allows the requested Operation only when the evaluator accepts it."
+                initial
             |> get
 
-        let ready = World.grant actor.Reference capability.Reference withCapability |> get
-        actor, ready
+        let fixture, ready =
+            World.genesis
+                (name "Brontide.Minimal.Tests:BootstrapPolicy")
+                (mark 0L)
+                (fun genesis world ->
+                    let holder, world = Genesis.actor genesis (name "Brontide.Minimal.Tests:Holder") world
+                    let stranger, world = Genesis.actor genesis (name "Brontide.Minimal.Tests:Stranger") world
+                    let target, world = Genesis.actor genesis (name "Brontide.Minimal.Tests:Target") world
+                    let otherTarget, world = Genesis.actor genesis (name "Brontide.Minimal.Tests:OtherTarget") world
+
+                    let echo: OperationDefinition =
+                        { Reference = echoOperation
+                          Description = "Echo a text value."
+                          Target = target.Reference
+                          CommandShape = BuiltIn.textShape
+                          ResultShape = BuiltIn.textShape
+                          Constraints = [] }
+
+                    let other: OperationDefinition =
+                        { Reference = otherOperation
+                          Description = "A second Operation used for fail-closed tests."
+                          Target = target.Reference
+                          CommandShape = BuiltIn.textShape
+                          ResultShape = BuiltIn.textShape
+                          Constraints = [] }
+
+                    let world = World.registerOperation echo world |> get
+                    let world = World.registerOperation other world |> get
+
+                    let world =
+                        World.registerEvent
+                            { Reference = echoedEvent
+                              Description = "A target-attributed echo assertion."
+                              AssertionShape = BuiltIn.textShape }
+                            world
+                        |> get
+
+                    let capability, world =
+                        Genesis.capability
+                            genesis
+                            (name "Brontide.Minimal.Tests:EchoGrant")
+                            holder.Reference
+                            target.Reference
+                            (Set.singleton echoOperation)
+                            []
+                            true
+                            world
+                        |> get
+
+                    ({ Holder = holder
+                       Stranger = stranger
+                       Target = target
+                       OtherTarget = otherTarget
+                       Capability = capability
+                       Constraint = constraintDefinition
+                       World = world },
+                     world))
+                withConstraint
+            |> get
+
+        { fixture with World = ready }
+
+    let request _fixture initiator target capability operation command =
+        { Initiator = initiator
+          Target = target
+          PresentedCapability = capability
+          Operation = operation
+          Command = command
+          Occurrence = None
+          Context = Map.empty }
+
+    let environment milliseconds evaluators handler =
+        { TrustedTime = mark milliseconds
+          ConstraintEvaluators = evaluators
+          Handlers = Map.ofList [ echoOperation, handler; otherOperation, handler ] }
 
 open Helpers
 
 [<TestFixture>]
-type BaseConformance() =
+type BaseAuthorityConformance() =
     [<Test>]
-    member _.``canonical names reject ambiguous authored syntax`` () =
-        match CanonicalName.tryCreate ".brontide-minimal.bad" with
-        | Error message -> Assert.That(message, Is.EqualTo "A canonical name cannot start or end with a dot.")
-        | Ok _ -> Assert.Fail "The invalid name was accepted."
-
-        Assert.That(CanonicalName.tryCreate "brontide-minimal..bad" |> Result.isError, Is.True)
-        Assert.That(CanonicalName.tryCreate "brontide-minimal.good-name_1" |> Result.isOk, Is.True)
-
-    [<Test>]
-    member _.``the same world and request produce the same transition`` () =
-        let actor, world = prepareWorld ()
-
-        let request =
-            { Actor = actor.Reference
-              Operation = operationReference
-              Command = TextValue "hello"
-              Occurrence = None
-              Context = Map.empty }
-
-        let environment =
-            { LogicalTime = 42L
-              ConstraintEvaluators = Map.empty
-              Handlers =
-                Map.ofList
-                    [ operationReference,
-                      fun execution ->
-                          Ok(
-                              execution.Command,
-                              [],
-                              [ name "brontide-minimal.provenance.echoed", "hello" ]
-                          ) ] }
-
-        let first = World.step environment world request
-        let second = World.step environment world request
-
-        Assert.That(first.Outcome.Execution.Value, Is.EqualTo second.Outcome.Execution.Value)
-        Assert.That(first.Outcome.Status, Is.EqualTo second.Outcome.Status)
-
-        match first.Outcome.Result, second.Outcome.Result with
-        | Some(TextValue firstValue), Some(TextValue secondValue) ->
-            Assert.That(firstValue, Is.EqualTo secondValue)
-        | _ -> Assert.Fail "The deterministic echo result was not text."
-
-        Assert.That(first.Provenance.Head.Object, Is.EqualTo second.Provenance.Head.Object)
-        Assert.That(first.Outcome.Status, Is.EqualTo Succeeded)
+    member _.``BR_05_NAME_001 canonical names parse authored qualification and reject ambiguity`` () =
+        Assert.That(CanonicalName.tryCreate "Logitech.MX:Input.Scroll.SmartShift" |> Result.isOk, Is.True)
+        Assert.That(CanonicalName.tryCreate "Brontide.Minimal.Tests:Good_Name-1" |> Result.isOk, Is.True)
+        Assert.That(CanonicalName.tryCreate ".bad" |> Result.isError, Is.True)
+        Assert.That(CanonicalName.tryCreate "authority::concept" |> Result.isError, Is.True)
+        Assert.That(CanonicalName.tryCreate "authority:concept:extra" |> Result.isError, Is.True)
 
     [<Test>]
-    member _.``denial happens before a handler can produce effects`` () =
-        let actor, world = prepareWorld ()
-        let stranger, worldWithStranger = World.issueActor (name "brontide-minimal.tests.stranger") world
+    member _.``BR_05_NAME_002 only Shapes and Fragments carry structural versions`` () =
+        let operationFields = FSharpType.GetRecordFields typeof<OperationReference> |> Array.map _.Name
+        let eventFields = FSharpType.GetRecordFields typeof<EventReference> |> Array.map _.Name
+        let shapeFields = FSharpType.GetRecordFields typeof<ShapeReference> |> Array.map _.Name
+
+        Assert.That((operationFields = [| "Name" |]), Is.True)
+        Assert.That((eventFields = [| "Name" |]), Is.True)
+        Assert.That(shapeFields, Does.Contain "Version")
+
+    [<Test>]
+    member _.``BR_05_AUTH_001 foreign issued references cannot forge local authority`` () =
+        let fixture = prepareWorld ()
+        let foreign = prepareWorld ()
         let mutable invoked = false
 
-        let request =
-            { Actor = stranger.Reference
-              Operation = operationReference
-              Command = TextValue "forbidden"
-              Occurrence = None
-              Context = Map.empty }
+        let execution =
+            World.step
+                (environment 1L Map.empty (fun value -> invoked <- true; Ok(value.Command, [], [])))
+                fixture.World
+                (request
+                    fixture
+                    fixture.Holder.Reference
+                    fixture.Target.Reference
+                    foreign.Capability.Reference
+                    echoOperation
+                    (TextValue "forged"))
 
-        let environment =
-            { LogicalTime = 0L
-              ConstraintEvaluators = Map.empty
-              Handlers =
-                Map.ofList
-                    [ operationReference,
-                      fun execution ->
-                          invoked <- true
-                          Ok(execution.Command, [], []) ] }
-
-        let result = World.step environment worldWithStranger request
-
-        Assert.That(result.Outcome.Status, Is.EqualTo Denied)
+        Assert.That(execution.Outcome.Status, Is.EqualTo Denied)
+        Assert.That(execution.Outcome.Reason.Value, Does.Contain "not issued")
         Assert.That(invoked, Is.False)
-        Assert.That(result.EmittedEvents, Is.Empty)
-        Assert.That(actor.Reference, Is.Not.EqualTo stranger.Reference)
 
     [<Test>]
-    member _.``shape versions are additive and projections are explicit`` () =
-        let world = World.create(Guid.Parse "63a31bb8-c202-45ae-a44e-276c24677e87")
+    member _.``BR_05_AUTH_002 wrong holder is denied before effects and recorded without payload`` () =
+        let fixture = prepareWorld ()
+        let mutable invoked = false
+
+        let execution =
+            World.step
+                (environment 1L Map.empty (fun value -> invoked <- true; Ok(value.Command, [], [])))
+                fixture.World
+                (request
+                    fixture
+                    fixture.Stranger.Reference
+                    fixture.Target.Reference
+                    fixture.Capability.Reference
+                    echoOperation
+                    (TextValue "protected-payload"))
+
+        let audit = World.executions execution.World |> List.exactlyOne
+        let auditFields = FSharpType.GetRecordFields typeof<ExecutionAudit> |> Array.map _.Name
+
+        Assert.That(execution.Outcome.Status, Is.EqualTo Denied)
+        Assert.That(execution.Outcome.Reason.Value, Does.Contain "initiating Actor")
+        Assert.That(invoked, Is.False)
+        Assert.That(audit.Status, Is.EqualTo Denied)
+        Assert.That(auditFields, Does.Not.Contain "Command")
+        Assert.That(auditFields, Does.Not.Contain "Payload")
+
+    [<Test>]
+    member _.``BR_05_AUTH_003 wrong target is denied before effects`` () =
+        let fixture = prepareWorld ()
+        let mutable invoked = false
+
+        let execution =
+            World.step
+                (environment 1L Map.empty (fun value -> invoked <- true; Ok(value.Command, [], [])))
+                fixture.World
+                (request
+                    fixture
+                    fixture.Holder.Reference
+                    fixture.OtherTarget.Reference
+                    fixture.Capability.Reference
+                    echoOperation
+                    (TextValue "wrong target"))
+
+        Assert.That(execution.Outcome.Status, Is.EqualTo Denied)
+        Assert.That(invoked, Is.False)
+
+    [<Test>]
+    member _.``BR_05_AUTH_004 wrong Operation is denied before effects`` () =
+        let fixture = prepareWorld ()
+        let mutable invoked = false
+
+        let execution =
+            World.step
+                (environment 1L Map.empty (fun value -> invoked <- true; Ok(value.Command, [], [])))
+                fixture.World
+                (request
+                    fixture
+                    fixture.Holder.Reference
+                    fixture.Target.Reference
+                    fixture.Capability.Reference
+                    otherOperation
+                    (TextValue "wrong operation"))
+
+        Assert.That(execution.Outcome.Status, Is.EqualTo Denied)
+        Assert.That(execution.Outcome.Reason.Value, Does.Contain "does not authorize")
+        Assert.That(invoked, Is.False)
+
+    [<Test>]
+    member _.``BR_05_AUTH_005 failed Capability Constraint denies before effects`` () =
+        let fixture = prepareWorld ()
+
+        let child, delegatedWorld =
+            World.delegateCapability
+                (name "Brontide.Minimal.Tests:ConstrainedGrant")
+                fixture.Holder.Reference
+                fixture.Stranger.Reference
+                fixture.Capability.Reference
+                [ { Constraint = fixture.Constraint.Reference
+                    Parameters = TextValue "echo-only" } ]
+                fixture.World
+            |> get
+
+        let mutable invoked = false
+        let evaluators =
+            Map.ofList [ fixture.Constraint.Reference, fun _ _ -> Error "The Capability Constraint rejected the request." ]
+
+        let execution =
+            World.step
+                (environment 1L evaluators (fun value -> invoked <- true; Ok(value.Command, [], [])))
+                delegatedWorld
+                (request
+                    fixture
+                    fixture.Stranger.Reference
+                    fixture.Target.Reference
+                    child.Reference
+                    echoOperation
+                    (TextValue "constrained"))
+
+        Assert.That(execution.Outcome.Status, Is.EqualTo Denied)
+        Assert.That(execution.Outcome.Reason.Value, Does.Contain "Constraint rejected")
+        Assert.That(invoked, Is.False)
+
+    [<Test>]
+    member _.``BR_05_DELEGATION_001 Delegation preserves scope and appends auditable provenance`` () =
+        let fixture = prepareWorld ()
+
+        let child, delegatedWorld =
+            World.delegateCapability
+                (name "Brontide.Minimal.Tests:DerivedGrant")
+                fixture.Holder.Reference
+                fixture.Stranger.Reference
+                fixture.Capability.Reference
+                [ { Constraint = fixture.Constraint.Reference
+                    Parameters = TextValue "echo-only" } ]
+                fixture.World
+            |> get
+
+        let wideningAttempt =
+            World.step
+                (environment 1L Map.empty (fun value -> Ok(value.Command, [], [])))
+                delegatedWorld
+                (request
+                    fixture
+                    fixture.Stranger.Reference
+                    fixture.Target.Reference
+                    child.Reference
+                    otherOperation
+                    (TextValue "widen"))
+
+        Assert.That(child.Parent, Is.EqualTo(Some fixture.Capability.Reference))
+        Assert.That(child.IssuedBy, Is.EqualTo(Some fixture.Holder.Reference))
+        Assert.That(child.Holder, Is.EqualTo fixture.Stranger.Reference)
+        Assert.That(child.Target, Is.EqualTo fixture.Capability.Target)
+        Assert.That(child.Operations = fixture.Capability.Operations, Is.True)
+        Assert.That(List.length child.AddedConstraints, Is.EqualTo 1)
+        Assert.That(wideningAttempt.Outcome.Status, Is.EqualTo Denied)
+
+    [<Test>]
+    member _.``BR_05_EXEC_001 explicit issue delegate execute and Event attribution path succeeds`` () =
+        let fixture = prepareWorld ()
+
+        let child, delegatedWorld =
+            World.delegateCapability
+                (name "Brontide.Minimal.Tests:ExecutableDerivedGrant")
+                fixture.Holder.Reference
+                fixture.Stranger.Reference
+                fixture.Capability.Reference
+                [ { Constraint = fixture.Constraint.Reference
+                    Parameters = TextValue "echo-only" } ]
+                fixture.World
+            |> get
+
+        let evaluators = Map.ofList [ fixture.Constraint.Reference, fun _ _ -> Ok() ]
+
+        let execution =
+            World.step
+                (environment
+                    1L
+                    evaluators
+                    (fun value ->
+                        Ok(
+                            value.Command,
+                            [ { Reference = echoedEvent
+                                Emitter = value.Target
+                                Payload = value.Command
+                                OccurredAt = Some(mark 1L) } ],
+                            [ name "Brontide.Minimal.Tests:EchoedBy", "target" ]
+                        )))
+                delegatedWorld
+                (request
+                    fixture
+                    fixture.Stranger.Reference
+                    fixture.Target.Reference
+                    child.Reference
+                    echoOperation
+                    (TextValue "hello"))
+
+        let emitted = execution.EmittedEvents |> List.find (fun item -> item.Reference = echoedEvent)
+        Assert.That(execution.Outcome.Status, Is.EqualTo Succeeded)
+        Assert.That(emitted.Emitter, Is.EqualTo fixture.Target.Reference)
+        Assert.That(emitted.CausedBy, Is.EqualTo execution.Outcome.Execution)
+        Assert.That(emitted.EmittedAt, Is.EqualTo(mark 1L))
+        Assert.That(World.events execution.World |> List.length, Is.EqualTo 2)
+        Assert.That(World.executions execution.World |> List.length, Is.EqualTo 1)
+
+    [<Test>]
+    member _.``BR_05_OUTCOME_001 Outcome composes Event and keeps failure details separate from results`` () =
+        let fixture = prepareWorld ()
+        let failureDetails = TextValue "E_TEST"
+
+        let execution =
+            World.step
+                (environment
+                    1L
+                    Map.empty
+                    (fun _ ->
+                        Error(
+                            OperationFailure.withDetails
+                                BuiltIn.textShape
+                                failureDetails
+                                "expected failure"
+                        )))
+                fixture.World
+                (request
+                    fixture
+                    fixture.Holder.Reference
+                    fixture.Target.Reference
+                    fixture.Capability.Reference
+                    echoOperation
+                    (TextValue "fail"))
+
+        Assert.That(execution.Outcome.Status, Is.EqualTo Failed)
+        Assert.That(execution.Outcome.TerminalFor, Is.EqualTo execution.Outcome.Execution)
+        Assert.That(execution.Outcome.Event.Reference, Is.EqualTo BuiltIn.executionOutcomeEvent)
+        Assert.That(execution.Outcome.Event.Emitter, Is.EqualTo fixture.Target.Reference)
+        Assert.That(execution.Outcome.Result.IsNone, Is.True)
+        Assert.That(execution.Outcome.DetailsShape, Is.EqualTo(Some BuiltIn.textShape))
+        Assert.That(execution.Outcome.Details, Is.EqualTo(Some failureDetails))
+        Assert.That(execution.Outcome.Event.Payload, Is.EqualTo failureDetails)
+
+    [<Test>]
+    member _.``BR_05_EXEC_002 the same explicit request and environment produce the same transition`` () =
+        let fixture = prepareWorld ()
+        let executionRequest =
+            request
+                fixture
+                fixture.Holder.Reference
+                fixture.Target.Reference
+                fixture.Capability.Reference
+                echoOperation
+                (TextValue "deterministic")
+
+        let executionEnvironment =
+            environment 1L Map.empty (fun value -> Ok(value.Command, [], []))
+
+        let first = World.step executionEnvironment fixture.World executionRequest
+        let second = World.step executionEnvironment fixture.World executionRequest
+
+        Assert.That(first.Outcome.Execution, Is.EqualTo second.Outcome.Execution)
+        Assert.That(first.Outcome, Is.EqualTo second.Outcome)
+        Assert.That(World.executions first.World = World.executions second.World, Is.True)
+
+    [<Test>]
+    member _.``BR_05_GENESIS_001 Genesis is enumerable attributable and cannot be reused`` () =
+        let initial = World.create (Guid.NewGuid()) timeDomain
+        let mutable captured = Unchecked.defaultof<GenesisContext>
+
+        let actor, ready =
+            World.genesis
+                (name "Brontide.Minimal.Tests:AttachmentPolicy")
+                (mark 5L)
+                (fun genesis world ->
+                    captured <- genesis
+                    Genesis.actor genesis (name "Brontide.Minimal.Tests:AttachedActor") world)
+                initial
+            |> get
+
+        let occurrence = World.genesisOccurrences ready |> List.exactlyOne
+
+        Assert.That(occurrence.Policy, Is.EqualTo(name "Brontide.Minimal.Tests:AttachmentPolicy"))
+        Assert.That(occurrence.IntroducedActors = [ actor.Reference ], Is.True)
+        Assert.Throws<InvalidOperationException>(
+            Action(fun () -> Genesis.actor captured (name "Brontide.Minimal.Tests:LateActor") ready |> ignore)
+        )
+        |> ignore
+
+    [<Test>]
+    member _.``BR_05_TIME_001 trusted time is explicit monotonic and target scoped`` () =
+        let fixture = prepareWorld ()
+        let executionRequest =
+            request
+                fixture
+                fixture.Holder.Reference
+                fixture.Target.Reference
+                fixture.Capability.Reference
+                echoOperation
+                (TextValue "time")
+
+        let first =
+            World.step (environment 10L Map.empty (fun value -> Ok(value.Command, [], []))) fixture.World executionRequest
+
+        let regressed =
+            World.step (environment 9L Map.empty (fun value -> Ok(value.Command, [], []))) first.World executionRequest
+
+        let foreignEnvironment =
+            { TrustedTime =
+                { Milliseconds = 11L
+                  TimeDomain = TimeDomainReference.create (name "Brontide.Minimal.Tests:ForeignClock")
+                  UncertaintyMilliseconds = None }
+              ConstraintEvaluators = Map.empty
+              Handlers = Map.empty }
+
+        let foreignClock = World.step foreignEnvironment first.World executionRequest
+
+        Assert.That(first.Outcome.Status, Is.EqualTo Succeeded)
+        Assert.That(regressed.Outcome.Status, Is.EqualTo Denied)
+        Assert.That(regressed.Outcome.Reason.Value, Does.Contain "backwards")
+        Assert.That(foreignClock.Outcome.Status, Is.EqualTo Denied)
+        Assert.That(foreignClock.Outcome.Reason.Value, Does.Contain "trusted clock")
+
+[<TestFixture>]
+type ShapeConformance() =
+    [<Test>]
+    member _.``BR_05_SHAPE_001 versions are additive and projections are explicit`` () =
+        let world = World.create (Guid.NewGuid()) timeDomain
 
         let v1: ShapeReference =
-            { Name = name "brontide-minimal.tests.sample"
+            { Name = name "Brontide.Minimal.Tests:Sample"
               Version = 1 }
 
         let v2 = { v1 with Version = 2 }
 
-        let definition (reference: ShapeReference) (fields: RecordField list): ShapeDefinition =
+        let definition reference fields =
             { Reference = reference
               Description = "Projection test"
               Body = RecordShape fields
@@ -144,78 +495,50 @@ type BaseConformance() =
               Required = required }
 
         let withV1 = World.registerShape (definition v1 [ field "name" true ]) world |> get
-
-        let withV2 =
-            World.registerShape (definition v2 [ field "name" true; field "note" false ]) withV1
-            |> get
-
-        let value =
-            RecordValue(Map.ofList [ "name", TextValue "sample"; "note", TextValue "new" ], Map.empty)
-
+        let withV2 = World.registerShape (definition v2 [ field "name" true; field "note" false ]) withV1 |> get
+        let invalidV2 = definition { v1 with Version = 3 } [ field "name" false ]
+        let value = RecordValue(Map.ofList [ "name", TextValue "sample"; "note", TextValue "new" ], Map.empty)
         let projected = World.projectRecord v1 value withV2 |> get
 
         Assert.That(projected, Is.EqualTo(RecordValue(Map.ofList [ "name", TextValue "sample" ], Map.empty)))
-        Assert.That(World.registerShape (definition v1 []) withV2 |> Result.isError, Is.True)
+        Assert.That(World.registerShape invalidV2 withV2 |> Result.isError, Is.True)
 
     [<Test>]
-    member _.``open Velocity accepts and canonically projects an authored DirectionalVelocity Fragment`` () =
-        let world = World.create(Guid.Parse "718b889d-7723-4cb7-a7a3-b8d777242530")
+    member _.``BR_05_SHAPE_002 open Velocity projects an authored DirectionalVelocity Fragment`` () =
+        let world = World.create (Guid.NewGuid()) timeDomain
+        let shape value version: ShapeReference = { Name = name value; Version = version }
+        let velocity = shape "Velocity" 1
+        let direction = shape "Bob:Direction" 1
+        let fragmentShape = shape "Bob:DirectionalVelocity.Fields" 1
+        let directional: FragmentReference = { Name = name "Bob:DirectionalVelocity"; Version = 1 }
 
-        let velocity: ShapeReference =
-            { Name = name "Velocity"
-              Version = 1 }
-
-        let direction: ShapeReference =
-            { Name = name "Bob.Direction"
-              Version = 1 }
-
-        let fragmentShape: ShapeReference =
-            { Name = name "Bob.DirectionalVelocity.Fields"
-              Version = 1 }
-
-        let directional: FragmentReference =
-            { Name = name "Bob.DirectionalVelocity"
-              Version = 1 }
-
-        let velocityDefinition: ShapeDefinition =
-            { Reference = velocity
-              Description = "Open velocity Shape"
-              Body =
-                RecordShape
-                    [ { Name = "speed"
-                        Shape = BuiltIn.integerShape
-                        Required = true } ]
+        let shapeDefinition reference body isOpen =
+            { Reference = reference
+              Description = "Shape conformance fixture"
+              Body = body
               AcceptedFragments = Set.empty
-              IsOpenToFragments = true }
-
-        let directionDefinition: ShapeDefinition =
-            { Reference = direction
-              Description = "Direction"
-              Body = ScalarShape Text
-              AcceptedFragments = Set.empty
-              IsOpenToFragments = false }
-
-        let fragmentShapeDefinition: ShapeDefinition =
-            { Reference = fragmentShape
-              Description = "Directional fields"
-              Body =
-                RecordShape
-                    [ { Name = "direction"
-                        Shape = direction
-                        Required = true } ]
-              AcceptedFragments = Set.empty
-              IsOpenToFragments = false }
-
-        let withVelocity = World.registerShape velocityDefinition world |> get
-        let withDirection = World.registerShape directionDefinition withVelocity |> get
-        let withFragmentShape = World.registerShape fragmentShapeDefinition withDirection |> get
+              IsOpenToFragments = isOpen }
 
         let ready =
-            World.registerFragment
+            world
+            |> World.registerShape
+                (shapeDefinition
+                    velocity
+                    (RecordShape [ { Name = "speed"; Shape = BuiltIn.integerShape; Required = true } ])
+                    true)
+            |> get
+            |> World.registerShape (shapeDefinition direction (ScalarShape Text) false)
+            |> get
+            |> World.registerShape
+                (shapeDefinition
+                    fragmentShape
+                    (RecordShape [ { Name = "direction"; Shape = direction; Required = true } ])
+                    false)
+            |> get
+            |> World.registerFragment
                 { Reference = directional
                   Description = "Bob's authored velocity direction"
                   Shape = fragmentShape }
-                withFragmentShape
             |> get
 
         let composed =
@@ -227,42 +550,9 @@ type BaseConformance() =
             )
 
         let canonical = World.projectRecord velocity composed ready |> get
-        let required =
-            World.projectRecordWithFragments velocity (Set.singleton directional) composed ready
-            |> get
-
+        let required = World.projectRecordWithFragments velocity (Set.singleton directional) composed ready |> get
         let baseOnly = RecordValue(Map.ofList [ "speed", IntegerValue 12L ], Map.empty)
 
-        Assert.That(World.validateValue velocity composed ready |> Result.isOk, Is.True)
         Assert.That(canonical, Is.EqualTo(RecordValue(Map.ofList [ "speed", IntegerValue 12L ], Map.empty)))
         Assert.That(required, Is.EqualTo composed)
-        Assert.That(
-            World.validateContract velocity (Set.singleton directional) baseOnly ready
-            |> Result.isError,
-            Is.True
-        )
-
-    [<Test>]
-    member _.``delegated capabilities cannot broaden authority`` () =
-        let _, world = prepareWorld ()
-
-        let parentCapability, withParent =
-            World.createCapability
-                (name "brontide-minimal.tests.parent")
-                (Set.singleton operationReference)
-                None
-                world
-            |> get
-
-        let unknownOperation: OperationReference =
-            { Name = name "brontide-minimal.tests.unknown"
-              Version = 1 }
-
-        let broadened =
-            World.createCapability
-                (name "brontide-minimal.tests.broadened")
-                (Set.ofList [ operationReference; unknownOperation ])
-                (Some parentCapability.Reference)
-                withParent
-
-        Assert.That(broadened |> Result.isError, Is.True)
+        Assert.That(World.validateContract velocity (Set.singleton directional) baseOnly ready |> Result.isError, Is.True)

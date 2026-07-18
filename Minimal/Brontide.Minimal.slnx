@@ -19,4 +19,7 @@
     <Project Path="tests/Brontide.Minimal.Kernel.Tests/Brontide.Minimal.Kernel.Tests.fsproj" />
     <Project Path="tests/Brontide.Minimal.Interchange.Tests/Brontide.Minimal.Interchange.Tests.fsproj" />
   </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Brontide.Minimal.Benchmarks/Brontide.Minimal.Benchmarks.fsproj" />
+  </Folder>
 </Solution>

@@ -13,19 +13,24 @@ module CanonicalName =
         let validCharacter character =
             Char.IsLetterOrDigit character || character = '-' || character = '_'
 
+        let validPath (path: string) =
+            not (String.IsNullOrWhiteSpace path)
+            && not (path.StartsWith('.') || path.EndsWith('.'))
+            && (path.Split('.')
+                |> Array.forall (fun segment ->
+                    not (String.IsNullOrWhiteSpace segment)
+                    && (segment |> Seq.forall validCharacter)))
+
         if String.IsNullOrWhiteSpace value then
             Error "A canonical name cannot be empty."
-        elif value.StartsWith('.') || value.EndsWith('.') then
-            Error "A canonical name cannot start or end with a dot."
-        elif
-            value.Split('.')
-            |> Array.exists (fun segment ->
-                String.IsNullOrWhiteSpace segment
-                || not (segment |> Seq.forall validCharacter))
-        then
-            Error "A canonical name contains an empty or invalid segment."
         else
-            Ok(CanonicalName value)
+            match value.Split(':') with
+            | [| conceptPath |] when validPath conceptPath -> Ok(CanonicalName value)
+            | [| authorityPath; conceptPath |] when validPath authorityPath && validPath conceptPath ->
+                Ok(CanonicalName value)
+            | _ ->
+                Error
+                    "A canonical name must be ConceptPath or AuthorityPath:ConceptPath with valid dot-separated segments."
 
     let create value =
         match tryCreate value with
@@ -33,22 +38,58 @@ module CanonicalName =
         | Error message -> invalidArg (nameof value) message
 
 [<Struct; StructuralEquality; StructuralComparison>]
-type ActorReference = { Scope: Guid; Value: int64 }
+type ActorReference = private ActorReference of scope: Guid * value: int64
+
+[<RequireQualifiedAccess>]
+module ActorReference =
+    let internal issue scope value = ActorReference(scope, value)
+    let scope (ActorReference(scope, _)) = scope
+    let value (ActorReference(_, value)) = value
 
 [<Struct; StructuralEquality; StructuralComparison>]
-type CapabilityReference = { Scope: Guid; Value: int64 }
+type CapabilityReference = private CapabilityReference of scope: Guid * value: int64
+
+[<RequireQualifiedAccess>]
+module CapabilityReference =
+    let internal issue scope value = CapabilityReference(scope, value)
+    let scope (CapabilityReference(scope, _)) = scope
+    let value (CapabilityReference(_, value)) = value
 
 [<Struct; StructuralEquality; StructuralComparison>]
-type ConstraintReference = { Scope: Guid; Value: int64 }
+type ConstraintReference = private ConstraintReference of scope: Guid * value: int64
+
+[<RequireQualifiedAccess>]
+module ConstraintReference =
+    let internal issue scope value = ConstraintReference(scope, value)
+    let scope (ConstraintReference(scope, _)) = scope
+    let value (ConstraintReference(_, value)) = value
 
 [<Struct; StructuralEquality; StructuralComparison>]
-type ExecutionReference = { Scope: Guid; Value: int64 }
+type ExecutionReference = private ExecutionReference of scope: Guid * value: int64
+
+[<RequireQualifiedAccess>]
+module ExecutionReference =
+    let internal issue scope value = ExecutionReference(scope, value)
+    let scope (ExecutionReference(scope, _)) = scope
+    let value (ExecutionReference(_, value)) = value
 
 [<Struct; StructuralEquality; StructuralComparison>]
-type OccurrenceReference = { Scope: Guid; Value: int64 }
+type OccurrenceReference = private OccurrenceReference of scope: Guid * value: int64
+
+[<RequireQualifiedAccess>]
+module OccurrenceReference =
+    let internal issue scope value = OccurrenceReference(scope, value)
+    let scope (OccurrenceReference(scope, _)) = scope
+    let value (OccurrenceReference(_, value)) = value
 
 [<Struct; StructuralEquality; StructuralComparison>]
-type ActivityReference = { Scope: Guid; Value: int64 }
+type ActivityReference = private ActivityReference of scope: Guid * value: int64
+
+[<RequireQualifiedAccess>]
+module ActivityReference =
+    let internal issue scope value = ActivityReference(scope, value)
+    let scope (ActivityReference(scope, _)) = scope
+    let value (ActivityReference(_, value)) = value
 
 [<StructuralEquality; StructuralComparison>]
 type ShapeReference =
@@ -62,13 +103,11 @@ type FragmentReference =
 
 [<StructuralEquality; StructuralComparison>]
 type OperationReference =
-    { Name: CanonicalName
-      Version: int }
+    { Name: CanonicalName }
 
 [<StructuralEquality; StructuralComparison>]
 type EventReference =
-    { Name: CanonicalName
-      Version: int }
+    { Name: CanonicalName }
 
 type ScalarKind =
     | Boolean
@@ -126,6 +165,7 @@ type ConstraintDefinition =
 type OperationDefinition =
     { Reference: OperationReference
       Description: string
+      Target: ActorReference
       CommandShape: ShapeReference
       ResultShape: ShapeReference
       Constraints: ConstraintRequirement list }
@@ -133,41 +173,93 @@ type OperationDefinition =
 type Capability =
     { Reference: CapabilityReference
       Name: CanonicalName
+      Holder: ActorReference
+      Target: ActorReference
       Operations: Set<OperationReference>
-      Parent: CapabilityReference option }
+      AddedConstraints: ConstraintRequirement list
+      Parent: CapabilityReference option
+      IssuedBy: ActorReference option
+      DelegationAllowed: bool }
 
 type Actor =
     { Reference: ActorReference
       Name: CanonicalName }
 
 type ExecutionRequest =
-    { Actor: ActorReference
+    { Initiator: ActorReference
+      Target: ActorReference
+      PresentedCapability: CapabilityReference
       Operation: OperationReference
       Command: ShapeValue
       Occurrence: OccurrenceReference option
       Context: Map<string, string> }
 
+[<StructuralEquality; StructuralComparison>]
+type TimeDomainReference = private TimeDomainReference of CanonicalName
+
+[<RequireQualifiedAccess>]
+module TimeDomainReference =
+    let create name = TimeDomainReference name
+    let name (TimeDomainReference name) = name
+
+type TemporalMark =
+    { Milliseconds: int64
+      TimeDomain: TimeDomainReference
+      UncertaintyMilliseconds: int64 option }
 type ExecutionStatus =
     | Succeeded
     | Denied
     | Failed
 
-type ExecutionOutcome =
+type ExecutionAudit =
     { Execution: ExecutionReference
+      Initiator: ActorReference
+      Target: ActorReference
+      PresentedCapability: CapabilityReference
       Operation: OperationReference
       Status: ExecutionStatus
-      Result: ShapeValue option
-      Reason: string option }
+      Reason: string option
+      Occurrence: OccurrenceReference option
+      RecordedAt: TemporalMark }
+
+type EventDefinition =
+    { Reference: EventReference
+      Description: string
+      AssertionShape: ShapeReference }
 
 type Event =
     { Reference: EventReference
       Occurrence: OccurrenceReference
+      Emitter: ActorReference
       CausedBy: ExecutionReference
-      Payload: ShapeValue }
+      Payload: ShapeValue
+      EmittedAt: TemporalMark
+      OccurredAt: TemporalMark option }
+
+type ExecutionOutcome =
+    { Event: Event
+      Execution: ExecutionReference
+      TerminalFor: ExecutionReference
+      Operation: OperationReference
+      Status: ExecutionStatus
+      Result: ShapeValue option
+      DetailsShape: ShapeReference option
+      Details: ShapeValue option
+      Reason: string option
+      EmittedAt: TemporalMark }
 
 type EventDraft =
     { Reference: EventReference
-      Payload: ShapeValue }
+      Emitter: ActorReference
+      Payload: ShapeValue
+      OccurredAt: TemporalMark option }
+
+type GenesisOccurrence =
+    { Occurrence: OccurrenceReference
+      Policy: CanonicalName
+      IntroducedActors: ActorReference list
+      IntroducedCapabilities: CapabilityReference list
+      RecordedAt: TemporalMark }
 
 type ProvenanceClaim =
     { Subject: string
@@ -187,3 +279,5 @@ module BuiltIn =
     let decimalShape = shape "brontide.base.decimal" 1
     let textShape = shape "brontide.base.text" 1
     let bytesShape = shape "brontide.base.bytes" 1
+    let executionOutcomeEvent: EventReference =
+        { Name = CanonicalName.create "Brontide.Minimal:Execution.Outcome" }

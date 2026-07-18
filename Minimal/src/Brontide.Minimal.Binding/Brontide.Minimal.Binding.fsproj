@@ -10,6 +10,7 @@
   <ItemGroup>
     <Compile Include="Binding.fs" />
     <Compile Include="PortableBinding.fs" />
+    <Compile Include="CatalogBinding.fs" />
     <Compile Include="CoolingBindingHost.fs" />
   </ItemGroup>
 </Project>

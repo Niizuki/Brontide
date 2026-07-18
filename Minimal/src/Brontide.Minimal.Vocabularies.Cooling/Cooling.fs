@@ -28,12 +28,10 @@ type CoolingTransition =
 [<RequireQualifiedAccess>]
 module Cooling =
     let operation: OperationReference =
-        { Name = CanonicalName.create "brontide-minimal.cooling.apply"
-          Version = 1 }
+        { Name = CanonicalName.create "Brontide.Minimal:Cooling.Apply" }
 
     let changed: EventReference =
-        { Name = CanonicalName.create "brontide-minimal.cooling.changed"
-          Version = 1 }
+        { Name = CanonicalName.create "Brontide.Minimal:Cooling.Changed" }
 
     let initial loop target measured =
         { Loop = loop

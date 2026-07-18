@@ -3,8 +3,10 @@
 ## Design Note: Enrichment and Value Propagation
 
 **Status:** Work-in-progress design note, version 0.1
-**Extracted from:** Brontide Architecture 0.6, §16.6; the architecture document retains a
-summary section under the same number.
+**Originally extracted from:** Brontide Architecture 0.6, §16.6
+
+**Current architecture context:** [Brontide Architecture 0.7](./Brontide-Architecture-0.7.md),
+§16.6; the current architecture document retains a summary section under the same number.
 **Scope:** Records a design direction. Nothing in this note is a normative Brontide
 mechanism, adds an Brontide Base term, or defines conformance requirements.
 
@@ -12,8 +14,9 @@ References of the form §N refer to the Brontide Architecture specification.
 
 ---
 
-> **Work in progress.** This section records a design direction for investigation in Architecture
-> 0.4. It is not yet a normative Brontide mechanism, does not add a ninth Base term, and does not yet
+> **Work in progress.** This section records a design direction for investigation alongside
+> Architecture 0.7. It is not yet a normative Brontide mechanism, does not add a ninth Base term,
+> and does not yet
 > define conformance requirements or final syntax.
 
 The Shape model permits independently authored fragments to add structure without replacing,
@@ -197,7 +200,7 @@ Possible answers include restricting propagation to explicitly declared composit
 values through an Execution's causal lineage; treating ambient Enrichment as a lexically scoped
 composition binding; or defining a separate carrier construct in an Architectural Extension. It is
 also possible that propagation should remain an optional composition technique rather than become
-a general Brontide construct. No choice is made in Architecture 0.6. Brontide Reference Stack and Brontide Minimal Stack experiments
+a general Brontide construct. No choice is made in Architecture 0.7. Brontide Reference Stack and Brontide Minimal Stack experiments
 should test whether common availability semantics can be preserved across static embedded
 dispatch, direct in-process calls, dynamically selected modules, and distributed interactions even
 when their implementation strategies and available topological views differ.

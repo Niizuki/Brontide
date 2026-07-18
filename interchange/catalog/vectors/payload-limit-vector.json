@@ -1,0 +1,5 @@
+{
+  "method": "UTF-8 encode one complete JSON-lines message and reject when byteCount > limit",
+  "limitBytes": 65536,
+  "testPayload": "a protocol line containing 65537 ASCII x characters"
+}

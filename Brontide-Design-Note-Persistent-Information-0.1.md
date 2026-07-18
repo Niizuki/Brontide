@@ -3,8 +3,10 @@
 ## Design Note: Persistent Information — Corpus, Dataset, Store, and Router
 
 **Status:** Work-in-progress design note, version 0.1
-**Extracted from:** Brontide Architecture 0.6, §18.2; the architecture document retains a
-summary section under the same number.
+**Originally extracted from:** Brontide Architecture 0.6, §18.2
+
+**Current architecture context:** [Brontide Architecture 0.7](./Brontide-Architecture-0.7.md),
+§18.2; the current architecture document retains a summary section under the same number.
 **Scope:** Records design directions. Nothing in this note enlarges Brontide Base,
 ratifies a Storage vocabulary or Persistence extension, requires a database, or makes
 Structured integration mandatory.
@@ -40,7 +42,7 @@ authority merely by being declared or bound.
 
 ## Information-integration ladder
 
-Architecture 0.6 recognises a practical three-step integration ladder:
+Architecture 0.7 recognises a practical three-step integration ladder:
 
 1. **App-Level information** remains privately managed by conventional software outside the
    Corpus model. Brontide may see only files, directories, sandbox storage, or external Operations.
@@ -94,7 +96,7 @@ owner: Brontide Minimal Stack
 ```
 
 `Brontide:Mail.Accounts@3` is permitted as explanatory shorthand only if a future notation
-specification defines that spelling; `@3` is not part of the canonical name in Architecture 0.6.
+specification defines that spelling; `@3` is not part of the canonical name in Architecture 0.7.
 Changing the semantic meaning of a ratified Corpus requires a new canonical name. The exact
 additive, migratory, and compatibility rules for Corpus versions remain provisional because a
 Corpus lifecycle may include reversible or irreversible data migration without reinterpreting its
@@ -335,7 +337,7 @@ requires-attributes:
       where: value < 50ms
 ```
 
-The example Operations are candidate standard names, not ratified by Architecture 0.6. A portable
+The example Operations are candidate standard names, not ratified by Architecture 0.7. A portable
 definition uses authored names until the relevant Storage vocabulary is ratified (§22).
 
 A Store SHOULD expose directly inspectable descriptions of capacity, supported Corpus Forms,
@@ -346,7 +348,7 @@ not automatic proof.
 
 ## Store relationships and Router
 
-Simple static storage topology belongs in declarative **Store Relationships**. Architecture 0.6
+Simple static storage topology belongs in declarative **Store Relationships**. Architecture 0.7
 recognises two candidate relationships:
 
 - **Mirror** maintains another current copy under declared consistency and failure semantics.
@@ -395,7 +397,7 @@ Stores
 ## Status of the model
 
 Corpus, Dataset, Store, Store role, Router, Attribute, Definition Constraint, and Parameter are
-work-in-progress composition terms in Architecture 0.6. They do not enlarge Brontide Base, ratify a
+work-in-progress composition terms in Architecture 0.7. They do not enlarge Brontide Base, ratify a
 Storage vocabulary, require a database, or make Structured integration mandatory. Brontide Reference Stack and Brontide Minimal Stack
 must test independent definitions, Opaque and Structured Datasets, multiple Store-role bindings,
 Store replacement, simple Mirror and Backup relationships, and a Router before a normative
