@@ -347,7 +347,7 @@ Use the following precedence:
 
 Tests and code do not silently override the Architecture. If normative text, a test, and a proposed
 implementation cannot be reconciled, reduce the disagreement to the smallest example and report it
-as an Brontide ambiguity, plan gap, test defect, or Brontide Reference Stack defect.
+as a Brontide ambiguity, plan gap, test defect, or Brontide Reference Stack defect.
 
 Architecture §16.6 is deliberately work in progress. Its cases belong to the experimental suite,
 not normative conformance. Experimental success is evidence for Brontide; it is not permission to

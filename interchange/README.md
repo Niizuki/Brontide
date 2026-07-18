@@ -24,4 +24,4 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build\verify-interchan
 ```
 
 The protocol and descriptor are experimental test instruments. Passing these fixtures does not
-ratify an Brontide Portable Binding.
+ratify a Brontide Portable Binding.
