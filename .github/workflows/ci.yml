@@ -10,13 +10,18 @@ permissions:
 
 jobs:
   full-gate:
-    name: Full gate (.NET ${{ matrix.dotnet }})
+    name: Full gate (.NET ${{ matrix.lane }})
     runs-on: windows-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        dotnet: ['10.0.100', '10.0.4xx']
+        include:
+          - lane: first-feature-band
+            dotnet: '10.0.100'
+          - lane: current-feature-band
+            dotnet: '10.0.x'
+            quality: preview
 
     steps:
       - name: Check out repository
@@ -26,6 +31,7 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ matrix.dotnet }}
+          dotnet-quality: ${{ matrix.quality }}
 
       - name: Run build, complete test inventory, cross-process providers, and repository controls
         shell: powershell

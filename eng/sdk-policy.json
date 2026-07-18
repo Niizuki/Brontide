@@ -4,6 +4,6 @@
   "minimumInclusive": "10.0.100",
   "maximumExclusive": "11.0.0",
   "allowPrerelease": true,
-  "ciFeatureBands": ["10.0.100", "10.0.4xx"],
-  "rationale": "Brontide intentionally follows the caller-selected .NET 10 SDK rather than pinning one patch with global.json. CI covers the first and current .NET 10 feature bands; local prerelease SDKs inside the same major range remain usable for architecture development."
+  "ciFeatureBands": ["10.0.100", "10.0.x"],
+  "rationale": "Brontide intentionally follows the caller-selected .NET 10 SDK rather than pinning one patch with global.json. CI covers the first exact .NET 10 SDK and the current .NET 10 channel at preview quality; local prerelease SDKs inside the same major range remain usable for architecture development."
 }
