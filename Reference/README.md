@@ -1,17 +1,11 @@
 # Brontide Reference Stack 0.2
 
-Brontide Reference Stack is the independent .NET 10 / Avalonia implementation and showcase. New
-architectural work targets
-[`Brontide-Architecture-0.7.md`](../Brontide-Architecture-0.7.md), a complete draft whose
-implementation evidence and ratification are still pending. The current executable evidence
-baseline remains Architecture 0.5: the solution retains milestones M0 through M9 from the older
-Implementation Plan 0.2 and isolated experimental evidence for its composition guardrails.
-
-Reference delivery of the complete Architecture 0.7 change set is routed by
-[`docs/architecture-0.7-delivery.md`](./docs/architecture-0.7-delivery.md) and planned in
-[`Brontide-Reference-Stack-Implementation-Plan-0.3.md`](./Brontide-Reference-Stack-Implementation-Plan-0.3.md).
-Nothing in that plan upgrades the current Architecture 0.5 implementation claim until the planned
-evidence is accepted. Current gate evidence, experiment limits, sideline-project status, and the
+Brontide Reference Stack is the independent .NET 10 / Avalonia implementation and showcase.
+Architecture identity, ratification status, the retained executable baseline, and Reference's
+current delivery plan, ledger, and matrix are selected only through
+[`../Brontide-Architecture-Status.json`](../Brontide-Architecture-Status.json). A delivery plan does
+not upgrade an implementation claim until its evidence is accepted. Current gate evidence,
+experiment limits, sideline-project status, and the
 one historical limitation are recorded in `docs/milestone-evidence.md`,
 `docs/implementation-findings.md`, and `docs/experimental-and-sideline-projects.md`.
 
@@ -21,7 +15,7 @@ Brontide Reference Stack now owns independently implemented experimental hosts a
 process-isolated Cooling and Catalog/resource proofs. The retained tests execute a real Brontide Minimal Stack provider process; no
 Brontide Reference Stack project references Brontide Minimal Stack assemblies or private types.
 
-Architecture 0.7 makes no change to Brontide Base and does not ratify Component descriptors, system
+The registry-selected current architecture does not ratify Component descriptors, system
 service discovery, execution explanation, or optimisation-property vocabularies. Their Brontide Reference Stack
 realisations therefore live in `Brontide.Reference.Experimental.Composition`, not `Brontide.Reference.Core` or normative
 conformance.

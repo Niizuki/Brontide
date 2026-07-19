@@ -12,25 +12,3 @@ function Get-CanonicalTextHash {
         $sha256.Dispose()
     }
 }
-
-function Get-LatestArchitectureIdentity {
-    param([Parameter(Mandatory = $true)][string]$RepositoryRoot)
-
-    $candidates = @(
-        foreach ($file in Get-ChildItem -LiteralPath $RepositoryRoot -File -Filter 'Brontide-Architecture-*.md') {
-            if ($file.BaseName -match '^Brontide-Architecture-(?<revision>[0-9]+\.[0-9]+)$') {
-                [pscustomobject]@{
-                    Path = $file.FullName
-                    Name = $file.Name
-                    Revision = $Matches.revision
-                }
-            }
-        }
-    )
-
-    @(
-        $candidates |
-            Sort-Object -Property @{ Expression = { [version]$_.Revision }; Descending = $true } |
-            Select-Object -First 1
-    )
-}

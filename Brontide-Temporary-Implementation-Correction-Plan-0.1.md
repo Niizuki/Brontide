@@ -7,9 +7,9 @@ Authority: Non-normative. Architecture documents remain authoritative.
 ## 1. Purpose and lifetime
 
 This plan records corrective work identified by the architecture review. It is intentionally
-separate from the Reference and Minimal implementation roadmaps. Those roadmaps describe delivery
-of Architecture 0.7; this document describes gaps that must be corrected before either stack can
-claim reliable conformance.
+separate from the Reference and Minimal implementation roadmaps selected by
+`Brontide-Architecture-Status.json`. Those roadmaps describe current-architecture delivery; this
+document describes gaps that must be corrected before either stack can claim reliable conformance.
 
 Do not copy these corrections into the 0.3 roadmaps as completed requirements. Link to this plan
 instead. Delete this file only after every completion gate in section 8 is satisfied and the
@@ -144,9 +144,9 @@ Requested change:
 6. Run independent architecture reviews of both stacks and reconcile only observable
    disagreements.
 
-The 0.3 Architecture 0.7 implementation plans may begin with failing conformance vectors in
-parallel, but neither stack may claim 0.7 implementation until the applicable corrections above
-are closed.
+The current-architecture implementation plans selected by the status registry may begin with
+failing conformance vectors in parallel, but neither stack may claim current-architecture
+implementation until the applicable corrections above are closed.
 
 ## 8. Completion and deletion gate
 
@@ -171,7 +171,6 @@ coverage and traceability but do not replace the reviewer's architectural judgme
 
 The reviewer may be automated under the pinned independence policy: it must use a distinct reviewer
 identity, a fresh isolated context, no private implementation-session reasoning, and the complete
-attestation. The attestation must consider the current architecture source and its delivery plan in
-addition to retained implementation-baseline evidence. Automated review remains valid as the
-architecture advances unless the current architecture or an explicit repository policy changes the
-rule.
+attestation. The attestation must consider the architecture source and delivery plan selected by the
+central status registry in addition to retained implementation-baseline evidence. Automated review
+remains valid unless the registry or an explicit repository policy changes the rule.

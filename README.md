@@ -5,19 +5,12 @@ Brontide is an architecture specification with two deliberately independent .NET
 - [Brontide Reference Stack](./Reference/README.md), the C#/Avalonia implementation and interactive showcase;
 - [Brontide Minimal Stack](./Minimal/README.md), the F# implementation and headless counterpoint.
 
-The current architecture source is
-[Brontide Architecture 0.7](./Brontide-Architecture-0.7.md). Its document edit is complete, but it
-is not yet ratified or implemented. The executable conformance baseline remains the historical
-[Brontide Architecture 0.5](./Brontide-Architecture-0.5.md); evidence documents and matrices pinned
-to 0.5 describe that implemented baseline and are not the source for new architectural design.
-
-Architecture 0.7 delivery is planned independently in the
-[Reference Stack Implementation Plan 0.3](./Reference/Brontide-Reference-Stack-Implementation-Plan-0.3.md)
-and [Minimal Stack Implementation Plan 0.3](./Brontide-Minimal-Stack-Implementation-Plan-0.3.md).
-The implementation-owned delivery ledgers make the complete C1-C8 routing explicit for
-[Reference](./Reference/docs/architecture-0.7-delivery.md) and
-[Minimal](./Minimal/docs/architecture-0.7-delivery.md), including the non-runtime and non-ratified
-items.
+[`Brontide-Architecture-Status.json`](./Brontide-Architecture-Status.json) is the single
+authoritative registry for the current architecture source, latest ratified architecture, retained
+implementation baseline, and both stacks' delivery plans, ledgers, and evidence matrices. Generic
+documentation and agent guidance resolve architecture identity through that registry rather than
+hard-coding a version. Consumers must read the registry for the actual status values; an
+implementation baseline is evidence, not ratification.
 
 Known implementation and evidence gaps are controlled separately by the
 [temporary implementation correction plan](./Brontide-Temporary-Implementation-Correction-Plan-0.1.md).
@@ -43,18 +36,19 @@ Independent verification is coordinated by the checked
 [`conformance/reviews/review-request.json`](./conformance/reviews/review-request.json) and the
 [`independent-review workflow`](./conformance/reviews/README.md). The repository gate validates any
 review records that exist and automatically refuses deletion of the temporary plan unless both
-stack attestations and the explicit closure authorization are complete. The request mechanically
-selects the latest architecture document as current and considers retained older matrices only as
-implementation evidence, never as a replacement design source. Human and isolated automated
-attestations have equal weight under the checked independence policy.
+stack attestations and the explicit closure authorization are complete. The request pins the
+architecture status registry and considers retained older matrices only as implementation evidence,
+never as a replacement design source. Human and isolated automated attestations have equal weight
+under the checked independence policy.
 
 Implementation-owned status and limitations are recorded in the
 [Brontide Reference Stack milestone evidence](./Reference/docs/milestone-evidence.md) and
 [Brontide Minimal Stack milestone evidence](./Minimal/docs/milestone-evidence.md).
 
-Stable Architecture 0.5 requirement IDs live in
+Stable implementation-baseline requirement IDs live in
 [`conformance/requirements.json`](./conformance/requirements.json). The checked per-stack matrices
 are [`Reference/conformance/architecture-0.5.json`](./Reference/conformance/architecture-0.5.json)
 and [`Minimal/conformance/architecture-0.5.json`](./Minimal/conformance/architecture-0.5.json).
-These files remain deliberately version-pinned evidence. Architecture 0.7 requirement IDs and
-matrices are plan deliverables and must be created separately rather than rewriting the 0.5 record.
+These files remain deliberately version-pinned evidence. Requirement IDs and matrices for the
+registry-selected current architecture are separate plan deliverables and must not rewrite retained
+evidence.

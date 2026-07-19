@@ -11,10 +11,13 @@ honest about which behaviour is normative, experimental, implemented, or deferre
 
 ## Source-of-truth routing
 
-Route a claim by document status, not merely by the highest version number:
+Begin every architecture or implementation-status task with
+`Brontide-Architecture-Status.json`. It is the sole generic registry for the current architecture,
+latest ratified architecture, retained implementation baseline, and per-stack delivery/evidence
+pointers. Do not infer any of those identities from filenames or the highest version number.
 
-1. For architectural design, use the latest `Brontide-Architecture-*.md` document and preserve its
-   own draft, normative, provisional, and ratification labels.
+1. For architectural design, use the registry's current-architecture document and preserve its own
+   draft, normative, provisional, and ratification labels.
 2. For claims about what is implemented, use the root `README.md`, the implementation plan and
    milestone evidence for the implemented architecture baseline, and then executable evidence.
 3. For delivery of a later draft, use the implementation plan targeting that draft. A plan is not
@@ -72,10 +75,10 @@ Brontide Base conformance.
   independent when it has a reviewer identity distinct from every implementation actor, runs in a
   fresh isolated context, has no access to the implementation session's private reasoning, and
   records a decision and rationale for every pinned requirement. Every attestation also reviews
-  the latest architecture document selected by source-of-truth routing, including its status and
+  the current architecture selected by the status registry, including its status and
   the implementation's current delivery plan. A retained older matrix may establish what is
   implemented, but it never limits which architecture the review must consider. This rule remains
-  in force unless the current architecture or an explicit repository review policy changes it.
+  in force unless the status registry or an explicit repository review policy changes it.
 - **Every independently consumable component owns its verification stack.** New components ship
   unit tests with their first public behaviour. When code is extracted or moved, translate and move
   its existing test estate with it rather than leaving verification behind. Integration components

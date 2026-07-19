@@ -160,26 +160,56 @@ if ($null -eq $request) {
     exit 1
 }
 
-if ($request.schemaVersion -ne 2) {
-    $failures.Add('The independent-review request must use schema 2 with separate current-architecture and implementation-baseline identities.')
+if ($request.schemaVersion -ne 3) {
+    $failures.Add('The independent-review request must use schema 3 and route architecture identity through the central status registry.')
 }
 
-$latestArchitecture = @(Get-LatestArchitectureIdentity $repositoryRoot)
-if ($latestArchitecture.Count -ne 1 -or
-    $request.currentArchitecture.path -ne $latestArchitecture[0].Name -or
-    $request.currentArchitecture.revision -ne $latestArchitecture[0].Revision) {
-    $failures.Add('The review request must select the latest repository architecture document as current.')
+$statusRegistryPath = Get-RepositoryPath ([string]$request.architectureStatusRegistry.path)
+$architectureStatus = $null
+if ($null -ne $statusRegistryPath) {
+    $registryHashValid = Test-Hash $statusRegistryPath ([string]$request.architectureStatusRegistry.sha256) 'Pinned architecture status registry'
+    if ($registryHashValid) {
+        $architectureStatus = Read-JsonFile $statusRegistryPath
+    }
 }
+if ($null -eq $architectureStatus -or $architectureStatus.schemaVersion -ne 1) {
+    $failures.Add('The architecture status registry must be readable and use schema 1.')
+}
+else {
+    $currentArchitecturePath = Get-RepositoryPath ([string]$architectureStatus.currentArchitecture.path)
+    if ($null -ne $currentArchitecturePath) {
+        Test-Hash $currentArchitecturePath ([string]$architectureStatus.currentArchitecture.sha256) 'Registry current architecture' | Out-Null
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$architectureStatus.currentArchitecture.revision) -or
+        [string]::IsNullOrWhiteSpace([string]$architectureStatus.currentArchitecture.status)) {
+        $failures.Add('The architecture status registry must identify the current document and preserve its status.')
+    }
 
-$currentArchitecturePath = Get-RepositoryPath ([string]$request.currentArchitecture.path)
-if ($null -ne $currentArchitecturePath) {
-    Test-Hash $currentArchitecturePath ([string]$request.currentArchitecture.sha256) 'Pinned current architecture' | Out-Null
+    $latestRatified = $architectureStatus.latestRatifiedArchitecture
+    if ($null -eq $latestRatified.revision) {
+        if ($latestRatified.status -ne 'none' -or
+            $null -ne $latestRatified.path -or
+            $null -ne $latestRatified.sha256 -or
+            [string]::IsNullOrWhiteSpace([string]$latestRatified.rationale)) {
+            $failures.Add('The no-ratified-architecture registry state is incomplete or inconsistent.')
+        }
+    }
+    else {
+        $ratifiedPath = Get-RepositoryPath ([string]$latestRatified.path)
+        if ($latestRatified.status -ne 'Ratified' -or $null -eq $ratifiedPath) {
+            $failures.Add('The latest ratified architecture registry entry must have Ratified status and a repository path.')
+        }
+        elseif (Test-Hash $ratifiedPath ([string]$latestRatified.sha256) 'Registry latest ratified architecture') {
+            $ratifiedContent = Get-Content -Raw -LiteralPath $ratifiedPath -Encoding UTF8
+            if ($ratifiedContent.IndexOf('**Status:** Ratified', [StringComparison]::Ordinal) -lt 0) {
+                $failures.Add('The registry latest-ratified document does not declare Ratified status.')
+            }
+        }
+    }
 }
-if ([string]::IsNullOrWhiteSpace([string]$request.currentArchitecture.status)) {
-    $failures.Add('The review request must preserve the current architecture document status.')
-}
-if ([string]::IsNullOrWhiteSpace([string]$request.implementationBaseline.revision)) {
-    $failures.Add('The review request must identify the retained implementation baseline separately from current architecture.')
+if ($null -eq $architectureStatus -or
+    [string]::IsNullOrWhiteSpace([string]$architectureStatus.implementationBaseline.revision)) {
+    $failures.Add('The architecture status registry must identify the retained implementation baseline separately from architecture status.')
 }
 
 $reviewTargetCommit = [string]$request.reviewTargetCommit
@@ -190,9 +220,13 @@ elseif (-not (Test-CommitIsAncestor $reviewTargetCommit 'HEAD')) {
     $failures.Add("Review target '$reviewTargetCommit' is not an ancestor of HEAD.")
 }
 
-$requirementsPath = Get-RepositoryPath ([string]$request.implementationBaseline.requirements.path)
+$requirementsPath = if ($null -ne $architectureStatus) {
+    Get-RepositoryPath ([string]$architectureStatus.implementationBaseline.requirements.path)
+} else {
+    $null
+}
 if ($null -ne $requirementsPath) {
-    Test-Hash $requirementsPath ([string]$request.implementationBaseline.requirements.sha256) 'Pinned implementation requirement vocabulary' | Out-Null
+    Test-Hash $requirementsPath ([string]$architectureStatus.implementationBaseline.requirements.sha256) 'Registry implementation requirement vocabulary' | Out-Null
 }
 $master = if ($null -ne $requirementsPath -and (Test-Path -LiteralPath $requirementsPath)) {
     Read-JsonFile $requirementsPath
@@ -220,12 +254,19 @@ if ([string]::IsNullOrWhiteSpace($requiredIndependenceStatement) -or
 
 foreach ($stackRequest in $stackRequests) {
     $stack = [string]$stackRequest.stack
-    $matrixPath = Get-RepositoryPath ([string]$stackRequest.implementationMatrix.path)
+    $implementationStatus = @($architectureStatus.implementations | Where-Object { $_.stack -eq $stack })
+    if ($implementationStatus.Count -ne 1) {
+        $failures.Add("The architecture status registry must contain exactly one '$stack' implementation entry.")
+        continue
+    }
+    $implementationStatus = $implementationStatus[0]
+
+    $matrixPath = Get-RepositoryPath ([string]$implementationStatus.implementationMatrix.path)
     if ($null -eq $matrixPath) {
         continue
     }
 
-    $matrixHashValid = Test-Hash $matrixPath ([string]$stackRequest.implementationMatrix.sha256) "$stack pinned implementation matrix"
+    $matrixHashValid = Test-Hash $matrixPath ([string]$implementationStatus.implementationMatrix.sha256) "$stack registry implementation matrix"
     $matrix = if ($matrixHashValid) { Read-JsonFile $matrixPath } else { $null }
     if ($null -eq $matrix -or $null -eq $master) {
         continue
@@ -236,13 +277,13 @@ foreach ($stackRequest in $stackRequests) {
         continue
     }
 
-    $currentPlanPath = Get-RepositoryPath ([string]$stackRequest.currentDelivery.plan.path)
-    $currentLedgerPath = Get-RepositoryPath ([string]$stackRequest.currentDelivery.ledger.path)
+    $currentPlanPath = Get-RepositoryPath ([string]$implementationStatus.currentDelivery.plan.path)
+    $currentLedgerPath = Get-RepositoryPath ([string]$implementationStatus.currentDelivery.ledger.path)
     if ($null -ne $currentPlanPath) {
-        Test-Hash $currentPlanPath ([string]$stackRequest.currentDelivery.plan.sha256) "$stack current-architecture implementation plan" | Out-Null
+        Test-Hash $currentPlanPath ([string]$implementationStatus.currentDelivery.plan.sha256) "$stack registry implementation plan" | Out-Null
     }
     if ($null -ne $currentLedgerPath) {
-        Test-Hash $currentLedgerPath ([string]$stackRequest.currentDelivery.ledger.sha256) "$stack current-architecture delivery ledger" | Out-Null
+        Test-Hash $currentLedgerPath ([string]$implementationStatus.currentDelivery.ledger.sha256) "$stack registry delivery ledger" | Out-Null
     }
 
     $attestationPath = Get-RepositoryPath ([string]$stackRequest.attestationPath)
@@ -260,9 +301,10 @@ foreach ($stackRequest in $stackRequests) {
         continue
     }
 
-    if ($attestation.schemaVersion -ne 2 -or
-        $attestation.currentArchitectureRevision -ne $request.currentArchitecture.revision -or
-        $attestation.implementationBaselineRevision -ne $request.implementationBaseline.revision -or
+    if ($attestation.schemaVersion -ne 3 -or
+        $attestation.architectureStatusRegistryPath -ne $request.architectureStatusRegistry.path -or
+        $attestation.currentArchitectureRevision -ne $architectureStatus.currentArchitecture.revision -or
+        $attestation.implementationBaselineRevision -ne $architectureStatus.implementationBaseline.revision -or
         $attestation.stack -ne $stack -or
         $attestation.reviewTargetCommit -ne $reviewTargetCommit) {
         $failures.Add("$stack attestation identity does not match the pinned review request.")
@@ -314,10 +356,10 @@ foreach ($stackRequest in $stackRequests) {
     Test-RequiredDate ([string]$attestation.reviewedAt) "$stack reviewedAt" | Out-Null
 
     $currentReview = $attestation.currentArchitectureReview
-    if ($currentReview.architecturePath -ne $request.currentArchitecture.path -or
-        $currentReview.architectureStatus -ne $request.currentArchitecture.status -or
-        $currentReview.implementationPlanPath -ne $stackRequest.currentDelivery.plan.path -or
-        $currentReview.deliveryLedgerPath -ne $stackRequest.currentDelivery.ledger.path) {
+    if ($currentReview.architecturePath -ne $architectureStatus.currentArchitecture.path -or
+        $currentReview.architectureStatus -ne $architectureStatus.currentArchitecture.status -or
+        $currentReview.implementationPlanPath -ne $implementationStatus.currentDelivery.plan.path -or
+        $currentReview.deliveryLedgerPath -ne $implementationStatus.currentDelivery.ledger.path) {
         $failures.Add("$stack current-architecture review snapshot does not match the pinned request.")
     }
     if ($currentReview.architectureReviewed -ne $true -or
@@ -438,9 +480,10 @@ if ($null -ne $closurePath -and (Test-Path -LiteralPath $closurePath -PathType L
     $failureCountBeforeClosure = $failures.Count
     $closure = Read-JsonFile $closurePath
     if ($null -ne $closure) {
-        if ($closure.schemaVersion -ne 2 -or
-            $closure.currentArchitectureRevision -ne $request.currentArchitecture.revision -or
-            $closure.implementationBaselineRevision -ne $request.implementationBaseline.revision -or
+        if ($closure.schemaVersion -ne 3 -or
+            $closure.architectureStatusRegistryPath -ne $request.architectureStatusRegistry.path -or
+            $closure.currentArchitectureRevision -ne $architectureStatus.currentArchitecture.revision -or
+            $closure.implementationBaselineRevision -ne $architectureStatus.implementationBaseline.revision -or
             $closure.reviewTargetCommit -ne $reviewTargetCommit) {
             $failures.Add('Closure record identity does not match the pinned review request.')
         }

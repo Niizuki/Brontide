@@ -1,18 +1,13 @@
 # Brontide Minimal Stack
 
-Brontide Minimal Stack is the independent F# implementation and headless counterpoint. New
-architectural work targets
-[`Brontide-Architecture-0.7.md`](../Brontide-Architecture-0.7.md), a complete draft whose
-implementation evidence and ratification are still pending. The current executable evidence
-baseline remains Architecture 0.5. Minimal lives beside Brontide Reference Stack but does not
-reference Reference assemblies or reuse Reference CLR types; the implementations support,
-challenge, and eventually substitute for one another through an explicit external binding seam.
-
-Minimal delivery of the complete Architecture 0.7 change set is routed by
-[`docs/architecture-0.7-delivery.md`](./docs/architecture-0.7-delivery.md) and planned in
-[`Brontide-Minimal-Stack-Implementation-Plan-0.3.md`](../Brontide-Minimal-Stack-Implementation-Plan-0.3.md).
-Nothing in that plan upgrades the current Architecture 0.5 implementation claim until the planned
-evidence is accepted.
+Brontide Minimal Stack is the independent F# implementation and headless counterpoint.
+Architecture identity, ratification status, the retained executable baseline, and Minimal's current
+delivery plan, ledger, and matrix are selected only through
+[`../Brontide-Architecture-Status.json`](../Brontide-Architecture-Status.json). A delivery plan does
+not upgrade an implementation claim until its evidence is accepted. Minimal lives beside Brontide
+Reference Stack but does not reference Reference assemblies or reuse Reference CLR types; the
+implementations support, challenge, and eventually substitute for one another through an explicit
+external binding seam.
 
 The current repository-wide programme is
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../Brontide-Interchange-Implementation-Plan-0.1.md).
@@ -27,7 +22,7 @@ The implementation currently provides:
 - canonical versioned Shapes, authored Fragments, explicit projection, Operations, Constraints,
   Capabilities, attenuation, Outcomes, Events, and provenance;
 - native Cooling, Event Distribution, and Flow semantics;
-- isolated Enrichment and Architecture 0.5 Composition experiments;
+- isolated Enrichment and implementation-baseline Composition experiments;
 - deterministic CPU imaging, boxed application boundaries, provider opposition and selection
   explanations, and visible optimisation eligibility;
 - a tagged JSON ShapeValue codec and versioned external manifest negotiation;

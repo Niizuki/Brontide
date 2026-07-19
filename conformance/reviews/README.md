@@ -6,13 +6,13 @@ target, generate complete evidence packets, check reviewer separation statements
 requirement decisions, require consideration of the current architecture, and make the
 temporary-plan deletion gate enforceable.
 
-The pinned request is [`review-request.json`](./review-request.json). It separately identifies the
-current Architecture 0.7 source and the retained Architecture 0.5 implementation-evidence
-baseline. It also fixes the reviewed commit, current delivery plans and ledgers, requirement
-vocabulary, per-stack evidence matrices, correction-closing commits, and expected record paths.
-The verifier discovers the latest `Brontide-Architecture-*.md` document and fails if the request
-selects anything older as current. Historical matrices remain valid evidence; they are not allowed
-to replace the current architecture in review.
+The pinned request is [`review-request.json`](./review-request.json). It pins the central
+[`architecture status registry`](../../Brontide-Architecture-Status.json), which alone identifies
+the current architecture, latest ratified architecture, retained implementation baseline, current
+delivery plans and ledgers, requirement vocabulary, and per-stack evidence matrices. The request
+also fixes the reviewed commit, correction-closing commits, and expected record paths. Historical
+matrices remain valid evidence; they are not allowed to replace the registry-selected architecture
+in review.
 
 Any change to a pinned source invalidates the request instead of silently changing what the
 reviewer was asked to inspect. Verification needs the pinned Git objects locally; CI therefore
@@ -44,7 +44,7 @@ The reviewer separately reads the complete current architecture, the stack's cur
 plan, and its delivery ledger. It records whether the implementation is consistent with current
 direction, has accurately recorded current deltas, or contains a blocking conflict. A
 `current-deltas-recorded` assessment is honest for planned but unimplemented current work and does
-not turn the final correction verdict into an Architecture 0.7 conformance claim.
+not turn the final correction verdict into a current-architecture conformance claim.
 
 The framework checks that every applicable stable ID has exactly one reviewed decision. It cannot
 prove that a reviewer was truthful or that their reasoning was competent; Git review controls or an

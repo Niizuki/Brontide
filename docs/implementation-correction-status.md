@@ -26,7 +26,7 @@ judgment: the two reviewer attestations and closure record are currently pending
 
 The pinned policy permits those attestations to be produced by an automated reviewer operating
 under a distinct identity in a fresh isolated context without access to the implementation
-session's private reasoning. The review request separately pins current Architecture 0.7 and the
-retained Architecture 0.5 evidence baseline, and it requires an explicit current-architecture
-assessment. Automated review remains valid for the current architecture unless the architecture or
-an explicit repository policy changes the rule.
+session's private reasoning. The review request pins the central architecture status registry and
+requires an explicit assessment of the architecture and implementation baseline selected there.
+Automated review remains valid unless the registry or an explicit repository policy changes the
+rule.

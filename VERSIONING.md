@@ -2,6 +2,10 @@
 
 Brontide has four independent version spaces. They must not be substituted for one another.
 
+`Brontide-Architecture-Status.json` is the only generic registry of the current architecture,
+latest ratified architecture, and implemented baseline. Other documents link to the registry or
+describe their own fixed historical version; they do not independently declare what is latest.
+
 - An Architecture version names one specification document and its ratification status. A later
   draft does not upgrade an implementation claim.
 - A vocabulary or Profile version is an additive conformance claim over immutable canonical

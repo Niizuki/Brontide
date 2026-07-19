@@ -43,12 +43,6 @@ function Get-RepositoryPath {
 }
 
 $request = Read-JsonFile $requestPath
-$latestArchitecture = @(Get-LatestArchitectureIdentity $repositoryRoot)
-if ($latestArchitecture.Count -ne 1 -or
-    $request.currentArchitecture.path -ne $latestArchitecture[0].Name -or
-    $request.currentArchitecture.revision -ne $latestArchitecture[0].Revision) {
-    throw 'The review request does not select the latest repository architecture document as current.'
-}
 $reviewerKindValue = $ReviewerKind.ToLowerInvariant()
 if ($ReviewerKind -eq 'Automated') {
     if ([string]::IsNullOrWhiteSpace($AutomationSystem) -or
@@ -65,27 +59,41 @@ if ($stackRequest.Count -ne 1) {
 }
 $stackRequest = $stackRequest[0]
 
-$currentArchitecturePath = Get-RepositoryPath ([string]$request.currentArchitecture.path)
-$requirementsPath = Get-RepositoryPath ([string]$request.implementationBaseline.requirements.path)
-$matrixPath = Get-RepositoryPath ([string]$stackRequest.implementationMatrix.path)
-$currentPlanPath = Get-RepositoryPath ([string]$stackRequest.currentDelivery.plan.path)
-$currentLedgerPath = Get-RepositoryPath ([string]$stackRequest.currentDelivery.ledger.path)
+$statusRegistryPath = Get-RepositoryPath ([string]$request.architectureStatusRegistry.path)
+if ((Get-CanonicalTextHash $statusRegistryPath) -ne $request.architectureStatusRegistry.sha256) {
+    throw 'The architecture status registry no longer matches the pinned review request.'
+}
+$architectureStatus = Read-JsonFile $statusRegistryPath
+if ($architectureStatus.schemaVersion -ne 1) {
+    throw 'The architecture status registry must use schema 1.'
+}
+$implementationStatus = @($architectureStatus.implementations | Where-Object { $_.stack -eq $Stack })
+if ($implementationStatus.Count -ne 1) {
+    throw "The architecture status registry must contain exactly one '$Stack' implementation entry."
+}
+$implementationStatus = $implementationStatus[0]
+
+$currentArchitecturePath = Get-RepositoryPath ([string]$architectureStatus.currentArchitecture.path)
+$requirementsPath = Get-RepositoryPath ([string]$architectureStatus.implementationBaseline.requirements.path)
+$matrixPath = Get-RepositoryPath ([string]$implementationStatus.implementationMatrix.path)
+$currentPlanPath = Get-RepositoryPath ([string]$implementationStatus.currentDelivery.plan.path)
+$currentLedgerPath = Get-RepositoryPath ([string]$implementationStatus.currentDelivery.ledger.path)
 $currentArchitectureHash = Get-CanonicalTextHash $currentArchitecturePath
 $requirementsHash = Get-CanonicalTextHash $requirementsPath
 $matrixHash = Get-CanonicalTextHash $matrixPath
-if ($currentArchitectureHash -ne $request.currentArchitecture.sha256) {
+if ($currentArchitectureHash -ne $architectureStatus.currentArchitecture.sha256) {
     throw 'The current architecture source no longer matches the pinned review request.'
 }
-if ($requirementsHash -ne $request.implementationBaseline.requirements.sha256) {
+if ($requirementsHash -ne $architectureStatus.implementationBaseline.requirements.sha256) {
     throw 'The requirement vocabulary no longer matches the pinned review request.'
 }
-if ($matrixHash -ne $stackRequest.implementationMatrix.sha256) {
+if ($matrixHash -ne $implementationStatus.implementationMatrix.sha256) {
     throw "The $Stack evidence matrix no longer matches the pinned review request."
 }
-if ((Get-CanonicalTextHash $currentPlanPath) -ne $stackRequest.currentDelivery.plan.sha256) {
+if ((Get-CanonicalTextHash $currentPlanPath) -ne $implementationStatus.currentDelivery.plan.sha256) {
     throw "The $Stack current-architecture implementation plan no longer matches the pinned review request."
 }
-if ((Get-CanonicalTextHash $currentLedgerPath) -ne $stackRequest.currentDelivery.ledger.sha256) {
+if ((Get-CanonicalTextHash $currentLedgerPath) -ne $implementationStatus.currentDelivery.ledger.sha256) {
     throw "The $Stack current-architecture delivery ledger no longer matches the pinned review request."
 }
 
@@ -131,9 +139,10 @@ $packetRequirements = @(
 )
 
 $packet = [ordered]@{
-    schemaVersion = 2
-    currentArchitectureRevision = [string]$request.currentArchitecture.revision
-    implementationBaselineRevision = [string]$request.implementationBaseline.revision
+    schemaVersion = 3
+    architectureStatusRegistryPath = [string]$request.architectureStatusRegistry.path
+    currentArchitectureRevision = [string]$architectureStatus.currentArchitecture.revision
+    implementationBaselineRevision = [string]$architectureStatus.implementationBaseline.revision
     stack = $Stack
     reviewTargetCommit = [string]$request.reviewTargetCommit
     reviewer = [ordered]@{
@@ -155,10 +164,10 @@ $packet = [ordered]@{
         }
     }
     currentArchitectureReview = [ordered]@{
-        architecturePath = [string]$request.currentArchitecture.path
-        architectureStatus = [string]$request.currentArchitecture.status
-        implementationPlanPath = [string]$stackRequest.currentDelivery.plan.path
-        deliveryLedgerPath = [string]$stackRequest.currentDelivery.ledger.path
+        architecturePath = [string]$architectureStatus.currentArchitecture.path
+        architectureStatus = [string]$architectureStatus.currentArchitecture.status
+        implementationPlanPath = [string]$implementationStatus.currentDelivery.plan.path
+        deliveryLedgerPath = [string]$implementationStatus.currentDelivery.ledger.path
         architectureReviewed = $false
         implementationPlanReviewed = $false
         deliveryLedgerReviewed = $false
@@ -206,4 +215,4 @@ $json = $packet | ConvertTo-Json -Depth 12
 [System.IO.File]::WriteAllText($destination, $json + [Environment]::NewLine, [System.Text.UTF8Encoding]::new($false))
 
 Write-Host "Created $Stack independent-review packet: $destination"
-Write-Host "Review current Architecture $($request.currentArchitecture.revision) and pinned commit $($request.reviewTargetCommit); do not change generated evidence snapshots."
+Write-Host "Review the architecture selected by $($request.architectureStatusRegistry.path) and pinned commit $($request.reviewTargetCommit); do not change generated evidence snapshots."
