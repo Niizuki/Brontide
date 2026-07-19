@@ -1,10 +1,11 @@
 # BRONTIDE
 
-## Architecture Change History (0.2 → 0.6)
+## Architecture Change History (0.2 → 0.7)
 
 This document retains the historical change records extracted from the Brontide Architecture
-specification, preserved verbatim from Architecture 0.6, where they appeared as §35–§38. The
-current architecture document records only its own diff.
+specification: the §35–§38 records preserved verbatim from Architecture 0.6, followed by the
+§35 record preserved verbatim from Architecture 0.7. The current architecture document records
+only its own diff.
 
 Section references of the form §N refer to section numbers as they stood in the architecture
 version that introduced the change.
@@ -374,3 +375,93 @@ Parameter, a Storage vocabulary, a Persistence extension, the Component model, o
 Portable Binding. These additions are explicit work-in-progress composition and persistent-
 information directions whose exact descriptors and conformance rules require independent Brontide Reference Stack
 and Brontide Minimal Stack evidence before ratification.
+
+---
+
+## Changes from 0.6 (Architecture 0.7 §35)
+
+This section records the changes introduced since Architecture 0.6. The historical diffs from
+Architectures 0.2 through 0.5 are retained in `Brontide-Architecture-Change-History.md`.
+
+The 0.7 document edit is complete and its executed edit contract is retained in
+`Brontide-Architecture-0.7-Change-Plan.md`. Implementation evidence and ratification remain
+pending. Changes applied:
+
+- **§16.6, §18.1, and §18.2 — Work-in-progress material extracted into companion design
+  notes.** Enrichment and value propagation, Composition and Components, and
+  Corpus/Dataset/Store/Router now live in `Brontide-Design-Note-Enrichment-0.1.md`,
+  `Brontide-Design-Note-Composition-0.1.md`, and
+  `Brontide-Design-Note-Persistent-Information-0.1.md`. The architecture document retains each
+  section's settled definitions and invariants with a pointer; section numbering is
+  unchanged.
+- **§7.1 — Term status registry added.** The status of every named concept is recorded once,
+  replacing scattered per-section status disclaimers.
+- **§6.9, §18.2, and §26.1 — Mediation direction surfaced.** The Composition design note
+  records Mediation as a declared relationship with Selection, Distribution, and Arbitration
+  species, enforced by authority topology. The §6.9 mediating Actor and the §26.1 guardian
+  are named Arbitration instances; the Router is named the storage instantiation of
+  Selection.
+- **Router endpoint guarantees stated.** The Attributes of a logical Store endpoint presented
+  by a Router are the Router's own declared guarantees, not those of any current backing
+  Store (recorded in the Persistent Information design note and the §18.2 summary).
+- **Historical changelogs relocated.** The per-version diffs formerly at §35–§38 of
+  Architecture 0.6 now live in `Brontide-Architecture-Change-History.md`; this document carries
+  only its own diff (§35).
+- **§10.1, §18.1, §23, and §29.2 — Composite Constraint evaluation defined.** An unrecognised
+  atomic Constraint anywhere within a composite expression makes the entire expression
+  unevaluatable; unevaluatable never resolves to a truth value. In authority context this
+  causes denial with no partial credit for recognised branches; in selection context the
+  candidate is excluded and the exclusion recorded. A conformance example covers `Not` and
+  `AnyOf` with unrecognised atoms.
+- **§6.10, §22.4, §33, and §34 — Typed member identities use a distinct member separator.**
+  The candidate grammar is `[AuthorityPath ":"] ConceptPath ["#" MemberKind "." MemberName]`,
+  keeping every dot segment semantically opaque and every canonical string unambiguous.
+  Dot-segment member kinds and reserved member-kind words are both rejected and recorded.
+- **§18.1 and the Composition design note — Attribute-constrained bindings resolve once.**
+  Resolution evaluates Definition Constraints against Attribute values obtained at that
+  moment and records effective values and provenance. A later Attribute change never
+  invalidates, rebinds, or migrates an active binding; reaction belongs to Routers and future
+  lifecycle policy.
+- **§18.2, §21.1, and the Persistent Information design note — Dataset authority, identity,
+  and concurrency rectified.** Capability designation of Datasets follows §10.2; Dataset
+  creation is an instance of the Genesis-versus-issuance question (§12, §33); Dataset
+  identity is a property of the Dataset record, with Corpus-declared identity-bearing Store
+  roles; and every Corpus MUST declare concurrent-access semantics.
+- **§8 — Authority-machinery placement assembled.** One passage states where minting, custody,
+  and evaluation live across the firmware, hosted or native runtime, and cross-domain homes.
+
+- **C7 — Editorial pass applied.** Per-section "not a ninth Base term" disclaimers are reduced
+  to each concept's defining statement plus the §7.1 registry; the §10.3 mortal-by-default
+  stance now states its SHOULD concretely; stale present-tense "Architecture 0.3"
+  self-references are made timeless; the front-matter changes-from reference and the
+  former-§35–§38 note are corrected; all section cross-references are verified; fail-closed
+  statements are confirmed to cite §10.1 at every normative site.
+
+All planned changes (C1–C8) have been applied.
+
+Architecture 0.7 makes no change to the eight Brontide Base terms.
+
+### Direction for 0.8 (as recorded in Architecture 0.7 §35.1)
+
+Architecture 0.7 is the consolidation draft. 0.8 is planned as the evidence revision: Brontide
+Reference Stack and Brontide Minimal Stack already interconnect at a basic level, and 0.8 closes the
+three gaps that prevent that interchange from producing architectural evidence.
+
+1. **Portable Component Binding and the Shape floor (§16, §18.1).** The standard scalar
+   catalogue, canonical projection, and the schema-guided Portable Binding are the prerequisites
+   for exchanging a real component between Brontide Reference Stack and Brontide.Minimal. Every §33 question that awaits
+   Reference/Minimal evidence — Corpus migration, hot-swap, Attributes — queues behind this seam.
+2. **Channel (§13.6).** The invocation principle currently constrains implementations without
+   equipping them. Cross-process interchange forces request/response representation, error
+   propagation, and delivery semantics into existence regardless; defining `Channel` alongside
+   the experiment prevents one implementation's ad hoc answer from becoming the architecture by
+   accident (§6.8).
+3. **Flow conformance (§19.1).** The first ratified extension contract. Event Distribution
+   depends on it, the revocation question terminates in it (what in-flight Flows do when
+   authority dies, §10.3, §33), and ratifying it exercises the extension machinery itself —
+   versioning, Profiles, conformance shape — on a real subject for the first time.
+
+Explicit non-goals for 0.8: the `Identity` and `Distributed` extensions (cross-domain
+representation waits for proven intra-domain interchange), `Presentation` and `Workspace`, and
+accelerator eligibility. Revocation beyond mortality advances only as far as Flow ratification
+forces it; the declaration requirements of §10.3 already fence the rest.

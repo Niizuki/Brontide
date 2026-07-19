@@ -1,0 +1,737 @@
+{
+  "schemaVersion": 1,
+  "changePlan": {
+    "revision": "0.8",
+    "status": "Draft change plan; vectors authored ahead of the 0.8 document edit",
+    "path": "Brontide-Architecture-0.8-Change-Plan.md",
+    "sha256": "8DA703789D5237C50366D7E192DBD7CA64EBF91760B4F61AB04F89860ACDCF2C",
+    "sha256Note": "Refreshed after the sequencing section; refresh deliberately on any further plan edit."
+  },
+  "conventions": {
+    "sectionReferences": "Section numbers refer to Architecture 0.7 sections, per the change plan.",
+    "contexts": [
+      "authority",
+      "selection",
+      "evidence"
+    ],
+    "kinds": [
+      "adversarial",
+      "positive-control",
+      "evidence"
+    ],
+    "expectations": [
+      "deny",
+      "authorise",
+      "exclude",
+      "retain",
+      "refuse",
+      "attest",
+      "nonconforming-if-violated"
+    ],
+    "unknown": "U denotes the three-valued Unknown produced by an unrecognised or unevaluatable atom (change C7)."
+  },
+  "vectors": [
+    {
+      "id": "BR-08-ADV-C1-001",
+      "change": "C1",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "Root grants Capability P to Actor A with liveness-scoped validity maintained by lease L-A",
+        "A derives Capability C for Actor B from P",
+        "Lease L-A has expired"
+      ],
+      "when": [
+        "B presents C to the target"
+      ],
+      "then": [
+        "The Execution is denied: every liveness-scoped link in the chain must be live at authorisation time"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C1-002",
+      "change": "C1",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A chain as in BR-08-ADV-C1-001 with lease L-A active",
+        "The target's authorisation boundary has no means to evaluate the liveness of L-A"
+      ],
+      "when": [
+        "B presents C to the target"
+      ],
+      "then": [
+        "The Execution is denied under the fail-closed rule",
+        "The decision uses a deterministic, non-sensitive diagnostic category"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C1-003",
+      "change": "C1",
+      "context": "authority",
+      "kind": "positive-control",
+      "given": [
+        "A chain as in BR-08-ADV-C1-001 with lease L-A active and evaluatable at the target"
+      ],
+      "when": [
+        "B presents C within all other Constraints"
+      ],
+      "then": [
+        "The Execution is authorised"
+      ],
+      "expect": "authorise",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C2-001",
+      "change": "C2",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A device holds a genesis-grade Capability permitting assertion of Origin.Device",
+        "The device delegates a Capability to companion software"
+      ],
+      "when": [
+        "The companion software emits an occurrence asserting Origin.Device under the delegated Capability"
+      ],
+      "then": [
+        "The assertion is refused: a delegated Capability asserts at most Origin.Derived",
+        "The occurrence carries at most Origin.Derived, or unverified where no assertion right is exercised"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C2-002",
+      "change": "C2",
+      "context": "authority",
+      "kind": "positive-control",
+      "given": [
+        "A device holds a genesis-grade Capability permitting assertion of Origin.Device"
+      ],
+      "when": [
+        "The device itself emits an occurrence asserting Origin.Device"
+      ],
+      "then": [
+        "The assertion succeeds and the origin class is recorded"
+      ],
+      "expect": "authorise",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C3-001",
+      "change": "C3",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A Capability with wall-clock validity is presented before its not-after instant",
+        "The Execution is authorised and its effect is in progress"
+      ],
+      "when": [
+        "The not-after instant passes while the effect is still in progress"
+      ],
+      "then": [
+        "Base semantics do not interrupt, terminate, or retroactively deny the effect",
+        "The effect remains governed by the withdrawal and cancellation semantics of 10.3"
+      ],
+      "expect": "authorise",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C3-002",
+      "change": "C3",
+      "context": "authority",
+      "kind": "positive-control",
+      "given": [
+        "The same Capability after its not-after instant"
+      ],
+      "when": [
+        "A new Execution is presented"
+      ],
+      "then": [
+        "The Execution is denied"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C4-001",
+      "change": "C4",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "Root grants Capability G with Constraint K to Actor A",
+        "A derives C1 for B adding no Constraint; B derives C2 for D adding no Constraint",
+        "The domain representation does not inline ancestor Constraints in C2",
+        "An Execution is prepared that violates K"
+      ],
+      "when": [
+        "D presents C2 to the target"
+      ],
+      "then": [
+        "The Execution is denied: the grandparent Constraint K participates in the effective conjunction",
+        "An implementation that evaluates only C2's own added Constraints fails this vector and does not conform"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C5-001",
+      "change": "C5",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "Actor A holds Capability P carrying a quantified Constraint rate <= N per window with default chain-occurrence pooling",
+        "A derives sibling Capabilities C-1 and C-2 for two holders"
+      ],
+      "when": [
+        "Holder 1 performs N authorised Executions under C-1 within one window",
+        "Holder 2 presents an Execution under C-2 within the same window"
+      ],
+      "then": [
+        "Holder 2's Execution is denied: both siblings draw on the single budget at the Constraint's occurrence in P"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C5-002",
+      "change": "C5",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A Capability carrying rate <= N per window with budget fully available",
+        "A series of Executions that are denied for an unrelated reason (an unsatisfied non-quantified Constraint)"
+      ],
+      "when": [
+        "After the denials, a fully satisfying Execution is presented within the same window"
+      ],
+      "then": [
+        "The Execution is authorised: denied Executions consume nothing; bookkeeping changes only on successful authorisation"
+      ],
+      "expect": "authorise",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C5-003",
+      "change": "C5",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A quantified Constraint whose vocabulary declares a per-holder accounting scope",
+        "An evaluator that cannot enforce the declared scope"
+      ],
+      "when": [
+        "An Execution presenting the Capability is evaluated"
+      ],
+      "then": [
+        "The Execution is denied under the fail-closed rule: a declared accounting scope the evaluator cannot enforce is unevaluatable"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C6-001",
+      "change": "C6",
+      "context": "authority",
+      "kind": "positive-control",
+      "given": [
+        "Actor A holds an unadorned Capability X carrying no Constraint restricting Delegation"
+      ],
+      "when": [
+        "A derives Capability Y for Actor B from X"
+      ],
+      "then": [
+        "The Delegation succeeds and B may execute within Y's effective authority: Capabilities are delegable by default"
+      ],
+      "expect": "authorise",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C6-002",
+      "change": "C6",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "Actor A holds Capability X carrying a Constraint restricting further Delegation",
+        "A purported derivation Y for Actor B exists despite the restriction"
+      ],
+      "when": [
+        "B presents Y to the target"
+      ],
+      "then": [
+        "The Execution is denied: the Delegation-restricting Constraint conjoins along the chain and invalidates the derivation's authority",
+        "The same holds for any deeper descendant of Y"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C7-001",
+      "change": "C7",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A Capability carrying Not(U) where U is an unrecognised atom"
+      ],
+      "when": [
+        "An Execution presenting the Capability is evaluated"
+      ],
+      "then": [
+        "Not(Unknown) is Unknown; the Execution is denied"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C7-002",
+      "change": "C7",
+      "context": "authority",
+      "kind": "positive-control",
+      "given": [
+        "A Capability carrying AnyOf(S, U) where S is a recognised, satisfied atom and U is unrecognised"
+      ],
+      "when": [
+        "An Execution presenting the Capability is evaluated"
+      ],
+      "then": [
+        "AnyOf with a True member is True; the Execution is authorised"
+      ],
+      "expect": "authorise",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C7-003",
+      "change": "C7",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A Capability carrying AllOf(S, U) where S is a recognised, satisfied atom and U is unrecognised"
+      ],
+      "when": [
+        "An Execution presenting the Capability is evaluated"
+      ],
+      "then": [
+        "AllOf(True, Unknown) is Unknown; the Execution is denied"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C7-004",
+      "change": "C7",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A Capability carrying AnyOf(U, F) where U is unrecognised and F is a recognised, unsatisfied atom"
+      ],
+      "when": [
+        "An Execution presenting the Capability is evaluated"
+      ],
+      "then": [
+        "AnyOf(Unknown, False) is Unknown; the Execution is denied"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C7-005",
+      "change": "C7",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A Capability carrying AllOf(F, U) where F is a recognised, unsatisfied atom and U is unrecognised"
+      ],
+      "when": [
+        "An Execution presenting the Capability is evaluated"
+      ],
+      "then": [
+        "AllOf with a False member is False; the Execution is denied",
+        "Short-circuit evaluation on False is permitted because the result is identical"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C7-006",
+      "change": "C7",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A Capability carrying AnyOf(X, Not(X)) where X is a single unrecognised atom appearing twice"
+      ],
+      "when": [
+        "An Execution presenting the Capability is evaluated"
+      ],
+      "then": [
+        "The expression is Unknown and the Execution is denied",
+        "Implementations MUST NOT recognise the classical tautology: evaluation is structural, with no reasoning across repeated atoms"
+      ],
+      "expect": "deny",
+      "notes": "The decisive divergence trap: a supervaluating implementation authorises here and is nonconforming.",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C7-007",
+      "change": "C7",
+      "context": "selection",
+      "kind": "positive-control",
+      "given": [
+        "A candidate whose Definition Constraint is AnyOf(U, M) where M is a recognised, matching atom and U is unrecognised"
+      ],
+      "when": [
+        "A resolver evaluates the candidate"
+      ],
+      "then": [
+        "AnyOf with a True member is True; the candidate is retained",
+        "The resolver records the Unknown atom in its explanatory record"
+      ],
+      "expect": "retain",
+      "notes": "Inverts the 0.7 poisoning-era example in 29.2; the inversion is deliberate and recorded in change C7.",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C7-008",
+      "change": "C7",
+      "context": "selection",
+      "kind": "adversarial",
+      "given": [
+        "A candidate whose Definition Constraint is AllOf(M, U) where M is a recognised, matching atom and U is unrecognised"
+      ],
+      "when": [
+        "A resolver evaluates the candidate"
+      ],
+      "then": [
+        "AllOf(True, Unknown) is Unknown; the candidate is excluded",
+        "The resolver records the exclusion and the Unknown atom"
+      ],
+      "expect": "exclude",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C8-001",
+      "change": "C8",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A Constraint type whose value Shape version 2 adds an optional constituent carrying narrowing semantics",
+        "A delegator narrows using a version 2 value",
+        "An evaluator that recognises only version 1 of the value Shape"
+      ],
+      "when": [
+        "An Execution presenting the Capability is evaluated"
+      ],
+      "then": [
+        "The atom is Unknown: Constraint evaluation is exempt from additive Shape projection",
+        "Standing alone, the Unknown atom denies the Execution",
+        "The evaluator MUST NOT evaluate the version 1 projection of the Constraint value"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C8-002",
+      "change": "C8",
+      "context": "authority",
+      "kind": "positive-control",
+      "given": [
+        "The same version-skewed evaluator",
+        "A Capability carrying AnyOf(NewConstraint-v2, OldConstraint-v1) where the version 1 atom is recognised and satisfied"
+      ],
+      "when": [
+        "An Execution presenting the Capability is evaluated"
+      ],
+      "then": [
+        "The Execution is authorised through the authored fallback branch: the migration pattern under three-valued evaluation"
+      ],
+      "expect": "authorise",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C8-003",
+      "change": "C8",
+      "context": "authority",
+      "kind": "positive-control",
+      "given": [
+        "An Operation input value shaped as version 2 of an open payload Shape, carrying an added optional constituent",
+        "A consumer that recognises only version 1"
+      ],
+      "when": [
+        "The value is delivered as an Operation input"
+      ],
+      "then": [
+        "The consumer accepts and processes the version 1 canonical projection and ignores the unknown structure",
+        "The projection exemption is scoped to Constraint values only; payload-plane compatibility is unchanged"
+      ],
+      "expect": "authorise",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C9-001",
+      "change": "C9",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A Capability carrying a Constraint whose declaration is well-formed but whose type the evaluator has decided not to implement"
+      ],
+      "when": [
+        "An Execution presenting the Capability is evaluated"
+      ],
+      "then": [
+        "The Execution is denied",
+        "The decision identifies the declined Constraint type by canonical name in a deterministic, non-sensitive diagnostic",
+        "Declining is a decision with defined semantics; inability to identify the well-formed declaration is nonconformance"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C9-002",
+      "change": "C9",
+      "context": "evidence",
+      "kind": "evidence",
+      "given": [
+        "A vocabulary revision that changes a Constraint type's evaluation semantics or value Shape while retaining its canonical name"
+      ],
+      "when": [
+        "The vocabulary revision is checked"
+      ],
+      "then": [
+        "The revision is nonconforming: authority-plane evolution requires a new canonical name and authored AnyOf fallback"
+      ],
+      "expect": "nonconforming-if-violated",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C9-003",
+      "change": "C9",
+      "context": "evidence",
+      "kind": "evidence",
+      "given": [
+        "An implementation claiming conformance"
+      ],
+      "when": [
+        "Its evidence is assembled"
+      ],
+      "then": [
+        "The implementation declares its Constraint-type recognition set; a static domain satisfies this with a compile-time declared set"
+      ],
+      "expect": "attest",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C10-001",
+      "change": "C10",
+      "context": "authority",
+      "kind": "positive-control",
+      "given": [
+        "A provider Actor holding authority over a resource space exposes a creating Operation"
+      ],
+      "when": [
+        "An authorised Execution creates a new resource and the requester receives a Capability over it"
+      ],
+      "then": [
+        "The issued Capability's derivation chain terminates, through the provider's authority, in a primordial grant",
+        "The issuance is recorded as a Delegation like any other"
+      ],
+      "expect": "authorise",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C10-002",
+      "change": "C10",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "A provider whose own resource-space authority is bounded by a Constraint"
+      ],
+      "when": [
+        "An Execution requests creation such that the issued Capability would exceed the provider's effective authority"
+      ],
+      "then": [
+        "The issuance is refused: a provider cannot issue authority exceeding what its own chain permits"
+      ],
+      "expect": "refuse",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C11-001",
+      "change": "C11",
+      "context": "evidence",
+      "kind": "evidence",
+      "given": [
+        "A stack's delivery ledger"
+      ],
+      "when": [
+        "Its evidence is assembled"
+      ],
+      "then": [
+        "The ledger records the chain-conjunction representation choice (carried, pre-evaluated, or resolved)",
+        "The ledger records the implied revocation ceiling as an operational property"
+      ],
+      "expect": "attest",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C12-001",
+      "change": "C12",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "Actor A holds Capability C",
+        "A Terminus occurrence retires A under the domain's declared disposition policy"
+      ],
+      "when": [
+        "Any participant attempts an Execution presenting C"
+      ],
+      "then": [
+        "The Execution is denied: a Capability held by a terminated Actor cannot authorise, since no surviving participant is its designated holder"
+      ],
+      "expect": "deny",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C12-002",
+      "change": "C12",
+      "context": "authority",
+      "kind": "adversarial",
+      "given": [
+        "Actor A granted an immortal Capability C to Actor B under a disposition policy in which the grant survives",
+        "A is retired by a Terminus occurrence"
+      ],
+      "when": [
+        "B presents C and provenance is inspected"
+      ],
+      "then": [
+        "The Execution is evaluated normally",
+        "Provenance remains attributable to A's recorded identity at grant time; the grantor is named even though no longer reachable"
+      ],
+      "expect": "authorise",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    },
+    {
+      "id": "BR-08-ADV-C12-003",
+      "change": "C12",
+      "context": "evidence",
+      "kind": "evidence",
+      "given": [
+        "A domain supporting dynamic Actors"
+      ],
+      "when": [
+        "Its evidence is assembled"
+      ],
+      "then": [
+        "The domain declares its Terminus disposition policy: held Capabilities, outbound grants and their survival schedule, and reference retirement consistent with 9.1"
+      ],
+      "expect": "attest",
+      "appliesTo": [
+        "Reference",
+        "Minimal"
+      ]
+    }
+  ],
+  "coverage": {
+    "C13": "Documentation-only change (legibility scope statement and extension direction); no behavioural vector. The guaranteed surface is the normative text per 29.3.",
+    "C14": "Documentation-only change (open question recorded); no behavioural vector."
+  }
+}

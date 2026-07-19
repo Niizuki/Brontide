@@ -1,5 +1,8 @@
 # Brontide
 
+New to the project? [Brontide: The Idea](./Brontide-Introduction.md) is the readable
+introduction; the documents below are the precise ones.
+
 Brontide is an architecture specification with two deliberately independent .NET 10 implementations:
 
 - [Brontide Reference Stack](./Reference/README.md), the C#/Avalonia implementation and interactive showcase;

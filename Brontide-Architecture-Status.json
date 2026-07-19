@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "currentArchitecture": {
-    "revision": "0.7",
+    "revision": "0.8",
     "status": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
-    "path": "Brontide-Architecture-0.7.md",
-    "sha256": "C801E4C4A5177115DA97A8CCCCBA5FBB7A320946D484D94D81D9FB49F13A7940"
+    "path": "Brontide-Architecture-0.8.md",
+    "sha256": "22268B66D8BCA5B1964F53AA9EE95EB09BB143C104429D65E8133C739A4E5971"
   },
   "latestRatifiedArchitecture": {
     "revision": null,
