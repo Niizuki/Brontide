@@ -9,6 +9,12 @@ Reference Stack but does not reference Reference assemblies or reuse Reference C
 implementations support, challenge, and eventually substitute for one another through an explicit
 external binding seam.
 
+Architecture 0.7 M1 now has Minimal-native Complete Draft evidence for recursive three-state
+Constraint expressions, fail-closed target-side evaluation, and experimental Composition
+selection. The revision-specific requirements and evidence are routed through
+[`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json); this is neither
+ratification nor a claim that the remaining Architecture 0.7 work is implemented.
+
 The current repository-wide programme is
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../Brontide-Interchange-Implementation-Plan-0.1.md).
 Its first two experimental proofs are implemented in both host directions. Cooling exercises the
@@ -18,7 +24,8 @@ explicit failure, provider-scoped resource refusal, replay detection, and a fixe
 The implementation currently provides:
 
 - an immutable `World` and pure `World.step` authority kernel with opaque issued references,
-  explicit target and presented Capability, narrowing delegation, trusted time, and redacted audits;
+  explicit target and presented Capability, narrowing delegation, recursive fail-closed Constraint
+  expressions, trusted time, and redacted audits;
 - canonical versioned Shapes, authored Fragments, explicit projection, Operations, Constraints,
   Capabilities, attenuation, Outcomes, Events, and provenance;
 - native Cooling, Event Distribution, and Flow semantics;

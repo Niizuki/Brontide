@@ -28,13 +28,21 @@
         "sha256": "CDE022FBFFBC153F4FD697AE8ADE17FF8122BABB8164DCAA945F5DD05864F23B"
       },
       "currentDelivery": {
+        "requirements": {
+          "path": "conformance/architecture-0.7-requirements.json",
+          "sha256": "9FC25A73BA99537B2EC1F0BCC8A75F4C11111CC301FBEEA3542992891F18DCFE"
+        },
+        "matrix": {
+          "path": "Reference/conformance/architecture-0.7.json",
+          "sha256": "4FD56C3C23727ACFDDCDCC95C8D802F7211BA55758C78D6DBF4B06BAD2241917"
+        },
         "plan": {
           "path": "Reference/Brontide-Reference-Stack-Implementation-Plan-0.3.md",
           "sha256": "BEC44830AB34683D10CFBB7C890FCF97CF879E2D8075AD813A6B26A31BAB29E0"
         },
         "ledger": {
           "path": "Reference/docs/architecture-0.7-delivery.md",
-          "sha256": "EE9F83EEA5706E8E66B00339294F8A6D8C6A661905B3ADA570FEEAF230956D96"
+          "sha256": "8C43E7AE7B27EEDC8A57449C55C33268DAFE8551AF2FE0373D8570575D9D3533"
         }
       }
     },
@@ -45,13 +53,21 @@
         "sha256": "08D7BE2913B73374E67BF1214B4AA9964993590F30590CFA9CD3C3042E1ECA62"
       },
       "currentDelivery": {
+        "requirements": {
+          "path": "conformance/architecture-0.7-requirements.json",
+          "sha256": "9FC25A73BA99537B2EC1F0BCC8A75F4C11111CC301FBEEA3542992891F18DCFE"
+        },
+        "matrix": {
+          "path": "Minimal/conformance/architecture-0.7.json",
+          "sha256": "08281E8E87C9F27D0C762965CEC3921F0E3B638682D81611E6F927E240CDDD9C"
+        },
         "plan": {
           "path": "Brontide-Minimal-Stack-Implementation-Plan-0.3.md",
           "sha256": "143089CB436CE90BE5FED3DC7E7E3298BAA9EF365CECBB9B35AE1D9B1866EC52"
         },
         "ledger": {
           "path": "Minimal/docs/architecture-0.7-delivery.md",
-          "sha256": "8DF5455FF5F80CFC2BD257786C575D7D7303117305C5A7009F6EF4EAC38444C1"
+          "sha256": "D8F5172E3545ED42D4EF546302FB1CD87B1BA86134FD000F670D75B615D9C287"
         }
       }
     }

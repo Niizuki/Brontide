@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "stack": "Minimal",
+  "architecture": {
+    "revision": "0.7",
+    "status": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
+    "path": "Brontide-Architecture-0.7.md",
+    "sha256": "C801E4C4A5177115DA97A8CCCCBA5FBB7A320946D484D94D81D9FB49F13A7940",
+    "reviewedCommit": "06e473e05c7e8b4ae1364db17b4884807f0a676c"
+  },
+  "requirements": [
+    {
+      "requirementId": "BR-07-CONSTRAINT-001",
+      "architectureRevision": "0.7",
+      "section": "10.1,18.1,23,29.2",
+      "classification": "missing",
+      "component": "Brontide.Minimal.Model expressions and Brontide.Minimal.Kernel evaluation",
+      "positiveEvidence": [{ "path": "Minimal/tests/Brontide.Minimal.Kernel.Tests/KernelTests.fs", "anchor": "BR_07_CONSTRAINT_001" }],
+      "negativeEvidence": [{ "path": "Minimal/tests/Brontide.Minimal.Kernel.Tests/KernelTests.fs", "anchor": "unknown atoms poison all composite positions" }],
+      "status": "tested",
+      "rationale": "C1 is implemented natively with a three-state F# result model while the existing flat requirement API remains an atomic compatibility path."
+    },
+    {
+      "requirementId": "BR-07-CONSTRAINT-002",
+      "architectureRevision": "0.7",
+      "section": "10.1,13.5,29.2",
+      "classification": "missing",
+      "component": "Brontide.Minimal.Kernel/World.step",
+      "positiveEvidence": [{ "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "BR_07_CONSTRAINT_002" }],
+      "negativeEvidence": [{ "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "protected-secret" }],
+      "status": "tested",
+      "rationale": "Target-side evaluation denies an indeterminate Capability expression before the handler and records a redacted deterministic audit reason."
+    },
+    {
+      "requirementId": "BR-07-CONSTRAINT-003",
+      "architectureRevision": "0.7",
+      "section": "18.1,29.2",
+      "classification": "missing",
+      "component": "Brontide.Minimal.Experimental.Composition",
+      "positiveEvidence": [{ "path": "Minimal/tests/Brontide.Minimal.Composition.Tests/CompositionTests.fs", "anchor": "BR_07_CONSTRAINT_003" }],
+      "negativeEvidence": [{ "path": "Minimal/tests/Brontide.Minimal.Composition.Tests/CompositionTests.fs", "anchor": "UnsupportedConstraint" }],
+      "status": "tested",
+      "rationale": "Minimal-native selection excludes a poisoned provider and explains the unsupported atom without consulting Reference code."
+    },
+    {
+      "requirementId": "BR-07-NAME-001",
+      "architectureRevision": "0.7",
+      "section": "6.10,22.4",
+      "classification": "missing",
+      "component": "Brontide.Minimal.Model names and owning gateways",
+      "positiveEvidence": [],
+      "negativeEvidence": [],
+      "status": "planned",
+      "rationale": "CanonicalName currently has no typed-member model; M2 must decide and document the public and serialized-form migration."
+    },
+    {
+      "requirementId": "BR-07-BINDING-001",
+      "architectureRevision": "0.7",
+      "section": "18.1",
+      "classification": "missing",
+      "component": "Brontide.Minimal.Experimental.Composition",
+      "positiveEvidence": [],
+      "negativeEvidence": [],
+      "status": "planned",
+      "rationale": "No Attribute-source or immutable one-time resolution record currently exists."
+    },
+    {
+      "requirementId": "BR-07-ROUTER-001",
+      "architectureRevision": "0.7",
+      "section": "18.1,18.2",
+      "classification": "missing",
+      "component": "planned Brontide.Minimal.Experimental.PersistentInformation",
+      "positiveEvidence": [],
+      "negativeEvidence": [],
+      "status": "planned",
+      "rationale": "The experimental persistent-information project and Router guarantee slice do not yet exist."
+    },
+    {
+      "requirementId": "BR-07-DATASET-001",
+      "architectureRevision": "0.7",
+      "section": "18.2,21.1",
+      "classification": "missing",
+      "component": "planned Brontide.Minimal.Experimental.PersistentInformation",
+      "positiveEvidence": [],
+      "negativeEvidence": [],
+      "status": "planned",
+      "rationale": "No Dataset record or Corpus-declared identity-bearing Store-role model currently exists."
+    },
+    {
+      "requirementId": "BR-07-DATASET-002",
+      "architectureRevision": "0.7",
+      "section": "10.2,12,18.2,21.1",
+      "classification": "missing",
+      "component": "planned Brontide.Minimal.Experimental.PersistentInformation",
+      "positiveEvidence": [],
+      "negativeEvidence": [],
+      "status": "planned",
+      "rationale": "The planned experimental issuance, authority, and concurrency evidence does not yet exist."
+    },
+    {
+      "requirementId": "BR-07-CLASSIFICATION-001",
+      "architectureRevision": "0.7",
+      "section": "7.1,16.6,18.1,18.2",
+      "classification": "non-runtime",
+      "component": "Minimal documentation classification audit",
+      "positiveEvidence": [{ "path": "Minimal/docs/experimental-and-sideline-projects.md", "anchor": "Complete Draft" }],
+      "negativeEvidence": [{ "path": "Minimal/docs/architecture-0.7-delivery.md", "anchor": "no Architecture 0.7 conformance or ratification claim" }],
+      "status": "implemented",
+      "rationale": "The implementation registry keeps Enrichment, Composition, and Persistent Information outside Base and routes current evidence through the 0.7 ledger and companion-note context."
+    },
+    {
+      "requirementId": "BR-07-AUTHORITY-001",
+      "architectureRevision": "0.7",
+      "section": "8,13.5",
+      "classification": "non-runtime",
+      "component": "Minimal authority-boundary documentation audit",
+      "positiveEvidence": [{ "path": "docs/public-boundaries.md", "anchor": "Base authority boundaries" }],
+      "negativeEvidence": [{ "path": "docs/public-boundaries.md", "anchor": "not cross either seam" }],
+      "status": "implemented",
+      "rationale": "Minimal keeps issuance in Genesis/World, opaque custody in Model references, evaluation in World.step, and no Capability on the process seam."
+    },
+    {
+      "requirementId": "BR-07-MEDIATION-001",
+      "architectureRevision": "0.7",
+      "section": "6.9,18.1,18.2,26.1",
+      "classification": "non-runtime",
+      "component": "Architecture 0.7 Mediation risk ledger",
+      "positiveEvidence": [{ "path": "docs/architecture-0.7-mediation-risk-ledger.md", "anchor": "Distribution" }],
+      "negativeEvidence": [{ "path": "docs/architecture-0.7-mediation-risk-ledger.md", "anchor": "Neither stack introduces a universal" }],
+      "status": "implemented",
+      "rationale": "The required Selection, Distribution, Arbitration, topology, provenance, deputy, affinity, residue, and trust risks are recorded without runtime conformance claims."
+    }
+  ]
+}

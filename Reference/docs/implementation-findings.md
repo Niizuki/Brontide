@@ -138,3 +138,15 @@ silently upgraded to 0.7 evidence.
   limit, depth 32, process-local replay window, ephemeral provider state, and lack of Capability
   transfer are public limits. Do not infer persistence, network isolation, authority federation, or
   portable-binding ratification.
+
+## Composite Constraints cannot inherit Boolean short-circuit semantics
+
+- **Brontide sections:** Architecture 0.7 §§10.1, 18.1, 23, and 29.2
+- **Minimal scenario:** an `AllOf` or `AnyOf` contains an unsupported atom beside a sibling that
+  would ordinarily decide a Boolean result.
+- **Observed result:** R1 evaluates all siblings and returns indeterminate with a stable diagnostic;
+  authority denies before dispatch and experimental selection excludes the candidate.
+- **Classification:** Architecture 0.7 Complete Draft evidence
+- **Current disposition:** retain atomic Constraint APIs as compatibility leaves, keep protected
+  values out of diagnostics, and route the exact evidence through the revision-specific matrix.
+  This result does not ratify Architecture 0.7 or complete C2-C5.

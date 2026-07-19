@@ -69,6 +69,73 @@ type NativeSemanticsTests() =
         |> _.Outcome.Execution
 
     [<Test>]
+    member _.``BR_07_CONSTRAINT_001 unknown atoms poison all composite positions`` () =
+        let timeDomain = TimeDomainReference.create (name "Brontide.Minimal.Tests:ConstraintClock")
+        let initial = World.create (Guid.NewGuid()) timeDomain
+        let allowDefinition, world =
+            World.registerConstraint
+                (name "Brontide.Minimal.Tests:Allow")
+                BuiltIn.textShape
+                "known matching atom"
+                initial
+            |> Result.defaultWith failwith
+        let denyDefinition, world =
+            World.registerConstraint
+                (name "Brontide.Minimal.Tests:Deny")
+                BuiltIn.textShape
+                "known non-matching atom"
+                world
+            |> Result.defaultWith failwith
+        let unknownDefinition, _ =
+            World.registerConstraint
+                (name "Brontide.Minimal.Tests:Unsupported")
+                BuiltIn.textShape
+                "unsupported atom"
+                world
+            |> Result.defaultWith failwith
+
+        let atom (definition: ConstraintDefinition) value =
+            AtomicConstraint
+                { Constraint = definition.Reference
+                  Parameters = TextValue value }
+
+        let evaluate (requirement: ConstraintRequirement) =
+            if requirement.Constraint = allowDefinition.Reference then
+                ConstraintAtomEvaluation.satisfied
+            elif requirement.Constraint = denyDefinition.Reference then
+                ConstraintAtomEvaluation.unsatisfied "known atom did not match"
+            else
+                ConstraintAtomEvaluation.unsupported unknownDefinition.Name
+
+        let unknown = atom unknownDefinition "protected-secret"
+        let allow = atom allowDefinition "match"
+        let deny = atom denyDefinition "miss"
+        let expressions =
+            [ AllOf [ unknown; deny ]
+              AllOf [ deny; unknown ]
+              AnyOf [ unknown; allow ]
+              AnyOf [ allow; unknown ]
+              Not unknown
+              AllOf [ allow; AnyOf [ deny; Not unknown ] ] ]
+
+        let results = expressions |> List.map (ConstraintExpression.evaluate evaluate)
+
+        Assert.That(results |> List.forall (fun result -> result.Outcome = Indeterminate), Is.True)
+        Assert.That(
+            results |> List.forall (fun result -> result.DiagnosticCategory = UnsupportedConstraint),
+            Is.True)
+        Assert.That(
+            results
+            |> List.forall (fun result -> result.UnsupportedConstraints = [ unknownDefinition.Name ]),
+            Is.True)
+        Assert.That(results |> List.forall (fun result -> not (result.Reason.Contains "protected-secret")), Is.True)
+
+        let reordered =
+            ConstraintExpression.evaluate evaluate (AnyOf [ allow; unknown ])
+
+        Assert.That(reordered.Reason, Is.EqualTo((ConstraintExpression.evaluate evaluate (AnyOf [ unknown; allow ])).Reason))
+
+    [<Test>]
     member _.``Cooling closes the loop in both directions`` () =
         let initial = Cooling.initial "primary" 20.0M 24.0M
         let operatorChange = Cooling.apply (SetTargetTemperature 26.0M) initial

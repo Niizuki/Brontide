@@ -17,6 +17,12 @@ No table entry below is evidence of 0.7 conformance. The temporary correction pl
 claim gaps, so the M1 summary must not be read as proof of every Base requirement until that plan's
 applicable gates close.
 
+Architecture 0.7 Complete Draft evidence is checked separately through
+[`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). The current M1
+evidence covers only recursive Constraint evaluation, target-side poisoning, and experimental
+selection exclusion; it does not change the retained Architecture 0.5 implementation baseline or
+imply ratification.
+
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../Brontide-Interchange-Implementation-Plan-0.1.md).
 It closes the M3/M4 prerequisites relevant to interchange, completes the external binding surface,
@@ -35,6 +41,7 @@ and executes M6 in both host directions. Both protocols remain experimental test
 | M8 — Macro Operation | Not yet implemented | Activity lifecycle and cross-stack provider exchange remain. |
 | M9 — 0.5 Composition | Implemented foundation | Four dependency-strength claims, support/opposition, deterministic provider selection, boxed values, CPU imaging, optimisation eligibility, explanations. |
 | M10 — mixed-stack workspace | Deferred | Minimal has independent multi-layer image workspace semantics. Reference/Minimal/third-provider substitution is the later entanglement proof. |
+| Architecture 0.7 M1 | Tested Complete Draft evidence | Model/Kernel three-state recursive Constraint evaluation, conformance denial/redaction, and experimental Composition candidate exclusion. C2-C5 remain planned. |
 
 ## Executable suites
 

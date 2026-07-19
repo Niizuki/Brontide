@@ -11,7 +11,7 @@ Draft.
 
 | Project | Classification | Status | Evidence boundary |
 | --- | --- | --- | --- |
-| Architecture 0.7 Composition delta | Experimental architecture evidence | Planned in R1 and R3 | Composite Constraint selection and static Attribute-constrained binding remain outside Base. Accepted evidence may support the 0.7 draft without ratifying Component, Attribute, or Binding Plan vocabularies. |
+| Architecture 0.7 Composition delta | Experimental architecture evidence | C1 selection tested in R1; static binding planned in R3 | Composite Constraint selection and static Attribute-constrained binding remain outside Base. Accepted evidence may support the 0.7 draft without ratifying Component, Attribute, or Binding Plan vocabularies. |
 | `Brontide.Reference.Experimental.PersistentInformation` | Experimental architecture evidence | Planned in R4; project not yet created | The first Opaque Corpus/Dataset/Store-role slice may test C4/C5 only. It must not imply a complete persistence system, deep Router policy, or ratified persistent-information extension. |
 | GPU execution | Experimental sideline | Planned | Execute the same semantic image Operation through an explicitly eligible GPU provider while exposing compilation, buffers, host/device copies, batching, dispatch, failure domain, and CPU fallback. It must not infer GPU compatibility from ordinary Operation conformance and must not be represented by the existing `System.Numerics` vector provider. |
 

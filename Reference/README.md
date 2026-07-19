@@ -9,6 +9,12 @@ experiment limits, sideline-project status, and the
 one historical limitation are recorded in `docs/milestone-evidence.md`,
 `docs/implementation-findings.md`, and `docs/experimental-and-sideline-projects.md`.
 
+Architecture 0.7 R1 now has Reference-native Complete Draft evidence for recursive three-state
+Constraint expressions, fail-closed authority evaluation, and experimental Composition selection.
+The revision-specific requirements and evidence are routed through
+[`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json); this is neither
+ratification nor a claim that the remaining Architecture 0.7 work is implemented.
+
 The current repository-wide programme is
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../Brontide-Interchange-Implementation-Plan-0.1.md).
 Brontide Reference Stack now owns independently implemented experimental hosts and provider endpoints for the

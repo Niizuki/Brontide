@@ -82,3 +82,16 @@ malformed, unknown, version-skewed, replayed, and oversized lines independently 
 The proof remains local-process experimental evidence. Its resource handle is addressing, not
 authority; it does not demonstrate persistence, filesystem dereference, network isolation,
 Capability federation, or a ratified portable binding.
+
+## Composite Constraints cannot inherit Boolean short-circuit semantics
+
+- **Brontide sections:** Architecture 0.7 §§10.1, 18.1, 23, and 29.2
+- **Minimal scenario:** an `AllOf` or `AnyOf` contains an unsupported atom beside a sibling that
+  would ordinarily decide a Boolean result.
+- **Observed result:** M1 evaluates all siblings and returns indeterminate with a stable diagnostic;
+  `World.step` denies before dispatch and experimental selection excludes the candidate.
+- **Classification:** Architecture 0.7 Complete Draft evidence
+- **Current disposition:** retain flat Constraint requirements as compatibility leaves, store the
+  recursive expression chain inside the private World representation, redact protected values,
+  and route exact evidence through the revision-specific matrix. This does not ratify Architecture
+  0.7 or complete C2-C5.

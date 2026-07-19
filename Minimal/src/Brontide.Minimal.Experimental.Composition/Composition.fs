@@ -54,6 +54,49 @@ type SelectionExplanation =
       Accepted: string list
       Rejected: (CanonicalName * string) list }
 
+type DefinitionConstraintCandidate<'T> =
+    { Name: CanonicalName
+      Value: 'T
+      Constraint: ConstraintExpression }
+
+type DefinitionConstraintRejection =
+    { Candidate: CanonicalName
+      DiagnosticCategory: ConstraintDiagnosticCategory
+      UnsupportedConstraints: CanonicalName list
+      Reason: string }
+
+type DefinitionConstraintSelectionResult<'T> =
+    { Eligible: DefinitionConstraintCandidate<'T> list
+      Rejected: DefinitionConstraintRejection list }
+
+[<RequireQualifiedAccess>]
+module DefinitionConstraintSelection =
+    let filter
+        (evaluateAtom: ConstraintRequirement -> ConstraintAtomEvaluation)
+        (candidates: DefinitionConstraintCandidate<'T> list)
+        : DefinitionConstraintSelectionResult<'T> =
+        let assessments =
+            candidates
+            |> List.map (fun candidate ->
+                candidate,
+                ConstraintExpression.evaluate evaluateAtom candidate.Constraint)
+
+        { Eligible =
+            assessments
+            |> List.choose (fun (candidate, evaluation) ->
+                if evaluation.Outcome = Satisfied then Some candidate else None)
+          Rejected =
+            assessments
+            |> List.choose (fun (candidate, evaluation) ->
+                if evaluation.Outcome = Satisfied then
+                    None
+                else
+                    Some
+                        { Candidate = candidate.Name
+                          DiagnosticCategory = evaluation.DiagnosticCategory
+                          UnsupportedConstraints = evaluation.UnsupportedConstraints
+                          Reason = evaluation.Reason }) }
+
 type BoxedValue =
     private
         { Shape: ShapeReference
@@ -81,7 +124,7 @@ module BoxedValue =
 
 [<RequireQualifiedAccess>]
 module Composition =
-    let tryCreate components relationships =
+    let tryCreate (components: Component seq) (relationships: ComponentRelationship seq) =
         let duplicates =
             components
             |> Seq.groupBy _.Name

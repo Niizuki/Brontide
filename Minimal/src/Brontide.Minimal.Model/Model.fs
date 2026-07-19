@@ -156,6 +156,167 @@ type ConstraintRequirement =
     { Constraint: ConstraintReference
       Parameters: ShapeValue }
 
+type ConstraintExpression =
+    | AtomicConstraint of ConstraintRequirement
+    | AllOf of ConstraintExpression list
+    | AnyOf of ConstraintExpression list
+    | Not of ConstraintExpression
+
+type ConstraintEvaluationOutcome =
+    | Satisfied
+    | Unsatisfied
+    | Indeterminate
+
+type ConstraintDiagnosticCategory =
+    | ConstraintSatisfied
+    | ConstraintUnsatisfied
+    | UnsupportedConstraint
+    | InvalidConstraintValue
+    | ConstraintEvaluatorFailure
+    | InvalidConstraintExpression
+
+type ConstraintAtomEvaluation =
+    { Outcome: ConstraintEvaluationOutcome
+      DiagnosticCategory: ConstraintDiagnosticCategory
+      UnsupportedConstraints: CanonicalName list
+      Reason: string }
+
+type ConstraintExpressionEvaluation =
+    { Outcome: ConstraintEvaluationOutcome
+      DiagnosticCategory: ConstraintDiagnosticCategory
+      UnsupportedConstraints: CanonicalName list
+      Reason: string }
+
+[<RequireQualifiedAccess>]
+module ConstraintAtomEvaluation =
+    let satisfied: ConstraintAtomEvaluation =
+        { Outcome = Satisfied
+          DiagnosticCategory = ConstraintSatisfied
+          UnsupportedConstraints = []
+          Reason = "constraint atom satisfied" }
+
+    let unsatisfied reason : ConstraintAtomEvaluation =
+        { Outcome = Unsatisfied
+          DiagnosticCategory = ConstraintUnsatisfied
+          UnsupportedConstraints = []
+          Reason = reason }
+
+    let unsupported name : ConstraintAtomEvaluation =
+        { Outcome = Indeterminate
+          DiagnosticCategory = UnsupportedConstraint
+          UnsupportedConstraints = [ name ]
+          Reason =
+            $"UnsupportedConstraint: constraint kind '{CanonicalName.value name}' is unrecognised by target; no evaluator is available." }
+
+    let invalidValue: ConstraintAtomEvaluation =
+        { Outcome = Indeterminate
+          DiagnosticCategory = InvalidConstraintValue
+          UnsupportedConstraints = []
+          Reason = "InvalidConstraintValue: the target cannot evaluate the constraint value." }
+
+    let evaluatorFailed: ConstraintAtomEvaluation =
+        { Outcome = Indeterminate
+          DiagnosticCategory = ConstraintEvaluatorFailure
+          UnsupportedConstraints = []
+          Reason = "ConstraintEvaluatorFailure: the target constraint evaluator failed closed." }
+
+[<RequireQualifiedAccess>]
+module ConstraintExpression =
+    let rec atoms expression =
+        match expression with
+        | AtomicConstraint requirement -> [ requirement ]
+        | AllOf operands
+        | AnyOf operands -> operands |> List.collect atoms
+        | Not operand -> atoms operand
+
+    let private normalizeUnsupported evaluations =
+        evaluations
+        |> List.collect _.UnsupportedConstraints
+        |> List.distinct
+        |> List.sort
+
+    let private poison evaluations =
+        let unsupported = normalizeUnsupported evaluations
+        let category =
+            if List.isEmpty unsupported then
+                evaluations |> List.map _.DiagnosticCategory |> List.sort |> List.head
+            else
+                UnsupportedConstraint
+        let suffix =
+            if List.isEmpty unsupported then
+                ""
+            else
+                let names = unsupported |> List.map CanonicalName.value |> String.concat ", "
+                $" Target has unrecognised constraint kind(s): {names}."
+
+        { Outcome = Indeterminate
+          DiagnosticCategory = category
+          UnsupportedConstraints = unsupported
+          Reason = $"{category}: the complete constraint expression is indeterminate.{suffix}" }
+
+    let private satisfied =
+        { Outcome = Satisfied
+          DiagnosticCategory = ConstraintSatisfied
+          UnsupportedConstraints = []
+          Reason = "Satisfied: the complete constraint expression matched." }
+
+    let private unsatisfied =
+        { Outcome = Unsatisfied
+          DiagnosticCategory = ConstraintUnsatisfied
+          UnsupportedConstraints = []
+          Reason = "Unsatisfied: the complete constraint expression did not match." }
+
+    let private invalid =
+        { Outcome = Indeterminate
+          DiagnosticCategory = InvalidConstraintExpression
+          UnsupportedConstraints = []
+          Reason = "InvalidConstraintExpression: logical groups require at least one operand." }
+
+    let rec evaluate
+        (evaluateAtom: ConstraintRequirement -> ConstraintAtomEvaluation)
+        (expression: ConstraintExpression)
+        : ConstraintExpressionEvaluation =
+        match expression with
+        | AtomicConstraint requirement ->
+            let atom =
+                try
+                    evaluateAtom requirement
+                with _ ->
+                    ConstraintAtomEvaluation.evaluatorFailed
+
+            { Outcome = atom.Outcome
+              DiagnosticCategory = atom.DiagnosticCategory
+              UnsupportedConstraints = atom.UnsupportedConstraints |> List.distinct |> List.sort
+              Reason = atom.Reason }
+        | AllOf []
+        | AnyOf [] -> invalid
+        | AllOf operands -> evaluateGroup evaluateAtom true operands
+        | AnyOf operands -> evaluateGroup evaluateAtom false operands
+        | Not operand ->
+            let child = evaluate evaluateAtom operand
+            match child.Outcome with
+            | Indeterminate -> poison [ child ]
+            | Satisfied -> unsatisfied
+            | Unsatisfied -> satisfied
+
+    and private evaluateGroup
+        (evaluateAtom: ConstraintRequirement -> ConstraintAtomEvaluation)
+        requireAll
+        operands
+        : ConstraintExpressionEvaluation =
+        let children = operands |> List.map (evaluate evaluateAtom)
+        let indeterminate = children |> List.filter (fun child -> child.Outcome = Indeterminate)
+        if not (List.isEmpty indeterminate) then
+            poison indeterminate
+        else
+            let matches =
+                if requireAll then
+                    children |> List.forall (fun child -> child.Outcome = Satisfied)
+                else
+                    children |> List.exists (fun child -> child.Outcome = Satisfied)
+
+            if matches then satisfied else unsatisfied
+
 type ConstraintDefinition =
     { Reference: ConstraintReference
       Name: CanonicalName

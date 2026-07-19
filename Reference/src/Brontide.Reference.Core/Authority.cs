@@ -8,9 +8,279 @@ public static class StandardConstraintNames
     public static readonly CanonicalName WallClockValidity = CanonicalName.Parse("Brontide:WallClockValidity");
     public static readonly CanonicalName LivenessLease = CanonicalName.Parse("Brontide:LivenessLease");
     public static readonly CanonicalName OriginGrant = CanonicalName.Parse("Brontide:OriginGrant");
+    public static readonly CanonicalName AllOf = CanonicalName.Parse("Brontide:Constraint.AllOf");
+    public static readonly CanonicalName AnyOf = CanonicalName.Parse("Brontide:Constraint.AnyOf");
+    public static readonly CanonicalName Not = CanonicalName.Parse("Brontide:Constraint.Not");
 }
 
-public abstract record Constraint(CanonicalName Name, ShapeValue Value);
+public abstract record ConstraintExpression(CanonicalName DiagnosticName);
+
+public abstract record Constraint(CanonicalName Name, ShapeValue Value) : ConstraintExpression(Name);
+
+public sealed record AllOfConstraintExpression : ConstraintExpression
+{
+    public AllOfConstraintExpression(params ConstraintExpression[] operands)
+        : base(StandardConstraintNames.AllOf)
+    {
+        ArgumentNullException.ThrowIfNull(operands);
+        if (operands.Length == 0 || operands.Any(operand => operand is null))
+        {
+            throw new ArgumentException("AllOf requires one or more non-null operands.", nameof(operands));
+        }
+
+        Operands = operands.ToImmutableArray();
+    }
+
+    public ImmutableArray<ConstraintExpression> Operands { get; }
+}
+
+public sealed record AnyOfConstraintExpression : ConstraintExpression
+{
+    public AnyOfConstraintExpression(params ConstraintExpression[] operands)
+        : base(StandardConstraintNames.AnyOf)
+    {
+        ArgumentNullException.ThrowIfNull(operands);
+        if (operands.Length == 0 || operands.Any(operand => operand is null))
+        {
+            throw new ArgumentException("AnyOf requires one or more non-null operands.", nameof(operands));
+        }
+
+        Operands = operands.ToImmutableArray();
+    }
+
+    public ImmutableArray<ConstraintExpression> Operands { get; }
+}
+
+public sealed record NotConstraintExpression : ConstraintExpression
+{
+    public NotConstraintExpression(ConstraintExpression operand)
+        : base(StandardConstraintNames.Not) =>
+        Operand = operand ?? throw new ArgumentNullException(nameof(operand));
+
+    public ConstraintExpression Operand { get; }
+}
+
+public enum ConstraintEvaluationOutcome
+{
+    Satisfied,
+    Unsatisfied,
+    Indeterminate
+}
+
+public enum ConstraintDiagnosticCategory
+{
+    Satisfied,
+    Unsatisfied,
+    UnsupportedConstraint,
+    InvalidConstraintValue,
+    EvaluatorFailure,
+    InvalidConstraintExpression
+}
+
+public sealed record ConstraintAtomEvaluation(
+    ConstraintEvaluationOutcome Outcome,
+    ConstraintDiagnosticCategory DiagnosticCategory,
+    ImmutableArray<CanonicalName> UnsupportedConstraints,
+    string Reason)
+{
+    public static ConstraintAtomEvaluation Satisfied(string reason = "constraint atom satisfied") =>
+        new(ConstraintEvaluationOutcome.Satisfied, ConstraintDiagnosticCategory.Satisfied, [], reason);
+
+    public static ConstraintAtomEvaluation Unsatisfied(string reason = "constraint atom unsatisfied") =>
+        new(ConstraintEvaluationOutcome.Unsatisfied, ConstraintDiagnosticCategory.Unsatisfied, [], reason);
+
+    public static ConstraintAtomEvaluation Unsupported(CanonicalName name) =>
+        new(
+            ConstraintEvaluationOutcome.Indeterminate,
+            ConstraintDiagnosticCategory.UnsupportedConstraint,
+            [name],
+            $"UnsupportedConstraint: constraint kind '{name}' is unrecognised by target; no evaluator is available.");
+
+    public static ConstraintAtomEvaluation InvalidValue() =>
+        new(
+            ConstraintEvaluationOutcome.Indeterminate,
+            ConstraintDiagnosticCategory.InvalidConstraintValue,
+            [],
+            "InvalidConstraintValue: the target cannot evaluate the constraint value.");
+
+    public static ConstraintAtomEvaluation EvaluatorFailed() =>
+        new(
+            ConstraintEvaluationOutcome.Indeterminate,
+            ConstraintDiagnosticCategory.EvaluatorFailure,
+            [],
+            "EvaluatorFailure: the target constraint evaluator failed closed.");
+}
+
+public sealed record ConstraintExpressionEvaluation(
+    ConstraintEvaluationOutcome Outcome,
+    ConstraintDiagnosticCategory DiagnosticCategory,
+    ImmutableArray<CanonicalName> UnsupportedConstraints,
+    string Reason)
+{
+    internal ImmutableArray<CanonicalName> SatisfiedConstraints { get; init; } = [];
+    internal ImmutableArray<CanonicalName> UnsatisfiedConstraints { get; init; } = [];
+}
+
+public static class ConstraintExpressionEvaluator
+{
+    public static ConstraintExpressionEvaluation Evaluate(
+        ConstraintExpression expression,
+        Func<Constraint, ConstraintAtomEvaluation> evaluateAtom)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+        ArgumentNullException.ThrowIfNull(evaluateAtom);
+
+        return expression switch
+        {
+            Constraint atom => EvaluateAtom(atom, evaluateAtom),
+            AllOfConstraintExpression allOf => EvaluateGroup(allOf.Operands, evaluateAtom, requireAll: true),
+            AnyOfConstraintExpression anyOf => EvaluateGroup(anyOf.Operands, evaluateAtom, requireAll: false),
+            NotConstraintExpression not => Negate(Evaluate(not.Operand, evaluateAtom)),
+            _ => InvalidExpression()
+        };
+    }
+
+    public static ImmutableArray<Constraint> AtomicConstraints(ConstraintExpression expression)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+        return expression switch
+        {
+            Constraint atom => [atom],
+            AllOfConstraintExpression allOf => allOf.Operands.SelectMany(operand => AtomicConstraints(operand)).ToImmutableArray(),
+            AnyOfConstraintExpression anyOf => anyOf.Operands.SelectMany(operand => AtomicConstraints(operand)).ToImmutableArray(),
+            NotConstraintExpression not => AtomicConstraints(not.Operand),
+            _ => []
+        };
+    }
+
+    private static ConstraintExpressionEvaluation InvalidExpression() =>
+        new(
+            ConstraintEvaluationOutcome.Indeterminate,
+            ConstraintDiagnosticCategory.InvalidConstraintExpression,
+            [],
+            "InvalidConstraintExpression: the target does not recognise the expression node and failed closed.");
+
+    private static ConstraintExpressionEvaluation EvaluateAtom(
+        Constraint atom,
+        Func<Constraint, ConstraintAtomEvaluation> evaluateAtom)
+    {
+        ConstraintAtomEvaluation result;
+        try
+        {
+            result = evaluateAtom(atom) ?? ConstraintAtomEvaluation.EvaluatorFailed();
+        }
+        catch
+        {
+            result = ConstraintAtomEvaluation.EvaluatorFailed();
+        }
+
+        return new(
+            result.Outcome,
+            result.DiagnosticCategory,
+            NormalizeUnsupported(result.UnsupportedConstraints),
+            result.Reason)
+        {
+            SatisfiedConstraints = result.Outcome == ConstraintEvaluationOutcome.Satisfied ? [atom.Name] : [],
+            UnsatisfiedConstraints = result.Outcome == ConstraintEvaluationOutcome.Unsatisfied ? [atom.Name] : []
+        };
+    }
+
+    private static ConstraintExpressionEvaluation EvaluateGroup(
+        ImmutableArray<ConstraintExpression> operands,
+        Func<Constraint, ConstraintAtomEvaluation> evaluateAtom,
+        bool requireAll)
+    {
+        var children = operands.Select(operand => Evaluate(operand, evaluateAtom)).ToImmutableArray();
+        var indeterminate = children.Where(child => child.Outcome == ConstraintEvaluationOutcome.Indeterminate).ToArray();
+        if (indeterminate.Length > 0)
+        {
+            return Poison(indeterminate);
+        }
+
+        var satisfied = requireAll
+            ? children.All(child => child.Outcome == ConstraintEvaluationOutcome.Satisfied)
+            : children.Any(child => child.Outcome == ConstraintEvaluationOutcome.Satisfied);
+        if (satisfied)
+        {
+            var proof = requireAll
+                ? children.SelectMany(child => child.SatisfiedConstraints)
+                : children
+                    .Where(child => child.Outcome == ConstraintEvaluationOutcome.Satisfied)
+                    .SelectMany(child => child.SatisfiedConstraints);
+            return new(
+                ConstraintEvaluationOutcome.Satisfied,
+                ConstraintDiagnosticCategory.Satisfied,
+                [],
+                "Satisfied: the complete constraint expression matched.")
+            {
+                SatisfiedConstraints = NormalizeNames(proof)
+            };
+        }
+
+        var failedProof = requireAll
+            ? children
+                .Where(child => child.Outcome == ConstraintEvaluationOutcome.Unsatisfied)
+                .SelectMany(child => child.UnsatisfiedConstraints)
+            : children.SelectMany(child => child.UnsatisfiedConstraints);
+        return new(
+                ConstraintEvaluationOutcome.Unsatisfied,
+                ConstraintDiagnosticCategory.Unsatisfied,
+                [],
+                "Unsatisfied: the complete constraint expression did not match.")
+        {
+            UnsatisfiedConstraints = NormalizeNames(failedProof)
+        };
+    }
+
+    private static ConstraintExpressionEvaluation Negate(ConstraintExpressionEvaluation child) =>
+        child.Outcome switch
+        {
+            ConstraintEvaluationOutcome.Indeterminate => Poison([child]),
+            ConstraintEvaluationOutcome.Satisfied => new(
+                ConstraintEvaluationOutcome.Unsatisfied,
+                ConstraintDiagnosticCategory.Unsatisfied,
+                [],
+                "Unsatisfied: the complete constraint expression did not match.")
+            {
+                UnsatisfiedConstraints = child.SatisfiedConstraints
+            },
+            ConstraintEvaluationOutcome.Unsatisfied => new(
+                ConstraintEvaluationOutcome.Satisfied,
+                ConstraintDiagnosticCategory.Satisfied,
+                [],
+                "Satisfied: the complete constraint expression matched.")
+            {
+                SatisfiedConstraints = child.UnsatisfiedConstraints
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(child))
+        };
+
+    private static ConstraintExpressionEvaluation Poison(IEnumerable<ConstraintExpressionEvaluation> children)
+    {
+        var items = children.ToArray();
+        var unsupported = NormalizeUnsupported(items.SelectMany(child => child.UnsupportedConstraints));
+        var category = unsupported.IsEmpty
+            ? items.Select(child => child.DiagnosticCategory).Order().First()
+            : ConstraintDiagnosticCategory.UnsupportedConstraint;
+        var suffix = unsupported.IsEmpty
+            ? string.Empty
+            : $" Target has unrecognised constraint kind(s): {string.Join(", ", unsupported)}.";
+        return new(
+            ConstraintEvaluationOutcome.Indeterminate,
+            category,
+            unsupported,
+            $"{category}: the complete constraint expression is indeterminate.{suffix}");
+    }
+
+    private static ImmutableArray<CanonicalName> NormalizeUnsupported(IEnumerable<CanonicalName> names) =>
+        NormalizeNames(names);
+
+    private static ImmutableArray<CanonicalName> NormalizeNames(IEnumerable<CanonicalName> names) =>
+        names
+            .Distinct()
+            .OrderBy(name => name.ToString(), StringComparer.Ordinal)
+            .ToImmutableArray();
+}
 
 public sealed record ValueConstraint : Constraint
 {
@@ -168,8 +438,24 @@ public sealed class LivenessLease
 
 public sealed record ConstraintDecision(bool Allowed, CanonicalName ConstraintName, string Reason)
 {
+    public ConstraintEvaluationOutcome Outcome { get; init; } =
+        Allowed ? ConstraintEvaluationOutcome.Satisfied : ConstraintEvaluationOutcome.Unsatisfied;
+    public ConstraintDiagnosticCategory DiagnosticCategory { get; init; } =
+        Allowed ? ConstraintDiagnosticCategory.Satisfied : ConstraintDiagnosticCategory.Unsatisfied;
+    public ImmutableArray<CanonicalName> UnsupportedConstraints { get; init; } = [];
+
     public static ConstraintDecision Allow(CanonicalName name, string reason) => new(true, name, reason);
     public static ConstraintDecision Deny(CanonicalName name, string reason) => new(false, name, reason);
+
+    internal static ConstraintDecision FromExpression(
+        ConstraintExpression expression,
+        ConstraintExpressionEvaluation evaluation) =>
+        new(evaluation.Outcome == ConstraintEvaluationOutcome.Satisfied, expression.DiagnosticName, evaluation.Reason)
+        {
+            Outcome = evaluation.Outcome,
+            DiagnosticCategory = evaluation.DiagnosticCategory,
+            UnsupportedConstraints = evaluation.UnsupportedConstraints
+        };
 }
 
 public delegate ConstraintDecision ConstraintEvaluator(Constraint constraint, ConstraintEvaluationContext context);
@@ -252,7 +538,7 @@ public sealed class Capability
         ActorReference target,
         ImmutableHashSet<OperationReference> rootOperations,
         Capability? parent,
-        IEnumerable<Constraint> addedConstraints,
+        IEnumerable<ConstraintExpression> addedConstraints,
         bool delegationAllowed,
         Action<Capability> derivedCallback)
     {
@@ -261,7 +547,8 @@ public sealed class Capability
         Target = target;
         RootOperations = rootOperations;
         Parent = parent;
-        AddedConstraints = addedConstraints.ToImmutableArray();
+        AddedConstraintExpressions = addedConstraints.ToImmutableArray();
+        AddedConstraints = AddedConstraintExpressions.OfType<Constraint>().ToImmutableArray();
         DelegationAllowed = delegationAllowed;
         _derivedCallback = derivedCallback;
         Id = Guid.NewGuid();
@@ -274,10 +561,14 @@ public sealed class Capability
     public ImmutableHashSet<OperationReference> RootOperations { get; }
     public Capability? Parent { get; }
     public ImmutableArray<Constraint> AddedConstraints { get; }
+    public ImmutableArray<ConstraintExpression> AddedConstraintExpressions { get; }
     public bool DelegationAllowed { get; }
     public bool IsPrimordial => Parent is null;
 
     public Capability Delegate(ActorReference newHolder, params Constraint[] added)
+        => DelegateExpressions(newHolder, added);
+
+    public Capability DelegateExpressions(ActorReference newHolder, params ConstraintExpression[] added)
     {
         ArgumentNullException.ThrowIfNull(newHolder);
         ArgumentNullException.ThrowIfNull(added);
@@ -291,7 +582,8 @@ public sealed class Capability
             throw new InvalidOperationException("Cross-domain Delegation is not part of Brontide Base.");
         }
 
-        if (added.Any(constraint => constraint.Name == StandardConstraintNames.OriginGrant))
+        if (added.SelectMany(expression => ConstraintExpressionEvaluator.AtomicConstraints(expression))
+            .Any(constraint => constraint.Name == StandardConstraintNames.OriginGrant))
         {
             throw new InvalidOperationException("Origin grants cannot be introduced through Delegation.");
         }
@@ -330,8 +622,11 @@ public sealed class Capability
         return chain.ToImmutableArray();
     }
 
+    internal IEnumerable<ConstraintExpression> EffectiveConstraintExpressions() =>
+        DerivationChain().SelectMany(capability => capability.AddedConstraintExpressions);
+
     internal IEnumerable<Constraint> EffectiveConstraints() =>
-        DerivationChain().SelectMany(capability => capability.AddedConstraints);
+        EffectiveConstraintExpressions().SelectMany(expression => ConstraintExpressionEvaluator.AtomicConstraints(expression));
 
     public override string ToString() => $"Capability {Id:N} for {Holder}";
 }

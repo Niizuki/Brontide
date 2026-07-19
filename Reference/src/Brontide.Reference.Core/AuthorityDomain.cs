@@ -385,44 +385,13 @@ public sealed class AuthorityDomain
             trustedNow);
         var originGrantSeen = false;
 
-        foreach (var constraint in capability.EffectiveConstraints())
+        foreach (var expression in capability.EffectiveConstraintExpressions())
         {
-            ConstraintDefinition constraintDefinition;
-            lock (_gate)
-            {
-                if (!_constraints.TryGetValue(constraint.Name, out constraintDefinition!))
-                {
-                    var unknown = ConstraintDecision.Deny(
-                        constraint.Name,
-                        $"constraint '{constraint.Name}' unrecognised by target; fail-closed (§10.1)");
-                    decisions.Add(unknown);
-                    return Reject(execution, decisions, $"denied: {unknown.Reason}");
-                }
-            }
-
-            originGrantSeen |= constraint.Name == StandardConstraintNames.OriginGrant;
-            var constraintShape = Shapes.Project(constraint.Value, constraintDefinition.ValueShape);
-            if (!constraintShape.IsValid)
-            {
-                var invalid = ConstraintDecision.Deny(
-                    constraint.Name,
-                    $"constraint value Shape is incompatible: {constraintShape.Message}");
-                decisions.Add(invalid);
-                return Reject(execution, decisions, $"denied: {invalid.Reason}");
-            }
-
-            ConstraintDecision decision;
-            try
-            {
-                decision = constraintDefinition.Evaluator(constraint, evaluationContext);
-            }
-            catch (Exception exception)
-            {
-                decision = ConstraintDecision.Deny(
-                    constraint.Name,
-                    $"constraint evaluator failed closed: {exception.Message}");
-            }
-
+            var evaluation = ConstraintExpressionEvaluator.Evaluate(
+                expression,
+                constraint => EvaluateConstraintAtom(constraint, evaluationContext));
+            originGrantSeen |= evaluation.SatisfiedConstraints.Contains(StandardConstraintNames.OriginGrant);
+            var decision = ConstraintDecision.FromExpression(expression, evaluation);
             decisions.Add(decision);
             if (!decision.Allowed)
             {
@@ -486,6 +455,38 @@ public sealed class AuthorityDomain
 
         Append(ProvenanceKind.Outcome, outcome: outcome);
         return new ExecutionResult(execution, outcome, decisions.ToImmutable(), context.EmittedEvents.ToImmutableArray());
+    }
+
+    private ConstraintAtomEvaluation EvaluateConstraintAtom(
+        Constraint constraint,
+        ConstraintEvaluationContext evaluationContext)
+    {
+        ConstraintDefinition constraintDefinition;
+        lock (_gate)
+        {
+            if (!_constraints.TryGetValue(constraint.Name, out constraintDefinition!))
+            {
+                return ConstraintAtomEvaluation.Unsupported(constraint.Name);
+            }
+        }
+
+        var constraintShape = Shapes.Project(constraint.Value, constraintDefinition.ValueShape);
+        if (!constraintShape.IsValid)
+        {
+            return ConstraintAtomEvaluation.InvalidValue();
+        }
+
+        try
+        {
+            var decision = constraintDefinition.Evaluator(constraint, evaluationContext);
+            return decision.Allowed
+                ? ConstraintAtomEvaluation.Satisfied(decision.Reason)
+                : ConstraintAtomEvaluation.Unsatisfied(decision.Reason);
+        }
+        catch
+        {
+            return ConstraintAtomEvaluation.EvaluatorFailed();
+        }
     }
 
     private ExecutionResult Reject(
@@ -774,7 +775,7 @@ public sealed class AuthorityDomain
         ActorReference holder,
         ActorReference target,
         IEnumerable<OperationReference> operations,
-        IEnumerable<Constraint> constraints,
+        IEnumerable<ConstraintExpression> constraints,
         bool delegable)
     {
         EnsureActor(holder);
@@ -951,6 +952,18 @@ public sealed class AuthorityDomain
         {
             EnsureActive();
             return _domain.IssueCapability(holder, target, operations, constraints ?? [], delegable);
+        }
+
+        public Capability GrantExpressions(
+            ActorReference holder,
+            ActorReference target,
+            IEnumerable<OperationReference> operations,
+            IEnumerable<ConstraintExpression> expressions,
+            bool delegable = true)
+        {
+            EnsureActive();
+            ArgumentNullException.ThrowIfNull(expressions);
+            return _domain.IssueCapability(holder, target, operations, expressions, delegable);
         }
 
         public LivenessLease Lease(ActorReference grantor, TimeSpan duration)

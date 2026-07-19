@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — Architecture 0.7 Complete Draft evidence
+
+### Added
+
+- Recursive atomic, `AllOf`, `AnyOf`, and `Not` Constraint expressions with explicit satisfied,
+  unsatisfied, and indeterminate results. Existing flat Capability and Operation requirements
+  remain source-compatible atomic leaves; callers opt in through
+  `Genesis.capabilityWithExpressions` and `World.delegateCapabilityWithExpressions`.
+- Fail-closed target-side composite evaluation and experimental Composition candidate filtering.
+
+These additions are current-draft evidence, not ratification and not a component-version change.
+
 ## Unreleased — Architecture 0.5 implementation correction
 
 ### Breaking

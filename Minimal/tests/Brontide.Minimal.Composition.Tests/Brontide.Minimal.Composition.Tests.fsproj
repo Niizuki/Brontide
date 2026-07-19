@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Kernel\Brontide.Minimal.Kernel.fsproj" />
     <ProjectReference Include="..\..\src\Brontide.Minimal.Vocabularies.Imaging\Brontide.Minimal.Vocabularies.Imaging.fsproj" />
     <ProjectReference Include="..\..\src\Brontide.Minimal.Experimental.Composition\Brontide.Minimal.Experimental.Composition.fsproj" />
   </ItemGroup>

@@ -130,6 +130,72 @@ open Helpers
 [<TestFixture>]
 type BaseAuthorityConformance() =
     [<Test>]
+    member _.``BR_07_CONSTRAINT_002 poisoned Capability denies before effects with redacted diagnostics`` () =
+        let fixture = prepareWorld ()
+        let unsupported, withUnsupported =
+            World.registerConstraint
+                (name "Brontide.Minimal.Tests:UnsupportedComposite")
+                BuiltIn.textShape
+                "registered but not understood by the target evaluator"
+                fixture.World
+            |> get
+
+        let composite =
+            AnyOf
+                [ AtomicConstraint
+                    { Constraint = fixture.Constraint.Reference
+                      Parameters = TextValue "known" }
+                  Not(
+                      AtomicConstraint
+                          { Constraint = unsupported.Reference
+                            Parameters = TextValue "protected-secret" }
+                  ) ]
+
+        let (capability: Capability), ready =
+            World.genesis
+                (name "Brontide.Minimal.Tests:CompositePolicy")
+                (mark 1L)
+                (fun genesis world ->
+                    let capability, next =
+                        Genesis.capabilityWithExpressions
+                            genesis
+                            (name "Brontide.Minimal.Tests:CompositeGrant")
+                            fixture.Holder.Reference
+                            fixture.Target.Reference
+                            (Set.singleton echoOperation)
+                            [ composite ]
+                            false
+                            world
+                        |> get
+
+                    capability, next)
+                withUnsupported
+            |> get
+
+        let mutable invoked = false
+        let evaluators =
+            Map.ofList
+                [ fixture.Constraint.Reference,
+                  fun _ _ -> Ok() ]
+        let execution =
+            World.step
+                (environment 2L evaluators (fun value -> invoked <- true; Ok(value.Command, [], [])))
+                ready
+                (request
+                    fixture
+                    fixture.Holder.Reference
+                    fixture.Target.Reference
+                    capability.Reference
+                    echoOperation
+                    (TextValue "command"))
+
+        Assert.That(execution.Outcome.Status, Is.EqualTo Denied)
+        Assert.That(invoked, Is.False)
+        Assert.That(execution.Outcome.Reason.Value, Does.Contain "UnsupportedConstraint")
+        Assert.That(execution.Outcome.Reason.Value, Does.Contain(CanonicalName.value unsupported.Name))
+        Assert.That(execution.Outcome.Reason.Value, Does.Not.Contain "protected-secret")
+
+    [<Test>]
     member _.``BR_05_NAME_001 canonical names parse authored qualification and reject ambiguity`` () =
         Assert.That(CanonicalName.tryCreate "Logitech.MX:Input.Scroll.SmartShift" |> Result.isOk, Is.True)
         Assert.That(CanonicalName.tryCreate "Brontide.Minimal.Tests:Good_Name-1" |> Result.isOk, Is.True)

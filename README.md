@@ -50,5 +50,9 @@ Stable implementation-baseline requirement IDs live in
 are [`Reference/conformance/architecture-0.5.json`](./Reference/conformance/architecture-0.5.json)
 and [`Minimal/conformance/architecture-0.5.json`](./Minimal/conformance/architecture-0.5.json).
 These files remain deliberately version-pinned evidence. Requirement IDs and matrices for the
-registry-selected current architecture are separate plan deliverables and must not rewrite retained
-evidence.
+registry-selected current architecture remain separate and must not rewrite retained evidence.
+The current Complete Draft inventory is
+[`conformance/architecture-0.7-requirements.json`](./conformance/architecture-0.7-requirements.json),
+with independent [Reference](./Reference/conformance/architecture-0.7.json) and
+[Minimal](./Minimal/conformance/architecture-0.7.json) matrices. They currently record tested C1
+evidence and planned C2-C5 work without implying ratification or changing the 0.5 baseline.

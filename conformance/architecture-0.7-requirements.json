@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "architecture": {
+    "revision": "0.7",
+    "status": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
+    "path": "Brontide-Architecture-0.7.md",
+    "sha256": "C801E4C4A5177115DA97A8CCCCBA5FBB7A320946D484D94D81D9FB49F13A7940",
+    "reviewedCommit": "06e473e05c7e8b4ae1364db17b4884807f0a676c"
+  },
+  "requirements": [
+    {
+      "id": "BR-07-CONSTRAINT-001",
+      "change": "C1",
+      "section": "10.1,18.1,23,29.2",
+      "summary": "Recursive AllOf, AnyOf, and Not Constraint expressions preserve satisfied, unsatisfied, and indeterminate outcomes, and any unrecognised atom poisons the complete expression.",
+      "predecessors": ["BR-05-CAP-002"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-07-CONSTRAINT-002",
+      "change": "C1",
+      "section": "10.1,13.5,29.2",
+      "summary": "A Capability carrying an indeterminate composite Constraint is denied before effects and records a deterministic, non-sensitive decision.",
+      "predecessors": ["BR-05-CAP-002", "BR-05-EXEC-001", "BR-05-EXEC-002"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-07-CONSTRAINT-003",
+      "change": "C1",
+      "section": "18.1,29.2",
+      "summary": "Selection excludes a candidate whose Definition Constraint is indeterminate and explains the unsupported atom using a deterministic diagnostic category.",
+      "predecessors": [],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-07-NAME-001",
+      "change": "C2",
+      "section": "6.10,22.4",
+      "summary": "Typed member identities use the unambiguous [AuthorityPath:]ConceptPath#MemberKind.MemberName grammar, remain distinct from concept identities, and keep versions outside canonical identity.",
+      "predecessors": ["BR-05-NAME-001", "BR-05-NAME-002"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-07-BINDING-001",
+      "change": "C3",
+      "section": "18.1",
+      "summary": "An Attribute-constrained binding resolves once, records immutable effective values and provenance, and restores without reselection or automatic rebinding.",
+      "predecessors": [],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-07-ROUTER-001",
+      "change": "C4",
+      "section": "18.1,18.2",
+      "summary": "A Router exposes its own logical-endpoint guarantees and refuses configurations that cannot uphold them across declared backings and fallback behavior.",
+      "predecessors": [],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-07-DATASET-001",
+      "change": "C5",
+      "section": "18.2,21.1",
+      "summary": "Dataset identity belongs to the Dataset record and remains distinct from Store content, with Corpus-declared identity-bearing Store roles.",
+      "predecessors": [],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-07-DATASET-002",
+      "change": "C5",
+      "section": "10.2,12,18.2,21.1",
+      "summary": "Dataset creation is attributable authorised issuance, Dataset and Store operations are Capability-governed, and every Corpus declares concurrent-access semantics.",
+      "predecessors": ["BR-05-CAP-001", "BR-05-GENESIS-001"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-07-CLASSIFICATION-001",
+      "change": "C6",
+      "section": "7.1,16.6,18.1,18.2",
+      "summary": "Implementation documentation classifies Enrichment, Composition, and Persistent Information as work in progress outside Base and routes them to their companion design notes.",
+      "predecessors": [],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-07-AUTHORITY-001",
+      "change": "C7",
+      "section": "8,13.5",
+      "summary": "Implementation documentation and evidence preserve separate minting, custody, and target-side evaluation responsibilities without inventing a universal authority service.",
+      "predecessors": ["BR-05-CAP-001"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-07-MEDIATION-001",
+      "change": "C8",
+      "section": "6.9,18.1,18.2,26.1",
+      "summary": "The implementation risk ledger records Selection, Distribution, and Arbitration obligations without introducing a normative Mediator participant or conformance claim.",
+      "predecessors": [],
+      "appliesTo": ["Reference", "Minimal"]
+    }
+  ]
+}

@@ -143,6 +143,56 @@ public sealed record DependencyResolution(
     bool IsSatisfied,
     string Explanation);
 
+public sealed record DefinitionConstraintCandidate<T>(
+    CanonicalName Name,
+    T Value,
+    ConstraintExpression Constraint);
+
+public sealed record DefinitionConstraintRejection(
+    CanonicalName Candidate,
+    ConstraintDiagnosticCategory DiagnosticCategory,
+    ImmutableArray<CanonicalName> UnsupportedConstraints,
+    string Reason);
+
+public sealed record DefinitionConstraintSelectionResult<T>(
+    ImmutableArray<DefinitionConstraintCandidate<T>> Eligible,
+    ImmutableArray<DefinitionConstraintRejection> Rejected);
+
+/// <summary>
+/// Experimental Architecture 0.7 selection boundary. An indeterminate Definition Constraint is
+/// unsatisfiable for selection and excludes its candidate without exposing atom values.
+/// </summary>
+public static class DefinitionConstraintSelection
+{
+    public static DefinitionConstraintSelectionResult<T> Filter<T>(
+        IEnumerable<DefinitionConstraintCandidate<T>> candidates,
+        Func<Constraint, ConstraintAtomEvaluation> evaluateAtom)
+    {
+        ArgumentNullException.ThrowIfNull(candidates);
+        ArgumentNullException.ThrowIfNull(evaluateAtom);
+
+        var eligible = ImmutableArray.CreateBuilder<DefinitionConstraintCandidate<T>>();
+        var rejected = ImmutableArray.CreateBuilder<DefinitionConstraintRejection>();
+        foreach (var candidate in candidates)
+        {
+            var evaluation = ConstraintExpressionEvaluator.Evaluate(candidate.Constraint, evaluateAtom);
+            if (evaluation.Outcome == ConstraintEvaluationOutcome.Satisfied)
+            {
+                eligible.Add(candidate);
+                continue;
+            }
+
+            rejected.Add(new(
+                candidate.Name,
+                evaluation.DiagnosticCategory,
+                evaluation.UnsupportedConstraints,
+                evaluation.Reason));
+        }
+
+        return new(eligible.ToImmutable(), rejected.ToImmutable());
+    }
+}
+
 /// <summary>
 /// Small experimental resolver that preserves dependency strength instead of flattening every
 /// dependency into an undifferentiated service flag.

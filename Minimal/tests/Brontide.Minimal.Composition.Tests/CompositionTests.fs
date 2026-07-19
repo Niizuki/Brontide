@@ -2,6 +2,7 @@ namespace Brontide.Minimal.Composition.Tests
 
 open NUnit.Framework
 open Brontide.Minimal.Model
+open Brontide.Minimal.Kernel
 open Brontide.Minimal.Vocabularies.Imaging
 open Brontide.Minimal.Experimental.Composition
 
@@ -22,6 +23,54 @@ open Helpers
 
 [<TestFixture>]
 type CompositionTests() =
+    [<Test>]
+    member _.``BR_07_CONSTRAINT_003 UnsupportedConstraint excludes poisoned candidate`` () =
+        let timeDomain = TimeDomainReference.create (name "Brontide.Minimal.Tests:SelectionClock")
+        let initial = World.create (System.Guid.NewGuid()) timeDomain
+        let supported, world =
+            World.registerConstraint
+                (name "Brontide.Minimal.Tests:Supported")
+                BuiltIn.textShape
+                "supported selection atom"
+                initial
+            |> Result.defaultWith failwith
+        let unsupported, _ =
+            World.registerConstraint
+                (name "Brontide.Minimal.Tests:Unsupported")
+                BuiltIn.textShape
+                "unsupported selection atom"
+                world
+            |> Result.defaultWith failwith
+        let atom (definition: ConstraintDefinition) value =
+            AtomicConstraint
+                { Constraint = definition.Reference
+                  Parameters = TextValue value }
+        let poisonedName = name "brontide-minimal.composition.poisoned"
+        let eligibleName = name "brontide-minimal.composition.eligible"
+        let candidates =
+            [ { Name = poisonedName
+                Value = "poisoned"
+                Constraint = AnyOf [ atom supported "match"; atom unsupported "protected-value" ] }
+              { Name = eligibleName
+                Value = "eligible"
+                Constraint = atom supported "match" } ]
+
+        let result =
+            DefinitionConstraintSelection.filter
+                (fun (requirement: ConstraintRequirement) ->
+                    if requirement.Constraint = supported.Reference then
+                        ConstraintAtomEvaluation.satisfied
+                    else
+                        ConstraintAtomEvaluation.unsupported unsupported.Name)
+                candidates
+
+        Assert.That((result.Eligible |> List.map _.Name) = [ eligibleName ], Is.True)
+        Assert.That(result.Rejected.Length, Is.EqualTo 1)
+        Assert.That(result.Rejected.Head.Candidate, Is.EqualTo poisonedName)
+        Assert.That(result.Rejected.Head.DiagnosticCategory, Is.EqualTo UnsupportedConstraint)
+        Assert.That(result.Rejected.Head.UnsupportedConstraints = [ unsupported.Name ], Is.True)
+        Assert.That(result.Rejected.Head.Reason, Does.Not.Contain "protected-value")
+
     [<Test>]
     member _.``provider selection is explicit and explained`` () =
         let intent =

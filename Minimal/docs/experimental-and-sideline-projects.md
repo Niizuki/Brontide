@@ -9,8 +9,8 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
 - `Brontide.Minimal.Experimental.Enrichment` explores targeted, explicit derivation outside Model and Kernel.
 - `Brontide.Minimal.Experimental.Composition` explores Brontide Architecture 0.5 component selection, dependency
   gravity, boxed applications, support/opposition, explanations, and optimisation eligibility. Its
-  planned Architecture 0.7 delta covers composite Constraint selection and static
-  Attribute-constrained binding without changing that experimental classification.
+  Architecture 0.7 C1 composite-Constraint selection is tested; static Attribute-constrained
+  binding remains planned. Neither changes the project's experimental classification.
 - `Brontide.Minimal.Experimental.PersistentInformation` is planned, not created. Its first scope is
   the C4/C5 Opaque Corpus/Dataset/Store-role evidence in Plan 0.3; it does not imply a complete
   persistence system, deep Router policy, or ratified persistent-information extension.

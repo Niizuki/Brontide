@@ -10,6 +10,7 @@ type World =
           AuthorityActor: ActorReference
           Actors: Map<ActorReference, Actor>
           Capabilities: Map<CapabilityReference, Capability>
+          CapabilityConstraintExpressions: Map<CapabilityReference, ConstraintExpression list>
           Shapes: Map<ShapeReference, ShapeDefinition>
           Fragments: Map<FragmentReference, FragmentDefinition>
           Constraints: Map<ConstraintReference, ConstraintDefinition>
@@ -100,6 +101,7 @@ module World =
           AuthorityActor = authorityReference
           Actors = Map.ofList [ authorityReference, authorityActor ]
           Capabilities = Map.empty
+          CapabilityConstraintExpressions = Map.empty
           Shapes = shapes
           Fragments = Map.empty
           Constraints = Map.empty
@@ -384,6 +386,29 @@ module World =
         |> Option.map Error
         |> Option.defaultValue (Ok())
 
+    let rec private validateConstraintExpression (expression: ConstraintExpression) (world: World) =
+        match expression with
+        | AtomicConstraint requirement -> validateConstraintRequirements [ requirement ] world
+        | AllOf []
+        | AnyOf [] -> Error "A composite Constraint group must contain at least one operand."
+        | AllOf operands
+        | AnyOf operands ->
+            operands
+            |> List.tryPick (fun operand ->
+                match validateConstraintExpression operand world with
+                | Ok() -> None
+                | Error message -> Some(Error message))
+            |> Option.defaultValue (Ok())
+        | Not operand -> validateConstraintExpression operand world
+
+    let private validateConstraintExpressions expressions world =
+        expressions
+        |> List.tryPick (fun expression ->
+            match validateConstraintExpression expression world with
+            | Ok() -> None
+            | Error message -> Some(Error message))
+        |> Option.defaultValue (Ok())
+
     let internal issueGenesisActor (context: GenesisContext) (name: CanonicalName) (world: World) =
         context.EnsureActive world.Scope
         let reference = ActorReference.issue world.Scope world.NextReference
@@ -394,13 +419,13 @@ module World =
             NextReference = world.NextReference + 1L
             Actors = Map.add reference actor world.Actors }
 
-    let internal issuePrimordialCapability
+    let internal issuePrimordialCapabilityWithExpressions
         (context: GenesisContext)
         (name: CanonicalName)
         (holder: ActorReference)
         (target: ActorReference)
         (operations: Set<OperationReference>)
-        (constraints: ConstraintRequirement list)
+        (expressions: ConstraintExpression list)
         (delegationAllowed: bool)
         (world: World)
         =
@@ -422,10 +447,16 @@ module World =
         elif not operationsRecognized then
             Error "A Capability Operation is unknown or belongs to another target."
         else
-            match validateConstraintRequirements constraints world with
+            match validateConstraintExpressions expressions world with
             | Error message -> Error message
             | Ok() ->
                 let reference = CapabilityReference.issue world.Scope world.NextReference
+
+                let atomicCompatibility =
+                    expressions
+                    |> List.choose (function
+                        | AtomicConstraint requirement -> Some requirement
+                        | _ -> None)
 
                 let capability =
                     { Reference = reference
@@ -433,7 +464,7 @@ module World =
                       Holder = holder
                       Target = target
                       Operations = operations
-                      AddedConstraints = constraints
+                      AddedConstraints = atomicCompatibility
                       Parent = None
                       IssuedBy = None
                       DelegationAllowed = delegationAllowed }
@@ -442,15 +473,37 @@ module World =
                     capability,
                     { world with
                         NextReference = world.NextReference + 1L
-                        Capabilities = Map.add reference capability world.Capabilities }
+                        Capabilities = Map.add reference capability world.Capabilities
+                        CapabilityConstraintExpressions =
+                            Map.add reference expressions world.CapabilityConstraintExpressions }
                 )
 
-    let delegateCapability
+    let internal issuePrimordialCapability
+        (context: GenesisContext)
+        (name: CanonicalName)
+        (holder: ActorReference)
+        (target: ActorReference)
+        (operations: Set<OperationReference>)
+        (constraints: ConstraintRequirement list)
+        (delegationAllowed: bool)
+        (world: World)
+        =
+        issuePrimordialCapabilityWithExpressions
+            context
+            name
+            holder
+            target
+            operations
+            (constraints |> List.map AtomicConstraint)
+            delegationAllowed
+            world
+
+    let delegateCapabilityWithExpressions
         (name: CanonicalName)
         (delegator: ActorReference)
         (newHolder: ActorReference)
         (parentReference: CapabilityReference)
-        (addedConstraints: ConstraintRequirement list)
+        (addedExpressions: ConstraintExpression list)
         (world: World)
         =
         match Map.tryFind parentReference world.Capabilities with
@@ -462,10 +515,16 @@ module World =
         | Some _ when not (Map.containsKey newHolder world.Actors) ->
             Error "The delegated Capability holder is unknown."
         | Some parent ->
-            match validateConstraintRequirements addedConstraints world with
+            match validateConstraintExpressions addedExpressions world with
             | Error message -> Error message
             | Ok() ->
                 let reference = CapabilityReference.issue world.Scope world.NextReference
+
+                let atomicCompatibility =
+                    addedExpressions
+                    |> List.choose (function
+                        | AtomicConstraint requirement -> Some requirement
+                        | _ -> None)
 
                 let capability =
                     { Reference = reference
@@ -473,7 +532,7 @@ module World =
                       Holder = newHolder
                       Target = parent.Target
                       Operations = parent.Operations
-                      AddedConstraints = addedConstraints
+                      AddedConstraints = atomicCompatibility
                       Parent = Some parent.Reference
                       IssuedBy = Some delegator
                       DelegationAllowed = parent.DelegationAllowed }
@@ -482,8 +541,26 @@ module World =
                     capability,
                     { world with
                         NextReference = world.NextReference + 1L
-                        Capabilities = Map.add reference capability world.Capabilities }
+                        Capabilities = Map.add reference capability world.Capabilities
+                        CapabilityConstraintExpressions =
+                            Map.add reference addedExpressions world.CapabilityConstraintExpressions }
                 )
+
+    let delegateCapability
+        (name: CanonicalName)
+        (delegator: ActorReference)
+        (newHolder: ActorReference)
+        (parentReference: CapabilityReference)
+        (addedConstraints: ConstraintRequirement list)
+        (world: World)
+        =
+        delegateCapabilityWithExpressions
+            name
+            delegator
+            newHolder
+            parentReference
+            (addedConstraints |> List.map AtomicConstraint)
+            world
 
     let validateContract
         (target: ShapeReference)
@@ -725,18 +802,43 @@ module World =
                           LogicalTime = environment.TrustedTime.Milliseconds }
 
                     let effectiveConstraints =
-                        operation.Constraints
-                        @ (capabilityChain capability world |> List.collect _.AddedConstraints)
+                        (operation.Constraints |> List.map AtomicConstraint)
+                        @ (capabilityChain capability world
+                           |> List.collect (fun chainCapability ->
+                               world.CapabilityConstraintExpressions
+                               |> Map.tryFind chainCapability.Reference
+                               |> Option.defaultValue (
+                                   chainCapability.AddedConstraints |> List.map AtomicConstraint
+                               )))
+
+                    let evaluateAtom requirement =
+                        match Map.tryFind requirement.Constraint world.Constraints with
+                        | None -> ConstraintAtomEvaluation.evaluatorFailed
+                        | Some definition ->
+                            match validateValue definition.ParameterShape requirement.Parameters world with
+                            | Error _ -> ConstraintAtomEvaluation.invalidValue
+                            | Ok() ->
+                                match Map.tryFind requirement.Constraint environment.ConstraintEvaluators with
+                                | None -> ConstraintAtomEvaluation.unsupported definition.Name
+                                | Some evaluator ->
+                                    try
+                                        match evaluator requirement.Parameters context with
+                                        | Ok() -> ConstraintAtomEvaluation.satisfied
+                                        | Error message -> ConstraintAtomEvaluation.unsatisfied message
+                                    with _ ->
+                                        ConstraintAtomEvaluation.evaluatorFailed
+
+                    let evaluations =
+                        effectiveConstraints
+                        |> List.map (ConstraintExpression.evaluate evaluateAtom)
 
                     let constraintFailure =
-                        effectiveConstraints
-                        |> List.tryPick (fun requirement ->
-                            match Map.tryFind requirement.Constraint environment.ConstraintEvaluators with
-                            | None -> Some "A required Constraint has no evaluator."
-                            | Some evaluator ->
-                                match evaluator requirement.Parameters context with
-                                | Ok() -> None
-                                | Error message -> Some message)
+                        evaluations
+                        |> List.tryFind (fun evaluation -> evaluation.Outcome = Indeterminate)
+                        |> Option.orElseWith (fun () ->
+                            evaluations
+                            |> List.tryFind (fun evaluation -> evaluation.Outcome = Unsatisfied))
+                        |> Option.map _.Reason
 
                     match constraintFailure with
                     | Some message -> deny environment request message world
@@ -849,5 +951,16 @@ module Genesis =
             target
             operations
             constraints
+            delegationAllowed
+            world
+
+    let capabilityWithExpressions context name holder target operations expressions delegationAllowed world =
+        World.issuePrimordialCapabilityWithExpressions
+            context
+            name
+            holder
+            target
+            operations
+            expressions
             delegationAllowed
             world
