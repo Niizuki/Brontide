@@ -168,3 +168,10 @@ records in progress; `build/verify-independent-review.ps1 -RequireComplete` requ
 stack attestations and an authorized closing record. If this temporary plan is absent, the verifier
 enables that strict mode automatically as part of the full repository gate. These controls check
 coverage and traceability but do not replace the reviewer's architectural judgment.
+
+The reviewer may be automated under the pinned independence policy: it must use a distinct reviewer
+identity, a fresh isolated context, no private implementation-session reasoning, and the complete
+attestation. The attestation must consider the current architecture source and its delivery plan in
+addition to retained implementation-baseline evidence. Automated review remains valid as the
+architecture advances unless the current architecture or an explicit repository policy changes the
+rule.

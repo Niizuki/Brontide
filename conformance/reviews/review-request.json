@@ -1,23 +1,55 @@
 {
-  "schemaVersion": 1,
-  "architectureRevision": "0.5",
+  "schemaVersion": 2,
   "createdAt": "2026-07-18T00:00:00+02:00",
   "reviewTargetCommit": "69628a194834454169014b5b05dc8a6c2ad4d812",
-  "requirements": {
-    "path": "conformance/requirements.json",
-    "sha256": "169D5868FCD00B2E87188CC2C30D207BD76CA15E24F5A149ECB815EC5213979A"
+  "currentArchitecture": {
+    "revision": "0.7",
+    "status": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
+    "path": "Brontide-Architecture-0.7.md",
+    "sha256": "C801E4C4A5177115DA97A8CCCCBA5FBB7A320946D484D94D81D9FB49F13A7940"
+  },
+  "implementationBaseline": {
+    "revision": "0.5",
+    "requirements": {
+      "path": "conformance/requirements.json",
+      "sha256": "169D5868FCD00B2E87188CC2C30D207BD76CA15E24F5A149ECB815EC5213979A"
+    }
   },
   "stacks": [
     {
       "stack": "Reference",
-      "matrixPath": "Reference/conformance/architecture-0.5.json",
-      "matrixSha256": "CDE022FBFFBC153F4FD697AE8ADE17FF8122BABB8164DCAA945F5DD05864F23B",
+      "implementationMatrix": {
+        "path": "Reference/conformance/architecture-0.5.json",
+        "sha256": "CDE022FBFFBC153F4FD697AE8ADE17FF8122BABB8164DCAA945F5DD05864F23B"
+      },
+      "currentDelivery": {
+        "plan": {
+          "path": "Reference/Brontide-Reference-Stack-Implementation-Plan-0.3.md",
+          "sha256": "699195DC1802287D97A2DFF03D56003A4C630EEF3662D5ECF186BBBB91199A94"
+        },
+        "ledger": {
+          "path": "Reference/docs/architecture-0.7-delivery.md",
+          "sha256": "EE9F83EEA5706E8E66B00339294F8A6D8C6A661905B3ADA570FEEAF230956D96"
+        }
+      },
       "attestationPath": "conformance/reviews/attestations/reference.json"
     },
     {
       "stack": "Minimal",
-      "matrixPath": "Minimal/conformance/architecture-0.5.json",
-      "matrixSha256": "08D7BE2913B73374E67BF1214B4AA9964993590F30590CFA9CD3C3042E1ECA62",
+      "implementationMatrix": {
+        "path": "Minimal/conformance/architecture-0.5.json",
+        "sha256": "08D7BE2913B73374E67BF1214B4AA9964993590F30590CFA9CD3C3042E1ECA62"
+      },
+      "currentDelivery": {
+        "plan": {
+          "path": "Brontide-Minimal-Stack-Implementation-Plan-0.3.md",
+          "sha256": "98175E6F223D9FBAE832243B9F8F9C10EA2B22CA6B4163CE1F8C855C0D98BCDA"
+        },
+        "ledger": {
+          "path": "Minimal/docs/architecture-0.7-delivery.md",
+          "sha256": "8DF5455FF5F80CFC2BD257786C575D7D7303117305C5A7009F6EF4EAC38444C1"
+        }
+      },
       "attestationPath": "conformance/reviews/attestations/minimal.json"
     }
   ],
@@ -29,8 +61,17 @@
       "agent:codex-implementation-session"
     ],
     "requireDistinctStackReviewers": false,
-    "requiredStatement": "I did not implement the correction under review and evaluated this stack against the pinned requirements rather than accepting implementation claims.",
-    "attestationStatement": "I attest that this record accurately reports my independent review of the pinned commit."
+    "automatedAttestation": {
+      "allowed": true,
+      "appliesTo": "the current architecture source selected by repository source-of-truth routing",
+      "supersessionRule": "Automated attestation remains valid unless the current architecture or an explicit repository review policy changes the rule.",
+      "requireFreshContext": true,
+      "requiredImplementationContextAccess": "none",
+      "requireSystemIdentity": true,
+      "requireSessionIdentity": true
+    },
+    "requiredStatement": "I did not implement the correction under review and evaluated this stack against the pinned requirements and current architecture rather than accepting implementation claims.",
+    "attestationStatement": "I attest that this record accurately reports my independent review of the pinned commit and current architecture source."
   },
   "correctionFindings": [
     {

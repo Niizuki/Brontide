@@ -43,7 +43,10 @@ Independent verification is coordinated by the checked
 [`conformance/reviews/review-request.json`](./conformance/reviews/review-request.json) and the
 [`independent-review workflow`](./conformance/reviews/README.md). The repository gate validates any
 review records that exist and automatically refuses deletion of the temporary plan unless both
-stack attestations and the explicit closure authorization are complete.
+stack attestations and the explicit closure authorization are complete. The request mechanically
+selects the latest architecture document as current and considers retained older matrices only as
+implementation evidence, never as a replacement design source. Human and isolated automated
+attestations have equal weight under the checked independence policy.
 
 Implementation-owned status and limitations are recorded in the
 [Brontide Reference Stack milestone evidence](./Reference/docs/milestone-evidence.md) and

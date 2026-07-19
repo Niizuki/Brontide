@@ -12,6 +12,13 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$ReviewerName,
 
+    [ValidateSet('Human', 'Automated')]
+    [string]$ReviewerKind = 'Human',
+
+    [string]$AutomationSystem,
+
+    [string]$AutomationSessionId,
+
     [string]$OutputPath,
 
     [switch]$Force
@@ -36,21 +43,50 @@ function Get-RepositoryPath {
 }
 
 $request = Read-JsonFile $requestPath
+$latestArchitecture = @(Get-LatestArchitectureIdentity $repositoryRoot)
+if ($latestArchitecture.Count -ne 1 -or
+    $request.currentArchitecture.path -ne $latestArchitecture[0].Name -or
+    $request.currentArchitecture.revision -ne $latestArchitecture[0].Revision) {
+    throw 'The review request does not select the latest repository architecture document as current.'
+}
+$reviewerKindValue = $ReviewerKind.ToLowerInvariant()
+if ($ReviewerKind -eq 'Automated') {
+    if ([string]::IsNullOrWhiteSpace($AutomationSystem) -or
+        [string]::IsNullOrWhiteSpace($AutomationSessionId)) {
+        throw 'Automated review packets require -AutomationSystem and -AutomationSessionId.'
+    }
+    if ($request.independencePolicy.automatedAttestation.allowed -ne $true) {
+        throw 'The pinned current-architecture policy does not permit automated attestation.'
+    }
+}
 $stackRequest = @($request.stacks | Where-Object { $_.stack -eq $Stack })
 if ($stackRequest.Count -ne 1) {
     throw "The review request must contain exactly one '$Stack' stack entry."
 }
 $stackRequest = $stackRequest[0]
 
-$requirementsPath = Get-RepositoryPath ([string]$request.requirements.path)
-$matrixPath = Get-RepositoryPath ([string]$stackRequest.matrixPath)
+$currentArchitecturePath = Get-RepositoryPath ([string]$request.currentArchitecture.path)
+$requirementsPath = Get-RepositoryPath ([string]$request.implementationBaseline.requirements.path)
+$matrixPath = Get-RepositoryPath ([string]$stackRequest.implementationMatrix.path)
+$currentPlanPath = Get-RepositoryPath ([string]$stackRequest.currentDelivery.plan.path)
+$currentLedgerPath = Get-RepositoryPath ([string]$stackRequest.currentDelivery.ledger.path)
+$currentArchitectureHash = Get-CanonicalTextHash $currentArchitecturePath
 $requirementsHash = Get-CanonicalTextHash $requirementsPath
 $matrixHash = Get-CanonicalTextHash $matrixPath
-if ($requirementsHash -ne $request.requirements.sha256) {
+if ($currentArchitectureHash -ne $request.currentArchitecture.sha256) {
+    throw 'The current architecture source no longer matches the pinned review request.'
+}
+if ($requirementsHash -ne $request.implementationBaseline.requirements.sha256) {
     throw 'The requirement vocabulary no longer matches the pinned review request.'
 }
-if ($matrixHash -ne $stackRequest.matrixSha256) {
+if ($matrixHash -ne $stackRequest.implementationMatrix.sha256) {
     throw "The $Stack evidence matrix no longer matches the pinned review request."
+}
+if ((Get-CanonicalTextHash $currentPlanPath) -ne $stackRequest.currentDelivery.plan.sha256) {
+    throw "The $Stack current-architecture implementation plan no longer matches the pinned review request."
+}
+if ((Get-CanonicalTextHash $currentLedgerPath) -ne $stackRequest.currentDelivery.ledger.sha256) {
+    throw "The $Stack current-architecture delivery ledger no longer matches the pinned review request."
 }
 
 & git -C $repositoryRoot cat-file -e "$($request.reviewTargetCommit)^{commit}" 2>$null
@@ -95,16 +131,40 @@ $packetRequirements = @(
 )
 
 $packet = [ordered]@{
-    schemaVersion = 1
-    architectureRevision = [string]$request.architectureRevision
+    schemaVersion = 2
+    currentArchitectureRevision = [string]$request.currentArchitecture.revision
+    implementationBaselineRevision = [string]$request.implementationBaseline.revision
     stack = $Stack
     reviewTargetCommit = [string]$request.reviewTargetCommit
     reviewer = [ordered]@{
         id = $ReviewerId
         name = $ReviewerName
+        kind = $reviewerKindValue
         independent = $false
         independenceStatement = ''
         conflicts = @()
+        automation = if ($ReviewerKind -eq 'Automated') {
+            [ordered]@{
+                system = $AutomationSystem
+                sessionId = $AutomationSessionId
+                freshContext = $false
+                implementationContextAccess = 'unreviewed'
+            }
+        } else {
+            $null
+        }
+    }
+    currentArchitectureReview = [ordered]@{
+        architecturePath = [string]$request.currentArchitecture.path
+        architectureStatus = [string]$request.currentArchitecture.status
+        implementationPlanPath = [string]$stackRequest.currentDelivery.plan.path
+        deliveryLedgerPath = [string]$stackRequest.currentDelivery.ledger.path
+        architectureReviewed = $false
+        implementationPlanReviewed = $false
+        deliveryLedgerReviewed = $false
+        statusBoundaryAcknowledged = $false
+        assessment = 'unreviewed'
+        rationale = ''
     }
     reviewedAt = ''
     gate = [ordered]@{
@@ -146,4 +206,4 @@ $json = $packet | ConvertTo-Json -Depth 12
 [System.IO.File]::WriteAllText($destination, $json + [Environment]::NewLine, [System.Text.UTF8Encoding]::new($false))
 
 Write-Host "Created $Stack independent-review packet: $destination"
-Write-Host "Review the pinned commit $($request.reviewTargetCommit); do not change generated evidence snapshots."
+Write-Host "Review current Architecture $($request.currentArchitecture.revision) and pinned commit $($request.reviewTargetCommit); do not change generated evidence snapshots."

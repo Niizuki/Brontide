@@ -36,8 +36,9 @@ foreach ($stackRequest in @($request.stacks)) {
 }
 
 $closure = [ordered]@{
-    schemaVersion = 1
-    architectureRevision = [string]$request.architectureRevision
+    schemaVersion = 2
+    currentArchitectureRevision = [string]$request.currentArchitecture.revision
+    implementationBaselineRevision = [string]$request.implementationBaseline.revision
     reviewTargetCommit = [string]$request.reviewTargetCommit
     findingClosures = @(
         foreach ($finding in @($request.correctionFindings)) {

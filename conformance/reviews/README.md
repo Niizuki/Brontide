@@ -1,19 +1,25 @@
 # Independent implementation review
 
-This directory contains the machine-checkable control plane for independent verification of the
-Architecture 0.5 implementation correction. It does not turn conformance judgment into a script.
-The scripts freeze the review target, generate complete evidence packets, check reviewer separation
-statements, prevent missing requirement decisions, and make the temporary-plan deletion gate
-enforceable.
+This directory contains the machine-checkable control plane for independent implementation
+verification. It does not turn conformance judgment into a script. The scripts freeze the review
+target, generate complete evidence packets, check reviewer separation statements, prevent missing
+requirement decisions, require consideration of the current architecture, and make the
+temporary-plan deletion gate enforceable.
 
-The pinned request is [`review-request.json`](./review-request.json). It fixes the reviewed commit,
-requirement vocabulary, per-stack evidence matrices, correction-closing commits, and the expected
-record paths. Any change to a pinned matrix or vocabulary invalidates the request instead of
-silently changing what the reviewer was asked to inspect. Verification needs the pinned Git objects
-locally; CI therefore checks out full history. Record hashes use canonical UTF-8 text with LF line
-endings so the same content has the same digest on Windows and CI checkouts.
+The pinned request is [`review-request.json`](./review-request.json). It separately identifies the
+current Architecture 0.7 source and the retained Architecture 0.5 implementation-evidence
+baseline. It also fixes the reviewed commit, current delivery plans and ledgers, requirement
+vocabulary, per-stack evidence matrices, correction-closing commits, and expected record paths.
+The verifier discovers the latest `Brontide-Architecture-*.md` document and fails if the request
+selects anything older as current. Historical matrices remain valid evidence; they are not allowed
+to replace the current architecture in review.
 
-## What requires a person
+Any change to a pinned source invalidates the request instead of silently changing what the
+reviewer was asked to inspect. Verification needs the pinned Git objects locally; CI therefore
+checks out full history. Record hashes use canonical UTF-8 text with LF line endings so the same
+content has the same digest on Windows and CI checkouts.
+
+## What requires independent judgment
 
 An independent reviewer must decide whether the implementation and its negative evidence actually
 satisfy each requirement. A green build proves reproducibility, not architectural correctness. The
@@ -21,12 +27,24 @@ reviewer must not be an implementation actor named in the request and must discl
 reviewer may examine both stacks, but the stacks require separate packets and conclusions. Two
 reviewers are preferable when available.
 
-For every requirement, the reviewer reads the cited Architecture 0.5 section, inspects the source
-and both positive and negative evidence, runs or extends tests where needed, and records one of:
+The reviewer may be human or automated. An automated attestation has the same closure weight as a
+human attestation when the reviewer has a distinct identity, starts in a fresh isolated context,
+has no access to the implementation session's private reasoning, and completes the same review
+record. This rule follows the current architecture rather than a special version and remains valid
+until the current architecture or an explicit repository policy changes it.
+
+For every retained implementation requirement, the reviewer inspects the source and both positive
+and negative evidence, runs or extends tests where needed, and records one of:
 
 - `conforms`;
 - `approved-disposition`, with architecture-approved evidence;
 - `does-not-conform`, which preserves the finding and blocks closure.
+
+The reviewer separately reads the complete current architecture, the stack's current implementation
+plan, and its delivery ledger. It records whether the implementation is consistent with current
+direction, has accurately recorded current deltas, or contains a blocking conflict. A
+`current-deltas-recorded` assessment is honest for planned but unimplemented current work and does
+not turn the final correction verdict into an Architecture 0.7 conformance claim.
 
 The framework checks that every applicable stable ID has exactly one reviewed decision. It cannot
 prove that a reviewer was truthful or that their reasoning was competent; Git review controls or an
@@ -34,16 +52,22 @@ external signed review can strengthen identity assurance.
 
 ## Review workflow
 
-Use a clean checkout for the pinned target and a separate checkout containing this framework. In
-the framework checkout, generate one packet at a time:
+Use a clean checkout for the pinned target and a separate checkout containing this framework. A
+fresh automated review task may generate packets like this:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build\new-independent-review.ps1 `
-  -Stack Reference -ReviewerId "github:reviewer" -ReviewerName "Reviewer Name"
+  -Stack Reference -ReviewerId "agent:codex-independent-review" `
+  -ReviewerName "Codex independent reviewer" -ReviewerKind Automated `
+  -AutomationSystem "Codex" -AutomationSessionId "task:<fresh-task-id>"
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build\new-independent-review.ps1 `
-  -Stack Minimal -ReviewerId "github:reviewer" -ReviewerName "Reviewer Name"
+  -Stack Minimal -ReviewerId "agent:codex-independent-review" `
+  -ReviewerName "Codex independent reviewer" -ReviewerKind Automated `
+  -AutomationSystem "Codex" -AutomationSessionId "task:<fresh-task-id>"
 ```
+
+For a human reviewer, omit `-ReviewerKind`, `-AutomationSystem`, and `-AutomationSessionId`.
 
 In the clean target checkout, detach at the `reviewTargetCommit` from `review-request.json`, run the
 complete gate, and inspect the evidence listed in each packet:
@@ -55,7 +79,10 @@ git switch --detach 69628a194834454169014b5b05dc8a6c2ad4d812
 
 Complete the generated JSON records without changing the generated requirement or evidence
 snapshots. Set the gate result, review flags, rationale, verdict, overall verdict, timestamps, and
-attestation fields. Then return to the framework checkout and run:
+attestation fields. An automated reviewer also sets `freshContext` to `true` and
+`implementationContextAccess` to `none`. Complete `currentArchitectureReview` using
+`current-direction-consistent`, `current-deltas-recorded`, or `blocking-conflict`. Then return to
+the framework checkout and run:
 
 ```powershell
 .\build\verify-independent-review.ps1

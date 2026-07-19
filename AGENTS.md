@@ -68,6 +68,14 @@ Brontide Base conformance.
 - **Tests accompany behaviour.** Add or update the nearest native test suite for semantic changes.
   Keep normative conformance evidence separate from Enrichment, Composition, GPU, and other
   explicitly experimental evidence.
+- **Automated attestations are valid independent review.** An automated reviewer counts as
+  independent when it has a reviewer identity distinct from every implementation actor, runs in a
+  fresh isolated context, has no access to the implementation session's private reasoning, and
+  records a decision and rationale for every pinned requirement. Every attestation also reviews
+  the latest architecture document selected by source-of-truth routing, including its status and
+  the implementation's current delivery plan. A retained older matrix may establish what is
+  implemented, but it never limits which architecture the review must consider. This rule remains
+  in force unless the current architecture or an explicit repository review policy changes it.
 - **Every independently consumable component owns its verification stack.** New components ship
   unit tests with their first public behaviour. When code is extracted or moved, translate and move
   its existing test estate with it rather than leaving verification behind. Integration components

@@ -160,8 +160,26 @@ if ($null -eq $request) {
     exit 1
 }
 
-if ($request.schemaVersion -ne 1 -or $request.architectureRevision -ne '0.5') {
-    $failures.Add('The independent-review request must use schema 1 and Architecture 0.5.')
+if ($request.schemaVersion -ne 2) {
+    $failures.Add('The independent-review request must use schema 2 with separate current-architecture and implementation-baseline identities.')
+}
+
+$latestArchitecture = @(Get-LatestArchitectureIdentity $repositoryRoot)
+if ($latestArchitecture.Count -ne 1 -or
+    $request.currentArchitecture.path -ne $latestArchitecture[0].Name -or
+    $request.currentArchitecture.revision -ne $latestArchitecture[0].Revision) {
+    $failures.Add('The review request must select the latest repository architecture document as current.')
+}
+
+$currentArchitecturePath = Get-RepositoryPath ([string]$request.currentArchitecture.path)
+if ($null -ne $currentArchitecturePath) {
+    Test-Hash $currentArchitecturePath ([string]$request.currentArchitecture.sha256) 'Pinned current architecture' | Out-Null
+}
+if ([string]::IsNullOrWhiteSpace([string]$request.currentArchitecture.status)) {
+    $failures.Add('The review request must preserve the current architecture document status.')
+}
+if ([string]::IsNullOrWhiteSpace([string]$request.implementationBaseline.revision)) {
+    $failures.Add('The review request must identify the retained implementation baseline separately from current architecture.')
 }
 
 $reviewTargetCommit = [string]$request.reviewTargetCommit
@@ -172,9 +190,9 @@ elseif (-not (Test-CommitIsAncestor $reviewTargetCommit 'HEAD')) {
     $failures.Add("Review target '$reviewTargetCommit' is not an ancestor of HEAD.")
 }
 
-$requirementsPath = Get-RepositoryPath ([string]$request.requirements.path)
+$requirementsPath = Get-RepositoryPath ([string]$request.implementationBaseline.requirements.path)
 if ($null -ne $requirementsPath) {
-    Test-Hash $requirementsPath ([string]$request.requirements.sha256) 'Pinned requirement vocabulary' | Out-Null
+    Test-Hash $requirementsPath ([string]$request.implementationBaseline.requirements.sha256) 'Pinned implementation requirement vocabulary' | Out-Null
 }
 $master = if ($null -ne $requirementsPath -and (Test-Path -LiteralPath $requirementsPath)) {
     Read-JsonFile $requirementsPath
@@ -192,6 +210,7 @@ if ($stackRequests.Count -ne 2 -or
 }
 
 $excludedReviewerIds = @($request.independencePolicy.excludedReviewerIds)
+$automatedAttestationPolicy = $request.independencePolicy.automatedAttestation
 $requiredIndependenceStatement = [string]$request.independencePolicy.requiredStatement
 $requiredAttestationStatement = [string]$request.independencePolicy.attestationStatement
 if ([string]::IsNullOrWhiteSpace($requiredIndependenceStatement) -or
@@ -201,12 +220,12 @@ if ([string]::IsNullOrWhiteSpace($requiredIndependenceStatement) -or
 
 foreach ($stackRequest in $stackRequests) {
     $stack = [string]$stackRequest.stack
-    $matrixPath = Get-RepositoryPath ([string]$stackRequest.matrixPath)
+    $matrixPath = Get-RepositoryPath ([string]$stackRequest.implementationMatrix.path)
     if ($null -eq $matrixPath) {
         continue
     }
 
-    $matrixHashValid = Test-Hash $matrixPath ([string]$stackRequest.matrixSha256) "$stack pinned matrix"
+    $matrixHashValid = Test-Hash $matrixPath ([string]$stackRequest.implementationMatrix.sha256) "$stack pinned implementation matrix"
     $matrix = if ($matrixHashValid) { Read-JsonFile $matrixPath } else { $null }
     if ($null -eq $matrix -or $null -eq $master) {
         continue
@@ -215,6 +234,15 @@ foreach ($stackRequest in $stackRequests) {
     if ($matrix.stack -ne $stack) {
         $failures.Add("$stack review request points at a '$($matrix.stack)' matrix.")
         continue
+    }
+
+    $currentPlanPath = Get-RepositoryPath ([string]$stackRequest.currentDelivery.plan.path)
+    $currentLedgerPath = Get-RepositoryPath ([string]$stackRequest.currentDelivery.ledger.path)
+    if ($null -ne $currentPlanPath) {
+        Test-Hash $currentPlanPath ([string]$stackRequest.currentDelivery.plan.sha256) "$stack current-architecture implementation plan" | Out-Null
+    }
+    if ($null -ne $currentLedgerPath) {
+        Test-Hash $currentLedgerPath ([string]$stackRequest.currentDelivery.ledger.sha256) "$stack current-architecture delivery ledger" | Out-Null
     }
 
     $attestationPath = Get-RepositoryPath ([string]$stackRequest.attestationPath)
@@ -232,8 +260,9 @@ foreach ($stackRequest in $stackRequests) {
         continue
     }
 
-    if ($attestation.schemaVersion -ne 1 -or
-        $attestation.architectureRevision -ne $request.architectureRevision -or
+    if ($attestation.schemaVersion -ne 2 -or
+        $attestation.currentArchitectureRevision -ne $request.currentArchitecture.revision -or
+        $attestation.implementationBaselineRevision -ne $request.implementationBaseline.revision -or
         $attestation.stack -ne $stack -or
         $attestation.reviewTargetCommit -ne $reviewTargetCommit) {
         $failures.Add("$stack attestation identity does not match the pinned review request.")
@@ -241,8 +270,36 @@ foreach ($stackRequest in $stackRequests) {
 
     $reviewerId = [string]$attestation.reviewer.id
     $reviewerName = [string]$attestation.reviewer.name
+    $reviewerKind = [string]$attestation.reviewer.kind
     if ([string]::IsNullOrWhiteSpace($reviewerId) -or [string]::IsNullOrWhiteSpace($reviewerName)) {
         $failures.Add("$stack attestation must identify its reviewer.")
+    }
+    if ($reviewerKind -notin @('human', 'automated')) {
+        $failures.Add("$stack reviewer kind must be 'human' or 'automated'.")
+    }
+    elseif ($reviewerKind -eq 'automated') {
+        if ($automatedAttestationPolicy.allowed -ne $true) {
+            $failures.Add("$stack automated attestation is not permitted by the current review policy.")
+        }
+        if ($automatedAttestationPolicy.requireSystemIdentity -eq $true -and
+            [string]::IsNullOrWhiteSpace([string]$attestation.reviewer.automation.system)) {
+            $failures.Add("$stack automated reviewer must identify its system.")
+        }
+        if ($automatedAttestationPolicy.requireSessionIdentity -eq $true -and
+            [string]::IsNullOrWhiteSpace([string]$attestation.reviewer.automation.sessionId)) {
+            $failures.Add("$stack automated reviewer must identify its isolated session.")
+        }
+        if ($automatedAttestationPolicy.requireFreshContext -eq $true -and
+            $attestation.reviewer.automation.freshContext -ne $true) {
+            $failures.Add("$stack automated reviewer must attest that it used a fresh context.")
+        }
+        if ($attestation.reviewer.automation.implementationContextAccess -ne
+            $automatedAttestationPolicy.requiredImplementationContextAccess) {
+            $failures.Add("$stack automated reviewer must declare implementation-context access '$($automatedAttestationPolicy.requiredImplementationContextAccess)'.")
+        }
+    }
+    elseif ($null -ne $attestation.reviewer.automation) {
+        $failures.Add("$stack human reviewer must not carry an automation identity block.")
     }
     if ($reviewerId -in $excludedReviewerIds) {
         $failures.Add("$stack reviewer '$reviewerId' is excluded by the independence policy.")
@@ -255,6 +312,29 @@ foreach ($stackRequest in $stackRequests) {
         $failures.Add("$stack independent review declares a conflict; use a conflict-free reviewer.")
     }
     Test-RequiredDate ([string]$attestation.reviewedAt) "$stack reviewedAt" | Out-Null
+
+    $currentReview = $attestation.currentArchitectureReview
+    if ($currentReview.architecturePath -ne $request.currentArchitecture.path -or
+        $currentReview.architectureStatus -ne $request.currentArchitecture.status -or
+        $currentReview.implementationPlanPath -ne $stackRequest.currentDelivery.plan.path -or
+        $currentReview.deliveryLedgerPath -ne $stackRequest.currentDelivery.ledger.path) {
+        $failures.Add("$stack current-architecture review snapshot does not match the pinned request.")
+    }
+    if ($currentReview.architectureReviewed -ne $true -or
+        $currentReview.implementationPlanReviewed -ne $true -or
+        $currentReview.deliveryLedgerReviewed -ne $true -or
+        $currentReview.statusBoundaryAcknowledged -ne $true) {
+        $failures.Add("$stack must review the current architecture, implementation plan, delivery ledger, and status boundary.")
+    }
+    $currentAssessment = [string]$currentReview.assessment
+    if ($currentAssessment -notin @('current-direction-consistent', 'current-deltas-recorded', 'blocking-conflict')) {
+        $failures.Add("$stack current-architecture assessment is unsupported or incomplete: '$currentAssessment'.")
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$currentReview.rationale) -or
+        ([string]$currentReview.rationale).Length -lt 20) {
+        $failures.Add("$stack current-architecture assessment needs a substantive rationale of at least 20 characters.")
+    }
+    $hasCurrentBlockingConflict = $currentAssessment -eq 'blocking-conflict'
 
     if ($attestation.gate.commit -ne $reviewTargetCommit -or
         $attestation.gate.command -ne '.\build\verify-interchange.ps1' -or
@@ -326,9 +406,9 @@ foreach ($stackRequest in $stackRequests) {
         }
     }
 
-    $expectedOverall = if ($hasNonConformance) { 'does-not-conform' } else { 'conforms' }
+    $expectedOverall = if ($hasNonConformance -or $hasCurrentBlockingConflict) { 'does-not-conform' } else { 'conforms' }
     if ($attestation.overallVerdict -ne $expectedOverall) {
-        $failures.Add("$stack overall verdict must be '$expectedOverall' for its requirement decisions.")
+        $failures.Add("$stack overall verdict must be '$expectedOverall' for its requirement decisions and current-architecture assessment.")
     }
     if ($attestation.attestation.attestedBy -ne $reviewerId -or
         $attestation.attestation.statement -ne $requiredAttestationStatement) {
@@ -358,8 +438,9 @@ if ($null -ne $closurePath -and (Test-Path -LiteralPath $closurePath -PathType L
     $failureCountBeforeClosure = $failures.Count
     $closure = Read-JsonFile $closurePath
     if ($null -ne $closure) {
-        if ($closure.schemaVersion -ne 1 -or
-            $closure.architectureRevision -ne $request.architectureRevision -or
+        if ($closure.schemaVersion -ne 2 -or
+            $closure.currentArchitectureRevision -ne $request.currentArchitecture.revision -or
+            $closure.implementationBaselineRevision -ne $request.implementationBaseline.revision -or
             $closure.reviewTargetCommit -ne $reviewTargetCommit) {
             $failures.Add('Closure record identity does not match the pinned review request.')
         }
