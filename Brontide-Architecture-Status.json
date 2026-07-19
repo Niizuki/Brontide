@@ -30,7 +30,7 @@
       "currentDelivery": {
         "plan": {
           "path": "Reference/Brontide-Reference-Stack-Implementation-Plan-0.3.md",
-          "sha256": "699195DC1802287D97A2DFF03D56003A4C630EEF3662D5ECF186BBBB91199A94"
+          "sha256": "BEC44830AB34683D10CFBB7C890FCF97CF879E2D8075AD813A6B26A31BAB29E0"
         },
         "ledger": {
           "path": "Reference/docs/architecture-0.7-delivery.md",
@@ -47,7 +47,7 @@
       "currentDelivery": {
         "plan": {
           "path": "Brontide-Minimal-Stack-Implementation-Plan-0.3.md",
-          "sha256": "98175E6F223D9FBAE832243B9F8F9C10EA2B22CA6B4163CE1F8C855C0D98BCDA"
+          "sha256": "143089CB436CE90BE5FED3DC7E7E3298BAA9EF365CECBB9B35AE1D9B1866EC52"
         },
         "ledger": {
           "path": "Minimal/docs/architecture-0.7-delivery.md",

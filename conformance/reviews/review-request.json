@@ -4,7 +4,7 @@
   "reviewTargetCommit": "69628a194834454169014b5b05dc8a6c2ad4d812",
   "architectureStatusRegistry": {
     "path": "Brontide-Architecture-Status.json",
-    "sha256": "73D448BC571E6892E59E1C83BE1BFC1D694037686EA116FD27FF08BD24165968"
+    "sha256": "DC150FDD68F73A6C4F85DC2249DF687D1DCAF7A951A238ED096720D8A3966929"
   },
   "stacks": [
     {

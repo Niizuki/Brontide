@@ -19,6 +19,11 @@ Before this plan can support an implementation claim, the applicable gates in
 closed. That plan owns the known corrective work. This roadmap deliberately does not repeat or
 pre-claim those changes.
 
+The temporary
+[current-architecture implementation brief](Brontide-Temporary-Current-Architecture-Implementation-Brief-0.1.md)
+defines the aligned audit actions and executable delivery instructions for C1-C8. It is subordinate
+to this plan and may be deleted only by its own completion gate.
+
 Architecture 0.7 is a complete draft, not a ratified or implemented release. Completing a phase
 below creates evidence for review; it does not change that status by itself.
 
@@ -48,8 +53,11 @@ Goal: make the exact 0.5-to-0.7 delta reviewable before production changes.
 
 Deliverables:
 
-1. Classify every Architecture 0.7 normative change as implemented already, missing, conflicting,
-   or not applicable.
+1. Classify each Architecture 0.7 change with exactly one action: `implemented` means a production
+   code no-op backed by complete existing evidence; `missing` means implement now; `conflicting`
+   means reconcile the contradiction now with migration where required; and `non-runtime` means
+   complete an explicit documentation, evidence-audit, risk-ledger, or tracked-deferral
+   disposition.
 2. Add stable requirement IDs and map each to any Architecture 0.5 predecessor.
 3. Write Minimal-native failing vectors for M1 through M4 before reading the corresponding
    Reference implementation work.
