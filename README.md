@@ -30,6 +30,22 @@ limit. They test Brontide substitutability without sharing private CLR types or 
 experimental binding protocol as ratified architecture. Run the retained gate with
 `.\build\verify-interchange.ps1`.
 
+The provisional generational lifecycle, multiple-source acquisition model, trust separation,
+scoped restart, and dependency-cycle policy are recorded in
+[Component Management and Distribution Design Note 0.1](./Brontide-Design-Note-Component-Management-0.1.md).
+The corresponding
+[Component Management Implementation Plan 0.1](./Brontide-Component-Management-Implementation-Plan-0.1.md)
+calls for independent, entirely fake managers in both stacks so these mechanisms can be tested
+without implying a real online marketplace, production package manager, or Architecture 0.8
+conformance claim.
+
+The broader topology direction is recorded in
+[Topology Environments and Gates Design Note 0.1](./Brontide-Design-Note-Topology-0.1.md). Ordinary
+Environments remain overlapping, security-neutral topology identities; Gates create their
+relationship-specific virtual-Component projections. Protected Environments are disjoint or nested
+within one Protection Plane, opaque except through Gates, and Sealed when no Gate is active. These
+terms remain outside Base and are not a ratified extension.
+
 Exact boundary assumptions are recorded in
 [`docs/public-boundaries.md`](./docs/public-boundaries.md), and the reproducible manual/generated
 source-cost inventory is [`interchange/binding-measurements.json`](./interchange/binding-measurements.json).

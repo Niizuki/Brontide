@@ -44,7 +44,7 @@ ratification review; neither plan changes this document's status by itself.
 21. Domain Vocabularies
 22. Names, Authorship, Declaration Prefix Blocks, and Notation Strictness
 23. Versioning and Ratification
-24. Devices and Brontide
+24. Devices, External Systems, and Trust Admission
 25. Systems and Macro-Scale Operations
 26. Admission: Interacting with Bounded Capacity
 27. Brontide and Existing Systems
@@ -987,6 +987,22 @@ Shape enters Base in 0.3 not because it is expected to be common, but because in
 implementations cannot preserve Operation, Event, Outcome, and Constraint contracts while
 disagreeing about the structure of their values (§16).
 
+Every working system is composed in the ordinary engineering sense: some choice or construction
+places its participants together. That fact alone does not make **Composition** a Base contract.
+Base constrains the resulting Actors, authority, Operations, and occurrences regardless of how they
+were constructed; it does not require the construction process, component boundaries, candidate
+set, or resolver to be visible to every participant. A fixed firmware image may arrive already
+composed, and a host may passively integrate a mouse, device, library, or remote endpoint whose
+exposed boundary implements Base without implementing Component descriptors or Discovery.
+
+Composition becomes shared architecture when the arrangement itself must be portable and
+inspectable: independently authored Components declare requirements, providers are selected,
+bindings and Mediation are resolved, and lifecycle or replacement behaviour is exposed. That is a
+strong and widely useful interoperability contract, but it remains separable from the smallest
+meaningful Brontide interaction. The distinction parallels Transaction (§19): an implementation may
+construct atomically without exposing Transaction semantics, and may construct compositionally
+without exposing Composition semantics.
+
 Conformance to Brontide always implies conformance to Brontide Base.
 For this reason, implementations do not list Base as a separately supported feature.
 
@@ -1013,8 +1029,10 @@ section or design note.
 | Shape fragment, Declared Fragment | Subordinate concepts within Shape |
 | Flow, Event Distribution | First-party Architectural Extension directions; placement defined (§19), conformance unratified |
 | Channel, Resource, Composition, Discovery, Runtime, Topology, Authority Topology, Distributed, Identity, Persistence, Realtime, Presentation, Workspace, Intent, State, Transaction, Lifecycle, Time | Provisional extension names (§19); no accepted extensions implied |
-| Component, Binding Plan, Portable Binding, Replacement Slot, Hot-swap Slot, Hot-swap Class, Parameter, Attribute, Definition Constraint | Work in progress; Composition design note (§18.1) |
-| Mediation, Selection, Distribution, Arbitration, Router, Distributor, Arbiter | Recorded direction; Composition design note (§18.1) |
+| Component, Provider Set, Composition Region, Composition Port, Binding Plan, Portable Binding, Replacement Slot, Hot-swap Slot, Hot-swap Class, Parameter, Attribute, Definition Constraint | Work in progress; Composition design note (§18.1) |
+| Mediation, Selection, Distribution, Aggregation, Arbitration, Router, Distributor, Aggregator, Arbiter | Recorded direction; Composition design note (§18.1) |
+| Topology Node, Topology Relation | Work in progress; minimum composition-membership direction (§18.1, §19) |
+| Topology Map, Environment, Protected Environment, Protection Plane, Sealed Environment, Gate, Environment View | Recorded direction; Topology design note (§19) |
 | Enrichment, value propagation | Work in progress; Enrichment design note (§16.6) |
 | Corpus, Dataset, Store, Store role, Store Relationship (Mirror, Backup) | Work in progress; Persistent Information design note (§18.2) |
 | Dot-relative declarations, Structured Data extension, Remote Service category, `@version` name suffixes | Rejected; design history retained where instructive |
@@ -2303,18 +2321,23 @@ In practice, Profiles — not Base — are expected to be the unit of interopera
 targets, as instruction-set profiles are in comparable ecosystems. Base is the shared semantic
 core; a Profile is what a developer writes against.
 
-A future Profile may group a broad set of commonly expected extensions and vocabularies for
-general-purpose environments. Such a convenience Profile would remain an ordinary Profile: it
-would not enlarge Base, weaken the Embedded Test, or become a second privileged conformance tier.
-Architecture 0.8 does not define, name, or reserve such a Profile. It should be introduced only
-when repeated real Profile requirements reveal a stable common bundle.
+Section 20.1 now records three deliberately incomplete profile directions: a **General-Purpose System
+Profile** centred on Composition and managed extensibility, a **Static Embedded Profile** that
+requires no Composition, Discovery, loader, or manager claim, and a **Host-Assisted Composable Device
+Profile** for recursively composed devices that receive outer discovery assistance while retaining a
+sealed bootstrap and ordinarily local admission. These are ordinary Profile directions, not
+privileged conformance tiers: none enlarges Base or weakens the Embedded Test, and their names and
+dependency sets remain provisional until implementation evidence establishes a stable bundle.
 
 ### 18.1 Composition and Components (extracted design direction)
 
 > **Work in progress.** The full composition direction — Component contracts, Parameters,
-> Attributes, Definition Constraints, selection characteristics, bindings, Slots, Classes,
-> hot swapping, the proposed Brontide Portable Binding, representation mapping, and the recorded
-> Mediation direction — is in `Brontide-Design-Note-Composition-0.1.md`. None of it enlarges
+> Attributes, Definition Constraints, selection characteristics, bindings, staged Component
+> management, standardised discovery, dependency preferences, composition generations, activation
+> stages and barriers, Regions, Ports, incremental composition, topology membership, Slots, Classes,
+> hot swapping, the proposed Brontide Portable Binding,
+> representation mapping, and the recorded Mediation direction — is in
+> `Brontide-Design-Note-Composition-0.1.md`. None of it enlarges
 > Brontide Base.
 
 The settled definitions and invariants, retained here because other sections rely on them:
@@ -2324,11 +2347,81 @@ The settled definitions and invariants, retained here because other sections rel
   authority-bearing: loading, attaching, or binding a Component grants no authority by
   itself. One Component may realise several Actors; one Actor may be realised by several
   Components; a Component may contain other Components.
+- A contract role, a Component definition or realisation, an activated Component occurrence, and
+  its Actor endpoints are distinct. A role is not a system-wide singleton: several definitions may
+  provide it, and one definition may have several active occurrences. A named system default is a
+  binding choice within a scope, not ownership of that role for every consumer.
+- A **Provider Set** is the resolved, identity-preserving set of bindings satisfying one requirement
+  in one binding scope. Requirements declare minimum and maximum cardinality, with `1..1` as the
+  ordinary compatibility default, plus sharing and **distinct** or **mediated exposure**. Distinct
+  members remain separately addressable; mediated exposure applies declared Selection,
+  Distribution, Aggregation, Arbitration, or domain-specific semantics without erasing member
+  identity, provenance, failure domain, or authority. Static membership is generation-fixed;
+  runtime membership requires an explicit attachment and detachment contract.
+- A **Composition Region** is a recursively nested composition boundary with its own immutable
+  resolved and activated generation. A **Composition Port** is a parent-declared boundary through
+  which a child Region or Component may attach. The Port declares contracts, cardinality, imports
+  and exports, authority ceiling, topology requirements, lifecycle and failure behaviour, rollback,
+  and whether it is sealed, activation-open, or runtime-open.
+- **Incremental (per-partes) composition** resolves and activates a complete child generation inside
+  a declared Port while its parent Region may remain Active. This is structural composition, not an
+  Activation Parameter and not arbitrary mutation of the parent. If the child exceeds the Port's
+  envelope or participates in an undeclared cross-boundary cycle, the resolver rejects it or
+  proposes a wider parent generation and restart. The mechanism is the same for internal optional
+  subsystems, attached devices, downloaded features, and remote participants.
+- Every attachment occurrence has a local **Topology Node**. Attributable **Topology Relations**
+  associate Components, Actors, resources, Regions, and Ports with that node. Relations such as
+  `PartOf`, `AttachedThrough`, `HostedBy`, `SamePhysicalAssembly`, `SharesPowerDomain`, and
+  `SharesFailureDomain` remain distinct; topology membership is neither identity, trust, authority,
+  nor proof of any other relation. This minimum membership belongs to portable Composition so that
+  independently resolved parts do not lose their grouping; richer graph behaviour remains the
+  direction of the future `Topology` extension (§19).
 - A **Parameter** is a named, Shape-described input to an architectural definition.
   **Composition Parameters** are bound while constructing a composition and may select
   declared architectural structure; **Activation Parameters** are bound at activation, may
   fill declared resource slots, and must not introduce structure absent from the resolved
   composition.
+- Component acquisition, selection, composition, and activation are distinct. A selection made
+  while one generation is active may recursively expand and resolve the complete next generation,
+  including its nested Composition Parameters, without altering the active generation. Activation
+  Parameters may be obtained during preflight, but fill only slots already declared by that closed
+  structure. Preparation before cutover may make restart swift without turning activation into
+  hidden recursive composition.
+- Generation activation has two observable phases, **Establishment** and **Release**. Establishment
+  has named stages: **Local Initialisation** creates private provisional state and inert endpoint
+  descriptions without same-group relationships; **Interconnection** establishes Actors, endpoints,
+  resources, Binding Plans, and local authority while ordinary interaction remains gated; optional
+  **Relational Initialisation** admits only declared lifecycle Operations against declared peers
+  under narrow authority; and **Ready** records successful completion for every required member.
+  Release then opens the ordinary-interaction gate and makes the group Active. It is logically
+  simultaneous, not a promise that machine instructions execute at the same instant or in a
+  specified first-component order.
+- A **Component Manager** is provisional lifecycle machinery, not a global architectural service.
+  It may consult any number of arbitrarily extensible Component Sources simultaneously. A source
+  endpoint is distinct from the package's publisher or authored authority; several sources may
+  mirror one publisher and one source may host many. A marketplace or storefront is only a source,
+  aggregate, or user experience, never activation authority. Product UI may make local and remote
+  sources look like familiar stores through one source-neutral presentation projection, while
+  `Component Store` is avoided as an architectural term because Store has the persistent-
+  information meaning of §18.2.
+- A requirement may declare **Preferred Providers**. For a compatible occupied `1..1` binding or
+  Slot, the occupant remains stable unless the user or authorised replacement policy chooses
+  otherwise; tooling highlights the preferred alternative and its requester. For each unfilled
+  required Provider Set position, the default candidate order is explicit preference,
+  publisher-affine implementation, generic implementation of the canonical contract, then any
+  other compatible implementation.
+  Compatibility, trust, origin, platform, authority, and local policy may exclude or demote any
+  candidate. Resolution presents an explainable Proposed Stack with the best candidates preselected,
+  Provider Set cardinalities and assignments, activation occurrences, binding scopes, sharing,
+  exposure and mediation, retained occupants, alternatives, conflicts, sources, publishers,
+  evidence, requested authority, restart scope, and preference provenance. Discovery and preference
+  grant no authority (§24).
+- Logical Component requirement cycles are permitted when a resolver can close each strongly
+  connected group finitely and deterministically. Cyclic post-release interaction does not imply
+  startup order. A cyclic Relational Initialisation protocol is also permitted when its lifecycle
+  Operations, authority, bounded progress, completion, failure, and rollback are declared. Ordinary
+  application interaction before Release remains invalid. Explicit ordered activation groups and
+  their partial-release and rollback behaviour are structural and resolved before activation.
 - An **Attribute** is a value obtained through a specified Brontide Operation — identified by
   its source Operation, vocabulary version, result Shape, and result path, under ordinary
   Capability evaluation — never a free-floating label. Attribute-constrained bindings are
@@ -2349,6 +2442,11 @@ The settled definitions and invariants, retained here because other sections rel
   a joint operational claim made by a Host's Slot, its accepted Hot-swap Class, and a
   conforming Component. Live replacement semantics are declared, never inferred from shared
   names.
+- Generational replacement may require a declared restart of the containing composition without
+  requiring live hot swapping. Where a Host owns an independently activatable boundary, restart
+  may be scoped to a device, workspace, session, service group, process, or other composition. The
+  scope, authority and state disposition, cutover, failure, and rollback semantics remain explicit;
+  an implementation must not silently widen a promised scope.
 - The proposed **Brontide Portable Binding** is a first-party default seam for Component
   interchange, not the implementation model of Brontide Base. A **Binding Plan** fixes
   contracts, authority presentation, representation, resource ownership, synchronisation,
@@ -2356,10 +2454,59 @@ The settled definitions and invariants, retained here because other sections rel
   contract belongs to binding machinery; semantic adaptation between contracts is an explicit
   Adapter Component.
 - **Mediation** is the recorded direction for declared intermediation: a relationship whose
-  species — Selection, Distribution, Arbitration — are distinguished by cardinality and
-  characteristic obligation, realised by dedicated Components (Router, Distributor, Arbiter),
-  host machinery, or static construction, and enforced by authority topology rather than
-  discovery.
+  species — Selection, Distribution, Aggregation, Arbitration — are distinguished by cardinality
+  and characteristic obligation, realised by dedicated Components (Router, Distributor,
+  Aggregator, Arbiter), host machinery, or static construction, and enforced by authority topology
+  rather than discovery.
+- Direct `1..1` and deliberately member-addressed distinct bindings require no Mediation. A logical
+  endpoint that selects, falls back, load-balances, distributes, aggregates, arbitrates, masks
+  membership, or owns topology-wide ordering, backpressure, failure, or recovery MUST declare
+  Mediation. The declaration is mandatory even when its simple realisation is erased into static or
+  Host machinery. A dedicated mediating Component is preferred when the relationship owns mutable
+  membership, shared policy, residue, queues, authority, metering, recovery, or lifecycle.
+
+#### Worked composition timing: embedded mouse and managed Host
+
+`Base` is not a Component installed in a mouse. Base is the contract obeyed by the mouse's exposed
+Actors, Operations, Events, and Capabilities. Internally, sensor sampling, button debouncing, pointer
+transformation, transport, power, and configuration may be private firmware units linked into a
+factory image. The manufacturer composes them in the ordinary sense at design or build time and may
+materialise static dispatch and authority tables at boot. Unless those internal boundaries are
+exposed for independent replacement or tooling, the mouse makes no Composition or Discovery claim.
+
+The external boundary may nevertheless expose `MousePointer` and `MouseConfiguration` Actors. At
+attachment, a General-Purpose Host performs a second composition: it evaluates device claims and
+local adapter metadata, admits functions separately, creates Host-domain Actor endpoints, constructs
+the Binding Plans, and grants only locally authorised Capabilities (§24.2). The Host may represent
+the physical endpoint as one Component exposing several Actors or as several functional Components;
+physical enclosure does not decide the Component boundary. It does establish a useful, attributable
+topology observation: pointer, button, configuration, battery, and other admitted functions from one
+attachment can be related to one local Topology Node rather than mixed with compatible functions of
+another mouse. With several pointing devices, a declared Aggregator may present one logical input
+Flow while preserving both nodes and every member's identity.
+
+A more capable device may instead claim the provisional Host-Assisted Composable Device Profile. It
+is best understood as a small external computer, even when packaged as a mouse. It first boots a
+sealed, recoverable composition containing the minimum local Host, plan verification and admission
+policy, Channel and loading machinery. An outer Host may then provide Discovery, candidate artifacts,
+and evidence through authorised Operations. Device-local policy ordinarily decides what becomes the
+device's internal child generation; an outer-Host-owned admission mode is separate and explicit. The
+internal generation completes Establishment and Release before the outer system activates the
+boundary exported by the device. This recursive order keeps an unfinished internal system from
+appearing ready merely because its transport is attached.
+
+A managed workstation, service node, or operational system composes at still more times. Image
+construction establishes the minimal Host, authority roots, management and recovery path;
+installation or user selection resolves a pending generation while the current one runs; preflight
+prepares its complete Binding Plans and authority requests; a scoped activation establishes and
+releases it; and later device, service, or internal feature attachment may resolve a child generation
+through a declared runtime-open Composition Port or stage a wider parent generation. Components may
+provide presentation, Workspace, input,
+display, persistence, identity, policy, audit, recovery, management, and applications. None is Base;
+each realises Actors whose interactions obey Base.
+
+The full paired example, including factory, attachment, and managed-system timelines, is retained in
+`Brontide-Design-Note-Composition-0.1.md`.
 
 ### 18.2 Corpus, Dataset, Store, and Router (extracted design direction)
 
@@ -2489,12 +2636,67 @@ For example, a future `Distributed` extension might require communication semant
 `Channel`. A future `Lifecycle` extension might describe long-running Executions and persistent
 activities initiated by them.
 
-A future `Composition` extension may ratify the Component, Parameter, Attribute, Constraint,
-binding, and replacement direction in §18.1. A future `Persistence`, `Resource`, or dedicated
-specification may ratify the Corpus, Dataset, Store, and Router direction in §18.2. Static
-composition must remain possible without a loader or dynamic allocation. Runtime binding and hot
-swapping may compose with `Discovery`, `Lifecycle`, `State`, or `Transaction`, but must not acquire
-their guarantees merely by using the word Component.
+**Composition and Discovery direction.** A future first-party `Composition` extension should ratify
+the portable structure of composition: Component contracts and requirements, Parameters and
+Constraints, Provider Sets, Composition Regions and Ports, direct and mediated bindings, minimum
+topology membership, Binding Plans, resolved generations, Establishment and Release, scoped restart,
+incremental composition, and optional replacement. It must support authored static resolution,
+startup-time dynamic resolution, and bounded runtime child resolution. Claiming the extension means
+that this structure is an observable interoperability contract; it does not require every Port to be
+runtime-open or require a runtime resolver, loader, package manager, dynamic allocation, or online
+source.
+
+`Discovery` should remain a separate optional extension used by Composition resolvers when the
+available participants or providers are not already fixed. It may define authorised queries,
+candidate and evidence records, Component Sources, runtime participant discovery, and related
+introspection. A resolver may instead consume a closed authored candidate set and implement
+Composition without Discovery. Discovery results remain inert: they neither select a candidate,
+establish a binding, nor grant authority.
+
+**Topology direction.** Portable Composition needs a minimum membership floor even when the complete
+topology is private or statically authored: each attachment occurrence has a local Topology Node, and
+attributable Topology Relations keep its independently represented functions, Components, Actors,
+resources, Regions, and Ports associated. A device may propose these relations, but the receiving
+Host records their source and may refine or reject them. The broader `Topology` extension should
+standardise richer nested, physical, logical, hosting, power, connectivity, and failure-domain graphs
+and their observations. Neither the minimum floor nor the extension grants authority, proves
+identity, or permits `SamePhysicalAssembly`, `HostedBy`, and `SharesFailureDomain` to collapse into
+one vague `same device` relation. User interfaces may derive such a label as a declared projection.
+
+The broader direction is recorded in
+[Topology Environments and Gates](./Brontide-Design-Note-Topology-0.1.md). A **Topology Map** is an
+observer-scoped, versioned graph. An ordinary **Environment** is an identity-bearing physical,
+virtual, mixed, overlapping, or reconstituted grouping with no security implication. A **Protected
+Environment** adds an enforced boundary: within one **Protection Plane**, Protected Environments are
+disjoint or nested, never partially overlapping; independent Planes may intersect. Every covered
+crossing passes through a **Gate**, while zero active Gates produces a **Sealed Environment** with no
+declared external communication.
+
+A Gate supplies the relationship-specific virtual-Component projection of its Environment and an
+audience-specific **Environment View**. Protected interiors are architecturally opaque except for
+what their Gates expose; transparency remains a multidimensional Gate property and never grants
+authority. Environment, Gate, Map, View, and the protection terms belong to the future `Topology`
+direction rather than Base. Their descriptor and protocol forms remain unratified.
+
+Environment identity must nevertheless be portable at Gate boundaries. A Gate's boundary Actor may
+present an Environment reference, Topology contract version and Profile closure, Gate projection,
+continuity claims, and attributable evidence. The peer explicitly reports whether it understood,
+partially understood, rejected, or does not support that contract and, on acceptance, records its
+local Environment reference. Connection, silence, or successful decoding never demonstrates
+understanding. Understanding remains distinct from recognition, trust, and locally granted authority.
+A Profile may require a successful exchange before richer interaction; a Base-only peer may instead
+treat the Gate as an opaque Actor boundary. This guarantees shared semantics where requested without
+adding Environment to Base or transferring a Host's Topology obligations to a passive leaf.
+
+A **Component Manager** is a facility built over these contracts, not another Base term and not a
+mandatory realisation of the Composition extension. A build tool can resolve a static image; Host
+machinery can resolve an activation generation; one or more Components can provide management
+Operations. A future distribution specification may define portable Component descriptors,
+packages, sources, evidence, and transactional staging without making a marketplace or machine-wide
+package manager part of Base. Runtime binding and hot swapping may additionally compose with
+`Lifecycle`, `State`, or `Transaction`, but must not acquire their guarantees merely by using the
+word Component. A future `Persistence`, `Resource`, or dedicated specification may ratify the
+Corpus, Dataset, Store, and Router direction in §18.2.
 
 Extensions should remain domain-neutral.
 `Channel` may describe communication. It should not define how headphones transmit audio.
@@ -2827,6 +3029,73 @@ already ensures that non-recognition degrades to stricter, never to wrong.
 The following Profile directions are intentionally incomplete. Recording them establishes the
 architectural target and tests whether Brontide provides sufficient primitives; it does not ratify
 their final dependency sets or Domain Vocabularies.
+
+A **General-Purpose System Profile** should make composition itself a supported user- and tool-facing
+contract rather than an invisible deployment detail. Its rough direction is:
+
+```
+General-Purpose System Profile uses:
+    Composition
+    Discovery
+
+Behaviour:
+    an inspectable Component-management facility
+    static and dynamic resolution into declared generations and Binding Plans
+    local admission and authority establishment remain separate from discovery
+    Components may be selected from extensible local or remote sources
+```
+
+`Discovery` is included in this candidate dependency set because user-added sources, passive device
+integration, and changing environments are expected general-purpose behaviours. Evidence may later
+split a fixed-catalogue General-Purpose profile from a stronger open-discovery profile. Composition
+itself remains the required centre; Component management may be realised by Host machinery, tools,
+or Components rather than one mandatory global service.
+
+A **Static Embedded Profile** should demonstrate the opposite valid boundary:
+
+```
+Static Embedded Profile:
+    permits a completely authored and pre-resolved structure
+    requires no Composition or Discovery conformance claim
+    requires no Component Manager, loader, dynamic allocation, or source protocol
+    permits passive integration into a larger composing Host
+```
+
+The profile does not deny that the firmware was composed; it states that the construction is not an
+exposed portable contract of that participant. A leaf conforming only to Base or the Static Embedded
+Profile may therefore participate inside a General-Purpose System whose Host claims Composition and
+Discovery. Extension conformance is asymmetric across that boundary rather than inherited by every
+contained device or Component.
+
+A **Host-Assisted Composable Device Profile** should cover devices whose internal structure is
+portable and changeable but whose own discovery catalogue, storage, or user interface is deliberately
+small. Its rough direction is:
+
+```
+Host-Assisted Composable Device Profile uses:
+    Composition
+    Discovery
+    Channel
+    Topology
+
+Behaviour:
+    boots a sealed, recoverable bootstrap composition
+    accepts authorised discovery results, artifacts, and evidence from an outer Host
+    applies device-local admission and authority policy unless Host-owned mode is explicit
+    resolves internal child generations through declared Composition Ports
+    reaches internal Ready and Release before activating the exported outer boundary
+    preserves topology membership across internal and outer composition
+    presents its Environment through a Gate with an explicit understanding Outcome
+```
+
+This is not the ordinary mouse profile. A conventional mouse is normally simpler and more reliable
+as factory-composed firmware under the Static Embedded Profile. A sufficiently capable “smart
+mouse” may use the Host-Assisted profile, but architecturally it is then a small computer in the form
+of a peripheral. The mechanism is scale-independent and is not restricted to external devices: an
+internal controller or subsystem may receive the same assistance through authorised Channels and a
+runtime-open Port. Exact discovery transport, artifact delivery, device identity, attestation,
+recovery, and federation rules remain open protocol work; self-description never makes the outer
+Host or device trust the other.
 
 An **Interactive Application Profile** may compose the shared facilities used by ordinary
 applications and system-provided content:
@@ -3341,11 +3610,62 @@ The supporting rules:
 The openness presumption (§29.1) covers the remainder: unspecified behaviour may change at any
 version, which is precisely why relying on it is non-conforming.
 
-## 24. Devices and Brontide
+## 24. Devices, External Systems, and Trust Admission
 
-A device does not need to run a conventional operating system to implement Brontide.
+Brontide does not determine whether a device, Component, or remote system is honest. That
+judgement ultimately belongs to the composition or to the receiving authority domain. Brontide
+does determine which side has the power to make it: an external participant may propose identity,
+functionality, evidence, and requirements; only the receiving domain can admit it and grant or
+recognise authority there.
 
-A device may itself participate in Brontide through one or more Actors.
+### 24.1 Claims are proposals, not grants
+
+> **Self-description is not authority. A claim may inform admission; it cannot perform
+> admission.**
+
+A device or external system may claim an Actor identity, device class, manufacturer, supported
+Operations, Profile conformance, origin class, attestation, or Capability. Every such statement is
+input to the receiving domain's admission machinery. Under §10, a purported Capability authorises
+only when the target recognises the grant, its Operations, and its structural contract. Under §12,
+an external participant cannot cause Genesis in the receiving domain merely by requesting it.
+
+Before the receiving domain makes an admission decision, the participant has no Brontide authority
+inside that domain. It may produce electrical signals, bytes, packets, or protocol messages at the
+substrate, but those are observations available to already-authorised boundary machinery, not
+self-authorising Executions.
+
+A domain may deliberately offer a narrow, low-trust role on the basis of an unverified description.
+That remains the domain's policy decision; it does not verify the description. A policy may instead
+use a physical attachment point, administrator approval, an existing pairing, a cryptographic key,
+remote attestation, supply-chain evidence, or several signals together. Evidence has only the
+meaning the domain's trust policy assigns to it. In particular, attestation may establish an
+identity or measured state under a chosen trust root; it does not establish benevolence and does
+not itself grant authority.
+
+Admission may create local Actor references, establish compatible bindings, and issue local
+Capabilities. These are separate decisions. Recognising a Shape, Operation, vocabulary, Profile, or
+Component contract establishes meaning or compatibility, never authority. A Component declaring
+that it requires a Capability requests a composition condition; the declaration does not satisfy
+it. Origin likewise remains unverified unless the domain grants an origin assertion under §15.
+
+A claim of unlimited authority therefore has no effect by itself. Authority is relative to a
+target and to Operations that target recognises, and the presented grant must be recognised by
+that target. A participant may hold broad authority inside its own domain; that fact creates no
+authority in another domain.
+
+### 24.2 Device attachment
+
+A device does not need to run a conventional operating system to implement Brontide. It may
+participate through one or more Actors, but a descriptor such as "I am a mouse" is not proof of a
+trusted identity. The host may represent each admitted function as a separate Actor and grant only
+the authority required for that function. A device that also advertises keyboard, storage, network,
+or vendor-specific functions receives no authority for those functions unless the host admits them
+separately.
+
+A host policy may intentionally admit any attached interface that claims a compatible pointer
+protocol into a minimal pointer role. That is a useful low-trust compatibility policy, not a
+verified claim that the device is a particular model, came from a particular manufacturer, is
+benign, or reflects human intent.
 
 A mouse may expose separate Actors concerned with pointer input and configuration.
 
@@ -3364,22 +3684,53 @@ MouseConfiguration
 The physical mouse is not the architectural primitive.
 The Actors through which it participates are.
 
+The physical attachment is nevertheless a foundational topology observation. The Host assigns each
+attachment occurrence its own local Topology Node and relates admitted pointer, button,
+configuration, battery, lighting, and other functions to it. Two attached mice therefore produce two
+nodes: compatible sensor and button roles are not free to cross-pair merely because discovery found
+them at the same time. Detachment and reattachment normally produce a new node unless a separate
+persistent-identity mechanism establishes continuity.
+
+The connection path may justify a local `AttachedThrough` or `PartOf` observation. A device
+descriptor may additionally claim `SamePhysicalAssembly`, `HostedBy`, `SharesPowerDomain`, or
+`SharesFailureDomain`, but those claims remain attributable and subject to Host policy. A wireless
+receiver containing several devices illustrates why they are separate: one transport endpoint need
+not mean one physical assembly, identity, user context, failure domain, or authority domain. The
+Host may construct a synthetic local node when the device exposes no topology description and may
+refine or reject a proposed grouping. “Same device” is consequently a user-facing projection over
+accepted relations, never a primitive equality and never an authority grant.
+
+When only the shared receiver is observable and finer membership cannot be established, the Host
+preserves that uncertainty. It may relate separately admitted function occurrences to the receiver
+through `AttachedThrough`, but it must not invent which sensor and buttons form one physical mouse.
+Those functions remain ungrouped or require an explicit local choice until attributable description,
+independent observation, or other accepted evidence supports a finer relation. Topology represents
+what is known and claimed; it cannot recover physical truth that no observer can distinguish.
+
+The worked composition example in §18.1 separates the mouse's private factory-composed firmware from
+the Host's attachment-time Composition. A device descriptor may help the Host construct the latter;
+it does not make the device's private firmware modules into Components or make `Base` an installed
+Component.
+
 Note the direction of authority: publishing pointer input into the host's input system requires
-authority over that system, even though the delivered Input occurrence is an Event.
-The host grants publication and admission Capabilities to the device's Actors at attachment — a
-Genesis occurrence (§12) under the host's attachment policy, typically liveness-scoped (§10.3) so that
-detachment kills the authority with nothing to revoke, and typically carrying the
-`Origin.Device` assertion grant (§15) because attachment is the moment the host observes the
-physical fact it is vouching for.
+authority over that system, even though the delivered Input occurrence is an Event. Where the
+attachment policy admits the pointer function, the host grants publication and admission
+Capabilities to the corresponding device Actor at attachment — a Genesis occurrence (§12) under
+the host's policy, typically liveness-scoped (§10.3) so that detachment kills the authority with
+nothing to revoke.
+
+The grant may carry `Origin.Device` assertion authority (§15) because attachment is the moment the
+host observes a physical device. That origin class vouches only for the physical kind of cause. It
+does not assert a device class, manufacturer, firmware identity, harmlessness, or human action.
+Sensitive interaction may therefore distinguish `Origin.Device` from a separately guarded
+`Origin.Human` path.
 
 Attachment is not cross-domain interaction, even though the device has its own implementation.
 The host's attachment machinery creates Actors within the host's own authority domain that
 represent the attached device. The binding between those Actors and the physical device is the
 Actor–Execution binding of §6.5 — owned by the host implementation and, per §28, part of its
 trusted computing base. A device's internal Brontide domain, where one exists, remains distinct;
-attachment does not join the two domains architecturally. This is also what entitles the host to
-grant the `Origin.Device` assertion: the vouching is intra-domain, made by the host's own trusted
-machinery about a physical fact it directly observed. Where a future `Distributed` extension
+attachment does not join the two domains architecturally. Where a future `Distributed` extension
 defines attested federation, attachment MAY be upgraded to a verified cross-domain relationship,
 and the Genesis occurrence becomes informed by attestation rather than by host policy alone.
 
@@ -3399,9 +3750,10 @@ A manufacturer may additionally expose:
 Logitech.MX:Input.Scroll.SmartShift
 ```
 
-A host that understands the standard Input vocabulary can immediately interact with standard
-functionality. It does not require a Logitech-specific application merely to configure pointer
-sensitivity or polling behaviour.
+Once the function has been admitted, a host that understands the standard Input vocabulary can
+interact with its standard semantics. Vocabulary recognition removes the need for a
+manufacturer-specific application for routine configuration; it does not establish manufacturer
+identity or trust.
 
 The same model may apply to headphones.
 
@@ -3421,9 +3773,46 @@ and additionally:
 Sony.Headphones:Audio.AcousticOptimizer
 ```
 
-An Brontide-compatible system already understands the standard concepts.
+A Brontide-compatible system may already understand the standard concepts.
 The manufacturer remains free to innovate outside the standard.
-Brontide makes the boundary visible.
+Brontide makes the semantic boundary visible without turning the manufacturer's claim into trust.
+
+### 24.3 External systems and authority domains
+
+A remote system remains a distinct authority domain. Its Actor identities, primordial grants,
+Capability representations, origin claims, and internal policy are meaningful inside that domain;
+they do not become authority in the receiving domain by being transmitted. As §8 requires,
+Capabilities do not travel between trust boundaries and authorisation happens at each boundary.
+
+A receiving system may expose a gateway or boundary Actor whose local Capabilities bound the
+effects it can cause. A future attested federation may map verified external evidence into local
+Actor references and authority under explicit policy. In both cases the receiving domain owns the
+mapping. The remote participant cannot select its own local identity, import its authority graph,
+or decide which of its claims the receiver trusts.
+
+Brontide Base deliberately does not define mutual identification, attestation, or a cryptographic
+cross-domain Capability representation. Those belong to the provisional `Identity` and
+`Distributed` extensions (§8, §33). Until a stronger Profile or extension defines such a
+relationship, an unrecognised external claim authorises nothing. A future protocol must state its
+trust anchors, freshness and replay rules, claim-to-local-authority mapping, origin treatment,
+failure behaviour, and withdrawal semantics; successful verification remains evidence consumed by
+policy, not authority chosen by the peer.
+
+### 24.4 The limit of the guarantee
+
+A composition author or an authority domain's policy may select a compromised Component, trust a
+malicious key, or grant an admitted participant every Operation the domain knows. No architecture
+can prevent its own trusted decision-maker from deciding badly. The grant machinery, composition
+root, attachment policy, boundary adapters, and evidence verifiers are part of the authority
+domain's trusted computing base (§8, §28).
+
+Brontide's guarantee is narrower and essential: the decision is local, explicit, and attributable;
+the external participant cannot make it true by self-assertion; subsequent Delegation only narrows
+it; and every target evaluates the authority it recognises at its own boundary. If an attachment
+policy blindly promotes a claimed device class into broad authority, the resulting exposure is an
+over-broad Genesis decision, not authority created by the attacker. If the attacker compromises the
+host machinery that makes or enforces that decision, the authority domain itself is compromised and
+§28's out-of-scope boundary applies.
 
 ## 25. Systems and Macro-Scale Operations
 
@@ -3607,18 +3996,22 @@ They are not the ontology of Brontide.
 
 **In scope.** Brontide's authority semantics are designed to withstand: malicious or compromised
 Actors within an authority domain attempting to forge, amplify, or replay authority; confused
-deputies exercising authority on behalf of unauthorised requesters; masquerade — presenting an
-effect as originating from a source class it did not (§15); malicious peers in cross-domain
-interaction presenting invalid or over-broad Delegation chains; malformed Shape values attempting
-to exploit ambiguity between implementations; authored fragments attempting to reinterpret a
-canonical Shape or smuggle authority through ignored structure; and reliance on unspecified
-behaviour as an escalation path.
+deputies exercising authority on behalf of unauthorised requesters; self-asserted identity, device
+class, conformance, origin, or authority being presented as though it were a target-recognised
+grant (§24); masquerade — presenting an effect as originating from a source class it did not
+(§15); malicious peers in cross-domain interaction presenting invalid or over-broad Delegation
+chains; malformed Shape values attempting to exploit ambiguity between implementations; authored
+fragments attempting to reinterpret a canonical Shape or smuggle authority through ignored
+structure; and reliance on unspecified behaviour as an escalation path.
 
 **Out of scope.** Brontide does not defend against compromise of the authority domain's own
 implementation — each domain's implementation is its trusted computing base, and a domain that
-lies about its enforcement lies about everything. Side channels, physical attacks, and
-denial-of-service below the admission model (§26) are likewise outside the authority model,
-though extensions and Profiles MAY address availability.
+lies about its enforcement lies about everything. Nor can it make an authorised composition root
+or admission policy choose wisely: deliberately or negligently selecting a compromised Component,
+trusting malicious evidence, or granting excessive authority is a trusted-domain decision (§24.4).
+Brontide requires that decision to remain explicit and attributable; it cannot make the decision
+correct. Side channels, physical attacks, and denial-of-service below the admission model (§26) are
+likewise outside the authority model, though extensions and Profiles MAY address availability.
 
 **Information flow.** Brontide constrains *access* at every architectural boundary; it does not
 constrain *re-propagation* after delivery. An Actor authorised to observe data may thereafter
@@ -3635,8 +4028,10 @@ through deputies exposing Operations backed by broader authority (§11, §25) �
 from the Delegation graph alone, and Brontide does not claim it. Analysis of reachable authority
 is the `Authority Topology` extension direction (§19, §33).
 
-**Cross-domain trust** extends exactly as far as verification of the other domain's attestation,
-and no further.
+**Cross-domain evidence** extends exactly as far as verification of the other domain's
+attestation, and no further. Trust and any mapping from that evidence to local authority remain
+the receiving domain's policy. Attestation neither grants authority nor proves benevolence
+(§24.3).
 
 ## 29. Conformance
 
@@ -4281,12 +4676,13 @@ semantics must state which representations can satisfy them, with revocation-via
 (§31) the candidate for carried representations.
 
 **Cross-domain interaction.**
-Base authority semantics are defined within a domain (§8). Mutual identification, attestation,
-the cryptographic representation of Capabilities and origin claims, and defence against a
-hostile domain vouching falsely are the substance of the `Identity` and `Distributed`
-extensions, and the largest body of unfinished work in the Brontide direction. Device attachment no
-longer waits for this work: §24 handles attachment entirely within the host domain, with attested
-federation as a later upgrade.
+Base authority semantics are defined within a domain (§8). Section 24 establishes the floor:
+self-description is not authority, admission belongs to the receiving domain, and verified evidence
+can only inform that domain's local mapping. Mutual identification, attestation, the cryptographic
+representation of Capabilities and origin claims, and defence against a hostile domain vouching
+falsely are the substance of the `Identity` and `Distributed` extensions, and the largest body of
+unfinished work in the Brontide direction. Device attachment does not wait for this work: §24.2
+handles attachment entirely within the host domain, with attested federation as a later upgrade.
 
 **Channel.**
 The invocation principle (§13.6) requires that authority travel with requests; the mechanism —
@@ -4505,13 +4901,54 @@ without hiding their operational differences or requiring an application redesig
 
 **Composition and hot swapping.**
 Section 18.1 defines provisional scale-independent Component terminology and distinguishes static
-binding, runtime binding, replacement, interchangeability, and hot-swappability. The Component
-descriptor, recursive composition rules, Binding Plan representation, Hot-swap Slot and Class
+binding, startup-time generational resolution, runtime binding, replacement, scoped restart,
+interchangeability, and hot-swappability. The Component descriptor, recursive composition rules,
+Provider Set representation, binding-scope and cardinality declarations, occurrence sharing,
+distinct and mediated exposure, Composition Region and Port descriptors, incremental child-
+generation resolution, Port-envelope validation and widening, Binding Plan representation, Hot-swap Slot and Class
 representation, dependency negotiation, attachment and replacement occurrences, state handoff,
 failure atomicity, rollback, interruption guarantees, and treatment of in-progress work remain
-open. Reference/Minimal interchange, device replacement, service failover, and data-centre-scale
-substitution should test whether one contract model survives all these cases without making a
-package loader, mapping engine, or deployment orchestrator part of Brontide Base.
+open. Cyclic contract and post-release interaction dependencies are not forbidden and do not define
+startup order. The portable Local
+Initialisation, Interconnection, Relational Initialisation, Ready, and Release declarations;
+lifecycle-only and ordinary-interaction gates; strongly connected-group resolution; explicitly
+ordered activation groups; and deterministic diagnostics remain to be proven.
+
+The threshold between direct binding and declared Mediation is semantic rather than numeric. Its
+portable descriptor expression and validation remain open. In particular, the boundary
+between Presentation or Workspace orchestration—layout, cloning, focus, user association, and
+logical-surface policy—and display Distribution remains open. A renderer should not silently absorb
+that topology policy, while generic Distribution should not define user-experience semantics.
+
+Composition's promotion path is now recorded without ratification. The minimal static/dynamic
+`Composition` extension contract, its optional dependency boundary with `Discovery`, the exact
+Component-management requirements of a General-Purpose System Profile, and the conformance evidence
+for Static Embedded and Host-Assisted Composable Device Profiles remain open. The Host-Assisted
+profile additionally needs portable bootstrap, recovery, discovery delivery, device-local versus
+Host-owned admission, nested Release, and outer-boundary activation protocols. In particular, a
+profile requirement imposed on a Host
+must not accidentally become a requirement that every passively integrated leaf implement a
+resolver or Discovery protocol.
+
+Composition's minimum topology floor also requires exact Node and Relation identity, vocabulary,
+observation and claim attribution, persistence across detach and reattach, device-supplied evidence,
+Host refinement, and Region/Port serialization rules. That minimum membership floor remains owned by
+Composition; Topology Map, Environment, protection, Gate, and Environment View semantics belong to
+the future `Topology` extension. Their exact Shapes, evidence formats, and protocols remain open.
+Implementations must not collapse physical assembly, hosting, transport, power, failure, identity,
+trust, or authority into one `same device` flag while those rules are unsettled.
+
+The Component Manager direction further leaves its portable descriptor and package formats,
+source-registration and Discovery Query contracts, candidate and storefront projections, Preferred
+Provider declarations, publisher identity, occupied-binding and Provider Set behaviour,
+generic-provider criteria, ranking and explanation policy, integrity and provenance evidence,
+trust-policy seam, generation record, transaction boundaries, retention, removal, and garbage
+collection open. A deterministic, entirely fake manager should exercise these seams and present a
+realistic local storefront before
+any online marketplace or production loader is attempted. Reference/Minimal interchange, device
+replacement, service failover, and data-centre-scale substitution should test whether one contract
+model survives all these cases without making a package manager, mapping engine, or deployment
+orchestrator part of Brontide Base.
 
 The same section treats topology, authority-domain boundaries, latency, cost, capacity,
 availability, and related values as capability-derived Attributes rather than reducing placement to
@@ -4608,6 +5045,13 @@ budget at their chain occurrence; and Constraint values are never evaluated by p
 because the payload and authority planes cross boundaries under opposite regimes (§6.16).
 Authority defaults to mortal where domains are dynamic.
 
+Self-description never creates authority. Device descriptors, remote identities, conformance
+claims, attestation, and purported Capabilities are inputs to the receiving authority domain's
+admission policy. They authorise only through a target-recognised local grant or mapping; the
+participant cannot choose the mapping for itself. A composition root or admission policy may still
+trust the wrong Component or evidence — an unavoidable trusted-computing-base decision — but an
+external claim cannot silently become authority (§24).
+
 Operations are scale-agnostic: a register write and an audit initiation share one authority
 model, and a large Operation keeps its semantic identity at the boundary where it is executed
 regardless of the machinery beneath. When one Actor acts on another's request, a Capability
@@ -4641,6 +5085,17 @@ implementations. Frequently deployed concepts such as Transaction remain extensi
 not necessary to that minimum. A future convenience Profile may collect common extensions for
 general-purpose systems without acquiring privileged status or changing Base.
 
+Every such system is still composed in the ordinary sense. What remains outside Base is the
+requirement to expose that construction as a portable contract. The recorded `Composition`
+extension direction covers Components, requirements, Provider Sets, Composition Regions and Ports,
+bindings, Mediation, generations, and lifecycle in static as well as dynamic forms; `Discovery`
+remains an optional source of candidates for its resolver. The General-Purpose System Profile
+direction requires managed, inspectable Composition and provisionally includes Discovery, while the
+Static Embedded Profile direction requires neither and permits passive integration into a larger
+composing Host. The Host-Assisted Composable Device Profile occupies the deliberate middle: a sealed
+device bootstrap may use outer discovery assistance while retaining local admission and activating
+complete internal child generations before exposing them to the outer system.
+
 Brontide grows through Architectural Extensions, Profiles, and Domain Vocabularies. Profiles declare
 direct dependencies in `uses:` blocks and may use other Profiles; conformance expands through the
 transitive dependency closure without repeating indirect requirements. Standard names use
@@ -4670,6 +5125,66 @@ availability, and failure domain. These Attributes guide selection among compati
 Components without changing their semantic contract identities. Implementations may still present
 the useful `local`/`remote` shorthand in user interfaces and summaries, provided it remains a
 declared, lossy projection rather than a source of unstated guarantees.
+
+Component management follows a staged, generational direction. Arbitrary Component Sources may
+make descriptors, artifacts, and evidence available, but acquisition and self-description grant no
+authority. An authorised selection shapes a pending composition; the resolver recursively closes
+its structure and Parameters and may prepare it while the current generation runs; activation then
+cuts over at a declared restart boundary. Activation Parameters may be acquired during preflight
+but cannot introduce structure absent from the resolved generation. Establishment proceeds through
+Local Initialisation, Interconnection, optional lifecycle-only Relational Initialisation, and Ready;
+one logical Release then makes the group Active. Logical dependency, relational-initialisation, and
+post-release interaction cycles are allowed when their declared protocols close finitely and
+deterministically; ordinary application traffic remains gated until Release.
+
+Incremental, or per-partes, composition applies the same generation protocol recursively. A parent
+Region declares a Composition Port and its contracts, imports, exports, cardinality, authority
+ceiling, topology, lifecycle, failure, and rollback envelope. A complete child generation may then
+be resolved and released through a runtime-open Port while the parent remains active. Internal and
+external attachment use the same rule; a child that exceeds the envelope requires rejection or an
+explicitly wider parent generation. Attaching to an empty Port does not by itself promise live
+replacement of an active child.
+
+Composition also preserves a minimum topology membership model. Each attachment occurrence has a
+local Topology Node, and attributable relations keep its Components, Actors, resources, Regions, and
+Ports associated without equating physical assembly, hosting, connectivity, power, failure, identity,
+trust, or authority. Thus two mice cannot have their compatible subfunctions accidentally combined,
+while a declared Aggregation may still join their input Flows without erasing either membership.
+
+The broader Topology direction distinguishes ordinary overlapping Environments from Protected
+Environments. Protected Environments are disjoint or nested within one Protection Plane, expose
+their opaque interiors only through Gates, and become Sealed when no Gate is active. Each Gate may
+present a different relational Component projection and Environment View without making the
+Environment itself universally identical to a Component, Actor, or Authority Domain. Gate boundary
+Actors present portable Environment references, while explicit versioned Topology Outcomes establish
+whether a peer understands them; understanding does not establish recognition, trust, or authority.
+
+A contract role is not a system-wide singleton. Several Component definitions may provide one role,
+one definition may have several activated occurrences, and differently scoped consumers may bind
+different providers concurrently. Each requirement resolves an identity-preserving Provider Set
+with declared cardinality, sharing, scope, and distinct or mediated exposure. Distinct exposure
+keeps members independently addressable; mediation may select, distribute, aggregate, arbitrate, or
+apply domain-specific rules without laundering member identity or authority. Several keyboards may
+therefore remain per-user inputs or feed one declared Aggregation; several displays may receive
+separate feeds or explicit Distribution; and several database providers may serve separate
+applications or Datasets, sit behind Selection, or participate in declared storage relationships.
+
+Simple topology remains simple: direct `1..1` bindings and intentionally member-addressed distinct
+sets need no mediation machinery. Once one logical endpoint owns Selection, Distribution,
+Aggregation, Arbitration, membership masking, or topology-wide policy, Mediation is mandatory in the
+resolved model. Its realisation may be erased when trivial, while relationships with independent
+state, policy, authority, recovery, or lifecycle should use a dedicated mediating Component. Display
+rendering therefore need not absorb multi-screen topology; the future Presentation and Workspace
+directions still need to define how UX layout policy composes with Distribution.
+
+A manager may aggregate multiple Component Sources. Serving endpoint and publisher identity remain
+distinct, although a future UI may present local and remote sources as familiar stores. Compatible
+occupied `1..1` bindings remain stable by default. For each required open Provider Set position,
+Preferred Providers, publisher-affine candidates, generic implementations, and other compatible
+candidates form the default ranking tiers under local admission policy. The inspectable Proposed
+Stack shows membership, scopes, activation occurrences, sharing, exposure, mediation, preselected
+candidates, and alternatives before acquisition or activation. Scoped restart is the ordinary
+fluent replacement path, while hot swapping remains a stronger optional contract.
 
 The proposed Brontide Portable Binding supplies a default general-purpose seam without defining one
 implementation model. A scoped Binding Plan fixes contracts, authority, representation, memory and
@@ -4809,6 +5324,62 @@ adversarial conformance vectors accompanying every behavioural change are invent
 - **§7.1 — Registry corrected.** Constraint recorded as a subordinate concept within
   Capability; Terminus recorded beside Authority Domain and Genesis; Authority Topology added
   to the provisional extension names.
+- **§18.1 and §33 — Staged Component management recorded.** Component acquisition, selection,
+  recursive resolution, optional preparation, activation, and retirement are separated through
+  immutable composition generations. The ordinary user-facing path may stage a selection while the
+  current generation runs and activate it at a declared scoped restart; hot swapping remains a
+  stronger optional contract. Establishment now names Local Initialisation, Interconnection,
+  optional Relational Initialisation, and Ready before one logical Release makes the group Active.
+  Cyclic interaction creates no implicit startup order, while cyclic relational setup must declare
+  its lifecycle protocol and completion. Component Manager names the broader lifecycle facility;
+  multiple marketplaces and repositories are unprivileged Component Sources; endpoint and publisher
+  identity remain distinct; and product UI may project local and remote sources as familiar stores.
+  Preferred Providers are hints, occupied compatible `1..1` bindings remain stable by default, and
+  unfilled Provider Set positions rank explicit preference, publisher-affine, generic, then other
+  compatible candidates under local policy. Multiple definitions and activated occurrences for one
+  role are first-class through scoped, cardinality-declared Provider Sets with distinct or mediated
+  exposure. Aggregation now records the N-source-to-one-logical-provider Mediation species alongside
+  Selection, Distribution, and Arbitration. Direct topology remains direct, but any logical
+  selection, fan-out, fan-in, arbitration, membership masking, or topology-wide policy must declare
+  Mediation; simple realisations may be erased while policy-bearing relationships favour dedicated
+  Components. The Presentation/Workspace-to-display-Distribution orchestration boundary is recorded
+  as open. The resulting Proposed Stack remains inspectable before activation.
+- **§7, §18–§20, and §33 — Composition separated from ordinary construction.** Every system is
+  acknowledged to be composed, while Base requires no participant-visible resolver or Component
+  model. A first-party Composition extension direction supports static and dynamic resolution;
+  Discovery remains separately optional; Component Manager remains a facility built over them; and
+  provisional General-Purpose System, Static Embedded, and Host-Assisted Composable Device Profile
+  directions record three useful conformance boundaries. A composing Host may passively integrate a Base-only leaf without
+  transferring its own extension obligations to that leaf.
+- **§7, §18–§20, §24.2, and §33 — Incremental composition and discrete topology recorded.**
+  Composition Regions and parent-declared Composition Ports make recursively resolved child
+  generations first-class at build, activation, and runtime without permitting arbitrary mutation of
+  an active parent. Each attachment receives a local Topology Node and attributable relations so
+  independently represented functions retain device membership without conflating physical assembly,
+  hosting, power, failure, identity, trust, or authority. The provisional Host-Assisted Composable
+  Device Profile records a sealed device bootstrap, outer discovery assistance, ordinarily local
+  admission, nested Release, and external-boundary activation; the ordinary mouse remains the simpler
+  factory-composed case.
+- **§7 and §19 — Environment and Gate direction recorded outside Base.** A dedicated topology note
+  retains the competing reasoning and resolves it: ordinary Environments remain overlapping,
+  security-neutral topology identities, while Gates create relation-specific virtual-Component
+  projections. Protected Environments are laminar within a Protection Plane, opaque except through
+  Gates, and Sealed when no Gate is active. Transparency remains multidimensional and Gate-relative;
+  Environment identity is portable through Gate boundary Actors, but mutual understanding requires
+  an explicit versioned Topology Outcome and an appropriate Profile. No new Base term or ratified
+  extension results.
+- **§18.1 and §24.2 — Composition timing illustrated.** A factory-composed mouse keeps its private
+  firmware structure outside Composition while exposing Base-governed Actors; attachment composes
+  that boundary into a Host under local admission and authority; and a managed general-purpose
+  system composes across image construction, selection, preflight, scoped activation, and runtime
+  attachment. Base is explicitly a conformance contract rather than an installed Component.
+- **§24 and §28 — External claims separated from trust admission.** Self-description, device
+  class, conformance, attestation, origin, and purported authority are inputs to a receiving
+  domain's policy, never grants chosen by the participant. Device attachment and remote-system
+  admission are distinguished, over-broad composition and Genesis decisions are identified as
+  trusted-computing-base failures, and the unfinished Identity/Distributed protocol work remains
+  explicit. This clarifies existing target-recognition and Genesis invariants without adding a
+  Base term or ratifying an attestation mechanism.
 
 Architecture 0.8 makes no change to the eight Brontide Base terms; whether Constraint becomes a
 ninth is recorded as an open ratification question (§33).
