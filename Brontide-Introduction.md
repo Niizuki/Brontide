@@ -52,9 +52,10 @@ of a key with the rules engraved on it — which doors, until when, and whether 
 ## Keys that can only be filed down
 
 Most systems answer "who may do what" with a list checked by a central guard: an account
-database, a permission table, an access-control service. Brontide inverts this. There is no
-central guard. Authority is a thing you *hold* and *present*, and the system it is presented to
-checks it at its own door.
+database, a permission table, an access-control service. Brontide does not require that model.
+Authority is a thing you *hold* and *present*, and the authority domain it is presented to
+evaluates it at its own boundary. An implementation may centralise that evaluation internally;
+the architecture does not depend on a universal guard.
 
 The consequence that makes everything else work: **authority only ever narrows**.
 
@@ -80,10 +81,11 @@ part.
 ## Authority has a birth, a life, and a death
 
 Where do keys come from in the first place? Brontide's answer is a conservation law. Every
-Capability is either **primordial** — created by the system itself at a known, recorded moment
-called **Genesis** (switch-on, boot, the moment you plug in a device) — or derived from another
-Capability by the narrowing rule. Authority never appears mid-flight. If you follow any key's
-history backwards, you always arrive at a recorded beginning.
+Capability is either **primordial** — part of an authority domain's initial authority — or
+derived from another Capability by the narrowing rule. After initialisation, a domain may
+introduce authority only at an explicit, attributable **Genesis** occurrence: attaching a
+device is the canonical example. Authority never appears mid-flight. If you follow any key's
+derivation backwards, you always arrive at a primordial root.
 
 What about things created during operation — a new file, a new record? The provider that
 created it hands you a key *carved from its own*: a service managing a resource space issues
@@ -164,18 +166,63 @@ becomes a checkable property of the record rather than a hope.
 
 Every concept above passes a test with a deliberately humble name: the **Embedded Test**. All
 of it — actors, keys, narrowing, birth and death of authority — must remain implementable on a
-tiny microcontroller with no operating system, no network, no dynamic memory. On such a chip,
-the whole authority model can be a compile-time table; checking a key costs an integer
-comparison. The test exists to keep the foundation honest: anything that *needs* heavy
-machinery is not fundamental and lives in an optional extension instead.
+tiny microcontroller with no operating system, no network, and no dynamic memory. On such a
+chip, actors and authority may be compile-time tables, Shapes may be static signatures, and
+Executions may be direct calls. The test exists to keep the foundation honest: anything that
+*needs* heavy machinery is not fundamental and lives in an optional extension instead.
 
-The same eight-term model stretches the other way without modification. `Audit.Start` at a
-corporation obeys exactly the rules `Fan.Stop` obeys in firmware: explicit authority,
-inspectable history, narrowing delegation, recorded outcomes. The audit's *implementation* may
+The same Base model stretches the other way without modification. Its eight terms — Actor,
+Capability, Shape, Delegation, Operation, Execution, Event, and Outcome — apply equally to
+`Audit.Start` at a corporation and `Fan.Stop` in firmware. The audit's *implementation* may
 involve hundreds of services and people; its *meaning and authority* stay visible at the
 boundary as one Operation. That single span — one model from a fan to a financial close — is
 the claim that makes Brontide different, and the claim its whole evidence programme exists to
 test.
+
+## When the boundary between application and operating system dissolves
+
+A conventional operating system gives an application processes, files, sockets, windows, users,
+and devices. The application then tends to build a private world inside that box: its own
+database, identity and authentication, authorisation policy, event mechanism, renderer, and
+internal services. The operating system hosts the application but understands little of its
+semantic structure.
+
+Brontide permits a different relationship, but does not prescribe one. In a particular
+composition, a general-purpose Brontide environment may make facilities available as
+system-native Components. Persistence, Corpus and Store management, identity and authentication,
+authorisation support, Event Distribution, Presentation, Workspace, and scheduling are examples,
+not a closed catalogue. Other facilities may participate through the same model when they expose
+suitable declared contracts.
+
+Nothing becomes reusable merely because its contract has been defined. A provider Component must
+be present, selected, and plugged into the composition through a compatible binding; the
+application's Actors must also receive the necessary Capabilities. When a composition supplies
+those pieces, the same persistence or identity provider may serve many applications natively
+without merging their data or authority. Another composition may select a different provider,
+keep the facility private, or omit it entirely. Reuse means sharing a provider and its contracts,
+not granting one application ambient access to another.
+
+The relationship also runs in the other direction. An image editor might use system persistence
+while exposing `Image.Edit` to automation and other tools. A browser might use system identity
+and Presentation while contributing document rendering. What used to be a fixed line between
+"the OS" and "the app" becomes a set of explicit Component, contract, and authority boundaries.
+
+This is a dissolution of an ownership boundary, not of protection boundaries. Process isolation,
+authority domains, failure boundaries, placement, and provider selection remain visible. A
+system-native Component is not necessarily a kernel service or a single privileged global
+implementation; several providers may satisfy the same contract, and an application may select
+one, supply its own, or use none.
+
+Traditional applications remain fully supported. Brontide calls this a **boxed composition**:
+one opaque application may keep its database, authentication, event system, renderer, and internal
+modules private, exposing a few Brontide Operations at its edge or none at all. It is a legacy
+style in the architectural sense — supported, sometimes useful, and not defective — but it is no
+longer the only shape around which the environment must be designed.
+
+Participation can be incremental. Where a composition supplies suitable Components, an application
+may adopt system persistence without adopting system Presentation, or system identity without
+giving up its own scheduler. Deeper participation can provide native reuse, composition,
+inspection, and substitution; it is an opportunity, not an entry fee.
 
 ## No implementation gets to be the truth
 
@@ -202,14 +249,15 @@ Brontide is version 0.x and says so plainly. Nothing is ratified yet. The regist
 architecture status is machine-checked; claims of implementation are backed by evidence files
 and gates that refuse to pass otherwise.
 
-What exists: the full authority model described here, hardened this cycle by an adversarial
-review that closed real holes — including the rules for rate-limit budgets under delegation,
-strict handling of newer-versioned restrictions at older checkers, and the completed lifecycle
-from Genesis to Terminus. What comes next, in decided order: **Channel** (how requests and
-authority travel between processes, distilled from the interchange evidence that already
-exists), the **Portable Binding** (a wire-level realisation of it), and **Flow** (long-lived
-exchanges — streams, subscriptions — as the first fully ratified extension). Bigger questions
-— cross-organisation identity, full revocation — are recorded openly rather than promised.
+What exists in the current complete draft: the full authority model described here, hardened
+this cycle by an adversarial review that closed real holes — including the rules for rate-limit
+budgets under delegation, strict handling of newer-versioned restrictions at older checkers,
+and the completed lifecycle from Genesis to Terminus. What comes next, in decided order:
+**Channel** (how requests and authority travel between processes, distilled from the interchange
+evidence that already exists), the **Portable Binding** (a wire-level realisation of it), and
+**Flow** (long-lived exchanges — streams, subscriptions — as the first fully ratified extension).
+Bigger questions — cross-organisation identity, full revocation — are recorded openly rather
+than promised.
 
 ## The point
 
