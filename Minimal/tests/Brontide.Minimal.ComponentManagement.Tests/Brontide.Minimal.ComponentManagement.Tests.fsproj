@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <GenerateProgramFile>false</GenerateProgramFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Experimental.ComponentManagement\Brontide.Minimal.Experimental.ComponentManagement.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\component-management\**\*"
+          Link="component-management\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FixtureTests.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+</Project>

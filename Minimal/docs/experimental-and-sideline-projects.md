@@ -14,6 +14,13 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
 - `Brontide.Minimal.Experimental.PersistentInformation` is planned, not created. Its first scope is
   the C4/C5 Opaque Corpus/Dataset/Store-role evidence in Plan 0.3; it does not imply a complete
   persistence system, deep Router policy, or ratified persistent-information extension.
+- `Brontide.Minimal.Experimental.ComponentManagement` is the fake, deterministic Component Manager
+  for the
+  [Component Management Implementation Plan 0.1](../../Brontide-Component-Management-Implementation-Plan-0.1.md).
+  Its CM0 phase implements native private-union identity spaces and a strict, fail-closed loader
+  for the shared `component-management/` fixtures. It is not a real marketplace, package manager,
+  loader, or security product, and is not an Architecture 0.8 conformance claim; CM1-CM6 remain
+  planned.
 - Reference/Minimal entanglement is a future cross-process experiment. Neither implementation is allowed
   to become the other's in-process compatibility layer.
 

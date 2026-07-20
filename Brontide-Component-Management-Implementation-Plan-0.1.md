@@ -99,6 +99,13 @@ the future `Topology` extension direction recorded in the
 
 ## 4. Delivery sequence
 
+Delivery status: CM0 is implemented in both stacks
+(`Reference/src/Brontide.Reference.Experimental.ComponentManagement` with tests in
+`Reference/tests/Brontide.Reference.ComponentManagement.Tests`, and
+`Minimal/src/Brontide.Minimal.Experimental.ComponentManagement` with tests in
+`Minimal/tests/Brontide.Minimal.ComponentManagement.Tests`), sharing the data-only fixtures under
+the root `component-management/` tree. CM1-CM6 remain planned.
+
 ### CM0 — vocabulary and fixtures
 
 Define the data-only fixture format and native identity types. Include multiple sources advertising

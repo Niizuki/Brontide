@@ -11,6 +11,7 @@ $expectedProjects = @(
     'Brontide.Minimal.Extensions.Flow',
     'Brontide.Minimal.Experimental.Enrichment',
     'Brontide.Minimal.Experimental.Composition',
+    'Brontide.Minimal.Experimental.ComponentManagement',
     'Brontide.Minimal.Vocabularies.Cooling',
     'Brontide.Minimal.Vocabularies.Imaging',
     'Brontide.Minimal.Binding',
@@ -20,6 +21,7 @@ $expectedProjects = @(
     'Brontide.Minimal.Conformance',
     'Brontide.Minimal.Enrichment.Tests',
     'Brontide.Minimal.Composition.Tests',
+    'Brontide.Minimal.ComponentManagement.Tests',
     'Brontide.Minimal.Kernel.Tests',
     'Brontide.Minimal.Interchange.Tests'
 )
