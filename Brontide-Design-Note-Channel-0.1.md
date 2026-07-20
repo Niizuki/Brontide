@@ -268,6 +268,11 @@ against both stacks. Delivery guarantees, ordering, and long-running Executions 
 `Distributed`, `Realtime`, `Flow`, and `Lifecycle`. Nothing here ratifies the interchange test
 protocols as Channel; they are the evidence Channel is extracted from, not its specification.
 
+These open items are tracked as a register in the
+[Channel requirements and risk ledger](./docs/architecture-0.8-channel-requirements-and-risk-ledger.md),
+the R6/M6 hand-off artifact, which also records the forward test scenarios — including a
+Channel-providing Component required by another Component — without implementing any of them.
+
 ## Recorded direction
 
 - Channel is the recorded first-cycle communication extension: the request/Outcome representation,

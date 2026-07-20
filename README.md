@@ -47,7 +47,9 @@ interchange proofs and recorded in
 representation, correlation, error propagation, and delivery semantics the invocation principle
 needs and Base withholds. It fixes semantics rather than a wire format, keeps Capabilities from
 crossing a trust boundary, and precedes the Portable Component Binding, which becomes its first
-conforming realisation. It remains a recorded direction outside Base, not a ratified extension.
+conforming realisation. It remains a recorded direction outside Base, not a ratified extension. Its
+open questions and risks are tracked in
+[`docs/architecture-0.8-channel-requirements-and-risk-ledger.md`](./docs/architecture-0.8-channel-requirements-and-risk-ledger.md).
 
 The provisional generational lifecycle, multiple-source acquisition model, trust separation,
 scoped restart, and dependency-cycle policy are recorded in
