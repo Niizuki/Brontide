@@ -1,13 +1,13 @@
 # Brontide Component Management Implementation Plan 0.1
 
 Status: Planned experimental work
-Architecture context: [Brontide Architecture 0.8](./Brontide-Architecture-0.8.md) §18.1, §19,
+Designed for: [Brontide Architecture 0.8](./Brontide-Architecture-0.8.md) §18.1, §19,
 §20.1, §24, and §33, Complete Draft, not ratified
 Design source:
 [Component Management and Distribution](./Brontide-Design-Note-Component-Management-0.1.md)
 Related notes:
 [Composition and Components](./Brontide-Design-Note-Composition-0.1.md),
-[Topology Environments and Gates](./Brontide-Design-Note-Topology-0.1.md)
+[Topology Environments and the Guardian Family](./Brontide-Design-Note-Topology-0.1.md)
 
 ## 1. Purpose and evidence boundary
 
@@ -18,9 +18,9 @@ or Architecture 0.8 conformance claim. Architecture 0.8 §33 records this sequen
 directly: a deterministic, entirely fake manager should exercise these seams and present a
 realistic local storefront before any online marketplace or production loader is attempted.
 
-This plan is independent of the retained Architecture 0.5 implementation baseline and the current
-Architecture 0.7 delivery plans. Its output remains experimental and cannot close their milestones
-or become evidence that the provisional Component model is ratified.
+This experiment has its own Architecture 0.8 target. It does not change either stack's Architecture
+0.7 target, and its output remains experimental rather than evidence that the provisional Component
+model is ratified.
 
 The two stacks implement the behaviour natively:
 
@@ -93,7 +93,7 @@ fixture grants no Capability and does not establish its requested Actors or auth
 
 The harness models only the minimum topology-membership floor that the Composition direction owns:
 local Topology Nodes and attributable Topology Relations. Topology Map, Environment, Protected
-Environment, Protection Plane, Gate, and Environment View semantics belong to
+Environment, Protection Plane, Guardian, Gatekeeper, Sentinel, Sentinel Watch, and Environment View semantics belong to
 the future `Topology` extension direction recorded in the
 [Topology design note](./Brontide-Design-Note-Topology-0.1.md) and stay outside this plan.
 
@@ -332,7 +332,7 @@ This plan is complete only when:
 - shared fixtures contain data and expected observations, not implementation logic;
 - READMEs and experimental-project inventories identify the work as fake and non-conformant;
 - comparison evidence states exactly which observations agree and what remains untested; and
-- no root architecture status, implementation baseline, or ratification claim changes as a result.
+- neither stack's locally stated architecture target nor any ratification claim changes as a result.
 
 A later plan may replace fake sources and evidence with real distribution integrations. That work
 must add live-probe boundaries, production trust analysis, artifact isolation, and operating-system

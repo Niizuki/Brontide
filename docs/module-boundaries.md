@@ -1,9 +1,8 @@
 # Implementation module boundaries
 
-Status: implementation-owned review map for the Architecture 0.5 evidence baseline. These are
-dependency and review boundaries, not new architectural concepts. New architecture work is routed
-through [Architecture 0.7](../Brontide-Architecture-0.7.md) and the two implementation-owned
-delivery ledgers.
+Designed for: [Brontide Architecture 0.7](../Brontide-Architecture-0.7.md)
+
+Status: implementation-owned dependency and review map, not new architectural vocabulary.
 
 | Concern | Reference owner | Minimal owner | Public review rule |
 | --- | --- | --- | --- |

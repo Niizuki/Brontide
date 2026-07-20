@@ -1,19 +1,25 @@
 # Brontide Minimal Stack
 
 Brontide Minimal Stack is the independent F# implementation and headless counterpoint.
-Architecture identity, ratification status, the retained executable baseline, and Minimal's current
-delivery plan, ledger, and matrix are selected only through
-[`../Brontide-Architecture-Status.json`](../Brontide-Architecture-Status.json). A delivery plan does
-not upgrade an implementation claim until its evidence is accepted. Minimal lives beside Brontide
-Reference Stack but does not reference Reference assemblies or reuse Reference CLR types; the
-implementations support, challenge, and eventually substitute for one another through an explicit
-external binding seam.
+
+**Designed for:** [Brontide Architecture 0.7](../Brontide-Architecture-0.7.md)
+
+**Status:** Partial implementation with explicitly labelled experiments
+
+This target states the architecture revision against which the stack was devised. The implemented
+surface and known limitations are described here and exercised by the solution tests. Focused
+experimental projects may state a later target locally; in particular, Component Management is
+designed against Architecture 0.8 without changing the stack-wide target.
+
+Minimal lives beside Brontide Reference Stack but does not reference Reference assemblies or reuse
+Reference CLR types; the implementations support, challenge, and eventually substitute for one
+another through an explicit external binding seam.
 
 Architecture 0.7 M1 now has Minimal-native Complete Draft evidence for recursive three-state
 Constraint expressions, fail-closed target-side evaluation, and experimental Composition
-selection. The revision-specific requirements and evidence are routed through
-[`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json); this is neither
-ratification nor a claim that the remaining Architecture 0.7 work is implemented.
+selection. The retained [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json)
+matrix is detailed test evidence, not the source of the implementation target and not a claim that
+the remaining Architecture 0.7 work is implemented.
 
 The current repository-wide programme is
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../Brontide-Interchange-Implementation-Plan-0.1.md).

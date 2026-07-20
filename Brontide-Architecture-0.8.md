@@ -12,10 +12,11 @@ Brontide-Architecture-Change-History.md)
 **Notation:** NonStrict (§22.4). Normative identities expand to the same canonical form as Strict
 notation; explanatory examples may use locally resolvable shorthand.
 
-Implementation work is routed through
-`Reference/Brontide-Reference-Stack-Implementation-Plan-0.3.md` and
-`Brontide-Minimal-Stack-Implementation-Plan-0.3.md`. Their completion would provide evidence for
-ratification review; neither plan changes this document's status by itself.
+Implementations and focused experiments state locally which architecture revision they were devised
+against. The Reference and Minimal stacks currently target Architecture 0.7; their 0.3
+implementation notes record the 0.8 handoff without claiming to implement this draft. Experimental
+work designed for 0.8 states that target in its own document. None changes this document's status by
+itself.
 
 ---
 
@@ -39,7 +40,7 @@ ratification review; neither plan changes this document's status by itself.
 16. Shape: Structure Across Implementations
 17. A Minimal Brontide System
 18. Growing Beyond the Base
-19. Architectural Extensions: Flow and Event Distribution
+19. Architectural Extensions and Recorded Actor Roles
 20. Profiles
 21. Domain Vocabularies
 22. Names, Authorship, Declaration Prefix Blocks, and Notation Strictness
@@ -1032,7 +1033,8 @@ section or design note.
 | Component, Provider Set, Composition Region, Composition Port, Binding Plan, Portable Binding, Replacement Slot, Hot-swap Slot, Hot-swap Class, Parameter, Attribute, Definition Constraint | Work in progress; Composition design note (§18.1) |
 | Mediation, Selection, Distribution, Aggregation, Arbitration, Router, Distributor, Aggregator, Arbiter | Recorded direction; Composition design note (§18.1) |
 | Topology Node, Topology Relation | Work in progress; minimum composition-membership direction (§18.1, §19) |
-| Topology Map, Environment, Protected Environment, Protection Plane, Gate, Gate export fidelity, Environment View | Recorded direction; Topology design note (§19) |
+| Guardian, Gatekeeper, Sentinel, Sentinel Watch | Recorded Actor-role family and subordinate watch contract: Guardian protects or represents; Gatekeeper prevents unadmitted protected-boundary crossings; Sentinel performs bounded third-party observation and reporting (§19.3, §26.1) |
+| Topology Map, Environment, Protected Environment, Protection Plane, Gatekeeper export fidelity, Environment View | Recorded direction; Topology design note (§19) |
 | Enrichment, value propagation | Work in progress; Enrichment design note (§16.6) |
 | Corpus, Dataset, Store, Store role, Store Relationship (Mirror, Backup) | Work in progress; Persistent Information design note (§18.2) |
 | Dot-relative declarations, Structured Data extension, Remote Service category, `@version` name suffixes | Rejected; design history retained where instructive |
@@ -1858,7 +1860,7 @@ The burden of proof sits on the trusted.
 
 > **Origin grants do not survive Delegation.** A delegated Capability asserts at most
 > `Origin.Derived`. Origin classes are re-established only by genesis-grade grants: the
-> authority domain, or a guardian acting as it, vouching directly — as it does at device
+> authority domain, or a Guardian (§19.3) acting as it, vouching directly — as it does at device
 > attachment or through a trusted human-input path.
 
 Without this rule, a device could delegate its device-ness to companion software and masquerade
@@ -1878,7 +1880,7 @@ and continue to assert their own classes. Origin stays informative because it is
 the boundary where it was established and demoted everywhere it is merely relayed.
 
 The class taxonomy — `Origin.Device`, `Origin.Human`, `Origin.Autonomous`, `Origin.Derived` —
-and guardian vouching rules belong to an `Origin` vocabulary, not Base. Domain Vocabularies
+and Guardian vouching rules belong to an `Origin` vocabulary, not Base. Domain Vocabularies
 consume origin classes; they do not define local markings. At the cross-domain tier, origin
 claims become signed assertions, compatible in spirit with content-credential systems (C2PA)
 that build this mechanism as a bolt-on because no platform layer offers it.
@@ -2364,8 +2366,9 @@ The settled definitions and invariants, retained here because other sections rel
   and exports, authority ceiling, topology requirements, lifecycle and failure behaviour, rollback,
   and whether it is sealed, activation-open, or runtime-open. Where the Region boundary coincides
   with a Protected Environment boundary (§19), attachment through a Port is a covered crossing and
-  coincides with a declared Gate: one boundary occurrence may carry both declarations, the Port
-  owning composition semantics and the Gate owning protection and projection.
+  must terminate at or be performed through a declared Gatekeeper. The Port owns composition semantics;
+  the Gatekeeper is the Guardian through which the protection contract admits the crossing. The Port does
+  not become the Gatekeeper.
 - **Incremental (per-partes) composition** resolves and activates a complete child generation inside
   a declared Port while its parent Region may remain Active. This is structural composition, not an
   Activation Parameter and not arbitrary mutation of the parent. If the child exceeds the Port's
@@ -2600,7 +2603,7 @@ generic contract, require a stronger Profile such as durable Event replay, prefe
 implementation, or require a specific authored provider contract. Selection and packaging must not
 collapse these claims into an undifferentiated "uses the system service" flag.
 
-## 19. Architectural Extensions: Flow and Event Distribution
+## 19. Architectural Extensions and Recorded Actor Roles
 
 An **Architectural Extension** adds a generic computational concept to Brontide.
 
@@ -2669,50 +2672,64 @@ identity, or permits `SamePhysicalAssembly`, `HostedBy`, and `SharesFailureDomai
 one vague `same device` relation. User interfaces may derive such a label as a declared projection.
 
 The broader direction is recorded in
-[Topology Environments and Gates](./Brontide-Design-Note-Topology-0.1.md). A **Topology Map** is an
+[Topology Environments and the Guardian Family](./Brontide-Design-Note-Topology-0.1.md). A **Topology Map** is an
 observer-scoped, versioned graph. An ordinary **Environment** is an identity-bearing physical,
-virtual, mixed, overlapping, or reconstituted grouping with no security implication. A **Protected
-Environment** adds an enforced boundary: within one **Protection Plane**, Protected Environments are
-disjoint or nested, never partially overlapping; independent Planes may intersect. Every covered
-crossing passes through a **Gate**; a Protected Environment with no active Gate has no declared
-external communication and does not interact externally until a Gate becomes active.
+virtual, mixed, overlapping, or reconstituted grouping with no security implication. Ordinary
+Environments have no Gatekeepers merely because an Actor describes, routes into, or exposes functionality
+from them. A **Guardian** is an Actor explicitly entrusted to protect or represent a participant,
+resource, or bounded interaction through authority it actually holds. A **Protected Environment**
+adds an enforced boundary: within one **Protection Plane**, Protected Environments are disjoint or
+nested, never partially overlapping; independent Planes may intersect.
 
-A Gate supplies the relationship-specific virtual-Component projection of its Environment and an
-audience-specific **Environment View**. Protected interiors are architecturally opaque except for
-what their Gates expose; transparency remains a multidimensional Gate property and never grants
-authority. Environment, Gate, Map, View, and the protection terms belong to the future `Topology`
-direction rather than Base. Their descriptor and protocol forms remain unratified.
+Every covered crossing of a Protected Environment passes through a **Gatekeeper**, the specialised
+Guardian designated by its protection contract as an allowed boundary participant. Every Gatekeeper is a
+Guardian and therefore an Actor; it is not a Component, Port, projection, or parallel authority
+principal. Not every Guardian is a Gatekeeper. A Protected Environment with no active Gatekeeper has no declared
+external communication and does not interact externally until a Gatekeeper becomes active.
 
-A projection is not a licence to reinterpret. Every contract a Gate exports declares one **export
+A Gatekeeper exposes relationship-specific contracts and an audience-specific **Environment View**.
+Protected interiors are architecturally opaque except for what their Gatekeepers expose; transparency
+remains a multidimensional Gatekeeper property and never grants authority. A **Sentinel** is the
+bounded observational Guardian specialisation defined in §19.3: its primary function within a
+Sentinel Watch is third-party observation and reporting, without acquiring admission or response
+authority from that role.
+Environment, the Guardian family, Topology Map, Environment View, and the protection terms belong to
+recorded extension direction rather than Base. Their descriptor and protocol forms remain
+unratified.
+
+A boundary is not a licence to reinterpret. Every contract a Gatekeeper exports declares one **export
 fidelity** — Direct, Deputised, Mediated, Adapted, or Synthetic — so reinterpretation is never
-presented as exposure. Mediated exports obey the ordinary Mediation rules without erasing member
-identity, provenance, failure domain, or authority; Adapted exports name their Adapter Component
-and never reuse an internal contract's name with changed semantics; Synthetic exports are
-boundary-authored Components whose standing authority is enumerated. Direct and Deputised exports
-pass per-request authority under the invocation principle, so fidelity correlates with the
-authority a Gate concentrates, and high fidelity remains the ordinary cheap choice. A Protection
-Plane is identified by its protection dimension and enforcement basis — same-basis Protected
-Environments share one Plane, so laminarity cannot be escaped by minting Planes — and a Gate's
-no-bypass completeness claim is graded evidence: declared, enumerated, statically verified against
-the resolved generation's bindings, or attested, always naming its exclusions. Protection holds
-fail-closed throughout Establishment: a Gate realised by Components admits nothing before its
-Release, covered crossings before Release are limited to declared Relational-Initialisation
-lifecycle Operations, and Establishment failure never opens an undeclared crossing. Export
-continuity across replacement of a Gate's backing is declared by its lifecycle contract; a scoped
-restart behind a Gate never silently becomes identity continuity.
+presented as exposure. A Direct Gatekeeper is also the interior provider Actor; Deputised, Mediated,
+Adapted, and Synthetic Gatekeepers remain distinct Actors whose held Capabilities and provenance are
+explicit. Mediated exports obey the ordinary Mediation rules without erasing member identity,
+provenance, failure domain, or authority; Adapted exports name their Adapter realisation and never
+reuse an interior contract's name with changed semantics; Synthetic exports are boundary-authored
+contracts backed by enumerated standing Capabilities held by the Gatekeeper. Fidelity therefore correlates
+with the authority a Gatekeeper concentrates, and high fidelity remains the ordinary cheap choice.
 
-Environment identity must nevertheless be portable at Gate boundaries. A Gate's boundary Actor may
-present an Environment reference, Topology contract version and Profile closure, Gate projection,
+A Protection Plane is identified by its protection dimension and enforcement basis — same-basis
+Protected Environments share one Plane, so laminarity cannot be escaped by minting Planes. No-bypass
+coverage belongs to the Protected Environment's complete protection contract, not to an individual
+Gatekeeper: it is declared, enumerated, or statically verified against the resolved generation and always
+names its exclusions. Attestation is orthogonal assurance evidence rather than a higher coverage
+level. Protection holds fail-closed throughout Establishment. A Component-realised Gatekeeper admits
+nothing before its realising Actor is Ready and released; statically or Host-realised Gatekeepers follow
+the equivalent declared readiness point. Establishment failure never opens an undeclared crossing.
+Export continuity across replacement of a Gatekeeper's backing is declared by its lifecycle contract; a
+scoped restart behind a Gatekeeper never silently becomes identity continuity.
+
+Environment identity must nevertheless be portable at protected boundaries. A Gatekeeper may present its
+Protected Environment reference, Topology contract version and Profile closure, boundary surface,
 continuity claims, and attributable evidence. The peer explicitly reports whether it understood,
 partially understood, rejected, or does not support that contract and, on acceptance, records an
 attributable alias relation to its own local Environment reference; aliases relate occurrences and
 never merge them. Connection, silence, or successful decoding never demonstrates
 understanding. Understanding remains distinct from recognition, trust, and locally granted authority.
 A Profile may require a successful exchange before richer interaction; a Base-only peer may instead
-treat the Gate as an opaque Actor boundary. This guarantees shared semantics where requested without
+treat the Gatekeeper as an opaque Actor boundary. This guarantees shared semantics where requested without
 adding Environment to Base or transferring a Host's Topology obligations to a passive leaf.
 Continuity is sequenced the same way: within one domain, reconstitution continuity is declared by
-the Gate's lifecycle contract under §9.1's reference rules, while cross-domain continuity rests on
+the Gatekeeper's lifecycle contract under §9.1's reference rules, while cross-domain continuity rests on
 receiver-owned pairing — the receiving domain mints its own durable local identity at first
 admission — until attested federation exists.
 
@@ -2952,6 +2969,135 @@ A minimal Event Distribution implementation is a static mediator dispatch table 
 compile-time publishers and observers. Fan-out is a fixed sequence of calls; no ambient bus,
 dynamic discovery, queue, or network is required.
 
+### 19.3 The Guardian family
+
+The **Guardian family** is a recorded family of Actor roles concerned with protection,
+representation, and assurance. It does not introduce a new participant kind, authority primitive,
+or ownership relation. Every member is an Actor, and every action it performs remains governed by
+ordinary Capabilities, Delegations, Operations, Events, and Outcomes. Designating an Actor as a
+Guardian records responsibility; it grants no authority by itself.
+
+The family has one general role and two specialisations:
+
+- A **Guardian** is an Actor explicitly entrusted to protect or represent a participant, resource,
+  or bounded interaction. A Guardian may arbitrate access, act for its subject, or coordinate a
+  response only through authority it actually holds.
+- A **Gatekeeper** is the preventative specialisation: a Guardian designated by a Protected
+  Environment's protection contract as an allowed boundary participant. It admits or denies covered
+  crossings. Only Protected Environments have Gatekeepers, and every Gatekeeper is a Guardian.
+- A **Sentinel** is the observational specialisation: a Guardian whose primary function within a
+  declared **Sentinel Watch** is to observe and report third-party activity. It watches occurrences
+  in which it is not an operational participant except through observation, recording, reporting,
+  or adjacent alerting.
+
+Gatekeeper and Sentinel are independent specialisations. A Gatekeeper need not inspect activity
+beyond what admission requires, and a Sentinel need not sit at a boundary. One Actor may hold both
+roles, but for a particular occurrence the roles remain distinguishable. Observing an admission
+decision made by another Gatekeeper is Sentinel behaviour; making the decision is Gatekeeper
+behaviour.
+
+Sentinel is a semantic role rather than merely a declared label. An Actor acts as a Sentinel for a
+Watch when its primary responsibility in that relationship is observation and reporting of
+occurrences belonging to other Actors or subjects. This remains true if an implementation calls it
+a monitor, audit recorder, or alerting service. Conversely, an Actor does not become a Sentinel merely
+because it observes its own work, receives information for an interaction in which it participates,
+or holds an observation Capability incidental to another primary function.
+It belongs to the Guardian family because the Watch entrusts it to represent observed activity to
+declared audiences, not because every Watch must have a security purpose.
+
+`Primary` is assessed per Watch, not by measuring the proportion of an Actor's code or lifetime. The
+Watch's required inputs are observation deliveries or observation-query results, and its required
+outputs are records, findings, summaries, or alerts. The Sentinel may participate in the observation
+and reporting interactions that obtain and convey those records, but it is not the requester,
+provider, target, mediator, Gatekeeper, or authority user whose covered activity is being observed.
+If the same Actor holds one of those positions, that participation is another role for that
+occurrence.
+
+Subscribing to an Event stream or opening or receiving a Flow is neither necessary nor sufficient
+to create a Sentinel Watch. An Actor may consume Events or Flows for business processing,
+presentation, transformation, orchestration, control, or its own direct interaction without acting
+as a Sentinel. The same subscription becomes Sentinel input only when a Watch assigns it the
+purpose of third-party observation and reporting. Conversely, static instrumentation, authorised
+queries, callbacks, or other observation contracts may realise a Watch without Event Distribution
+or Flow.
+
+The non-participation rule applies to the **watched occurrence**, not to operation of the Watch. A
+Sentinel may use ordinary Capabilities to persist findings, append audit records, load rules or
+models, checkpoint progress, correlate data, manage retention, report health, and deliver alerts.
+Where a Component supplies such facilities, the Sentinel invokes Operations exposed by Actors
+realised through that Component; the Component itself does not become authority-bearing. These
+supporting Executions remain attributable and bounded by the Watch. They do not make the Sentinel a
+participant in the activity it observes, but any mitigation or domain effect beyond operating and
+reporting the Watch remains a separate responsibility.
+
+A **Sentinel Watch** is the bounded contract under which the role applies. A portable Watch must
+declare at least:
+
+- a purpose identity and parameters stating why the observations are collected and interpreted;
+- the watch universe: explicit subject references, a bounded set or query, or a membership rule and
+  resolution scope;
+- the occurrence classes and inclusion predicate, such as Events, Executions, Outcomes, or the
+  presentation, evaluation, Delegation, revocation, or use of Capabilities;
+- observation sources, required observation Capabilities, topology and authority-domain boundaries,
+  exclusions, claimed coverage, and how missing or unknown sources are represented;
+- start, end, lease, lifecycle, revision, and continuity rules;
+- the evaluator contract and version, including whether interpretation is deterministic,
+  probabilistic, heuristic, or model-based and how confidence and supporting evidence are reported;
+- finding, record, summary, and alert outputs together with their audiences, disclosure, retention,
+  redaction, and provenance rules; and
+- backpressure, observation loss, gap reporting, failure, and withdrawal behaviour.
+
+Purpose is a normative boundary, not a descriptive tag. It identifies the concern and participant,
+resource, or interaction the Sentinel represents, and constrains legitimate interpretation,
+retention, disclosure, and reporting. `Observe everything` states breadth, not purpose, and is not
+sufficient by itself. Purpose grants no observation authority; the Watch must still name the
+Capabilities and sources that make observation possible. Because Brontide cannot constrain all
+re-propagation after authorised delivery (§28), the purpose boundary makes misuse nonconforming and
+attributable rather than claiming to make betrayal impossible.
+
+The Watch boundary is deterministic even when interpretation is not. Given the declared facts about
+a candidate occurrence, an implementation must be able to classify it as in scope, out of scope, or
+unresolved. A model may then interpret in-scope observations according to the Watch's declared
+purpose and evaluator contract. It may not silently widen the universe, sources, use, retention, or
+audience. `Every Event`, `every Capability evaluation`, or `every action of Actors A through N` is
+valid only when the source set, occurrence vocabulary, actor membership, time interval, exclusions,
+and gap semantics make the quantified universe explicit. `Every` means every occurrence in that
+Watch universe, never every physically possible occurrence.
+
+For example, `every Event used to assess availability of Environment E`, `every Capability
+evaluation used to audit least-privilege policy in Authority Domain D`, and `every Execution by
+Actors A through N used to verify a consent rule` can each define a broad but bounded Watch. The
+purpose, subjects, occurrence class, sources, lifetime, exclusions, and gap semantics make each
+claim narrower than omniscience while leaving its evaluator appropriate to the domain.
+
+A finding is an attributable claim or ordinary Event or Outcome; it is not proof, a Capability, or
+an instruction that another Actor must obey. Reporting may include recording, correlation,
+summarisation, and alerting designated audiences. Those outputs still require ordinary authority but
+remain Sentinel behaviour. Mitigation or control is separate.
+
+The Sentinel designation carries no implicit response authority. Blocking, quarantining, revoking,
+reconfiguring, or initiating another effect requires a separately held Capability and an ordinary
+Execution under a non-Sentinel responsibility. When the same Actor controls a covered Protected
+Environment crossing, it is acting as a Gatekeeper for that crossing, not gaining preventative
+power from being a Sentinel. An exterior Sentinel receives no declared architectural view of a
+Protected Environment's interior except through a permitted Gatekeeper View or contract.
+Side-channel observations remain outside that claim unless the protection contract explicitly
+covers them; surveillance never creates a bypass.
+
+Sentinel is universal in subject applicability and semantic classification, not in visibility. Any
+Actor whose primary function in a bounded Watch is third-party observation and reporting is acting
+as a Sentinel, whether its purpose is security, safety, health, integrity, availability, compliance,
+performance, audit, or another domain concern. A Watch may deliberately cover all declared sources
+and occurrence classes in an authority domain, but that broad authority and concentration remain
+visible costs of the particular design—the architecture neither forbids such a `god` Sentinel nor
+pretends it can see beyond its declared sources and evidence.
+
+The [retained reasoning](./Brontide-Design-Note-Topology-0.1.md#retained-objection-and-resolution-sentinel-as-a-universal-observer)
+records why generic observation authority alone is insufficient to define the role and why bounded
+third-party purpose supplies the missing semantics. Concrete Watch Shapes, query forms, coverage
+evidence, evaluator contracts, and conformance vectors remain future `Topology`, observability, or
+assurance specification work.
+
 ## 20. Profiles
 
 A **Profile** is a named interoperability contract.
@@ -3113,7 +3259,7 @@ Behaviour:
     resolves internal child generations through declared Composition Ports
     reaches internal Ready and Release before activating the exported outer boundary
     preserves topology membership across internal and outer composition
-    presents its Environment through a Gate with an explicit understanding Outcome
+    presents its Environment through a Gatekeeper with an explicit understanding Outcome
 ```
 
 This is not the ordinary mouse profile. A conventional mouse is normally simpler and more reliable
@@ -3908,7 +4054,7 @@ compute. A device has a limited duty cycle. A service has a limited queue.
 
 Requesting service from an Actor consumes that Actor's capacity.
 
-> An Actor, or a guardian acting for it, MAY treat the right to request as authority: an
+> An Actor, or a **Guardian** (§19.3) acting for it, MAY treat the right to request as authority: an
 > **admission Capability**, granted, attenuated, and delegated like any other. Where admission
 > is capability-guarded, an unauthorised request is denied by the standard authority machinery
 > before it reaches the expensive capacity it targets.
@@ -3930,11 +4076,11 @@ an agent may delegate narrower admission to its own sub-workers.
 Human interaction endpoints are the strictest instance of admission, in two layers.
 
 **Admission before presentation.** A request to interact with a human Actor carries its
-Delegation chain like any other Execution. The human's guardian implementation (operating system,
-device, agent shell) applies policy *before anything renders*: chains that do not terminate in a
+Delegation chain like any other Execution. The human's Guardian (§19.3), realised by an operating
+system, device, or agent shell, applies policy *before anything renders*: chains that do not terminate in a
 trusted primordial root, or that arrive from unverified or non-whitelisted origins, are refused
 or quarantined mechanically. The naive attack population never reaches the person. Requesting a
-human's attention is itself an Operation, requiring a Capability granted by the human's guardian
+human's attention is itself an Operation, requiring a Capability granted by the human's Guardian
 — which makes phishing not a UX failure but an unauthorised Execution, denied by the same
 machinery that denies any other Execution.
 
@@ -3944,7 +4090,7 @@ authority clicked a button. Following the pattern of §10.3, Base states the obl
 than the mechanism. The `Intent`/`Presentation` extensions MUST define:
 
 - how an approval record identifies the presentation the human actually acted upon,
-- how the guardian vouches the origin class (§15) of the response through its trusted input
+- how the Guardian vouches the origin class (§15) of the response through its trusted input
   path,
 - and how both bind to the resulting Delegation record.
 
@@ -3954,7 +4100,8 @@ of mechanism is not Base semantics.
 The full presentation mechanics belong to those extensions. Base carries only the principle:
 human participation flows through guarded, recordable interaction endpoints, and humans differ
 from other bounded-capacity Actors in policy strictness, not in mechanism. In the recorded
-Mediation direction (§18.1), the guardian is an Arbiter over human attention.
+Mediation direction (§18.1), the Guardian is an Arbiter over human attention. It is a Gatekeeper only
+when the human-facing interaction is also a covered crossing of a Protected Environment.
 
 ## 27. Brontide and Existing Systems
 
@@ -4961,12 +5108,18 @@ resolver or Discovery protocol.
 Composition's minimum topology floor also requires exact Node and Relation identity, vocabulary,
 observation and claim attribution, persistence across detach and reattach, device-supplied evidence,
 Host refinement, and Region/Port serialization rules. That minimum membership floor remains owned by
-Composition; Topology Map, Environment, protection, Gate, and Environment View semantics belong to
+Composition; Topology Map, Environment, protection, Gatekeeper, Sentinel, and Environment View semantics belong to
 the future `Topology` extension. Their exact Shapes, evidence formats, and protocols remain open.
-The recorded Gate discipline leaves open the portable descriptor and validation forms of export
-fidelity, the Plane dimension and enforcement-basis vocabulary with same-basis detection, the
-completeness-grade evidence formats and the resolution-time no-bypass check, alias-relation and
-receiver-owned pairing records, and the intra-domain continuity declaration.
+The recorded Guardian-family discipline leaves open the portable declaration and validation forms
+of Gatekeeper type and export fidelity, the Plane dimension and enforcement-basis vocabulary with
+same-basis detection, the coverage and assurance evidence formats and the resolution-time no-bypass
+check, alias-relation and receiver-owned pairing records, the intra-domain continuity declaration,
+and Sentinel Watch Shapes, subject queries, source-coverage evidence, evaluator contracts, finding
+Shapes, and response-separation contracts. Sentinel's semantic boundary is recorded: it is the
+primary third-party observer and reporter for a bounded Watch, universal in eligible subject kind
+but never implicitly universal in visibility. The remaining question is how portable declarations
+make that boundary mechanically decidable while preserving domain-specific and model-based
+interpretation.
 Implementations must not collapse physical assembly, hosting, transport, power, failure, identity,
 trust, or authority into one `same device` flag while those rules are unsettled.
 
@@ -5184,16 +5337,21 @@ trust, or authority. Thus two mice cannot have their compatible subfunctions acc
 while a declared Aggregation may still join their input Flows without erasing either membership.
 
 The broader Topology direction distinguishes ordinary overlapping Environments from Protected
-Environments. Protected Environments are disjoint or nested within one Protection Plane, expose
-their opaque interiors only through Gates, and have no declared external communication while no
-Gate is active. Each Gate may
-present a different relational Component projection and Environment View without making the
-Environment itself universally identical to a Component, Actor, or Authority Domain. Gate boundary
-Actors present portable Environment references, while explicit versioned Topology Outcomes establish
-whether a peer understands them; understanding does not establish recognition, trust, or authority.
-Every Gate export declares one fidelity class — Direct, Deputised, Mediated, Adapted, or Synthetic —
-so a boundary never presents reinterpretation as exposure, and the standing authority behind Adapted
-and Synthetic exports is enumerated rather than hidden.
+Environments. Ordinary Environments have no Gatekeeper requirement. The Guardian family records
+protective Actor roles without granting authority: Guardian is the general role, Gatekeeper is its
+preventative Protected-Environment-boundary specialisation, and Sentinel is its bounded third-party
+observation-and-reporting specialisation. A Sentinel Watch makes purpose, subjects, occurrence
+classes, sources, coverage, lifecycle, evaluator, outputs, and gaps explicit while leaving
+domain-specific interpretation open. Protected Environments are disjoint or
+nested within one Protection Plane, expose their opaque interiors only through Gatekeepers, and have no
+declared external communication while no Gatekeeper is active. Each Gatekeeper may expose different contracts
+and an Environment View without making the Environment itself universally identical to a Component,
+Actor, or Authority Domain. Gatekeepers present portable Protected Environment references, while explicit
+versioned Topology Outcomes establish whether a peer understands them; understanding does not
+establish recognition, trust, or authority. Every Gatekeeper export declares one fidelity class — Direct,
+Deputised, Mediated, Adapted, or Synthetic — so a boundary never presents reinterpretation as
+exposure, and the standing authority behind Adapted and Synthetic exports is enumerated rather than
+hidden.
 
 A contract role is not a system-wide singleton. Several Component definitions may provide one role,
 one definition may have several activated occurrences, and differently scoped consumers may bind
@@ -5396,36 +5554,41 @@ adversarial conformance vectors accompanying every behavioural change are invent
   Device Profile records a sealed device bootstrap, outer discovery assistance, ordinarily local
   admission, nested Release, and external-boundary activation; the ordinary mouse remains the simpler
   factory-composed case.
-- **§7 and §19 — Environment and Gate direction recorded outside Base.** A dedicated topology note
-  retains the competing reasoning and resolves it: ordinary Environments remain overlapping,
-  security-neutral topology identities, while Gates create relation-specific virtual-Component
-  projections. Protected Environments are laminar within a Protection Plane, opaque except through
-  Gates, and without declared external communication while no Gate is active. Transparency remains
-  multidimensional and Gate-relative;
-  Environment identity is portable through Gate boundary Actors, but mutual understanding requires
-  an explicit versioned Topology Outcome and an appropriate Profile. No new Base term or ratified
-  extension results.
-- **§7, §19, and §33 — Gate export fidelity and protection discipline recorded.** Every Gate export
+- **§7 and §19 — Guardian-family and Environment direction recorded outside Base.** A dedicated
+  topology note retains the competing reasoning and resolves it: ordinary Environments remain
+  overlapping, security-neutral topology identities and have no Gatekeepers. Guardian names an Actor
+  entrusted to protect or represent a participant, resource, or bounded interaction; Gatekeeper is its
+  preventative Protected-Environment-boundary specialisation, while Sentinel is the primary
+  third-party observer and reporter within a deterministic, purpose-bounded Sentinel Watch. Watch
+  interpretation may be rule-based or model-based, but subjects, occurrence classes, sources,
+  coverage, lifecycle, outputs, and gaps remain explicit. Event or Flow subscription alone does not
+  create a Watch, while persistence, rule loading, checkpointing, and alert delivery are legitimate
+  Watch-supporting Executions. Sentinel findings grant no response authority.
+  Protected Environments are laminar within a
+  Protection Plane, opaque except through Gatekeepers, and without declared external communication while
+  no Gatekeeper is active. Transparency remains multidimensional and Gatekeeper-relative; Environment identity
+  is portable through Gatekeepers, but mutual understanding requires an explicit versioned Topology
+  Outcome and an appropriate Profile. No new Base term or ratified extension results.
+- **§7, §19, and §33 — Gatekeeper export fidelity and protection discipline recorded.** Every Gatekeeper export
   declares one fidelity class — Direct, Deputised, Mediated, Adapted, or Synthetic — so
   reinterpretation is never presented as exposure: Mediated exports keep the Mediation rules,
-  Adapted exports name their Adapter Component and never reuse a name with changed semantics, and
-  Synthetic exports are boundary-authored Components with enumerated standing authority, keeping
-  fidelity correlated with the authority a Gate concentrates. A Protection Plane is identified by
-  its protection dimension and enforcement basis, closing the laminarity-by-Plane-minting escape.
-  No-bypass completeness claims are graded — declared, enumerated, statically verified against the
-  resolved generation, or attested — and name their exclusions. Peer recognition records
-  attributable alias relations rather than merged occurrences, and continuity is sequenced: Gate
-  lifecycle contracts declare intra-domain reconstitution continuity while cross-domain continuity
-  rests on receiver-owned pairing until attested federation exists. Raised by the
-  distributed-composition review of the Gate projection model; none of it adds a Base term.
+  Adapted exports name their Adapter realisation and never reuse a name with changed semantics, and
+  Synthetic exports are boundary-authored contracts backed by standing Capabilities held by the
+  Gatekeeper, keeping fidelity correlated with the authority it concentrates. A Protection Plane is
+  identified by its protection dimension and enforcement basis, closing the
+  laminarity-by-Plane-minting escape. No-bypass coverage belongs to the Protected Environment and is
+  declared, enumerated, or statically verified; attestation is separate assurance evidence. Peer
+  recognition records attributable alias relations rather than merged occurrences, and continuity
+  is sequenced through Gatekeeper lifecycle contracts and receiver-owned pairing. Raised by the
+  distributed-composition review of the boundary model; none of it adds a Base term.
 - **§18.1 and §19 — Composition–Topology seam closed.** Attachment through a Composition Port
-  across a Protected Environment boundary is a covered crossing and coincides with a declared Gate,
-  one boundary occurrence carrying the Port's composition semantics and the Gate's protection and
-  projection semantics; an ordinary Region acquires no Gate obligation merely by having Ports. An
-  Environment is a grouping over the Composition-owned topology floor, and a Map's relation
-  vocabulary begins with the floor's Relations. Protection holds fail-closed throughout
-  Establishment, with a Gate admitting nothing before its Release. Export continuity across backing
-  replacement is a Gate lifecycle declaration, never an inference from Gate or export identity.
+  across a Protected Environment boundary is a covered crossing and must terminate at or be
+  performed through a declared Gatekeeper; the Port does not become the Gatekeeper. An ordinary Region acquires
+  no Gatekeeper obligation merely by having Ports. An Environment is a grouping over the
+  Composition-owned topology floor, and a Map's relation vocabulary begins with the floor's
+  Relations. Protection holds fail-closed throughout Establishment, with a Gatekeeper admitting nothing
+  before its declared readiness point. Export continuity across backing replacement is a Gatekeeper
+  lifecycle declaration, never an inference from Gatekeeper or export identity.
 - **§18.1 and §24.2 — Composition timing illustrated.** A factory-composed mouse keeps its private
   firmware structure outside Composition while exposing Base-governed Actors; attachment composes
   that boundary into a Host under local admission and authority; and a managed general-purpose

@@ -7,12 +7,11 @@ requirement decisions, require consideration of the current architecture, and ma
 temporary-plan deletion gate enforceable.
 
 The pinned request is [`review-request.json`](./review-request.json). It pins the central
-[`architecture status registry`](../../Brontide-Architecture-Status.json), which alone identifies
-the current architecture, latest ratified architecture, retained implementation baseline, current
-delivery plans and ledgers, requirement vocabulary, and per-stack evidence matrices. The request
-also fixes the reviewed commit, correction-closing commits, and expected record paths. Historical
-matrices remain valid evidence; they are not allowed to replace the registry-selected architecture
-in review.
+[`architecture status registry`](../../Brontide-Architecture-Status.json) to identify the current
+architecture and latest ratified architecture. The existing scripts also retain detailed evidence
+paths and hashes for reproducibility; those machine pins do not choose an implementation target.
+Each stack's target is stated in its README. The request also fixes the reviewed commit,
+correction-closing commits, and expected record paths.
 
 Any change to a pinned source invalidates the request instead of silently changing what the
 reviewer was asked to inspect. Verification needs the pinned Git objects locally; CI therefore
@@ -40,9 +39,10 @@ and negative evidence, runs or extends tests where needed, and records one of:
 - `approved-disposition`, with architecture-approved evidence;
 - `does-not-conform`, which preserves the finding and blocks closure.
 
-The reviewer separately reads the complete current architecture, the stack's current implementation
-plan, and its delivery ledger. It records whether the implementation is consistent with current
-direction, has accurately recorded current deltas, or contains a blocking conflict. A
+The reviewer separately reads the complete current architecture, the stack's locally stated target,
+and its known limitations. Supporting plans, notes, and matrices may supply detail. The reviewer
+records whether the implementation is consistent with its target, has accurately recorded later
+design deltas, or contains a blocking conflict. A
 `current-deltas-recorded` assessment is honest for planned but unimplemented current work and does
 not turn the final correction verdict into a current-architecture conformance claim.
 

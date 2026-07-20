@@ -2,29 +2,28 @@
 
 Date: 2026-07-19
 Status: Temporary execution brief
-Authority: Non-normative. The architecture and the implementation-owned plans and evidence remain
-authoritative.
+Designed for: Brontide Architecture 0.7
+Authority: Non-normative implementation notes.
 
 ## 1. Purpose and lifetime
 
-This is the self-contained implementation brief to pass to Codex for the next Brontide delivery
-cycle. Begin by reading `Brontide-Architecture-Status.json`; resolve the current architecture,
-implementation baseline, plans, ledgers, and matrices only through that registry. Do not infer
-their identities from this file's examples or from versioned filenames.
+This is a self-contained implementation brief for Architecture 0.7 work. Use
+`Brontide-Architecture-Status.json` only to locate the current architecture; use each stack README's
+local `Designed for` statement for its implementation target.
 
 This brief aligns the action meanings used while auditing the current architecture changes and
 then directs the necessary Reference and Minimal work. It does not ratify the current architecture,
-upgrade an implementation claim, or supersede either stack's plan. Delete this file only after the
-completion gate in section 11 is satisfied and all lasting evidence has moved into the permanent
-plans, ledgers, matrices, tests, and implementation-owned documentation.
+upgrade an implementation claim, or supersede either stack's notes. Delete this file only after the
+completion gate in section 11 is satisfied and all lasting information has moved into tests and
+concise implementation-owned documentation.
 
 The separate `Brontide-Temporary-Implementation-Correction-Plan-0.1.md` retains its own authority
 and deletion gate. Its independent attestations and closure may be completed before or in parallel
 with the failing-vector work below, but current-architecture implementation must not be claimed
 until that correction gate permits it.
 
-The C1-C8 items below are the Architecture 0.7 change set delivered by the registry-selected 0.3
-plans. The registry's current architecture has meanwhile advanced to the Architecture 0.8 complete
+The C1-C8 items below are the Architecture 0.7 change set described by the two 0.3 implementation
+notes. The current architecture has meanwhile advanced to the Architecture 0.8 complete
 draft, which supersedes one delivered 0.7 rule: 0.8 C7 replaces composite-expression poisoning
 with structural three-valued evaluation. Audit and deliver C1-C8 against the Architecture 0.7 text
 they came from; record each such supersession in the stacks' Architecture 0.8 handoff phases
@@ -33,14 +32,13 @@ relabelling 0.7 evidence as 0.8 conformance.
 
 ## 2. Instructions to Codex
 
-1. Read `AGENTS.md` and the central status registry before acting.
-2. Read the registry-selected architecture source, both current-delivery plans, both delivery
-   ledgers, and the relevant companion design notes.
+1. Read `AGENTS.md`, the current architecture, and each stack's local implementation target.
+2. Read the relevant implementation and companion design notes for the work in scope.
 3. Preserve the complete independence of the C# Reference and F# Minimal implementations. Derive
    each native implementation from the architecture text. Share only versioned data contracts,
    external manifests, process protocols, and data-only comparison vectors.
-4. Audit before editing production code. Record one action classification for every C1-C8 item in
-   each stack's delivery ledger, with direct evidence or a concrete work disposition.
+4. Audit before editing production code. Record direct evidence or a concrete work disposition for
+   every C1-C8 item in the relevant implementation notes.
 5. Write native failing tests before each missing or conflicting semantic implementation. A test
    that passes before the intended change is not a failing vector.
 6. Keep C3-C5 in explicitly experimental projects. They do not enlarge Brontide Base and do not
@@ -49,9 +47,8 @@ relabelling 0.7 evidence as 0.8 conformance.
    consumers and migration, update the owning changelog and component version where applicable,
    and use the repository's required breaking-change commit/PR marker when publishing such a
    change.
-8. Update permanent requirement inventories, per-stack matrices, milestone evidence, findings,
-   experimental-project registries, and the central status registry as evidence is accepted. Never
-   rewrite the retained implementation-baseline matrices as current-architecture evidence.
+8. Update the owning README, tests, and relevant implementation notes as behaviour changes. Retained
+   detailed matrices may be updated when useful, but do not create a second target declaration.
 9. Run the nearest native tests while iterating. Run both complete implementation suites, both
    dependency guards, and the full repository gate for cross-stack or shared-evidence changes.
 10. Do not claim ratification. Preserve the architecture status read from the central registry.
@@ -201,7 +198,7 @@ machinery.
 ## 9. C4 and C5 — first persistent-information experiment
 
 Create independent experimental production and NUnit test projects at the paths named by each
-stack's current-delivery plan. Register them in the appropriate solution and dependency guard.
+stack's implementation notes. Register them in the appropriate solution and dependency guard.
 Keep all persistent-information types out of Reference Core and Minimal Model/Kernel.
 
 ### Minimum model

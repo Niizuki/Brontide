@@ -1,5 +1,7 @@
 # Brontide Minimal Stack milestone evidence
 
+Designed for: [Brontide Architecture 0.7](../../Brontide-Architecture-0.7.md)
+
 The mechanically checked source for Architecture 0.5 requirement status is
 [`../conformance/architecture-0.5.json`](../conformance/architecture-0.5.json). This document is the
 narrative summary; `build/verify-evidence.ps1` rejects missing, duplicate, stale, or unreferenced
@@ -9,19 +11,15 @@ This document distinguishes implemented Brontide Minimal Stack behaviour from cr
 experiments. Native tests remain Minimal-only evidence; the separately retained foreign-process
 tests are actual Reference/Minimal Cooling and Catalog/resource interchange evidence.
 
-This is Architecture 0.5 baseline evidence. Current architectural design is sourced from
-[Architecture 0.7](../../Brontide-Architecture-0.7.md), while its Minimal delivery status is routed
-by [`architecture-0.7-delivery.md`](./architecture-0.7-delivery.md) and planned in
-[`Brontide-Minimal-Stack-Implementation-Plan-0.3.md`](../../Brontide-Minimal-Stack-Implementation-Plan-0.3.md).
-No table entry below is evidence of 0.7 conformance. The temporary correction plan controls known
-claim gaps, so the M1 summary must not be read as proof of every Base requirement until that plan's
-applicable gates close.
+The older Architecture 0.5 entries are retained evidence, not a second implementation target.
+Architecture 0.7 implementation detail is recorded in
+[`architecture-0.7-delivery.md`](./architecture-0.7-delivery.md). No table entry below is, by itself,
+evidence of complete 0.7 conformance. The temporary correction plan controls known claim gaps.
 
-Architecture 0.7 Complete Draft evidence is checked separately through
+Architecture 0.7 evidence is checked separately through
 [`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). The current M1
 evidence covers only recursive Constraint evaluation, target-side poisoning, and experimental
-selection exclusion; it does not change the retained Architecture 0.5 implementation baseline or
-imply ratification.
+selection exclusion; it does not imply that the remaining target is implemented.
 
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../Brontide-Interchange-Implementation-Plan-0.1.md).

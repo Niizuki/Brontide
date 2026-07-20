@@ -7,8 +7,7 @@ Authority: Non-normative. Architecture documents remain authoritative.
 ## 1. Purpose and lifetime
 
 This plan records corrective work identified by the architecture review. It is intentionally
-separate from the Reference and Minimal implementation roadmaps selected by
-`Brontide-Architecture-Status.json`. Those roadmaps describe current-architecture delivery; this
+separate from the Reference and Minimal implementation targets stated in their owning READMEs. This
 document describes gaps that must be corrected before either stack can claim reliable conformance.
 
 Do not copy these corrections into the 0.3 roadmaps as completed requirements. Link to this plan
@@ -171,6 +170,6 @@ coverage and traceability but do not replace the reviewer's architectural judgme
 
 The reviewer may be automated under the pinned independence policy: it must use a distinct reviewer
 identity, a fresh isolated context, no private implementation-session reasoning, and the complete
-attestation. The attestation must consider the architecture source and delivery plan selected by the
-central status registry in addition to retained implementation-baseline evidence. Automated review
+attestation. The attestation must consider the current architecture and each stack's locally stated
+implementation target and limitations in addition to retained detailed evidence. Automated review
 remains valid unless the registry or an explicit repository policy changes the rule.

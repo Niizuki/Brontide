@@ -1,22 +1,14 @@
-# Brontide Reference Stack Architecture 0.7 delivery ledger
+# Brontide Reference Stack Architecture 0.7 implementation notes
 
-Status: R1 tested; no Architecture 0.7 conformance or ratification claim
+Designed for: [Brontide Architecture 0.7](../../Brontide-Architecture-0.7.md)
 
-Architecture source: [Brontide Architecture 0.7](../../Brontide-Architecture-0.7.md), Complete
-Draft; implementation evidence pending; not ratified
+Status: R1 tested; remaining work is partial; no Architecture 0.7 conformance or ratification claim
 
-Plan of record:
-[Brontide Reference Stack Implementation Plan 0.3](../Brontide-Reference-Stack-Implementation-Plan-0.3.md)
-
-Implemented evidence baseline:
-[Architecture 0.5 conformance matrix](../conformance/architecture-0.5.json)
-
-Current-draft requirement inventory:
-[Architecture 0.7 requirements](../../conformance/architecture-0.7-requirements.json) and
-[Reference Architecture 0.7 matrix](../conformance/architecture-0.7.json)
-
-This ledger routes current Reference work to Architecture 0.7 without relabelling retained
-Architecture 0.5 evidence. The
+These notes record useful implementation detail against the stated target. The related
+[implementation plan](../Brontide-Reference-Stack-Implementation-Plan-0.3.md),
+[requirements](../../conformance/architecture-0.7-requirements.json), and
+[test matrix](../conformance/architecture-0.7.json) are supporting material rather than a formal
+routing hierarchy. They do not relabel retained Architecture 0.5 evidence. The
 [temporary implementation correction plan](../../Brontide-Temporary-Implementation-Correction-Plan-0.1.md)
 continues to control its own open gates and deletion conditions.
 
@@ -84,7 +76,7 @@ experimental Composition suite. The checked mapping remains in
 ## Architecture 0.8 preparation
 
 R6 originally tracked the three directions named by Architecture 0.7 for 0.8. Architecture 0.8 is
-now the registry-selected current architecture as a complete draft: it executes change plan C1-C14
+now the current architecture as a complete draft: it executes change plan C1-C14
 with authored adversarial vectors
 ([`architecture-0.8-adversarial-vectors.json`](../../conformance/architecture-0.8-adversarial-vectors.json))
 and decides the evidence order Channel, then Portable Binding and Shape floor, then Flow

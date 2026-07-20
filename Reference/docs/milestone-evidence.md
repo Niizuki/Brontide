@@ -1,5 +1,7 @@
 # Brontide Reference Stack milestone evidence
 
+Designed for: [Brontide Architecture 0.7](../../Brontide-Architecture-0.7.md)
+
 The mechanically checked source for Architecture 0.5 requirement status is
 [`../conformance/architecture-0.5.json`](../conformance/architecture-0.5.json). This document is the
 narrative summary; `build/verify-evidence.ps1` rejects missing, duplicate, stale, or unreferenced
@@ -9,16 +11,15 @@ This file records the retained evidence for Brontide Reference Stack Implementat
 current behavioural evidence from historical process claims that cannot be reconstructed from the
 repository.
 
-This is Architecture 0.5 baseline evidence. Current architectural design is sourced from
-[Architecture 0.7](../../Brontide-Architecture-0.7.md), while its Reference delivery status is
-routed by [`architecture-0.7-delivery.md`](./architecture-0.7-delivery.md) and planned in
-[`Brontide-Reference-Stack-Implementation-Plan-0.3.md`](../Brontide-Reference-Stack-Implementation-Plan-0.3.md).
-No table entry below is evidence of 0.7 conformance.
+The older Architecture 0.5 entries are retained evidence, not a second implementation target.
+Architecture 0.7 implementation detail is recorded in
+[`architecture-0.7-delivery.md`](./architecture-0.7-delivery.md). No table entry below is, by itself,
+evidence of complete 0.7 conformance.
 
-Architecture 0.7 Complete Draft evidence is checked separately through
+Architecture 0.7 evidence is checked separately through
 [`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). R1 currently covers
 only recursive Constraint evaluation, authority poisoning, and experimental selection exclusion;
-it does not change the retained Architecture 0.5 implementation baseline or imply ratification.
+it does not imply that the remaining target is implemented.
 
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../Brontide-Interchange-Implementation-Plan-0.1.md).

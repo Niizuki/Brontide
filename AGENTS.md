@@ -9,21 +9,19 @@ The implementations should support, challenge, and eventually substitute for one
 collapsing into the same codebase. Architecture decisions and implementation claims must remain
 honest about which behaviour is normative, experimental, implemented, or deferred.
 
-## Source-of-truth routing
+## Architecture and implementation targets
 
-Begin every architecture or implementation-status task with
-`Brontide-Architecture-Status.json`. It is the sole generic registry for the current architecture,
-latest ratified architecture, retained implementation baseline, and per-stack delivery/evidence
-pointers. Do not infer any of those identities from filenames or the highest version number.
+Use `Brontide-Architecture-Status.json` to locate the current architecture and latest ratified
+architecture. Do not infer either from filenames or the highest version number.
 
-1. For architectural design, use the registry's current-architecture document and preserve its own
-   draft, normative, provisional, and ratification labels.
-2. For claims about what is implemented, use the root `README.md`, the implementation plan and
-   milestone evidence for the implemented architecture baseline, and then executable evidence.
-3. For delivery of a later draft, use the implementation plan targeting that draft. A plan is not
-   implementation evidence.
-4. Use earlier architecture documents for the semantics of an implemented older baseline and for
-   historical context; do not silently project later draft rules into an older conformance claim.
+Implementation targets are local and deliberately simpler. Each stack README or focused
+implementation document states `Designed for: Brontide Architecture <version>`. Read that target,
+the document's status and limitations, and then executable tests. Plans, notes, requirement
+inventories, and matrices may provide detail, but none forms a mandatory routing hierarchy or
+changes the locally stated target.
+
+Use earlier architecture documents for the semantics of work designed against an older version and
+for historical context; do not silently project later draft rules into an older implementation.
 
 The root `Brontide-Temporary-Implementation-Correction-Plan-0.1.md` controls known corrective gaps
 until its deletion gate is satisfied. It takes priority over optimistic implementation prose, but it
@@ -75,8 +73,8 @@ Brontide Base conformance.
   independent when it has a reviewer identity distinct from every implementation actor, runs in a
   fresh isolated context, has no access to the implementation session's private reasoning, and
   records a decision and rationale for every pinned requirement. Every attestation also reviews
-  the current architecture selected by the status registry, including its status and
-  the implementation's current delivery plan. A retained older matrix may establish what is
+  the current architecture selected by the status registry, including its status, and the
+  implementation's locally stated target and limitations. A retained older matrix may establish what is
   implemented, but it never limits which architecture the review must consider. This rule remains
   in force unless the status registry or an explicit repository review policy changes it.
 - **Every independently consumable component owns its verification stack.** New components ship

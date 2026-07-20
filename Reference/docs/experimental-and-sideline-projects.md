@@ -4,8 +4,9 @@ This registry separates exploratory work from Brontide Reference Stack milestone
 A sideline project may provide useful evidence without becoming a required part of the main
 showcase or implying that Brontide has ratified its contracts.
 
-Current architectural planning is routed through
-[`architecture-0.7-delivery.md`](./architecture-0.7-delivery.md). The entries below remain
+Related Architecture 0.7 implementation notes are in
+[`architecture-0.7-delivery.md`](./architecture-0.7-delivery.md). Each entry below names its own
+design context and remains
 experimental even when they are required to produce evidence for the Architecture 0.7 Complete
 Draft.
 

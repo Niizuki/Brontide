@@ -9,8 +9,8 @@
 §18.1; the current architecture document retains a summary section under the same number. Staged
 acquisition and generation management are expanded in
 [Component Management](./Brontide-Design-Note-Component-Management-0.1.md). The broader Environment,
-Gate, protection, and relational-transparency direction is recorded in
-[Topology Environments and Gates](./Brontide-Design-Note-Topology-0.1.md).
+Gatekeeper, protection, and relational-transparency direction is recorded in
+[Topology Environments and the Guardian Family](./Brontide-Design-Note-Topology-0.1.md).
 **Scope:** Records design directions. Nothing in this note enlarges Brontide Base,
 ratifies the Component model or the Brontide Portable Binding, or defines conformance
 requirements.
@@ -472,9 +472,9 @@ local admission and Interconnection still establish authority.
 
 A Port is not a protection boundary by itself. Where a Region boundary coincides with a Protected
 Environment boundary from the topology direction, attachment through a Port is a covered crossing
-and coincides with a declared Gate: one boundary occurrence carries both declarations, the Port
-owning composition semantics and the Gate owning protection and projection. An ordinary Region
-acquires no Gate obligation merely by having Ports.
+and must terminate at or be performed through a declared Gatekeeper. The Port owns composition semantics;
+the Gatekeeper is the Guardian through which the protection contract admits the crossing. The Port does
+not become the Gatekeeper, and an ordinary Region acquires no Gatekeeper obligation merely by having Ports.
 
 ### Composition topology and discrete membership
 
@@ -512,13 +512,14 @@ that membership identity, source, lifetime, and relevant relations remain visibl
 this membership floor remains required for Composition occurrences.
 
 The richer direction is resolved in
-[Topology Environments and Gates](./Brontide-Design-Note-Topology-0.1.md). Ordinary Environments
-remain overlapping topology identities rather than Components; Gates create their relational
-virtual-Component projections with declared export fidelity. An Environment groups this floor's
-Topology Nodes, and a Topology Map's relation vocabulary begins with the floor's Relations.
-Protected Environments are disjoint or nested within one Protection
-Plane, are opaque except through Gates, and have no declared external communication when no Gate is
-active. These terms remain outside Base and do not change Composition's minimum membership floor.
+[Topology Environments and the Guardian Family](./Brontide-Design-Note-Topology-0.1.md). Ordinary Environments
+remain overlapping topology identities rather than Components and have no Gatekeeper requirement. A Gatekeeper
+is the specialised Guardian and Actor through which a Protected Environment admits covered
+crossings; it may be realised by a Component, but is not itself a Component or Port. An Environment
+groups this floor's Topology Nodes, and a Topology Map's relation vocabulary begins with the floor's
+Relations. Protected Environments are disjoint or nested within one Protection Plane, are opaque
+except through Gatekeepers, and have no declared external communication when no Gatekeeper is active. These
+terms remain outside Base and do not change Composition's minimum membership floor.
 
 ### Scoped restart and generational replacement
 

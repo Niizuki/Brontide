@@ -2,7 +2,7 @@
 
 The following work is deliberately outside Brontide Minimal Stack Base conformance:
 
-- Architecture 0.7 delivery is classified in
+- Architecture 0.7 implementation detail is recorded in
   [`architecture-0.7-delivery.md`](./architecture-0.7-delivery.md). Producing evidence for the
   Complete Draft does not make an experimental project part of Base or ratify its vocabulary.
 

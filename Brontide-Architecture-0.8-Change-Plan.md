@@ -471,7 +471,7 @@ for interchange convenience, is the ceiling any future revocation semantics can 
 > representations.
 
 **Edit sites.** §11 (rule), §33 (revocation question annotated with the ceiling taxonomy),
-Reference and Minimal delivery ledgers (record each stack's representation choice and ceiling
+Reference and Minimal implementation notes (record each stack's representation choice and ceiling
 before the Portable Binding freezes one).
 
 ### C12. Terminus: the counterpart of Genesis (authority finding A3)

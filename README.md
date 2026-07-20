@@ -8,12 +8,23 @@ Brontide is an architecture specification with two deliberately independent .NET
 - [Brontide Reference Stack](./Reference/README.md), the C#/Avalonia implementation and interactive showcase;
 - [Brontide Minimal Stack](./Minimal/README.md), the F# implementation and headless counterpoint.
 
-[`Brontide-Architecture-Status.json`](./Brontide-Architecture-Status.json) is the single
-authoritative registry for the current architecture source, latest ratified architecture, retained
-implementation baseline, and both stacks' delivery plans, ledgers, and evidence matrices. Generic
-documentation and agent guidance resolve architecture identity through that registry rather than
-hard-coding a version. Consumers must read the registry for the actual status values; an
-implementation baseline is evidence, not ratification.
+[`Brontide-Architecture-Status.json`](./Brontide-Architecture-Status.json) identifies the current
+architecture source and latest ratified architecture. Implementation targets are stated locally in
+the document or stack README that owns the work; a central registry does not choose them. The
+additional hashes and paths in the registry are retained for existing verification tooling, not as a
+second implementation roadmap.
+
+## Implementation targets
+
+- [Brontide Reference Stack](./Reference/README.md) is designed for Architecture 0.7. Its README
+  states what is implemented and which projects deliberately experiment against Architecture 0.8.
+- [Brontide Minimal Stack](./Minimal/README.md) is designed for Architecture 0.7 under the same rule.
+- A focused experiment or implementation note may target a different architecture revision by
+  stating `Designed for: Brontide Architecture <version>` in that document.
+
+A target records the architecture against which work was devised. It is not, by itself, a complete
+conformance or ratification claim. Code, tests, and concise known-limitations prose remain the useful
+evidence of what actually works.
 
 Known implementation and evidence gaps are controlled separately by the
 [temporary implementation correction plan](./Brontide-Temporary-Implementation-Correction-Plan-0.1.md).
@@ -40,40 +51,23 @@ without implying a real online marketplace, production package manager, or Archi
 conformance claim.
 
 The broader topology direction is recorded in
-[Topology Environments and Gates Design Note 0.1](./Brontide-Design-Note-Topology-0.1.md). Ordinary
-Environments remain overlapping, security-neutral topology identities; Gates create their
-relationship-specific virtual-Component projections. Protected Environments are disjoint or nested
-within one Protection Plane and opaque except through Gates; one with no active Gate has no
-declared external communication. Every Gate export declares its fidelity — Direct, Deputised,
-Mediated, Adapted, or Synthetic — so reinterpretation never masquerades as exposure. These terms
-remain outside Base and are not a ratified extension.
+[Topology Environments and the Guardian Family Design Note 0.1](./Brontide-Design-Note-Topology-0.1.md). Ordinary
+Environments remain overlapping, security-neutral topology identities and have no Gatekeeper requirement.
+A Guardian is an Actor entrusted to protect or represent a participant, resource, or bounded
+interaction. Gatekeeper is its preventative Protected-Environment-boundary specialisation. Sentinel
+is its bounded observational specialisation: the primary third-party observer and reporter within a
+purpose-specific Sentinel Watch. The Watch makes subjects, occurrence classes, sources, coverage,
+lifecycle, evaluator, outputs, and gaps explicit while granting no implicit response authority.
+Protected Environments are disjoint or nested within one Protection Plane and opaque except through
+Gatekeepers; one with no active Gatekeeper has no declared external communication. Every Gatekeeper export declares
+its fidelity — Direct, Deputised, Mediated, Adapted, or Synthetic — so reinterpretation never
+masquerades as exposure. These terms remain outside Base and are not a ratified extension.
 
 Exact boundary assumptions are recorded in
 [`docs/public-boundaries.md`](./docs/public-boundaries.md), and the reproducible manual/generated
 source-cost inventory is [`interchange/binding-measurements.json`](./interchange/binding-measurements.json).
 The current correction finding/deletion-gate status is summarized in
 [`docs/implementation-correction-status.md`](./docs/implementation-correction-status.md).
-Independent verification is coordinated by the checked
-[`conformance/reviews/review-request.json`](./conformance/reviews/review-request.json) and the
-[`independent-review workflow`](./conformance/reviews/README.md). The repository gate validates any
-review records that exist and automatically refuses deletion of the temporary plan unless both
-stack attestations and the explicit closure authorization are complete. The request pins the
-architecture status registry and considers retained older matrices only as implementation evidence,
-never as a replacement design source. Human and isolated automated attestations have equal weight
-under the checked independence policy.
-
-Implementation-owned status and limitations are recorded in the
-[Brontide Reference Stack milestone evidence](./Reference/docs/milestone-evidence.md) and
-[Brontide Minimal Stack milestone evidence](./Minimal/docs/milestone-evidence.md).
-
-Stable implementation-baseline requirement IDs live in
-[`conformance/requirements.json`](./conformance/requirements.json). The checked per-stack matrices
-are [`Reference/conformance/architecture-0.5.json`](./Reference/conformance/architecture-0.5.json)
-and [`Minimal/conformance/architecture-0.5.json`](./Minimal/conformance/architecture-0.5.json).
-These files remain deliberately version-pinned evidence. Requirement IDs and matrices for the
-registry-selected current architecture remain separate and must not rewrite retained evidence.
-The current Complete Draft inventory is
-[`conformance/architecture-0.7-requirements.json`](./conformance/architecture-0.7-requirements.json),
-with independent [Reference](./Reference/conformance/architecture-0.7.json) and
-[Minimal](./Minimal/conformance/architecture-0.7.json) matrices. They currently record tested C1
-evidence and planned C2-C5 work without implying ratification or changing the 0.5 baseline.
+The retained conformance matrices and independent-review workflow remain available as detailed test
+and correction evidence. They do not determine either stack's architecture target; the owning README
+does that directly.

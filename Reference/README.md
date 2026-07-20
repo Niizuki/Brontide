@@ -1,19 +1,21 @@
 # Brontide Reference Stack 0.2
 
 Brontide Reference Stack is the independent .NET 10 / Avalonia implementation and showcase.
-Architecture identity, ratification status, the retained executable baseline, and Reference's
-current delivery plan, ledger, and matrix are selected only through
-[`../Brontide-Architecture-Status.json`](../Brontide-Architecture-Status.json). A delivery plan does
-not upgrade an implementation claim until its evidence is accepted. Current gate evidence,
-experiment limits, sideline-project status, and the
-one historical limitation are recorded in `docs/milestone-evidence.md`,
-`docs/implementation-findings.md`, and `docs/experimental-and-sideline-projects.md`.
+
+**Designed for:** [Brontide Architecture 0.7](../Brontide-Architecture-0.7.md)
+
+**Status:** Partial implementation with explicitly labelled experiments
+
+This target states the architecture revision against which the stack was devised. The implemented
+surface and known limitations are described here and exercised by the solution tests. Focused
+experimental projects may state a later target locally; in particular, Component Management is
+designed against Architecture 0.8 without changing the stack-wide target.
 
 Architecture 0.7 R1 now has Reference-native Complete Draft evidence for recursive three-state
 Constraint expressions, fail-closed authority evaluation, and experimental Composition selection.
-The revision-specific requirements and evidence are routed through
-[`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json); this is neither
-ratification nor a claim that the remaining Architecture 0.7 work is implemented.
+The retained [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json) matrix is
+detailed test evidence, not the source of the implementation target and not a claim that the
+remaining Architecture 0.7 work is implemented.
 
 The current repository-wide programme is
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../Brontide-Interchange-Implementation-Plan-0.1.md).
@@ -21,8 +23,8 @@ Brontide Reference Stack now owns independently implemented experimental hosts a
 process-isolated Cooling and Catalog/resource proofs. The retained tests execute a real Brontide Minimal Stack provider process; no
 Brontide Reference Stack project references Brontide Minimal Stack assemblies or private types.
 
-The registry-selected current architecture does not ratify Component descriptors, system
-service discovery, execution explanation, or optimisation-property vocabularies. Their Brontide Reference Stack
+Architecture 0.7 does not ratify Component descriptors, system service discovery, execution
+explanation, or optimisation-property vocabularies. Their Brontide Reference Stack
 realisations therefore live in `Brontide.Reference.Experimental.Composition`, not `Brontide.Reference.Core` or normative
 conformance.
 

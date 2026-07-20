@@ -4,8 +4,7 @@
 
 **Status:** Implemented experimental programme; retained as the plan and evidence index
 **Date:** 2026-07-17
-**Architecture target:** [Brontide Architecture 0.7](./Brontide-Architecture-0.7.md), Complete Draft
-**Evidence baseline:** Brontide Architecture 0.5
+**Designed for:** [Brontide Architecture 0.7](./Brontide-Architecture-0.7.md), Complete Draft
 **First proof:** two-way Cooling component interchange across a process boundary
 **Decisive later proof:** a mixed Reference/Minimal/independent-provider image workspace
 

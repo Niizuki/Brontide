@@ -1,18 +1,15 @@
 # Brontide Reference Stack Implementation Plan 0.3
 
 Status: Planned  
-Architecture target: [Brontide Architecture 0.7](../Brontide-Architecture-0.7.md), Complete Draft
+Designed for: [Brontide Architecture 0.7](../Brontide-Architecture-0.7.md), Complete Draft
 
-Implementation baseline: Reference Stack 0.2 / Architecture 0.5 evidence
-
-Delivery ledger: [Reference Architecture 0.7 delivery](docs/architecture-0.7-delivery.md)
+Related notes: [Reference Architecture 0.7 implementation notes](docs/architecture-0.7-delivery.md)
 
 ## 1. Purpose
 
-This is the Reference stack's independent delivery plan for the changes completed in the
+These are the Reference stack's implementation notes for the changes completed in the
 [Architecture 0.7 document edit](../Brontide-Architecture-0.7-Change-Plan.md). It supersedes Plan
-0.2 only for new 0.7 work; Plan 0.2 and its
-milestone evidence remain the record of the Architecture 0.5 implementation baseline.
+0.2 only for new 0.7 work; Plan 0.2 remains as historical context.
 
 Before this plan can support an implementation claim, the applicable gates in
 [the temporary correction plan](../Brontide-Temporary-Implementation-Correction-Plan-0.1.md)
@@ -40,7 +37,7 @@ below creates evidence for review; it does not change that status by itself.
 ### 2.1 Complete Architecture 0.7 coverage
 
 The implementation-owned
-[Architecture 0.7 delivery ledger](docs/architecture-0.7-delivery.md) maps every executed 0.7
+[Architecture 0.7 implementation notes](docs/architecture-0.7-delivery.md) map every executed 0.7
 change C1-C8 to an owner, planned evidence, and status boundary. R1-R4 implement C1-C5. C6 and C7
 require documentation and classification review rather than invented runtime behavior. C8 remains
 a recorded, non-ratified direction and must not produce a `Mediator` conformance claim. R6 tracks
@@ -62,7 +59,7 @@ Deliverables:
    Architecture 0.5 predecessor where one exists.
 3. Capture failing vectors for R1 through R4 before production changes.
 4. Record the Architecture revision and commit used for the review.
-5. Keep the delivery ledger synchronized with the stable requirement-ID inventory.
+5. Keep the implementation notes synchronized with any retained detailed requirement inventory.
 
 Exit evidence:
 
@@ -178,7 +175,7 @@ against [that document](../Brontide-Architecture-0.8.md) covering:
   `conflicting` rework in a future 0.8 delivery audit while remaining valid Architecture 0.7
   evidence; and
 - Reference's chain-conjunction representation choice and its revocation ceiling (0.8 §11),
-  recorded in the delivery ledger before the Portable Binding freezes a representation.
+  recorded in the implementation notes before the Portable Binding freezes a representation.
 
 The recorded composition, Component-management, minimum-topology, and trust-admission directions
 (0.8 §18.1, §19, §20.1, §24, §33) stay outside this ledger's conformance scope; the fake-manager
