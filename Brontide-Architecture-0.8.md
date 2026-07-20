@@ -2642,6 +2642,20 @@ For example, a future `Distributed` extension might require communication semant
 `Channel`. A future `Lifecycle` extension might describe long-running Executions and persistent
 activities initiated by them.
 
+**Channel direction.** `Channel` is the first extension of the evidence cycle: the request and
+Outcome representation, correlation, error propagation, and delivery semantics the invocation
+principle (§13.6) needs and Base withholds. Rather than being drafted abstractly it is extracted
+from the retained Cooling and Catalog interchange proofs and recorded in
+[Channel](./Brontide-Design-Note-Channel-0.1.md). The recorded frame is framed one-message-per-frame
+exchange over a duplex transport; a versioned, kind-discriminated envelope in the categories
+negotiation, request, outcome, protocol-error, and lifecycle; request-to-Outcome correlation by
+echoed identities kept distinct from host-native Execution identity; a boundary-relative authority
+presentation under which no Capability crosses a trust boundary (§8, §24); and a strict separation
+of denial, semantic failed Outcome, and protocol or process failure, with no foreign exception or
+runtime type crossing. Delivery, ordering, and retry are promised by no one. Channel fixes
+semantics, not a wire format, adds no Base term, and precedes the Portable Component Binding
+(§18.1), which becomes its first conforming realisation.
+
 **Composition and Discovery direction.** A future first-party `Composition` extension should ratify
 the portable structure of composition: Component contracts and requirements, Parameters and
 Constraints, Provider Sets, Composition Regions and Ports, direct and mediated bindings, minimum
@@ -4865,7 +4879,10 @@ request/response representation, error propagation across boundaries, delivery s
 awaits the `Channel` extension. Until it exists, the principle constrains implementations
 without fully equipping them. The evidence sequencing is decided: Channel is derived from the
 retained Cooling and Catalog interchange evidence and precedes the Portable Component Binding,
-which becomes its first conforming realisation.
+which becomes its first conforming realisation. The shared frame extracted from that evidence is
+now recorded in [the Channel design note](./Brontide-Design-Note-Channel-0.1.md); it remains a
+direction, not a ratified extension, and the canonical error taxonomy, correlation model, and
+authority-presentation representation remain open there.
 
 **Portable Component Binding and mapping.**
 Section 18.1 proposes the Brontide Portable Binding and a scoped Binding Plan as the general-purpose
@@ -5594,6 +5611,17 @@ adversarial conformance vectors accompanying every behavioural change are invent
   that boundary into a Host under local admission and authority; and a managed general-purpose
   system composes across image construction, selection, preflight, scoped activation, and runtime
   attachment. Base is explicitly a conformance contract rather than an installed Component.
+- **§19 and §33 — Channel direction recorded from interchange evidence.** The first-cycle
+  communication extension is extracted from the shared behaviour of the retained Cooling and Catalog
+  interchange proofs and recorded in a dedicated design note: framed one-message-per-frame exchange;
+  a versioned, kind-discriminated envelope (negotiation, request, outcome, protocol-error,
+  lifecycle); echoed correlation identities kept distinct from host-native Execution identity; a
+  boundary-relative authority presentation under which no Capability crosses a trust boundary; and a
+  strict separation of denial, semantic failed Outcome, and protocol or process failure with no
+  foreign exception crossing. The stacks' divergences (correlation-id count, handshake presence,
+  host authority domain, replay and payload bounds, error-code spellings) mark the realisation
+  freedom Channel preserves. No Base term is added, and the Portable Component Binding is recorded as
+  Channel's first intended realisation.
 - **§24 and §28 — External claims separated from trust admission.** Self-description, device
   class, conformance, attestation, origin, and purported authority are inputs to a receiving
   domain's policy, never grants chosen by the participant. Device attachment and remote-system

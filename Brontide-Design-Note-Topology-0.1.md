@@ -37,6 +37,11 @@ The architectural question is resolved at this level:
   an allowed boundary participant. A Protected Environment with no active Gatekeeper is a valid
   state, not a named term: it has no declared external communication and does not interact
   externally until a Gatekeeper becomes active.
+- A **Warden** is the operational-deputy Guardian specialisation designated for a declared
+  privileged operation surface. For covered external requesters, the Warden is the sole operational
+  entrance to that surface: the request terminates at the Warden, the requester's authority is
+  evaluated there, and any interior effect is initiated separately under authority the Warden
+  independently holds. The requester is neither admitted to the privileged interior nor elevated.
 - A Protected Environment is architecturally opaque from outside. Its internal identities,
   structure, contracts, topology, and authority information are exposed only through an
   audience-specific **Environment View** provided by a Gatekeeper.
@@ -54,10 +59,10 @@ The architectural question is resolved at this level:
 - Ordinary Environments do not gain an `open`, `transparent`, or `namespace` security class. They
   remain security-neutral. Namespace translation and structural disclosure are properties of a
   Gatekeeper and its Environment View.
-- Guardian, Gatekeeper, and Sentinel form a recorded family of Actor roles; Sentinel Watch is the
-  subordinate purpose and scope contract for Sentinel activity. Environment, Protected Environment,
-  Protection Plane, Gatekeeper boundary semantics, Topology Map, and Environment View belong to the
-  future `Topology` direction, not Brontide Base.
+- Guardian, Gatekeeper, Warden, and Sentinel form a recorded family of Actor roles; Sentinel Watch is
+  the subordinate purpose and scope contract for Sentinel activity. Environment, Protected
+  Environment, Protection Plane, Gatekeeper boundary semantics, Warden operational-deputy semantics,
+  Topology Map, and Environment View belong to the future `Topology` direction, not Brontide Base.
 - Protected Environment identity is portable at Gatekeeper boundaries, but mutual understanding is
   established only by an explicit versioned Topology exchange and Outcome. Recognition, trust, and
   authority remain separate decisions; Profiles state when successful understanding is mandatory.
@@ -67,9 +72,9 @@ The architectural question is resolved at this level:
   occurrences, and continuity across reconstitution or reconnection is a declared lifecycle or
   receiver-owned admission decision, never an inference.
 
-This resolution deliberately stops before Gatekeeper grouping, orchestration, concrete descriptor
-format, or implementation topology. Those concerns may reuse Composition and Mediation, but they do
-not change the Actor and protection-boundary model above.
+This resolution deliberately stops before Gatekeeper or Warden grouping, orchestration, concrete
+descriptor format, or implementation topology. Those concerns may reuse Composition and Mediation,
+but they do not change the Actor and protection-boundary model above.
 
 ## Question and retained reasoning
 
@@ -160,8 +165,8 @@ state, authority, trust, or failure history.
 The **Guardian family** groups related Actor roles concerned with protection, representation, and
 assurance. Family membership is a role designation, not a new participant category or authority
 primitive. Every Guardian-family member is an Actor, and one Actor may hold several family roles.
-The family currently records Guardian as the general role and Gatekeeper and Sentinel as independent
-specialisations.
+The family currently records Guardian as the general role and Gatekeeper, Warden, and Sentinel as
+independent specialisations.
 
 #### Guardian
 
@@ -180,7 +185,7 @@ and Protection Plane, direction, covered crossing classes, intended peer or audi
 Environment View and contracts the Gatekeeper may expose. Every Gatekeeper is a Guardian; a Guardian
 that protects something other than a Protected Environment boundary is not a Gatekeeper.
 
-Guardian, Gatekeeper, and Sentinel are Actor roles, not second objects wrapped around Actors. A
+Guardian, Gatekeeper, Warden, and Sentinel are Actor roles, not second objects wrapped around Actors. A
 Gatekeeper's Actor reference is its authority identity, and ordinary Capability, Delegation,
 Operation, Event, and Outcome semantics apply without translation. Routing, projection, or boundary
 placement alone does not create a Gatekeeper: an ordinary Environment has no Gatekeeper, and an
@@ -207,6 +212,61 @@ Where a Region boundary coincides with a Protected Environment boundary, attachm
 runtime-open Port must terminate at or be performed through a declared Gatekeeper. The Port does not
 become that Gatekeeper, and an ordinary Region acquires no Gatekeeper obligation merely by having
 Ports.
+
+#### Warden
+
+A **Warden** is the operational-deputy Guardian specialisation designated for a declared privileged
+operation surface. For covered external requesters, it is the sole operational entrance to that
+surface. A requester invokes a Warden-exposed Operation rather than an interior Operation or an
+interactive interior session. The requester's Capability is evaluated at the Warden request surface
+and is never combined with, rewritten as, or promoted into the authority the Warden holds over the
+interior.
+
+If the request is accepted, the Warden deliberately initiates a separate interior Execution using
+its own Capability. The outer request, the Warden's decision, the inner Execution, and any returned
+Outcome remain causally correlated and attributable. This is visible deputyship under the invocation
+principle, not Delegation to the requester and not an exception to conservation of authority. The
+Warden's interior authority must pre-exist the request or be established independently through the
+ordinary Genesis and Delegation rules; the request itself creates none.
+
+Authorisation is conjunctive rather than additive:
+
+1. the requester must be authorised to invoke the Warden's request Operation;
+2. the Warden's declared policy must permit that exact request, target, input, and context; and
+3. the Warden must hold and present a Capability authorising the separate interior Execution, which
+   the interior target evaluates normally.
+
+Failure of any condition denies before the interior effect begins. The requester's authority and the
+Warden's authority are never unioned. Approval is bound to the represented request; it is not a
+reusable credential, a Capability transfer, or a change to the requester's authority.
+
+**Requester authority never elevates at the Warden seam.** A successful request changes which
+effect the Warden chooses to cause, not which Capabilities the requester holds. Any later change to
+the requester's authority requires an independent Genesis or Delegation occurrence and is not an
+effect of Warden access.
+
+A Warden exposes typed Operations with complete input and output Shapes. It does not accept an
+arbitrary interior command, target, path, or designation merely because the requester supplied it.
+Any requester-selectable designation must be an explicit part of the Warden contract, resolved under
+the Warden's namespace and policy, and constrained before the Warden presents its own authority.
+Defaulting to the Warden's ambient authority on requester-controlled designations is the confused-
+deputy error that the role exists to make visible and prevent.
+
+Gatekeeper and Warden answer different questions. A Gatekeeper decides whether a covered crossing
+may occur; a Warden decides whether to perform a privileged effect for a requester that is not
+authorised to perform it directly. One Actor may hold both roles when the Warden is itself the
+designated boundary participant. A Gatekeeper may instead front a separate Warden, but that route
+does not create a second operational entrance: the Gatekeeper admits the request crossing and the
+Warden remains the only Actor authorised by the declared surface to turn it into the privileged
+interior effect. A Sentinel may observe and report either Execution, but its findings grant no
+authority to approve or perform the effect.
+
+A Warden may be realised by a dedicated Component, Host machinery, static construction, or another
+form that preserves its Actor identity, declared request surface, authority envelope, and
+attribution. A Warden with policy, queues, audit, result filtering, recovery, or an independent
+lifecycle should normally be realised by a dedicated Component. Before the Warden is active, after
+it fails, or while its policy or audit preconditions are unavailable, the privileged surface fails
+closed; no fallback path silently grants direct access.
 
 #### Sentinel
 
@@ -306,7 +366,8 @@ remain explicit rather than becoming architectural omniscience.
 A **Protected Environment** adds a protection contract to an Environment. The contract identifies
 its **Protection Plane**, protected membership and resources, enforcing Actors or Host machinery,
 covered crossing classes, the Gatekeepers permitted to admit them, fail-closed behaviour,
-lifecycle, and evidence supporting the claim that relevant paths cannot bypass the boundary.
+declared privileged operation surfaces and their Wardens where present, lifecycle, and evidence
+supporting the claim that relevant paths cannot bypass the boundary or privileged operation surface.
 
 Protection Plane scopes non-overlap. Within one Plane, a Protected Environment is disjoint from or
 fully contains every peer Protected Environment. Independent Planes may overlap—for example, a
@@ -342,6 +403,12 @@ it completely, and an earlier `Sealed Environment` name invited confusion with t
 profile's sealed bootstrap composition. With one or more active Gatekeepers, all covered
 communication crosses a Gatekeeper; an undocumented bypass invalidates the corresponding protection
 claim rather than becoming an implicit Gatekeeper.
+
+A Protected Environment need not declare a Warden merely because it is protected. Where it does
+declare a privileged operation surface, zero active Wardens means that covered external requesters
+cannot cause those privileged effects. A direct administrative API, debug path, ambient Host call,
+or emergency fallback that can cause a covered effect without the Warden invalidates the surface's
+sole-entrance claim unless it is explicitly outside the declared coverage.
 
 Protection is in force throughout the containing generation's Establishment, not only after
 Release. When a Component realises a Gatekeeper, the Gatekeeper becomes active no earlier than its
@@ -478,7 +545,7 @@ the Guardian that participates as an Actor at the protected boundary.
 
 This synthesis is the decision. It does not require a dedicated runtime object when a trivial
 Gatekeeper can be erased into static or Host machinery, and it does not standardise groups or
-orchestration of Gatekeepers.
+orchestration of Gatekeepers or Wardens.
 
 ## Minimum Gatekeeper contract direction
 
@@ -589,6 +656,70 @@ behind a Mediated export, or a hot swap where that stronger contract exists — 
 Gatekeeper's lifecycle contract. Continuity of export contract identity, Gatekeeper identity, session
 state, and in-progress work are separate declarations, and silence promises none of them. A scoped
 restart behind a Gatekeeper never silently becomes identity continuity.
+
+## Minimum Warden contract direction
+
+A future portable Warden declaration must preserve at least the following information, without this
+note fixing its descriptor or runtime representation:
+
+- the Warden's Actor identity, the Protected Environment, and the exact privileged operation surface
+  for which it is the sole operational entrance;
+- the covered requester identities, audiences, Authority Domains, and origin classes;
+- the typed request Operations and their complete input and output Shapes;
+- the exact mapping from each accepted request to interior Operations, targets, and Shapes, including
+  every requester-selectable designation and the namespace in which it is resolved;
+- the Warden policy evaluator, version, inputs, approval facts, unknown-input treatment, and
+  fail-closed decision behaviour;
+- the standing interior Capability envelope the Warden may present, its provenance, Constraints,
+  representation, lifetime, withdrawal behaviour, and maximum revocation horizon;
+- causal and correlation links among the request Execution, Warden decision, interior Execution,
+  returned Outcome, and any compensation;
+- output projection, redaction, aggregation, and other egress filtering applied before information
+  returns to the requester;
+- lifecycle, readiness, continuity, queueing, backpressure, replay, idempotency, failure, recovery,
+  and rollback where those properties are promised;
+- audit records, audiences, retention, and the behaviour required when policy or audit prerequisites
+  are unavailable;
+- the separately authorised management Operations that may change policy, request catalogues,
+  mappings, authority envelopes, or trusted approvers; and
+- no-bypass evidence enumerating every covered external path capable of causing the privileged
+  effects.
+
+The authorisation rule remains three ordinary decisions rather than a new authority calculus:
+
+```
+request Execution authorised
+AND Warden policy permits the exact mapping
+AND interior Execution authorised
+```
+
+The decisions must remain distinguishable in evidence and failure reporting. A denied request, a
+policy rejection, an interior target's authority denial, and a semantic failure after the interior
+effect begins must not collapse into one undifferentiated failure; the Warden contract states how
+each is represented and reported.
+
+The Warden's standing authority should be the minimum enumerable envelope required by its request
+catalogue. A generic shell, arbitrary path, unrestricted target selector, or opaque `run as Warden`
+Operation is not a shortcut around that requirement: if such an Operation is deliberately exposed,
+its broad authority and designation constraints must be explicit, and its confused-deputy risk is a
+property of the architecture rather than an implementation detail.
+
+Approval is request-bound by default. If an approval artifact can be reused by the requester as
+authority at another target, it is no longer merely a Warden decision: it is a Capability or
+Delegation and must obey those rules explicitly. A policy record, signed message, possession of a
+response, or successful earlier request grants no authority by itself.
+
+The sole entrance is a semantic surface, not necessarily one process. Replication or failover may
+preserve one Warden Actor and lifecycle contract where that continuity is declared. Independent
+Warden Actors are independent operational entrances and must be represented as such; they must not
+be hidden behind one name to preserve a false sole-entrance claim. When the active Warden cannot be
+established, the covered surface fails closed rather than falling back to direct privileged access.
+
+Changing a Warden is itself privileged work. Policy, operation mappings, trusted approvers, and the
+standing authority envelope may be established by domain bootstrap, deployment authority, or a
+separately authorised management Operation, potentially exposed through another Warden. None may be
+changed merely because the data plane can address the Warden or because the Warden could use its own
+ambient authority to modify itself.
 
 ## Environment identification and mutual understanding
 
@@ -706,9 +837,9 @@ An Environment occurrence should minimally carry:
 - the observer and source of each assertion;
 - creation, validity, revision, and termination information;
 - direct membership and typed Topology Relations;
-- when protected, its known Gatekeepers and boundary-crossing relations, Protection Plane, covered
-  resources and crossings, enforcing boundary, opacity, fail-closed behaviour, and no-bypass
-  evidence;
+- when protected, its known Gatekeepers and Wardens, boundary-crossing relations, privileged
+  operation surfaces, Protection Plane, covered resources and crossings, enforcing boundary,
+  opacity, fail-closed behaviour, and no-bypass evidence;
 - evidence, confidence or verification state, and unresolved conflicts;
 - explicit incompleteness; and
 - lineage or reconstruction relations to other occurrences.
@@ -742,14 +873,20 @@ The device has an internal composed Environment. A local management Gatekeeper c
 internal Regions for repair or configuration, while an external input Gatekeeper presents only stable
 pointer, button, battery, and configuration contracts. Internal transparency and Host-facing opacity
 coexist. If the device claims a Protected Environment, every covered external interaction traverses
-one of those Gatekeepers. The device and Host still make separate authority decisions.
+one of those Gatekeepers. If firmware replacement or protected calibration is available only through
+typed management requests, the Actor performing those effects is also the Warden for that privileged
+surface: the caller receives no firmware or device-management Capability. The device and Host still
+make separate authority decisions.
 
 ### Remote organisational system
 
 The remote system may be internally governed by different identity, policy, lifecycle, and
 composition rules. A public Gatekeeper exposes one protected boundary surface; an administrative Gatekeeper
 exposes another. The receiving system admits each Gatekeeper and derives local Capabilities according to
-its own policy. The remote Environment cannot self-grant authority by claiming to be trusted.
+its own policy. Administrative Operations backed by authority unavailable to remote administrators
+terminate at a Warden, which evaluates the request and initiates a separately authorised interior
+Execution. The remote Environment cannot self-grant authority by claiming to be trusted, and an
+administrator does not gain the Warden's authority by using its surface.
 
 ### Reconstituted service
 
@@ -765,6 +902,31 @@ physical-host Environment, a residency Environment, and a shared failure Environ
 memberships can inform different policies without creating five Component parents or five database
 occurrences. Gatekeepers select the view relevant to each relationship. When any of these is protected,
 laminar membership is required within its Protection Plane; independent Planes may intersect.
+
+## Retained objection and resolution: Warden versus Gatekeeper and deputy
+
+The objection is that Warden appears redundant: Brontide already names the generic deputy pattern,
+and an Adapted or Synthetic Gatekeeper may expose an Operation backed by its own standing authority.
+The overlap is real, but the concepts answer different architectural questions.
+
+`Deputy` classifies authority behaviour under the invocation principle: any Actor deliberately
+using its own authority in response to another Actor's request is a deputy. `Gatekeeper` records an
+admitted Protected Environment crossing, while export fidelity records how faithfully a boundary
+contract relates to interior contracts. `Warden` records a protective responsibility: one Guardian
+is the declared sole operational entrance to a privileged surface and must constrain, correlate,
+perform, filter, and account for effects initiated for less-privileged requesters.
+
+A deputy is not necessarily a Guardian, a Gatekeeper may pass per-request authority without acting
+as a deputy, and an Adapted or Synthetic Gatekeeper is not automatically a Warden unless the
+protection contract assigns it the sole-entrance responsibility. Conversely, a Warden behind a
+separate Gatekeeper remains a Warden even though another Actor admits the crossing. When one Actor
+meets both definitions it must declare both roles; using one label to erase the other would hide
+either crossing coverage or a standing-authority confused-deputy surface.
+
+The Warden name is therefore retained because Authority Topology needs to identify bounded deputy
+surfaces through which an Actor can cause effects beyond its directly held authority. The role adds
+no Capability and changes no Delegation rule. It makes the operational entrance, standing authority,
+request mapping, and no-bypass claim explicit enough to analyse and test.
 
 ## Retained objection and resolution: Sentinel as a universal observer
 
@@ -814,7 +976,7 @@ leaving interpretation appropriate to the model and domain.
 ## Deliberately deferred detail
 
 The direction does not need a deeper architecture taxonomy before implementation evidence exists.
-In particular, it does not define Gatekeeper groups, Gatekeeper orchestration, one universal
+In particular, it does not define Gatekeeper or Warden groups, their orchestration, one universal
 descriptor, a wire protocol, or an implementation object graph. Those are extension-design and
 implementation concerns provided they preserve the recorded boundaries.
 
@@ -823,7 +985,9 @@ representations, evidence formats, lifecycle records, and conformance tests. It 
 portable declaration of Gatekeeper type and export fidelity, the Plane dimension and enforcement-basis
 vocabulary with same-basis detection, coverage and assurance evidence formats and the resolution-time
 no-bypass check, alias-relation and receiver-owned pairing records, the intra-domain continuity
-declaration, and Sentinel watch scopes, finding Shapes, and response-separation contracts.
+declaration, Warden request-surface and policy-evaluator Shapes, request-to-effect correlation,
+standing-authority envelope and egress-filter declarations, privileged-surface no-bypass evidence,
+and Sentinel watch scopes, finding Shapes, and response-separation contracts.
 Distributed admission, cross-domain identity, attestation, side-channel claims, and persistence of
 exported Actor identity remain owned by their respective specifications. These are protocol
 obligations, not reasons to reopen whether Environment is a Component or where protection and
@@ -833,13 +997,20 @@ transparency reside.
 
 Topology is a first-class architectural direction rather than a collection of placement Attributes:
 
-- Environment, Protected Environment, Protection Plane, Topology Map, Gatekeeper, and Environment
-  View remain outside Brontide Base;
-- Guardian is the general recorded protective Actor role; Gatekeeper and Sentinel are independent
-  specialisations, and every family member acts only through authority it actually holds;
-- Gatekeeper is the preventative specialisation at a Protected Environment boundary; Sentinel is
-  the primary third-party observer and reporter within a deterministic, purpose-bounded Watch and
-  has no implicit response authority;
+- Environment, Protected Environment, Protection Plane, Topology Map, Gatekeeper, Warden, and
+  Environment View remain outside Brontide Base;
+- Guardian is the general recorded protective Actor role; Gatekeeper, Warden, and Sentinel are
+  independent specialisations, and every family member acts only through authority it actually
+  holds;
+- Gatekeeper is the preventative specialisation at a Protected Environment boundary; Warden is the
+  operational-deputy specialisation and sole operational entrance for its declared privileged
+  surface; Sentinel is the primary third-party observer and reporter within a deterministic,
+  purpose-bounded Watch and has no implicit response authority;
+- a Warden authorises a typed outer request, applies its declared policy, and initiates a separately
+  authorised interior Execution under its own independently established Capability; requester and
+  Warden authority are never unioned, and the request neither admits nor elevates the requester;
+- Gatekeeper and Warden remain distinct roles even when one Actor holds both: the former admits a
+  covered crossing, while the latter performs a privileged effect as a visible deputy;
 - Sentinel Watch deterministically bounds purpose, subjects, occurrence classes, sources, coverage,
   lifecycle, evaluator, outputs, and gaps while permitting declared domain- or model-specific
   interpretation;
@@ -854,6 +1025,8 @@ Topology is a first-class architectural direction rather than a collection of pl
   Gatekeepers;
 - a Protected Environment with zero active Gatekeepers has no declared external communication and does
   not interact externally;
+- a declared privileged operation surface with zero active Wardens permits no covered external
+  privileged effect and has no direct-access fallback;
 - every Gatekeeper is the specialised Guardian designated by a Protected Environment's protection
   contract as an allowed boundary participant;
 - every Gatekeeper export declares one fidelity class — Direct, Deputised, Mediated, Adapted, or
@@ -862,7 +1035,8 @@ Topology is a first-class architectural direction rather than a collection of pl
 - a Protection Plane is identified by its protection dimension and enforcement basis, and
   same-basis Protected Environments share one Plane;
 - no-bypass coverage claims belong to the Protected Environment, are declared, enumerated, or
-  statically verified, and name their exclusions; attestation is independent assurance evidence;
+  statically verified, cover both boundary crossings and declared privileged operation surfaces,
+  and name their exclusions; attestation is independent assurance evidence;
 - peer recognition records attributable alias relations between Environment references and never
   merges occurrences;
 - intra-domain reconstitution continuity is declared by Gatekeeper lifecycle contracts, and
@@ -873,7 +1047,8 @@ Topology is a first-class architectural direction rather than a collection of pl
 - an Environment groups Topology Nodes from the Composition-owned minimum floor, whose Relations
   begin every Map's relation vocabulary;
 - protection holds fail-closed throughout Establishment, and a Gatekeeper admits nothing before the
-  readiness point declared by the protection contract;
+  readiness point declared by the protection contract, while a Warden causes no covered privileged
+  effect before its own readiness and policy prerequisites hold;
 - export continuity across backing replacement is declared by Gatekeeper lifecycle contracts, never
   inferred from Gatekeeper or export identity;
 - Gatekeepers present portable Protected Environment identities, and peers confirm compatible
@@ -881,7 +1056,9 @@ Topology is a first-class architectural direction rather than a collection of pl
 - visibility remains Gatekeeper- and audience-relative, multidimensional, and independent of
   authority; and
 - explicit Actors, Capabilities, Delegations, Mediation, lifecycle, and evidence support every claim
-  that a Gatekeeper actively enforces rather than merely describes a boundary.
+  that a Gatekeeper actively enforces rather than merely describes a boundary and every claim that a
+  Warden is the sole operational entrance to a privileged surface.
 
 The competing hypotheses remain above as decision rationale. The Environment/Gatekeeper split
-itself is no longer an open architecture question in this design direction.
+and the Warden operational-deputy role are no longer open architecture questions in this design
+direction.
