@@ -23,6 +23,14 @@ and deletion gate. Its independent attestations and closure may be completed bef
 with the failing-vector work below, but current-architecture implementation must not be claimed
 until that correction gate permits it.
 
+The C1-C8 items below are the Architecture 0.7 change set delivered by the registry-selected 0.3
+plans. The registry's current architecture has meanwhile advanced to the Architecture 0.8 complete
+draft, which supersedes one delivered 0.7 rule: 0.8 C7 replaces composite-expression poisoning
+with structural three-valued evaluation. Audit and deliver C1-C8 against the Architecture 0.7 text
+they came from; record each such supersession in the stacks' Architecture 0.8 handoff phases
+(M6/R6) as future rework rather than silently projecting 0.8 semantics into 0.7 evidence or
+relabelling 0.7 evidence as 0.8 conformance.
+
 ## 2. Instructions to Codex
 
 1. Read `AGENTS.md` and the central status registry before acting.
@@ -251,6 +259,10 @@ system, full lifecycle service, Mirror/Backup semantics, or normative Storage vo
 - Classify existing routers or event mediators only as experimental examples where accurate.
 - Do not add a universal `Mediator` type, implicit interposition, discovery-derived authority, or a
   Mediation conformance claim.
+
+Architecture 0.8 additionally records Aggregation as a fourth Mediation species beside Selection,
+Distribution, and Arbitration; that delta belongs to the M6/R6 Architecture 0.8 handoff ledgers,
+not to this 0.7 disposition.
 
 ### Independent comparison
 

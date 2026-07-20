@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cm0-catalog",
+  "description": "CM0 vocabulary fixture: sources, publishers, packages, definitions, bindings, evidence, and storefront presentation. Data only; no executable semantics; no conformance claim.",
+  "contracts": [
+    { "contract": "brontide.fake.cooling-control", "versions": ["1.0", "1.1"] },
+    { "contract": "brontide.fake.telemetry-sink", "versions": ["2.0"] },
+    { "contract": "brontide.fake.database", "versions": ["3.2"] }
+  ],
+  "publishers": [
+    { "publisher": "pub.contoso", "displayName": "Contoso Components" },
+    { "publisher": "pub.fabrikam", "displayName": "Fabrikam Systems" },
+    { "publisher": "pub.northwind", "displayName": "Northwind Labs" }
+  ],
+  "sources": [
+    { "source": "src.local-cache", "kind": "local", "displayName": "Local Import Cache", "servesPublishers": ["pub.contoso"] },
+    { "source": "src.contoso-mirror", "kind": "remote", "displayName": "Contoso Mirror", "servesPublishers": ["pub.contoso"] },
+    { "source": "src.bazaar", "kind": "remote", "displayName": "Component Bazaar", "servesPublishers": ["pub.fabrikam", "pub.northwind", "pub.contoso"] }
+  ],
+  "packages": [
+    { "package": "pkg.contoso.cooling", "publisher": "pub.contoso", "version": "1.4.0", "artifact": "art.cooling-1-4-0" },
+    { "package": "pkg.fabrikam.cooling", "publisher": "pub.fabrikam", "version": "0.9.2", "artifact": "art.fab-cooling-0-9-2" },
+    { "package": "pkg.northwind.telemetry", "publisher": "pub.northwind", "version": "2.1.0", "artifact": "art.telemetry-2-1-0" },
+    { "package": "pkg.northwind.database", "publisher": "pub.northwind", "version": "3.2.5", "artifact": "art.missing-db" },
+    { "package": "pkg.contoso.generic-telemetry", "publisher": "pub.contoso", "version": "1.0.0", "artifact": "art.generic-telemetry-1-0-0" }
+  ],
+  "advertisements": [
+    { "source": "src.local-cache", "package": "pkg.contoso.cooling", "advertisedVersion": "1.4.0" },
+    { "source": "src.contoso-mirror", "package": "pkg.contoso.cooling", "advertisedVersion": "1.4.0" },
+    { "source": "src.bazaar", "package": "pkg.contoso.cooling", "advertisedVersion": "1.5.0-claimed" },
+    { "source": "src.bazaar", "package": "pkg.fabrikam.cooling", "advertisedVersion": "0.9.2" },
+    { "source": "src.bazaar", "package": "pkg.northwind.telemetry", "advertisedVersion": "2.1.0" },
+    { "source": "src.bazaar", "package": "pkg.northwind.database", "advertisedVersion": "3.2.5" },
+    { "source": "src.local-cache", "package": "pkg.contoso.generic-telemetry", "advertisedVersion": "1.0.0" }
+  ],
+  "componentDefinitions": [
+    {
+      "definition": "def.contoso.cooling",
+      "package": "pkg.contoso.cooling",
+      "provides": [{ "contract": "brontide.fake.cooling-control", "version": "1.1" }],
+      "requires": [{ "contract": "brontide.fake.telemetry-sink", "version": "2.0", "scope": "scope.system", "cardinality": "1..1" }],
+      "generic": false
+    },
+    {
+      "definition": "def.fabrikam.cooling",
+      "package": "pkg.fabrikam.cooling",
+      "provides": [{ "contract": "brontide.fake.cooling-control", "version": "1.0" }],
+      "requires": [],
+      "generic": false
+    },
+    {
+      "definition": "def.northwind.telemetry",
+      "package": "pkg.northwind.telemetry",
+      "provides": [{ "contract": "brontide.fake.telemetry-sink", "version": "2.0" }],
+      "requires": [],
+      "generic": false
+    },
+    {
+      "definition": "def.contoso.generic-telemetry",
+      "package": "pkg.contoso.generic-telemetry",
+      "provides": [{ "contract": "brontide.fake.telemetry-sink", "version": "2.0" }],
+      "requires": [],
+      "generic": true
+    },
+    {
+      "definition": "def.northwind.database",
+      "package": "pkg.northwind.database",
+      "provides": [{ "contract": "brontide.fake.database", "version": "3.2" }],
+      "requires": [],
+      "generic": false
+    }
+  ],
+  "bindingScopes": [
+    { "scope": "scope.system", "kind": "system-default" },
+    { "scope": "scope.app-alpha", "kind": "application" },
+    { "scope": "scope.session-9", "kind": "session" }
+  ],
+  "activatedOccurrences": [
+    { "occurrence": "occ.telemetry-1", "definition": "def.northwind.telemetry", "actors": ["actor.telemetry-1-sink"] },
+    { "occurrence": "occ.telemetry-2", "definition": "def.northwind.telemetry", "actors": ["actor.telemetry-2-sink"] },
+    { "occurrence": "occ.database-app", "definition": "def.northwind.database", "actors": ["actor.database-app"] }
+  ],
+  "occupiedBindings": [
+    { "binding": "bind.system-telemetry", "scope": "scope.system", "contract": "brontide.fake.telemetry-sink", "occupantDefinition": "def.northwind.telemetry", "occupantOccurrence": "occ.telemetry-1" },
+    { "binding": "bind.alpha-database", "scope": "scope.app-alpha", "contract": "brontide.fake.database", "occupantDefinition": "def.northwind.database", "occupantOccurrence": "occ.database-app" }
+  ],
+  "preferences": [
+    { "preference": "pref.contoso-telemetry", "declaredBy": "def.contoso.cooling", "contract": "brontide.fake.telemetry-sink", "preferredDefinition": "def.northwind.telemetry" }
+  ],
+  "artifacts": [
+    { "artifact": "art.cooling-1-4-0", "content": "fake-artifact:contoso-cooling:1.4.0", "sha256": "66C853CCFE858C916EA4E2226C448CAF3B96DFEC32C4705815BB6EC15186857D" },
+    { "artifact": "art.fab-cooling-0-9-2", "content": "fake-artifact:fabrikam-cooling:0.9.2", "sha256": "0107CD5E25E070F725DAB8D34EAB6A862489249C2D1A9FFC9EDAE2B9E5168547" },
+    { "artifact": "art.telemetry-2-1-0", "content": "fake-artifact:northwind-telemetry:2.1.0", "sha256": "97804983ED859E875AD95E9DDB6C354E2FF6E7B7CD8E3A9126513A9E044C3C86" },
+    { "artifact": "art.generic-telemetry-1-0-0", "content": "fake-artifact:contoso-generic-telemetry:1.0.0", "sha256": "337666207574A4F299256CFFCF2B50AD1B7694A8C4FD8347C86A98E6BE205711" }
+  ],
+  "evidence": [
+    { "evidence": "ev.integrity-cooling", "subjectArtifact": "art.cooling-1-4-0", "kind": "integrity", "issuer": "issuer.test-lab", "verdict": "accepted", "detail": "digest matches recorded content" },
+    { "evidence": "ev.review-cooling", "subjectArtifact": "art.cooling-1-4-0", "kind": "review", "issuer": "issuer.review-guild", "verdict": "accepted", "detail": "fake review passed" },
+    { "evidence": "ev.review-fab-positive", "subjectArtifact": "art.fab-cooling-0-9-2", "kind": "review", "issuer": "issuer.review-guild", "verdict": "accepted", "detail": "fake review passed" },
+    { "evidence": "ev.review-fab-negative", "subjectArtifact": "art.fab-cooling-0-9-2", "kind": "review", "issuer": "issuer.rival-lab", "verdict": "rejected", "detail": "fake review failed; contradicts ev.review-fab-positive" }
+  ],
+  "storefront": [
+    {
+      "source": "src.local-cache",
+      "package": "pkg.contoso.cooling",
+      "displayName": "Contoso Cooling",
+      "description": "Deterministic fake cooling component used by the CM0 harness.",
+      "imagery": "img.cooling-box",
+      "categories": ["cooling", "hardware"],
+      "version": "1.4.0",
+      "compatibility": "fake-platform-1",
+      "evidenceStatus": "accepted",
+      "lifecycleState": "released",
+      "dependencySummary": ["brontide.fake.telemetry-sink 2.0"],
+      "alternatives": ["pkg.fabrikam.cooling"]
+    },
+    {
+      "source": "src.bazaar",
+      "package": "pkg.fabrikam.cooling",
+      "displayName": "Fabrikam Cooling",
+      "description": "Alternative fake cooling component with contradictory review evidence.",
+      "imagery": "img.cooling-fan",
+      "categories": ["cooling"],
+      "version": "0.9.2",
+      "compatibility": "fake-platform-1",
+      "evidenceStatus": "contested",
+      "lifecycleState": "preview",
+      "dependencySummary": [],
+      "alternatives": ["pkg.contoso.cooling"]
+    },
+    {
+      "source": "src.bazaar",
+      "package": "pkg.northwind.database",
+      "displayName": "Northwind Database",
+      "description": "Fake database provider whose artifact is deliberately unavailable.",
+      "imagery": "img.database",
+      "categories": ["storage"],
+      "version": "3.2.5",
+      "compatibility": "fake-platform-1",
+      "evidenceStatus": "unavailable",
+      "lifecycleState": "released",
+      "dependencySummary": [],
+      "alternatives": []
+    }
+  ],
+  "expectations": {
+    "duplicateComponentIdentityAcrossSources": ["pkg.contoso.cooling"],
+    "mirroredPublishers": ["pub.contoso"],
+    "multiPublisherSources": ["src.bazaar"],
+    "contractsWithSeveralDefinitions": ["brontide.fake.cooling-control", "brontide.fake.telemetry-sink"],
+    "definitionsWithSeveralOccurrences": ["def.northwind.telemetry"],
+    "occupiedBindings": ["bind.alpha-database", "bind.system-telemetry"],
+    "systemDefaultScopes": ["scope.system"],
+    "explicitPreferences": ["pref.contoso-telemetry"],
+    "genericCandidates": ["def.contoso.generic-telemetry"],
+    "conflictingVersionClaims": ["pkg.contoso.cooling"],
+    "missingArtifacts": ["art.missing-db"],
+    "contradictoryEvidence": [["ev.review-fab-negative", "ev.review-fab-positive"]]
+  }
+}

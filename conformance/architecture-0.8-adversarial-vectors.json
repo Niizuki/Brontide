@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "changePlan": {
     "revision": "0.8",
-    "status": "Draft change plan; vectors authored ahead of the 0.8 document edit",
+    "status": "Executed change plan; the 0.8 document edit (C1-C14) is complete per Architecture 0.8 §35",
     "path": "Brontide-Architecture-0.8-Change-Plan.md",
-    "sha256": "8DA703789D5237C50366D7E192DBD7CA64EBF91760B4F61AB04F89860ACDCF2C",
-    "sha256Note": "Refreshed after the sequencing section; refresh deliberately on any further plan edit."
+    "sha256": "EC977513DF8CEFD74574C1ED58908C7349C9248C92D93DE70B1837FF9FC68544",
+    "sha256Note": "Refreshed for the completed 0.8 document edit; refresh deliberately on any further plan edit."
   },
   "conventions": {
     "sectionReferences": "Section numbers refer to Architecture 0.7 sections, per the change plan.",

@@ -470,6 +470,12 @@ detachment, continuity of Actor identity, state transfer, and uninterrupted pare
 the corresponding Slot, lifecycle, or mediation contracts. Discovery merely proposes a candidate;
 local admission and Interconnection still establish authority.
 
+A Port is not a protection boundary by itself. Where a Region boundary coincides with a Protected
+Environment boundary from the topology direction, attachment through a Port is a covered crossing
+and coincides with a declared Gate: one boundary occurrence carries both declarations, the Port
+owning composition semantics and the Gate owning protection and projection. An ordinary Region
+acquires no Gate obligation merely by having Ports.
+
 ### Composition topology and discrete membership
 
 Composition needs a minimal topology floor below macro placement and network routing. A **Topology
@@ -508,9 +514,11 @@ this membership floor remains required for Composition occurrences.
 The richer direction is resolved in
 [Topology Environments and Gates](./Brontide-Design-Note-Topology-0.1.md). Ordinary Environments
 remain overlapping topology identities rather than Components; Gates create their relational
-virtual-Component projections. Protected Environments are disjoint or nested within one Protection
-Plane, are opaque except through Gates, and become Sealed when no Gate is active. These terms remain
-outside Base and do not change Composition's minimum membership floor.
+virtual-Component projections with declared export fidelity. An Environment groups this floor's
+Topology Nodes, and a Topology Map's relation vocabulary begins with the floor's Relations.
+Protected Environments are disjoint or nested within one Protection
+Plane, are opaque except through Gates, and have no declared external communication when no Gate is
+active. These terms remain outside Base and do not change Composition's minimum membership floor.
 
 ### Scoped restart and generational replacement
 

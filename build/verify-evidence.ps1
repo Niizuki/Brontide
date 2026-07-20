@@ -182,9 +182,15 @@ if ($null -ne $registry -and $null -ne $currentMaster) {
         $failures.Add('The current requirement vocabulary must use schema 1 and Architecture 0.7.')
     }
 
-    foreach ($field in @('revision', 'status', 'path', 'sha256')) {
-        if ([string]$recordedArchitecture.$field -cne [string]$expectedArchitecture.$field) {
-            $failures.Add("The current requirement vocabulary architecture field '$field' does not match the status registry.")
+    # The delivery vocabulary pins the architecture draft it targets, which may trail the
+    # registry's current architecture; the pinned draft is verified against its own path and hash
+    # below, and the registry's currentDelivery pins tie back to this vocabulary. Full field
+    # equality applies only while the registry's current architecture is that same revision.
+    if ([string]$recordedArchitecture.revision -ceq [string]$expectedArchitecture.revision) {
+        foreach ($field in @('status', 'path', 'sha256')) {
+            if ([string]$recordedArchitecture.$field -cne [string]$expectedArchitecture.$field) {
+                $failures.Add("The current requirement vocabulary architecture field '$field' does not match the status registry.")
+            }
         }
     }
 

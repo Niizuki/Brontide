@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Brontide.Minimal.Experimental.ComponentManagement</AssemblyName>
+    <RootNamespace>Brontide.Minimal.Experimental.ComponentManagement</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="ComponentManagement.fs" />
+  </ItemGroup>
+</Project>

@@ -1032,7 +1032,7 @@ section or design note.
 | Component, Provider Set, Composition Region, Composition Port, Binding Plan, Portable Binding, Replacement Slot, Hot-swap Slot, Hot-swap Class, Parameter, Attribute, Definition Constraint | Work in progress; Composition design note (§18.1) |
 | Mediation, Selection, Distribution, Aggregation, Arbitration, Router, Distributor, Aggregator, Arbiter | Recorded direction; Composition design note (§18.1) |
 | Topology Node, Topology Relation | Work in progress; minimum composition-membership direction (§18.1, §19) |
-| Topology Map, Environment, Protected Environment, Protection Plane, Sealed Environment, Gate, Environment View | Recorded direction; Topology design note (§19) |
+| Topology Map, Environment, Protected Environment, Protection Plane, Gate, Gate export fidelity, Environment View | Recorded direction; Topology design note (§19) |
 | Enrichment, value propagation | Work in progress; Enrichment design note (§16.6) |
 | Corpus, Dataset, Store, Store role, Store Relationship (Mirror, Backup) | Work in progress; Persistent Information design note (§18.2) |
 | Dot-relative declarations, Structured Data extension, Remote Service category, `@version` name suffixes | Rejected; design history retained where instructive |
@@ -2362,7 +2362,10 @@ The settled definitions and invariants, retained here because other sections rel
   resolved and activated generation. A **Composition Port** is a parent-declared boundary through
   which a child Region or Component may attach. The Port declares contracts, cardinality, imports
   and exports, authority ceiling, topology requirements, lifecycle and failure behaviour, rollback,
-  and whether it is sealed, activation-open, or runtime-open.
+  and whether it is sealed, activation-open, or runtime-open. Where the Region boundary coincides
+  with a Protected Environment boundary (§19), attachment through a Port is a covered crossing and
+  coincides with a declared Gate: one boundary occurrence may carry both declarations, the Port
+  owning composition semantics and the Gate owning protection and projection.
 - **Incremental (per-partes) composition** resolves and activates a complete child generation inside
   a declared Port while its parent Region may remain Active. This is structural composition, not an
   Activation Parameter and not arbitrary mutation of the parent. If the child exceeds the Port's
@@ -2657,7 +2660,9 @@ establish a binding, nor grant authority.
 topology is private or statically authored: each attachment occurrence has a local Topology Node, and
 attributable Topology Relations keep its independently represented functions, Components, Actors,
 resources, Regions, and Ports associated. A device may propose these relations, but the receiving
-Host records their source and may refine or reject them. The broader `Topology` extension should
+Host records their source and may refine or reject them. An Environment is a grouping over that
+floor: its direct members are Topology Nodes, and a Topology Map's relation vocabulary begins with
+the floor's Relations. The broader `Topology` extension should
 standardise richer nested, physical, logical, hosting, power, connectivity, and failure-domain graphs
 and their observations. Neither the minimum floor nor the extension grants authority, proves
 identity, or permits `SamePhysicalAssembly`, `HostedBy`, and `SharesFailureDomain` to collapse into
@@ -2669,8 +2674,8 @@ observer-scoped, versioned graph. An ordinary **Environment** is an identity-bea
 virtual, mixed, overlapping, or reconstituted grouping with no security implication. A **Protected
 Environment** adds an enforced boundary: within one **Protection Plane**, Protected Environments are
 disjoint or nested, never partially overlapping; independent Planes may intersect. Every covered
-crossing passes through a **Gate**, while zero active Gates produces a **Sealed Environment** with no
-declared external communication.
+crossing passes through a **Gate**; a Protected Environment with no active Gate has no declared
+external communication and does not interact externally until a Gate becomes active.
 
 A Gate supplies the relationship-specific virtual-Component projection of its Environment and an
 audience-specific **Environment View**. Protected interiors are architecturally opaque except for
@@ -2678,15 +2683,38 @@ what their Gates expose; transparency remains a multidimensional Gate property a
 authority. Environment, Gate, Map, View, and the protection terms belong to the future `Topology`
 direction rather than Base. Their descriptor and protocol forms remain unratified.
 
+A projection is not a licence to reinterpret. Every contract a Gate exports declares one **export
+fidelity** — Direct, Deputised, Mediated, Adapted, or Synthetic — so reinterpretation is never
+presented as exposure. Mediated exports obey the ordinary Mediation rules without erasing member
+identity, provenance, failure domain, or authority; Adapted exports name their Adapter Component
+and never reuse an internal contract's name with changed semantics; Synthetic exports are
+boundary-authored Components whose standing authority is enumerated. Direct and Deputised exports
+pass per-request authority under the invocation principle, so fidelity correlates with the
+authority a Gate concentrates, and high fidelity remains the ordinary cheap choice. A Protection
+Plane is identified by its protection dimension and enforcement basis — same-basis Protected
+Environments share one Plane, so laminarity cannot be escaped by minting Planes — and a Gate's
+no-bypass completeness claim is graded evidence: declared, enumerated, statically verified against
+the resolved generation's bindings, or attested, always naming its exclusions. Protection holds
+fail-closed throughout Establishment: a Gate realised by Components admits nothing before its
+Release, covered crossings before Release are limited to declared Relational-Initialisation
+lifecycle Operations, and Establishment failure never opens an undeclared crossing. Export
+continuity across replacement of a Gate's backing is declared by its lifecycle contract; a scoped
+restart behind a Gate never silently becomes identity continuity.
+
 Environment identity must nevertheless be portable at Gate boundaries. A Gate's boundary Actor may
 present an Environment reference, Topology contract version and Profile closure, Gate projection,
 continuity claims, and attributable evidence. The peer explicitly reports whether it understood,
-partially understood, rejected, or does not support that contract and, on acceptance, records its
-local Environment reference. Connection, silence, or successful decoding never demonstrates
+partially understood, rejected, or does not support that contract and, on acceptance, records an
+attributable alias relation to its own local Environment reference; aliases relate occurrences and
+never merge them. Connection, silence, or successful decoding never demonstrates
 understanding. Understanding remains distinct from recognition, trust, and locally granted authority.
 A Profile may require a successful exchange before richer interaction; a Base-only peer may instead
 treat the Gate as an opaque Actor boundary. This guarantees shared semantics where requested without
 adding Environment to Base or transferring a Host's Topology obligations to a passive leaf.
+Continuity is sequenced the same way: within one domain, reconstitution continuity is declared by
+the Gate's lifecycle contract under §9.1's reference rules, while cross-domain continuity rests on
+receiver-owned pairing — the receiving domain mints its own durable local identity at first
+admission — until attested federation exists.
 
 A **Component Manager** is a facility built over these contracts, not another Base term and not a
 mandatory realisation of the Composition extension. A build tool can resolve a static image; Host
@@ -4935,6 +4963,10 @@ observation and claim attribution, persistence across detach and reattach, devic
 Host refinement, and Region/Port serialization rules. That minimum membership floor remains owned by
 Composition; Topology Map, Environment, protection, Gate, and Environment View semantics belong to
 the future `Topology` extension. Their exact Shapes, evidence formats, and protocols remain open.
+The recorded Gate discipline leaves open the portable descriptor and validation forms of export
+fidelity, the Plane dimension and enforcement-basis vocabulary with same-basis detection, the
+completeness-grade evidence formats and the resolution-time no-bypass check, alias-relation and
+receiver-owned pairing records, and the intra-domain continuity declaration.
 Implementations must not collapse physical assembly, hosting, transport, power, failure, identity,
 trust, or authority into one `same device` flag while those rules are unsettled.
 
@@ -5153,11 +5185,15 @@ while a declared Aggregation may still join their input Flows without erasing ei
 
 The broader Topology direction distinguishes ordinary overlapping Environments from Protected
 Environments. Protected Environments are disjoint or nested within one Protection Plane, expose
-their opaque interiors only through Gates, and become Sealed when no Gate is active. Each Gate may
+their opaque interiors only through Gates, and have no declared external communication while no
+Gate is active. Each Gate may
 present a different relational Component projection and Environment View without making the
 Environment itself universally identical to a Component, Actor, or Authority Domain. Gate boundary
 Actors present portable Environment references, while explicit versioned Topology Outcomes establish
 whether a peer understands them; understanding does not establish recognition, trust, or authority.
+Every Gate export declares one fidelity class — Direct, Deputised, Mediated, Adapted, or Synthetic —
+so a boundary never presents reinterpretation as exposure, and the standing authority behind Adapted
+and Synthetic exports is enumerated rather than hidden.
 
 A contract role is not a system-wide singleton. Several Component definitions may provide one role,
 one definition may have several activated occurrences, and differently scoped consumers may bind
@@ -5364,10 +5400,32 @@ adversarial conformance vectors accompanying every behavioural change are invent
   retains the competing reasoning and resolves it: ordinary Environments remain overlapping,
   security-neutral topology identities, while Gates create relation-specific virtual-Component
   projections. Protected Environments are laminar within a Protection Plane, opaque except through
-  Gates, and Sealed when no Gate is active. Transparency remains multidimensional and Gate-relative;
+  Gates, and without declared external communication while no Gate is active. Transparency remains
+  multidimensional and Gate-relative;
   Environment identity is portable through Gate boundary Actors, but mutual understanding requires
   an explicit versioned Topology Outcome and an appropriate Profile. No new Base term or ratified
   extension results.
+- **§7, §19, and §33 — Gate export fidelity and protection discipline recorded.** Every Gate export
+  declares one fidelity class — Direct, Deputised, Mediated, Adapted, or Synthetic — so
+  reinterpretation is never presented as exposure: Mediated exports keep the Mediation rules,
+  Adapted exports name their Adapter Component and never reuse a name with changed semantics, and
+  Synthetic exports are boundary-authored Components with enumerated standing authority, keeping
+  fidelity correlated with the authority a Gate concentrates. A Protection Plane is identified by
+  its protection dimension and enforcement basis, closing the laminarity-by-Plane-minting escape.
+  No-bypass completeness claims are graded — declared, enumerated, statically verified against the
+  resolved generation, or attested — and name their exclusions. Peer recognition records
+  attributable alias relations rather than merged occurrences, and continuity is sequenced: Gate
+  lifecycle contracts declare intra-domain reconstitution continuity while cross-domain continuity
+  rests on receiver-owned pairing until attested federation exists. Raised by the
+  distributed-composition review of the Gate projection model; none of it adds a Base term.
+- **§18.1 and §19 — Composition–Topology seam closed.** Attachment through a Composition Port
+  across a Protected Environment boundary is a covered crossing and coincides with a declared Gate,
+  one boundary occurrence carrying the Port's composition semantics and the Gate's protection and
+  projection semantics; an ordinary Region acquires no Gate obligation merely by having Ports. An
+  Environment is a grouping over the Composition-owned topology floor, and a Map's relation
+  vocabulary begins with the floor's Relations. Protection holds fail-closed throughout
+  Establishment, with a Gate admitting nothing before its Release. Export continuity across backing
+  replacement is a Gate lifecycle declaration, never an inference from Gate or export identity.
 - **§18.1 and §24.2 — Composition timing illustrated.** A factory-composed mouse keeps its private
   firmware structure outside Composition while exposing Base-governed Actors; attachment composes
   that boundary into a Host under local admission and authority; and a managed general-purpose

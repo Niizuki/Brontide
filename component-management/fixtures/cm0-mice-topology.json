@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cm0-mice-topology",
+  "description": "Two independently attached fake mice with per-function occurrences, distinct Topology Nodes, and attributable, contradictory, and malicious topology claims. Data only; no conformance claim.",
+  "contracts": [
+    { "contract": "brontide.fake.input-pointer", "versions": ["1.0"] },
+    { "contract": "brontide.fake.input-buttons", "versions": ["1.0"] },
+    { "contract": "brontide.fake.device-configuration", "versions": ["1.0"] },
+    { "contract": "brontide.fake.device-battery", "versions": ["1.0"] }
+  ],
+  "observers": [
+    { "observer": "host" },
+    { "observer": "device.mouse-a" },
+    { "observer": "device.mouse-b" }
+  ],
+  "topologyNodes": [
+    { "node": "node.host-root", "observer": "host", "kind": "host" },
+    { "node": "node.receiver-1", "observer": "host", "kind": "attachment" },
+    { "node": "node.mouse-a", "observer": "host", "kind": "attachment" },
+    { "node": "node.mouse-b", "observer": "host", "kind": "attachment" }
+  ],
+  "functions": [
+    { "function": "fn.mouse-a.pointer", "contract": "brontide.fake.input-pointer", "node": "node.mouse-a", "actor": "actor.mouse-a-pointer" },
+    { "function": "fn.mouse-a.buttons", "contract": "brontide.fake.input-buttons", "node": "node.mouse-a", "actor": "actor.mouse-a-buttons" },
+    { "function": "fn.mouse-a.configuration", "contract": "brontide.fake.device-configuration", "node": "node.mouse-a", "actor": "actor.mouse-a-configuration" },
+    { "function": "fn.mouse-a.battery", "contract": "brontide.fake.device-battery", "node": "node.mouse-a", "actor": "actor.mouse-a-battery" },
+    { "function": "fn.mouse-b.pointer", "contract": "brontide.fake.input-pointer", "node": "node.mouse-b", "actor": "actor.mouse-b-pointer" },
+    { "function": "fn.mouse-b.buttons", "contract": "brontide.fake.input-buttons", "node": "node.mouse-b", "actor": "actor.mouse-b-buttons" },
+    { "function": "fn.mouse-b.configuration", "contract": "brontide.fake.device-configuration", "node": "node.mouse-b", "actor": "actor.mouse-b-configuration" },
+    { "function": "fn.mouse-b.battery", "contract": "brontide.fake.device-battery", "node": "node.mouse-b", "actor": "actor.mouse-b-battery" }
+  ],
+  "claims": [
+    { "claim": "claim.a-attached", "assertedBy": "host", "relation": "AttachedThrough", "from": "node.mouse-a", "to": "node.host-root" },
+    { "claim": "claim.b-attached", "assertedBy": "host", "relation": "AttachedThrough", "from": "node.mouse-b", "to": "node.receiver-1" },
+    { "claim": "claim.receiver-attached", "assertedBy": "host", "relation": "AttachedThrough", "from": "node.receiver-1", "to": "node.host-root" },
+    { "claim": "claim.a-power", "assertedBy": "device.mouse-a", "relation": "SharesPowerDomain", "from": "node.mouse-a", "to": "node.host-root" },
+    { "claim": "claim.b-assembly-receiver", "assertedBy": "device.mouse-b", "relation": "SamePhysicalAssembly", "from": "node.mouse-b", "to": "node.receiver-1" },
+    { "claim": "claim.host-b-separate", "assertedBy": "host", "relation": "AttachedThrough", "from": "node.mouse-b", "to": "node.receiver-1" },
+    { "claim": "claim.b-hosts-root", "assertedBy": "device.mouse-b", "relation": "HostedBy", "from": "node.host-root", "to": "node.mouse-b" },
+    { "claim": "claim.b-owns-a", "assertedBy": "device.mouse-b", "relation": "SamePhysicalAssembly", "from": "node.mouse-a", "to": "node.mouse-b" }
+  ],
+  "expectations": {
+    "distinctMouseNodes": ["node.mouse-a", "node.mouse-b"],
+    "functionsPerMouseNode": 4,
+    "attributableClaims": ["claim.a-attached", "claim.a-power", "claim.b-attached", "claim.host-b-separate", "claim.receiver-attached"],
+    "contradictoryClaims": [["claim.b-assembly-receiver", "claim.host-b-separate"]],
+    "maliciousClaims": ["claim.b-hosts-root", "claim.b-owns-a"]
+  }
+}

@@ -81,6 +81,23 @@ checked mapping remains in
 
 ## Architecture 0.8 preparation
 
-M6 tracks the three directions named by Architecture 0.7 for 0.8: the Portable Binding Shape floor,
-Channel, and Flow conformance. That work is a requirements and risk ledger only; it does not expand
-the Architecture 0.7 implementation claim or pre-ratify 0.8.
+M6 originally tracked the three directions named by Architecture 0.7 for 0.8. Architecture 0.8 is
+now the registry-selected current architecture as a complete draft: it executes change plan C1-C14
+with authored adversarial vectors
+([`architecture-0.8-adversarial-vectors.json`](../../conformance/architecture-0.8-adversarial-vectors.json))
+and decides the evidence order Channel, then Portable Binding and Shape floor, then Flow
+conformance. M6 therefore prepares its requirements and risk ledger against that document. Two 0.8
+facts already touch recorded Minimal evidence without changing it:
+
+- 0.8 C7 supersedes the delivered 0.7 composite-poisoning rule with structural three-valued
+  evaluation, so the tested `BR-07-CONSTRAINT-001/-002/-003` behavior becomes `conflicting` rework
+  in a future 0.8 delivery audit. The M1 record above remains valid Architecture 0.7 Complete
+  Draft evidence and is not relabelled.
+- 0.8 §11 makes the chain-conjunction representation choice the revocation ceiling. M6 must record
+  Minimal's representation choice here before the Portable Binding freezes one.
+
+The recorded 0.8 composition, Component-management, minimum-topology, and trust-admission
+directions remain non-normative; their experimental coverage belongs to the
+[Component Management Implementation Plan 0.1](../../Brontide-Component-Management-Implementation-Plan-0.1.md),
+not to this ledger. That work is a requirements and risk ledger only; it does not expand the
+Architecture 0.7 implementation claim or pre-ratify 0.8.

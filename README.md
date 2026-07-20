@@ -43,8 +43,10 @@ The broader topology direction is recorded in
 [Topology Environments and Gates Design Note 0.1](./Brontide-Design-Note-Topology-0.1.md). Ordinary
 Environments remain overlapping, security-neutral topology identities; Gates create their
 relationship-specific virtual-Component projections. Protected Environments are disjoint or nested
-within one Protection Plane, opaque except through Gates, and Sealed when no Gate is active. These
-terms remain outside Base and are not a ratified extension.
+within one Protection Plane and opaque except through Gates; one with no active Gate has no
+declared external communication. Every Gate export declares its fidelity — Direct, Deputised,
+Mediated, Adapted, or Synthetic — so reinterpretation never masquerades as exposure. These terms
+remain outside Base and are not a ratified extension.
 
 Exact boundary assumptions are recorded in
 [`docs/public-boundaries.md`](./docs/public-boundaries.md), and the reproducible manual/generated

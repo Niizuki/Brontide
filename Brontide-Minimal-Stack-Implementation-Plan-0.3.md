@@ -45,7 +45,8 @@ The implementation-owned
 0.7 change C1-C8 to an owner, planned evidence, and status boundary. M1-M4 implement C1-C5. C6 and
 C7 require documentation and classification review rather than invented runtime behavior. C8
 remains a recorded, non-ratified direction and must not produce a `Mediator` conformance claim. M6
-tracks the separate Architecture 0.8 handoff named in §35.1.
+tracks the separate Architecture 0.8 handoff named in Architecture 0.7 §35.1; Architecture 0.8 is
+now a complete draft, and §9 defines the expanded handoff scope.
 
 ## 3. Phase M0 — independent delta ledger
 
@@ -160,13 +161,29 @@ actually implemented; this planning document does not authorize source changes n
 
 ## 9. Phase M6 — Architecture 0.8 handoff
 
-Prepare a requirements and risk ledger, without pre-implementing:
+Architecture 0.8 is now a complete draft: it executes change plan C1-C14 with authored
+adversarial vectors and records new non-normative composition, Component-management, topology,
+and trust-admission directions. Prepare a requirements and risk ledger against
+[that document](Brontide-Architecture-0.8.md), without pre-implementing:
 
-- Portable Binding Shape floor;
-- Channel;
-- Flow conformance.
+- the evidence programme in its decided order: Channel first, then the Portable Binding and
+  Shape floor as Channel's first conforming realisation, then Flow conformance;
+- the decided constraint-algebra and authority-lifecycle changes (C1-C14), mapped against
+  `conformance/architecture-0.8-adversarial-vectors.json`;
+- the known supersession: 0.8 C7 replaces the delivered 0.7 composite-poisoning rule (M1) with
+  structural three-valued evaluation, so the `BR-07-CONSTRAINT-001/-002/-003` family becomes
+  `conflicting` rework in a future 0.8 delivery audit while remaining valid Architecture 0.7
+  evidence; and
+- Minimal's chain-conjunction representation choice and its revocation ceiling (0.8 §11),
+  recorded in the delivery ledger before the Portable Binding freezes a representation.
 
-Mediation remains a recorded direction unless a later architecture revision ratifies it.
+The recorded composition, Component-management, minimum-topology, and trust-admission directions
+(0.8 §18.1, §19, §20.1, §24, §33) stay outside this ledger's conformance scope; the fake-manager
+harness planned by the
+[Component Management Implementation Plan 0.1](Brontide-Component-Management-Implementation-Plan-0.1.md)
+owns that experimental work. Mediation — recorded in 0.8 with Aggregation as a fourth species
+beside Selection, Distribution, and Arbitration — remains a recorded direction unless a later
+architecture revision ratifies it.
 
 ## 10. Completion gate
 

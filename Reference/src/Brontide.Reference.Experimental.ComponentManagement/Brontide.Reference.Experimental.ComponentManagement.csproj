@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Brontide.Reference.Experimental.ComponentManagement</AssemblyName>
+    <RootNamespace>Brontide.Reference.Experimental.ComponentManagement</RootNamespace>
+  </PropertyGroup>
+</Project>

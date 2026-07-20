@@ -1,17 +1,22 @@
 # Brontide Component Management Implementation Plan 0.1
 
 Status: Planned experimental work
-Architecture context: [Brontide Architecture 0.8](./Brontide-Architecture-0.8.md), Complete Draft,
-not ratified
+Architecture context: [Brontide Architecture 0.8](./Brontide-Architecture-0.8.md) §18.1, §19,
+§20.1, §24, and §33, Complete Draft, not ratified
 Design source:
 [Component Management and Distribution](./Brontide-Design-Note-Component-Management-0.1.md)
+Related notes:
+[Composition and Components](./Brontide-Design-Note-Composition-0.1.md),
+[Topology Environments and Gates](./Brontide-Design-Note-Topology-0.1.md)
 
 ## 1. Purpose and evidence boundary
 
 Build an entirely fake, deterministic Component Manager in each implementation. The harness exists
 to discover architectural mistakes early and to support automated testing of composition
 mechanisms. It is not a real marketplace, package manager, security product, dynamic code loader,
-or Architecture 0.8 conformance claim.
+or Architecture 0.8 conformance claim. Architecture 0.8 §33 records this sequencing expectation
+directly: a deterministic, entirely fake manager should exercise these seams and present a
+realistic local storefront before any online marketplace or production loader is attempted.
 
 This plan is independent of the retained Architecture 0.5 implementation baseline and the current
 Architecture 0.7 delivery plans. Its output remains experimental and cannot close their milestones
@@ -86,6 +91,12 @@ Each stack owns native representations for:
 A descriptor's claim and the manager's observation remain distinguishable. Loading or selecting a
 fixture grants no Capability and does not establish its requested Actors or authority.
 
+The harness models only the minimum topology-membership floor that the Composition direction owns:
+local Topology Nodes and attributable Topology Relations. Topology Map, Environment, Protected
+Environment, Protection Plane, Gate, and Environment View semantics belong to
+the future `Topology` extension direction recorded in the
+[Topology design note](./Brontide-Design-Note-Topology-0.1.md) and stay outside this plan.
+
 ## 4. Delivery sequence
 
 ### CM0 — vocabulary and fixtures
@@ -122,14 +133,16 @@ Resolve a pending selection into a complete immutable generation:
 - expand Component requirements and Composition Parameters recursively;
 - preserve each requirement's binding scope, minimum and maximum Provider Set cardinality, sharing
   rule, and distinct or mediated exposure;
-- retain a compatible occupied `1..1` binding unless authorised replacement policy says otherwise;
+- retain a compatible occupied `1..1` binding unless the user or authorised replacement policy
+  says otherwise;
 - permit several definitions and several occurrences of one definition to coexist for one contract;
 - satisfy required Provider Set positions deterministically without filling optional capacity merely
   because candidates exist;
 - share an occurrence only when its declared isolation, lifecycle, and authority rules allow it;
 - produce direct Binding Plans for `1..1` and deliberately member-addressed distinct bindings, but
-  require declared Mediation whenever one logical endpoint selects, distributes, aggregates,
-  arbitrates, masks membership, or owns topology-wide failure policy;
+  require declared Mediation whenever one logical endpoint selects, falls back, load-balances,
+  distributes, aggregates, arbitrates, masks membership, or owns topology-wide ordering,
+  backpressure, failure, or recovery policy;
 - record whether Mediation is realised by a dedicated fake Component or erased into fake Host
   construction, without erasing the relationship or its trust consequence;
 - resolve complete child generations within declared Composition Ports of active parent Regions;
