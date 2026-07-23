@@ -1,0 +1,580 @@
+{
+  "schemaVersion": 3,
+  "architectureStatusRegistryPath": "Brontide-Architecture-Status.json",
+  "currentArchitectureRevision": "0.8",
+  "implementationBaselineRevision": "0.5",
+  "stack": "Reference",
+  "reviewTargetCommit": "2049554c8e7ee5c26e4fcae6a103997737aa90f2",
+  "reviewer": {
+    "id": "agent:codex-reference-review-context-final",
+    "name": "Codex Reference Reviewer (Context Final)",
+    "kind": "automated",
+    "independent": true,
+    "independenceStatement": "I did not implement the correction under review and evaluated this stack against the pinned requirements and the architecture status registry rather than accepting implementation claims.",
+    "conflicts": [],
+    "automation": {
+      "system": "Codex",
+      "sessionId": "task:/root/reference_review_context_final",
+      "freshContext": true,
+      "implementationContextAccess": "none"
+    }
+  },
+  "currentArchitectureReview": {
+    "architecturePath": "Brontide-Architecture-0.8.md",
+    "architectureStatus": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
+    "implementationPlanPath": "Reference/Brontide-Reference-Stack-Implementation-Plan-0.3.md",
+    "deliveryLedgerPath": "Reference/docs/architecture-0.7-delivery.md",
+    "architectureReviewed": true,
+    "implementationPlanReviewed": true,
+    "deliveryLedgerReviewed": true,
+    "statusBoundaryAcknowledged": true,
+    "assessment": "current-deltas-recorded",
+    "rationale": "I read the complete Architecture 0.8 and acknowledge its status as a Complete Draft whose implementation evidence is pending and which is not ratified. The Reference README and Plan 0.3 locally target Architecture 0.7, while the delivery ledger limits the claim to tested R1-R2 Complete Draft evidence, leaves R3-R4 planned, and makes no 0.7 conformance claim. Its R6 handoff accurately records Architecture 0.8 as future work, including the C7 three-valued-evaluation conflict with the retained 0.7 poisoning behavior and the wider C1-C14 risk ledger. The retained Architecture 0.5 correction evidence is consistent with that boundary; this assessment records current deltas and is not an Architecture 0.8 conformance claim."
+  },
+  "reviewedAt": "2026-07-23T14:13:34.184Z",
+  "gate": {
+    "commit": "2049554c8e7ee5c26e4fcae6a103997737aa90f2",
+    "command": ".\\build\\verify-interchange.ps1",
+    "result": "passed",
+    "environment": "Windows; PowerShell; .NET SDK 10.0.400-preview.0.26322.102; clean detached worktree C:\\tmp\\brontide-gate-context",
+    "notes": "The full repository gate completed at the pinned commit with explicit exit code 0. Integrity, evidence, review-pending-state, measurement, project, warning-free build, ordinary test, benchmark, both 7/7 cross-process suite, dependency, boundary, and assembly checks passed."
+  },
+  "requirements": [
+    {
+      "requirementId": "BR-05-NAME-001",
+      "architectureSection": "22",
+      "summary": "Canonical names parse ConceptPath and AuthorityPath:ConceptPath without relative or ambiguous notation.",
+      "component": "Brontide.Reference.Core/CanonicalName",
+      "claimedStatus": "implemented",
+      "matrixRationale": "The parser implements both canonical forms; a stable negative conformance test is not yet assigned.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/src/Brontide.Reference.Core/Names.cs",
+          "anchor": "public readonly record struct CanonicalName"
+        }
+      ],
+      "negativeEvidence": [],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "CanonicalName.TryParse accepts exactly an optional single AuthorityPath colon followed by a ConceptPath, validates every nonempty dot segment, rejects leading/trailing whitespace, repeated colons, empty segments, and every relative or ambiguous punctuation form. The positive source anchor and full gate support the implemented claim; the matrix accurately records that no separately assigned negative conformance anchor exists.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-NAME-002",
+      "architectureSection": "23",
+      "summary": "Vocabulary versions are claims rather than semantic identity; only Shapes and Declared Fragments carry structural versions.",
+      "component": "Brontide.Reference.Core semantic references",
+      "claimedStatus": "tested",
+      "matrixRationale": "Operation and Event identities are name-only while Shape and Fragment references carry structural versions.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/src/Brontide.Reference.Core/Names.cs",
+          "anchor": "public readonly record struct OperationReference(CanonicalName Name)"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/ShapeConformanceTests.cs",
+          "anchor": "Same_name_versions_are_additive_and_redefinition_is_rejected"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "ShapeConformanceTests.Same_name_versions_are_additive_and_redefinition_is_rejected (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "OperationReference and EventReference contain only CanonicalName, while ShapeReference and FragmentReference alone carry positive structural versions. The Shape lineage test proves additive same-name versions and rejects reinterpretation, so vocabulary-version claims do not become semantic identity.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-AUTH-001",
+      "architectureSection": "9.1",
+      "summary": "Actor and authority references are issuer-controlled, unambiguous, stable, and comparable within an authority domain.",
+      "component": "Brontide.Reference.Core/ActorReference",
+      "claimedStatus": "tested",
+      "matrixRationale": "Actor references are domain-issued objects with no public constructor and object-reference comparison.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/ActorReferenceTests.cs",
+          "anchor": "Actor_references_are_opaque_and_reference_comparable"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/ActorReferenceTests.cs",
+          "anchor": "typeof(ActorReference).GetConstructors(), Is.Empty"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "ActorReferenceTests.Actor_references_are_opaque_and_reference_comparable (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "ActorReference has no public constructor, is minted only by AuthorityDomain with a domain identifier and fresh opaque identifier, retains reference equality, and is accepted only when present in that domain's actor registry. The evidence proves issuer control, unambiguous distinct issuance, stability as an object reference, and comparison within the authority domain.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-CAP-001",
+      "architectureSection": "10,13.5",
+      "summary": "An Execution explicitly presents a Capability whose holder, target, and Operation scope match the request at the target boundary.",
+      "component": "Brontide.Reference.Core/AuthorityDomain",
+      "claimedStatus": "tested",
+      "matrixRationale": "AuthorityDomain validates initiator, target, presented Capability, and Operation before dispatch.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/src/Brontide.Reference.Core/AuthorityDomain.cs",
+          "anchor": "public async ValueTask<ExecutionResult> ExecuteAsync"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/WorkedAttackTests.cs",
+          "anchor": "Production_approval_is_denied_at_the_target_boundary"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "WorkedAttackTests.Production_approval_is_denied_at_the_target_boundary (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "ExecuteInternalAsync rejects foreign Actors and Capabilities, verifies the presented Capability holder against the attributed authority Actor, matches its target to the Operation target, checks the root Operation scope, and validates input Shape and Constraints before dispatch. The worked production attack confirms the target-side boundary denies a mismatched request without effect.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-CAP-002",
+      "architectureSection": "10.1",
+      "summary": "Every effective Capability Constraint is evaluated conjunctively and unknown or failed Constraints deny before effects.",
+      "component": "Brontide.Reference.Core constraint evaluation",
+      "claimedStatus": "tested",
+      "matrixRationale": "Effective constraints are evaluated across the derivation chain and unknown types deny.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+          "anchor": "Liveness_lease_dies_without_renewal_and_cannot_be_resurrected"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/AuthorityConformanceTests.cs",
+          "anchor": "Unknown_constraint_denies_before_effect_and_is_recorded"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "AuthorityConformanceTests.Unknown_constraint_denies_before_effect_and_is_recorded (passed via full gate)",
+          "KernelTests.Liveness_lease_dies_without_renewal_and_cannot_be_resurrected (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "The domain walks every Constraint expression across the complete Capability derivation chain before handler dispatch. Unknown, invalid, or failed atoms become non-allowed decisions and reject before effects; known constraints must all permit under the retained 0.5/0.7 chain behavior. The current Architecture 0.8 composite-algebra delta is explicitly recorded separately and does not weaken this retained 0.5 fail-closed requirement.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-DELEGATION-001",
+      "architectureSection": "11",
+      "summary": "Delegation changes the holder, preserves inherited target and Operation scope, appends Constraints, and records its parent and issuer.",
+      "component": "Brontide.Reference.Core/Capability",
+      "claimedStatus": "tested",
+      "matrixRationale": "The derived constructor inherits target and root Operations and stores its parent.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/AuthorityConformanceTests.cs",
+          "anchor": "Delegation_adds_constraints_and_cannot_amplify"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/src/Brontide.Reference.Core/Authority.cs",
+          "anchor": "Derivation can only change the holder and append Constraints"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "AuthorityConformanceTests.Delegation_adds_constraints_and_cannot_amplify (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Capability.Delegate creates a new holder and parent link while preserving the immutable target and root Operation set, appends only new Constraint expressions, forbids origin-grant introduction, and registers the derivation only when its parent and Actors remain registered. The conformance test proves the narrower Operation succeeds while inherited broader authority remains denied.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-GENESIS-001",
+      "architectureSection": "12",
+      "summary": "Primordial authority and later Genesis occurrences are bounded, enumerable, and attributable to domain policy.",
+      "component": "Brontide.Reference.Core/GenesisContext",
+      "claimedStatus": "tested",
+      "matrixRationale": "Genesis is callback-scoped and recorded; context validation and mutation share the domain transaction gate, so concurrent issuance cannot resume after deactivation. A failed occurrence atomically restores actors, capabilities, newly issued and pre-existing mutable liveness-lease state, declarations, and Shape registrations. Lease mutation is coordinated with the same gate; rolled-back leases are actively invalidated and registry membership rejects other escaped references, while runtime effects and nested Genesis are blocked during the transaction.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/src/Brontide.Reference.Core/AuthorityDomain.cs",
+          "anchor": "public IReadOnlyList<GenesisRecord> GenesisOccurrences"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+          "anchor": "Failed_genesis_occurrence_rolls_back_unrecorded_authority"
+        },
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+          "anchor": "Failed_genesis_occurrence_rolls_back_renewal_of_an_existing_lease"
+        },
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+          "anchor": "Concurrent_genesis_context_issuance_cannot_resume_after_rollback"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "Focused Core filter for Captured_genesis_context_cannot_mint_authority_later, Failed_genesis_occurrence_rolls_back_unrecorded_authority, Failed_genesis_occurrence_rolls_back_renewal_of_an_existing_lease, and Concurrent_genesis_context_issuance_cannot_resume_after_rollback (4 passed)",
+          "Disposable GenesisAdversarialProbeTests.Every_context_api_is_gate_atomic_and_escaped_derivations_are_inert (1 passed; source removed after run)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Genesis occurrences are recorded with policy Actor, kind, reason, created Actors, and Capabilities only on commit. On failure the domain restores actor, capability, lease, declaration, Fragment, and Shape state; invalidates each newly issued lease; restores complete snapshots of pre-existing lease expiry, latest trusted time, death, and invalidation; and leaves no Genesis or provenance record. Every GenesisContext API performs activity validation and its mutation while holding the same domain gate, so the permanent concurrent test and a fresh all-nine-API adversarial probe proved blocked issuers cannot resume after rollback/deactivation. Escaped Actors, granted and derived Capabilities, and leases are inert; Execute and Event runtime reentrancy and nested Genesis are blocked during the transaction.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-EXEC-001",
+      "architectureSection": "13.5,13.6",
+      "summary": "The requested effect begins only after explicit target-side authority, Shape, and Constraint validation.",
+      "component": "Brontide.Reference.Core/AuthorityDomain",
+      "claimedStatus": "tested",
+      "matrixRationale": "Handlers run after authority, Shape, and Constraint decisions.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/CoolingConformanceTests.cs",
+          "anchor": "Minimal_cooling_system_runs_only_through_checked_executions"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/AuthorityConformanceTests.cs",
+          "anchor": "Assert.That(effects, Is.Zero)"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "CoolingConformanceTests.Minimal_cooling_system_runs_only_through_checked_executions (passed via full gate)",
+          "AuthorityConformanceTests.Unknown_constraint_denies_before_effect_and_is_recorded (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Operation handlers are reached only after Actor, Operation, registered Capability, holder, target, Operation scope, input Shape, complete effective Constraint, and asserted-origin validation. Denial tests keep effect counters at zero, while the Cooling scenario shows only explicitly authorised Executions start effects.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-EXEC-002",
+      "architectureSection": "13.5,28",
+      "summary": "Rejected attempts remain observable Executions while protected command payloads are excluded from denial audit records.",
+      "component": "Brontide.Reference.Core provenance",
+      "claimedStatus": "tested",
+      "matrixRationale": "Rejected executions retain execution metadata and decisions in provenance, but the audit copy does not retain the protected input; the direct caller's ExecutionResult remains complete.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/AuthorityConformanceTests.cs",
+          "anchor": "Unknown_constraint_denies_before_effect_and_is_recorded"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+          "anchor": "Rejected_provenance_excludes_the_protected_input"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "KernelTests.Rejected_provenance_excludes_the_protected_input (passed via full gate)",
+          "AuthorityConformanceTests.Unknown_constraint_denies_before_effect_and_is_recorded (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Reject records the attempted Execution identity, attribution, Operation, target, presentation, decisions, and denial Outcome, but ProvenanceEntry stores ExecutionRecord.WithoutInput for an unauthorised attempt. The direct caller's ExecutionResult retains the submitted input while the audit copy exposes HasInput false and throws on Input access, preserving observability without retaining the protected payload.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-TIME-001",
+      "architectureSection": "10.3,13.3",
+      "summary": "Trusted target time is explicit, scoped to a time domain, monotonic where claimed, and distinct from attributable sender marks.",
+      "component": "Brontide.Reference.Core temporal authority",
+      "claimedStatus": "tested",
+      "matrixRationale": "TimeProvider is explicit, sender Temporal Marks never supply trusted constraint time, and an observed-expired liveness lease remains terminally dead across clock rollback.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+          "anchor": "Liveness_lease_dies_without_renewal_and_cannot_be_resurrected"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+          "anchor": "Wall_clock_constraint_fails_closed_when_domain_has_no_clock"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "KernelTests.Liveness_lease_dies_without_renewal_and_cannot_be_resurrected (passed via full gate)",
+          "KernelTests.Wall_clock_constraint_fails_closed_when_domain_has_no_clock (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Constraint time comes only from the explicit domain TimeProvider; sender TemporalMark values are attribution and are never supplied to authority evaluation. Clockless wall-time evaluation denies, and LivenessLease observes the maximum trusted time and marks expiry terminally dead, so renewal and a later clock rollback cannot resurrect authority.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-EVENT-001",
+      "architectureSection": "14",
+      "summary": "Events are immutable assertions that preserve emitter attribution, causation, declared Shape, and original temporal claims.",
+      "component": "Brontide.Reference.Core events",
+      "claimedStatus": "tested",
+      "matrixRationale": "Emitter, causation, origin, and temporal attribution are retained.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Extensions.Tests/ExtensionScenarioTests.cs",
+          "anchor": "Event_mediator_gates_publish_and_observe_and_preserves_emitters_on_replay"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/OriginConformanceTests.cs",
+          "anchor": "Direct_origin_assertion_denies_constraints_without_event_semantics"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "ExtensionScenarioTests.Event_mediator_gates_publish_and_observe_and_preserves_emitters_on_replay (passed via full gate)",
+          "OriginConformanceTests.Direct_origin_assertion_denies_constraints_without_event_semantics (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "DomainEvent and InteractionContext are immutable records containing emitter Actor, occurrence identity, causation, origin, temporal claim, Event kind, subject, and shaped assertion. Event creation validates the emitter, Shape, and origin authority; forwarding/replay evidence preserves the original Actor and identity while marking replay and derived origin, so delivery does not launder attribution.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-OUTCOME-001",
+      "architectureSection": "14.2",
+      "summary": "An Outcome is a terminal Event for one identifiable Execution or activity, with distinct success result and failure detail Shapes.",
+      "component": "Brontide.Reference.Core outcomes",
+      "claimedStatus": "tested",
+      "matrixRationale": "Outcomes are terminal Events and validate success and failure values under separate contracts.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/OutcomeConformanceTests.cs",
+          "anchor": "Successful_result_and_failure_details_use_independent_shapes"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/OutcomeConformanceTests.cs",
+          "anchor": "failed.Outcome.Result, Is.Null"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "OutcomeConformanceTests.Successful_result_and_failure_details_use_independent_shapes (passed via full gate)",
+          "OutcomeConformanceTests.Successful_macro_operation_can_create_an_activity_that_terminates_later (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Outcome is an immutable terminal occurrence with a mandatory typed terminal reference for an Execution or activity, a terminal status, and independent result versus failure-details contracts. The evidence proves successful results use the Operation output Shape, failures carry no result and use a separate details Shape, and a longer-lived activity receives exactly its own terminal Outcome.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-SHAPE-001",
+      "architectureSection": "16.1,16.5",
+      "summary": "Shape identity is semantic and supports unit, scalar, record, sequence, choice, and opaque contracts without CLR assignability.",
+      "component": "Brontide.Reference.Core/ShapeRegistry",
+      "claimedStatus": "tested",
+      "matrixRationale": "All Base Shape kinds are represented and semantic identity does not use CLR assignability.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+          "anchor": "Registry_supports_all_base_shape_kinds_without_CLR_assignability"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+          "anchor": "Scalar_carriers_are_typed_immutable_and_cannot_contain_authority"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "KernelTests.Registry_supports_all_base_shape_kinds_without_CLR_assignability (passed via full gate)",
+          "KernelTests.Scalar_carriers_are_typed_immutable_and_cannot_contain_authority (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "ShapeDefinition and ShapeRegistry natively model unit, scalar, record, sequence, choice, and opaque contracts by semantic ShapeReference. Projection uses the registered semantic lineage and exact approved scalar carrier rather than general CLR assignability, while mutable and authority-bearing carriers are rejected.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-SHAPE-002",
+      "architectureSection": "16.2",
+      "summary": "Same-name Shape versions are monotonic and additive; breaking structure or meaning requires a new canonical name.",
+      "component": "Brontide.Reference.Core/ShapeRegistry",
+      "claimedStatus": "tested",
+      "matrixRationale": "Later same-name Shape definitions are checked for additive compatibility.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/ShapeConformanceTests.cs",
+          "anchor": "Same_name_versions_are_additive_and_redefinition_is_rejected"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/ShapeConformanceTests.cs",
+          "anchor": "Throws.TypeOf<ShapeRegistrationException>()"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "ShapeConformanceTests.Same_name_versions_are_additive_and_redefinition_is_rejected (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Registration compares every same-name lineage in version order and rejects kind, Fragment policy, existing-field, scalar representation, element, choice, or explicit-inclusion changes, as well as newly required fields. Later valid values project to earlier contracts while an attempted field-Shape redefinition throws, enforcing monotonic additive evolution.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-SHAPE-003",
+      "architectureSection": "16.3,16.4",
+      "summary": "Open Shapes accept valid authored Fragments through canonical projection, required Fragments fail closed, and closed Shapes reject attachment.",
+      "component": "Brontide.Reference.Core Shape projection",
+      "claimedStatus": "tested",
+      "matrixRationale": "Open, required, projected, and closed Fragment behavior has executable evidence.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/ShapeConformanceTests.cs",
+          "anchor": "Open_shape_projects_unknown_optional_authored_fragment_canonically"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Conformance/ShapeConformanceTests.cs",
+          "anchor": "Closed_shapes_reject_authored_attachment_and_transparent_forwarding_preserves_unknowns"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "ShapeConformanceTests.Open_shape_projects_unknown_optional_authored_fragment_canonically (passed via full gate)",
+          "ShapeConformanceTests.Closed_shapes_reject_authored_attachment_and_transparent_forwarding_preserves_unknowns (passed via full gate)",
+          "ShapeConformanceTests.Reusable_fragment_requires_explicit_host_inclusion_even_on_closed_shape (passed via full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Authored Fragments name and validate an explicit compatible open host lineage, required Fragments must be present at a compatible version, optional unknown Fragments are ignored only in canonical projection, and closed Shapes reject authored attachment. Transparent forwarding preserves the original unknown structures, while reusable Fragments require explicit host inclusion.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-INTERCHANGE-001",
+      "architectureSection": "30",
+      "summary": "Cross-stack component evidence crosses an external boundary without sharing implementation-private runtime types or authority objects.",
+      "component": "Brontide.Reference.Experimental.Binding",
+      "claimedStatus": "demonstrated",
+      "matrixRationale": "The retained full gate launches the independently built Minimal provider process for Cooling and Catalog/resource proofs. This is experimental interchange evidence, not protocol ratification.",
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Interchange.Tests/ReferenceHostsMinimalTests.cs",
+          "anchor": "Compatible_activation_success_forwarding_provenance_and_host_enrichment_are_visible"
+        },
+        {
+          "path": "Reference/tests/Brontide.Reference.Interchange.Tests/CatalogBindingTests.cs",
+          "anchor": "Catalog_nested_batch_two_operations_and_explicit_failure_cross_the_Minimal_process"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/build/verify-dependencies.ps1",
+          "anchor": "Brontide.Minimal"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "ReferenceHostsMinimalTests cross-process suite (5/5 passed in full gate)",
+          "ReferenceHostsMinimalCatalogTests cross-process suite (2/2 passed in full gate)",
+          "Reference dependency, boundary, and foreign-assembly guards (passed in full gate)",
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed, exit code 0)"
+        ],
+        "verdict": "conforms",
+        "rationale": "The retained gate launches the independently built Minimal provider as a foreign process and proves Cooling plus Catalog/resource behavior using versioned manifests and data contracts, including nested and repeated values, two Operations, explicit semantic failure, provider-scoped resource refusal, and visible boundary provenance. Reference projects contain no Minimal project reference or foreign assembly, and no Capability or implementation-private runtime object crosses the process boundary, so this is demonstrated experimental interchange rather than protocol ratification.",
+        "dispositionEvidence": null
+      }
+    }
+  ],
+  "overallVerdict": "conforms",
+  "attestation": {
+    "attestedBy": "agent:codex-reference-review-context-final",
+    "statement": "I attest that this record accurately reports my independent review of the pinned commit and the architecture selected by the status registry.",
+    "externalRecord": ""
+  }
+}

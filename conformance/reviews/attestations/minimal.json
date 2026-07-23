@@ -1,0 +1,577 @@
+{
+    "schemaVersion":  3,
+    "architectureStatusRegistryPath":  "Brontide-Architecture-Status.json",
+    "currentArchitectureRevision":  "0.8",
+    "implementationBaselineRevision":  "0.5",
+    "stack":  "Minimal",
+    "reviewTargetCommit":  "2049554c8e7ee5c26e4fcae6a103997737aa90f2",
+    "reviewer":  {
+                     "id":  "agent:codex-minimal-review-context-final",
+                     "name":  "Codex Minimal Reviewer (Context Final)",
+                     "kind":  "automated",
+                     "independent":  true,
+                     "independenceStatement":  "I did not implement the correction under review and evaluated this stack against the pinned requirements and the architecture status registry rather than accepting implementation claims.",
+                     "conflicts":  [
+
+                                   ],
+                     "automation":  {
+                                        "system":  "Codex",
+                                        "sessionId":  "task:/root/minimal_review_context_final",
+                                        "freshContext":  true,
+                                        "implementationContextAccess":  "none"
+                                    }
+                 },
+    "currentArchitectureReview":  {
+                                      "architecturePath":  "Brontide-Architecture-0.8.md",
+                                      "architectureStatus":  "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
+                                      "implementationPlanPath":  "Brontide-Minimal-Stack-Implementation-Plan-0.3.md",
+                                      "deliveryLedgerPath":  "Minimal/docs/architecture-0.7-delivery.md",
+                                      "architectureReviewed":  true,
+                                      "implementationPlanReviewed":  true,
+                                      "deliveryLedgerReviewed":  true,
+                                      "statusBoundaryAcknowledged":  true,
+                                      "assessment":  "current-deltas-recorded",
+                                      "rationale":  "Architecture 0.8 is a Complete Draft with implementation evidence pending and is not ratified. Minimal locally targets Architecture 0.7 and accurately records its partial status, the 0.8 three-valued-Constraint supersession, the chain-representation handoff, and the remaining Channel, Portable Binding/Shape-floor, Flow, persistent-information, and composition work without claiming current-architecture conformance."
+                                  },
+    "reviewedAt":  "2026-07-23T14:17:32.7172251Z",
+    "gate":  {
+                 "commit":  "2049554c8e7ee5c26e4fcae6a103997737aa90f2",
+                 "command":  ".\\build\\verify-interchange.ps1",
+                 "result":  "passed",
+                 "environment":  "Windows / PowerShell 5.1 / .NET SDK 10.0.400-preview.0.26322.102; clean detached worktree at the pinned commit",
+                 "notes":  "The complete repository gate exited 0 in a separate clean detached worktree at the pinned target. Integrity, evidence, review-pending, measurement, project and assembly checks passed; both warning-free stacks built and tested; benchmarks ran; both cross-process interchange suites passed 7/7; dependency and boundary guards passed. Focused disposable Minimal conformance probes also passed and their tracked test edit was restored."
+             },
+    "requirements":  [
+                         {
+                             "requirementId":  "BR-05-NAME-001",
+                             "architectureSection":  "22",
+                             "summary":  "Canonical names parse ConceptPath and AuthorityPath:ConceptPath without relative or ambiguous notation.",
+                             "component":  "Brontide.Minimal.Model/CanonicalName",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "The parser supports authority-qualified canonical names and rejects ambiguous separators.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_NAME_001"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "authority::concept"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "The opaque CanonicalName parser accepts exactly ConceptPath or AuthorityPath:ConceptPath with validated nonempty dot segments and rejects padding, empty segments, relative forms, and multiple or ambiguous separators; the cited positive and negative vectors exercise both paths.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-NAME-002",
+                             "architectureSection":  "23",
+                             "summary":  "Vocabulary versions are claims rather than semantic identity; only Shapes and Declared Fragments carry structural versions.",
+                             "component":  "Brontide.Minimal.Model semantic references",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Operation and Event references are name-only; Shape and Fragment references retain positive structural versions.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_NAME_002"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "operationFields"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "OperationReference and EventReference expose name only, while ShapeReference and FragmentReference carry positive structural versions. Reflection evidence and the model definitions confirm that vocabulary version claims are not embedded in semantic identity.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-AUTH-001",
+                             "architectureSection":  "9.1",
+                             "summary":  "Actor and authority references are issuer-controlled, unambiguous, stable, and comparable within an authority domain.",
+                             "component":  "Brontide.Minimal.Model opaque references",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Issued reference representations are private, foreign-domain references are rejected, and deterministic allocation lineages distinguish semantically different persistent branches without breaking replay of the same transition.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/src/Brontide.Minimal.Model/Model.fs",
+                                                          "anchor":  "type ActorReference = private"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_AUTH_001"
+                                                      },
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "discarded persistent branch cannot recycle opaque references"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Issuer-controlled references have private construction, structural equality, domain scope, allocation epoch, and sequence identity; all authority use is validated against the World registries. Fresh Genesis transaction epochs plus context-wide allocation sequencing prevent failed and discarded branches from recycling accepted identities, including an exact failed-policy/name/time retry verified by a disposable passing probe.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-CAP-001",
+                             "architectureSection":  "10,13.5",
+                             "summary":  "An Execution explicitly presents a Capability whose holder, target, and Operation scope match the request at the target boundary.",
+                             "component":  "Brontide.Minimal.Kernel/World.step",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "The only public execution path requires initiator, target, presented Capability, Operation, and input.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_EXEC_001"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_AUTH_002"
+                                                      },
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_AUTH_003"
+                                                      },
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_AUTH_004"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "World.step is the sole public execution path and requires an attributable initiator, explicit target, presented issued Capability, and Operation. It checks holder, target, and Operation scope against the target registry before any handler can run; wrong-holder, wrong-target, wrong-operation, and foreign-reference vectors all deny.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-CAP-002",
+                             "architectureSection":  "10.1",
+                             "summary":  "Every effective Capability Constraint is evaluated conjunctively and unknown or failed Constraints deny before effects.",
+                             "component":  "Brontide.Minimal.Kernel constraint chain",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Operation requirements and every Capability derivation requirement are evaluated conjunctively.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "evaluators = Map.ofList"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_AUTH_005"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "The kernel reconstructs the complete Capability parent chain, combines every ancestor expression with Operation requirements, validates parameter Shapes, and evaluates all requirements before dispatch. Missing evaluators and invalid or failed constraints produce fail-closed denial, with no handler effect.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-DELEGATION-001",
+                             "architectureSection":  "11",
+                             "summary":  "Delegation changes the holder, preserves inherited target and Operation scope, appends Constraints, and records its parent and issuer.",
+                             "component":  "Brontide.Minimal.Kernel/World.delegateCapability",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "The API cannot express a replacement operation set or target and records parent plus delegator.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_DELEGATION_001"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/src/Brontide.Minimal.Kernel/Kernel.fs",
+                                                          "anchor":  "Operations = parent.Operations"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "The delegation API accepts only a parent, a new holder, and additional constraints. The implementation copies the parent target and Operation set, preserves delegation bounds, and records Parent and IssuedBy, so the public surface cannot express target or Operation widening.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-GENESIS-001",
+                             "architectureSection":  "12",
+                             "summary":  "Primordial authority and later Genesis occurrences are bounded, enumerable, and attributable to domain policy.",
+                             "component":  "Brontide.Minimal.Kernel/World.genesis",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Genesis records policy, introduced identities, and time. One shared authority-domain coordinator serializes Genesis and runtime across every persistent World alias; contexts issue only into their exact transaction branch, uncommitted branches remain invalid, discarded or failed identities cannot collide with accepted authority, and nested Genesis or runtime dispatch is blocked while the transaction is active.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_GENESIS_001"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "failed Genesis does not recycle escaped authority references"
+                                                      },
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "discarded persistent branch cannot recycle opaque references"
+                                                      },
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "failed Genesis invalidates transaction branches and rejects original aliases"
+                                                      },
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "active Genesis blocks runtime and nesting through original alias"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "dotnet test .\\Minimal\\tests\\Brontide.Minimal.Conformance\\Brontide.Minimal.Conformance.fsproj -nologo --no-restore (including two disposable reviewer probes; 26/26 passed; edit restored)"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Genesis is attributable and enumerable and uses one mutable coordinator shared by every immutable World alias. Context issuance is bound to the exact active transaction World; allocation sequencing differentiates identical discarded and accepted branches; fresh transaction epochs prevent failed-reference reuse; original aliases cannot mutate, dispatch, or nest while Genesis is active; and escaped transaction branches remain inert. Retained tests and two disposable passing probes covered exact failed retry and a successful callback escaped branch. Deterministic replay remains the pure World.step contract, while Genesis is a distinct coordinated policy occurrence.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-EXEC-001",
+                             "architectureSection":  "13.5,13.6",
+                             "summary":  "The requested effect begins only after explicit target-side authority, Shape, and Constraint validation.",
+                             "component":  "Brontide.Minimal.Kernel/World.step",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Handlers are selected only after target, Capability, Shape, and Constraint checks.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_EXEC_001"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "invoked, Is.False"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "World.step performs trusted-time, Operation, Actor, target, Capability, holder, scope, input-Shape, full-Constraint-chain, handler-presence, result-Shape, and Event validations in order. The handler is selected only after pre-effect checks, and invalid handler results or Events are recorded as failures rather than committed effects.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-EXEC-002",
+                             "architectureSection":  "13.5,28",
+                             "summary":  "Rejected attempts remain observable Executions while protected command payloads are excluded from denial audit records.",
+                             "component":  "Brontide.Minimal.Kernel execution audit",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Every denial allocates an Execution audit record without the command or payload.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_AUTH_002"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "Does.Not.Contain \"Payload\""
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Every denial allocates and stores an ExecutionAudit and terminal Outcome while the audit record has no Command or Payload field and denial Outcomes carry neither result nor detail payload. The cited wrong-holder vector confirms observability, redaction, and absence of handler invocation.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-TIME-001",
+                             "architectureSection":  "10.3,13.3",
+                             "summary":  "Trusted target time is explicit, scoped to a time domain, monotonic where claimed, and distinct from attributable sender marks.",
+                             "component":  "Brontide.Minimal.Kernel trusted time",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Environment supplies the target-trusted Temporal Mark; domain mismatch and regression deny.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_TIME_001"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "ForeignClock"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Environment supplies the explicit target-trusted TemporalMark. World.step and Genesis require the World time domain, reject regression and negative uncertainty, keep sender occurrence marks separate, and update logical time monotonically; foreign-domain and regression vectors deny.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-EVENT-001",
+                             "architectureSection":  "14",
+                             "summary":  "Events are immutable assertions that preserve emitter attribution, causation, declared Shape, and original temporal claims.",
+                             "component":  "Brontide.Minimal.Kernel Event commit",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Event definitions validate assertion Shape and committed Events preserve emitter, causation, and time.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "explicit issue delegate execute and Event attribution path succeeds"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/src/Brontide.Minimal.Kernel/Kernel.fs",
+                                                          "anchor":  "An emitted Event names an unknown emitter"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Event definitions bind assertion Shapes, and commit validates the emitter as an issued Actor plus payload conformance before allocation. Committed immutable records preserve emitter, causing Execution, emitted time, and original occurred-at claim, as exercised by the attributed success path.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-OUTCOME-001",
+                             "architectureSection":  "14.2",
+                             "summary":  "An Outcome is a terminal Event for one identifiable Execution or activity, with distinct success result and failure detail Shapes.",
+                             "component":  "Brontide.Minimal.Model/ExecutionOutcome",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "ExecutionOutcome composes an attributed Event, names its terminal Execution, and separates result from shaped failure details.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_OUTCOME_001"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "execution.Outcome.Result.IsNone"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "ExecutionOutcome contains an attributed Event, Execution and TerminalFor references, terminal status, and mutually separated Result versus DetailsShape/Details fields. Success uses the Operation result Shape; failures use independently validated detail Shapes and denied attempts expose neither.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-SHAPE-001",
+                             "architectureSection":  "16.1,16.5",
+                             "summary":  "Shape identity is semantic and supports unit, scalar, record, sequence, choice, and opaque contracts without CLR assignability.",
+                             "component":  "Brontide.Minimal.Model/ShapeBody",
+                             "claimedStatus":  "implemented",
+                             "matrixRationale":  "All six Base Shape kinds exist and validation is keyed by semantic ShapeReference.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/src/Brontide.Minimal.Model/Model.fs",
+                                                          "anchor":  "type ShapeBody"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/src/Brontide.Minimal.Kernel/Kernel.fs",
+                                                          "anchor":  "The value does not match the declared shape"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "ShapeReference provides semantic name and version identity, ShapeBody implements unit, scalar, record, sequence, choice, and opaque forms, and recursive validation is registry-based rather than CLR assignability. The full source and gate confirm all six forms compile and remain independently modeled.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-SHAPE-002",
+                             "architectureSection":  "16.2",
+                             "summary":  "Same-name Shape versions are monotonic and additive; breaking structure or meaning requires a new canonical name.",
+                             "component":  "Brontide.Minimal.Kernel Shape registry",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Registration verifies prior fields, optional additions, body kind, and fragment policy.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_SHAPE_001"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "invalidV2"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Shape registration rejects duplicate or non-increasing versions and compares each new definition with the latest lineage. It preserves body kind, existing fields and Shapes, requiredness, fragment policy, and accepted fragments, permitting only optional additive record fields.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-SHAPE-003",
+                             "architectureSection":  "16.3,16.4",
+                             "summary":  "Open Shapes accept valid authored Fragments through canonical projection, required Fragments fail closed, and closed Shapes reject attachment.",
+                             "component":  "Brontide.Minimal.Kernel Shape projection",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Canonical projection enforces required Fragments, rejects authored attachments outside their declared host Shape lineage, accepts later compatible host versions, and honors explicit inclusion.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "BR_05_SHAPE_003 authored fragments stay within their host Shape lineage"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+                                                          "anchor":  "The fragment is not declared for that host Shape lineage."
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "FragmentDefinition names its HostShape lineage. Validation accepts explicit reusable inclusion or an authored attachment only when the host name matches and its earliest version is not later than the target; required fragments fail when absent, unrelated attachments fail, and closed Shapes reject authored attachments.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-INTERCHANGE-001",
+                             "architectureSection":  "30",
+                             "summary":  "Cross-stack component evidence crosses an external boundary without sharing implementation-private runtime types or authority objects.",
+                             "component":  "Brontide.Minimal.Binding",
+                             "claimedStatus":  "demonstrated",
+                             "matrixRationale":  "The retained full gate launches the independently built Reference provider process for Cooling and Catalog/resource proofs. This is experimental interchange evidence, not protocol ratification.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Interchange.Tests/InterchangeTests.fs",
+                                                          "anchor":  "compatible activation success forwarding provenance and host Enrichment are visible"
+                                                      },
+                                                      {
+                                                          "path":  "Minimal/tests/Brontide.Minimal.Interchange.Tests/InterchangeTests.fs",
+                                                          "anchor":  "Catalog nested batch two operations and explicit failure cross the Reference process"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Minimal/build/verify-boundaries.ps1",
+                                                          "anchor":  "Brontide.Reference"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Minimal binding and tests launch the independently built Reference provider as an external process for Cooling and Catalog/resource scenarios. The project, textual, output-assembly, and full assembly-graph guards prohibit Reference project or runtime-type sharing; the complete gate passed both seven-case cross-process suites. This is correctly labelled experimental interchange evidence rather than protocol ratification.",
+                                            "dispositionEvidence":  null
+                                        }
+                         }
+                     ],
+    "overallVerdict":  "conforms",
+    "attestation":  {
+                        "attestedBy":  "agent:codex-minimal-review-context-final",
+                        "statement":  "I attest that this record accurately reports my independent review of the pinned commit and the architecture selected by the status registry.",
+                        "externalRecord":  ""
+                    }
+}
