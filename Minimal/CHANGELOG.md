@@ -50,6 +50,8 @@ version and treat the corrected API as the baseline.
 
 - Attributed terminal Outcome Events, redacted execution audits, Genesis occurrence records, and
   authority-qualified canonical names.
-- Genesis transactions reject nested Genesis and runtime handler dispatch before effects.
+- Genesis transactions use a shared authority-domain coordinator across every persistent `World`
+  alias. Context issuance is bound to the exact transaction branch; pre-transaction aliases cannot
+  dispatch, mutate, or nest while Genesis is active, and escaped uncommitted branches remain inert.
 - Independent Catalog/resource process binding, strict adversarial vectors, replay and payload
   controls, and reproducible binding source-cost measurements.

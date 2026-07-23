@@ -758,6 +758,128 @@ type BaseAuthorityConformance() =
             Assert.That(invoked, Is.False)))
 
     [<Test>]
+    member _.``BR_05_GENESIS_001 failed Genesis invalidates transaction branches and rejects original aliases`` () =
+        let fixture = prepareWorld ()
+        let mutable escapedActor = Unchecked.defaultof<ActorReference>
+        let mutable escapedCapability = Unchecked.defaultof<CapabilityReference>
+        let mutable escapedTransactionWorld = fixture.World
+        let mutable originalAliasBlocked = false
+        let mutable invoked = false
+
+        Assert.Throws<InvalidOperationException>(
+            Action(fun () ->
+                World.genesis
+                    (name "Brontide.Minimal.Tests:OuterPolicy")
+                    (mark 1L)
+                    (fun genesis transactionWorld ->
+                        originalAliasBlocked <-
+                            Assert.Throws<InvalidOperationException>(
+                                Action(fun () ->
+                                    Genesis.actor
+                                        genesis
+                                        (name "Brontide.Minimal.Tests:InvalidAliasActor")
+                                        fixture.World
+                                    |> ignore)
+                            )
+                            |> isNull
+                            |> not
+
+                        let actor, transactionWorld =
+                            Genesis.actor
+                                genesis
+                                (name "Brontide.Minimal.Tests:EscapedTransactionActor")
+                                transactionWorld
+
+                        let capability, transactionWorld =
+                            Genesis.capability
+                                genesis
+                                (name "Brontide.Minimal.Tests:EscapedTransactionGrant")
+                                actor.Reference
+                                fixture.Target.Reference
+                                (Set.singleton echoOperation)
+                                []
+                                false
+                                transactionWorld
+                            |> get
+
+                        escapedActor <- actor.Reference
+                        escapedCapability <- capability.Reference
+                        escapedTransactionWorld <- transactionWorld
+                        invalidOp "rollback")
+                    fixture.World
+                |> ignore)
+        )
+        |> ignore
+
+        let result =
+            World.step
+                (environment 2L Map.empty (fun value ->
+                    invoked <- true
+                    Ok(value.Command, [], [])))
+                escapedTransactionWorld
+                (request
+                    fixture
+                    escapedActor
+                    fixture.Target.Reference
+                    escapedCapability
+                    echoOperation
+                    (TextValue "must not execute"))
+
+        Assert.Multiple(Action(fun () ->
+            Assert.That(originalAliasBlocked, Is.True)
+            Assert.That(result.Outcome.Status, Is.EqualTo Denied)
+            Assert.That(invoked, Is.False)
+            Assert.That(
+                World.genesisOccurrences escapedTransactionWorld,
+                Has.None.Matches<GenesisOccurrence>(fun occurrence ->
+                    occurrence.IntroducedActors |> List.contains escapedActor)
+            )))
+
+    [<Test>]
+    member _.``BR_05_GENESIS_001 active Genesis blocks runtime and nesting through original alias`` () =
+        let fixture = prepareWorld ()
+        let mutable invoked = false
+        let mutable runtimeStatus = Unchecked.defaultof<ExecutionStatus>
+        let mutable nestedAccepted = false
+
+        World.genesis
+            (name "Brontide.Minimal.Tests:OuterPolicy")
+            (mark 1L)
+            (fun _ transactionWorld ->
+                runtimeStatus <-
+                    World.step
+                        (environment 1L Map.empty (fun value ->
+                            invoked <- true
+                            Ok(value.Command, [], [])))
+                        fixture.World
+                        (request
+                            fixture
+                            fixture.Holder.Reference
+                            fixture.Target.Reference
+                            fixture.Capability.Reference
+                            echoOperation
+                            (TextValue "must not execute"))
+                    |> _.Outcome.Status
+
+                nestedAccepted <-
+                    World.genesis
+                        (name "Brontide.Minimal.Tests:NestedPolicy")
+                        (mark 1L)
+                        (fun _ nestedWorld -> (), nestedWorld)
+                        fixture.World
+                    |> Result.isOk
+
+                (), transactionWorld)
+            fixture.World
+        |> get
+        |> ignore
+
+        Assert.Multiple(Action(fun () ->
+            Assert.That(runtimeStatus, Is.EqualTo Denied)
+            Assert.That(invoked, Is.False)
+            Assert.That(nestedAccepted, Is.False)))
+
+    [<Test>]
     member _.``BR_05_TIME_001 trusted time is explicit monotonic and target scoped`` () =
         let fixture = prepareWorld ()
         let executionRequest =

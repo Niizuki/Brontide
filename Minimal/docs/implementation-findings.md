@@ -16,6 +16,11 @@ Opaque generated identities follow the same rule. Their private allocation linea
 the prior lineage and the semantic allocation input: replaying one transition remains equal, while
 different branches from one persistent `World` cannot accidentally share an identity.
 
+All aliases of one authority domain also share a private transaction coordinator. Genesis holds
+that coordinator through its callback, binds issuance to the supplied transaction branch, and
+leaves every uncommitted branch invalid. This is the narrow mutable control needed to preserve an
+atomic effect boundary around otherwise persistent values.
+
 ## Similar wire fields still need distinct semantic types
 
 Actor, Capability, Execution, Occurrence, and Activity references deliberately share scope/value

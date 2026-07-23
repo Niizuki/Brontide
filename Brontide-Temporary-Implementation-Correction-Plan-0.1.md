@@ -149,6 +149,10 @@ The next same-target review found two deeper persistent-state cases: Minimal cou
 Actor and Capability references on a discarded and accepted branch within one successful Genesis
 callback, and Reference rollback did not restore renewal of a pre-existing mutable liveness lease.
 
+The following Minimal review found that transaction state lived only on the callback's immutable
+World value. A callback retaining the pre-transaction alias could therefore issue through the
+active context, dispatch runtime work, or start nested Genesis outside the transaction branch.
+
 Requested change:
 
 1. Bind every Minimal authored Fragment to an explicit compatible host Shape lineage, while
@@ -167,6 +171,8 @@ Requested change:
    semantically different branches from the same persistent World.
 8. Snapshot and restore pre-existing Reference liveness-lease state on failed Genesis and
    coordinate lease observation and renewal with the domain transaction.
+9. Coordinate Minimal Genesis across every persistent World alias, bind context issuance to the
+   exact transaction branch, and keep all escaped uncommitted branches inert.
 
 ## 8. Delivery order
 

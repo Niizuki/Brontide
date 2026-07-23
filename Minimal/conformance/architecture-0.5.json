@@ -70,10 +70,12 @@
       "positiveEvidence": [{ "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "BR_05_GENESIS_001" }],
       "negativeEvidence": [
         { "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "failed Genesis does not recycle escaped authority references" },
-        { "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "discarded persistent branch cannot recycle opaque references" }
+        { "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "discarded persistent branch cannot recycle opaque references" },
+        { "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "failed Genesis invalidates transaction branches and rejects original aliases" },
+        { "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "active Genesis blocks runtime and nesting through original alias" }
       ],
       "status": "tested",
-      "rationale": "Genesis records policy, introduced identities, and time; captured contexts deactivate, transaction membership is separate from a deterministic allocation lineage, discarded or failed branches cannot collide with the accepted branch, and nested Genesis or runtime dispatch is blocked while the transaction is active."
+      "rationale": "Genesis records policy, introduced identities, and time. One shared authority-domain coordinator serializes Genesis and runtime across every persistent World alias; contexts issue only into their exact transaction branch, uncommitted branches remain invalid, discarded or failed identities cannot collide with accepted authority, and nested Genesis or runtime dispatch is blocked while the transaction is active."
     },
     {
       "requirementId": "BR-05-EXEC-001",

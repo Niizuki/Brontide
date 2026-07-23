@@ -134,9 +134,40 @@ module private ReferenceIdentity =
 
         encoded |> SHA256.HashData |> Array.take 16 |> Guid
 
+type private AuthorityTransactionCoordinator() =
+    let gate = obj ()
+    let mutable activeGenesis: Guid option = None
+
+    member _.AllowsMutation(transaction: Guid option) =
+        lock gate (fun () ->
+            match activeGenesis, transaction with
+            | None, None -> true
+            | Some active, Some branch -> active = branch
+            | _ -> false)
+
+    member _.RunGenesis(transaction: Guid, whenBusy: unit -> 'T, action: unit -> 'T) =
+        lock gate (fun () ->
+            match activeGenesis with
+            | Some _ -> whenBusy ()
+            | None ->
+                activeGenesis <- Some transaction
+
+                try
+                    action ()
+                finally
+                    activeGenesis <- None)
+
+    member _.RunRuntime(transaction: Guid option, whenBlocked: unit -> 'T, action: unit -> 'T) =
+        lock gate (fun () ->
+            if activeGenesis.IsSome || transaction.IsSome then
+                whenBlocked ()
+            else
+                action ())
+
 type World =
     private
         { Scope: Guid
+          AuthorityTransactions: AuthorityTransactionCoordinator
           ReferenceEpoch: Guid
           GenesisTransaction: Guid option
           NextReference: int64
@@ -198,21 +229,33 @@ type GenesisContext internal (scope: Guid, transaction: Guid) =
     let mutable active = true
     let mutable nextAllocation = 0L
 
-    member internal _.EnsureActive(worldScope: Guid) =
-        lock allocationGate (fun () ->
-            if not active then
-                invalidOp "A completed Genesis context cannot introduce authority."
-
-            if scope <> worldScope then
-                invalidOp "A Genesis context cannot introduce authority into another domain.")
-
-    member internal _.AllocateReferenceEpoch(worldScope: Guid, kind, parts) =
+    member internal _.EnsureActive(worldScope: Guid, worldTransaction: Guid option, genesisActive: bool) =
         lock allocationGate (fun () ->
             if not active then
                 invalidOp "A completed Genesis context cannot introduce authority."
 
             if scope <> worldScope then
                 invalidOp "A Genesis context cannot introduce authority into another domain."
+
+            if worldTransaction <> Some transaction || not genesisActive then
+                invalidOp "A Genesis context can introduce authority only into its transaction World.")
+
+    member internal _.AllocateReferenceEpoch(
+        worldScope: Guid,
+        worldTransaction: Guid option,
+        genesisActive: bool,
+        kind,
+        parts
+    ) =
+        lock allocationGate (fun () ->
+            if not active then
+                invalidOp "A completed Genesis context cannot introduce authority."
+
+            if scope <> worldScope then
+                invalidOp "A Genesis context cannot introduce authority into another domain."
+
+            if worldTransaction <> Some transaction || not genesisActive then
+                invalidOp "A Genesis context can introduce authority only into its transaction World."
 
             nextAllocation <- nextAllocation + 1L
             ReferenceIdentity.derive transaction nextAllocation kind parts)
@@ -224,6 +267,9 @@ type GenesisContext internal (scope: Guid, transaction: Guid) =
 module World =
     let private allocationEpoch kind parts (world: World) =
         ReferenceIdentity.derive world.ReferenceEpoch world.NextReference kind parts
+
+    let private mutationAllowed (world: World) =
+        world.AuthorityTransactions.AllowsMutation(world.GenesisTransaction)
 
     let private builtInShape (reference: ShapeReference) (body: ShapeBody) : ShapeDefinition =
         { Reference = reference
@@ -250,6 +296,7 @@ module World =
               Name = CanonicalName.create "Brontide.Minimal:AuthorityDomain" }
 
         { Scope = scope
+          AuthorityTransactions = AuthorityTransactionCoordinator()
           ReferenceEpoch = referenceEpoch
           GenesisTransaction = None
           NextReference = 2L
@@ -292,79 +339,86 @@ module World =
         (initialize: GenesisContext -> World -> 'T * World)
         (world: World)
         =
-        if world.GenesisActive then
-            Error "Genesis occurrences cannot be nested."
+        if world.GenesisTransaction.IsSome then
+            Error "An uncommitted Genesis branch cannot start another Genesis occurrence."
         elif recordedAt.TimeDomain <> world.TimeDomain then
             Error "Genesis must use the authority domain's trusted time domain."
         elif recordedAt.Milliseconds < world.LastLogicalTime then
             Error "Genesis time cannot move backwards."
         else
             let transactionEpoch = Guid.NewGuid()
-            let context = GenesisContext(world.Scope, transactionEpoch)
-            let transactionWorld =
-                { world with
-                    ReferenceEpoch = transactionEpoch
-                    GenesisTransaction = Some transactionEpoch
-                    GenesisActive = true }
-            let actorsBefore = world.Actors |> Map.keys |> Set.ofSeq
-            let capabilitiesBefore = world.Capabilities |> Map.keys |> Set.ofSeq
+            world.AuthorityTransactions.RunGenesis(
+                transactionEpoch,
+                (fun () -> Error "Genesis occurrences cannot be nested."),
+                (fun () ->
+                    let context = GenesisContext(world.Scope, transactionEpoch)
+                    let transactionWorld =
+                        { world with
+                            ReferenceEpoch = transactionEpoch
+                            GenesisTransaction = Some transactionEpoch
+                            GenesisActive = true }
+                    let actorsBefore = world.Actors |> Map.keys |> Set.ofSeq
+                    let capabilitiesBefore = world.Capabilities |> Map.keys |> Set.ofSeq
 
-            try
-                let value, initialized = initialize context transactionWorld
-                context.Complete()
+                    try
+                        let value, initialized = initialize context transactionWorld
+                        context.Complete()
 
-                if initialized.Scope <> world.Scope then
-                    invalidOp "Genesis returned a World from another authority domain."
+                        if initialized.Scope <> world.Scope then
+                            invalidOp "Genesis returned a World from another authority domain."
 
-                if initialized.GenesisTransaction <> Some transactionEpoch || not initialized.GenesisActive then
-                    invalidOp "Genesis must return the transaction World supplied to its callback."
+                        if initialized.GenesisTransaction <> Some transactionEpoch || not initialized.GenesisActive then
+                            invalidOp "Genesis must return the transaction World supplied to its callback."
 
-                let introducedActors =
-                    initialized.Actors
-                    |> Map.keys
-                    |> Set.ofSeq
-                    |> fun issued -> Set.difference issued actorsBefore
-                    |> Set.toList
+                        let introducedActors =
+                            initialized.Actors
+                            |> Map.keys
+                            |> Set.ofSeq
+                            |> fun issued -> Set.difference issued actorsBefore
+                            |> Set.toList
 
-                let introducedCapabilities =
-                    initialized.Capabilities
-                    |> Map.keys
-                    |> Set.ofSeq
-                    |> fun issued -> Set.difference issued capabilitiesBefore
-                    |> Set.toList
+                        let introducedCapabilities =
+                            initialized.Capabilities
+                            |> Map.keys
+                            |> Set.ofSeq
+                            |> fun issued -> Set.difference issued capabilitiesBefore
+                            |> Set.toList
 
-                let occurrenceEpoch =
-                    allocationEpoch
-                        "genesis-occurrence"
-                        [ CanonicalName.value policy
-                          yield! ReferenceIdentity.temporalMarkTokens recordedAt ]
-                        initialized
+                        let occurrenceEpoch =
+                            allocationEpoch
+                                "genesis-occurrence"
+                                [ CanonicalName.value policy
+                                  yield! ReferenceIdentity.temporalMarkTokens recordedAt ]
+                                initialized
 
-                let occurrence =
-                    OccurrenceReference.issue initialized.Scope occurrenceEpoch initialized.NextReference
+                        let occurrence =
+                            OccurrenceReference.issue initialized.Scope occurrenceEpoch initialized.NextReference
 
-                let genesisRecord =
-                    { Occurrence = occurrence
-                      Policy = policy
-                      IntroducedActors = introducedActors
-                      IntroducedCapabilities = introducedCapabilities
-                      RecordedAt = recordedAt }
+                        let genesisRecord =
+                            { Occurrence = occurrence
+                              Policy = policy
+                              IntroducedActors = introducedActors
+                              IntroducedCapabilities = introducedCapabilities
+                              RecordedAt = recordedAt }
 
-                Ok(
-                    value,
-                    { initialized with
-                        ReferenceEpoch = occurrenceEpoch
-                        GenesisTransaction = None
-                        NextReference = initialized.NextReference + 1L
-                        GenesisActive = false
-                        GenesisOccurrences = initialized.GenesisOccurrences @ [ genesisRecord ]
-                        LastLogicalTime = recordedAt.Milliseconds }
-                )
-            finally
-                context.Complete()
+                        Ok(
+                            value,
+                            { initialized with
+                                ReferenceEpoch = occurrenceEpoch
+                                GenesisTransaction = None
+                                NextReference = initialized.NextReference + 1L
+                                GenesisActive = false
+                                GenesisOccurrences = initialized.GenesisOccurrences @ [ genesisRecord ]
+                                LastLogicalTime = recordedAt.Milliseconds }
+                        )
+                    finally
+                        context.Complete())
+            )
 
     let registerShape (definition: ShapeDefinition) (world: World) =
-        if definition.Reference.Version < 1 then
+        if not (mutationAllowed world) then
+            Error "World mutation is unavailable outside the active Genesis branch."
+        elif definition.Reference.Version < 1 then
             Error "Shape versions start at one."
         elif Map.containsKey definition.Reference world.Shapes then
             Error "That shape version is already registered."
@@ -418,7 +472,9 @@ module World =
                         Shapes = Map.add definition.Reference definition world.Shapes }
 
     let registerFragment (definition: FragmentDefinition) (world: World) =
-        if Map.containsKey definition.Reference world.Fragments then
+        if not (mutationAllowed world) then
+            Error "World mutation is unavailable outside the active Genesis branch."
+        elif Map.containsKey definition.Reference world.Fragments then
             Error "That fragment version is already registered."
         elif not (Map.containsKey definition.HostShape world.Shapes) then
             Error "The fragment host Shape is not registered."
@@ -435,7 +491,9 @@ module World =
         (description: string)
         (world: World)
         =
-        if not (Map.containsKey parameterShape world.Shapes) then
+        if not (mutationAllowed world) then
+            Error "World mutation is unavailable outside the active Genesis branch."
+        elif not (Map.containsKey parameterShape world.Shapes) then
             Error "The constraint parameter shape is not registered."
         else
             let referenceEpoch =
@@ -463,7 +521,9 @@ module World =
             )
 
     let registerOperation (definition: OperationDefinition) (world: World) =
-        if Map.containsKey definition.Reference world.Operations then
+        if not (mutationAllowed world) then
+            Error "World mutation is unavailable outside the active Genesis branch."
+        elif Map.containsKey definition.Reference world.Operations then
             Error "That operation is already registered."
         elif not (Map.containsKey definition.Target world.Actors) then
             Error "The operation target is not an issued Actor in this domain."
@@ -482,7 +542,9 @@ module World =
                     Operations = Map.add definition.Reference definition world.Operations }
 
     let registerEvent (definition: EventDefinition) (world: World) =
-        if Map.containsKey definition.Reference world.EventDefinitions then
+        if not (mutationAllowed world) then
+            Error "World mutation is unavailable outside the active Genesis branch."
+        elif Map.containsKey definition.Reference world.EventDefinitions then
             Error "That Event is already registered."
         elif not (Map.containsKey definition.AssertionShape world.Shapes) then
             Error "The Event assertion Shape is not registered."
@@ -604,7 +666,13 @@ module World =
 
     let internal issueGenesisActor (context: GenesisContext) (name: CanonicalName) (world: World) =
         let referenceEpoch =
-            context.AllocateReferenceEpoch(world.Scope, "actor", [ CanonicalName.value name ])
+            context.AllocateReferenceEpoch(
+                world.Scope,
+                world.GenesisTransaction,
+                world.GenesisActive,
+                "actor",
+                [ CanonicalName.value name ]
+            )
 
         let reference = ActorReference.issue world.Scope referenceEpoch world.NextReference
         let actor = { Reference = reference; Name = name }
@@ -625,7 +693,7 @@ module World =
         (delegationAllowed: bool)
         (world: World)
         =
-        context.EnsureActive world.Scope
+        context.EnsureActive(world.Scope, world.GenesisTransaction, world.GenesisActive)
 
         let operationsRecognized =
             operations
@@ -658,7 +726,13 @@ module World =
                         None
 
                 let referenceEpoch =
-                    context.AllocateReferenceEpoch(world.Scope, "capability", allocationParts)
+                    context.AllocateReferenceEpoch(
+                        world.Scope,
+                        world.GenesisTransaction,
+                        world.GenesisActive,
+                        "capability",
+                        allocationParts
+                    )
 
                 let reference = CapabilityReference.issue world.Scope referenceEpoch world.NextReference
 
@@ -717,15 +791,16 @@ module World =
         (addedExpressions: ConstraintExpression list)
         (world: World)
         =
-        match Map.tryFind parentReference world.Capabilities with
-        | None -> Error "The parent Capability is unknown."
-        | Some parent when parent.Holder <> delegator ->
+        match mutationAllowed world, Map.tryFind parentReference world.Capabilities with
+        | false, _ -> Error "World mutation is unavailable outside the active Genesis branch."
+        | true, None -> Error "The parent Capability is unknown."
+        | true, Some parent when parent.Holder <> delegator ->
             Error "Only the Capability holder may delegate it."
-        | Some parent when not parent.DelegationAllowed ->
+        | true, Some parent when not parent.DelegationAllowed ->
             Error "The parent Capability does not permit further Delegation."
-        | Some _ when not (Map.containsKey newHolder world.Actors) ->
+        | true, Some _ when not (Map.containsKey newHolder world.Actors) ->
             Error "The delegated Capability holder is unknown."
-        | Some parent ->
+        | true, Some parent ->
             match validateConstraintExpressions addedExpressions world with
             | Error message -> Error message
             | Ok() ->
@@ -1000,7 +1075,7 @@ module World =
                         Error "An Event Temporal Mark cannot have negative uncertainty."
                     | _ -> Ok()
 
-    let step (environment: Environment) (world: World) (request: ExecutionRequest) =
+    let private stepCore (environment: Environment) (world: World) (request: ExecutionRequest) =
         match Map.tryFind request.Operation world.Operations with
         | _ when world.GenesisActive ->
             deny environment request "Runtime execution is unavailable inside an active Genesis occurrence." world
@@ -1176,6 +1251,18 @@ module World =
                                               EmittedAt = environment.TrustedTime }
                                           EmittedEvents = emittedEvents @ [ outcomeEvent ]
                                           Provenance = claims }
+
+    let step (environment: Environment) (world: World) (request: ExecutionRequest) =
+        world.AuthorityTransactions.RunRuntime(
+            world.GenesisTransaction,
+            (fun () ->
+                deny
+                    environment
+                    request
+                    "Runtime execution is unavailable inside or through an uncommitted Genesis occurrence."
+                    world),
+            (fun () -> stepCore environment world request)
+        )
 
 [<RequireQualifiedAccess>]
 module Genesis =
