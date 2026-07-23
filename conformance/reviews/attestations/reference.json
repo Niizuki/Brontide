@@ -1,0 +1,578 @@
+{
+    "schemaVersion":  3,
+    "architectureStatusRegistryPath":  "Brontide-Architecture-Status.json",
+    "currentArchitectureRevision":  "0.8",
+    "implementationBaselineRevision":  "0.5",
+    "stack":  "Reference",
+    "reviewTargetCommit":  "6a8919bc17d153d573068dafaf54ef299aebcedc",
+    "reviewer":  {
+                     "id":  "agent:codex-reference-review-release",
+                     "name":  "Codex Reference independent reviewer",
+                     "kind":  "automated",
+                     "independent":  true,
+                     "independenceStatement":  "I did not implement the correction under review and evaluated this stack against the pinned requirements and the architecture status registry rather than accepting implementation claims.",
+                     "conflicts":  [
+
+                                   ],
+                     "automation":  {
+                                        "system":  "Codex",
+                                        "sessionId":  "task:/root/reference_review_release",
+                                        "freshContext":  true,
+                                        "implementationContextAccess":  "none"
+                                    }
+                 },
+    "currentArchitectureReview":  {
+                                      "architecturePath":  "Brontide-Architecture-0.8.md",
+                                      "architectureStatus":  "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
+                                      "implementationPlanPath":  "Reference/Brontide-Reference-Stack-Implementation-Plan-0.3.md",
+                                      "deliveryLedgerPath":  "Reference/docs/architecture-0.7-delivery.md",
+                                      "architectureReviewed":  true,
+                                      "implementationPlanReviewed":  true,
+                                      "deliveryLedgerReviewed":  true,
+                                      "statusBoundaryAcknowledged":  true,
+                                      "assessment":  "current-deltas-recorded",
+                                      "rationale":  "Architecture 0.8 is a Complete Draft whose implementation evidence is pending and which is not ratified. Reference states a partial Architecture 0.7 target, claims only R1-R2 as tested Complete Draft evidence, and leaves R3-R5 planned or partial. Its plan and ledger explicitly record that 0.8 C7 supersedes the delivered composite-poisoning rule and make R6 a future C1-C14 requirement/risk audit, including recording the chain-conjunction representation before Portable Binding work. The stack therefore does not claim 0.8 conformance, but its later architectural deltas and status boundary are materially recorded without a blocking conflict for this retained 0.5 correction review."
+                                  },
+    "reviewedAt":  "2026-07-23T13:24:16.6360285+02:00",
+    "gate":  {
+                 "commit":  "6a8919bc17d153d573068dafaf54ef299aebcedc",
+                 "command":  ".\\build\\verify-interchange.ps1",
+                 "result":  "passed",
+                 "environment":  "Microsoft Windows NT 10.0.26200.0; Windows PowerShell 5.1.26100.4768; .NET SDK 10.0.400-preview.0.26322.102; clean detached worktree",
+                 "notes":  "The complete two-stack gate passed end to end. The review framework reported only the three expected pending attestation/closure records; both solutions restored and built with zero warnings and errors; all ordinary suites passed; both seven-case foreign-process interchange suites passed; benchmarks ran; and Reference, Minimal, project-graph, and resolved-assembly boundary guards passed. A first sandboxed invocation reached restore but lacked permission to create obj directories; the exact gate was rerun with scoped filesystem permission and succeeded."
+             },
+    "requirements":  [
+                         {
+                             "requirementId":  "BR-05-NAME-001",
+                             "architectureSection":  "22",
+                             "summary":  "Canonical names parse ConceptPath and AuthorityPath:ConceptPath without relative or ambiguous notation.",
+                             "component":  "Brontide.Reference.Core/CanonicalName",
+                             "claimedStatus":  "implemented",
+                             "matrixRationale":  "The parser implements both canonical forms; a stable negative conformance test is not yet assigned.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/src/Brontide.Reference.Core/Names.cs",
+                                                          "anchor":  "public readonly record struct CanonicalName"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 section 22 permits exactly unqualified ConceptPath or AuthorityPath:ConceptPath canonical forms and excludes relative notation. CanonicalName.Parse/TryParse accepts either form, requires trimmed nonempty dot-separated segments, and rejects multiple colons, missing authority/concept paths, empty segments, and non-token delimiters. The matrix intentionally pins no separate negative anchor; I reviewed that absence and the parser's fail branches directly. The complete gate passed.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-NAME-002",
+                             "architectureSection":  "23",
+                             "summary":  "Vocabulary versions are claims rather than semantic identity; only Shapes and Declared Fragments carry structural versions.",
+                             "component":  "Brontide.Reference.Core semantic references",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Operation and Event identities are name-only while Shape and Fragment references carry structural versions.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/src/Brontide.Reference.Core/Names.cs",
+                                                          "anchor":  "public readonly record struct OperationReference(CanonicalName Name)"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/ShapeConformanceTests.cs",
+                                                          "anchor":  "Same_name_versions_are_additive_and_redefinition_is_rejected"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "ShapeConformanceTests.Same_name_versions_are_additive_and_redefinition_is_rejected"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 section 23 treats vocabulary versions as additive claims outside semantic identity while reserving explicit positive structural versions for Shapes and Declared Fragments. OperationReference and EventReference contain only CanonicalName; ShapeReference and FragmentReference separately enforce a positive Version. The additive/redefinition test confirms that a Shape version cannot reinterpret the name. No per-instance Capability version is introduced.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-AUTH-001",
+                             "architectureSection":  "9.1",
+                             "summary":  "Actor and authority references are issuer-controlled, unambiguous, stable, and comparable within an authority domain.",
+                             "component":  "Brontide.Reference.Core/ActorReference",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Actor references are domain-issued objects with no public constructor and object-reference comparison.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Core.Tests/ActorReferenceTests.cs",
+                                                          "anchor":  "Actor_references_are_opaque_and_reference_comparable"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Core.Tests/ActorReferenceTests.cs",
+                                                          "anchor":  "typeof(ActorReference).GetConstructors(), Is.Empty"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "ActorReferenceTests.Actor_references_are_opaque_and_reference_comparable"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 section 9.1 requires issuer-controlled, unforgeable, unambiguous, stable, and comparable references within a domain. ActorReference has no public constructor, is issued only by AuthorityDomain, carries an internal domain identity, and deliberately uses object-reference comparison. AuthorityDomain additionally requires both matching domain identity and registry membership, so escaped or foreign references do not become valid merely by carrying data.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-CAP-001",
+                             "architectureSection":  "10,13.5",
+                             "summary":  "An Execution explicitly presents a Capability whose holder, target, and Operation scope match the request at the target boundary.",
+                             "component":  "Brontide.Reference.Core/AuthorityDomain",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "AuthorityDomain validates initiator, target, presented Capability, and Operation before dispatch.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/src/Brontide.Reference.Core/AuthorityDomain.cs",
+                                                          "anchor":  "public async ValueTask\u003cExecutionResult\u003e ExecuteAsync"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/WorkedAttackTests.cs",
+                                                          "anchor":  "Production_approval_is_denied_at_the_target_boundary"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "WorkedAttackTests.Production_approval_is_denied_at_the_target_boundary"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 sections 10 and 13.5 require an explicit presented target-recognised Capability at the target boundary. ExecuteInternalAsync rejects foreign Actors or Capabilities, a holder mismatch, a Capability target different from the registered Operation target, an absent Operation scope, and an incompatible input before dispatch. The worked production-approval attack proves target-side denial and zero effects while retaining deputy/requester attribution.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-CAP-002",
+                             "architectureSection":  "10.1",
+                             "summary":  "Every effective Capability Constraint is evaluated conjunctively and unknown or failed Constraints deny before effects.",
+                             "component":  "Brontide.Reference.Core constraint evaluation",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Effective constraints are evaluated across the derivation chain and unknown types deny.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+                                                          "anchor":  "Liveness_lease_dies_without_renewal_and_cannot_be_resurrected"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/AuthorityConformanceTests.cs",
+                                                          "anchor":  "Unknown_constraint_denies_before_effect_and_is_recorded"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "KernelTests.Liveness_lease_dies_without_renewal_and_cannot_be_resurrected",
+                                                             "AuthorityConformanceTests.Unknown_constraint_denies_before_effect_and_is_recorded"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 section 10.1 requires conjunction across the entire derivation chain and fail-closed handling before effects. Capability.EffectiveConstraintExpressions walks every parent from root to leaf; ExecuteInternalAsync evaluates every expression before the authorised provenance entry and handler dispatch, and any unsatisfied, unsupported, invalid, or failed evaluation rejects immediately. The liveness and unknown-constraint evidence confirms both positive evaluation and zero-effect denial.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-DELEGATION-001",
+                             "architectureSection":  "11",
+                             "summary":  "Delegation changes the holder, preserves inherited target and Operation scope, appends Constraints, and records its parent and issuer.",
+                             "component":  "Brontide.Reference.Core/Capability",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "The derived constructor inherits target and root Operations and stores its parent.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/AuthorityConformanceTests.cs",
+                                                          "anchor":  "Delegation_adds_constraints_and_cannot_amplify"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/src/Brontide.Reference.Core/Authority.cs",
+                                                          "anchor":  "Derivation can only change the holder and append Constraints"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "AuthorityConformanceTests.Delegation_adds_constraints_and_cannot_amplify"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 section 11 permits Delegation only by retaining the parent's authority and adding narrowing Constraints. Capability.DelegateExpressions constructs the child with the new holder but the exact inherited Target and RootOperations, stores Parent, and appends only the supplied expressions; the immutable parent holder identifies the issuer. Domain registration rejects cross-domain or unregistered derivations. The evidence proves allowed Fan.Stop and denied Fan.SetSpeed with no amplified effect.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-GENESIS-001",
+                             "architectureSection":  "12",
+                             "summary":  "Primordial authority and later Genesis occurrences are bounded, enumerable, and attributable to domain policy.",
+                             "component":  "Brontide.Reference.Core/GenesisContext",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Genesis is callback-scoped and recorded; a failed occurrence atomically restores actors, capabilities, liveness leases, declarations, and Shape registrations. Registry membership rejects escaped references, while runtime effects and nested Genesis are blocked during the transaction.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/src/Brontide.Reference.Core/AuthorityDomain.cs",
+                                                          "anchor":  "public IReadOnlyList\u003cGenesisRecord\u003e GenesisOccurrences"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+                                                          "anchor":  "Failed_genesis_occurrence_rolls_back_unrecorded_authority"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "KernelTests.Failed_genesis_occurrence_rolls_back_unrecorded_authority",
+                                                             "KernelTests.Captured_genesis_context_cannot_mint_authority_later"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 section 12 allows primordial domain initialization and requires later Genesis occurrences to be enumerable and attributable. AuthorityDomain exposes bounded registry snapshots and GenesisOccurrences, records successful occurrences with policy Actor, kind, reason, created Actors, and Capabilities, and deactivates callback contexts. Failed occurrences restore Actor, Capability, lease, declaration, and Shape registries; escaped references fail membership checks, nested Genesis and runtime effects are blocked, and no provenance gap or effect remains.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-EXEC-001",
+                             "architectureSection":  "13.5,13.6",
+                             "summary":  "The requested effect begins only after explicit target-side authority, Shape, and Constraint validation.",
+                             "component":  "Brontide.Reference.Core/AuthorityDomain",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Handlers run after authority, Shape, and Constraint decisions.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/CoolingConformanceTests.cs",
+                                                          "anchor":  "Minimal_cooling_system_runs_only_through_checked_executions"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/AuthorityConformanceTests.cs",
+                                                          "anchor":  "Assert.That(effects, Is.Zero)"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "CoolingConformanceTests.Minimal_cooling_system_runs_only_through_checked_executions",
+                                                             "AuthorityConformanceTests.Unknown_constraint_denies_before_effect_and_is_recorded",
+                                                             "WorkedAttackTests.Production_approval_is_denied_at_the_target_boundary"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 sections 13.5 and 13.6 place recognition, Shape checking, authority evaluation, and deputy attribution before effect dispatch. ExecuteInternalAsync performs those checks in that order and appends an authorised Execution only immediately before invoking the handler. ExecuteOnBehalfAsync requires either forwarded requester authority or deliberately named own authority. Cooling exercises accepted and rejected checked Executions, while authority and worked-attack negatives prove zero effects on denial.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-EXEC-002",
+                             "architectureSection":  "13.5,28",
+                             "summary":  "Rejected attempts remain observable Executions while protected command payloads are excluded from denial audit records.",
+                             "component":  "Brontide.Reference.Core provenance",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Rejected executions retain execution metadata and decisions in provenance, but the audit copy does not retain the protected input; the direct caller\u0027s ExecutionResult remains complete.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/AuthorityConformanceTests.cs",
+                                                          "anchor":  "Unknown_constraint_denies_before_effect_and_is_recorded"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+                                                          "anchor":  "Rejected_provenance_excludes_the_protected_input"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "AuthorityConformanceTests.Unknown_constraint_denies_before_effect_and_is_recorded",
+                                                             "KernelTests.Rejected_provenance_excludes_the_protected_input"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 treats a denied attempt as an observable Execution while section 28 requires explicit, attributable first-hop authority without retaining protected command data unnecessarily. Reject appends an Execution provenance entry with identity, participants, Operation, target, authority presentation, decisions, and status, but ProvenanceEntry.ForExecution stores execution.WithoutInput for denials. The direct ExecutionResult remains complete for its caller; the regression proves the audit copy has the same ExecutionId, HasInput is false, and input access fails.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-TIME-001",
+                             "architectureSection":  "10.3,13.3",
+                             "summary":  "Trusted target time is explicit, scoped to a time domain, monotonic where claimed, and distinct from attributable sender marks.",
+                             "component":  "Brontide.Reference.Core temporal authority",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "TimeProvider is explicit, sender Temporal Marks never supply trusted constraint time, and an observed-expired liveness lease remains terminally dead across clock rollback.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+                                                          "anchor":  "Liveness_lease_dies_without_renewal_and_cannot_be_resurrected"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+                                                          "anchor":  "Wall_clock_constraint_fails_closed_when_domain_has_no_clock"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "KernelTests.Liveness_lease_dies_without_renewal_and_cannot_be_resurrected",
+                                                             "KernelTests.Wall_clock_constraint_fails_closed_when_domain_has_no_clock"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 sections 10.3 and 13.3 distinguish target-trusted authority time from attributable sender Temporal Marks. AuthorityDomain receives TimeProvider explicitly, supplies only its current value to ConstraintEvaluationContext, and never consults Interaction.EmittedAt for authority. A clockless domain denies wall-clock Constraints. LivenessLease observes the maximum trusted time and makes death terminal, so expiry cannot be reversed by a regressing provider; both positive renewal and negative no-clock/rollback paths pass.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-EVENT-001",
+                             "architectureSection":  "14",
+                             "summary":  "Events are immutable assertions that preserve emitter attribution, causation, declared Shape, and original temporal claims.",
+                             "component":  "Brontide.Reference.Core events",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Emitter, causation, origin, and temporal attribution are retained.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Extensions.Tests/ExtensionScenarioTests.cs",
+                                                          "anchor":  "Event_mediator_gates_publish_and_observe_and_preserves_emitters_on_replay"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/OriginConformanceTests.cs",
+                                                          "anchor":  "Direct_origin_assertion_denies_constraints_without_event_semantics"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "ExtensionScenarioTests.Event_mediator_gates_publish_and_observe_and_preserves_emitters_on_replay",
+                                                             "OriginConformanceTests.Direct_origin_assertion_denies_constraints_without_event_semantics"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 section 14 defines an immutable attributable assertion, preserving emitter, provenance, causation, Shape, and original temporal claims while granting no reactive authority. DomainEvent and InteractionContext are immutable records over immutable Shape values; EmitEventCore validates the declared assertion Shape and origin authority before appending provenance. Event mediation delivers the original object and replay preserves Actor, identity, causation, and temporal data while demoting origin. The negative evidence confirms an unevaluable origin authority emits no Event or provenance.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-OUTCOME-001",
+                             "architectureSection":  "14.2",
+                             "summary":  "An Outcome is a terminal Event for one identifiable Execution or activity, with distinct success result and failure detail Shapes.",
+                             "component":  "Brontide.Reference.Core outcomes",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Outcomes are terminal Events and validate success and failure values under separate contracts.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/OutcomeConformanceTests.cs",
+                                                          "anchor":  "Successful_result_and_failure_details_use_independent_shapes"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/OutcomeConformanceTests.cs",
+                                                          "anchor":  "failed.Outcome.Result, Is.Null"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "OutcomeConformanceTests.Successful_result_and_failure_details_use_independent_shapes",
+                                                             "OutcomeConformanceTests.Successful_macro_operation_can_create_an_activity_that_terminates_later"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 section 14.2 requires a final Event relative to one identifiable Execution or activity and keeps successful output separate from rejection/failure details. AuthorityDomain creates Execution Outcomes with TerminalReference.For(execution), validates success against the Operation output Shape, validates failure details against their independent contract, and never puts failure details in Result. Activity ownership and a terminal set prevent a second terminal Outcome. Both execution and longer-lived activity evidence pass.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-SHAPE-001",
+                             "architectureSection":  "16.1,16.5",
+                             "summary":  "Shape identity is semantic and supports unit, scalar, record, sequence, choice, and opaque contracts without CLR assignability.",
+                             "component":  "Brontide.Reference.Core/ShapeRegistry",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "All Base Shape kinds are represented and semantic identity does not use CLR assignability.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+                                                          "anchor":  "Registry_supports_all_base_shape_kinds_without_CLR_assignability"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs",
+                                                          "anchor":  "Scalar_carriers_are_typed_immutable_and_cannot_contain_authority"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "KernelTests.Registry_supports_all_base_shape_kinds_without_CLR_assignability",
+                                                             "KernelTests.Scalar_carriers_are_typed_immutable_and_cannot_contain_authority"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 sections 16.1 and 16.5 make Shape a semantic contract independent of implementation-local assignability and require unit, scalar, record, sequence, choice, and opaque kinds. ShapeRegistry implements each kind, keys compatibility by canonical Shape lineage and version, and recursively projects declared constituent Shapes. Scalars require an approved immutable carrier and exact representation under the named contract; arbitrary reference objects and Capabilities are rejected. The evidence covers all kind paths and non-authority carriers.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-SHAPE-002",
+                             "architectureSection":  "16.2",
+                             "summary":  "Same-name Shape versions are monotonic and additive; breaking structure or meaning requires a new canonical name.",
+                             "component":  "Brontide.Reference.Core/ShapeRegistry",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Later same-name Shape definitions are checked for additive compatibility.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/ShapeConformanceTests.cs",
+                                                          "anchor":  "Same_name_versions_are_additive_and_redefinition_is_rejected"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/ShapeConformanceTests.cs",
+                                                          "anchor":  "Throws.TypeOf\u003cShapeRegistrationException\u003e()"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "ShapeConformanceTests.Same_name_versions_are_additive_and_redefinition_is_rejected"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 section 16.2 permits only monotonic additive evolution under one Shape name. ShapeRegistry orders the complete same-name lineage on every registration and rejects kind, Fragment-policy, existing-field, field-Shape, presence, included-Fragment, scalar-carrier, sequence-element, or choice-alternative changes; newly required fields are also rejected. The evidence demonstrates a valid optional addition and earlier projection, then rejects a same-name field redefinition with ShapeRegistrationException.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-SHAPE-003",
+                             "architectureSection":  "16.3,16.4",
+                             "summary":  "Open Shapes accept valid authored Fragments through canonical projection, required Fragments fail closed, and closed Shapes reject attachment.",
+                             "component":  "Brontide.Reference.Core Shape projection",
+                             "claimedStatus":  "tested",
+                             "matrixRationale":  "Open, required, projected, and closed Fragment behavior has executable evidence.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/ShapeConformanceTests.cs",
+                                                          "anchor":  "Open_shape_projects_unknown_optional_authored_fragment_canonically"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Conformance/ShapeConformanceTests.cs",
+                                                          "anchor":  "Closed_shapes_reject_authored_attachment_and_transparent_forwarding_preserves_unknowns"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "ShapeConformanceTests.Open_shape_projects_unknown_optional_authored_fragment_canonically",
+                                                             "ShapeConformanceTests.Closed_shapes_reject_authored_attachment_and_transparent_forwarding_preserves_unknowns",
+                                                             "ShapeConformanceTests.Reusable_fragment_requires_explicit_host_inclusion_even_on_closed_shape"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 sections 16.3-16.4 require directional canonical projection, fail-closed required Fragments, explicit reusable inclusion, host-lineage binding, and closed-Shape rejection. ProjectRecord validates canonical fields and recognised Fragment structure, accepts and drops unrequired authored Fragments from the canonical projection, preserves the untouched complete value only through the explicit forwarding path, and rejects missing/old required Fragments or authored attachment to closed/unrelated hosts. The three focused tests exercise each positive and negative boundary.",
+                                            "dispositionEvidence":  null
+                                        }
+                         },
+                         {
+                             "requirementId":  "BR-05-INTERCHANGE-001",
+                             "architectureSection":  "30",
+                             "summary":  "Cross-stack component evidence crosses an external boundary without sharing implementation-private runtime types or authority objects.",
+                             "component":  "Brontide.Reference.Experimental.Binding",
+                             "claimedStatus":  "demonstrated",
+                             "matrixRationale":  "The retained full gate launches the independently built Minimal provider process for Cooling and Catalog/resource proofs. This is experimental interchange evidence, not protocol ratification.",
+                             "positiveEvidence":  [
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Interchange.Tests/ReferenceHostsMinimalTests.cs",
+                                                          "anchor":  "Compatible_activation_success_forwarding_provenance_and_host_enrichment_are_visible"
+                                                      },
+                                                      {
+                                                          "path":  "Reference/tests/Brontide.Reference.Interchange.Tests/CatalogBindingTests.cs",
+                                                          "anchor":  "Catalog_nested_batch_two_operations_and_explicit_failure_cross_the_Minimal_process"
+                                                      }
+                                                  ],
+                             "negativeEvidence":  [
+                                                      {
+                                                          "path":  "Reference/build/verify-dependencies.ps1",
+                                                          "anchor":  "Brontide.Minimal"
+                                                      }
+                                                  ],
+                             "review":  {
+                                            "architectureReviewed":  true,
+                                            "positiveEvidenceReviewed":  true,
+                                            "negativeEvidenceReviewed":  true,
+                                            "testsRun":  [
+                                                             ".\\build\\verify-interchange.ps1",
+                                                             "ReferenceHostsMinimalTests.Compatible_activation_success_forwarding_provenance_and_host_enrichment_are_visible",
+                                                             "ReferenceHostsMinimalCatalogTests.Catalog_nested_batch_two_operations_and_explicit_failure_cross_the_Minimal_process",
+                                                             "ReferenceHostsMinimalCatalogTests.Catalog_provider_refuses_a_resource_handle_outside_its_declared_scope",
+                                                             "Reference/build/verify-dependencies.ps1"
+                                                         ],
+                                            "verdict":  "conforms",
+                                            "rationale":  "Architecture 0.5 section 30 requires real component interchange across independently implemented stacks rather than a shared private object model. The full gate builds Minimal independently, launches its provider executable, and runs all seven Reference-hosted foreign-process cases. Cooling proves compatible activation, Shape/Fragment forwarding, local authority decision, provenance, and one provider effect; Catalog proves nested/repeated data, two Operations, explicit shaped failure, and a provider-scoped resource boundary. Reference binding references only Core, sends data-only protocol records, and the source/output plus resolved-assembly guards reject Minimal project or assembly dependencies.",
+                                            "dispositionEvidence":  null
+                                        }
+                         }
+                     ],
+    "overallVerdict":  "conforms",
+    "attestation":  {
+                        "attestedBy":  "agent:codex-reference-review-release",
+                        "statement":  "I attest that this record accurately reports my independent review of the pinned commit and the architecture selected by the status registry.",
+                        "externalRecord":  ""
+                    }
+}
