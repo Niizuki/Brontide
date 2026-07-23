@@ -2,7 +2,7 @@
 
 Brontide targets `net10.0` and deliberately has no `global.json`. The selected SDK must be at least
 10.0.100 and lower than 11.0.0. The machine-readable policy is
-[`eng/sdk-policy.json`](../eng/sdk-policy.json). CI runs the exact first .NET 10 SDK (`10.0.100`)
+[`eng/sdk-policy.json`](../../../eng/sdk-policy.json). CI runs the exact first .NET 10 SDK (`10.0.100`)
 and resolves the current .NET 10 channel (`10.0.x`) at preview quality, so the supported range is
 exercised without pinning the moving lane to one patch. Prerelease SDKs inside that range are
 accepted for local architecture development; release evidence must name the exact SDK reported by

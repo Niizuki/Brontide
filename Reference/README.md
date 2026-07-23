@@ -31,7 +31,7 @@ conformance.
 
 ## Build and test
 
-The repository deliberately has no `global.json`; [`../docs/sdk-policy.md`](../docs/sdk-policy.md)
+The repository deliberately has no `global.json`; [`sdk-policy.md`](../docs/current/policies/sdk-policy.md)
 defines and continuously checks the supported .NET 10 SDK range and CI feature bands.
 `Directory.Build.props` selects C# 14.
 NuGet versions use Central Package Management in `Directory.Packages.props`; warnings are errors

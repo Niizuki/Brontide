@@ -8,7 +8,7 @@
 **Current architecture context:** [Brontide Architecture 0.8](./Brontide-Architecture-0.8.md),
 §18.1; the current architecture document retains a summary section under the same number. Staged
 acquisition and generation management are expanded in
-[Component Management](./Brontide-Design-Note-Component-Management-0.1.md). The broader Environment,
+[Component Management](./docs/future/component-management/Brontide-Design-Note-Component-Management-0.1.md). The broader Environment,
 Gatekeeper, protection, and relational-transparency direction is recorded in
 [Topology Environments and the Guardian Family](./Brontide-Design-Note-Topology-0.1.md).
 **Scope:** Records design directions. Nothing in this note enlarges Brontide Base,
@@ -341,7 +341,7 @@ or admits a Component by itself.
 There is no requirement for one system-wide manager. The manager may be host machinery, one or
 more Components, a build tool, or a private facility inside a boxed composition. Static
 composition remains possible without it. A detailed distribution and management direction is
-recorded in `Brontide-Design-Note-Component-Management-0.1.md`.
+recorded in `docs/future/component-management/Brontide-Design-Note-Component-Management-0.1.md`.
 
 ### Discovery, preferences, and occupied providers
 

@@ -3,9 +3,9 @@
 ## Design Note: Component Management and Distribution
 
 **Status:** Work-in-progress design note, version 0.1
-**Current architecture context:** [Brontide Architecture 0.8](./Brontide-Architecture-0.8.md),
+**Current architecture context:** [Brontide Architecture 0.8](../../../Brontide-Architecture-0.8.md),
 §18.1, §24, §28, and §33
-**Related direction:** [Composition and Components](./Brontide-Design-Note-Composition-0.1.md)
+**Related direction:** [Composition and Components](../../../Brontide-Design-Note-Composition-0.1.md)
 
 **Scope:** Records a provisional management and distribution direction. Nothing in this note
 enlarges Brontide Base, ratifies a Component package format, requires dynamic loading, or makes a
@@ -470,4 +470,4 @@ Local Initialisation, Interconnection, lifecycle-gated Relational Initialisation
 logical Release, preflight rejection, requested-authority review, immutable generation records,
 incremental child generations, Composition Port enforcement, host-assisted device admission,
 discrete topology membership, scoped restart, failed cutover, and rollback. The independent-stack plan is
-[Component Management Implementation Plan 0.1](./Brontide-Component-Management-Implementation-Plan-0.1.md).
+[Component Management Implementation Plan 0.1](../../../Brontide-Component-Management-Implementation-Plan-0.1.md).

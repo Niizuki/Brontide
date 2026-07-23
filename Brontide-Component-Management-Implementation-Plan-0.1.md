@@ -1,10 +1,12 @@
 # Brontide Component Management Implementation Plan 0.1
 
-Status: Planned experimental work
+Status: Partially implemented experimental work
+Implementation state: CM0 is implemented and tested independently in both stacks; CM1–CM6 remain
+planned.
 Designed for: [Brontide Architecture 0.8](./Brontide-Architecture-0.8.md) §18.1, §19,
 §20.1, §24, and §33, Complete Draft, not ratified
 Design source:
-[Component Management and Distribution](./Brontide-Design-Note-Component-Management-0.1.md)
+[Component Management and Distribution](./docs/future/component-management/Brontide-Design-Note-Component-Management-0.1.md)
 Related notes:
 [Composition and Components](./Brontide-Design-Note-Composition-0.1.md),
 [Topology Environments and the Guardian Family](./Brontide-Design-Note-Topology-0.1.md)
@@ -344,3 +346,15 @@ This plan is complete only when:
 A later plan may replace fake sources and evidence with real distribution integrations. That work
 must add live-probe boundaries, production trust analysis, artifact isolation, and operating-system
 lifecycle concerns rather than silently upgrading the claims of this harness.
+
+## Open questions (owners needed)
+
+No unresolved owner decisions are currently recorded. New unresolved decisions belong here rather
+than in delivery prose.
+
+## Resolved questions
+
+- **2026-07-23 — Evidence boundary:** the managers remain deterministic experimental harnesses, not
+  production package managers, marketplaces, loaders, or Architecture 0.8 conformance evidence.
+- **2026-07-23 — Delivery state:** CM0 fixtures and strict loaders are implemented in both stacks;
+  CM1–CM6 remain future work.

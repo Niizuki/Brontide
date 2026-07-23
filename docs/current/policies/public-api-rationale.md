@@ -36,5 +36,5 @@ whose protected input was not retained. Direct `ExecutionResult` values remain c
 caller.
 
 No public compatibility promise extends from these experimental APIs. A breaking change must still
-follow [`VERSIONING.md`](../VERSIONING.md), document affected provider/host consumers, and update the
+follow [`VERSIONING.md`](../../../VERSIONING.md), document affected provider/host consumers, and update the
 fixture contract version or protocol version when wire interpretation changes.

@@ -147,10 +147,35 @@ experimental projects and do not present it as Brontide Base conformance.
 
 - Keep documentation self-contained; do not depend on reasoning that lives only in another repo or
   chat. External code may be mentioned for comparison, but Brontide decisions belong here.
-- Use [`docs/README.md`](docs/README.md) as the authoritative documentation map. Classify material as
-  current, temporary, or archival. Archive Architecture 0.5 and earlier work under `foundation`;
-  archive later work by area. Keep an otherwise movable file at its stable path when an evidence
-  hash or current pinned document depends on that path, and record the exception in the map.
+- **Documentation cleanup is default completion work.** Whenever documentation is created, edited,
+  superseded, or changes implementation status, classify and place it correctly, move safely
+  unpinned material, repair all Markdown and plain-text path references, and update the relevant
+  indexes in the same change. Do this without waiting for a separate cleanup request.
+- Use [`docs/README.md`](docs/README.md) as the authoritative map and keep its four classifications
+  distinct:
+  - `docs/current/` contains implemented behavior, currently used implementation targets, and
+    operational policy;
+  - `docs/future/` contains planned, draft, proposed, work-in-progress, or otherwise unimplemented
+    work;
+  - `docs/temporary/` contains deletion-gated execution notes; and
+  - `docs/archive/` contains completed or superseded work.
+- A partially implemented plan remains under `future` and states both the implemented subset and
+  what remains. When all planned work is complete, move the plan to `archive` and move lasting
+  operational guidance or evidence to `current` or the owning implementation.
+- Keep the repository root limited to standard project-control files, `README.md`, `AGENTS.md`, and
+  `Brontide-Architecture-Status.json`. Repository-wide Markdown belongs under `docs/`;
+  implementation-owned documentation belongs under `Reference/` or `Minimal/`.
+- Direct or transitive evidence pins are the only root-placement exception. Do not move such a file
+  during ordinary cleanup, create a redirect stub, or invalidate a closed evidence trail. Record the
+  blocked move in the
+  [`Priority 0 relocation plan`](docs/future/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md)
+  and preserve the stable path until the user authorizes evidence repinning and fresh review.
+- Before beginning any other planned implementation work, inspect [`docs/future/README.md`](docs/future/README.md).
+  The Priority 0 pinned-document relocation precedes other future work when its required
+  repinning/review window is authorized. If authorization is absent, report the dependency and
+  preserve the pinned files rather than silently bypassing it.
+- Archive Architecture 0.5 and earlier work under `docs/archive/foundation/`; archive later work by
+  area rather than by date.
 - Implementation plans end with `## Open questions (owners needed)` containing only unresolved
   decisions and named owners, followed by `## Resolved questions` containing dated rulings. When a
   question is decided, move it to the resolved section instead of annotating it in place.
@@ -164,8 +189,7 @@ experimental projects and do not present it as Brontide Base conformance.
 - Record the difference between local/native evidence and actual cross-stack interoperability. A
   local fixture that simulates an external runtime is not Brontide Reference Stack ↔ Brontide Minimal Stack proof.
 - Keep implementation-owned docs with their implementation. Put repository-wide architectural
-  material in the root `docs/` tree when no single implementation owns it. Stable-path exceptions
-  listed by the documentation map may remain at the root.
+  material in the root `docs/` tree when no single implementation owns it.
 - If ADRs are introduced, use one self-contained `ADR-<topic>.md` per decision with `Date` and
   `Status` headers. Do not number or silently rewrite superseded decisions.
 - When guidance from another repository is supplied for possible adoption, treat it as design input,

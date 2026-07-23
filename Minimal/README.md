@@ -45,7 +45,7 @@ The implementation currently provides:
 - a headless host and five F# test assemblies.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range
-and CI feature bands are checked by [`../docs/sdk-policy.md`](../docs/sdk-policy.md). The selected
+and CI feature bands are checked by [`sdk-policy.md`](../docs/current/policies/sdk-policy.md). The selected
 preview SDK does not copy its bundled `FSharp.Core` runtime into application outputs, so
 `Directory.Build.props` applies an explicit, bounded `MSBuildToolsPath` copy workaround. It is not a
 version pin and has a documented removal gate.

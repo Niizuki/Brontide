@@ -1,6 +1,6 @@
 # Implementation module boundaries
 
-Designed for: [Brontide Architecture 0.7](../Brontide-Architecture-0.7.md)
+Designed for: [Brontide Architecture 0.7](../../../Brontide-Architecture-0.7.md)
 
 Status: implementation-owned dependency and review map, not new architectural vocabulary.
 

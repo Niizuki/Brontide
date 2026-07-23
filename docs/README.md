@@ -1,21 +1,24 @@
 # Brontide documentation map
 
-This index is the authoritative classification of repository documentation. It separates material
-that directs current work from short-lived execution notes and retained history without disturbing
-the stable paths used by architecture hashes, conformance matrices, and independent-review records.
+This index is the authoritative classification of repository documentation. It separates
+implemented or operationally authoritative material from future work, short-lived execution notes,
+and retained history without disturbing stable evidence paths.
 
 ## Classification rules
 
-- **Current** documents describe the architecture selected by the status registry, an
-  implementation's stated target, an active design direction, or planned work that has not been
-  completed or abandoned.
+- **Current** documents describe implemented behavior, the architecture currently used as an
+  implementation target, or an operationally authoritative repository policy.
+- **Future** documents describe planned, draft, work-in-progress, proposed, or otherwise
+  unimplemented work. “Current architecture” does not mean “currently implemented”; Architecture
+  0.8 therefore remains a future implementation direction.
 - **Temporary** documents coordinate a bounded programme and state their own deletion gate. They
   are not architecture and must not be cited as permanent completion evidence.
 - **Archive** documents preserve superseded architecture, executed plans, and completed programmes.
   Architecture 0.5 and earlier material is grouped under `foundation`; later archives are grouped
   by area rather than by date.
-- A document may remain at a historical root path when current pinned evidence links to that exact
-  path. Its classification in this index still controls; location alone does not make it current.
+- A document may remain at a historical root path when direct or transitive pinned evidence links
+  to that exact path. Its classification in this index still controls; location alone does not make
+  it current.
 - Implementation-owned documentation remains under `Reference/` or `Minimal/`. Repository-wide
   material belongs under `docs/`, except for stable-path documents listed below.
 
@@ -25,50 +28,45 @@ the stable paths used by architecture hashes, conformance matrices, and independ
 
 - [`Brontide-Architecture-Status.json`](../Brontide-Architecture-Status.json) selects the current and
   latest ratified architecture; do not infer either from filenames.
-- [`Brontide-Architecture-0.8.md`](../Brontide-Architecture-0.8.md) is the current complete draft,
-  not a ratified architecture.
 - [`Brontide-Architecture-0.7.md`](../Brontide-Architecture-0.7.md) remains the locally declared
   implementation target for both stacks.
 - [`Brontide-Architecture-Change-History.md`](../Brontide-Architecture-Change-History.md) is the
   maintained cross-version history.
-- [`Composition Without a Kernel`](./current/architecture/Brontide-Architecture-Composition-Without-a-Kernel.md)
-  is a current proposed architecture document.
-
-### Current implementation plans
-
-- [`Portable Component Binding Implementation Plan 0.1`](./current/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
-  is the next cross-stack goal.
-- [`Component Management Implementation Plan 0.1`](../Brontide-Component-Management-Implementation-Plan-0.1.md)
-  remains planned experimental work. Its root path is retained because both pinned stack plans link
-  to it.
-- [`Minimal Stack Implementation Plan 0.3`](../Brontide-Minimal-Stack-Implementation-Plan-0.3.md)
-  and [`Reference Stack Implementation Plan 0.3`](../Reference/Brontide-Reference-Stack-Implementation-Plan-0.3.md)
-  are the current locally owned stack plans and are path-and-hash pinned.
-
-### Current design and contract directions
-
-- [`Composition`](../Brontide-Design-Note-Composition-0.1.md)
-- [`Component Management and Distribution`](../Brontide-Design-Note-Component-Management-0.1.md)
-- [`Channel`](../Brontide-Design-Note-Channel-0.1.md)
-- [`Draft Channel Contract 0.1`](../Brontide-Draft-Channel-Contract-0.1.md)
-- [`Enrichment`](../Brontide-Design-Note-Enrichment-0.1.md)
-- [`Persistent Information`](../Brontide-Design-Note-Persistent-Information-0.1.md)
-- [`Topology`](../Brontide-Design-Note-Topology-0.1.md)
-
-These files remain at stable root paths because the current architecture and evidence set link to
-them. They record non-ratified directions unless their own status says otherwise.
 
 ### Current implementation and evidence references
 
-- [`public-boundaries.md`](./public-boundaries.md), [`module-boundaries.md`](./module-boundaries.md),
-  [`public-api-rationale.md`](./public-api-rationale.md), and [`sdk-policy.md`](./sdk-policy.md)
-  describe maintained repository boundaries and policy.
-- [`architecture-0.8-channel-requirements-and-risk-ledger.md`](./architecture-0.8-channel-requirements-and-risk-ledger.md)
-  tracks the current Channel evidence programme.
+- [`Brontide: The Idea`](./current/overview/Brontide-Introduction.md) is the readable introduction.
+- [`module-boundaries.md`](./current/policies/module-boundaries.md),
+  [`public-api-rationale.md`](./current/policies/public-api-rationale.md), and
+  [`sdk-policy.md`](./current/policies/sdk-policy.md) describe maintained repository policy.
+- [`public-boundaries.md`](./public-boundaries.md) remains at its matrix-pinned path.
 - [`implementation-correction-status.md`](./implementation-correction-status.md) is the permanent,
   evidence-pinned closure record for the completed correction programme.
 - Stack-specific current documentation is indexed by
   [`Reference/README.md`](../Reference/README.md) and [`Minimal/README.md`](../Minimal/README.md).
+
+See [`current/README.md`](./current/README.md) for the compact current-material index.
+
+## Future work
+
+[`future/README.md`](./future/README.md) is the single entry point for planned and unimplemented
+work. Its Priority 0 item is the
+[`Pinned Documentation Relocation Plan`](./future/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md),
+which must be addressed before other planned implementation work when an evidence-repinning and
+fresh-review window is authorized.
+
+The principal planned areas are:
+
+- [`Portable Component Binding`](./future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md);
+- [`Component Management`](./future/component-management/Brontide-Design-Note-Component-Management-0.1.md)
+  and its stable-path root implementation plan;
+- [`Channel evidence`](./architecture-0.8-channel-requirements-and-risk-ledger.md);
+  and
+- [`Composition Without a Kernel`](./future/architecture/Brontide-Architecture-Composition-Without-a-Kernel.md).
+
+Architecture 0.8, the remaining root design notes, the Channel contract, both 0.3 stack plans, and
+the Component Management implementation plan are also future work. They remain at stable paths
+until Priority 0 deliberately repins the evidence trail.
 
 ## Temporary
 
@@ -79,6 +77,8 @@ moved into tests and current implementation-owned documentation.
 
 The former temporary implementation-correction plan was deleted after its authorized closure gate.
 Do not recreate it; use the permanent status and archived completion report instead.
+
+See [`temporary/README.md`](./temporary/README.md) for the active temporary-material index.
 
 ## Archive
 
@@ -110,10 +110,13 @@ Do not recreate it; use the permanent status and archived completion report inst
 - [`Implementation correction completion report`](./archive/corrections/implementation-correction-completion-report.md)
   is the permanent narrative archive. Machine-checkable status remains at its pinned current path.
 
+See [`archive/README.md`](./archive/README.md) for the compact archive index.
+
 ## Stable-path discipline
 
-Before moving or rewriting a root-level architecture, plan, ledger, matrix, or correction record,
-search the status registry, `conformance/`, both current stack plans, and both stack delivery
-matrices for exact path or hash references. Update evidence deliberately only when the work itself
-requires a new pinned target; documentation cleanup alone is not sufficient reason to invalidate a
-closed evidence trail.
+Before moving or rewriting a root-level architecture, plan, design note, ledger, matrix, or
+correction record, search the status registry, `conformance/`, both current stack plans, both stack
+delivery matrices, and pinned architecture text for exact or transitive path references. Do not
+invalidate a closed evidence trail during ordinary cleanup. Record blocked moves in the Priority 0
+relocation plan and perform them only with explicit authorization to repin and freshly review the
+evidence.

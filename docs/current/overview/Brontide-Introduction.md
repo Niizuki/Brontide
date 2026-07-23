@@ -2,7 +2,7 @@
 
 *A readable introduction to the Brontide computational model. This document trades precision
 for clarity; the precise version is the
-[architecture specification](./Brontide-Architecture-0.8.md), and where the two disagree, the
+[architecture specification](../../../Brontide-Architecture-0.8.md), and where the two disagree, the
 specification wins.*
 
 ---

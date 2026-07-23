@@ -1,8 +1,21 @@
 # Brontide
 
-New to the project? [Brontide: The Idea](./Brontide-Introduction.md) is the readable
+New to the project? [Brontide: The Idea](./docs/current/overview/Brontide-Introduction.md) is the readable
 introduction. The [documentation map](./docs/README.md) classifies the precise documents as current,
-temporary, or archival.
+future, temporary, or archival:
+
+- [`docs/current/`](./docs/current/README.md) — implemented behavior, current implementation
+  targets, and operational policy;
+- [`docs/future/`](./docs/future/README.md) — planned, draft, proposed, or otherwise unimplemented
+  work;
+- [`docs/temporary/`](./docs/temporary/README.md) — deletion-gated execution notes; and
+- [`docs/archive/`](./docs/archive/README.md) — completed or superseded work.
+
+The remaining `Brontide-*.md` files at the repository root are direct or transitive evidence-pinned
+exceptions. Their relocation is the
+[Priority 0 future task](./docs/future/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md)
+and must precede other planned implementation work when an evidence-repinning and fresh-review
+window is authorized.
 
 Brontide is an architecture specification with two deliberately independent .NET 10 implementations:
 
@@ -51,10 +64,10 @@ needs and Base withholds. It fixes semantics rather than a wire format, keeps Ca
 crossing a trust boundary, and precedes the Portable Component Binding, which becomes its first
 conforming realisation. It remains a recorded direction outside Base, not a ratified extension. Its
 open questions and risks are tracked in
-[`docs/architecture-0.8-channel-requirements-and-risk-ledger.md`](./docs/architecture-0.8-channel-requirements-and-risk-ledger.md).
+[`Channel requirements and risk ledger`](./docs/architecture-0.8-channel-requirements-and-risk-ledger.md).
 
-The next implementation goal is the
-[Portable Component Binding Implementation Plan 0.1](./docs/current/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md).
+After the Priority 0 documentation relocation, the next implementation goal is the
+[Portable Component Binding Implementation Plan 0.1](./docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md).
 It turns the retained Cooling and Catalog experiments into a reusable, independently implemented
 Binding Plan and Channel realization with direct/process parity, neutral vectors, bounded resource
 semantics, and both cross-stack directions. The work remains experimental and does not enlarge Base
@@ -62,7 +75,7 @@ or change either stack's Architecture 0.7 target.
 
 The provisional generational lifecycle, multiple-source acquisition model, trust separation,
 scoped restart, and dependency-cycle policy are recorded in
-[Component Management and Distribution Design Note 0.1](./Brontide-Design-Note-Component-Management-0.1.md).
+[Component Management and Distribution Design Note 0.1](./docs/future/component-management/Brontide-Design-Note-Component-Management-0.1.md).
 The corresponding
 [Component Management Implementation Plan 0.1](./Brontide-Component-Management-Implementation-Plan-0.1.md)
 calls for independent, entirely fake managers in both stacks so these mechanisms can be tested
