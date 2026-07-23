@@ -1,0 +1,560 @@
+{
+  "schemaVersion": 3,
+  "architectureStatusRegistryPath": "Brontide-Architecture-Status.json",
+  "currentArchitectureRevision": "0.8",
+  "implementationBaselineRevision": "0.5",
+  "stack": "Minimal",
+  "reviewTargetCommit": "2826e1e94ffc190e1a0c672d30b137581ec657ce",
+  "reviewer": {
+    "id": "agent:codex-minimal-review-finalgenesis",
+    "name": "Codex Minimal Reviewer (Final Genesis)",
+    "kind": "automated",
+    "independent": true,
+    "independenceStatement": "I did not implement the correction under review and evaluated this stack against the pinned requirements and the architecture status registry rather than accepting implementation claims.",
+    "conflicts": [],
+    "automation": {
+      "system": "Codex",
+      "sessionId": "task:/root/minimal_review_finalgenesis",
+      "freshContext": true,
+      "implementationContextAccess": "none"
+    }
+  },
+  "currentArchitectureReview": {
+    "architecturePath": "Brontide-Architecture-0.8.md",
+    "architectureStatus": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
+    "implementationPlanPath": "Brontide-Minimal-Stack-Implementation-Plan-0.3.md",
+    "deliveryLedgerPath": "Minimal/docs/architecture-0.7-delivery.md",
+    "architectureReviewed": true,
+    "implementationPlanReviewed": true,
+    "deliveryLedgerReviewed": true,
+    "statusBoundaryAcknowledged": true,
+    "assessment": "blocking-conflict",
+    "rationale": "Architecture 0.8 remains a non-ratified Complete Draft and Minimal accurately describes itself as a partial Architecture 0.7 implementation with the 0.8 Constraint delta recorded. However, a persistent branch state mismatch conflicts with the Actor-reference and Genesis identity semantics retained by the current architecture, so the current direction has a blocking implementation conflict."
+  },
+  "reviewedAt": "2026-07-23T14:03:17.0449758+02:00",
+  "gate": {
+    "commit": "2826e1e94ffc190e1a0c672d30b137581ec657ce",
+    "command": ".\\build\\verify-interchange.ps1",
+    "result": "passed",
+    "environment": "Windows NT 10.0.26200.0; .NET SDK 10.0.400-preview.0.26322.102; detached worktree C:\\tmp\\brontide-review-minimal-finalgenesis at 2826e1e94ffc190e1a0c672d30b137581ec657ce",
+    "notes": "Exact full gate: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1. The sandboxed attempt stopped at restore because build artifact creation in the detached worktree was denied; the same command rerun with worktree write access passed with exit code 0 in 203.3 seconds. Minimal ordinary suites passed: Conformance 21, Kernel 6, Composition 8, Enrichment 4, ComponentManagement 25, and Interchange 9 passed with 7 skipped; the required Minimal cross-process Interchange rerun passed 7 of 7. Both stack builds, both cross-process suites, benchmarks, evidence checks, and dependency and assembly boundary checks passed."
+  },
+  "requirements": [
+    {
+      "requirementId": "BR-05-NAME-001",
+      "architectureSection": "22",
+      "summary": "Canonical names parse ConceptPath and AuthorityPath:ConceptPath without relative or ambiguous notation.",
+      "component": "Brontide.Minimal.Model/CanonicalName",
+      "claimedStatus": "tested",
+      "matrixRationale": "The parser supports authority-qualified canonical names and rejects ambiguous separators.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_NAME_001"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "authority::concept"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "The opaque CanonicalName parser implements both canonical forms and rejects empty, relative, padded, multi-colon, and malformed segment forms; the retained positive and negative vectors passed.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-NAME-002",
+      "architectureSection": "23",
+      "summary": "Vocabulary versions are claims rather than semantic identity; only Shapes and Declared Fragments carry structural versions.",
+      "component": "Brontide.Minimal.Model semantic references",
+      "claimedStatus": "tested",
+      "matrixRationale": "Operation and Event references are name-only; Shape and Fragment references retain positive structural versions.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_NAME_002"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "operationFields"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "OperationReference and EventReference contain semantic names only, while ShapeReference and FragmentReference carry positive structural versions; source and reflection evidence agree and the full gate passed.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-AUTH-001",
+      "architectureSection": "9.1",
+      "summary": "Actor and authority references are issuer-controlled, unambiguous, stable, and comparable within an authority domain.",
+      "component": "Brontide.Minimal.Model opaque references",
+      "claimedStatus": "tested",
+      "matrixRationale": "Issued reference representations are private and a foreign-domain Capability reference is rejected.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/src/Brontide.Minimal.Model/Model.fs",
+          "anchor": "type ActorReference = private"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_AUTH_001"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)",
+          "dotnet test .\\Minimal\\tests\\Brontide.Minimal.Conformance\\Brontide.Minimal.Conformance.fsproj -nologo --no-build (disposable branch regression: exit 1; 1 failed, 21 passed, 22 total; discarded branch accepted)"
+        ],
+        "verdict": "does-not-conform",
+        "rationale": "The private union cases block direct construction and other-domain references are denied, but issuer control is not preserved across persistent branches. The disposable regression reproduced a persistent branch state mismatch: a discarded Actor and Capability allocated from one Genesis transaction World were equal to the accepted branch's references; the discarded branch accepted the request and invoked the handler. The failure reproduced with 1 failed, 21 passed, 22 total.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-CAP-001",
+      "architectureSection": "10,13.5",
+      "summary": "An Execution explicitly presents a Capability whose holder, target, and Operation scope match the request at the target boundary.",
+      "component": "Brontide.Minimal.Kernel/World.step",
+      "claimedStatus": "tested",
+      "matrixRationale": "The only public execution path requires initiator, target, presented Capability, Operation, and input.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_EXEC_001"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_AUTH_002"
+        },
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_AUTH_003"
+        },
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_AUTH_004"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "World.step is the public effect path and explicitly checks the issued Capability, initiating holder, target, and Operation before selecting a handler. The retained wrong-holder, wrong-target, wrong-Operation, and foreign-Capability vectors passed.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-CAP-002",
+      "architectureSection": "10.1",
+      "summary": "Every effective Capability Constraint is evaluated conjunctively and unknown or failed Constraints deny before effects.",
+      "component": "Brontide.Minimal.Kernel constraint chain",
+      "claimedStatus": "tested",
+      "matrixRationale": "Operation requirements and every Capability derivation requirement are evaluated conjunctively.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "evaluators = Map.ofList"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_AUTH_005"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "World.step gathers Operation requirements and every Capability-chain expression, evaluates the complete list conjunctively, and denies unsatisfied, unsupported, invalid, or failed evaluations before dispatch. The full retained vectors passed.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-DELEGATION-001",
+      "architectureSection": "11",
+      "summary": "Delegation changes the holder, preserves inherited target and Operation scope, appends Constraints, and records its parent and issuer.",
+      "component": "Brontide.Minimal.Kernel/World.delegateCapability",
+      "claimedStatus": "tested",
+      "matrixRationale": "The API cannot express a replacement operation set or target and records parent plus delegator.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_DELEGATION_001"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/src/Brontide.Minimal.Kernel/Kernel.fs",
+          "anchor": "Operations = parent.Operations"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Delegation accepts only the current holder, changes only the holder, copies the parent's target and Operation set, adds Constraints, and records parent plus issuer. Widening through an ungranted Operation was denied in the passing suite.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-GENESIS-001",
+      "architectureSection": "12",
+      "summary": "Primordial authority and later Genesis occurrences are bounded, enumerable, and attributable to domain policy.",
+      "component": "Brontide.Minimal.Kernel/World.genesis",
+      "claimedStatus": "tested",
+      "matrixRationale": "Genesis records policy, introduced identities, and time; captured contexts deactivate, failed transactions use a non-recycled reference epoch, and nested Genesis or runtime dispatch is blocked while the transaction is active.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_GENESIS_001"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "failed Genesis does not recycle escaped authority references"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)",
+          "dotnet test .\\Minimal\\tests\\Brontide.Minimal.Conformance\\Brontide.Minimal.Conformance.fsproj -nologo --no-build (disposable branch regression: exit 1; 1 failed, 21 passed, 22 total; discarded branch accepted)"
+        ],
+        "verdict": "does-not-conform",
+        "rationale": "Genesis occurrences are recorded with policy, time, and introduced identities; failed Genesis rollback, nested Genesis refusal, in-transaction handler refusal, and captured-context deactivation passed. However, the allocation epoch is shared by all branches of one successful transaction. Reusing the same immutable transaction World caused a persistent branch state mismatch in Actor and Capability counters, and the discarded branch accepted the request as the committed branch. The disposable test failed with 1 failed, 21 passed, 22 total.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-EXEC-001",
+      "architectureSection": "13.5,13.6",
+      "summary": "The requested effect begins only after explicit target-side authority, Shape, and Constraint validation.",
+      "component": "Brontide.Minimal.Kernel/World.step",
+      "claimedStatus": "tested",
+      "matrixRationale": "Handlers are selected only after target, Capability, Shape, and Constraint checks.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_EXEC_001"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "invoked, Is.False"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "For ordinary registered identities, World.step performs target, issued-Capability, holder, Operation, input Shape, and all Constraint checks before handler lookup and dispatch; every retained denial vector confirmed that the handler remained uninvoked.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-EXEC-002",
+      "architectureSection": "13.5,28",
+      "summary": "Rejected attempts remain observable Executions while protected command payloads are excluded from denial audit records.",
+      "component": "Brontide.Minimal.Kernel execution audit",
+      "claimedStatus": "tested",
+      "matrixRationale": "Every denial allocates an Execution audit record without the command or payload.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_AUTH_002"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "Does.Not.Contain \"Payload\""
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Every denial allocates an ExecutionAudit and terminal Outcome while ExecutionAudit has no Command or Payload field. Reasons are structural diagnostics and the protected payload and vector values were absent from denial records.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-TIME-001",
+      "architectureSection": "10.3,13.3",
+      "summary": "Trusted target time is explicit, scoped to a time domain, monotonic where claimed, and distinct from attributable sender marks.",
+      "component": "Brontide.Minimal.Kernel trusted time",
+      "claimedStatus": "tested",
+      "matrixRationale": "Environment supplies the target-trusted Temporal Mark; domain mismatch and regression deny.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_TIME_001"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "ForeignClock"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Trusted target time is supplied explicitly through Environment, checked against the World's time domain and monotonic floor, and kept separate from Event occurred-at claims. Foreign-domain and regressed marks denied in the passing vectors.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-EVENT-001",
+      "architectureSection": "14",
+      "summary": "Events are immutable assertions that preserve emitter attribution, causation, declared Shape, and original temporal claims.",
+      "component": "Brontide.Minimal.Kernel Event commit",
+      "claimedStatus": "tested",
+      "matrixRationale": "Event definitions validate assertion Shape and committed Events preserve emitter, causation, and time.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "explicit issue delegate execute and Event attribution path succeeds"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/src/Brontide.Minimal.Kernel/Kernel.fs",
+          "anchor": "An emitted Event names an unknown emitter"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Event drafts are validated against a registered assertion Shape and issued emitter, then committed as immutable records preserving emitter, causative Execution, payload, emitted time, and optional occurred-at claim. The positive attribution path passed.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-OUTCOME-001",
+      "architectureSection": "14.2",
+      "summary": "An Outcome is a terminal Event for one identifiable Execution or activity, with distinct success result and failure detail Shapes.",
+      "component": "Brontide.Minimal.Model/ExecutionOutcome",
+      "claimedStatus": "tested",
+      "matrixRationale": "ExecutionOutcome composes an attributed Event, names its terminal Execution, and separates result from shaped failure details.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_OUTCOME_001"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "execution.Outcome.Result.IsNone"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "ExecutionOutcome composes an attributed Event, identifies the terminal Execution, separates successful Result from failure Details and DetailsShape, and validates shaped handler failure details before recording them.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-SHAPE-001",
+      "architectureSection": "16.1,16.5",
+      "summary": "Shape identity is semantic and supports unit, scalar, record, sequence, choice, and opaque contracts without CLR assignability.",
+      "component": "Brontide.Minimal.Model/ShapeBody",
+      "claimedStatus": "implemented",
+      "matrixRationale": "All six Base Shape kinds exist and validation is keyed by semantic ShapeReference.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/src/Brontide.Minimal.Model/Model.fs",
+          "anchor": "type ShapeBody"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/src/Brontide.Minimal.Kernel/Kernel.fs",
+          "anchor": "The value does not match the declared shape"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Shape identity is a CanonicalName plus structural version, and ShapeBody represents unit, scalar, record, sequence, choice, and opaque contracts. Validation dispatches by semantic ShapeReference rather than CLR assignability.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-SHAPE-002",
+      "architectureSection": "16.2",
+      "summary": "Same-name Shape versions are monotonic and additive; breaking structure or meaning requires a new canonical name.",
+      "component": "Brontide.Minimal.Kernel Shape registry",
+      "claimedStatus": "tested",
+      "matrixRationale": "Registration verifies prior fields, optional additions, body kind, and fragment policy.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_SHAPE_001"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "invalidV2"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Shape registration requires increasing same-name versions and preserves kind, existing fields, field Shapes and presence, fragment policy, and accepted fragments; only optional record fields may be added. The invalid lineage vector was rejected.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-SHAPE-003",
+      "architectureSection": "16.3,16.4",
+      "summary": "Open Shapes accept valid authored Fragments through canonical projection, required Fragments fail closed, and closed Shapes reject attachment.",
+      "component": "Brontide.Minimal.Kernel Shape projection",
+      "claimedStatus": "tested",
+      "matrixRationale": "Canonical projection enforces required Fragments, rejects authored attachments outside their declared host Shape lineage, accepts later compatible host versions, and honors explicit inclusion.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_05_SHAPE_003 authored fragments stay within their host Shape lineage"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "The fragment is not declared for that host Shape lineage."
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "Authored attachment checks the declared host Shape lineage and earliest compatible version, rejects unrelated open hosts, accepts later compatible host versions, and retains explicit inclusion for reusable fragments. Required-fragment absence and canonical projection vectors passed.",
+        "dispositionEvidence": null
+      }
+    },
+    {
+      "requirementId": "BR-05-INTERCHANGE-001",
+      "architectureSection": "30",
+      "summary": "Cross-stack component evidence crosses an external boundary without sharing implementation-private runtime types or authority objects.",
+      "component": "Brontide.Minimal.Binding",
+      "claimedStatus": "demonstrated",
+      "matrixRationale": "The retained full gate launches the independently built Reference provider process for Cooling and Catalog/resource proofs. This is experimental interchange evidence, not protocol ratification.",
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Interchange.Tests/InterchangeTests.fs",
+          "anchor": "compatible activation success forwarding provenance and host Enrichment are visible"
+        },
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Interchange.Tests/InterchangeTests.fs",
+          "anchor": "Catalog nested batch two operations and explicit failure cross the Reference process"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/build/verify-boundaries.ps1",
+          "anchor": "Brontide.Reference"
+        }
+      ],
+      "review": {
+        "architectureReviewed": true,
+        "positiveEvidenceReviewed": true,
+        "negativeEvidenceReviewed": true,
+        "testsRun": [
+          "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\build\\verify-interchange.ps1 (passed; Minimal ordinary suites: 73 passed, 7 skipped; Minimal CrossProcess: 7 passed)"
+        ],
+        "verdict": "conforms",
+        "rationale": "The complete gate launched the independently built Reference provider process for all seven Minimal CrossProcess cases. Cooling and Catalog exercised negotiation, nested and repeated values, two Operations, semantic failure, scoped resource refusal, replay and payload bounds without a Reference assembly in Minimal outputs.",
+        "dispositionEvidence": null
+      }
+    }
+  ],
+  "overallVerdict": "does-not-conform",
+  "attestation": {
+    "attestedBy": "agent:codex-minimal-review-finalgenesis",
+    "statement": "I attest that this record accurately reports my independent review of the pinned commit and the architecture selected by the status registry.",
+    "externalRecord": "C:\\tmp\\brontide-review-minimal-finalgenesis\\minimal-completed.json"
+  }
+}
