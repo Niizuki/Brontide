@@ -12,6 +12,10 @@ Every Brontide Minimal Stack-owned production, host, binding, and test project i
 sets, and discriminated unions make the pure transition boundary direct: the same `World`,
 `Environment`, and `ExecutionRequest` produce the same observable result.
 
+Opaque generated identities follow the same rule. Their private allocation lineage is derived from
+the prior lineage and the semantic allocation input: replaying one transition remains equal, while
+different branches from one persistent `World` cannot accidentally share an identity.
+
 ## Similar wire fields still need distinct semantic types
 
 Actor, Capability, Execution, Occurrence, and Activity references deliberately share scope/value

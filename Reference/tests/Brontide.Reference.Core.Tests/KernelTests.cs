@@ -158,6 +158,54 @@ public sealed class KernelTests
     }
 
     [Test]
+    public async Task Failed_genesis_occurrence_rolls_back_renewal_of_an_existing_lease()
+    {
+        var clock = new ManualTimeProvider(new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        ActorReference policy = null!;
+        ActorReference target = null!;
+        Capability capability = null!;
+        LivenessLease lease = null!;
+        var effects = 0;
+        var operation = OperationReference.Parse("Example.ExistingLease");
+        var domain = AuthorityDomain.Create("genesis-existing-lease-rollback", clock, genesis =>
+        {
+            policy = genesis.Actor("Policy");
+            target = genesis.Actor("Target");
+            genesis.Operation(operation, target, ShapeContract.Unit, ShapeContract.Unit, "existing lease",
+                _ =>
+                {
+                    effects++;
+                    return OperationEffect.SucceededAsync(ShapeValue.Unit);
+                });
+            lease = genesis.Lease(policy, TimeSpan.FromSeconds(5));
+            capability = genesis.Grant(
+                policy,
+                target,
+                [operation],
+                [new LivenessLeaseConstraint(lease)]);
+        });
+
+        var originalExpiry = lease.ExpiresAt;
+        clock.Advance(TimeSpan.FromSeconds(4));
+        Assert.That(() => domain.OccurGenesis(policy, "attachment", "failed lease renewal", _ =>
+        {
+            Assert.That(lease.Renew(policy), Is.True);
+            throw new InvalidOperationException("simulated policy failure");
+        }), Throws.InvalidOperationException);
+
+        clock.Advance(TimeSpan.FromSeconds(2));
+        var result = await domain.ExecuteAsync(policy, operation, capability, ShapeValue.Unit);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(domain.GenesisOccurrences, Is.Empty);
+            Assert.That(lease.ExpiresAt, Is.EqualTo(originalExpiry));
+            Assert.That(result.Outcome.Status, Is.EqualTo(OutcomeStatus.Rejected));
+            Assert.That(effects, Is.Zero);
+        });
+    }
+
+    [Test]
     public async Task Rejected_provenance_excludes_the_protected_input()
     {
         ActorReference holder = null!;

@@ -14,10 +14,11 @@ This addition is current-draft evidence, not ratification and not a component-ve
 
 ### Changed
 
-- Failed dynamic Genesis callbacks now roll back their actors, capabilities, liveness leases,
-  declarations, and Shape registrations before rethrowing. Escaped references are rejected after
-  rollback, and runtime effects or nested Genesis occurrences cannot run reentrantly inside the
-  transaction.
+- Failed dynamic Genesis callbacks now roll back their actors, capabilities, newly issued leases,
+  pre-existing mutable lease state, declarations, and Shape registrations before rethrowing.
+  Lease reads and renewal are coordinated with the domain transaction, escaped references are
+  rejected after rollback, and runtime effects or nested Genesis occurrences cannot run
+  reentrantly inside the transaction.
 - Rejected provenance retains execution metadata but does not retain the submitted protected input.
   Direct `ExecutionResult` records remain complete; audit consumers may inspect `HasInput`.
 - A liveness lease remains terminally dead after trusted time observes expiry, even if the supplied

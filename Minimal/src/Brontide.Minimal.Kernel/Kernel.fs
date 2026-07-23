@@ -1,12 +1,144 @@
 namespace Brontide.Minimal.Kernel
 
 open System
+open System.Globalization
+open System.Security.Cryptography
+open System.Text
 open Brontide.Minimal.Model
+
+module private ReferenceIdentity =
+    let private opaque ((scope, epoch, value): Guid * Guid * int64) =
+        String.concat
+            ":"
+            [ scope.ToString("N")
+              epoch.ToString("N")
+              value.ToString(CultureInfo.InvariantCulture) ]
+
+    let actor reference = reference |> ActorReference.identity |> opaque
+    let capability reference = reference |> CapabilityReference.identity |> opaque
+    let constraintReference reference = reference |> ConstraintReference.identity |> opaque
+    let occurrence reference = reference |> OccurrenceReference.identity |> opaque
+
+    let shapeReference (reference: ShapeReference) =
+        $"{CanonicalName.value reference.Name}@{reference.Version.ToString(CultureInfo.InvariantCulture)}"
+
+    let fragmentReference (reference: FragmentReference) =
+        $"{CanonicalName.value reference.Name}@{reference.Version.ToString(CultureInfo.InvariantCulture)}"
+
+    let rec shapeValueTokens value =
+        match value with
+        | UnitValue -> [ "unit" ]
+        | BooleanValue value -> [ "boolean"; if value then "true" else "false" ]
+        | IntegerValue value -> [ "integer"; value.ToString(CultureInfo.InvariantCulture) ]
+        | DecimalValue value -> [ "decimal"; value.ToString(CultureInfo.InvariantCulture) ]
+        | TextValue value -> [ "text"; value ]
+        | BytesValue value -> [ "bytes"; Convert.ToHexString(value) ]
+        | RecordValue(fields, fragments) ->
+            [ yield "record"
+              for KeyValue(name, fieldValue) in fields do
+                  yield "field"
+                  yield name
+                  yield! shapeValueTokens fieldValue
+              for KeyValue(reference, fragmentValue) in fragments do
+                  yield "fragment"
+                  yield fragmentReference reference
+                  yield! shapeValueTokens fragmentValue ]
+        | SequenceValue values ->
+            [ yield "sequence"
+              for item in values do
+                  yield "item"
+                  yield! shapeValueTokens item ]
+        | ChoiceValue(caseName, choiceValue) ->
+            [ yield "choice"
+              yield caseName
+              yield! shapeValueTokens choiceValue ]
+
+    let constraintRequirementTokens requirement =
+        [ yield constraintReference requirement.Constraint
+          yield! shapeValueTokens requirement.Parameters ]
+
+    let rec constraintExpressionTokens expression =
+        match expression with
+        | AtomicConstraint requirement ->
+            [ yield "atomic"
+              yield! constraintRequirementTokens requirement ]
+        | AllOf expressions ->
+            [ yield "all-of"
+              for child in expressions do
+                  yield "child"
+                  yield! constraintExpressionTokens child ]
+        | AnyOf expressions ->
+            [ yield "any-of"
+              for child in expressions do
+                  yield "child"
+                  yield! constraintExpressionTokens child ]
+        | Not child ->
+            [ yield "not"
+              yield! constraintExpressionTokens child ]
+
+    let capabilityAllocationTokens
+        name
+        holder
+        target
+        (operations: Set<OperationReference>)
+        expressions
+        delegationAllowed
+        parent
+        issuedBy
+        =
+        [ yield CanonicalName.value name
+          yield actor holder
+          yield actor target
+          yield if delegationAllowed then "delegable" else "terminal"
+          for operation in operations do
+              yield "operation"
+              yield CanonicalName.value operation.Name
+          for expression in expressions do
+              yield "constraint-expression"
+              yield! constraintExpressionTokens expression
+          yield parent |> Option.map capability |> Option.defaultValue "root"
+          yield issuedBy |> Option.map actor |> Option.defaultValue "primordial" ]
+
+    let temporalMarkTokens mark =
+        [ mark.Milliseconds.ToString(CultureInfo.InvariantCulture)
+          mark.TimeDomain |> TimeDomainReference.name |> CanonicalName.value
+          mark.UncertaintyMilliseconds
+          |> Option.map (fun value -> value.ToString(CultureInfo.InvariantCulture))
+          |> Option.defaultValue "none" ]
+
+    let executionTokens (request: ExecutionRequest) recordedAt =
+        [ yield actor request.Initiator
+          yield actor request.Target
+          yield capability request.PresentedCapability
+          yield CanonicalName.value request.Operation.Name
+          yield! shapeValueTokens request.Command
+          yield request.Occurrence |> Option.map occurrence |> Option.defaultValue "none"
+          for KeyValue(name, value) in request.Context do
+              yield "context"
+              yield name
+              yield value
+          yield! temporalMarkTokens recordedAt ]
+
+    let derive (parent: Guid) (sequence: int64) kind parts =
+        let components =
+            [ yield parent.ToString("N")
+              yield sequence.ToString(CultureInfo.InvariantCulture)
+              yield kind
+              yield! parts ]
+
+        let encoded =
+            components
+            |> List.map (fun part -> $"{Encoding.UTF8.GetByteCount(part)}:{part}")
+            |> String.concat "|"
+            |> Encoding.UTF8.GetBytes
+
+        encoded |> SHA256.HashData |> Array.take 16 |> Guid
 
 type World =
     private
         { Scope: Guid
           ReferenceEpoch: Guid
+          GenesisTransaction: Guid option
           NextReference: int64
           GenesisActive: bool
           AuthorityActor: ActorReference
@@ -61,20 +193,38 @@ type StepResult =
       EmittedEvents: Event list
       Provenance: ProvenanceClaim list }
 
-type GenesisContext internal (scope: Guid) =
+type GenesisContext internal (scope: Guid, transaction: Guid) =
+    let allocationGate = obj ()
     let mutable active = true
+    let mutable nextAllocation = 0L
 
     member internal _.EnsureActive(worldScope: Guid) =
-        if not active then
-            invalidOp "A completed Genesis context cannot introduce authority."
+        lock allocationGate (fun () ->
+            if not active then
+                invalidOp "A completed Genesis context cannot introduce authority."
 
-        if scope <> worldScope then
-            invalidOp "A Genesis context cannot introduce authority into another domain."
+            if scope <> worldScope then
+                invalidOp "A Genesis context cannot introduce authority into another domain.")
 
-    member internal _.Complete() = active <- false
+    member internal _.AllocateReferenceEpoch(worldScope: Guid, kind, parts) =
+        lock allocationGate (fun () ->
+            if not active then
+                invalidOp "A completed Genesis context cannot introduce authority."
+
+            if scope <> worldScope then
+                invalidOp "A Genesis context cannot introduce authority into another domain."
+
+            nextAllocation <- nextAllocation + 1L
+            ReferenceIdentity.derive transaction nextAllocation kind parts)
+
+    member internal _.Complete() =
+        lock allocationGate (fun () -> active <- false)
 
 [<RequireQualifiedAccess>]
 module World =
+    let private allocationEpoch kind parts (world: World) =
+        ReferenceIdentity.derive world.ReferenceEpoch world.NextReference kind parts
+
     let private builtInShape (reference: ShapeReference) (body: ShapeBody) : ShapeDefinition =
         { Reference = reference
           Description = "Brontide.Minimal Base shape"
@@ -101,6 +251,7 @@ module World =
 
         { Scope = scope
           ReferenceEpoch = referenceEpoch
+          GenesisTransaction = None
           NextReference = 2L
           GenesisActive = false
           AuthorityActor = authorityReference
@@ -148,11 +299,12 @@ module World =
         elif recordedAt.Milliseconds < world.LastLogicalTime then
             Error "Genesis time cannot move backwards."
         else
-            let context = GenesisContext(world.Scope)
             let transactionEpoch = Guid.NewGuid()
+            let context = GenesisContext(world.Scope, transactionEpoch)
             let transactionWorld =
                 { world with
                     ReferenceEpoch = transactionEpoch
+                    GenesisTransaction = Some transactionEpoch
                     GenesisActive = true }
             let actorsBefore = world.Actors |> Map.keys |> Set.ofSeq
             let capabilitiesBefore = world.Capabilities |> Map.keys |> Set.ofSeq
@@ -164,7 +316,7 @@ module World =
                 if initialized.Scope <> world.Scope then
                     invalidOp "Genesis returned a World from another authority domain."
 
-                if initialized.ReferenceEpoch <> transactionEpoch || not initialized.GenesisActive then
+                if initialized.GenesisTransaction <> Some transactionEpoch || not initialized.GenesisActive then
                     invalidOp "Genesis must return the transaction World supplied to its callback."
 
                 let introducedActors =
@@ -181,11 +333,15 @@ module World =
                     |> fun issued -> Set.difference issued capabilitiesBefore
                     |> Set.toList
 
+                let occurrenceEpoch =
+                    allocationEpoch
+                        "genesis-occurrence"
+                        [ CanonicalName.value policy
+                          yield! ReferenceIdentity.temporalMarkTokens recordedAt ]
+                        initialized
+
                 let occurrence =
-                    OccurrenceReference.issue
-                        initialized.Scope
-                        initialized.ReferenceEpoch
-                        initialized.NextReference
+                    OccurrenceReference.issue initialized.Scope occurrenceEpoch initialized.NextReference
 
                 let genesisRecord =
                     { Occurrence = occurrence
@@ -197,6 +353,8 @@ module World =
                 Ok(
                     value,
                     { initialized with
+                        ReferenceEpoch = occurrenceEpoch
+                        GenesisTransaction = None
                         NextReference = initialized.NextReference + 1L
                         GenesisActive = false
                         GenesisOccurrences = initialized.GenesisOccurrences @ [ genesisRecord ]
@@ -280,7 +438,15 @@ module World =
         if not (Map.containsKey parameterShape world.Shapes) then
             Error "The constraint parameter shape is not registered."
         else
-            let reference = ConstraintReference.issue world.Scope world.ReferenceEpoch world.NextReference
+            let referenceEpoch =
+                allocationEpoch
+                    "constraint"
+                    [ CanonicalName.value name
+                      ReferenceIdentity.shapeReference parameterShape
+                      description ]
+                    world
+
+            let reference = ConstraintReference.issue world.Scope referenceEpoch world.NextReference
 
             let definition =
                 { Reference = reference
@@ -291,6 +457,7 @@ module World =
             Ok(
                 definition,
                 { world with
+                    ReferenceEpoch = referenceEpoch
                     NextReference = world.NextReference + 1L
                     Constraints = Map.add reference definition world.Constraints }
             )
@@ -436,12 +603,15 @@ module World =
         |> Option.defaultValue (Ok())
 
     let internal issueGenesisActor (context: GenesisContext) (name: CanonicalName) (world: World) =
-        context.EnsureActive world.Scope
-        let reference = ActorReference.issue world.Scope world.ReferenceEpoch world.NextReference
+        let referenceEpoch =
+            context.AllocateReferenceEpoch(world.Scope, "actor", [ CanonicalName.value name ])
+
+        let reference = ActorReference.issue world.Scope referenceEpoch world.NextReference
         let actor = { Reference = reference; Name = name }
 
         actor,
         { world with
+            ReferenceEpoch = referenceEpoch
             NextReference = world.NextReference + 1L
             Actors = Map.add reference actor world.Actors }
 
@@ -476,7 +646,21 @@ module World =
             match validateConstraintExpressions expressions world with
             | Error message -> Error message
             | Ok() ->
-                let reference = CapabilityReference.issue world.Scope world.ReferenceEpoch world.NextReference
+                let allocationParts =
+                    ReferenceIdentity.capabilityAllocationTokens
+                        name
+                        holder
+                        target
+                        operations
+                        expressions
+                        delegationAllowed
+                        None
+                        None
+
+                let referenceEpoch =
+                    context.AllocateReferenceEpoch(world.Scope, "capability", allocationParts)
+
+                let reference = CapabilityReference.issue world.Scope referenceEpoch world.NextReference
 
                 let atomicCompatibility =
                     expressions
@@ -498,6 +682,7 @@ module World =
                 Ok(
                     capability,
                     { world with
+                        ReferenceEpoch = referenceEpoch
                         NextReference = world.NextReference + 1L
                         Capabilities = Map.add reference capability world.Capabilities
                         CapabilityConstraintExpressions =
@@ -544,7 +729,19 @@ module World =
             match validateConstraintExpressions addedExpressions world with
             | Error message -> Error message
             | Ok() ->
-                let reference = CapabilityReference.issue world.Scope world.ReferenceEpoch world.NextReference
+                let referenceEpoch =
+                    ReferenceIdentity.capabilityAllocationTokens
+                        name
+                        newHolder
+                        parent.Target
+                        parent.Operations
+                        addedExpressions
+                        parent.DelegationAllowed
+                        (Some parent.Reference)
+                        (Some delegator)
+                    |> fun parts -> allocationEpoch "capability" parts world
+
+                let reference = CapabilityReference.issue world.Scope referenceEpoch world.NextReference
 
                 let atomicCompatibility =
                     addedExpressions
@@ -566,6 +763,7 @@ module World =
                 Ok(
                     capability,
                     { world with
+                        ReferenceEpoch = referenceEpoch
                         NextReference = world.NextReference + 1L
                         Capabilities = Map.add reference capability world.Capabilities
                         CapabilityConstraintExpressions =
@@ -642,13 +840,23 @@ module World =
     let projectRecord (target: ShapeReference) (value: ShapeValue) (world: World) =
         projectRecordWithFragments target Set.empty value world
 
-    let private allocateExecution (world: World) =
-        ExecutionReference.issue world.Scope world.ReferenceEpoch world.NextReference,
-        { world with NextReference = world.NextReference + 1L }
+    let private allocateExecution request recordedAt (world: World) =
+        let referenceEpoch =
+            ReferenceIdentity.executionTokens request recordedAt
+            |> fun parts -> allocationEpoch "execution" parts world
 
-    let private allocateOccurrence (world: World) =
-        OccurrenceReference.issue world.Scope world.ReferenceEpoch world.NextReference,
-        { world with NextReference = world.NextReference + 1L }
+        ExecutionReference.issue world.Scope referenceEpoch world.NextReference,
+        { world with
+            ReferenceEpoch = referenceEpoch
+            NextReference = world.NextReference + 1L }
+
+    let private allocateOccurrence kind (world: World) =
+        let referenceEpoch = allocationEpoch kind [] world
+
+        OccurrenceReference.issue world.Scope referenceEpoch world.NextReference,
+        { world with
+            ReferenceEpoch = referenceEpoch
+            NextReference = world.NextReference + 1L }
 
     let private observableTime (environment: Environment) (world: World) =
         if
@@ -694,9 +902,9 @@ module World =
         (details: ShapeValue option)
         (world: World)
         =
-        let execution, nextWorld = allocateExecution world
-        let occurrence, afterOccurrence = allocateOccurrence nextWorld
         let recordedAt = observableTime environment world
+        let execution, nextWorld = allocateExecution request recordedAt world
+        let occurrence, afterOccurrence = allocateOccurrence "outcome-occurrence" nextWorld
         let emitter =
             if Map.containsKey request.Target world.Actors then request.Target else world.AuthorityActor
 
@@ -896,17 +1104,15 @@ module World =
                                     | Some message ->
                                         fail environment request (OperationFailure.withoutDetails message) world
                                     | None ->
-                                        let execution, afterExecution = allocateExecution world
+                                        let execution, afterExecution =
+                                            allocateExecution request environment.TrustedTime world
 
                                         let events, afterEvents =
                                             eventDrafts
                                             |> List.fold
                                                 (fun (events, state) draft ->
-                                                    let occurrence =
-                                                        OccurrenceReference.issue
-                                                            state.Scope
-                                                            state.ReferenceEpoch
-                                                            state.NextReference
+                                                    let occurrence, nextState =
+                                                        allocateOccurrence "event-occurrence" state
 
                                                     let event =
                                                         { Reference = draft.Reference
@@ -918,11 +1124,12 @@ module World =
                                                           OccurredAt = draft.OccurredAt }
 
                                                     event :: events,
-                                                    { state with NextReference = state.NextReference + 1L })
+                                                    nextState)
                                                 ([], afterExecution)
 
                                         let emittedEvents = List.rev events
-                                        let outcomeOccurrence, afterOutcome = allocateOccurrence afterEvents
+                                        let outcomeOccurrence, afterOutcome =
+                                            allocateOccurrence "outcome-occurrence" afterEvents
 
                                         let outcomeEvent =
                                             { Reference = BuiltIn.executionOutcomeEvent

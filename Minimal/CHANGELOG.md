@@ -25,9 +25,10 @@ These additions are current-draft evidence, not ratification and not a component
 - Issuer-controlled Actor, Capability, Constraint, Execution, Occurrence, and Activity references
   no longer expose public record construction. Carry references returned by `Genesis`, `World`, or
   execution APIs instead of constructing scope/value records.
-- Opaque generated references now include an internal allocation epoch. Treat a returned reference
-  as one indivisible identity rather than correlating authority by its diagnostic scope/value pair;
-  failed Genesis branches no longer collide with later successful authority.
+- Opaque generated references now include an internal deterministic allocation lineage. Treat a
+  returned reference as one indivisible identity rather than correlating authority by its
+  diagnostic scope/value pair; failed or discarded persistent branches cannot collide with an
+  accepted branch, while replaying the same explicit transition still produces the same result.
 - `World.create` now requires an explicit `TimeDomainReference`; execution receives a trusted
   `TemporalMark` from the host.
 - `ExecutionRequest` now requires `Initiator`, `Target`, and `PresentedCapability`. Migrate callers

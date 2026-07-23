@@ -379,15 +379,26 @@ public sealed record OriginGrantConstraint : Constraint
 /// <summary>A renewable, grantor-scoped mortality token evaluated against the domain's trusted clock.</summary>
 public sealed class LivenessLease
 {
+    internal readonly record struct Snapshot(
+        DateTimeOffset? ExpiresAt,
+        DateTimeOffset? LatestTrustedTime,
+        bool Dead);
+
+    private readonly object _authorityGate;
     private readonly object _gate = new();
     private readonly TimeProvider? _timeProvider;
     private DateTimeOffset? _expiresAt;
     private DateTimeOffset? _latestTrustedTime;
     private bool _dead;
 
-    internal LivenessLease(ActorReference grantor, TimeSpan duration, TimeProvider? timeProvider)
+    internal LivenessLease(
+        ActorReference grantor,
+        TimeSpan duration,
+        TimeProvider? timeProvider,
+        object authorityGate)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(duration, TimeSpan.Zero);
+        _authorityGate = authorityGate ?? throw new ArgumentNullException(nameof(authorityGate));
         Grantor = grantor;
         Duration = duration;
         _timeProvider = timeProvider;
@@ -402,7 +413,16 @@ public sealed class LivenessLease
 
     public DateTimeOffset? ExpiresAt
     {
-        get { lock (_gate) { return _expiresAt; } }
+        get
+        {
+            lock (_authorityGate)
+            {
+                lock (_gate)
+                {
+                    return _expiresAt;
+                }
+            }
+        }
     }
 
     public bool Renew(ActorReference by)
@@ -412,37 +432,67 @@ public sealed class LivenessLease
             throw new UnauthorizedAccessException("Only the lease grantor may renew it.");
         }
 
-        lock (_gate)
+        lock (_authorityGate)
         {
-            if (_timeProvider is null)
+            lock (_gate)
             {
-                return false;
-            }
+                if (_timeProvider is null)
+                {
+                    return false;
+                }
 
-            var now = ObserveTrustedTime(_timeProvider.GetUtcNow());
-            if (_dead || _expiresAt is null || now >= _expiresAt.Value)
-            {
-                _dead = true;
-                return false;
-            }
+                var now = ObserveTrustedTime(_timeProvider.GetUtcNow());
+                if (_dead || _expiresAt is null || now >= _expiresAt.Value)
+                {
+                    _dead = true;
+                    return false;
+                }
 
-            _expiresAt = now.Add(Duration);
-            return true;
+                _expiresAt = now.Add(Duration);
+                return true;
+            }
         }
     }
 
     internal bool IsAlive(DateTimeOffset trustedNow)
     {
-        lock (_gate)
+        lock (_authorityGate)
         {
-            var observed = ObserveTrustedTime(trustedNow);
-            if (_dead || _expiresAt is null || observed >= _expiresAt.Value)
+            lock (_gate)
             {
-                _dead = true;
-                return false;
-            }
+                var observed = ObserveTrustedTime(trustedNow);
+                if (_dead || _expiresAt is null || observed >= _expiresAt.Value)
+                {
+                    _dead = true;
+                    return false;
+                }
 
-            return true;
+                return true;
+            }
+        }
+    }
+
+    internal Snapshot CaptureState()
+    {
+        lock (_authorityGate)
+        {
+            lock (_gate)
+            {
+                return new Snapshot(_expiresAt, _latestTrustedTime, _dead);
+            }
+        }
+    }
+
+    internal void RestoreState(Snapshot snapshot)
+    {
+        lock (_authorityGate)
+        {
+            lock (_gate)
+            {
+                _expiresAt = snapshot.ExpiresAt;
+                _latestTrustedTime = snapshot.LatestTrustedTime;
+                _dead = snapshot.Dead;
+            }
         }
     }
 

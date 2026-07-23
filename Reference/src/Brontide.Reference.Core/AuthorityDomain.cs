@@ -290,6 +290,9 @@ public sealed class AuthorityDomain
             var actorStart = _actors.Count;
             var capabilityStart = _capabilities.Count;
             var leaseStart = _leases.Count;
+            var existingLeaseStates = _leases
+                .Select(lease => (Lease: lease, State: lease.CaptureState()))
+                .ToArray();
             var operationKeys = _operations.Keys.ToHashSet();
             var eventKeys = _events.Keys.ToHashSet();
             var constraintKeys = _constraints.Keys.ToHashSet();
@@ -316,6 +319,11 @@ public sealed class AuthorityDomain
                 _actors.RemoveRange(actorStart, _actors.Count - actorStart);
                 _capabilities.RemoveRange(capabilityStart, _capabilities.Count - capabilityStart);
                 _leases.RemoveRange(leaseStart, _leases.Count - leaseStart);
+                foreach (var (lease, state) in existingLeaseStates)
+                {
+                    lease.RestoreState(state);
+                }
+
                 foreach (var key in _operations.Keys.Except(operationKeys).ToArray())
                 {
                     _operations.Remove(key);
@@ -886,7 +894,7 @@ public sealed class AuthorityDomain
     private LivenessLease IssueLease(ActorReference grantor, TimeSpan duration)
     {
         EnsureActor(grantor);
-        var lease = new LivenessLease(grantor, duration, TimeProvider);
+        var lease = new LivenessLease(grantor, duration, TimeProvider, _gate);
         lock (_gate)
         {
             _leases.Add(lease);

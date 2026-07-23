@@ -145,6 +145,10 @@ A later fresh review found the Minimal analogue behind its persistent World: a f
 branch recycled its counter-only Actor reference, allowing the escaped value to impersonate the
 next successfully issued Actor.
 
+The next same-target review found two deeper persistent-state cases: Minimal could allocate equal
+Actor and Capability references on a discarded and accepted branch within one successful Genesis
+callback, and Reference rollback did not restore renewal of a pre-existing mutable liveness lease.
+
 Requested change:
 
 1. Bind every Minimal authored Fragment to an explicit compatible host Shape lineage, while
@@ -159,6 +163,10 @@ Requested change:
    both independent reviews against a new pinned commit.
 6. Ensure Minimal never recycles opaque authority identities from an abandoned Genesis branch, and
    prevent nested Genesis or runtime handler dispatch inside an active Genesis transaction.
+7. Preserve Minimal's deterministic transition contract while deriving distinct identities for
+   semantically different branches from the same persistent World.
+8. Snapshot and restore pre-existing Reference liveness-lease state on failed Genesis and
+   coordinate lease observation and renewal with the domain transaction.
 
 ## 8. Delivery order
 

@@ -138,6 +138,7 @@ type ActorReference = private ActorReference of scope: Guid * epoch: Guid * valu
 [<RequireQualifiedAccess>]
 module ActorReference =
     let internal issue scope epoch value = ActorReference(scope, epoch, value)
+    let internal identity (ActorReference(scope, epoch, value)) = scope, epoch, value
     let scope (ActorReference(scope, _, _)) = scope
     let value (ActorReference(_, _, value)) = value
 
@@ -147,6 +148,7 @@ type CapabilityReference = private CapabilityReference of scope: Guid * epoch: G
 [<RequireQualifiedAccess>]
 module CapabilityReference =
     let internal issue scope epoch value = CapabilityReference(scope, epoch, value)
+    let internal identity (CapabilityReference(scope, epoch, value)) = scope, epoch, value
     let scope (CapabilityReference(scope, _, _)) = scope
     let value (CapabilityReference(_, _, value)) = value
 
@@ -156,6 +158,7 @@ type ConstraintReference = private ConstraintReference of scope: Guid * epoch: G
 [<RequireQualifiedAccess>]
 module ConstraintReference =
     let internal issue scope epoch value = ConstraintReference(scope, epoch, value)
+    let internal identity (ConstraintReference(scope, epoch, value)) = scope, epoch, value
     let scope (ConstraintReference(scope, _, _)) = scope
     let value (ConstraintReference(_, _, value)) = value
 
@@ -165,6 +168,7 @@ type ExecutionReference = private ExecutionReference of scope: Guid * epoch: Gui
 [<RequireQualifiedAccess>]
 module ExecutionReference =
     let internal issue scope epoch value = ExecutionReference(scope, epoch, value)
+    let internal identity (ExecutionReference(scope, epoch, value)) = scope, epoch, value
     let scope (ExecutionReference(scope, _, _)) = scope
     let value (ExecutionReference(_, _, value)) = value
 
@@ -174,6 +178,7 @@ type OccurrenceReference = private OccurrenceReference of scope: Guid * epoch: G
 [<RequireQualifiedAccess>]
 module OccurrenceReference =
     let internal issue scope epoch value = OccurrenceReference(scope, epoch, value)
+    let internal identity (OccurrenceReference(scope, epoch, value)) = scope, epoch, value
     let scope (OccurrenceReference(scope, _, _)) = scope
     let value (OccurrenceReference(_, _, value)) = value
 
@@ -183,6 +188,7 @@ type ActivityReference = private ActivityReference of scope: Guid * epoch: Guid 
 [<RequireQualifiedAccess>]
 module ActivityReference =
     let internal issue scope epoch value = ActivityReference(scope, epoch, value)
+    let internal identity (ActivityReference(scope, epoch, value)) = scope, epoch, value
     let scope (ActivityReference(scope, _, _)) = scope
     let value (ActivityReference(_, _, value)) = value
 

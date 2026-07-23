@@ -530,10 +530,16 @@ type BaseAuthorityConformance() =
 
         let first = World.step executionEnvironment fixture.World executionRequest
         let second = World.step executionEnvironment fixture.World executionRequest
+        let different =
+            World.step
+                executionEnvironment
+                fixture.World
+                { executionRequest with Command = TextValue "different branch" }
 
         Assert.That(first.Outcome.Execution, Is.EqualTo second.Outcome.Execution)
         Assert.That(first.Outcome, Is.EqualTo second.Outcome)
         Assert.That(World.executions first.World = World.executions second.World, Is.True)
+        Assert.That(first.Outcome.Execution, Is.Not.EqualTo different.Outcome.Execution)
 
     [<Test>]
     member _.``BR_05_GENESIS_001 Genesis is enumerable attributable and cannot be reused`` () =
@@ -680,6 +686,75 @@ type BaseAuthorityConformance() =
             Assert.That(nestedGenesisBlocked, Is.True)
             Assert.That(escapedActorResult.Outcome.Status, Is.EqualTo Denied)
             Assert.That(escapedCapabilityResult.Outcome.Status, Is.EqualTo Denied)
+            Assert.That(invoked, Is.False)))
+
+    [<Test>]
+    member _.``BR_05_GENESIS_001 discarded persistent branch cannot recycle opaque references`` () =
+        let fixture = prepareWorld ()
+        let mutable discardedActor = Unchecked.defaultof<ActorReference>
+        let mutable discardedCapability = Unchecked.defaultof<CapabilityReference>
+        let mutable invoked = false
+
+        let (acceptedActor: Actor, acceptedCapability: Capability), ready =
+            World.genesis
+                (name "Brontide.Minimal.Tests:BranchingPolicy")
+                (mark 1L)
+                (fun genesis world ->
+                    let provisional, provisionalWorld =
+                        Genesis.actor genesis (name "Brontide.Minimal.Tests:BranchedActor") world
+
+                    let provisionalCapability, _ =
+                        Genesis.capability
+                            genesis
+                            (name "Brontide.Minimal.Tests:BranchedGrant")
+                            provisional.Reference
+                            fixture.Target.Reference
+                            (Set.singleton echoOperation)
+                            []
+                            false
+                            provisionalWorld
+                        |> get
+
+                    discardedActor <- provisional.Reference
+                    discardedCapability <- provisionalCapability.Reference
+
+                    let accepted, acceptedWorld =
+                        Genesis.actor genesis (name "Brontide.Minimal.Tests:BranchedActor") world
+
+                    let acceptedCapability, acceptedWorld =
+                        Genesis.capability
+                            genesis
+                            (name "Brontide.Minimal.Tests:BranchedGrant")
+                            accepted.Reference
+                            fixture.Target.Reference
+                            (Set.singleton echoOperation)
+                            []
+                            false
+                            acceptedWorld
+                        |> get
+
+                    ((accepted, acceptedCapability), acceptedWorld))
+                fixture.World
+            |> get
+
+        let result =
+            World.step
+                (environment 2L Map.empty (fun value ->
+                    invoked <- true
+                    Ok(value.Command, [], [])))
+                ready
+                (request
+                    fixture
+                    discardedActor
+                    fixture.Target.Reference
+                    discardedCapability
+                    echoOperation
+                    (TextValue "must not execute"))
+
+        Assert.Multiple(Action(fun () ->
+            Assert.That(discardedActor, Is.Not.EqualTo acceptedActor.Reference)
+            Assert.That(discardedCapability, Is.Not.EqualTo acceptedCapability.Reference)
+            Assert.That(result.Outcome.Status, Is.EqualTo Denied)
             Assert.That(invoked, Is.False)))
 
     [<Test>]
