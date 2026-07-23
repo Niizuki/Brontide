@@ -26,11 +26,11 @@ A target records the architecture against which work was devised. It is not, by 
 conformance or ratification claim. Code, tests, and concise known-limitations prose remain the useful
 evidence of what actually works.
 
-Known implementation and evidence gaps, their permanent evidence, and their closure state are
-recorded in the [implementation correction status](./docs/implementation-correction-status.md) and
-the [independent-review framework](./conformance/reviews/README.md). While the temporary correction
-plan exists, it remains the controlling request rather than evidence of completion; its deletion
-requires two conforming reviews and an explicit checked authorization.
+The implementation correction programme is complete. Its work and validation are summarized in the
+[completion report](./docs/implementation-correction-completion-report.md), with permanent status in
+the [implementation correction record](./docs/implementation-correction-status.md) and
+machine-checkable evidence in the [independent-review framework](./conformance/reviews/README.md).
+The temporary plan was deleted only after two conforming reviews and explicit checked authorization.
 
 The first programme of real cross-stack evidence remains
 [Reference/Minimal Interchange Implementation Plan 0.1](./Brontide-Interchange-Implementation-Plan-0.1.md).
@@ -77,7 +77,9 @@ masquerades as exposure. These terms remain outside Base and are not a ratified 
 Exact boundary assumptions are recorded in
 [`docs/public-boundaries.md`](./docs/public-boundaries.md), and the reproducible manual/generated
 source-cost inventory is [`interchange/binding-measurements.json`](./interchange/binding-measurements.json).
-The current correction finding/deletion-gate status is summarized in
+The completed correction programme is summarized in
+[`docs/implementation-correction-completion-report.md`](./docs/implementation-correction-completion-report.md).
+Its finding and deletion-gate evidence is retained in
 [`docs/implementation-correction-status.md`](./docs/implementation-correction-status.md).
 The retained conformance matrices and independent-review workflow remain available as detailed test
 and correction evidence. They do not determine either stack's architecture target; the owning README
