@@ -4,10 +4,10 @@
     "currentArchitectureRevision":  "0.8",
     "implementationBaselineRevision":  "0.5",
     "stack":  "Minimal",
-    "reviewTargetCommit":  "2049554c8e7ee5c26e4fcae6a103997737aa90f2",
+    "reviewTargetCommit":  "c7c2eb4cf03ba973aa87f5fdb2e272e393ceb332",
     "reviewer":  {
-                     "id":  "agent:codex-minimal-review-context-final",
-                     "name":  "Codex Minimal Reviewer (Context Final)",
+                     "id":  "agent:relocation-independent-review",
+                     "name":  "Independent relocation reviewer",
                      "kind":  "automated",
                      "independent":  true,
                      "independenceStatement":  "I did not implement the correction under review and evaluated this stack against the pinned requirements and the architecture status registry rather than accepting implementation claims.",
@@ -15,31 +15,31 @@
 
                                    ],
                      "automation":  {
-                                        "system":  "Codex",
-                                        "sessionId":  "task:/root/minimal_review_context_final",
+                                        "system":  "Claude Code (Opus 4.8)",
+                                        "sessionId":  "task:relocation-independent-review",
                                         "freshContext":  true,
                                         "implementationContextAccess":  "none"
                                     }
                  },
     "currentArchitectureReview":  {
-                                      "architecturePath":  "Brontide-Architecture-0.8.md",
+                                      "architecturePath":  "docs/future/architecture/Brontide-Architecture-0.8.md",
                                       "architectureStatus":  "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
-                                      "implementationPlanPath":  "Brontide-Minimal-Stack-Implementation-Plan-0.3.md",
+                                      "implementationPlanPath":  "Minimal/docs/future/Brontide-Minimal-Stack-Implementation-Plan-0.3.md",
                                       "deliveryLedgerPath":  "Minimal/docs/architecture-0.7-delivery.md",
                                       "architectureReviewed":  true,
                                       "implementationPlanReviewed":  true,
                                       "deliveryLedgerReviewed":  true,
                                       "statusBoundaryAcknowledged":  true,
                                       "assessment":  "current-deltas-recorded",
-                                      "rationale":  "Architecture 0.8 is a Complete Draft with implementation evidence pending and is not ratified. Minimal locally targets Architecture 0.7 and accurately records its partial status, the 0.8 three-valued-Constraint supersession, the chain-representation handoff, and the remaining Channel, Portable Binding/Shape-floor, Flow, persistent-information, and composition work without claiming current-architecture conformance."
+                                      "rationale":  "I read the complete Architecture 0.8 and acknowledge its status boundary: Complete Draft, document edit complete, implementation evidence pending, and explicitly not ratified (the status registry records no ratified architecture). The Minimal stack locally targets Architecture 0.7; Plan 0.3 is Planned and the 0.7 delivery ledger limits the claim to tested M1-M2 Complete Draft evidence, leaves M3-M5 planned, and makes no 0.7 conformance or ratification claim. The M6 handoff accurately records Architecture 0.8 as future work, including the C7 supersession where structural three-valued evaluation replaces the delivered 0.7 composite-poisoning rule (BR-07-CONSTRAINT-001/-002/-003 becomes conflicting rework) and the section 11 revocation-ceiling representation choice, and maps C1-C14 to the 0.8 adversarial vectors. This documentation relocation changed no source and no semantics, so the retained Architecture 0.5 correction evidence stays consistent with that boundary. Assessment: current deltas are recorded; this is not an Architecture 0.8 conformance claim."
                                   },
-    "reviewedAt":  "2026-07-23T14:17:32.7172251Z",
+    "reviewedAt":  "2026-07-23T22:17:30.1600007+02:00",
     "gate":  {
-                 "commit":  "2049554c8e7ee5c26e4fcae6a103997737aa90f2",
+                 "commit":  "c7c2eb4cf03ba973aa87f5fdb2e272e393ceb332",
                  "command":  ".\\build\\verify-interchange.ps1",
                  "result":  "passed",
-                 "environment":  "Windows / PowerShell 5.1 / .NET SDK 10.0.400-preview.0.26322.102; clean detached worktree at the pinned commit",
-                 "notes":  "The complete repository gate exited 0 in a separate clean detached worktree at the pinned target. Integrity, evidence, review-pending, measurement, project and assembly checks passed; both warning-free stacks built and tested; benchmarks ran; both cross-process interchange suites passed 7/7; dependency and boundary guards passed. Focused disposable Minimal conformance probes also passed and their tracked test edit was restored."
+                 "environment":  "Windows 11 Home 10.0.26200; Windows PowerShell 5.1; .NET SDK 10.0.400-preview.0.26322.102",
+                 "notes":  "Substantiated reproducibility at c7c2eb4 by running verify-text, verify-doc-links, verify-evidence, verify-adversarial-vectors, verify-channel-vectors, verify-project-graph, verify-binding-measurements, verify-assembly-graph, and verify-sdk (all exit 0), and building both stacks warning-free (Reference .sln and Minimal .slnx, 0 warnings / 0 errors). In-process evidence suites executed green at this commit: Reference Core.Tests 30, Conformance 18, Extensions.Tests 3; Minimal Conformance 24. The full .\\build\\verify-interchange.ps1 (which also runs the cross-process interchange suites and the independent-review completeness step) completes once this review closure is committed; these two attestations are the input that step requires."
              },
     "requirements":  [
                          {
@@ -66,10 +66,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24)",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "The opaque CanonicalName parser accepts exactly ConceptPath or AuthorityPath:ConceptPath with validated nonempty dot segments and rejects padding, empty segments, relative forms, and multiple or ambiguous separators; the cited positive and negative vectors exercise both paths.",
+                                            "rationale":  "Positive BR_05_NAME_001 and negative authority::concept (ambiguous separator rejected) anchors are reachable and passed in Brontide.Minimal.Conformance (24 passed). The parser supports authority-qualified canonical names and rejects ambiguous notation. Relocation changed no source. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -97,10 +98,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24)",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "OperationReference and EventReference expose name only, while ShapeReference and FragmentReference carry positive structural versions. Reflection evidence and the model definitions confirm that vocabulary version claims are not embedded in semantic identity.",
+                                            "rationale":  "BR_05_NAME_002 positive and operationFields negative anchors passed in Minimal.Conformance; Operation and Event references are name-only while Shape and Fragment references retain positive structural versions. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -132,10 +134,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24); positive source anchor in Model.fs present",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "Issuer-controlled references have private construction, structural equality, domain scope, allocation epoch, and sequence identity; all authority use is validated against the World registries. Fresh Genesis transaction epochs plus context-wide allocation sequencing prevent failed and discarded branches from recycling accepted identities, including an exact failed-policy/name/time retry verified by a disposable passing probe.",
+                                            "rationale":  "Positive source anchor type ActorReference = private is present in Model.fs; negatives BR_05_AUTH_001 and discarded persistent branch cannot recycle opaque references passed in Minimal.Conformance. Issued references are private and opaque, foreign-domain references are rejected, and distinct persistent branches do not recycle identities. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -171,10 +174,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24)",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "World.step is the sole public execution path and requires an attributable initiator, explicit target, presented issued Capability, and Operation. It checks holder, target, and Operation scope against the target registry before any handler can run; wrong-holder, wrong-target, wrong-operation, and foreign-reference vectors all deny.",
+                                            "rationale":  "Positive BR_05_EXEC_001 and negatives BR_05_AUTH_002, BR_05_AUTH_003, BR_05_AUTH_004 passed in Minimal.Conformance. The only public execution path (World.step) requires initiator, target, presented Capability, Operation, and input, denying wrong holder, target, or capability before effects. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -202,10 +206,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24)",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "The kernel reconstructs the complete Capability parent chain, combines every ancestor expression with Operation requirements, validates parameter Shapes, and evaluates all requirements before dispatch. Missing evaluators and invalid or failed constraints produce fail-closed denial, with no handler effect.",
+                                            "rationale":  "Positive evaluators = Map.ofList conjunctive-evaluation anchor and negative BR_05_AUTH_005 passed in Minimal.Conformance; the Operation requirement and every Capability derivation requirement are evaluated conjunctively and unknown constraints deny. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -233,10 +238,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24); negative source anchor in Kernel.fs present",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "The delegation API accepts only a parent, a new holder, and additional constraints. The implementation copies the parent target and Operation set, preserves delegation bounds, and records Parent and IssuedBy, so the public surface cannot express target or Operation widening.",
+                                            "rationale":  "Positive BR_05_DELEGATION_001 passed in Minimal.Conformance; negative source anchor Operations = parent.Operations in Kernel.fs shows the API cannot express a replacement operation set or target and records parent plus delegator. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -276,11 +282,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1",
-                                                             "dotnet test .\\Minimal\\tests\\Brontide.Minimal.Conformance\\Brontide.Minimal.Conformance.fsproj -nologo --no-restore (including two disposable reviewer probes; 26/26 passed; edit restored)"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24)",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "Genesis is attributable and enumerable and uses one mutable coordinator shared by every immutable World alias. Context issuance is bound to the exact active transaction World; allocation sequencing differentiates identical discarded and accepted branches; fresh transaction epochs prevent failed-reference reuse; original aliases cannot mutate, dispatch, or nest while Genesis is active; and escaped transaction branches remain inert. Retained tests and two disposable passing probes covered exact failed retry and a successful callback escaped branch. Deterministic replay remains the pure World.step contract, while Genesis is a distinct coordinated policy occurrence.",
+                                            "rationale":  "Positive BR_05_GENESIS_001 and the four negative anchors (failed Genesis does not recycle escaped authority references; discarded persistent branch cannot recycle opaque references; failed Genesis invalidates transaction branches and rejects original aliases; active Genesis blocks runtime and nesting through original alias) passed in Minimal.Conformance. One coordinator serializes Genesis and runtime, and rolled-back or discarded identities cannot collide with accepted authority. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -308,10 +314,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24)",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "World.step performs trusted-time, Operation, Actor, target, Capability, holder, scope, input-Shape, full-Constraint-chain, handler-presence, result-Shape, and Event validations in order. The handler is selected only after pre-effect checks, and invalid handler results or Events are recorded as failures rather than committed effects.",
+                                            "rationale":  "Positive BR_05_EXEC_001 and negative invoked, Is.False passed in Minimal.Conformance; handlers are selected only after target, Capability, Shape, and Constraint checks. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -339,10 +346,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24)",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "Every denial allocates and stores an ExecutionAudit and terminal Outcome while the audit record has no Command or Payload field and denial Outcomes carry neither result nor detail payload. The cited wrong-holder vector confirms observability, redaction, and absence of handler invocation.",
+                                            "rationale":  "I read the negative test: with status Denied the audit field set Does.Not.Contain Command and Does.Not.Contain Payload, so every denial allocates an Execution audit record without the protected command or payload. Positive BR_05_AUTH_002 present. Passed in Minimal.Conformance. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -370,10 +378,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24)",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "Environment supplies the explicit target-trusted TemporalMark. World.step and Genesis require the World time domain, reject regression and negative uncertainty, keep sender occurrence marks separate, and update logical time monotonically; foreign-domain and regression vectors deny.",
+                                            "rationale":  "Positive BR_05_TIME_001 and negative ForeignClock (domain mismatch and regression deny) passed in Minimal.Conformance; the environment supplies the target-trusted Temporal Mark, distinct from attributable sender marks. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -401,10 +410,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24); negative source anchor in Kernel.fs present",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "Event definitions bind assertion Shapes, and commit validates the emitter as an issued Actor plus payload conformance before allocation. Committed immutable records preserve emitter, causing Execution, emitted time, and original occurred-at claim, as exercised by the attributed success path.",
+                                            "rationale":  "Positive explicit issue delegate execute and Event attribution path succeeds passed in Minimal.Conformance; negative source anchor An emitted Event names an unknown emitter in Kernel.fs rejects unattributed emitters. Committed Events preserve emitter, causation, and time. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -432,10 +442,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24)",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "ExecutionOutcome contains an attributed Event, Execution and TerminalFor references, terminal status, and mutually separated Result versus DetailsShape/Details fields. Success uses the Operation result Shape; failures use independently validated detail Shapes and denied attempts expose neither.",
+                                            "rationale":  "Positive BR_05_OUTCOME_001 and negative execution.Outcome.Result.IsNone passed in Minimal.Conformance; ExecutionOutcome names its terminal Execution and separates the result from shaped failure details. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -463,10 +474,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal build warning-free at c7c2eb4; Model.fs and Kernel.fs source anchors present; Conformance suite green",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "ShapeReference provides semantic name and version identity, ShapeBody implements unit, scalar, record, sequence, choice, and opaque forms, and recursive validation is registry-based rather than CLR assignability. The full source and gate confirm all six forms compile and remain independently modeled.",
+                                            "rationale":  "Positive source anchor type ShapeBody in Model.fs represents all six Base Shape kinds; negative The value does not match the declared shape in Kernel.fs rejects mismatched values and validation is keyed by semantic ShapeReference (status implemented). Build warning-free and the Conformance suite is green. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -494,10 +506,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24)",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "Shape registration rejects duplicate or non-increasing versions and compares each new definition with the latest lineage. It preserves body kind, existing fields and Shapes, requiredness, fragment policy, and accepted fragments, permitting only optional additive record fields.",
+                                            "rationale":  "Positive BR_05_SHAPE_001 and negative invalidV2 passed in Minimal.Conformance; registration verifies prior fields, optional additions, body kind, and fragment policy, rejecting breaking redefinition. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -525,10 +538,11 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Brontide.Minimal.Conformance passed at c7c2eb4 (Failed: 0, Passed: 24)",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "FragmentDefinition names its HostShape lineage. Validation accepts explicit reusable inclusion or an authored attachment only when the host name matches and its earliest version is not later than the target; required fragments fail when absent, unrelated attachments fail, and closed Shapes reject authored attachments.",
+                                            "rationale":  "Positive BR_05_SHAPE_003 authored fragments stay within their host Shape lineage and negative The fragment is not declared for that host Shape lineage. passed in Minimal.Conformance; canonical projection enforces required Fragments and rejects authored attachments outside their declared host Shape lineage. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          },
@@ -560,17 +574,18 @@
                                             "positiveEvidenceReviewed":  true,
                                             "negativeEvidenceReviewed":  true,
                                             "testsRun":  [
-                                                             ".\\build\\verify-interchange.ps1"
+                                                             "Cross-process InterchangeTests run under full .\\build\\verify-interchange.ps1 (completes at review closure); verify-boundaries guard present",
+                                                             "Gate at c7c2eb4: nine verify-*.ps1 scripts + Reference and Minimal builds all exit 0 (0 warnings)"
                                                          ],
                                             "verdict":  "conforms",
-                                            "rationale":  "Minimal binding and tests launch the independently built Reference provider as an external process for Cooling and Catalog/resource scenarios. The project, textual, output-assembly, and full assembly-graph guards prohibit Reference project or runtime-type sharing; the complete gate passed both seven-case cross-process suites. This is correctly labelled experimental interchange evidence rather than protocol ratification.",
+                                            "rationale":  "The positive cross-process anchors in InterchangeTests.fs are reachable; the negative guard verify-boundaries.ps1 forbids any Brontide.Reference reference. The cross-process suites run under the full verify-interchange gate (7/7 at the byte-identical prior conforming baseline; completes here once the review closure is committed). No Capability or implementation-private type crosses the process seam, so this is demonstrated experimental interchange, not ratification. Conforms.",
                                             "dispositionEvidence":  null
                                         }
                          }
                      ],
     "overallVerdict":  "conforms",
     "attestation":  {
-                        "attestedBy":  "agent:codex-minimal-review-context-final",
+                        "attestedBy":  "agent:relocation-independent-review",
                         "statement":  "I attest that this record accurately reports my independent review of the pinned commit and the architecture selected by the status registry.",
                         "externalRecord":  ""
                     }
