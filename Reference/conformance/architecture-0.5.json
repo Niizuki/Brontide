@@ -66,7 +66,7 @@
         { "path": "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs", "anchor": "Failed_genesis_occurrence_rolls_back_renewal_of_an_existing_lease" }
       ],
       "status": "tested",
-      "rationale": "Genesis is callback-scoped and recorded; a failed occurrence atomically restores actors, capabilities, newly issued and pre-existing mutable liveness-lease state, declarations, and Shape registrations. Lease mutation is coordinated with the domain transaction; registry membership rejects escaped references, while runtime effects and nested Genesis are blocked during the transaction."
+      "rationale": "Genesis is callback-scoped and recorded; a failed occurrence atomically restores actors, capabilities, newly issued and pre-existing mutable liveness-lease state, declarations, and Shape registrations. Lease mutation is coordinated with the domain transaction; rolled-back leases are actively invalidated and registry membership rejects other escaped references, while runtime effects and nested Genesis are blocked during the transaction."
     },
     {
       "requirementId": "BR-05-EXEC-001",

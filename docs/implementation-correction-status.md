@@ -22,9 +22,10 @@ deeper Reference transaction boundary was corrected; a later fresh review then f
 recycled an escaped Actor identity after a failed persistent-World Genesis branch. The next review
 then found same-transaction persistent-branch collisions in Minimal and incomplete restoration of
 pre-existing mutable lease state in Reference. The following Minimal review found that a retained
-pre-transaction World alias was outside the transaction guard. Those deeper cases are being
-corrected and must pass the complete gate and both repinned reviews before deletion can be
-authorized.
+pre-transaction World alias was outside the transaction guard. The next Reference review found
+that a newly issued lease removed from the registry could still renew through its escaped object.
+Those deeper cases are being corrected and must pass the complete gate and both repinned reviews
+before deletion can be authorized.
 
 The machine-checkable [independent-review framework](../conformance/reviews/README.md) pins that
 commit, both evidence matrices, the stable requirement vocabulary, and the finding-closing commits.

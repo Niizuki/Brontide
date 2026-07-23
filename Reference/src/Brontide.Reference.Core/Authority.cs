@@ -382,7 +382,8 @@ public sealed class LivenessLease
     internal readonly record struct Snapshot(
         DateTimeOffset? ExpiresAt,
         DateTimeOffset? LatestTrustedTime,
-        bool Dead);
+        bool Dead,
+        bool Invalidated);
 
     private readonly object _authorityGate;
     private readonly object _gate = new();
@@ -390,6 +391,7 @@ public sealed class LivenessLease
     private DateTimeOffset? _expiresAt;
     private DateTimeOffset? _latestTrustedTime;
     private bool _dead;
+    private bool _invalidated;
 
     internal LivenessLease(
         ActorReference grantor,
@@ -436,7 +438,7 @@ public sealed class LivenessLease
         {
             lock (_gate)
             {
-                if (_timeProvider is null)
+                if (_invalidated || _timeProvider is null)
                 {
                     return false;
                 }
@@ -461,7 +463,7 @@ public sealed class LivenessLease
             lock (_gate)
             {
                 var observed = ObserveTrustedTime(trustedNow);
-                if (_dead || _expiresAt is null || observed >= _expiresAt.Value)
+                if (_invalidated || _dead || _expiresAt is null || observed >= _expiresAt.Value)
                 {
                     _dead = true;
                     return false;
@@ -478,7 +480,7 @@ public sealed class LivenessLease
         {
             lock (_gate)
             {
-                return new Snapshot(_expiresAt, _latestTrustedTime, _dead);
+                return new Snapshot(_expiresAt, _latestTrustedTime, _dead, _invalidated);
             }
         }
     }
@@ -492,6 +494,19 @@ public sealed class LivenessLease
                 _expiresAt = snapshot.ExpiresAt;
                 _latestTrustedTime = snapshot.LatestTrustedTime;
                 _dead = snapshot.Dead;
+                _invalidated = snapshot.Invalidated;
+            }
+        }
+    }
+
+    internal void Invalidate()
+    {
+        lock (_authorityGate)
+        {
+            lock (_gate)
+            {
+                _invalidated = true;
+                _dead = true;
             }
         }
     }

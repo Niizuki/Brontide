@@ -77,6 +77,7 @@ public sealed class KernelTests
     [Test]
     public async Task Failed_genesis_occurrence_rolls_back_unrecorded_authority()
     {
+        var clock = new ManualTimeProvider(new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero));
         ActorReference policy = null!;
         ActorReference target = null!;
         Capability existingCapability = null!;
@@ -86,7 +87,7 @@ public sealed class KernelTests
         var runtimeAccessBlocked = false;
         var effects = 0;
         var operation = OperationReference.Parse("Example.Existing");
-        var domain = AuthorityDomain.Create("genesis-rollback", genesis =>
+        var domain = AuthorityDomain.Create("genesis-rollback", clock, genesis =>
         {
             policy = genesis.Actor("Policy");
             target = genesis.Actor("Target");
@@ -145,6 +146,7 @@ public sealed class KernelTests
             Assert.That(escapedActorResult.Outcome.Status, Is.EqualTo(OutcomeStatus.Rejected));
             Assert.That(escapedCapabilityResult.Outcome.Status, Is.EqualTo(OutcomeStatus.Rejected));
             Assert.That(() => escapedCapability.Delegate(policy), Throws.InvalidOperationException);
+            Assert.That(escapedLease.Renew(escapedActor), Is.False);
             Assert.That(effects, Is.Zero);
         });
 

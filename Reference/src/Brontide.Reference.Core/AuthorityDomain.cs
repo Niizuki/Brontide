@@ -318,7 +318,13 @@ public sealed class AuthorityDomain
             {
                 _actors.RemoveRange(actorStart, _actors.Count - actorStart);
                 _capabilities.RemoveRange(capabilityStart, _capabilities.Count - capabilityStart);
+                var rolledBackLeases = _leases.Skip(leaseStart).ToArray();
                 _leases.RemoveRange(leaseStart, _leases.Count - leaseStart);
+                foreach (var lease in rolledBackLeases)
+                {
+                    lease.Invalidate();
+                }
+
                 foreach (var (lease, state) in existingLeaseStates)
                 {
                     lease.RestoreState(state);
