@@ -50,7 +50,7 @@
       "stack": "Minimal",
       "implementationMatrix": {
         "path": "Minimal/conformance/architecture-0.5.json",
-        "sha256": "DEE69E4FEB09B25C10E50D8080B2AD15B35A5AC0F67D2C3BC70A6DD9F48FEF3A"
+        "sha256": "7E36831300C539E6A651765C563722EA0BA346500B01EB54C5EE11CE7AE83517"
       },
       "currentDelivery": {
         "requirements": {
