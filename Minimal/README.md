@@ -15,9 +15,10 @@ Minimal lives beside Brontide Reference Stack but does not reference Reference a
 Reference CLR types; the implementations support, challenge, and eventually substitute for one
 another through an explicit external binding seam.
 
-Architecture 0.7 M1 now has Minimal-native Complete Draft evidence for recursive three-state
-Constraint expressions, fail-closed target-side evaluation, and experimental Composition
-selection. The retained [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json)
+Architecture 0.7 M1-M2 now have Minimal-native Complete Draft evidence for recursive three-state
+Constraint expressions, fail-closed target-side evaluation, experimental Composition selection,
+and opaque typed-member canonical names with an open provisional member-kind token. The retained
+[`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json)
 matrix is detailed test evidence, not the source of the implementation target and not a claim that
 the remaining Architecture 0.7 work is implemented.
 

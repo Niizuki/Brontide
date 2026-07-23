@@ -37,6 +37,9 @@ public sealed class KernelTests
         Assert.That((await domain.ExecuteAsync(holder, operation, capability, ShapeValue.Unit)).Outcome.Status,
             Is.EqualTo(OutcomeStatus.Rejected));
         Assert.That(lease.Renew(grantor), Is.False);
+        clock.Advance(TimeSpan.FromSeconds(-2));
+        Assert.That((await domain.ExecuteAsync(holder, operation, capability, ShapeValue.Unit)).Outcome.Status,
+            Is.EqualTo(OutcomeStatus.Rejected));
     }
 
     [Test]
@@ -69,6 +72,76 @@ public sealed class KernelTests
         _ = AuthorityDomain.Create("genesis", genesis => captured = genesis);
 
         Assert.That(() => captured.Actor("late actor"), Throws.InvalidOperationException);
+    }
+
+    [Test]
+    public void Failed_genesis_occurrence_rolls_back_unrecorded_authority()
+    {
+        ActorReference policy = null!;
+        ActorReference target = null!;
+        var operation = OperationReference.Parse("Example.Existing");
+        var domain = AuthorityDomain.Create("genesis-rollback", genesis =>
+        {
+            policy = genesis.Actor("Policy");
+            target = genesis.Actor("Target");
+            genesis.Operation(operation, target, ShapeContract.Unit, ShapeContract.Unit, "existing",
+                _ => OperationEffect.SucceededAsync(ShapeValue.Unit));
+        });
+        var actorCount = domain.Actors.Count;
+        var capabilityCount = domain.Capabilities.Count;
+        var provenanceCount = domain.Provenance.Count;
+        var shapeCount = domain.Shapes.Shapes.Count;
+        var transientShape = ShapeReference.Parse("Example.Transient", 1);
+
+        Assert.That(() => domain.OccurGenesis(policy, "attachment", "test rollback", genesis =>
+        {
+            var attached = genesis.Actor("Attached");
+            genesis.Shape(ShapeDefinition.Unit(transientShape));
+            _ = genesis.Grant(attached, target, [operation]);
+            throw new InvalidOperationException("simulated policy failure");
+        }), Throws.InvalidOperationException);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(domain.Actors, Has.Count.EqualTo(actorCount));
+            Assert.That(domain.Capabilities, Has.Count.EqualTo(capabilityCount));
+            Assert.That(domain.GenesisOccurrences, Is.Empty);
+            Assert.That(domain.Provenance, Has.Count.EqualTo(provenanceCount));
+            Assert.That(domain.Shapes.Shapes, Has.Count.EqualTo(shapeCount));
+            Assert.That(domain.Shapes.Shapes.Any(shape => shape.Reference == transientShape), Is.False);
+        });
+    }
+
+    [Test]
+    public async Task Rejected_provenance_excludes_the_protected_input()
+    {
+        ActorReference holder = null!;
+        ActorReference stranger = null!;
+        ActorReference target = null!;
+        Capability capability = null!;
+        var operation = OperationReference.Parse("Example.Protected");
+        var domain = AuthorityDomain.Create("protected-audit", genesis =>
+        {
+            holder = genesis.Actor("Holder");
+            stranger = genesis.Actor("Stranger");
+            target = genesis.Actor("Target");
+            genesis.Operation(operation, target, ShapeContract.For(BuiltInShapes.Text), ShapeContract.Unit,
+                "protected", _ => OperationEffect.SucceededAsync(ShapeValue.Unit));
+            capability = genesis.Grant(holder, target, [operation]);
+        });
+        var protectedInput = ShapeValue.Text("do-not-log");
+
+        var result = await domain.ExecuteAsync(stranger, operation, capability, protectedInput);
+        var audit = domain.Provenance.Single(entry => entry.Kind == ProvenanceKind.Execution);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Outcome.Status, Is.EqualTo(OutcomeStatus.Rejected));
+            Assert.That(result.Execution.Input, Is.SameAs(protectedInput));
+            Assert.That(audit.Execution!.Id, Is.EqualTo(result.Execution.Id));
+            Assert.That(audit.Execution.HasInput, Is.False);
+            Assert.That(() => _ = audit.Execution.Input, Throws.InvalidOperationException);
+        });
     }
 
     [Test]

@@ -48,10 +48,20 @@
       "section": "6.10,22.4",
       "classification": "missing",
       "component": "Brontide.Reference.Core names and owning gateways",
-      "positiveEvidence": [],
-      "negativeEvidence": [],
-      "status": "planned",
-      "rationale": "The current parser has no typed-member suffix model; R2 must make the public and serialized-form migration decision before implementation."
+      "positiveEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/CanonicalMemberNameTests.cs",
+          "anchor": "BR_07_NAME_001_typed_members_round_trip_without_becoming_concept_names"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Reference/tests/Brontide.Reference.Core.Tests/CanonicalMemberNameTests.cs",
+          "anchor": "Typed_member_parser_rejects_empty_ambiguous_or_versioned_forms"
+        }
+      ],
+      "status": "tested",
+      "rationale": "R2 adds a distinct CanonicalMemberName value with validated open MemberKind and MemberName tokens. Existing CanonicalName behavior is unchanged, and no serialized typed-member consumer existed to migrate. The 0.7 glyph and catalogue remain provisional, so this is Complete Draft evidence rather than ratification."
     },
     {
       "requirementId": "BR-07-BINDING-001",

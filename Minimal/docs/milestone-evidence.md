@@ -17,9 +17,10 @@ Architecture 0.7 implementation detail is recorded in
 evidence of complete 0.7 conformance. The temporary correction plan controls known claim gaps.
 
 Architecture 0.7 evidence is checked separately through
-[`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). The current M1
-evidence covers only recursive Constraint evaluation, target-side poisoning, and experimental
-selection exclusion; it does not imply that the remaining target is implemented.
+[`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). The current M1-M2
+evidence covers recursive Constraint evaluation, target-side poisoning, experimental selection
+exclusion, and provisional typed-member canonical names; it does not imply that the remaining
+target is implemented.
 
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../Brontide-Interchange-Implementation-Plan-0.1.md).
@@ -39,7 +40,7 @@ and executes M6 in both host directions. Both protocols remain experimental test
 | M8 — Macro Operation | Not yet implemented | Activity lifecycle and cross-stack provider exchange remain. |
 | M9 — 0.5 Composition | Implemented foundation | Four dependency-strength claims, support/opposition, deterministic provider selection, boxed values, CPU imaging, optimisation eligibility, explanations. |
 | M10 — mixed-stack workspace | Deferred | Minimal has independent multi-layer image workspace semantics. Reference/Minimal/third-provider substitution is the later entanglement proof. |
-| Architecture 0.7 M1 | Tested Complete Draft evidence | Model/Kernel three-state recursive Constraint evaluation, conformance denial/redaction, and experimental Composition candidate exclusion. C2-C5 remain planned. |
+| Architecture 0.7 M1-M2 | Tested Complete Draft evidence | Model/Kernel three-state recursive Constraint evaluation, conformance denial/redaction, experimental Composition candidate exclusion, and opaque typed-member parse/format/compare/rejection vectors. C3-C5 remain planned. |
 
 ## Executable suites
 

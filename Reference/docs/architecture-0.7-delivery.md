@@ -2,7 +2,7 @@
 
 Designed for: [Brontide Architecture 0.7](../../Brontide-Architecture-0.7.md)
 
-Status: R1 tested; remaining work is partial; no Architecture 0.7 conformance or ratification claim
+Status: R1-R2 tested; remaining work is partial; no Architecture 0.7 conformance or ratification claim
 
 These notes record useful implementation detail against the stated target. The related
 [implementation plan](../Brontide-Reference-Stack-Implementation-Plan-0.3.md),
@@ -17,7 +17,7 @@ continues to control its own open gates and deletion conditions.
 | 0.7 change | Reference delivery target | Planned evidence | Status boundary |
 | --- | --- | --- | --- |
 | C1 — composite Constraint poisoning (§10.1, §18.1, §23, §29.2) | `Brontide.Reference.Core` for authority evaluation and `Brontide.Reference.Experimental.Composition` for candidate selection | Table-driven positive and negative vectors for nested `AllOf`, `AnyOf`, and `Not`, including every unknown-atom position and deterministic diagnostic categories | R1 tested as Architecture 0.7 Complete Draft evidence; not a ratified conformance claim |
-| C2 — typed member canonical names (§6.10, §22.4) | Core name value types plus serialization and external adapters at their owning seams | Parse/format/compare/round-trip vectors for every registered member kind; malformed and legacy-spelling rejection or an explicitly bounded migration alias | Planned in R2; public API and serialized-form changes require a breaking-change decision |
+| C2 — typed member canonical names (§6.10, §22.4) | Core name value types plus serialization and external adapters at their owning seams | Parse/format/compare/round-trip vectors for the provisional examples and an arbitrary future member kind; malformed and version-suffix rejection | R2 tested as additive Complete Draft evidence; the provisional member-kind catalogue remains an open validated token and no wire consumer existed to migrate |
 | C3 — static Attribute-constrained binding (§18.1) | `Brontide.Reference.Experimental.Composition` | One-time resolution, immutable effective values and provenance, restoration without reselection, and mutation/removal/tie/unsupported-constraint vectors | Planned experimental evidence in R3; not Brontide Base conformance |
 | C4 — Router logical-endpoint guarantees (§18.2) | Proposed `Brontide.Reference.Experimental.PersistentInformation` boundary | Router-owned guarantee tests, including backing-Store changes and refusal of guarantees the Router cannot uphold | Planned experimental evidence in R4; deeper Router policy remains open |
 | C5 — Dataset authority, identity, and concurrency (§12, §18.2, §21.1) | Proposed persistent-information experiment, separate from Core | Capability designation and denial, Dataset-record identity, identity-bearing Store roles, declared concurrency, and Genesis-versus-authorised-issuance evidence | Planned experimental evidence in R4; other persistent-information roles remain deferred |
@@ -32,9 +32,9 @@ Architecture 0.7 path, Complete Draft status, and SHA-256. The checked current-d
 matrix split the observations into stable requirements and preserve predecessor links to retained
 Architecture 0.5 evidence.
 
-- C1-C5 were classified `missing` actions at the audited baseline. R1 now supplies C1's native
-  implementation and positive/negative evidence. C2-C5 remain missing actions; C2 requires a
-  public/wire migration decision, while C3-C5 remain experimental.
+- C1-C5 were classified `missing` actions at the audited baseline. R1 and R2 now supply C1-C2's
+  native implementation and positive/negative evidence. C3-C5 remain missing experimental
+  actions. R2 is additive: existing concept names and wire contracts are unchanged.
 - C6 is `non-runtime`: the experimental registry and delivery documentation keep Enrichment,
   Composition, and Persistent Information outside Base and retain companion-note routing.
 - C7 is `non-runtime`: `AuthorityDomain` remains the target-side evaluator, domain issuance and
@@ -49,7 +49,7 @@ Architecture 0.5 evidence.
 
 1. R0 established stable Architecture 0.7 requirement IDs and distinct current-draft matrices.
    The 0.5 matrix stays immutable evidence for the implemented baseline.
-2. R1 supplies independently failing-first C1 vectors and tested native behavior. Deliver R2
+2. R1-R2 supply independently failing-first C1-C2 vectors and tested native behavior. Deliver R3
    through R4 in their owning Reference projects and nearest NUnit suites. Core or
    public semantic changes require the complete Reference suite and dependency guard.
 3. Compare only data-level observations with Minimal after each stack has independent native
@@ -72,6 +72,20 @@ The accepted anchors are `BR_07_CONSTRAINT_001` in Core tests,
 `BR_07_CONSTRAINT_002` in conformance tests, and `BR_07_CONSTRAINT_003` in the Studio-owned
 experimental Composition suite. The checked mapping remains in
 [`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json).
+
+## R2 evidence record
+
+Reference keeps concept identity in `CanonicalName` and models the provisional typed-member suffix
+as the distinct `CanonicalMemberName`, `MemberKind`, and `MemberName` value types. The parser accepts
+exactly `[AuthorityPath ":"] ConceptPath "#" MemberKind "." MemberName`, keeps versions outside
+identity, compares ordinally, and rejects ambiguous or extra-delimiter forms. `MemberKind` is an
+open validated token because Architecture 0.7 explicitly leaves the catalogue and final glyph
+provisional. No existing serializer or public adapter carried typed-member text, so R2 is additive
+and has no legacy wire spelling to accept or emit.
+
+The accepted positive and negative anchors are in `CanonicalMemberNameTests`; the checked mapping
+remains in [`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). This is
+Complete Draft evidence, not canonical-name ratification.
 
 ## Architecture 0.8 preparation
 

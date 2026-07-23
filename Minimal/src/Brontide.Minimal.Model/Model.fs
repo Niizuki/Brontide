@@ -37,6 +37,101 @@ module CanonicalName =
         | Ok name -> name
         | Error message -> invalidArg (nameof value) message
 
+module private MemberToken =
+    let isValid (value: string) =
+        not (String.IsNullOrWhiteSpace value)
+        && value = value.Trim()
+        && (value
+            |> Seq.forall (fun character ->
+                Char.IsLetterOrDigit character || character = '-' || character = '_'))
+
+[<StructuralEquality; StructuralComparison>]
+type MemberKind = private MemberKind of string
+
+[<RequireQualifiedAccess>]
+module MemberKind =
+    let value (MemberKind value) = value
+
+    let tryCreate value =
+        if MemberToken.isValid value then
+            Ok(MemberKind value)
+        else
+            Error "A member kind must be one non-empty validated token."
+
+    let create value =
+        match tryCreate value with
+        | Ok kind -> kind
+        | Error message -> invalidArg (nameof value) message
+
+[<StructuralEquality; StructuralComparison>]
+type MemberName = private MemberName of string
+
+[<RequireQualifiedAccess>]
+module MemberName =
+    let value (MemberName value) = value
+
+    let tryCreate value =
+        if MemberToken.isValid value then
+            Ok(MemberName value)
+        else
+            Error "A member name must be one non-empty validated token."
+
+    let create value =
+        match tryCreate value with
+        | Ok name -> name
+        | Error message -> invalidArg (nameof value) message
+
+[<StructuralEquality; StructuralComparison>]
+type CanonicalMemberName =
+    private
+        { Owner: CanonicalName
+          Kind: MemberKind
+          Name: MemberName }
+
+[<RequireQualifiedAccess>]
+module CanonicalMemberName =
+    let owner name = name.Owner
+    let kind name = name.Kind
+    let name value = value.Name
+
+    let value name =
+        $"{CanonicalName.value name.Owner}#{MemberKind.value name.Kind}.{MemberName.value name.Name}"
+
+    let tryCreate (value: string) =
+        if String.IsNullOrWhiteSpace value || value <> value.Trim() then
+            Error "A typed-member canonical name cannot be empty or padded."
+        else
+            let memberSeparator = value.IndexOf '#'
+            let kindSeparator = value.IndexOf('.', memberSeparator + 1)
+
+            if
+                memberSeparator <= 0
+                || memberSeparator <> value.LastIndexOf '#'
+                || kindSeparator <= memberSeparator + 1
+                || kindSeparator <> value.LastIndexOf '.'
+            then
+                Error
+                    "A typed-member canonical name must be [AuthorityPath:]ConceptPath#MemberKind.MemberName."
+            else
+                match
+                    CanonicalName.tryCreate (value.Substring(0, memberSeparator)),
+                    MemberKind.tryCreate (value.Substring(memberSeparator + 1, kindSeparator - memberSeparator - 1)),
+                    MemberName.tryCreate (value.Substring(kindSeparator + 1))
+                with
+                | Ok owner, Ok kind, Ok name ->
+                    Ok
+                        { Owner = owner
+                          Kind = kind
+                          Name = name }
+                | _ ->
+                    Error
+                        "A typed-member canonical name must be [AuthorityPath:]ConceptPath#MemberKind.MemberName."
+
+    let create value =
+        match tryCreate value with
+        | Ok name -> name
+        | Error message -> invalidArg (nameof value) message
+
 [<Struct; StructuralEquality; StructuralComparison>]
 type ActorReference = private ActorReference of scope: Guid * value: int64
 
@@ -150,6 +245,7 @@ type ShapeDefinition =
 type FragmentDefinition =
     { Reference: FragmentReference
       Description: string
+      HostShape: ShapeReference
       Shape: ShapeReference }
 
 type ConstraintRequirement =

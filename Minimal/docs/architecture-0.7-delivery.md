@@ -2,7 +2,7 @@
 
 Designed for: [Brontide Architecture 0.7](../../Brontide-Architecture-0.7.md)
 
-Status: M1 tested; remaining work is partial; no Architecture 0.7 conformance or ratification claim
+Status: M1-M2 tested; remaining work is partial; no Architecture 0.7 conformance or ratification claim
 
 These notes record useful implementation detail against the stated target. The related
 [implementation plan](../../Brontide-Minimal-Stack-Implementation-Plan-0.3.md),
@@ -17,7 +17,7 @@ continues to control its own open gates and deletion conditions.
 | 0.7 change | Minimal delivery target | Planned evidence | Status boundary |
 | --- | --- | --- | --- |
 | C1 — composite Constraint poisoning (§10.1, §18.1, §23, §29.2) | `Brontide.Minimal.Model` for the result model, `Brontide.Minimal.Kernel` for authority evaluation, and `Brontide.Minimal.Experimental.Composition` for selection | Minimal-native vectors for nested `AllOf`, `AnyOf`, and `Not`, every unknown-atom position, authority denial, candidate exclusion, and deterministic diagnostic categories | M1 tested as Architecture 0.7 Complete Draft evidence; not a ratified conformance claim |
-| C2 — typed member canonical names (§6.10, §22.4) | Opaque name types in Model plus codecs and external adapters at their owning seams | Parse/format/compare/round-trip vectors for every registered member kind; malformed and legacy-spelling rejection or an explicitly bounded migration alias | Planned in M2; public API and serialized-form changes require a breaking-change decision |
+| C2 — typed member canonical names (§6.10, §22.4) | Opaque name types in Model plus codecs and external adapters at their owning seams | Parse/format/compare/round-trip vectors for the provisional examples and an arbitrary future member kind; malformed and version-suffix rejection | M2 tested as additive Complete Draft evidence; the provisional member-kind catalogue remains an open validated token and no wire consumer existed to migrate |
 | C3 — static Attribute-constrained binding (§18.1) | `Brontide.Minimal.Experimental.Composition` | One-time resolution, immutable effective values and provenance, restoration without reselection, and mutation/removal/tie/unsupported-constraint vectors | Planned experimental evidence in M3; not Brontide Base conformance |
 | C4 — Router logical-endpoint guarantees (§18.2) | Proposed `Brontide.Minimal.Experimental.PersistentInformation` boundary | Router-owned guarantee tests, including backing-Store changes and refusal of guarantees the Router cannot uphold | Planned experimental evidence in M4; deeper Router policy remains open |
 | C5 — Dataset authority, identity, and concurrency (§12, §18.2, §21.1) | Proposed persistent-information experiment outside Model and Kernel | Capability designation and denial, Dataset-record identity, identity-bearing Store roles, declared concurrency, and Genesis-versus-authorised-issuance evidence | Planned experimental evidence in M4; other persistent-information roles remain deferred |
@@ -32,9 +32,9 @@ Architecture 0.7 path, Complete Draft status, and SHA-256. The checked current-d
 matrix split the observations into stable requirements and preserve predecessor links to retained
 Architecture 0.5 evidence.
 
-- C1-C5 were classified `missing` actions at the audited baseline. M1 now supplies C1's native
-  implementation and positive/negative evidence. C2-C5 remain missing actions; C2 requires a
-  public/wire migration decision, while C3-C5 remain experimental.
+- C1-C5 were classified `missing` actions at the audited baseline. M1 and M2 now supply C1-C2's
+  native implementation and positive/negative evidence. C3-C5 remain missing experimental
+  actions. M2 is additive: existing concept names and wire contracts are unchanged.
 - C6 is `non-runtime`: the experimental registry and delivery documentation keep Enrichment,
   Composition, and Persistent Information outside Base and retain companion-note routing.
 - C7 is `non-runtime`: Genesis/World minting, opaque Model custody, and target-side `World.step`
@@ -48,7 +48,7 @@ Architecture 0.5 evidence.
 
 1. M0 established stable Architecture 0.7 requirement IDs and distinct current-draft matrices.
    The 0.5 matrix stays immutable evidence for the implemented baseline.
-2. M1 supplies independently failing-first C1 vectors and tested native behavior. Deliver M2
+2. M1-M2 supply independently failing-first C1-C2 vectors and tested native behavior. Deliver M3
    through M4 in their owning F# projects and nearest NUnit suites. Model, Kernel, or
    public semantic changes require the complete Minimal suite and boundary guard.
 3. Compare only data-level observations with Reference after each stack has independent native
@@ -70,6 +70,20 @@ The accepted anchors are `BR_07_CONSTRAINT_001` in Kernel tests,
 `BR_07_CONSTRAINT_002` in conformance tests, and `BR_07_CONSTRAINT_003` in Composition tests. The
 checked mapping remains in
 [`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json).
+
+## M2 evidence record
+
+Minimal keeps concept identity in opaque `CanonicalName` values and models the provisional
+typed-member suffix as distinct opaque `CanonicalMemberName`, `MemberKind`, and `MemberName`
+values. The parser accepts exactly `[AuthorityPath ":"] ConceptPath "#" MemberKind "." MemberName`,
+keeps versions outside identity, compares ordinally, and rejects ambiguous or extra-delimiter
+forms. `MemberKind` remains an open validated token because Architecture 0.7 explicitly leaves the
+catalogue and final glyph provisional. No existing codec or external adapter carried typed-member
+text, so M2 is additive and has no legacy wire spelling to accept or emit.
+
+The accepted positive and negative anchors are in `Brontide.Minimal.Conformance`; the checked
+mapping remains in [`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json).
+This is Complete Draft evidence, not canonical-name ratification.
 
 ## Architecture 0.8 preparation
 

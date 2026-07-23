@@ -95,3 +95,30 @@ Capability federation, or a ratified portable binding.
   recursive expression chain inside the private World representation, redact protected values,
   and route exact evidence through the revision-specific matrix. This does not ratify Architecture
   0.7 or complete C2-C5.
+
+## Typed member identity must not overload concept names
+
+- **Brontide sections:** Architecture 0.7 §§6.10 and 22.4
+- **Minimal scenario:** parse `Brontide:Editor.Project#Store.Core` into `CanonicalName` or encode the
+  provisional member-kind catalogue as a closed union.
+- **Observed result:** M2 keeps `CanonicalName` unchanged and adds distinct opaque
+  `CanonicalMemberName`, `MemberKind`, and `MemberName` values with ordinal comparison and strict
+  delimiter rejection.
+- **Classification:** Architecture 0.7 Complete Draft evidence
+- **Current disposition:** keep `MemberKind` open because the architecture explicitly leaves the
+  catalogue and final glyph provisional. No existing codec carried this form, so the public change
+  is additive and has no wire alias or migration. This result does not ratify the grammar or
+  complete C3-C5.
+
+## Authored Fragments require a host Shape lineage
+
+- **Brontide sections:** Architecture 0.5 §§16.3-16.4
+- **Minimal scenario:** register an authored Fragment for open HostA and attach it to unrelated open
+  HostB.
+- **Observed result:** the prior model omitted the host lineage and accepted the attachment solely
+  because HostB was open.
+- **Classification:** Brontide Minimal Stack defect found by independent review
+- **Current disposition:** `FragmentDefinition` now requires `HostShape`; registration validates it,
+  projection accepts the same compatible lineage or explicit inclusion, and unrelated open hosts
+  reject. The required record field is a source-breaking trust-boundary correction documented in
+  `CHANGELOG.md`.

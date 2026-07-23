@@ -382,6 +382,8 @@ public sealed class LivenessLease
     private readonly object _gate = new();
     private readonly TimeProvider? _timeProvider;
     private DateTimeOffset? _expiresAt;
+    private DateTimeOffset? _latestTrustedTime;
+    private bool _dead;
 
     internal LivenessLease(ActorReference grantor, TimeSpan duration, TimeProvider? timeProvider)
     {
@@ -389,7 +391,8 @@ public sealed class LivenessLease
         Grantor = grantor;
         Duration = duration;
         _timeProvider = timeProvider;
-        _expiresAt = timeProvider?.GetUtcNow().Add(duration);
+        _latestTrustedTime = timeProvider?.GetUtcNow();
+        _expiresAt = _latestTrustedTime?.Add(duration);
         Id = Guid.NewGuid().ToString("N");
     }
 
@@ -416,9 +419,10 @@ public sealed class LivenessLease
                 return false;
             }
 
-            var now = _timeProvider.GetUtcNow();
-            if (_expiresAt is null || now >= _expiresAt.Value)
+            var now = ObserveTrustedTime(_timeProvider.GetUtcNow());
+            if (_dead || _expiresAt is null || now >= _expiresAt.Value)
             {
+                _dead = true;
                 return false;
             }
 
@@ -431,8 +435,25 @@ public sealed class LivenessLease
     {
         lock (_gate)
         {
-            return _expiresAt is not null && trustedNow < _expiresAt.Value;
+            var observed = ObserveTrustedTime(trustedNow);
+            if (_dead || _expiresAt is null || observed >= _expiresAt.Value)
+            {
+                _dead = true;
+                return false;
+            }
+
+            return true;
         }
+    }
+
+    private DateTimeOffset ObserveTrustedTime(DateTimeOffset trustedNow)
+    {
+        if (_latestTrustedTime is null || trustedNow > _latestTrustedTime.Value)
+        {
+            _latestTrustedTime = trustedNow;
+        }
+
+        return _latestTrustedTime.Value;
     }
 }
 

@@ -45,6 +45,8 @@ public sealed record InteractionContext(
 
 public sealed class ExecutionRecord
 {
+    private readonly ShapeValue? _input;
+
     internal ExecutionRecord(
         ExecutionId id,
         InteractionContext interaction,
@@ -54,7 +56,7 @@ public sealed class ExecutionRecord
         OperationReference operation,
         ActorReference target,
         AuthorityPresentation authorityPresentation,
-        ShapeValue input)
+        ShapeValue? input)
     {
         Id = id;
         Interaction = interaction;
@@ -64,7 +66,7 @@ public sealed class ExecutionRecord
         Operation = operation;
         Target = target;
         AuthorityPresentation = authorityPresentation;
-        Input = input;
+        _input = input;
     }
 
     public ExecutionId Id { get; }
@@ -75,7 +77,20 @@ public sealed class ExecutionRecord
     public OperationReference Operation { get; }
     public ActorReference Target { get; }
     public AuthorityPresentation AuthorityPresentation { get; }
-    public ShapeValue Input { get; }
+    public bool HasInput => _input is not null;
+    public ShapeValue Input => _input ?? throw new InvalidOperationException(
+        "The protected input was not retained in this audit record.");
+
+    internal ExecutionRecord WithoutInput() => new(
+        Id,
+        Interaction,
+        Initiator,
+        Requester,
+        AuthorityActor,
+        Operation,
+        Target,
+        AuthorityPresentation,
+        null);
 }
 
 public enum OutcomeStatus
@@ -314,7 +329,7 @@ public sealed class ProvenanceEntry
         IEnumerable<ConstraintDecision> decisions,
         bool authorized,
         string message) =>
-        new(sequence, ProvenanceKind.Execution, execution: execution, decisions: decisions,
+        new(sequence, ProvenanceKind.Execution, execution: authorized ? execution : execution.WithoutInput(), decisions: decisions,
             authorized: authorized, message: message);
 
     internal static ProvenanceEntry ForEvent(long sequence, DomainEvent @event) =>

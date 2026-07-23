@@ -272,31 +272,56 @@ public sealed class AuthorityDomain
         }
 
         ArgumentNullException.ThrowIfNull(occurrence);
-        var actorStart = Actors.Count;
-        var capabilityStart = Capabilities.Count;
-        var context = new GenesisContext(this);
-        try
-        {
-            occurrence(context);
-        }
-        finally
-        {
-            context.Deactivate();
-        }
-
-        var record = new GenesisRecord(
-            new InteractionContext(policyActor, OccurrenceReference.New(), EmittedAt: TrustedTemporalMark()),
-            kind,
-            reason,
-            Actors.Skip(actorStart).ToImmutableArray(),
-            Capabilities.Skip(capabilityStart).ToImmutableArray());
         lock (_gate)
         {
-            _genesis.Add(record);
-        }
+            var actorStart = _actors.Count;
+            var capabilityStart = _capabilities.Count;
+            var operationKeys = _operations.Keys.ToHashSet();
+            var eventKeys = _events.Keys.ToHashSet();
+            var constraintKeys = _constraints.Keys.ToHashSet();
+            using var shapeTransaction = Shapes.BeginRegistrationTransaction();
+            var context = new GenesisContext(this);
+            try
+            {
+                occurrence(context);
 
-        Append(ProvenanceKind.Genesis, genesis: record);
-        return record;
+                var record = new GenesisRecord(
+                    new InteractionContext(policyActor, OccurrenceReference.New(), EmittedAt: TrustedTemporalMark()),
+                    kind,
+                    reason,
+                    _actors.Skip(actorStart).ToImmutableArray(),
+                    _capabilities.Skip(capabilityStart).ToImmutableArray());
+                _genesis.Add(record);
+                Append(ProvenanceKind.Genesis, genesis: record);
+                shapeTransaction.Commit();
+                return record;
+            }
+            catch
+            {
+                _actors.RemoveRange(actorStart, _actors.Count - actorStart);
+                _capabilities.RemoveRange(capabilityStart, _capabilities.Count - capabilityStart);
+                foreach (var key in _operations.Keys.Except(operationKeys).ToArray())
+                {
+                    _operations.Remove(key);
+                }
+
+                foreach (var key in _events.Keys.Except(eventKeys).ToArray())
+                {
+                    _events.Remove(key);
+                }
+
+                foreach (var key in _constraints.Keys.Except(constraintKeys).ToArray())
+                {
+                    _constraints.Remove(key);
+                }
+
+                throw;
+            }
+            finally
+            {
+                context.Deactivate();
+            }
+        }
     }
 
     private async ValueTask<ExecutionResult> ExecuteInternalAsync(

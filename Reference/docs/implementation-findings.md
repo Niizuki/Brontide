@@ -150,3 +150,29 @@ silently upgraded to 0.7 evidence.
 - **Current disposition:** retain atomic Constraint APIs as compatibility leaves, keep protected
   values out of diagnostics, and route the exact evidence through the revision-specific matrix.
   This result does not ratify Architecture 0.7 or complete C2-C5.
+
+## Typed member identity must not overload concept names
+
+- **Brontide sections:** Architecture 0.7 §§6.10 and 22.4
+- **Minimal scenario:** parse `Brontide:Editor.Project#Store.Core` as an ordinary concept name or
+  close the provisional member-kind catalogue in an enum.
+- **Observed result:** R2 keeps `CanonicalName` unchanged and adds distinct validated
+  `CanonicalMemberName`, `MemberKind`, and `MemberName` values with ordinal comparison and strict
+  delimiter rejection.
+- **Classification:** Architecture 0.7 Complete Draft evidence
+- **Current disposition:** keep `MemberKind` open because the architecture explicitly leaves the
+  catalogue and final glyph provisional. No existing serializer carried this form, so the public
+  change is additive and has no wire alias or migration. This result does not ratify the grammar or
+  complete C3-C5.
+
+## Independent review exposed three retained Base invariant gaps
+
+- **Brontide sections:** Architecture 0.5 §§10.3, 12, 13.5, and 28
+- **Minimal scenario:** throw after minting authority in `OccurGenesis`, inspect rejected
+  provenance for its submitted input, or move trusted time backward after a lease is observed dead.
+- **Observed result:** the independent review reproduced unrecorded live authority, protected-input
+  retention, and resurrected mortality on the prior correction target.
+- **Classification:** Brontide Reference Stack defects
+- **Current disposition:** failed dynamic Genesis now restores all affected registries; rejected
+  provenance keeps metadata but not input; and observed lease death is terminal. Focused regression
+  tests anchor each disposition in the Architecture 0.5 matrix.

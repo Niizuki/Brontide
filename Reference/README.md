@@ -11,8 +11,9 @@ surface and known limitations are described here and exercised by the solution t
 experimental projects may state a later target locally; in particular, Component Management is
 designed against Architecture 0.8 without changing the stack-wide target.
 
-Architecture 0.7 R1 now has Reference-native Complete Draft evidence for recursive three-state
-Constraint expressions, fail-closed authority evaluation, and experimental Composition selection.
+Architecture 0.7 R1-R2 now have Reference-native Complete Draft evidence for recursive three-state
+Constraint expressions, fail-closed authority evaluation, experimental Composition selection, and
+distinct typed-member canonical names with an open provisional member-kind token.
 The retained [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json) matrix is
 detailed test evidence, not the source of the implementation target and not a claim that the
 remaining Architecture 0.7 work is implemented.

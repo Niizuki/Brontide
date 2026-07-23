@@ -160,6 +160,7 @@ type MinimalCoolingBindingHost(
             World.registerFragment
                 { Reference = hostContext
                   Description = "Host-local attributable context"
+                  HostShape = commandShape
                   Shape = hostContextShape }
                 initial
             |> get
@@ -168,6 +169,7 @@ type MinimalCoolingBindingHost(
             World.registerFragment
                 { Reference = optionalNote
                   Description = "Optional authored data unknown to the semantic provider"
+                  HostShape = commandShape
                   Shape = optionalNoteShape }
                 initial
             |> get

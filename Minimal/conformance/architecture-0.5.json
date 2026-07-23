@@ -136,10 +136,10 @@
       "requirementId": "BR-05-SHAPE-003",
       "architectureRevision": "0.5",
       "component": "Brontide.Minimal.Kernel Shape projection",
-      "positiveEvidence": [{ "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "BR_05_SHAPE_002" }],
-      "negativeEvidence": [{ "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "baseOnly" }],
+      "positiveEvidence": [{ "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "BR_05_SHAPE_003 authored fragments stay within their host Shape lineage" }],
+      "negativeEvidence": [{ "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "The fragment is not declared for that host Shape lineage." }],
       "status": "tested",
-      "rationale": "Canonical projection drops unsupported Fragments and required Fragment contracts reject absence."
+      "rationale": "Canonical projection enforces required Fragments, rejects authored attachments outside their declared host Shape lineage, accepts later compatible host versions, and honors explicit inclusion."
     },
     {
       "requirementId": "BR-05-INTERCHANGE-001",

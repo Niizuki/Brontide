@@ -48,10 +48,20 @@
       "section": "6.10,22.4",
       "classification": "missing",
       "component": "Brontide.Minimal.Model names and owning gateways",
-      "positiveEvidence": [],
-      "negativeEvidence": [],
-      "status": "planned",
-      "rationale": "CanonicalName currently has no typed-member model; M2 must decide and document the public and serialized-form migration."
+      "positiveEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "BR_07_NAME_001 typed members round trip without becoming concept names"
+        }
+      ],
+      "negativeEvidence": [
+        {
+          "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs",
+          "anchor": "typed member parser rejects ambiguous and versioned forms"
+        }
+      ],
+      "status": "tested",
+      "rationale": "M2 adds opaque CanonicalMemberName, MemberKind, and MemberName values without changing CanonicalName. No serialized typed-member consumer existed to migrate. MemberKind remains an open validated token because the 0.7 catalogue and glyph are provisional; this is Complete Draft evidence rather than ratification."
     },
     {
       "requirementId": "BR-07-BINDING-001",

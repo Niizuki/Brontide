@@ -355,6 +355,72 @@ public sealed class ShapeRegistry
         get { lock (_gate) { return _fragments.Values.ToArray(); } }
     }
 
+    internal RegistrationTransaction BeginRegistrationTransaction() => new(this);
+
+    private RegistrationSnapshot CaptureSnapshot()
+    {
+        lock (_gate)
+        {
+            return new RegistrationSnapshot(
+                _shapes.ToImmutableDictionary(),
+                _fragments.ToImmutableDictionary());
+        }
+    }
+
+    private void Restore(RegistrationSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        lock (_gate)
+        {
+            _shapes.Clear();
+            foreach (var entry in snapshot.Shapes)
+            {
+                _shapes.Add(entry.Key, entry.Value);
+            }
+
+            _fragments.Clear();
+            foreach (var entry in snapshot.Fragments)
+            {
+                _fragments.Add(entry.Key, entry.Value);
+            }
+        }
+    }
+
+    internal sealed class RegistrationTransaction : IDisposable
+    {
+        private readonly ShapeRegistry _registry;
+        private readonly RegistrationSnapshot _snapshot;
+        private bool _committed;
+
+        internal RegistrationTransaction(ShapeRegistry registry)
+        {
+            _registry = registry;
+            Monitor.Enter(_registry._gate);
+            _snapshot = _registry.CaptureSnapshot();
+        }
+
+        internal void Commit() => _committed = true;
+
+        public void Dispose()
+        {
+            try
+            {
+                if (!_committed)
+                {
+                    _registry.Restore(_snapshot);
+                }
+            }
+            finally
+            {
+                Monitor.Exit(_registry._gate);
+            }
+        }
+    }
+
+    private sealed record RegistrationSnapshot(
+        ImmutableDictionary<ShapeReference, ShapeDefinition> Shapes,
+        ImmutableDictionary<FragmentReference, DeclaredFragmentDefinition> Fragments);
+
     public bool Recognizes(ShapeContract contract)
     {
         lock (_gate)

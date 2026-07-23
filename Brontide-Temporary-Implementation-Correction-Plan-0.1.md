@@ -11,7 +11,7 @@ separate from the Reference and Minimal implementation targets stated in their o
 document describes gaps that must be corrected before either stack can claim reliable conformance.
 
 Do not copy these corrections into the 0.3 roadmaps as completed requirements. Link to this plan
-instead. Delete this file only after every completion gate in section 8 is satisfied and the
+instead. Delete this file only after every completion gate in section 9 is satisfied and the
 resulting evidence has been moved into the permanent milestone records.
 
 No item in this document changes the architecture by itself. If implementation exposes an
@@ -133,7 +133,27 @@ Requested change:
    coverage of the broader architecture from the Base/Cooling proof.
 5. Keep public APIs intentionally small; record why each exposed type or function must be public.
 
-## 7. Delivery order
+## 7. Finding F — independent-review invariant gaps
+
+The first independent review of the pinned correction target reproduced four invariant gaps that
+the otherwise-green full gate did not cover: Minimal accepted an authored Fragment on an unrelated
+open Shape; Reference could retain live unrecorded authority after a failed dynamic Genesis
+callback; rejected Reference provenance retained a protected command input; and an observed-dead
+Reference liveness lease could revive after clock rollback.
+
+Requested change:
+
+1. Bind every Minimal authored Fragment to an explicit compatible host Shape lineage, while
+   retaining explicit inclusion for reusable composition.
+2. Make failed Reference Genesis occurrences atomic across every registry reachable from the
+   callback, and leave no provenance gap.
+3. Keep rejected Reference Executions observable without retaining their protected input in the
+   provenance record.
+4. Make observed liveness death terminal even when a supplied trusted clock regresses.
+5. Add focused positive and negative evidence to the permanent Architecture 0.5 matrices and rerun
+   both independent reviews against a new pinned commit.
+
+## 8. Delivery order
 
 1. Freeze and publish the requirement-to-evidence vocabulary and current claim baseline.
 2. Correct the Minimal Base authority model and its negative tests.
@@ -147,7 +167,10 @@ The current-architecture implementation plans selected by the status registry ma
 failing conformance vectors in parallel, but neither stack may claim current-architecture
 implementation until the applicable corrections above are closed.
 
-## 8. Completion and deletion gate
+7. Correct any independently reproduced invariant gap, repin the request, and rerun the affected
+   reviews from fresh isolated contexts.
+
+## 9. Completion and deletion gate
 
 This temporary plan may be deleted only when all of the following are true:
 

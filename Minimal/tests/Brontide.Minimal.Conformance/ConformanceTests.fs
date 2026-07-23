@@ -204,6 +204,63 @@ type BaseAuthorityConformance() =
         Assert.That(CanonicalName.tryCreate "authority:concept:extra" |> Result.isError, Is.True)
 
     [<Test>]
+    member _.``BR_07_NAME_001 typed members round trip without becoming concept names`` () =
+        let cases =
+            [ "Brontide:Editor.Project#Store.Core", "Brontide:Editor.Project", "Store", "Core"
+              "Brontide:Editor.Project#Parameter.HistoryDepth",
+              "Brontide:Editor.Project",
+              "Parameter",
+              "HistoryDepth"
+              "Example.Project#ExperimentalKind.Member_1",
+              "Example.Project",
+              "ExperimentalKind",
+              "Member_1" ]
+
+        for text, owner, kind, memberName in cases do
+            let parsed = CanonicalMemberName.create text
+
+            Assert.Multiple(Action(fun () ->
+                Assert.That(parsed |> CanonicalMemberName.owner |> CanonicalName.value, Is.EqualTo owner)
+                Assert.That(parsed |> CanonicalMemberName.kind |> MemberKind.value, Is.EqualTo kind)
+                Assert.That(parsed |> CanonicalMemberName.name |> MemberName.value, Is.EqualTo memberName)
+                Assert.That(CanonicalMemberName.value parsed, Is.EqualTo text)
+                Assert.That(CanonicalMemberName.create text, Is.EqualTo parsed)
+                Assert.That(CanonicalName.tryCreate text |> Result.isError, Is.True)))
+
+    [<Test>]
+    member _.``typed member parser rejects ambiguous and versioned forms`` () =
+        [ ""
+          " Brontide:Editor.Project#Store.Core"
+          "Brontide:Editor.Project#Store.Core "
+          "#Store.Core"
+          "Brontide:Editor.Project#"
+          "Brontide:Editor.Project#Store"
+          "Brontide:Editor.Project#.Core"
+          "Brontide:Editor.Project#Store."
+          "Brontide:Editor.Project#Store.Core.More"
+          "Brontide:Editor.Project##Store.Core"
+          "Brontide::Editor.Project#Store.Core"
+          "Brontide:Editor.Project#Store.Core@3" ]
+        |> List.iter (fun text ->
+            Assert.That(
+                CanonicalMemberName.tryCreate text |> Result.isError,
+                Is.True,
+                $"Expected '{text}' to be rejected."
+            ))
+
+    [<Test>]
+    member _.``member tokens are validated open types and comparison is ordinal`` () =
+        let lower = CanonicalMemberName.create "Example:Definition#FutureKind.A"
+        let upper = CanonicalMemberName.create "Example:Definition#FutureKind.B"
+
+        Assert.Multiple(Action(fun () ->
+            Assert.That(MemberKind.tryCreate "FutureKind" |> Result.isOk, Is.True)
+            Assert.That(MemberKind.tryCreate "Future.Kind" |> Result.isError, Is.True)
+            Assert.That(MemberName.tryCreate "Member-1" |> Result.isOk, Is.True)
+            Assert.That(MemberName.tryCreate "Member.Name" |> Result.isError, Is.True)
+            Assert.That(compare lower upper, Is.LessThan 0)))
+
+    [<Test>]
     member _.``BR_05_NAME_002 only Shapes and Fragments carry structural versions`` () =
         let operationFields = FSharpType.GetRecordFields typeof<OperationReference> |> Array.map _.Name
         let eventFields = FSharpType.GetRecordFields typeof<EventReference> |> Array.map _.Name
@@ -604,6 +661,7 @@ type ShapeConformance() =
             |> World.registerFragment
                 { Reference = directional
                   Description = "Bob's authored velocity direction"
+                  HostShape = velocity
                   Shape = fragmentShape }
             |> get
 
@@ -622,3 +680,51 @@ type ShapeConformance() =
         Assert.That(canonical, Is.EqualTo(RecordValue(Map.ofList [ "speed", IntegerValue 12L ], Map.empty)))
         Assert.That(required, Is.EqualTo composed)
         Assert.That(World.validateContract velocity (Set.singleton directional) baseOnly ready |> Result.isError, Is.True)
+
+    [<Test>]
+    member _.``BR_05_SHAPE_003 authored fragments stay within their host Shape lineage`` () =
+        let world = World.create (Guid.NewGuid()) timeDomain
+        let shape value version: ShapeReference = { Name = name value; Version = version }
+        let hostA = shape "Example:HostA" 1
+        let hostA2 = { hostA with Version = 2 }
+        let hostB = shape "Example:HostB" 1
+        let explicitHost = shape "Example:ExplicitHost" 1
+        let fragmentShape = shape "Example:HostA.Note.Fields" 1
+        let note: FragmentReference = { Name = name "Example:HostA.Note"; Version = 1 }
+
+        let shapeDefinition reference accepted isOpen body =
+            { Reference = reference
+              Description = "Fragment host-lineage fixture"
+              Body = body
+              AcceptedFragments = accepted
+              IsOpenToFragments = isOpen }
+
+        let ready =
+            world
+            |> World.registerShape (shapeDefinition hostA Set.empty true (RecordShape []))
+            |> get
+            |> World.registerShape (shapeDefinition hostB Set.empty true (RecordShape []))
+            |> get
+            |> World.registerShape
+                (shapeDefinition explicitHost (Set.singleton note) false (RecordShape []))
+            |> get
+            |> World.registerShape (shapeDefinition fragmentShape Set.empty false UnitShape)
+            |> get
+            |> World.registerFragment
+                { Reference = note
+                  Description = "Authored only for HostA and later HostA versions"
+                  HostShape = hostA
+                  Shape = fragmentShape }
+            |> get
+            |> World.registerShape (shapeDefinition hostA2 Set.empty true (RecordShape []))
+            |> get
+
+        let composed = RecordValue(Map.empty, Map.ofList [ note, UnitValue ])
+        let unrelated = World.validateContract hostB Set.empty composed ready
+        let sameLineage = World.validateContract hostA2 Set.empty composed ready
+        let explicitlyIncluded = World.validateContract explicitHost Set.empty composed ready
+
+        Assert.Multiple(Action(fun () ->
+            Assert.That((unrelated = Error "The fragment is not declared for that host Shape lineage."), Is.True)
+            Assert.That((sameLineage = Ok()), Is.True)
+            Assert.That((explicitlyIncluded = Ok()), Is.True)))

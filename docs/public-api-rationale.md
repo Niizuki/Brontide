@@ -21,6 +21,20 @@ identity spaces cannot be mixed accidentally. `CatalogProtocolException` is publ
 classify an experimental protocol failure without receiving a provider-private exception; its
 message is diagnostic and is never promoted automatically into a Base failure payload.
 
+Architecture 0.7 typed-member identities are public value types because definition readers,
+gateways, and tooling must parse and compare them without lossy string splitting. They are additive
+to the existing concept-name API. `MemberKind` is intentionally an open validated token rather than
+an enum or closed union because Architecture 0.7 leaves the member-kind catalogue and final glyph
+provisional. No current binding protocol serializes the new type, so no wire version or legacy alias
+is introduced.
+
+Two correction APIs expose trust-boundary facts deliberately. Minimal `FragmentDefinition` now
+requires `HostShape` so an authored attachment cannot be replayed onto an unrelated open Shape;
+callers must provide the earliest compatible host Shape. Reference `ExecutionRecord.HasInput`
+allows audit consumers to distinguish a complete authorized record from a rejected provenance copy
+whose protected input was not retained. Direct `ExecutionResult` values remain complete for their
+caller.
+
 No public compatibility promise extends from these experimental APIs. A breaking change must still
 follow [`VERSIONING.md`](../VERSIONING.md), document affected provider/host consumers, and update the
 fixture contract version or protocol version when wire interpretation changes.

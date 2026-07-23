@@ -4,6 +4,9 @@
 
 ### Added
 
+- Opaque `CanonicalMemberName`, `MemberKind`, and `MemberName` values for the provisional
+  Architecture 0.7 typed-member grammar. Existing `CanonicalName` and binding wire forms are
+  unchanged; member kinds remain open validated tokens while the catalogue is provisional.
 - Recursive atomic, `AllOf`, `AnyOf`, and `Not` Constraint expressions with explicit satisfied,
   unsatisfied, and indeterminate results. Existing flat Capability and Operation requirements
   remain source-compatible atomic leaves; callers opt in through
@@ -16,6 +19,9 @@ These additions are current-draft evidence, not ratification and not a component
 
 ### Breaking
 
+- `FragmentDefinition` now requires `HostShape`, the earliest compatible Shape for an authored
+  Fragment. Update record construction to supply that host; unrelated open Shapes no longer accept
+  the attachment unless they explicitly include the Fragment.
 - Issuer-controlled Actor, Capability, Constraint, Execution, Occurrence, and Activity references
   no longer expose public record construction. Carry references returned by `Genesis`, `World`, or
   execution APIs instead of constructing scope/value records.

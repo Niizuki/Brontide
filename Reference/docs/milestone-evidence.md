@@ -17,8 +17,9 @@ Architecture 0.7 implementation detail is recorded in
 evidence of complete 0.7 conformance.
 
 Architecture 0.7 evidence is checked separately through
-[`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). R1 currently covers
-only recursive Constraint evaluation, authority poisoning, and experimental selection exclusion;
+[`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). R1-R2 currently cover
+recursive Constraint evaluation, authority poisoning, experimental selection exclusion, and
+provisional typed-member canonical names;
 it does not imply that the remaining target is implemented.
 
 The active cross-stack sequence is defined by
@@ -41,7 +42,7 @@ Core, Architecture 0.5 Composition, or the proposed portable binding.
 | M9 | Studio scene plus section-cited Outcome conformance cover delegated `Audit.Start`, activity creation, and later terminal completion | Green |
 | Architecture 0.5 delta | Experimental composition tests cover explicit dependency strength, optional boxed boundaries, non-inferred accelerator eligibility, visible provider substitution, operational observations, vector execution, and fallback | Green experimental evidence; not represented as ratified Component, Binding Plan, system-service, or optimisation semantics |
 | Interchange P0-P4 plus correction breadth | Neutral Cooling and Catalog fixtures; independent protocol/value implementations; real two-way foreign-process tests; malformed/version/replay/payload vectors; source-cost inventory; dependency/output audit | Green experimental cross-stack evidence; both protocols and observation formats remain unratified |
-| Architecture 0.7 R1 | Core three-state recursive Constraint tests, authority denial/redaction conformance tests, and experimental Composition candidate-exclusion tests | Green Complete Draft evidence for C1 only; no ratification or whole-revision conformance claim |
+| Architecture 0.7 R1-R2 | Core three-state recursive Constraint tests, authority denial/redaction conformance tests, experimental Composition candidate-exclusion tests, and typed-member parse/format/compare/rejection vectors | Green Complete Draft evidence for C1-C2 only; no ratification or whole-revision conformance claim |
 
 The M0 test-first requirement is a process gate. Brontide Reference Stack's source and tests originally arrived in one
 commit, so the repository cannot prove that the expected failures were observed before their

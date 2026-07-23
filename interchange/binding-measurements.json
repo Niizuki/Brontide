@@ -26,12 +26,12 @@
       "files": [
         { "path": "Minimal/src/Brontide.Minimal.Binding/Binding.fs", "manualSourceLines": 327 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/PortableBinding.fs", "manualSourceLines": 1092 },
-        { "path": "Minimal/src/Brontide.Minimal.Binding/CoolingBindingHost.fs", "manualSourceLines": 404 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/CoolingBindingHost.fs", "manualSourceLines": 406 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/CatalogBinding.fs", "manualSourceLines": 673 }
       ],
-      "manualSourceLines": 2496,
+      "manualSourceLines": 2498,
       "generatedSourceLines": 0,
-      "totalSourceLines": 2496
+      "totalSourceLines": 2498
     }
   ],
   "buildContribution": {

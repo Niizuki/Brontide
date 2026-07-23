@@ -242,6 +242,8 @@ module World =
     let registerFragment (definition: FragmentDefinition) (world: World) =
         if Map.containsKey definition.Reference world.Fragments then
             Error "That fragment version is already registered."
+        elif not (Map.containsKey definition.HostShape world.Shapes) then
+            Error "The fragment host Shape is not registered."
         elif not (Map.containsKey definition.Shape world.Shapes) then
             Error "The fragment shape is not registered."
         else
@@ -352,16 +354,20 @@ module World =
                     fragments
                     |> Map.toList
                     |> List.tryPick (fun (fragmentReference, fragmentValue) ->
-                        let accepted =
-                            definition.IsOpenToFragments
-                            || Set.contains fragmentReference definition.AcceptedFragments
+                        match Map.tryFind fragmentReference world.Fragments with
+                        | None -> Some(Error "The fragment is not registered.")
+                        | Some fragment ->
+                            let explicitlyIncluded =
+                                Set.contains fragmentReference definition.AcceptedFragments
 
-                        if not accepted then
-                            Some(Error "The record does not accept that fragment.")
-                        else
-                            match Map.tryFind fragmentReference world.Fragments with
-                            | None -> Some(Error "The fragment is not registered.")
-                            | Some fragment ->
+                            let compatibleAuthoredAttachment =
+                                definition.IsOpenToFragments
+                                && fragment.HostShape.Name = definition.Reference.Name
+                                && fragment.HostShape.Version <= definition.Reference.Version
+
+                            if not explicitlyIncluded && not compatibleAuthoredAttachment then
+                                Some(Error "The fragment is not declared for that host Shape lineage.")
+                            else
                                 match validateValue fragment.Shape fragmentValue world with
                                 | Ok() -> None
                                 | Error message -> Some(Error message))
