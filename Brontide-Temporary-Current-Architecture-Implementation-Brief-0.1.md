@@ -17,10 +17,11 @@ upgrade an implementation claim, or supersede either stack's notes. Delete this 
 completion gate in section 11 is satisfied and all lasting information has moved into tests and
 concise implementation-owned documentation.
 
-The separate `Brontide-Temporary-Implementation-Correction-Plan-0.1.md` retains its own authority
-and deletion gate. Its independent attestations and closure may be completed before or in parallel
-with the failing-vector work below, but current-architecture implementation must not be claimed
-until that correction gate permits it.
+The separate correction programme retains its own authority and deletion gate while its temporary
+plan is present; afterward, the permanent correction status and review records preserve the closure.
+Its independent attestations and closure may be completed before or in parallel with the
+failing-vector work below, but current-architecture implementation must not be claimed until that
+correction gate permits it.
 
 The C1-C8 items below are the Architecture 0.7 change set described by the two 0.3 implementation
 notes. The current architecture has meanwhile advanced to the Architecture 0.8 complete
@@ -291,4 +292,5 @@ This brief is complete only when all of the following are true:
 
 After those conditions are met, migrate any remaining durable rationale to its owning document,
 run link/text/evidence verification, delete this file, and verify the repository again. The
-separate temporary correction plan remains governed exclusively by its own deletion gate.
+separate correction programme remains governed exclusively by its own checked deletion gate and
+permanent closure record.

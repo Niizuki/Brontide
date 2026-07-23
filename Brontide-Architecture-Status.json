@@ -38,11 +38,11 @@
         },
         "plan": {
           "path": "Reference/Brontide-Reference-Stack-Implementation-Plan-0.3.md",
-          "sha256": "4A091A2B3796049E0CC82E24735FDAC2F5E922DAE22636453699EA511172C887"
+          "sha256": "6CA63DA7038BFAAE55812EFC54D099CF6B8B76E6635EF755318F37BBE27928FA"
         },
         "ledger": {
           "path": "Reference/docs/architecture-0.7-delivery.md",
-          "sha256": "678E27B945200E8898CCAC13A7F49341D58D5E3E7990B819E42876D4842D068E"
+          "sha256": "101E8987BCFB021A35F0E64265F359CD762E8D90BD4801BA7A1F5804DAB08E8C"
         }
       }
     },
@@ -63,11 +63,11 @@
         },
         "plan": {
           "path": "Brontide-Minimal-Stack-Implementation-Plan-0.3.md",
-          "sha256": "6D2240C37828640580E0895537023424803AC5290F6BFAB9A50ED676CBFE3F4F"
+          "sha256": "7646CDDC5E731ACDC0DC6B98CC86E14DF5BBECA43073680F0822670CE729673A"
         },
         "ledger": {
           "path": "Minimal/docs/architecture-0.7-delivery.md",
-          "sha256": "D22EBFC88A612A5BB208D7E9B4ED07FA3E4CEE22A8856C22360154A3B77952B7"
+          "sha256": "6CB7CEF3A2CF12FE67458912881C5CD6202BB7A91B271A961C37BD6691EA44F4"
         }
       }
     }

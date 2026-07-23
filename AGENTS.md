@@ -23,11 +23,12 @@ changes the locally stated target.
 Use earlier architecture documents for the semantics of work designed against an older version and
 for historical context; do not silently project later draft rules into an older implementation.
 
-The root `Brontide-Temporary-Implementation-Correction-Plan-0.1.md` controls known corrective gaps
+While present, the root temporary implementation-correction plan controls known corrective gaps
 until its deletion gate is satisfied. It takes priority over optimistic implementation prose, but it
-is not architecture and must never be cited as evidence that a correction is complete. Keep
-provisional or non-ratified work in explicitly experimental projects and do not present it as
-Brontide Base conformance.
+is not architecture and must never be cited as evidence that a correction is complete. After
+authorized deletion, the permanent implementation-correction status and independent-review records
+preserve the closure evidence. Keep provisional or non-ratified work in explicitly experimental
+projects and do not present it as Brontide Base conformance.
 
 ## Ground rules
 

@@ -1,9 +1,9 @@
 # Implementation correction status
 
-Status: local implementation record for
-[`Brontide-Temporary-Implementation-Correction-Plan-0.1.md`](../Brontide-Temporary-Implementation-Correction-Plan-0.1.md).
-This record reports evidence; it does not replace architecture or authorize deletion of the
-temporary plan.
+Status: permanent local implementation record for the correction programme. While the controlling
+temporary plan is present, it remains the request for corrective work; after authorized deletion,
+the [independent-review records](../conformance/reviews/README.md) preserve the closure decision.
+This record reports evidence; it does not replace architecture or itself authorize deletion.
 
 | Finding | Local implementation status | Permanent evidence |
 | --- | --- | --- |

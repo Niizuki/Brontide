@@ -322,8 +322,8 @@ Brontide-Minimal-Stack-Implementation-Plan-0.3.md    — independent counterpart
 ```
 
 Their scope is defined in those documents against the completed 0.7 text. Known implementation
-corrections remain separate in
-`Brontide-Temporary-Implementation-Correction-Plan-0.1.md`.
+corrections remain separate in the permanent implementation-correction status and checked
+independent-review records.
 
 ---
 

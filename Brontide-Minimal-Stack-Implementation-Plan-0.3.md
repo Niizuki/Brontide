@@ -11,10 +11,10 @@ These are the Minimal stack's implementation notes for the changes completed in 
 [Architecture 0.7 document edit](Brontide-Architecture-0.7-Change-Plan.md). It supersedes Plan 0.2
 only for new 0.7 work; Plan 0.2 remains as historical context.
 
-Before this plan can support an implementation claim, the applicable gates in
-[the temporary correction plan](Brontide-Temporary-Implementation-Correction-Plan-0.1.md) must be
-closed. That plan owns the known corrective work. This roadmap deliberately does not repeat or
-pre-claim those changes.
+Before this plan can support an implementation claim, the applicable gates in the permanent
+[implementation correction status](docs/implementation-correction-status.md) must be closed. While
+the temporary correction plan exists, it owns the known corrective work. This roadmap deliberately
+does not repeat or pre-claim those changes.
 
 The temporary
 [current-architecture implementation brief](Brontide-Temporary-Current-Architecture-Implementation-Brief-0.1.md)
@@ -66,7 +66,7 @@ Exit evidence:
 
 - no unclassified normative change;
 - no 0.7 conformance claim in README or milestone evidence;
-- known Base corrections remain owned by the temporary correction plan.
+- known Base corrections remain owned by the separate correction programme until checked closure.
 
 ## 4. Phase M1 — composite Constraint poisoning
 
@@ -195,5 +195,5 @@ Plan 0.3 is complete only when:
   released/implemented architecture;
 - documentation accurately separates implemented, experimental, and planned scope.
 
-Do not delete the temporary correction plan merely because this roadmap is complete. Its own
-deletion gate controls its lifetime.
+Completion of this roadmap never authorizes correction-plan deletion. The independent-review
+framework and permanent correction status preserve that separate deletion gate and its outcome.

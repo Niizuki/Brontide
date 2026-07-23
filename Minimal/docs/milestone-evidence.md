@@ -14,7 +14,8 @@ tests are actual Reference/Minimal Cooling and Catalog/resource interchange evid
 The older Architecture 0.5 entries are retained evidence, not a second implementation target.
 Architecture 0.7 implementation detail is recorded in
 [`architecture-0.7-delivery.md`](./architecture-0.7-delivery.md). No table entry below is, by itself,
-evidence of complete 0.7 conformance. The temporary correction plan controls known claim gaps.
+evidence of complete 0.7 conformance. The permanent implementation-correction status records known
+claim gaps and their independently reviewed closure state.
 
 Architecture 0.7 evidence is checked separately through
 [`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). The current M1-M2

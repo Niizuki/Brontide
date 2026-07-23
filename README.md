@@ -26,10 +26,11 @@ A target records the architecture against which work was devised. It is not, by 
 conformance or ratification claim. Code, tests, and concise known-limitations prose remain the useful
 evidence of what actually works.
 
-Known implementation and evidence gaps are controlled separately by the
-[temporary implementation correction plan](./Brontide-Temporary-Implementation-Correction-Plan-0.1.md).
-That file is a request for corrective work, not evidence that the work is implemented, and remains
-until its explicit deletion gate is satisfied.
+Known implementation and evidence gaps, their permanent evidence, and their closure state are
+recorded in the [implementation correction status](./docs/implementation-correction-status.md) and
+the [independent-review framework](./conformance/reviews/README.md). While the temporary correction
+plan exists, it remains the controlling request rather than evidence of completion; its deletion
+requires two conforming reviews and an explicit checked authorization.
 
 The first programme of real cross-stack evidence remains
 [Reference/Minimal Interchange Implementation Plan 0.1](./Brontide-Interchange-Implementation-Plan-0.1.md).

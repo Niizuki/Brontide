@@ -8,9 +8,9 @@ These notes record useful implementation detail against the stated target. The r
 [implementation plan](../../Brontide-Minimal-Stack-Implementation-Plan-0.3.md),
 [requirements](../../conformance/architecture-0.7-requirements.json), and
 [test matrix](../conformance/architecture-0.7.json) are supporting material rather than a formal
-routing hierarchy. They do not relabel retained Architecture 0.5 evidence. The
-[temporary implementation correction plan](../../Brontide-Temporary-Implementation-Correction-Plan-0.1.md)
-continues to control its own open gates and deletion conditions.
+routing hierarchy. They do not relabel retained Architecture 0.5 evidence. The permanent
+[implementation correction status](../../docs/implementation-correction-status.md) records those
+separate gates and their independently reviewed deletion outcome.
 
 ## Architecture 0.7 change coverage
 
