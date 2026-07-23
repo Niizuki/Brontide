@@ -4,8 +4,8 @@
     "revision": "0.8",
     "status": "Executed change plan; the 0.8 document edit (C1-C14) is complete per Architecture 0.8 §35",
     "path": "Brontide-Architecture-0.8-Change-Plan.md",
-    "sha256": "D266DA938110E7472347502DBB604B56AC6D7A288B14E29157EFC3548B5EE77B",
-    "sha256Note": "Refreshed for the completed 0.8 document edit; refresh deliberately on any further plan edit."
+    "sha256": "225DE03BFEC85A6529E7D1FBF9AADDBAA5E32342E343D208A90A727BB63CF8B2",
+    "sha256Note": "Canonical UTF-8/LF hash refreshed for the completed 0.8 document edit; refresh deliberately on any further plan edit."
   },
   "conventions": {
     "sectionReferences": "Section numbers refer to Architecture 0.7 sections, per the change plan.",

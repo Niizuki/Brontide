@@ -4,6 +4,21 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $inventoryPath = Join-Path $repositoryRoot 'conformance\architecture-0.8-adversarial-vectors.json'
 $failures = [System.Collections.Generic.List[string]]::new()
 
+function Get-CanonicalTextHash {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $text = [System.IO.File]::ReadAllText($Path)
+    $normalized = $text.Replace("`r`n", "`n").Replace("`r", "`n")
+    $bytes = [System.Text.UTF8Encoding]::new($false).GetBytes($normalized)
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return -join @($sha256.ComputeHash($bytes) | ForEach-Object { $_.ToString('X2') })
+    }
+    finally {
+        $sha256.Dispose()
+    }
+}
+
 if (-not (Test-Path -LiteralPath $inventoryPath)) {
     Write-Error "Adversarial vector inventory not found at '$inventoryPath'."
     exit 1
@@ -27,7 +42,7 @@ else {
         $failures.Add("Pinned change plan '$($inventory.changePlan.path)' does not exist.")
     }
     elseif (-not [string]::IsNullOrWhiteSpace($inventory.changePlan.sha256)) {
-        $actual = (Get-FileHash -LiteralPath $planPath -Algorithm SHA256).Hash.ToUpperInvariant()
+        $actual = (Get-CanonicalTextHash $planPath).ToUpperInvariant()
         if ($actual -ne $inventory.changePlan.sha256.ToUpperInvariant()) {
             $failures.Add("Change plan hash mismatch: inventory pins $($inventory.changePlan.sha256) but '$($inventory.changePlan.path)' hashes to $actual. Refresh the pin deliberately.")
         }

@@ -5,6 +5,8 @@ requirements and risk register, not a ratified Channel contract, an extension sp
 implementation claim. It adds no Brontide Base term.
 
 Design source: [Channel Design Note 0.1](../Brontide-Design-Note-Channel-0.1.md).
+Draft semantic contract: [Draft Channel Contract 0.1](../Brontide-Draft-Channel-Contract-0.1.md).
+Shared vectors: [Channel 0.1 conformance vectors](../conformance/channel-0.1-vectors.json).
 Evidence base: the retained Cooling and Catalog interchange proofs governed by the
 [Reference/Minimal Interchange Implementation Plan 0.1](../Brontide-Interchange-Implementation-Plan-0.1.md).
 Architecture context: [Brontide Architecture 0.8](../Brontide-Architecture-0.8.md) §6.16, §8,
@@ -33,21 +35,23 @@ encoding (its own §18.1 work, realising this frame).
 
 Each requirement is what the `Channel` extension must eventually settle. Disposition is one of
 `open`, `decided-in-note` (the design note records the semantic answer; the portable form remains
-open), or `evidence-gated` (answerable only against a running conformance realisation).
+open), `decided-in-draft` (the draft contract records a reviewable semantic answer without
+ratification), `vectors-authored` (shared data-only vectors exist but stack harnesses remain
+evidence-gated), or `evidence-gated` (answerable only against a running conformance realisation).
 
 | ID | Requirement | Source | Disposition |
 | --- | --- | --- | --- |
-| CH-R1 | Message envelope model: a versioned, kind-discriminated message in the categories negotiation, request, outcome, protocol-error, lifecycle. | note §"envelope model"; Cooling/Catalog `kind` | decided-in-note; canonical Shapes open |
-| CH-R2 | Error taxonomy: a standard category set, with realisation codes mapped onto it. Category, never code string, is normative. | note §"envelope model"; stacks' code divergence | open (taxonomy enumeration) |
-| CH-R3 | Correlation model: at least a request correlation identity, echoed on the Outcome and matched on receipt; carried identities never conflated with host-native Execution or Occurrence identity. | note §"correlation"; §8; Plan §3.3 | decided-in-note; portable form open |
+| CH-R1 | Message envelope model: a versioned, kind-discriminated message in the categories negotiation, request, outcome, protocol-error, lifecycle. | note §"envelope model"; Cooling/Catalog `kind` | decided-in-draft; logical version-1 Envelope/body Shapes recorded, encoding open |
+| CH-R2 | Error taxonomy: a standard category set, with realisation codes mapped onto it. Category, never code string, is normative. | note §"envelope model"; stacks' code divergence | decided-in-draft; twelve protocol categories and seven local process categories enumerated |
+| CH-R3 | Correlation model: at least a request correlation identity, echoed on the Outcome and matched on receipt; carried identities never conflated with host-native Execution or Occurrence identity. | note §"correlation"; §8; Plan §3.3 | decided-in-draft; channel/request plus optional finer identities recorded as distinct opaque positions |
 | CH-R4 | Compatibility model: version declared on every message; fail closed on an unrecognised version; compatibility settled before or independently of invocation (negotiated handshake or fixed contract). | note §"version and contract"; §6.16 | decided-in-note; handshake-vs-fixed left to realisation |
 | CH-R5 | Authority presentation: boundary-relative — intra-domain Capability presentation for target evaluation, cross-trust-boundary attributable context only; **no Capability crosses a trust boundary**. | note §"authority presentation"; §6.16, §8, §24 | decided-in-note; intra-domain representation is the Portable Binding's subject |
-| CH-R6 | Failure separation: denial (boundary decision, never a wire message), semantic failed Outcome (structured `details`), and protocol/process failure (category code + failure domain) remain three distinct meanings; no foreign exception or runtime type crosses. | note §"failure taxonomy"; Cooling forbidden-field scan | decided-in-note; failure-domain vocabulary open |
-| CH-R7 | Two-plane classification: every Shape-described Channel position is declared covariant (payload, projects under §16.4) or contravariant (authority, fail-closed, never projected). | note §"relationship to the two planes"; §6.16 | open (per-position classification) |
+| CH-R6 | Failure separation: denial (boundary decision, never a wire message), semantic failed Outcome (structured `details`), and protocol/process failure (category code + failure domain) remain three distinct meanings; no foreign exception or runtime type crosses. | note §"failure taxonomy"; Cooling forbidden-field scan | decided-in-draft; five relative failure domains recorded |
+| CH-R7 | Two-plane classification: every Shape-described Channel position is declared covariant (payload, projects under §16.4) or contravariant (authority, fail-closed, never projected). | note §"relationship to the two planes"; §6.16 | decided-in-draft; every logical envelope position classified, including C8 Constraint exemption |
 | CH-R8 | Transport and framing: framed, self-delimited messages over a duplex transport, one message per frame, diagnostic side band carrying no semantic result; a realisation declares framing and any frame-size bound. | note §"framed messages"; Cooling/Catalog stdio JSON-lines | decided-in-note; transport left open |
 | CH-R9 | Declared hardening dimensions: replay window, payload bound, field strictness, parse bounds — each stated explicitly, including stating that none is provided. | note §"boundary hardening"; Catalog vectors | decided-in-note; declaration form open |
 | CH-R10 | Non-promises: no delivery, ordering, or retry guarantee; interruption, retry, and fallback recorded as facts, success never fabricated. | note §"non-promises"; Plan §4 | decided-in-note |
-| CH-R11 | Conformance vectors: a vector set expressing one Channel contract runnable against both stacks, so the C7/C8 constraint-evaluation rules and the failure taxonomy are checked identically. | §29.2 discipline; adversarial-vector precedent | open |
+| CH-R11 | Conformance vectors: a vector set expressing one Channel contract runnable against both stacks, so the C7/C8 constraint-evaluation rules and the failure taxonomy are checked identically. | §29.2 discipline; adversarial-vector precedent | vectors-authored; 24 shared vectors recorded, independent stack harnesses evidence-gated |
 
 ## 3. Risk register
 
@@ -72,10 +76,14 @@ What the Cooling and Catalog proofs already establish for Channel, versus what r
   strict-field, and version-skew handling as realisation choices (CH-R9); and the delivery
   non-promises with facts-not-fabrication (CH-R10). Each is demonstrated in both host directions
   across a real process boundary.
-- **Open.** The canonical error taxonomy (CH-R2); the portable correlation and envelope Shapes
-  (CH-R1, CH-R3); the per-position covariant/contravariant classification (CH-R7); the intra-domain
-  authority-presentation representation, which is the Portable Binding's subject (CH-R5); the
-  failure-domain vocabulary (CH-R6); and a cross-stack conformance-vector set (CH-R11).
+- **Decided in the non-ratified draft.** The category-level error taxonomy (CH-R2); logical
+  correlation and envelope Shapes (CH-R1, CH-R3); relative failure domains (CH-R6); and the
+  per-position covariant/contravariant classification including the C8 polarity flip (CH-R7).
+- **Authored, execution open.** Twenty-four shared data-only vectors cover CH-R11, including C7/C8,
+  category mapping, frame/no-frame failure separation, and failure attribution. Independent stack
+  adapters and accepted runtime evidence remain pending.
+- **Open for the next realization.** The exact intra-domain authority-presentation representation
+  is the Portable Binding's subject (CH-R5), as are concrete encoding, descriptor, and harness APIs.
 
 The proofs are test instruments, not a specification: passing them ratifies neither Channel nor a
 Portable Binding.
@@ -85,10 +93,10 @@ Portable Binding.
 These are recorded targets for the eventual Channel realisation and its conformance work; none is
 implemented here.
 
-- **Cross-stack conformance vectors (CH-R11).** One authored Channel contract exercised against both
-  stacks: request/Outcome correlation, each failure category, an unrecognised version, and an
-  authority-position value that must not project (the C8 polarity flip) — asserting identical
-  category-level results on both sides.
+- **Cross-stack conformance vectors (CH-R11).** The shared vector file now records request/Outcome
+  correlation, category mapping, unrecognised versions, frame/no-frame failure separation, C7
+  strong-Kleene outcomes, and the C8 authority-position value that must not project. The next gate
+  is two independent stack adapters asserting identical category-level observations.
 - **Channel-provider Component required by another Component.** A composition test in which one
   Component *provides* a Channel-conformant contract and a second Component *requires* it, resolved
   through the Composition Provider-Set machinery (§18.1) and exercised over the Channel frame. This
@@ -114,8 +122,9 @@ Flow ratification forces, now bounded by the representation-ceiling rule (§11).
 
 ## 7. Hand-off boundary
 
-This ledger is the R6/M6 planning artifact. It is complete for hand-off when every requirement above
-carries a current disposition and every risk a current mitigation, and it is superseded when the
+This ledger is the R6/M6 planning artifact. Its semantic register is complete for hand-off: every
+requirement carries a current disposition, every risk has a mitigation, and the unresolved work is
+explicitly evidence-gated in the Portable Binding realization. It is superseded when the
 `Channel` extension direction is either specified or its items are dispositioned into that
 specification. It never changes the architecture status, the implementation baseline, or any
 ratification claim; those remain governed by the status registry.

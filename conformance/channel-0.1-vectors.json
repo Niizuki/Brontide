@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "contract": {
+    "version": "0.1-draft",
+    "path": "Brontide-Draft-Channel-Contract-0.1.md",
+    "status": "authored semantic vectors; stack harnesses pending; not ratified"
+  },
+  "conventions": {
+    "appliesTo": ["Reference", "Minimal"],
+    "frameDecision": ["emit", "accept", "reject", "none"],
+    "resultClass": ["negotiation", "request", "outcome-succeeded", "outcome-failed", "protocol-error", "process-failure", "denial"],
+    "identityRule": "Channel correlation identities are opaque and never equal host-native Execution or Occurrence identities.",
+    "harnessBoundary": "Each stack supplies its own adapter; this file contains data and expected observations only."
+  },
+  "vectors": [
+    {
+      "id": "CH-01-CORRELATION-ECHO",
+      "requirements": ["CH-R1", "CH-R3"],
+      "given": ["A valid request carries channel c1, request r1, and optional execution e1"],
+      "when": ["The peer returns a terminal successful Outcome echoing every carried identity"],
+      "then": ["The Outcome is accepted", "The host records a distinct host-native Execution identity"],
+      "expected": { "frameDecision": "accept", "resultClass": "outcome-succeeded" }
+    },
+    {
+      "id": "CH-02-CORRELATION-MISMATCH",
+      "requirements": ["CH-R2", "CH-R3"],
+      "given": ["A valid request carries request r1"],
+      "when": ["The claimed Outcome carries request r2"],
+      "then": ["The Outcome is not accepted", "The category is correlation-mismatch"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "correlation-mismatch", "failureDomain": "local-endpoint" }
+    },
+    {
+      "id": "CH-03-UNSUPPORTED-VERSION",
+      "requirements": ["CH-R2", "CH-R4"],
+      "given": ["The endpoint recognizes contract version 1"],
+      "when": ["A frame declares version 2"],
+      "then": ["No request effect begins", "The category is unsupported-version"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-version" }
+    },
+    {
+      "id": "CH-04-UNSUPPORTED-CONTRACT",
+      "requirements": ["CH-R2", "CH-R4"],
+      "given": ["Compatibility is negotiated or fixed before invocation"],
+      "when": ["The peer names an unrecognized contract or required feature"],
+      "then": ["No request effect begins", "The category is unsupported-contract"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-contract" }
+    },
+    {
+      "id": "CH-05-UNKNOWN-KIND",
+      "requirements": ["CH-R1", "CH-R2"],
+      "given": ["A structurally valid envelope"],
+      "when": ["Its kind or body discriminator is unknown"],
+      "then": ["The category is unsupported-kind"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-kind" }
+    },
+    {
+      "id": "CH-06-MALFORMED-MESSAGE",
+      "requirements": ["CH-R2", "CH-R8"],
+      "given": ["A complete frame"],
+      "when": ["Required envelope fields are absent or malformed"],
+      "then": ["The category is malformed-message", "No foreign parser exception crosses"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message" }
+    },
+    {
+      "id": "CH-07-PAYLOAD-COVARIANCE",
+      "requirements": ["CH-R7"],
+      "linkedArchitectureVector": "BR-08-ADV-C8-003",
+      "given": ["A request input uses additive open payload Shape version 2", "The consumer recognizes version 1"],
+      "when": ["The consumer projects the payload to version 1"],
+      "then": ["The request remains eligible for authority evaluation", "Unknown optional payload structure is ignored canonically"],
+      "expected": { "frameDecision": "accept", "resultClass": "request" }
+    },
+    {
+      "id": "CH-08-AUTHORITY-NO-PROJECTION",
+      "requirements": ["CH-R5", "CH-R7"],
+      "linkedArchitectureVector": "BR-08-ADV-C8-001",
+      "given": ["An authority Constraint value version 2 adds narrowing semantics", "The evaluator recognizes only version 1"],
+      "when": ["The request presents that authority position"],
+      "then": ["The value is not projected", "The atom is Unknown and the standalone request is denied", "No frame is sent across a pre-provider boundary"],
+      "expected": { "frameDecision": "none", "resultClass": "denial", "effectCount": 0 }
+    },
+    {
+      "id": "CH-09-STRONG-KLEENE-FALLBACK",
+      "requirements": ["CH-R7", "CH-R11"],
+      "linkedArchitectureVector": "BR-08-ADV-C7-002",
+      "given": ["Authority is AnyOf(SatisfiedKnown, Unknown)"],
+      "when": ["The target evaluates the request structurally"],
+      "then": ["The expression is True", "The request may proceed"],
+      "expected": { "frameDecision": "emit", "resultClass": "request" }
+    },
+    {
+      "id": "CH-10-STRONG-KLEENE-UNKNOWN-DENIES",
+      "requirements": ["CH-R7", "CH-R11"],
+      "linkedArchitectureVector": "BR-08-ADV-C7-003",
+      "given": ["Authority is AllOf(SatisfiedKnown, Unknown)"],
+      "when": ["The target evaluates the request structurally"],
+      "then": ["The expression is Unknown", "The request is denied without a far-side effect"],
+      "expected": { "frameDecision": "none", "resultClass": "denial", "effectCount": 0 }
+    },
+    {
+      "id": "CH-11-NO-CAPABILITY-TRANSFER",
+      "requirements": ["CH-R5", "CH-R7"],
+      "given": ["A Channel crosses a declared trust boundary"],
+      "when": ["A request body contains a Capability or omits no-capability-transfer"],
+      "then": ["The authority presentation fails closed", "No provider effect begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-authority-presentation", "effectCount": 0 }
+    },
+    {
+      "id": "CH-12-DENIAL-IS-NOT-A-FRAME",
+      "requirements": ["CH-R5", "CH-R6"],
+      "given": ["The local receiving authority boundary denies a request"],
+      "when": ["The host records the attempted Execution"],
+      "then": ["No Channel denial frame is emitted", "No far-side effect occurs"],
+      "expected": { "frameDecision": "none", "resultClass": "denial", "effectCount": 0 }
+    },
+    {
+      "id": "CH-13-SEMANTIC-FAILED-OUTCOME",
+      "requirements": ["CH-R6"],
+      "given": ["An authorized request reaches the provider"],
+      "when": ["The domain Operation reports structured failure details"],
+      "then": ["A failed Outcome crosses", "Result is absent", "The failure is not a protocol or process failure"],
+      "expected": { "frameDecision": "accept", "resultClass": "outcome-failed" }
+    },
+    {
+      "id": "CH-14-PROTOCOL-CODE-MAPPING",
+      "requirements": ["CH-R2", "CH-R6", "CH-R11"],
+      "given": ["Two realizations use different local code strings for an unsupported contract"],
+      "when": ["Each adapter reports the portable observation"],
+      "then": ["Both observations have category unsupported-contract", "Local code strings remain non-normative"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-contract" }
+    },
+    {
+      "id": "CH-15-REPLAY-DECLARED",
+      "requirements": ["CH-R2", "CH-R9"],
+      "given": ["Replay protection and its window are declared", "Request r1 was accepted inside the window"],
+      "when": ["Request r1 is received again inside the window"],
+      "then": ["The category is replay-detected", "The effect is not repeated"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "replay-detected", "effectCount": 0 }
+    },
+    {
+      "id": "CH-16-DECLARED-LIMIT",
+      "requirements": ["CH-R2", "CH-R9"],
+      "given": ["A realization declares a finite frame or parse bound"],
+      "when": ["An inbound frame exceeds that bound"],
+      "then": ["The category is limit-exceeded", "No partial request effect begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "limit-exceeded", "effectCount": 0 }
+    },
+    {
+      "id": "CH-17-PEER-TERMINATED",
+      "requirements": ["CH-R6", "CH-R10"],
+      "given": ["A request was sent and no valid Outcome was received"],
+      "when": ["The peer process terminates"],
+      "then": ["The observation is peer-terminated in remote-provider or unknown failure domain", "Retry and fallback facts are explicit", "Success is not fabricated"],
+      "expected": { "frameDecision": "none", "resultClass": "process-failure", "processCategory": "peer-terminated" }
+    },
+    {
+      "id": "CH-18-FOREIGN-RUNTIME-DATA-FORBIDDEN",
+      "requirements": ["CH-R6", "CH-R9"],
+      "given": ["A semantic Outcome or protocol-error frame"],
+      "when": ["It contains an exception, stack trace, runtime type, or authority object representation"],
+      "then": ["The frame is rejected before semantic use", "The category is malformed-message or invalid-payload according to the declared field position"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "allowedCategories": ["malformed-message", "invalid-payload"] }
+    },
+    {
+      "id": "CH-19-UNSUPPORTED-OPERATION",
+      "requirements": ["CH-R2", "CH-R4"],
+      "given": ["A compatible established contract"],
+      "when": ["A request names an Operation outside that contract"],
+      "then": ["The category is unsupported-operation", "No provider effect begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-operation", "effectCount": 0 }
+    },
+    {
+      "id": "CH-20-INVALID-PAYLOAD",
+      "requirements": ["CH-R2", "CH-R7"],
+      "given": ["A recognized request Operation and payload contract"],
+      "when": ["The input cannot conform through permitted payload projection"],
+      "then": ["The category is invalid-payload", "No provider effect begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-payload", "effectCount": 0 }
+    },
+    {
+      "id": "CH-21-STATE-VIOLATION",
+      "requirements": ["CH-R2", "CH-R8"],
+      "given": ["A realization declares a lifecycle state machine"],
+      "when": ["A recognized message kind is illegal in the current state"],
+      "then": ["The category is state-violation"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "state-violation" }
+    },
+    {
+      "id": "CH-22-INTERNAL-PROTOCOL-FAILURE",
+      "requirements": ["CH-R2", "CH-R6"],
+      "given": ["The endpoint cannot continue protocol processing"],
+      "when": ["Its local implementation raises a runtime-specific failure"],
+      "then": ["The portable category is internal-protocol-failure", "No exception, stack trace, or runtime type crosses"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "internal-protocol-failure" }
+    },
+    {
+      "id": "CH-23-PROCESS-FAILURE-CATEGORIES",
+      "requirements": ["CH-R6", "CH-R10", "CH-R11"],
+      "given": ["No valid semantic Outcome is available"],
+      "when": ["The independent stack adapter classifies the local observation"],
+      "then": ["It selects exactly one declared process category", "Unknown retains the reason narrower attribution was impossible", "Success is never fabricated"],
+      "cases": [
+        "transport-unavailable",
+        "transport-interrupted",
+        "timeout",
+        "peer-terminated",
+        "peer-unavailable",
+        "resource-exhausted",
+        "unknown"
+      ],
+      "expected": { "frameDecision": "none", "resultClass": "process-failure" }
+    },
+    {
+      "id": "CH-24-FAILURE-DOMAIN-RELATIVITY",
+      "requirements": ["CH-R6", "CH-R11"],
+      "given": ["Equivalent failures are observed at different Channel boundaries"],
+      "when": ["Each adapter records the failure relative to its observer"],
+      "then": ["It selects exactly one declared failure domain", "No domain value claims global topology"],
+      "cases": ["local-endpoint", "transport", "remote-endpoint", "remote-provider", "unknown"],
+      "expected": { "frameDecision": "none", "resultClass": "process-failure" }
+    }
+  ]
+}

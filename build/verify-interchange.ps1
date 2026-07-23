@@ -32,6 +32,9 @@ Invoke-Checked {
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-adversarial-vectors.ps1')
 }
 Invoke-Checked {
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-vectors.ps1')
+}
+Invoke-Checked {
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-independent-review.ps1')
 }
 Invoke-Checked {
