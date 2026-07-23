@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "createdAt": "2026-07-18T00:00:00+02:00",
-  "reviewTargetCommit": "2826e1e94ffc190e1a0c672d30b137581ec657ce",
+  "reviewTargetCommit": "5d5694443acb8393b773331cdb7804a1bdf0f3d8",
   "architectureStatusRegistry": {
     "path": "Brontide-Architecture-Status.json",
-    "sha256": "CC732B7A7849A3B70E5C66401A978FD57301FCEAEBBC62E643CE247F86B799EA"
+    "sha256": "E0240842A3FC94FAFA46B89BBED5787611F99B194BB7BEFAC8B0AD05EA8D2A38"
   },
   "stacks": [
     {
@@ -79,7 +79,7 @@
     },
     {
       "findingId": "F",
-      "closingCommit": "2384500fd2644d9d0483b85fef7106d6cb4f6665",
+      "closingCommit": "1ec3b88411654f621a5e8d678bc23d1d43960b5c",
       "evidence": {
         "path": "docs/implementation-correction-status.md",
         "anchor": "independent-review invariant gaps"
