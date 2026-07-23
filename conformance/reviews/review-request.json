@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "createdAt": "2026-07-18T00:00:00+02:00",
-  "reviewTargetCommit": "f5675bf5868b38f9adf21f308490154db8cd9715",
+  "reviewTargetCommit": "c81bad9df186d777726e6a86d01409d2fda3cac6",
   "architectureStatusRegistry": {
     "path": "Brontide-Architecture-Status.json",
     "sha256": "9418EBE5E363169ED3E213BDB6DEEAB612F3419CD6D38789457B267839112465"
