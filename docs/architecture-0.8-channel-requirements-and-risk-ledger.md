@@ -8,7 +8,7 @@ Design source: [Channel Design Note 0.1](../Brontide-Design-Note-Channel-0.1.md)
 Draft semantic contract: [Draft Channel Contract 0.1](../Brontide-Draft-Channel-Contract-0.1.md).
 Shared vectors: [Channel 0.1 conformance vectors](../conformance/channel-0.1-vectors.json).
 Evidence base: the retained Cooling and Catalog interchange proofs governed by the
-[Reference/Minimal Interchange Implementation Plan 0.1](../Brontide-Interchange-Implementation-Plan-0.1.md).
+[Reference/Minimal Interchange Implementation Plan 0.1](./archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
 Architecture context: [Brontide Architecture 0.8](../Brontide-Architecture-0.8.md) §6.16, §8,
 §13.6, §16.4, §19, §24, §33, §35.1.
 

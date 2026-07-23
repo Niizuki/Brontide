@@ -23,7 +23,7 @@ provisional typed-member canonical names;
 it does not imply that the remaining target is implemented.
 
 The active cross-stack sequence is defined by
-[`Brontide-Interchange-Implementation-Plan-0.1.md`](../../Brontide-Interchange-Implementation-Plan-0.1.md).
+[`Brontide-Interchange-Implementation-Plan-0.1.md`](../../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
 Brontide Reference Stack now retains experimental, Brontide Reference Stack-owned host adapters and provider endpoints for the neutral
 Cooling and Catalog/resource fixtures. They exchange process data only and do not alter the normative status of Brontide Reference Stack
 Core, Architecture 0.5 Composition, or the proposed portable binding.

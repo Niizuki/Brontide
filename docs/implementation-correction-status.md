@@ -2,7 +2,7 @@
 
 Status: completed permanent implementation record for the correction programme. The controlling
 temporary plan was deleted after the strict gate, two conforming independent reviews, and explicit
-checked authorization. The [completion report](./implementation-correction-completion-report.md)
+checked authorization. The [completion report](./archive/corrections/implementation-correction-completion-report.md)
 explains the delivered work; the [independent-review records](../conformance/reviews/README.md)
 preserve the machine-checkable closure decision. This record reports evidence and does not replace
 architecture.

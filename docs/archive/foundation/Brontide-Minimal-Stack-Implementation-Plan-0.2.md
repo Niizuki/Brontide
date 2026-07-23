@@ -10,7 +10,7 @@
 
 **Current execution note:** Brontide Minimal Stack's native foundations through M9 are recorded in
 `Minimal/docs/milestone-evidence.md`. Cross-stack M5/M6 execution is now governed by
-`Brontide-Interchange-Implementation-Plan-0.1.md`; §9 below is retained as the historical bootstrap
+`docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md`; §9 below is retained as the historical bootstrap
 sequence for the Brontide Minimal Stack implementation.
 
 ---
@@ -382,7 +382,7 @@ M1 establishes the implementation pace.
 Brontide Minimal Stack is specification-driven, but it must not merely duplicate Brontide Reference Stack's tests line for line.
 The source-of-truth order is:
 
-1. `Brontide-Architecture-0.5.md` for architectural semantics;
+1. `docs/archive/foundation/Brontide-Architecture-0.5.md` for architectural semantics;
 2. this Brontide Minimal Stack plan for implementation boundaries and milestone gates;
 3. versioned external manifest and value fixtures for interchange data; and
 4. Brontide Reference Stack and Brontide Minimal Stack behaviour as experimental evidence, never as specification by itself.
@@ -469,7 +469,7 @@ evidence that the repository cannot reproduce.
 
 These were the immediate actions at the start of Brontide Minimal Stack 0.2. They are retained as plan history and
 must not be read as the repository's current next-work list. The active cross-stack sequence is in
-`Brontide-Interchange-Implementation-Plan-0.1.md`.
+`docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md`.
 
 1. Create `Minimal/Brontide.Minimal.slnx` and the M0 F# projects only. Do not add `global.json`; target .NET 10
    through project configuration and verify normal installed-SDK resolution.

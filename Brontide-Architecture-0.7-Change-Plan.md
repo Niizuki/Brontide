@@ -3,7 +3,7 @@
 ## Architecture 0.7 Change Plan
 
 **Status:** Executed change plan; retained as the edit record for the 0.7 Complete Draft
-**Baseline:** Brontide-Architecture-0.6.md
+**Baseline:** `docs/archive/architecture/Brontide-Architecture-0.6.md`
 **Purpose:** Record the decided changes, rules, deferred fixes, and open decisions against which
 the Architecture 0.7 document edit was executed.
 

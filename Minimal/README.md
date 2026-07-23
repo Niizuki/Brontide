@@ -23,7 +23,7 @@ matrix is detailed test evidence, not the source of the implementation target an
 the remaining Architecture 0.7 work is implemented.
 
 The current repository-wide programme is
-[`Brontide-Interchange-Implementation-Plan-0.1.md`](../Brontide-Interchange-Implementation-Plan-0.1.md).
+[`Brontide-Interchange-Implementation-Plan-0.1.md`](../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
 Its first two experimental proofs are implemented in both host directions. Cooling exercises the
 native authority/Fragment/Outcome path; Catalog adds nested repeated values, two Operations,
 explicit failure, provider-scoped resource refusal, replay detection, and a fixed payload limit.

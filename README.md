@@ -1,7 +1,8 @@
 # Brontide
 
 New to the project? [Brontide: The Idea](./Brontide-Introduction.md) is the readable
-introduction; the documents below are the precise ones.
+introduction. The [documentation map](./docs/README.md) classifies the precise documents as current,
+temporary, or archival.
 
 Brontide is an architecture specification with two deliberately independent .NET 10 implementations:
 
@@ -27,13 +28,13 @@ conformance or ratification claim. Code, tests, and concise known-limitations pr
 evidence of what actually works.
 
 The implementation correction programme is complete. Its work and validation are summarized in the
-[completion report](./docs/implementation-correction-completion-report.md), with permanent status in
+[completion report](./docs/archive/corrections/implementation-correction-completion-report.md), with permanent status in
 the [implementation correction record](./docs/implementation-correction-status.md) and
 machine-checkable evidence in the [independent-review framework](./conformance/reviews/README.md).
 The temporary plan was deleted only after two conforming reviews and explicit checked authorization.
 
 The first programme of real cross-stack evidence remains
-[Reference/Minimal Interchange Implementation Plan 0.1](./Brontide-Interchange-Implementation-Plan-0.1.md).
+[Reference/Minimal Interchange Implementation Plan 0.1](./docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
 Its first two experimental proofs are implemented: two-way Cooling component interchange and a
 materially different, resource-scoped Catalog interchange both cross real process boundaries. The
 Catalog proof adds nested/repeated values, two Operations in one provider session, explicit failure,
@@ -51,6 +52,13 @@ crossing a trust boundary, and precedes the Portable Component Binding, which be
 conforming realisation. It remains a recorded direction outside Base, not a ratified extension. Its
 open questions and risks are tracked in
 [`docs/architecture-0.8-channel-requirements-and-risk-ledger.md`](./docs/architecture-0.8-channel-requirements-and-risk-ledger.md).
+
+The next implementation goal is the
+[Portable Component Binding Implementation Plan 0.1](./docs/current/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md).
+It turns the retained Cooling and Catalog experiments into a reusable, independently implemented
+Binding Plan and Channel realization with direct/process parity, neutral vectors, bounded resource
+semantics, and both cross-stack directions. The work remains experimental and does not enlarge Base
+or change either stack's Architecture 0.7 target.
 
 The provisional generational lifecycle, multiple-source acquisition model, trust separation,
 scoped restart, and dependency-cycle policy are recorded in
@@ -78,7 +86,7 @@ Exact boundary assumptions are recorded in
 [`docs/public-boundaries.md`](./docs/public-boundaries.md), and the reproducible manual/generated
 source-cost inventory is [`interchange/binding-measurements.json`](./interchange/binding-measurements.json).
 The completed correction programme is summarized in
-[`docs/implementation-correction-completion-report.md`](./docs/implementation-correction-completion-report.md).
+[`docs/archive/corrections/implementation-correction-completion-report.md`](./docs/archive/corrections/implementation-correction-completion-report.md).
 Its finding and deletion-gate evidence is retained in
 [`docs/implementation-correction-status.md`](./docs/implementation-correction-status.md).
 The retained conformance matrices and independent-review workflow remain available as detailed test

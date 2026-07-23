@@ -9,8 +9,8 @@
 **Execution model:** milestone-by-milestone delegation to Codex
 
 **Current execution note:** Brontide Reference Stack 0.2 and its isolated Architecture 0.5 composition evidence are
-recorded in `docs/milestone-evidence.md`. The next Brontide Reference Stack work is the Brontide Reference Stack-owned half of
-`../Brontide-Interchange-Implementation-Plan-0.1.md`; this plan remains the historical source for the
+recorded in `Reference/docs/milestone-evidence.md`. The next Brontide Reference Stack work is the Brontide Reference Stack-owned half of
+`docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md`; this plan remains the historical source for the
 completed Brontide Reference Stack milestone semantics.
 
 ---
@@ -213,7 +213,7 @@ by directory names or prior claims. If no Brontide Reference Stack implementatio
 
 ### 8.1 Repository preparation
 
-1. Read `Brontide-Architecture-0.4.md` completely, then this plan, before designing public types.
+1. Read `docs/archive/foundation/Brontide-Architecture-0.4.md` completely, then this plan, before designing public types.
 2. Inspect repository instructions, existing files, version-control status, and local changes.
    Preserve unrelated work and adapt to an existing scaffold rather than replacing it.
 3. Create only the M0 projects initially:
@@ -340,7 +340,7 @@ conversation that produced it.
 
 Use the following precedence:
 
-1. `Brontide-Architecture-0.4.md` for Brontide semantics;
+1. `docs/archive/foundation/Brontide-Architecture-0.4.md` for Brontide semantics;
 2. this plan for Brontide Reference Stack sequencing and implementation boundaries;
 3. section-cited conformance tests as executable interpretations of the Architecture; and
 4. existing Brontide Reference Stack code as an implementation that may be corrected.
@@ -413,8 +413,8 @@ experimental dependency from Core keeps the milestone incomplete.
 The following instruction may be given to Codex from the Brontide Reference Stack repository:
 
 ```text
-Synthesize Brontide Reference Stack according to Brontide-Architecture-0.4.md and
-Brontide-Reference-Stack-Implementation-Plan-0.2.md.
+Synthesize Brontide Reference Stack according to `docs/archive/foundation/Brontide-Architecture-0.4.md` and
+`docs/archive/foundation/Brontide-Reference-Stack-Implementation-Plan-0.2.md`.
 
 Read both documents completely, inspect all repository instructions and existing work, and
 determine the earliest incomplete milestone from the plan's exit gates. Continue from that point;

@@ -23,20 +23,27 @@ changes the locally stated target.
 Use earlier architecture documents for the semantics of work designed against an older version and
 for historical context; do not silently project later draft rules into an older implementation.
 
-While present, the root temporary implementation-correction plan controls known corrective gaps
-until its deletion gate is satisfied. It takes priority over optimistic implementation prose, but it
-is not architecture and must never be cited as evidence that a correction is complete. After
-authorized deletion, the permanent implementation-correction status and independent-review records
-preserve the closure evidence. Keep provisional or non-ratified work in explicitly experimental
-projects and do not present it as Brontide Base conformance.
+The implementation-correction programme is closed. Its permanent status, completion report, and
+independent-review records preserve the closure evidence; do not recreate or treat the deleted
+temporary plan as active authority. Keep provisional or non-ratified work in explicitly
+experimental projects and do not present it as Brontide Base conformance.
 
 ## Ground rules
 
+- **Define capability before surface.** Before creating public types, packages, or hosts for a new
+  feature, write a short behavioural contract (`C1` through `Cn`) that states the observable
+  capability, failure behavior, and evidence required. Preserve that capability when translating
+  between stacks. If the source design is racy, leaky, or coupled to private machinery, redesign the
+  realization instead of preserving the defect.
 - **Keep Brontide Reference Stack and Brontide Minimal Stack independent.** Neither implementation may reference the other's projects,
   assemblies, private CLR types, dependency-injection container, or exceptions. Cross-stack work
   uses explicit external manifests, versioned data contracts, Shape projection, and process
   boundaries. Implement a concept natively on each side rather than adding an in-process
   compatibility layer.
+- **Test relationships through neutral seams.** Family-level and cross-stack tests may connect
+  independently implemented components through external manifests, versioned contracts, fixtures,
+  process boundaries, or other neutral seams. Such tests prove interconnection; they do not permit
+  one implementation to depend on the other's private runtime.
 - **Preserve dependency direction.** `Brontide.Reference.Core` has no project dependency; Brontide Reference Stack extensions,
   vocabularies, and experiments depend only on Core; Studio is the composition root. `Brontide.Minimal.Model`
   has no project dependency; `Brontide.Minimal.Kernel` depends only on Model; extensions, vocabularies,
@@ -100,6 +107,9 @@ projects and do not present it as Brontide Base conformance.
 - **Preserve user work.** The worktree may already contain unrelated changes. Do not rewrite,
   discard, stage, or commit them. Avoid destructive git commands and keep edits scoped to the
   requested implementation.
+- **Write comments for intent.** Code comments explain invariants, surprising tradeoffs, and why a
+  design is safe. Do not narrate a port, duplicate commit history, or embed tracker references in
+  source comments; keep provenance in changelogs, plans, and commit history.
 
 ## Implementation-specific conventions
 
@@ -137,6 +147,13 @@ projects and do not present it as Brontide Base conformance.
 
 - Keep documentation self-contained; do not depend on reasoning that lives only in another repo or
   chat. External code may be mentioned for comparison, but Brontide decisions belong here.
+- Use [`docs/README.md`](docs/README.md) as the authoritative documentation map. Classify material as
+  current, temporary, or archival. Archive Architecture 0.5 and earlier work under `foundation`;
+  archive later work by area. Keep an otherwise movable file at its stable path when an evidence
+  hash or current pinned document depends on that path, and record the exception in the map.
+- Implementation plans end with `## Open questions (owners needed)` containing only unresolved
+  decisions and named owners, followed by `## Resolved questions` containing dated rulings. When a
+  question is decided, move it to the resolved section instead of annotating it in place.
 - Finalizing an architecture document version includes a plan for the next version. Before a
   version is declared complete, its changelog section must carry a "Direction for <next version>"
   passage naming what that version chases, in priority order, and its explicit non-goals (the
@@ -147,9 +164,13 @@ projects and do not present it as Brontide Base conformance.
 - Record the difference between local/native evidence and actual cross-stack interoperability. A
   local fixture that simulates an external runtime is not Brontide Reference Stack ↔ Brontide Minimal Stack proof.
 - Keep implementation-owned docs with their implementation. Put repository-wide architectural
-  material at the root or in a future root `docs/` tree when no single implementation owns it.
+  material in the root `docs/` tree when no single implementation owns it. Stable-path exceptions
+  listed by the documentation map may remain at the root.
 - If ADRs are introduced, use one self-contained `ADR-<topic>.md` per decision with `Date` and
   `Status` headers. Do not number or silently rewrite superseded decisions.
+- When guidance from another repository is supplied for possible adoption, treat it as design input,
+  not as authority. Import only project-neutral practices that fit Brontide, translate examples and
+  paths, and omit foreign packages, services, CI conventions, and naming schemes.
 
 ## Build and test
 
@@ -178,6 +199,12 @@ Run the complete implementation suite when changing shared build files, solution
 Model, Kernel, public semantic contracts, or project references, and whenever the impact is
 uncertain. Changes spanning Brontide Reference Stack and Brontide Minimal Stack require both suites and both dependency guards.
 
+When finalizing repository-wide work for review or delivery, run the complete repository gate
+(`.\build\verify-interchange.ps1`), fix both blocking and non-blocking findings that are in scope,
+update current documentation, and then obtain a fresh-context review where the active evidence or
+review policy requires one. Apply this finalization discipline at the end of the work; do not turn
+ordinary work-in-progress iterations into repeated full-gate or review requests.
+
 Tests should be hermetic by default. Do not call production systems or require live credentials in
 ordinary test runs. Any future live probe must be explicit, credential-gated, safe for a dedicated
 sandbox, and excluded from CI by default.
@@ -196,7 +223,7 @@ sandbox target here in the same change.
   or mandatory prefixes.
 - When a branch is useful, choose a short descriptive name. A plain name such as `Brontide Minimal Stack-binding` or
   `docs-agent-guidance` is fine; follow an explicitly requested name when one is given.
-- Commit subjects should be concise and describe the change. Conventional Commit form is welcome
+- Commit subjects should be concise, lowercase-imperative, have no trailing period, and describe the change. Conventional Commit form is welcome
   (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `build:`, `chore:`), but a scope is optional and
   no tracker reference is expected. A breaking change is the exception: use
   `type(optional-scope)!: summary` and the required `BREAKING CHANGE:` migration footer.

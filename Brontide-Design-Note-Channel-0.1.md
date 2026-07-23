@@ -8,7 +8,7 @@ especially §6.16, §8, §13.6, §16.4, §19, §24, §33, and §35.1.
 **Evidence base:** the retained Cooling and Catalog interchange proofs, each implemented
 independently in the Reference (C#) and Minimal (F#) stacks and crossing a real process boundary,
 governed by the
-[Reference/Minimal Interchange Implementation Plan 0.1](./Brontide-Interchange-Implementation-Plan-0.1.md).
+[Reference/Minimal Interchange Implementation Plan 0.1](./docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
 **Related direction:** [Composition and Components](./Brontide-Design-Note-Composition-0.1.md) (the
 Portable Binding is Channel's first intended realisation).
 

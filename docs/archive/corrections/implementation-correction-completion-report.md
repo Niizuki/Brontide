@@ -118,11 +118,11 @@ continue to own their local Architecture 0.7 targets and limitations.
 
 The closure evidence is retained in:
 
-- [`implementation-correction-status.md`](./implementation-correction-status.md);
-- [`../conformance/reviews/review-request.json`](../conformance/reviews/review-request.json);
-- [`../conformance/reviews/attestations/reference.json`](../conformance/reviews/attestations/reference.json);
-- [`../conformance/reviews/attestations/minimal.json`](../conformance/reviews/attestations/minimal.json); and
-- [`../conformance/reviews/closure.json`](../conformance/reviews/closure.json).
+- [`implementation-correction-status.md`](../../implementation-correction-status.md);
+- [`review-request.json`](../../../conformance/reviews/review-request.json);
+- [`reference.json`](../../../conformance/reviews/attestations/reference.json);
+- [`minimal.json`](../../../conformance/reviews/attestations/minimal.json); and
+- [`closure.json`](../../../conformance/reviews/closure.json).
 
 With the correction programme closed, the next architecture-delivery work should return to the
 recorded Architecture 0.8 sequence: use the Channel semantics as the foundation for Portable

@@ -24,7 +24,7 @@ exclusion, and provisional typed-member canonical names; it does not imply that 
 target is implemented.
 
 The active cross-stack sequence is defined by
-[`Brontide-Interchange-Implementation-Plan-0.1.md`](../../Brontide-Interchange-Implementation-Plan-0.1.md).
+[`Brontide-Interchange-Implementation-Plan-0.1.md`](../../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
 It closes the M3/M4 prerequisites relevant to interchange, completes the external binding surface,
 and executes M6 in both host directions. Both protocols remain experimental test instruments.
 

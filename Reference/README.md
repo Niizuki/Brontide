@@ -19,7 +19,7 @@ detailed test evidence, not the source of the implementation target and not a cl
 remaining Architecture 0.7 work is implemented.
 
 The current repository-wide programme is
-[`Brontide-Interchange-Implementation-Plan-0.1.md`](../Brontide-Interchange-Implementation-Plan-0.1.md).
+[`Brontide-Interchange-Implementation-Plan-0.1.md`](../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
 Brontide Reference Stack now owns independently implemented experimental hosts and provider endpoints for the
 process-isolated Cooling and Catalog/resource proofs. The retained tests execute a real Brontide Minimal Stack provider process; no
 Brontide Reference Stack project references Brontide Minimal Stack assemblies or private types.
