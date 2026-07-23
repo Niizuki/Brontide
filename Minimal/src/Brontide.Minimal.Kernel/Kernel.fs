@@ -6,7 +6,9 @@ open Brontide.Minimal.Model
 type World =
     private
         { Scope: Guid
+          ReferenceEpoch: Guid
           NextReference: int64
+          GenesisActive: bool
           AuthorityActor: ActorReference
           Actors: Map<ActorReference, Actor>
           Capabilities: Map<CapabilityReference, Capability>
@@ -91,13 +93,16 @@ module World =
             |> Seq.map (fun definition -> definition.Reference, definition)
             |> Map.ofSeq
 
-        let authorityReference = ActorReference.issue scope 1L
+        let referenceEpoch = scope
+        let authorityReference = ActorReference.issue scope referenceEpoch 1L
         let authorityActor =
             { Reference = authorityReference
               Name = CanonicalName.create "Brontide.Minimal:AuthorityDomain" }
 
         { Scope = scope
+          ReferenceEpoch = referenceEpoch
           NextReference = 2L
+          GenesisActive = false
           AuthorityActor = authorityReference
           Actors = Map.ofList [ authorityReference, authorityActor ]
           Capabilities = Map.empty
@@ -136,21 +141,31 @@ module World =
         (initialize: GenesisContext -> World -> 'T * World)
         (world: World)
         =
-        if recordedAt.TimeDomain <> world.TimeDomain then
+        if world.GenesisActive then
+            Error "Genesis occurrences cannot be nested."
+        elif recordedAt.TimeDomain <> world.TimeDomain then
             Error "Genesis must use the authority domain's trusted time domain."
         elif recordedAt.Milliseconds < world.LastLogicalTime then
             Error "Genesis time cannot move backwards."
         else
             let context = GenesisContext(world.Scope)
+            let transactionEpoch = Guid.NewGuid()
+            let transactionWorld =
+                { world with
+                    ReferenceEpoch = transactionEpoch
+                    GenesisActive = true }
             let actorsBefore = world.Actors |> Map.keys |> Set.ofSeq
             let capabilitiesBefore = world.Capabilities |> Map.keys |> Set.ofSeq
 
             try
-                let value, initialized = initialize context world
+                let value, initialized = initialize context transactionWorld
                 context.Complete()
 
                 if initialized.Scope <> world.Scope then
                     invalidOp "Genesis returned a World from another authority domain."
+
+                if initialized.ReferenceEpoch <> transactionEpoch || not initialized.GenesisActive then
+                    invalidOp "Genesis must return the transaction World supplied to its callback."
 
                 let introducedActors =
                     initialized.Actors
@@ -166,7 +181,11 @@ module World =
                     |> fun issued -> Set.difference issued capabilitiesBefore
                     |> Set.toList
 
-                let occurrence = OccurrenceReference.issue initialized.Scope initialized.NextReference
+                let occurrence =
+                    OccurrenceReference.issue
+                        initialized.Scope
+                        initialized.ReferenceEpoch
+                        initialized.NextReference
 
                 let genesisRecord =
                     { Occurrence = occurrence
@@ -179,6 +198,7 @@ module World =
                     value,
                     { initialized with
                         NextReference = initialized.NextReference + 1L
+                        GenesisActive = false
                         GenesisOccurrences = initialized.GenesisOccurrences @ [ genesisRecord ]
                         LastLogicalTime = recordedAt.Milliseconds }
                 )
@@ -260,7 +280,7 @@ module World =
         if not (Map.containsKey parameterShape world.Shapes) then
             Error "The constraint parameter shape is not registered."
         else
-            let reference = ConstraintReference.issue world.Scope world.NextReference
+            let reference = ConstraintReference.issue world.Scope world.ReferenceEpoch world.NextReference
 
             let definition =
                 { Reference = reference
@@ -417,7 +437,7 @@ module World =
 
     let internal issueGenesisActor (context: GenesisContext) (name: CanonicalName) (world: World) =
         context.EnsureActive world.Scope
-        let reference = ActorReference.issue world.Scope world.NextReference
+        let reference = ActorReference.issue world.Scope world.ReferenceEpoch world.NextReference
         let actor = { Reference = reference; Name = name }
 
         actor,
@@ -456,7 +476,7 @@ module World =
             match validateConstraintExpressions expressions world with
             | Error message -> Error message
             | Ok() ->
-                let reference = CapabilityReference.issue world.Scope world.NextReference
+                let reference = CapabilityReference.issue world.Scope world.ReferenceEpoch world.NextReference
 
                 let atomicCompatibility =
                     expressions
@@ -524,7 +544,7 @@ module World =
             match validateConstraintExpressions addedExpressions world with
             | Error message -> Error message
             | Ok() ->
-                let reference = CapabilityReference.issue world.Scope world.NextReference
+                let reference = CapabilityReference.issue world.Scope world.ReferenceEpoch world.NextReference
 
                 let atomicCompatibility =
                     addedExpressions
@@ -623,11 +643,11 @@ module World =
         projectRecordWithFragments target Set.empty value world
 
     let private allocateExecution (world: World) =
-        ExecutionReference.issue world.Scope world.NextReference,
+        ExecutionReference.issue world.Scope world.ReferenceEpoch world.NextReference,
         { world with NextReference = world.NextReference + 1L }
 
     let private allocateOccurrence (world: World) =
-        OccurrenceReference.issue world.Scope world.NextReference,
+        OccurrenceReference.issue world.Scope world.ReferenceEpoch world.NextReference,
         { world with NextReference = world.NextReference + 1L }
 
     let private observableTime (environment: Environment) (world: World) =
@@ -774,6 +794,8 @@ module World =
 
     let step (environment: Environment) (world: World) (request: ExecutionRequest) =
         match Map.tryFind request.Operation world.Operations with
+        | _ when world.GenesisActive ->
+            deny environment request "Runtime execution is unavailable inside an active Genesis occurrence." world
         | _ when environment.TrustedTime.TimeDomain <> world.TimeDomain ->
             deny environment request "The target has no trusted clock for the supplied time domain." world
         | _ when environment.TrustedTime.Milliseconds < world.LastLogicalTime ->
@@ -881,7 +903,10 @@ module World =
                                             |> List.fold
                                                 (fun (events, state) draft ->
                                                     let occurrence =
-                                                        OccurrenceReference.issue state.Scope state.NextReference
+                                                        OccurrenceReference.issue
+                                                            state.Scope
+                                                            state.ReferenceEpoch
+                                                            state.NextReference
 
                                                     let event =
                                                         { Reference = draft.Reference

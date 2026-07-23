@@ -141,6 +141,10 @@ open Shape; Reference could retain live unrecorded authority after a failed dyna
 callback; rejected Reference provenance retained a protected command input; and an observed-dead
 Reference liveness lease could revive after clock rollback.
 
+A later fresh review found the Minimal analogue behind its persistent World: a failed Genesis
+branch recycled its counter-only Actor reference, allowing the escaped value to impersonate the
+next successfully issued Actor.
+
 Requested change:
 
 1. Bind every Minimal authored Fragment to an explicit compatible host Shape lineage, while
@@ -153,6 +157,8 @@ Requested change:
 4. Make observed liveness death terminal even when a supplied trusted clock regresses.
 5. Add focused positive and negative evidence to the permanent Architecture 0.5 matrices and rerun
    both independent reviews against a new pinned commit.
+6. Ensure Minimal never recycles opaque authority identities from an abandoned Genesis branch, and
+   prevent nested Genesis or runtime handler dispatch inside an active Genesis transaction.
 
 ## 8. Delivery order
 

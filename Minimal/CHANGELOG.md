@@ -25,6 +25,9 @@ These additions are current-draft evidence, not ratification and not a component
 - Issuer-controlled Actor, Capability, Constraint, Execution, Occurrence, and Activity references
   no longer expose public record construction. Carry references returned by `Genesis`, `World`, or
   execution APIs instead of constructing scope/value records.
+- Opaque generated references now include an internal allocation epoch. Treat a returned reference
+  as one indivisible identity rather than correlating authority by its diagnostic scope/value pair;
+  failed Genesis branches no longer collide with later successful authority.
 - `World.create` now requires an explicit `TimeDomainReference`; execution receives a trusted
   `TemporalMark` from the host.
 - `ExecutionRequest` now requires `Initiator`, `Target`, and `PresentedCapability`. Migrate callers
@@ -46,5 +49,6 @@ version and treat the corrected API as the baseline.
 
 - Attributed terminal Outcome Events, redacted execution audits, Genesis occurrence records, and
   authority-qualified canonical names.
+- Genesis transactions reject nested Genesis and runtime handler dispatch before effects.
 - Independent Catalog/resource process binding, strict adversarial vectors, replay and payload
   controls, and reproducible binding source-cost measurements.

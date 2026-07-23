@@ -122,3 +122,16 @@ Capability federation, or a ratified portable binding.
   projection accepts the same compatible lineage or explicit inclusion, and unrelated open hosts
   reject. The required record field is a source-breaking trust-boundary correction documented in
   `CHANGELOG.md`.
+
+## Failed Genesis branches cannot recycle authority identity
+
+- **Brontide sections:** Architecture 0.5 §§10.3 and 13.5
+- **Minimal scenario:** retain an Actor reference from a Genesis callback that throws, then issue a
+  replacement Actor from the unchanged persistent World.
+- **Observed result:** the prior counter-only identity reused the same reference; the escaped Actor
+  could present the replacement holder's Capability and reach the handler.
+- **Classification:** Brontide Minimal Stack defect found by independent review
+- **Current disposition:** generated opaque references include a private per-Genesis allocation
+  epoch, so an abandoned branch cannot collide with later authority while repeated `World.step`
+  from the same committed World remains deterministic. The World also marks an active Genesis
+  transaction and denies nested Genesis or runtime dispatch before handler effects.

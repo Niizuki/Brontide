@@ -133,58 +133,58 @@ module CanonicalMemberName =
         | Error message -> invalidArg (nameof value) message
 
 [<Struct; StructuralEquality; StructuralComparison>]
-type ActorReference = private ActorReference of scope: Guid * value: int64
+type ActorReference = private ActorReference of scope: Guid * epoch: Guid * value: int64
 
 [<RequireQualifiedAccess>]
 module ActorReference =
-    let internal issue scope value = ActorReference(scope, value)
-    let scope (ActorReference(scope, _)) = scope
-    let value (ActorReference(_, value)) = value
+    let internal issue scope epoch value = ActorReference(scope, epoch, value)
+    let scope (ActorReference(scope, _, _)) = scope
+    let value (ActorReference(_, _, value)) = value
 
 [<Struct; StructuralEquality; StructuralComparison>]
-type CapabilityReference = private CapabilityReference of scope: Guid * value: int64
+type CapabilityReference = private CapabilityReference of scope: Guid * epoch: Guid * value: int64
 
 [<RequireQualifiedAccess>]
 module CapabilityReference =
-    let internal issue scope value = CapabilityReference(scope, value)
-    let scope (CapabilityReference(scope, _)) = scope
-    let value (CapabilityReference(_, value)) = value
+    let internal issue scope epoch value = CapabilityReference(scope, epoch, value)
+    let scope (CapabilityReference(scope, _, _)) = scope
+    let value (CapabilityReference(_, _, value)) = value
 
 [<Struct; StructuralEquality; StructuralComparison>]
-type ConstraintReference = private ConstraintReference of scope: Guid * value: int64
+type ConstraintReference = private ConstraintReference of scope: Guid * epoch: Guid * value: int64
 
 [<RequireQualifiedAccess>]
 module ConstraintReference =
-    let internal issue scope value = ConstraintReference(scope, value)
-    let scope (ConstraintReference(scope, _)) = scope
-    let value (ConstraintReference(_, value)) = value
+    let internal issue scope epoch value = ConstraintReference(scope, epoch, value)
+    let scope (ConstraintReference(scope, _, _)) = scope
+    let value (ConstraintReference(_, _, value)) = value
 
 [<Struct; StructuralEquality; StructuralComparison>]
-type ExecutionReference = private ExecutionReference of scope: Guid * value: int64
+type ExecutionReference = private ExecutionReference of scope: Guid * epoch: Guid * value: int64
 
 [<RequireQualifiedAccess>]
 module ExecutionReference =
-    let internal issue scope value = ExecutionReference(scope, value)
-    let scope (ExecutionReference(scope, _)) = scope
-    let value (ExecutionReference(_, value)) = value
+    let internal issue scope epoch value = ExecutionReference(scope, epoch, value)
+    let scope (ExecutionReference(scope, _, _)) = scope
+    let value (ExecutionReference(_, _, value)) = value
 
 [<Struct; StructuralEquality; StructuralComparison>]
-type OccurrenceReference = private OccurrenceReference of scope: Guid * value: int64
+type OccurrenceReference = private OccurrenceReference of scope: Guid * epoch: Guid * value: int64
 
 [<RequireQualifiedAccess>]
 module OccurrenceReference =
-    let internal issue scope value = OccurrenceReference(scope, value)
-    let scope (OccurrenceReference(scope, _)) = scope
-    let value (OccurrenceReference(_, value)) = value
+    let internal issue scope epoch value = OccurrenceReference(scope, epoch, value)
+    let scope (OccurrenceReference(scope, _, _)) = scope
+    let value (OccurrenceReference(_, _, value)) = value
 
 [<Struct; StructuralEquality; StructuralComparison>]
-type ActivityReference = private ActivityReference of scope: Guid * value: int64
+type ActivityReference = private ActivityReference of scope: Guid * epoch: Guid * value: int64
 
 [<RequireQualifiedAccess>]
 module ActivityReference =
-    let internal issue scope value = ActivityReference(scope, value)
-    let scope (ActivityReference(scope, _)) = scope
-    let value (ActivityReference(_, value)) = value
+    let internal issue scope epoch value = ActivityReference(scope, epoch, value)
+    let scope (ActivityReference(scope, _, _)) = scope
+    let value (ActivityReference(_, _, value)) = value
 
 [<StructuralEquality; StructuralComparison>]
 type ShapeReference =

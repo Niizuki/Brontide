@@ -560,6 +560,129 @@ type BaseAuthorityConformance() =
         |> ignore
 
     [<Test>]
+    member _.``BR_05_GENESIS_001 failed Genesis does not recycle escaped authority references`` () =
+        let fixture = prepareWorld ()
+        let mutable escapedActor = Unchecked.defaultof<ActorReference>
+        let mutable escapedCapability = Unchecked.defaultof<CapabilityReference>
+        let mutable runtimeStatus = Unchecked.defaultof<ExecutionStatus>
+        let mutable nestedGenesisBlocked = false
+        let mutable invoked = false
+
+        Assert.Throws<InvalidOperationException>(
+            Action(fun () ->
+                World.genesis
+                    (name "Brontide.Minimal.Tests:FailedPolicy")
+                    (mark 1L)
+                    (fun genesis world ->
+                        let provisional, world =
+                            Genesis.actor genesis (name "Brontide.Minimal.Tests:Provisional") world
+
+                        let provisionalCapability, world =
+                            Genesis.capability
+                                genesis
+                                (name "Brontide.Minimal.Tests:ProvisionalGrant")
+                                fixture.Holder.Reference
+                                fixture.Target.Reference
+                                (Set.singleton echoOperation)
+                                []
+                                false
+                                world
+                            |> get
+
+                        escapedActor <- provisional.Reference
+                        escapedCapability <- provisionalCapability.Reference
+
+                        runtimeStatus <-
+                            World.step
+                                (environment 1L Map.empty (fun value ->
+                                    invoked <- true
+                                    Ok(value.Command, [], [])))
+                                world
+                                (request
+                                    fixture
+                                    fixture.Holder.Reference
+                                    fixture.Target.Reference
+                                    fixture.Capability.Reference
+                                    echoOperation
+                                    (TextValue "must not execute in Genesis"))
+                            |> _.Outcome.Status
+
+                        nestedGenesisBlocked <-
+                            World.genesis
+                                (name "Brontide.Minimal.Tests:NestedPolicy")
+                                (mark 1L)
+                                (fun _ nestedWorld -> (), nestedWorld)
+                                world
+                            |> Result.isError
+
+                        invalidOp "rollback")
+                    fixture.World
+                |> ignore)
+        )
+        |> ignore
+
+        let (replacement: Actor, replacementCapability: Capability), ready =
+            World.genesis
+                (name "Brontide.Minimal.Tests:ReplacementPolicy")
+                (mark 1L)
+                (fun genesis world ->
+                    let replacement, world =
+                        Genesis.actor genesis (name "Brontide.Minimal.Tests:Replacement") world
+
+                    let capability, world =
+                        Genesis.capability
+                            genesis
+                            (name "Brontide.Minimal.Tests:ReplacementGrant")
+                            replacement.Reference
+                            fixture.Target.Reference
+                            (Set.singleton echoOperation)
+                            []
+                            false
+                            world
+                        |> get
+
+                    ((replacement, capability), world))
+                fixture.World
+            |> get
+
+        let escapedActorResult =
+            World.step
+                (environment 2L Map.empty (fun value ->
+                    invoked <- true
+                    Ok(value.Command, [], [])))
+                ready
+                (request
+                    fixture
+                    escapedActor
+                    fixture.Target.Reference
+                    replacementCapability.Reference
+                    echoOperation
+                    (TextValue "must not execute"))
+
+        let escapedCapabilityResult =
+            World.step
+                (environment 2L Map.empty (fun value ->
+                    invoked <- true
+                    Ok(value.Command, [], [])))
+                ready
+                (request
+                    fixture
+                    fixture.Holder.Reference
+                    fixture.Target.Reference
+                    escapedCapability
+                    echoOperation
+                    (TextValue "must not execute"))
+
+        Assert.Multiple(Action(fun () ->
+            Assert.That(escapedActor, Is.Not.EqualTo replacement.Reference)
+            Assert.That(escapedCapability, Is.Not.EqualTo replacementCapability.Reference)
+            Assert.That(runtimeStatus, Is.EqualTo Denied)
+            Assert.That(nestedGenesisBlocked, Is.True)
+            Assert.That(escapedActorResult.Outcome.Status, Is.EqualTo Denied)
+            Assert.That(escapedCapabilityResult.Outcome.Status, Is.EqualTo Denied)
+            Assert.That(invoked, Is.False)))
+
+    [<Test>]
     member _.``BR_05_TIME_001 trusted time is explicit monotonic and target scoped`` () =
         let fixture = prepareWorld ()
         let executionRequest =
