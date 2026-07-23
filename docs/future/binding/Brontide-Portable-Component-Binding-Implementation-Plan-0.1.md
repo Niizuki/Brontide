@@ -2,11 +2,11 @@
 
 **Status:** Planned experimental work
 **Date:** 2026-07-23
-**Designed for:** [Brontide Architecture 0.8](../../../Brontide-Architecture-0.8.md) §16 and
+**Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
-**Design sources:** [Composition and Components](../../../Brontide-Design-Note-Composition-0.1.md),
-[Channel](../../../Brontide-Design-Note-Channel-0.1.md), and
-[Draft Channel Contract 0.1](../../../Brontide-Draft-Channel-Contract-0.1.md)
+**Design sources:** [Composition and Components](../composition/Brontide-Design-Note-Composition-0.1.md),
+[Channel](../channel/Brontide-Design-Note-Channel-0.1.md), and
+[Draft Channel Contract 0.1](../channel/Brontide-Draft-Channel-Contract-0.1.md)
 **Evidence baseline:** [Reference/Minimal Interchange Implementation Plan 0.1](../../archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md)
 
 ## 1. Goal and evidence boundary

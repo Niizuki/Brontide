@@ -11,11 +11,12 @@ future, temporary, or archival:
 - [`docs/temporary/`](./docs/temporary/README.md) — deletion-gated execution notes; and
 - [`docs/archive/`](./docs/archive/README.md) — completed or superseded work.
 
-The remaining `Brontide-*.md` files at the repository root are direct or transitive evidence-pinned
-exceptions. Their relocation is the
-[Priority 0 future task](./docs/future/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md)
-and must precede other planned implementation work when an evidence-repinning and fresh-review
-window is authorized.
+Repository-wide design, plan, ledger, and correction documents now live under `docs/` and each
+stack's `docs/future/`, classified by the documentation map. The
+[Pinned Documentation Relocation Plan 0.1](./docs/future/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md)
+carried out that move under an authorized evidence-repinning window and repinned every dependent
+evidence trail; the repository root now holds only standard project-control files, this `README.md`,
+`AGENTS.md`, and `Brontide-Architecture-Status.json`.
 
 Brontide is an architecture specification with two deliberately independent .NET 10 implementations:
 
@@ -42,7 +43,7 @@ evidence of what actually works.
 
 The implementation correction programme is complete. Its work and validation are summarized in the
 [completion report](./docs/archive/corrections/implementation-correction-completion-report.md), with permanent status in
-the [implementation correction record](./docs/implementation-correction-status.md) and
+the [implementation correction record](./docs/archive/corrections/implementation-correction-status.md) and
 machine-checkable evidence in the [independent-review framework](./conformance/reviews/README.md).
 The temporary plan was deleted only after two conforming reviews and explicit checked authorization.
 
@@ -58,15 +59,15 @@ experimental binding protocol as ratified architecture. Run the retained gate wi
 
 The first extension of the Architecture 0.8 evidence cycle, `Channel`, is extracted from those two
 interchange proofs and recorded in
-[Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md): the request/Outcome
+[Channel Design Note 0.1](./docs/future/channel/Brontide-Design-Note-Channel-0.1.md): the request/Outcome
 representation, correlation, error propagation, and delivery semantics the invocation principle
 needs and Base withholds. It fixes semantics rather than a wire format, keeps Capabilities from
 crossing a trust boundary, and precedes the Portable Component Binding, which becomes its first
 conforming realisation. It remains a recorded direction outside Base, not a ratified extension. Its
 open questions and risks are tracked in
-[`Channel requirements and risk ledger`](./docs/architecture-0.8-channel-requirements-and-risk-ledger.md).
+[`Channel requirements and risk ledger`](./docs/future/channel/architecture-0.8-channel-requirements-and-risk-ledger.md).
 
-After the Priority 0 documentation relocation, the next implementation goal is the
+With the Priority 0 documentation relocation carried out, the next implementation goal is the
 [Portable Component Binding Implementation Plan 0.1](./docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md).
 It turns the retained Cooling and Catalog experiments into a reusable, independently implemented
 Binding Plan and Channel realization with direct/process parity, neutral vectors, bounded resource
@@ -77,13 +78,13 @@ The provisional generational lifecycle, multiple-source acquisition model, trust
 scoped restart, and dependency-cycle policy are recorded in
 [Component Management and Distribution Design Note 0.1](./docs/future/component-management/Brontide-Design-Note-Component-Management-0.1.md).
 The corresponding
-[Component Management Implementation Plan 0.1](./Brontide-Component-Management-Implementation-Plan-0.1.md)
+[Component Management Implementation Plan 0.1](./docs/future/component-management/Brontide-Component-Management-Implementation-Plan-0.1.md)
 calls for independent, entirely fake managers in both stacks so these mechanisms can be tested
 without implying a real online marketplace, production package manager, or Architecture 0.8
 conformance claim.
 
 The broader topology direction is recorded in
-[Topology Environments and the Guardian Family Design Note 0.1](./Brontide-Design-Note-Topology-0.1.md). Ordinary
+[Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary
 Environments remain overlapping, security-neutral topology identities and have no Gatekeeper requirement.
 A Guardian is an Actor entrusted to protect or represent a participant, resource, or bounded
 interaction. Gatekeeper is its preventative Protected-Environment-boundary specialisation. Sentinel
@@ -96,12 +97,12 @@ its fidelity — Direct, Deputised, Mediated, Adapted, or Synthetic — so reint
 masquerades as exposure. These terms remain outside Base and are not a ratified extension.
 
 Exact boundary assumptions are recorded in
-[`docs/public-boundaries.md`](./docs/public-boundaries.md), and the reproducible manual/generated
+[`docs/current/policies/public-boundaries.md`](./docs/current/policies/public-boundaries.md), and the reproducible manual/generated
 source-cost inventory is [`interchange/binding-measurements.json`](./interchange/binding-measurements.json).
 The completed correction programme is summarized in
 [`docs/archive/corrections/implementation-correction-completion-report.md`](./docs/archive/corrections/implementation-correction-completion-report.md).
 Its finding and deletion-gate evidence is retained in
-[`docs/implementation-correction-status.md`](./docs/implementation-correction-status.md).
+[`docs/archive/corrections/implementation-correction-status.md`](./docs/archive/corrections/implementation-correction-status.md).
 The retained conformance matrices and independent-review workflow remain available as detailed test
 and correction evidence. They do not determine either stack's architecture target; the owning README
 does that directly.

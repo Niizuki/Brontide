@@ -2,8 +2,8 @@
 
 Status: completed permanent implementation record for the correction programme. The controlling
 temporary plan was deleted after the strict gate, two conforming independent reviews, and explicit
-checked authorization. The [completion report](./archive/corrections/implementation-correction-completion-report.md)
-explains the delivered work; the [independent-review records](../conformance/reviews/README.md)
+checked authorization. The [completion report](./implementation-correction-completion-report.md)
+explains the delivered work; the [independent-review records](../../../conformance/reviews/README.md)
 preserve the machine-checkable closure decision. This record reports evidence and does not replace
 architecture.
 
@@ -33,7 +33,7 @@ the final target. Fresh Reference and Minimal reviews then found all 16 retained
 conforming for each stack. Their canonical attestation hashes are recorded in the closure and
 completion report.
 
-The machine-checkable [independent-review framework](../conformance/reviews/README.md) pins that
+The machine-checkable [independent-review framework](../../../conformance/reviews/README.md) pins that
 commit, both evidence matrices, the stable requirement vocabulary, and the finding-closing commits.
 It generates separate per-stack packets and enforces completeness, traceability, review-result
 consistency, and the final deletion authorization. It cannot supply the independent semantic

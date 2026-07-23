@@ -310,12 +310,12 @@ Following this plan's approval and the completed 0.7 document edit, the two foll
 implementation plans are:
 
 ```
-Reference/Brontide-Reference-Stack-Implementation-Plan-0.3.md
+Reference/docs/future/Brontide-Reference-Stack-Implementation-Plan-0.3.md
                                     — targets Architecture 0.7; adds first Corpus/Dataset/
                                       Store-role experimental evidence (Opaque first), C1
                                       composite-constraint conformance tests, and C3 static
                                       binding-resolution records.
-Brontide-Minimal-Stack-Implementation-Plan-0.3.md    — independent counterpart; must implement C1 evaluation
+Minimal/docs/future/Brontide-Minimal-Stack-Implementation-Plan-0.3.md    — independent counterpart; must implement C1 evaluation
                                       and the C2 member grammar from the specification text
                                       alone, as the cross-implementation check that the rules
                                       are stated precisely enough.

@@ -29,7 +29,7 @@ provider-owned state. `CatalogProcessClient.RunScenarioAsync` verifies nested/re
 explicit missing-item failure, and normal shutdown in one process. A resource other than
 `catalog-sandbox/shared` returns `resource-refused`; the handle never conveys authority.
 
-See [`../../docs/public-boundaries.md`](../../docs/public-boundaries.md) for exact payload, timeout,
+See [`../../docs/current/policies/public-boundaries.md`](../../docs/current/policies/public-boundaries.md) for exact payload, timeout,
 cleanup, replay, redaction, and threat assumptions.
 
 Ordinary tests skip real Brontide Minimal Stack launch when `BRONTIDE_MINIMAL_PROVIDER` is absent. Use the root

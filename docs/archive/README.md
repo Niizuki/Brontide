@@ -17,7 +17,10 @@ Architecture 0.5 and everything earlier are grouped under [`foundation/`](./foun
 - [`interchange/`](./interchange/) contains the completed experimental interchange programme.
 - [`corrections/`](./corrections/) contains the implementation-correction completion report.
 
-The executed Architecture 0.7 and 0.8 change plans, the Architecture 0.7 mediation ledger, and the
-permanent correction status are also archival. Their stable root or `docs/` paths remain because
-they are direct or transitive evidence dependencies. Their eventual move is covered by the
-[Priority 0 relocation plan](../future/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).
+The executed [Architecture 0.7](./architecture/Brontide-Architecture-0.7-Change-Plan.md) and
+[Architecture 0.8](./architecture/Brontide-Architecture-0.8-Change-Plan.md) change plans, the
+[Architecture 0.7 mediation ledger](./architecture/architecture-0.7-mediation-risk-ledger.md), and the
+permanent [correction status](./corrections/implementation-correction-status.md) now live under this
+directory. The [Priority 0 relocation plan](../future/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md)
+moved them here from their former stable root or `docs/` paths and repinned every dependent evidence
+trail.

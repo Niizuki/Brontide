@@ -4,7 +4,7 @@
 
 **Status:** Recorded design direction, version 0.1; not ratified
 
-**Current architecture context:** [Brontide Architecture 0.8](./Brontide-Architecture-0.8.md),
+**Current architecture context:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md),
 especially §§7, 18.1, 19, 24, and 33.
 
 **Scope:** Records the resolved Environment and Guardian-family direction together with the competing reasoning

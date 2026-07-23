@@ -4,7 +4,7 @@ Status: authored companion to
 [`architecture-0.8-adversarial-vectors.json`](./architecture-0.8-adversarial-vectors.json),
 which is the canonical vector inventory. This document explains intent and conventions; it does
 not restate the vectors. The vectors derive from
-[`Brontide-Architecture-0.8-Change-Plan.md`](../Brontide-Architecture-0.8-Change-Plan.md)
+[`Brontide-Architecture-0.8-Change-Plan.md`](../docs/archive/architecture/Brontide-Architecture-0.8-Change-Plan.md)
 (C1–C14) and use Architecture 0.7 section numbers, per that plan.
 
 These vectors are adversarial by design: most encode an attack or divergence trap failing, not

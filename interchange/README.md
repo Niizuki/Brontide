@@ -5,7 +5,7 @@ proofs. It contains no CLR project, generated runtime type, shared exception, or
 registration. Brontide Reference Stack and Brontide Minimal Stack parse the same files into independently implemented binding types.
 
 These fixtures are narrow Architecture 0.5-era experimental evidence. Current design is sourced
-from [Architecture 0.7](../Brontide-Architecture-0.7.md), but these fixtures do not establish 0.7
+from [Architecture 0.7](../docs/current/architecture/Brontide-Architecture-0.7.md), but these fixtures do not establish 0.7
 conformance or a general portable binding protocol.
 
 ## Cooling proof

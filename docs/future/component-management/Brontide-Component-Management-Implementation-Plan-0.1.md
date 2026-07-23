@@ -3,13 +3,13 @@
 Status: Partially implemented experimental work
 Implementation state: CM0 is implemented and tested independently in both stacks; CM1–CM6 remain
 planned.
-Designed for: [Brontide Architecture 0.8](./Brontide-Architecture-0.8.md) §18.1, §19,
+Designed for: [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §18.1, §19,
 §20.1, §24, and §33, Complete Draft, not ratified
 Design source:
-[Component Management and Distribution](./docs/future/component-management/Brontide-Design-Note-Component-Management-0.1.md)
+[Component Management and Distribution](./Brontide-Design-Note-Component-Management-0.1.md)
 Related notes:
-[Composition and Components](./Brontide-Design-Note-Composition-0.1.md),
-[Topology Environments and the Guardian Family](./Brontide-Design-Note-Topology-0.1.md)
+[Composition and Components](../composition/Brontide-Design-Note-Composition-0.1.md),
+[Topology Environments and the Guardian Family](../topology/Brontide-Design-Note-Topology-0.1.md)
 
 ## 1. Purpose and evidence boundary
 
@@ -97,7 +97,7 @@ The harness models only the minimum topology-membership floor that the Compositi
 local Topology Nodes and attributable Topology Relations. Topology Map, Environment, Protected
 Environment, Protection Plane, Guardian, Gatekeeper, Sentinel, Sentinel Watch, and Environment View semantics belong to
 the future `Topology` extension direction recorded in the
-[Topology design note](./Brontide-Design-Note-Topology-0.1.md) and stay outside this plan.
+[Topology design note](../topology/Brontide-Design-Note-Topology-0.1.md) and stay outside this plan.
 
 ## 4. Delivery sequence
 

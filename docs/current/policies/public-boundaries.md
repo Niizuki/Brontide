@@ -2,7 +2,7 @@
 
 Status: implementation-owned operational contract for the Architecture 0.5 evidence baseline and
 experimental interchange projects. New architectural decisions come from
-[Architecture 0.7](../Brontide-Architecture-0.7.md). This document is not an architecture
+[Architecture 0.7](../architecture/Brontide-Architecture-0.7.md). This document is not an architecture
 revision.
 
 ## Base authority boundaries

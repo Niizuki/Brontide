@@ -6,8 +6,8 @@
 and not an implementation or wire-format claim.  
 **Design source:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md).  
 **Decision ledger:**
-[Architecture 0.8 Channel requirements and risk ledger](./docs/architecture-0.8-channel-requirements-and-risk-ledger.md).  
-**Vectors:** [Channel 0.1 conformance vectors](./conformance/channel-0.1-vectors.json).
+[Architecture 0.8 Channel requirements and risk ledger](./architecture-0.8-channel-requirements-and-risk-ledger.md).  
+**Vectors:** [Channel 0.1 conformance vectors](../../../conformance/channel-0.1-vectors.json).
 
 This draft fixes the semantic questions required before the Portable Component Binding can choose
 an encoding. Names below identify logical Shapes and fields; they do not reserve a serialized

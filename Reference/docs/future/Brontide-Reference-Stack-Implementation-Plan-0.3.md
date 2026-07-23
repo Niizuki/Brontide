@@ -1,23 +1,23 @@
 # Brontide Reference Stack Implementation Plan 0.3
 
 Status: Planned  
-Designed for: [Brontide Architecture 0.7](../Brontide-Architecture-0.7.md), Complete Draft
+Designed for: [Brontide Architecture 0.7](../../../docs/current/architecture/Brontide-Architecture-0.7.md), Complete Draft
 
-Related notes: [Reference Architecture 0.7 implementation notes](docs/architecture-0.7-delivery.md)
+Related notes: [Reference Architecture 0.7 implementation notes](../architecture-0.7-delivery.md)
 
 ## 1. Purpose
 
 These are the Reference stack's implementation notes for the changes completed in the
-[Architecture 0.7 document edit](../Brontide-Architecture-0.7-Change-Plan.md). It supersedes Plan
+[Architecture 0.7 document edit](../../../docs/archive/architecture/Brontide-Architecture-0.7-Change-Plan.md). It supersedes Plan
 0.2 only for new 0.7 work; Plan 0.2 remains as historical context.
 
 Before this plan can support an implementation claim, the applicable gates in the permanent
-[implementation correction status](../docs/implementation-correction-status.md) must be closed.
+[implementation correction status](../../../docs/archive/corrections/implementation-correction-status.md) must be closed.
 While the temporary correction plan exists, it owns the known corrective work. This roadmap
 deliberately does not repeat or pre-claim those changes.
 
 The temporary
-[current-architecture implementation brief](../Brontide-Temporary-Current-Architecture-Implementation-Brief-0.1.md)
+[current-architecture implementation brief](../../../docs/temporary/Brontide-Temporary-Current-Architecture-Implementation-Brief-0.1.md)
 defines the aligned audit actions and executable delivery instructions for C1-C8. It is subordinate
 to this plan and may be deleted only by its own completion gate.
 
@@ -37,7 +37,7 @@ below creates evidence for review; it does not change that status by itself.
 ### 2.1 Complete Architecture 0.7 coverage
 
 The implementation-owned
-[Architecture 0.7 implementation notes](docs/architecture-0.7-delivery.md) map every executed 0.7
+[Architecture 0.7 implementation notes](../architecture-0.7-delivery.md) map every executed 0.7
 change C1-C8 to an owner, planned evidence, and status boundary. R1-R4 implement C1-C5. C6 and C7
 require documentation and classification review rather than invented runtime behavior. C8 remains
 a recorded, non-ratified direction and must not produce a `Mediator` conformance claim. R6 tracks
@@ -164,7 +164,7 @@ Deliverables:
 Architecture 0.8 is now a complete draft: it executes change plan C1-C14 with authored
 adversarial vectors and records new non-normative composition, Component-management, topology,
 and trust-admission directions. Prepare, but do not pre-implement, a requirement and risk ledger
-against [that document](../Brontide-Architecture-0.8.md) covering:
+against [that document](../../../docs/future/architecture/Brontide-Architecture-0.8.md) covering:
 
 - the evidence programme in its decided order: Channel first, then the Portable Binding and
   Shape floor as Channel's first conforming realisation, then Flow conformance;
@@ -180,7 +180,7 @@ against [that document](../Brontide-Architecture-0.8.md) covering:
 The recorded composition, Component-management, minimum-topology, and trust-admission directions
 (0.8 §18.1, §19, §20.1, §24, §33) stay outside this ledger's conformance scope; the fake-manager
 harness planned by the
-[Component Management Implementation Plan 0.1](../Brontide-Component-Management-Implementation-Plan-0.1.md)
+[Component Management Implementation Plan 0.1](../../../docs/future/component-management/Brontide-Component-Management-Implementation-Plan-0.1.md)
 owns that experimental work. The output is a requirement and risk ledger only. Mediation —
 recorded in 0.8 with Aggregation as a fourth species beside Selection, Distribution, and
 Arbitration — remains a recorded direction unless a later architecture revision ratifies it.

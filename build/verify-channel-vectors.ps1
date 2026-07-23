@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $inventoryPath = Join-Path $repositoryRoot 'conformance\channel-0.1-vectors.json'
-$ledgerPath = Join-Path $repositoryRoot 'docs\architecture-0.8-channel-requirements-and-risk-ledger.md'
+$ledgerPath = Join-Path $repositoryRoot 'docs\future\channel\architecture-0.8-channel-requirements-and-risk-ledger.md'
 $adversarialPath = Join-Path $repositoryRoot 'conformance\architecture-0.8-adversarial-vectors.json'
 $failures = [System.Collections.Generic.List[string]]::new()
 
