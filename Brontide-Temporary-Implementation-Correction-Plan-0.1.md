@@ -146,7 +146,8 @@ Requested change:
 1. Bind every Minimal authored Fragment to an explicit compatible host Shape lineage, while
    retaining explicit inclusion for reusable composition.
 2. Make failed Reference Genesis occurrences atomic across every registry reachable from the
-   callback, and leave no provenance gap.
+   callback, reject authority and liveness references retained by the failed callback, prevent
+   reentrant runtime effects or nested Genesis, and leave no provenance gap.
 3. Keep rejected Reference Executions observable without retaining their protected input in the
    provenance record.
 4. Make observed liveness death terminal even when a supplied trusted clock regresses.

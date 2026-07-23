@@ -11,11 +11,13 @@ public sealed class AuthorityDomain
     private readonly Dictionary<CanonicalName, ConstraintDefinition> _constraints = [];
     private readonly List<ActorReference> _actors = [];
     private readonly List<Capability> _capabilities = [];
+    private readonly List<LivenessLease> _leases = [];
     private readonly List<GenesisRecord> _genesis = [];
     private readonly List<ProvenanceEntry> _provenance = [];
     private readonly Dictionary<ActivityReference, ActorReference> _activities = [];
     private readonly HashSet<ActivityReference> _terminalActivities = [];
     private long _sequence;
+    private bool _genesisOccurrenceActive;
 
     private AuthorityDomain(string name, TimeProvider? timeProvider)
     {
@@ -81,14 +83,17 @@ public sealed class AuthorityDomain
         OperationReference operation,
         Capability capability,
         ShapeValue input,
-        OriginClass origin = OriginClass.Unverified) =>
-        await ExecuteInternalAsync(
+        OriginClass origin = OriginClass.Unverified)
+    {
+        EnsureRuntimeAccessAllowed();
+        return await ExecuteInternalAsync(
             actor,
             null,
             operation,
             AuthorityPresentation.Direct(capability),
             input,
             origin).ConfigureAwait(false);
+    }
 
     public async ValueTask<ExecutionResult> ExecuteOnBehalfAsync(
         ActorReference deputy,
@@ -98,6 +103,7 @@ public sealed class AuthorityDomain
         ShapeValue input,
         OriginClass origin = OriginClass.Unverified)
     {
+        EnsureRuntimeAccessAllowed();
         if (authorityPresentation.Kind == AuthorityPresentationKind.Direct)
         {
             throw new ArgumentException(
@@ -172,6 +178,7 @@ public sealed class AuthorityDomain
         TemporalMark? occurredAt,
         bool authorityAlreadyEvaluated)
     {
+        EnsureRuntimeAccessAllowed();
         EnsureActor(emitter);
         EventDefinition definition;
         lock (_gate)
@@ -212,6 +219,7 @@ public sealed class AuthorityDomain
         ShapeValue? details = null,
         string message = "activity completed")
     {
+        EnsureRuntimeAccessAllowed();
         EnsureActor(responsible);
         lock (_gate)
         {
@@ -274,13 +282,20 @@ public sealed class AuthorityDomain
         ArgumentNullException.ThrowIfNull(occurrence);
         lock (_gate)
         {
+            if (_genesisOccurrenceActive)
+            {
+                throw new InvalidOperationException("Genesis occurrences cannot be nested.");
+            }
+
             var actorStart = _actors.Count;
             var capabilityStart = _capabilities.Count;
+            var leaseStart = _leases.Count;
             var operationKeys = _operations.Keys.ToHashSet();
             var eventKeys = _events.Keys.ToHashSet();
             var constraintKeys = _constraints.Keys.ToHashSet();
             using var shapeTransaction = Shapes.BeginRegistrationTransaction();
             var context = new GenesisContext(this);
+            _genesisOccurrenceActive = true;
             try
             {
                 occurrence(context);
@@ -300,6 +315,7 @@ public sealed class AuthorityDomain
             {
                 _actors.RemoveRange(actorStart, _actors.Count - actorStart);
                 _capabilities.RemoveRange(capabilityStart, _capabilities.Count - capabilityStart);
+                _leases.RemoveRange(leaseStart, _leases.Count - leaseStart);
                 foreach (var key in _operations.Keys.Except(operationKeys).ToArray())
                 {
                     _operations.Remove(key);
@@ -320,6 +336,7 @@ public sealed class AuthorityDomain
             finally
             {
                 context.Deactivate();
+                _genesisOccurrenceActive = false;
             }
         }
     }
@@ -372,9 +389,9 @@ public sealed class AuthorityDomain
             }
         }
 
-        if (capability.DomainId != Id)
+        if (!CapabilityBelongs(capability))
         {
-            return Reject(execution, decisions, "denied: Capability belongs to another authority domain");
+            return Reject(execution, decisions, "denied: Capability is not registered by this authority domain");
         }
 
         if (!ReferenceEquals(capability.Holder, authorityActor))
@@ -669,6 +686,7 @@ public sealed class AuthorityDomain
 
     internal ActivityReference CreateActivity(ActorReference owner, CanonicalName kind)
     {
+        EnsureRuntimeAccessAllowed();
         EnsureActor(owner);
         var activity = ActivityReference.New(kind);
         lock (_gate)
@@ -690,7 +708,7 @@ public sealed class AuthorityDomain
             return;
         }
 
-        if (originAuthority is null || originAuthority.DomainId != Id ||
+        if (originAuthority is null || !CapabilityBelongs(originAuthority) ||
             !ReferenceEquals(originAuthority.Holder, emitter))
         {
             throw new BrontideDenialException($"Origin {origin} requires a Capability held by the emitter.");
@@ -806,6 +824,7 @@ public sealed class AuthorityDomain
         EnsureActor(holder);
         EnsureActor(target);
         var operationSet = operations.ToImmutableHashSet();
+        var constraintSet = constraints.ToImmutableArray();
         if (operationSet.Count == 0)
         {
             throw new ArgumentException("A primordial Capability must permit at least one Operation.", nameof(operations));
@@ -813,6 +832,7 @@ public sealed class AuthorityDomain
 
         lock (_gate)
         {
+            EnsureLeasesBelong(constraintSet);
             foreach (var operation in operationSet)
             {
                 if (!_operations.TryGetValue(operation, out var definition))
@@ -833,7 +853,7 @@ public sealed class AuthorityDomain
             target,
             operationSet,
             null,
-            constraints,
+            constraintSet,
             delegable,
             RegisterDerivedCapability);
         lock (_gate)
@@ -848,8 +868,31 @@ public sealed class AuthorityDomain
     {
         lock (_gate)
         {
+            if (capability.DomainId != Id ||
+                capability.Parent is null ||
+                !_capabilities.Contains(capability.Parent) ||
+                !_actors.Contains(capability.Holder) ||
+                !_actors.Contains(capability.Target))
+            {
+                throw new InvalidOperationException(
+                    "A Capability can be delegated only from registered authority to registered Actors.");
+            }
+
+            EnsureLeasesBelong(capability.AddedConstraintExpressions);
             _capabilities.Add(capability);
         }
+    }
+
+    private LivenessLease IssueLease(ActorReference grantor, TimeSpan duration)
+    {
+        EnsureActor(grantor);
+        var lease = new LivenessLease(grantor, duration, TimeProvider);
+        lock (_gate)
+        {
+            _leases.Add(lease);
+        }
+
+        return lease;
     }
 
     private void RegisterOperation(
@@ -905,7 +948,47 @@ public sealed class AuthorityDomain
         }
     }
 
-    private bool ActorBelongs(ActorReference actor) => actor.DomainId == Id;
+    private bool ActorBelongs(ActorReference actor)
+    {
+        lock (_gate)
+        {
+            return actor.DomainId == Id && _actors.Contains(actor);
+        }
+    }
+
+    private bool CapabilityBelongs(Capability capability)
+    {
+        lock (_gate)
+        {
+            return capability.DomainId == Id && _capabilities.Contains(capability);
+        }
+    }
+
+    private void EnsureLeasesBelong(IEnumerable<ConstraintExpression> constraints)
+    {
+        foreach (var leaseConstraint in constraints
+                     .SelectMany(expression => ConstraintExpressionEvaluator.AtomicConstraints(expression))
+                     .OfType<LivenessLeaseConstraint>())
+        {
+            if (!_leases.Contains(leaseConstraint.Lease) || !ActorBelongs(leaseConstraint.Lease.Grantor))
+            {
+                throw new InvalidOperationException(
+                    "A liveness-lease Constraint must use a lease registered by this authority domain.");
+            }
+        }
+    }
+
+    private void EnsureRuntimeAccessAllowed()
+    {
+        lock (_gate)
+        {
+            if (_genesisOccurrenceActive)
+            {
+                throw new InvalidOperationException(
+                    "Runtime effects cannot occur inside an active Genesis occurrence.");
+            }
+        }
+    }
 
     private void EnsureActor(ActorReference actor)
     {
@@ -994,8 +1077,7 @@ public sealed class AuthorityDomain
         public LivenessLease Lease(ActorReference grantor, TimeSpan duration)
         {
             EnsureActive();
-            _domain.EnsureActor(grantor);
-            return new LivenessLease(grantor, duration, _domain.TimeProvider);
+            return _domain.IssueLease(grantor, duration);
         }
 
         internal void Deactivate() => _active = false;

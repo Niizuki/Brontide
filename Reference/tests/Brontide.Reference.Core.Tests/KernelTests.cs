@@ -75,17 +75,28 @@ public sealed class KernelTests
     }
 
     [Test]
-    public void Failed_genesis_occurrence_rolls_back_unrecorded_authority()
+    public async Task Failed_genesis_occurrence_rolls_back_unrecorded_authority()
     {
         ActorReference policy = null!;
         ActorReference target = null!;
+        Capability existingCapability = null!;
+        ActorReference escapedActor = null!;
+        Capability escapedCapability = null!;
+        LivenessLease escapedLease = null!;
+        var runtimeAccessBlocked = false;
+        var effects = 0;
         var operation = OperationReference.Parse("Example.Existing");
         var domain = AuthorityDomain.Create("genesis-rollback", genesis =>
         {
             policy = genesis.Actor("Policy");
             target = genesis.Actor("Target");
             genesis.Operation(operation, target, ShapeContract.Unit, ShapeContract.Unit, "existing",
-                _ => OperationEffect.SucceededAsync(ShapeValue.Unit));
+                _ =>
+                {
+                    effects++;
+                    return OperationEffect.SucceededAsync(ShapeValue.Unit);
+                });
+            existingCapability = genesis.Grant(policy, target, [operation]);
         });
         var actorCount = domain.Actors.Count;
         var capabilityCount = domain.Capabilities.Count;
@@ -95,9 +106,20 @@ public sealed class KernelTests
 
         Assert.That(() => domain.OccurGenesis(policy, "attachment", "test rollback", genesis =>
         {
-            var attached = genesis.Actor("Attached");
+            escapedActor = genesis.Actor("Attached");
             genesis.Shape(ShapeDefinition.Unit(transientShape));
-            _ = genesis.Grant(attached, target, [operation]);
+            escapedLease = genesis.Lease(escapedActor, TimeSpan.FromMinutes(1));
+            escapedCapability = genesis.Grant(policy, target, [operation]);
+            try
+            {
+                _ = domain.ExecuteAsync(policy, operation, existingCapability, ShapeValue.Unit)
+                    .AsTask().GetAwaiter().GetResult();
+            }
+            catch (InvalidOperationException)
+            {
+                runtimeAccessBlocked = true;
+            }
+
             throw new InvalidOperationException("simulated policy failure");
         }), Throws.InvalidOperationException);
 
@@ -109,7 +131,30 @@ public sealed class KernelTests
             Assert.That(domain.Provenance, Has.Count.EqualTo(provenanceCount));
             Assert.That(domain.Shapes.Shapes, Has.Count.EqualTo(shapeCount));
             Assert.That(domain.Shapes.Shapes.Any(shape => shape.Reference == transientShape), Is.False);
+            Assert.That(runtimeAccessBlocked, Is.True);
+            Assert.That(effects, Is.Zero);
         });
+
+        var escapedActorResult = await domain.ExecuteAsync(
+            escapedActor, operation, existingCapability, ShapeValue.Unit);
+        var escapedCapabilityResult = await domain.ExecuteAsync(
+            policy, operation, escapedCapability, ShapeValue.Unit);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(escapedActorResult.Outcome.Status, Is.EqualTo(OutcomeStatus.Rejected));
+            Assert.That(escapedCapabilityResult.Outcome.Status, Is.EqualTo(OutcomeStatus.Rejected));
+            Assert.That(() => escapedCapability.Delegate(policy), Throws.InvalidOperationException);
+            Assert.That(effects, Is.Zero);
+        });
+
+        Assert.That(() => domain.OccurGenesis(policy, "attachment", "reject escaped lease", genesis =>
+            _ = genesis.Grant(
+                policy,
+                target,
+                [operation],
+                [new LivenessLeaseConstraint(escapedLease)])), Throws.InvalidOperationException);
+        Assert.That(domain.Capabilities, Has.Count.EqualTo(capabilityCount));
     }
 
     [Test]

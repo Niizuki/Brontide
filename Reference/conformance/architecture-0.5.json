@@ -63,7 +63,7 @@
       "positiveEvidence": [{ "path": "Reference/src/Brontide.Reference.Core/AuthorityDomain.cs", "anchor": "public IReadOnlyList<GenesisRecord> GenesisOccurrences" }],
       "negativeEvidence": [{ "path": "Reference/tests/Brontide.Reference.Core.Tests/KernelTests.cs", "anchor": "Failed_genesis_occurrence_rolls_back_unrecorded_authority" }],
       "status": "tested",
-      "rationale": "Genesis is callback-scoped and recorded; a failed occurrence atomically restores actors, capabilities, declarations, and Shape registrations so no live authority escapes without attributable provenance."
+      "rationale": "Genesis is callback-scoped and recorded; a failed occurrence atomically restores actors, capabilities, liveness leases, declarations, and Shape registrations. Registry membership rejects escaped references, while runtime effects and nested Genesis are blocked during the transaction."
     },
     {
       "requirementId": "BR-05-EXEC-001",

@@ -168,11 +168,14 @@ silently upgraded to 0.7 evidence.
 ## Independent review exposed three retained Base invariant gaps
 
 - **Brontide sections:** Architecture 0.5 §§10.3, 12, 13.5, and 28
-- **Minimal scenario:** throw after minting authority in `OccurGenesis`, inspect rejected
-  provenance for its submitted input, or move trusted time backward after a lease is observed dead.
+- **Minimal scenario:** throw after minting authority in `OccurGenesis`, retain the minted objects
+  through callback references, inspect rejected provenance for its submitted input, or move trusted
+  time backward after a lease is observed dead.
 - **Observed result:** the independent review reproduced unrecorded live authority, protected-input
   retention, and resurrected mortality on the prior correction target.
 - **Classification:** Brontide Reference Stack defects
-- **Current disposition:** failed dynamic Genesis now restores all affected registries; rejected
-  provenance keeps metadata but not input; and observed lease death is terminal. Focused regression
-  tests anchor each disposition in the Architecture 0.5 matrix.
+- **Current disposition:** failed dynamic Genesis now restores all affected registries and rejects
+  escaped actor, Capability, and lease references; runtime effects and nested Genesis cannot run
+  reentrantly inside the transaction. Rejected provenance keeps metadata but not input, and observed
+  lease death is terminal. Focused regression tests anchor each disposition in the Architecture 0.5
+  matrix.
