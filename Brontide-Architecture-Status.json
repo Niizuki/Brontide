@@ -25,7 +25,7 @@
       "stack": "Reference",
       "implementationMatrix": {
         "path": "Reference/conformance/architecture-0.5.json",
-        "sha256": "57236E9616DED2DC63850E86DB6E7B3D9F37B0F25F200956809EC0A0C65DBE03"
+        "sha256": "8BD13B8590AF3BE0C8F24CC96B1DE1A701186519D9DA8E58CC386FCF262CA607"
       },
       "currentDelivery": {
         "requirements": {
