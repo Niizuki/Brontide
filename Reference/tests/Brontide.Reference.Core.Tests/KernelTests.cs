@@ -208,6 +208,85 @@ public sealed class KernelTests
     }
 
     [Test]
+    public void Concurrent_genesis_context_issuance_cannot_resume_after_rollback()
+    {
+        var clock = new ManualTimeProvider(new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        ActorReference policy = null!;
+        ActorReference target = null!;
+        var operation = OperationReference.Parse("Example.ConcurrentEscape");
+        var domain = AuthorityDomain.Create("concurrent-genesis", clock, genesis =>
+        {
+            policy = genesis.Actor("Policy");
+            target = genesis.Actor("Target");
+            genesis.Operation(
+                operation,
+                target,
+                ShapeContract.Unit,
+                ShapeContract.Unit,
+                "concurrent rollback",
+                _ => OperationEffect.SucceededAsync(ShapeValue.Unit));
+        });
+        var actorCount = domain.Actors.Count;
+        var capabilityCount = domain.Capabilities.Count;
+        ActorReference? escapedActor = null;
+        Capability? escapedCapability = null;
+        LivenessLease? escapedLease = null;
+        var failures = new Exception?[3];
+        Thread[] issuers = [];
+        using var started = new CountdownEvent(3);
+
+        Assert.That(() => domain.OccurGenesis(policy, "outer", "concurrent rollback", genesis =>
+        {
+            issuers =
+            [
+                new Thread(() => Attempt(0, () => escapedActor = genesis.Actor("Escaped"))),
+                new Thread(() => Attempt(1, () =>
+                    escapedCapability = genesis.Grant(policy, target, [operation]))),
+                new Thread(() => Attempt(2, () =>
+                    escapedLease = genesis.Lease(policy, TimeSpan.FromMinutes(1))))
+            ];
+            foreach (var issuer in issuers)
+            {
+                issuer.Start();
+            }
+
+            Assert.That(started.Wait(TimeSpan.FromSeconds(2)), Is.True);
+            Assert.That(
+                SpinWait.SpinUntil(
+                    () => issuers.All(issuer => issuer.ThreadState.HasFlag(ThreadState.WaitSleepJoin)),
+                    TimeSpan.FromSeconds(2)),
+                Is.True,
+                "issuers should be blocked at the domain transaction gate");
+            throw new InvalidOperationException("force outer rollback");
+
+            void Attempt(int index, Action issue)
+            {
+                started.Signal();
+                try
+                {
+                    issue();
+                }
+                catch (Exception failure)
+                {
+                    failures[index] = failure;
+                }
+            }
+        }), Throws.InvalidOperationException);
+
+        Assert.That(issuers.All(issuer => issuer.Join(TimeSpan.FromSeconds(2))), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(failures, Has.All.TypeOf<InvalidOperationException>());
+            Assert.That(escapedActor, Is.Null);
+            Assert.That(escapedCapability, Is.Null);
+            Assert.That(escapedLease, Is.Null);
+            Assert.That(domain.Actors, Has.Count.EqualTo(actorCount));
+            Assert.That(domain.Capabilities, Has.Count.EqualTo(capabilityCount));
+            Assert.That(domain.GenesisOccurrences, Is.Empty);
+        });
+    }
+
+    [Test]
     public async Task Rejected_provenance_excludes_the_protected_input()
     {
         ActorReference holder = null!;

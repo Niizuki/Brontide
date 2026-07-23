@@ -1020,32 +1020,21 @@ public sealed class AuthorityDomain
 
         internal GenesisContext(AuthorityDomain domain) => _domain = domain;
 
-        public ActorReference Actor(string displayName)
-        {
-            EnsureActive();
-            return _domain.IssueActor(displayName);
-        }
+        public ActorReference Actor(string displayName) =>
+            WhileActive(() => _domain.IssueActor(displayName));
 
-        public void Shape(ShapeDefinition definition)
-        {
-            EnsureActive();
-            _domain.Shapes.Register(definition);
-        }
+        public void Shape(ShapeDefinition definition) =>
+            WhileActive(() => _domain.Shapes.Register(definition));
 
-        public void Shape(DeclaredFragmentDefinition definition)
-        {
-            EnsureActive();
-            _domain.Shapes.Register(definition);
-        }
+        public void Shape(DeclaredFragmentDefinition definition) =>
+            WhileActive(() => _domain.Shapes.Register(definition));
 
         public void Constraint(
             CanonicalName name,
             ShapeContract valueShape,
-            ConstraintEvaluator evaluator)
-        {
-            EnsureActive();
-            _domain.RegisterConstraint(new ConstraintDefinition(name, valueShape, evaluator));
-        }
+            ConstraintEvaluator evaluator) =>
+            WhileActive(() =>
+                _domain.RegisterConstraint(new ConstraintDefinition(name, valueShape, evaluator)));
 
         public void Operation(
             OperationReference reference,
@@ -1053,48 +1042,62 @@ public sealed class AuthorityDomain
             ShapeContract input,
             ShapeContract output,
             string semantics,
-            OperationHandler handler)
-        {
-            EnsureActive();
-            _domain.RegisterOperation(reference, target, input, output, semantics, handler);
-        }
+            OperationHandler handler) =>
+            WhileActive(() =>
+                _domain.RegisterOperation(reference, target, input, output, semantics, handler));
 
-        public void Event(EventReference reference, ShapeContract assertion, string semantics)
-        {
-            EnsureActive();
-            _domain.RegisterEvent(reference, assertion, semantics);
-        }
+        public void Event(EventReference reference, ShapeContract assertion, string semantics) =>
+            WhileActive(() => _domain.RegisterEvent(reference, assertion, semantics));
 
         public Capability Grant(
             ActorReference holder,
             ActorReference target,
             IEnumerable<OperationReference> operations,
             IEnumerable<Constraint>? constraints = null,
-            bool delegable = true)
-        {
-            EnsureActive();
-            return _domain.IssueCapability(holder, target, operations, constraints ?? [], delegable);
-        }
+            bool delegable = true) =>
+            WhileActive(() =>
+                _domain.IssueCapability(holder, target, operations, constraints ?? [], delegable));
 
         public Capability GrantExpressions(
             ActorReference holder,
             ActorReference target,
             IEnumerable<OperationReference> operations,
             IEnumerable<ConstraintExpression> expressions,
-            bool delegable = true)
+            bool delegable = true) =>
+            WhileActive(() =>
+            {
+                ArgumentNullException.ThrowIfNull(expressions);
+                return _domain.IssueCapability(holder, target, operations, expressions, delegable);
+            });
+
+        public LivenessLease Lease(ActorReference grantor, TimeSpan duration) =>
+            WhileActive(() => _domain.IssueLease(grantor, duration));
+
+        internal void Deactivate()
         {
-            EnsureActive();
-            ArgumentNullException.ThrowIfNull(expressions);
-            return _domain.IssueCapability(holder, target, operations, expressions, delegable);
+            lock (_domain._gate)
+            {
+                _active = false;
+            }
         }
 
-        public LivenessLease Lease(ActorReference grantor, TimeSpan duration)
+        private T WhileActive<T>(Func<T> action)
         {
-            EnsureActive();
-            return _domain.IssueLease(grantor, duration);
+            lock (_domain._gate)
+            {
+                EnsureActive();
+                return action();
+            }
         }
 
-        internal void Deactivate() => _active = false;
+        private void WhileActive(Action action)
+        {
+            lock (_domain._gate)
+            {
+                EnsureActive();
+                action();
+            }
+        }
 
         private void EnsureActive()
         {

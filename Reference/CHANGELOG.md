@@ -18,7 +18,8 @@ This addition is current-draft evidence, not ratification and not a component-ve
   pre-existing mutable lease state, declarations, and Shape registrations before rethrowing.
   Lease reads and renewal are coordinated with the domain transaction, rolled-back leases are
   actively invalidated, other escaped references are rejected after rollback, and runtime effects
-  or nested Genesis occurrences cannot run reentrantly inside the transaction.
+  or nested Genesis occurrences cannot run reentrantly inside the transaction. Genesis-context
+  activity validation and mutation are atomic, so a concurrent issuer cannot resume after rollback.
 - Rejected provenance retains execution metadata but does not retain the submitted protected input.
   Direct `ExecutionResult` records remain complete; audit consumers may inspect `HasInput`.
 - A liveness lease remains terminally dead after trusted time observes expiry, even if the supplied

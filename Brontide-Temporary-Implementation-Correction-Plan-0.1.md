@@ -157,6 +157,10 @@ The next Reference review found that registry rollback rejected an escaped newly
 a Constraint, but the retained lease object itself could still renew. Failed Genesis must actively
 invalidate that lease, not only remove it from the domain registry.
 
+The subsequent Reference review found a context-validation race: a concurrent issuer could pass
+the activity check, wait on the domain transaction gate, then append authority after rollback and
+context deactivation. Activity validation and mutation must therefore share the same critical section.
+
 Requested change:
 
 1. Bind every Minimal authored Fragment to an explicit compatible host Shape lineage, while
@@ -179,6 +183,8 @@ Requested change:
    exact transaction branch, and keep all escaped uncommitted branches inert.
 10. Actively invalidate every newly issued Reference liveness lease removed by failed Genesis so
     the escaped lease object cannot renew independently of registry membership.
+11. Make Reference Genesis-context activity validation atomic with every registry mutation so a
+    concurrent issuer cannot resume after rollback or deactivation.
 
 ## 8. Delivery order
 
