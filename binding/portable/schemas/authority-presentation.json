@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "contract": {
+    "id": "brontide.portable-binding.authority-presentation",
+    "version": "0.1-draft",
+    "status": "PB1 neutral contract; planned experimental work; not ratified; not part of Brontide Base",
+    "designedFor": "Brontide Architecture 0.8 section 11, 16, and 18.1 (Complete Draft)",
+    "plan": "docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md",
+    "capabilities": ["C3"]
+  },
+  "purpose": "Generalizes the Cooling 'no-capability-transfer' limitation into the neutral contract, so that authority remains local by declaration rather than by fixture convention.",
+  "presentationModes": [
+    {
+      "id": "local-domain-evaluated",
+      "trustBoundaryCrossed": false,
+      "rule": "Host and provider are inside one authority domain. A declared Capability presentation may be evaluated at the target boundary.",
+      "capabilityCrosses": true,
+      "capabilityCrossesQualifier": "Only within the single authority domain; this mode may not be declared for a binding whose realization crosses a declared trust boundary.",
+      "admission": "target-boundary"
+    },
+    {
+      "id": "cross-trust-no-capability-transfer",
+      "trustBoundaryCrossed": true,
+      "rule": "No Capability crosses. The provider receives only attributable context and exact addressing, and its own domain performs admission.",
+      "capabilityCrosses": false,
+      "admission": "provider-domain",
+      "requiredDeclaration": "no-capability-transfer",
+      "carries": [
+        { "what": "attributable context", "detail": "An opaque, non-authority-bearing requester attribution such as the Cooling 'requesterLabel' host-context Fragment." },
+        { "what": "exact addressing", "detail": "The negotiated Operation reference and, where declared, an addressing-only resource handle." }
+      ],
+      "forbidden": [
+        { "what": "a Capability, Constraint expression, or derivation chain in any position", "outcome": "invalid-authority-presentation", "effectCount": 0 },
+        { "what": "omitting the no-capability-transfer declaration on a trust-crossing binding", "outcome": "invalid-authority-presentation", "effectCount": 0 }
+      ],
+      "channelVector": "CH-11-NO-CAPABILITY-TRANSFER"
+    }
+  ],
+  "constraintPolicy": {
+    "value": "fail-closed",
+    "rule": "Unknown actors, capabilities, constraints, Shapes, providers, or operations produce a visible denial or error before effects occur. Authority is never inferred from delivery, possession, provider availability, or structural similarity.",
+    "onlyPermittedValue": true,
+    "otherValueOutcome": "invalid-authority-presentation"
+  },
+  "localDenial": {
+    "capability": "C3",
+    "channelVectors": ["CH-12-DENIAL-IS-NOT-A-FRAME", "CH-08-AUTHORITY-NO-PROJECTION", "CH-10-STRONG-KLEENE-UNKNOWN-DENIES"],
+    "rule": "A denial or unknown authority condition decided at the local boundary starts no provider and emits no Channel frame.",
+    "expected": { "frameDecision": "none", "resultClass": "denial", "effectCount": 0 },
+    "recordingRule": "The host still records the attempted Execution locally. A denial is an observation, never an envelope kind; there is no 'denial' frame in channel-envelope.json.",
+    "divergenceFromExperiments": "The Cooling experiment carries a 'denial' message kind on the wire. That is fixture-specific: its denial is emitted by the provider-side host adapter after the frame boundary. The neutral contract keeps local denial frameless, so PB2 and PB3 must not carry the existing denial kind into the portable envelope set."
+  },
+  "threeValuedEvaluation": {
+    "capability": "C3",
+    "basis": "Strong Kleene three-valued logic over Satisfied, Unsatisfied, and Unknown atoms",
+    "channelVectors": ["CH-09-STRONG-KLEENE-FALLBACK", "CH-10-STRONG-KLEENE-UNKNOWN-DENIES"],
+    "rules": [
+      { "expression": "AnyOf(Satisfied, Unknown)", "result": "True", "decision": "may proceed" },
+      { "expression": "AllOf(Satisfied, Unknown)", "result": "Unknown", "decision": "denied without a far-side effect" },
+      { "expression": "AnyOf(Unsatisfied, Unknown)", "result": "Unknown", "decision": "denied without a far-side effect" },
+      { "expression": "AllOf(Satisfied, Satisfied)", "result": "True", "decision": "may proceed" },
+      { "expression": "Not(Unknown)", "result": "Unknown", "decision": "denied without a far-side effect" }
+    ],
+    "unknownRule": "Unknown never resolves to permitted. Only a True expression permits an effect."
+  },
+  "chainConjunction": {
+    "capability": "C3",
+    "architectureSection": "Brontide Architecture 0.8 section 11",
+    "record": "binding/portable/representation-choice.md",
+    "rule": "The conjunction of all Constraints along a Capability derivation chain is evaluated at the authorisation boundary.",
+    "portableCeilingRule": "The portable contract treats cross-trust chain-conjunction revocability as carried-tier by default. Any resolver or indirection point is a declared capability, never an assumed one.",
+    "rationale": "Reference records 'carried' and Minimal records 'resolved'. Carried is the tighter revocation ceiling, so the portable contract must tolerate a carried peer and must not require resolver-based revocation that a carried peer cannot provide.",
+    "stackChoices": [
+      { "stack": "Reference", "representation": "carried", "revocationCeiling": "via-indirection only" },
+      { "stack": "Minimal", "representation": "resolved", "revocationCeiling": "at the resolver" }
+    ],
+    "capRule": "This contract caps neither stack below its recorded ceiling and does not silently downgrade Minimal's resolver-natural revocation.",
+    "pinnedTranscriptionPending": "The permanent home for the stack choices is each stack's delivery ledger. Those ledgers are SHA-256 pinned, so transcription awaits the authorized repinning and fresh-review window; representation-choice.md remains the operative record until then."
+  },
+  "authorityDecisionPoint": {
+    "capability": "C9",
+    "rule": "Every completed or rejected interaction records where the authority decision was taken.",
+    "enum": [
+      { "id": "host-local", "detail": "Decided at the host boundary before any frame was emitted." },
+      { "id": "target-boundary", "detail": "Decided at the target boundary inside one authority domain." },
+      { "id": "provider-domain", "detail": "Decided by the provider's own domain after a cross-trust presentation." }
+    ]
+  }
+}

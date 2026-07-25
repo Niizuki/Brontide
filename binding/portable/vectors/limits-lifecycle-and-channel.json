@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "group": {
+    "id": "limits-lifecycle-and-channel",
+    "capabilities": ["C4", "C8"],
+    "status": "PB1 neutral vectors; data only; validated without loading either stack",
+    "fixture": "vectors/fixture-contract.json",
+    "schemas": ["schemas/limits-and-lifecycle.json", "schemas/channel-envelope.json"]
+  },
+  "vectors": [
+    {
+      "id": "PB-33-FRAME-EXCEEDS-DECLARED-BOUND",
+      "capabilities": ["C8"],
+      "channelVectors": ["CH-16-DECLARED-LIMIT"],
+      "classification": "adversarial",
+      "given": ["maxFrameBytes is declared as 65536"],
+      "when": ["The length prefix declares a larger body"],
+      "then": ["The frame is refused on the prefix alone, before the body is read", "No partial request effect begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "limit-exceeded", "effectCount": 0 }
+    },
+    {
+      "id": "PB-34-NESTING-EXCEEDS-DECLARED-DEPTH",
+      "capabilities": ["C8"],
+      "channelVectors": ["CH-16-DECLARED-LIMIT"],
+      "classification": "adversarial",
+      "given": ["maxNestingDepth is declared as 32"],
+      "when": ["A frame nests arrays or maps beyond that depth"],
+      "then": ["Decoding stops at the bound rather than recursing", "No partial request effect begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "limit-exceeded", "effectCount": 0 }
+    },
+    {
+      "id": "PB-35-REPLAY-INSIDE-DECLARED-WINDOW",
+      "capabilities": ["C8"],
+      "channelVectors": ["CH-15-REPLAY-DECLARED"],
+      "classification": "adversarial",
+      "given": ["Replay protection and its binding-scoped window are declared", "Request r1 was accepted inside the window"],
+      "when": ["Request r1 is received again inside the window"],
+      "then": ["The repeat is refused", "The effect is not repeated"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "replay-detected", "effectCount": 0 }
+    },
+    {
+      "id": "PB-36-SECOND-CONCURRENT-REQUEST",
+      "capabilities": ["C8"],
+      "channelVectors": ["CH-21-STATE-VIOLATION"],
+      "classification": "adversarial",
+      "given": ["maxConcurrentRequests is 1 and the binding is in state 'active'"],
+      "when": ["A second request arrives before the first outcome"],
+      "then": ["The second request is refused, because version 0.1 promises no ordering or concurrency"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "state-violation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-37-DUPLICATE-TERMINAL-OUTCOME",
+      "capabilities": ["C8"],
+      "channelVectors": ["CH-21-STATE-VIOLATION"],
+      "classification": "adversarial",
+      "given": ["An outcome for request r1 was accepted and the binding returned to 'ready'"],
+      "when": ["A second outcome for r1 arrives"],
+      "then": ["The duplicate is refused rather than overwriting the first", "No second effect is attributed"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "state-violation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-38-CLEAN-WITHDRAWAL-AND-TERMINATION",
+      "capabilities": ["C8"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": ["An established, ready binding with no outstanding request"],
+      "when": ["The host withdraws and then terminates"],
+      "then": ["Both transitions are legal", "No new request is accepted after withdrawal", "The terminal state releases no resource by implication"],
+      "expected": { "frameDecision": "emit", "resultClass": "negotiation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-39-ESTABLISH-ON-ESTABLISHED-BINDING",
+      "capabilities": ["C2", "C8"],
+      "channelVectors": ["CH-21-STATE-VIOLATION"],
+      "classification": "adversarial",
+      "given": ["The Binding Plan is frozen and immutable for this scope"],
+      "when": ["A second establish frame arrives on the same binding"],
+      "then": ["The frame is refused, because a changed fact requires a new binding scope rather than renegotiation in place"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "state-violation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-40-IO-TIMEOUT",
+      "capabilities": ["C8"],
+      "channelVectors": ["CH-23-PROCESS-FAILURE-CATEGORIES"],
+      "classification": "adversarial",
+      "given": ["ioTimeoutMilliseconds is declared as 10000", "A request was sent"],
+      "when": ["No valid outcome arrives within the declared bound"],
+      "then": ["The observation is a timeout, not a fabricated success", "The failure domain is recorded relative to this observer"],
+      "expected": { "frameDecision": "none", "resultClass": "process-failure", "processCategory": "timeout", "failureDomain": "transport", "effectCountNotAsserted": "A timeout says nothing about whether the peer performed the effect before the bound elapsed. Asserting zero here would fabricate knowledge this endpoint does not have." }
+    },
+    {
+      "id": "PB-41-INTERRUPTED-FRAME",
+      "capabilities": ["C8"],
+      "channelVectors": ["CH-23-PROCESS-FAILURE-CATEGORIES"],
+      "classification": "adversarial",
+      "given": ["A length prefix declared a body of n bytes"],
+      "when": ["The stream ends before n bytes arrive"],
+      "then": ["The partial frame is discarded", "The observation records interruption rather than a malformed message"],
+      "expected": { "frameDecision": "none", "resultClass": "process-failure", "processCategory": "transport-interrupted", "failureDomain": "transport", "effectCountNotAsserted": "The partial frame cannot be attributed to a request, so whether a provider effect occurred is not observable here." }
+    },
+    {
+      "id": "PB-42-CORRELATION-ECHO",
+      "capabilities": ["C4"],
+      "channelVectors": ["CH-01-CORRELATION-ECHO"],
+      "classification": "valid",
+      "given": ["A valid request carries channel c1, request r1, and optional execution e1"],
+      "when": ["The peer returns a terminal successful Outcome echoing every carried identity"],
+      "then": ["The Outcome is accepted", "The host records a distinct host-native Execution identity"],
+      "expected": { "frameDecision": "accept", "resultClass": "outcome-succeeded" }
+    },
+    {
+      "id": "PB-43-CORRELATION-MISMATCH",
+      "capabilities": ["C4"],
+      "channelVectors": ["CH-02-CORRELATION-MISMATCH"],
+      "classification": "adversarial",
+      "given": ["A valid request carries request r1"],
+      "when": ["The claimed Outcome carries request r2"],
+      "then": ["The Outcome is not accepted", "The failure is attributed to the observing endpoint"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "correlation-mismatch", "failureDomain": "local-endpoint", "effectCountNotAsserted": "The outcome claims a request this host never sent, so no effect can be attributed to it from this endpoint." }
+    },
+    {
+      "id": "PB-44-MISSING-CORRELATION-IDENTITY",
+      "capabilities": ["C4"],
+      "channelVectors": ["CH-06-MALFORMED-MESSAGE"],
+      "classification": "adversarial",
+      "given": ["An outcome envelope requires a requestId"],
+      "when": ["The field is absent"],
+      "then": ["The envelope is rejected rather than matched to the single outstanding request by position"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message", "effectCountNotAsserted": "Without a correlation identity the frame cannot be attributed to a request, so no effect count is attributable." }
+    },
+    {
+      "id": "PB-45-UNKNOWN-ENVELOPE-KIND",
+      "capabilities": ["C4"],
+      "channelVectors": ["CH-05-UNKNOWN-KIND"],
+      "classification": "adversarial",
+      "given": ["A structurally valid envelope"],
+      "when": ["Its kind or body discriminator is outside the declared envelope kinds"],
+      "then": ["The envelope is rejected", "An unknown kind is never treated as a no-op"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-kind", "effectCountNotAsserted": "An unrecognized kind carries no attributable request, so no effect count is attributable." }
+    },
+    {
+      "id": "PB-46-UNSUPPORTED-OPERATION",
+      "capabilities": ["C4"],
+      "channelVectors": ["CH-19-UNSUPPORTED-OPERATION"],
+      "classification": "adversarial",
+      "given": ["A compatible established contract"],
+      "when": ["A request names an Operation outside that contract"],
+      "then": ["The request is refused", "No provider effect begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-operation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-47-SEMANTIC-FAILED-OUTCOME",
+      "capabilities": ["C4"],
+      "channelVectors": ["CH-13-SEMANTIC-FAILED-OUTCOME"],
+      "classification": "valid",
+      "given": ["An authorized request reaches the provider"],
+      "when": ["The domain Operation reports structured failure details in its declared detail Shape"],
+      "then": ["A failed Outcome crosses and the result is absent", "The failure is not a protocol or process failure", "No exception is transported"],
+      "expected": { "frameDecision": "accept", "resultClass": "outcome-failed" }
+    },
+    {
+      "id": "PB-48-LOCAL-CODE-IS-NON-NORMATIVE",
+      "capabilities": ["C4"],
+      "channelVectors": ["CH-14-PROTOCOL-CODE-MAPPING"],
+      "classification": "valid",
+      "given": ["Two realizations use different local code strings for an unsupported contract"],
+      "when": ["Each adapter reports the portable observation"],
+      "then": ["Both observations carry the same portable category", "Local code strings remain non-normative data"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-contract" }
+    },
+    {
+      "id": "PB-49-INTERNAL-PROTOCOL-FAILURE",
+      "capabilities": ["C4"],
+      "channelVectors": ["CH-22-INTERNAL-PROTOCOL-FAILURE"],
+      "classification": "adversarial",
+      "given": ["The endpoint cannot continue protocol processing"],
+      "when": ["Its local implementation raises a runtime-specific failure"],
+      "then": ["The portable category is internal-protocol-failure", "No exception, stack trace, or runtime type crosses"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "internal-protocol-failure", "effectCountNotAsserted": "The endpoint lost the ability to continue protocol processing, so it cannot determine whether a provider effect had already occurred." }
+    },
+    {
+      "id": "PB-50-PEER-TERMINATED",
+      "capabilities": ["C4", "C8"],
+      "channelVectors": ["CH-17-PEER-TERMINATED"],
+      "classification": "adversarial",
+      "given": ["A request was sent and no valid Outcome was received"],
+      "when": ["The peer process terminates"],
+      "then": ["The observation is peer-terminated", "Retry and fallback facts are explicit", "Success is never fabricated"],
+      "expected": { "frameDecision": "none", "resultClass": "process-failure", "processCategory": "peer-terminated", "failureDomain": "remote-provider", "effectCountNotAsserted": "The peer may have performed the effect before terminating. C4 requires that success is never fabricated; it does not license fabricating a zero effect count either." }
+    },
+    {
+      "id": "PB-51-PROCESS-FAILURE-CATEGORY-SELECTION",
+      "capabilities": ["C4"],
+      "channelVectors": ["CH-23-PROCESS-FAILURE-CATEGORIES"],
+      "classification": "adversarial",
+      "given": ["No valid semantic Outcome is available"],
+      "when": ["The independent stack adapter classifies the local observation"],
+      "then": ["It selects exactly one declared process category", "Unknown retains the reason narrower attribution was impossible", "Success is never fabricated"],
+      "cases": [
+        "transport-unavailable",
+        "transport-interrupted",
+        "timeout",
+        "peer-terminated",
+        "peer-unavailable",
+        "resource-exhausted",
+        "unknown"
+      ],
+      "expected": { "frameDecision": "none", "resultClass": "process-failure", "effectCountNotAsserted": "The seven categories differ in whether an effect occurred; a single count across all of them would be wrong for some." }
+    },
+    {
+      "id": "PB-52-FAILURE-DOMAIN-RELATIVITY",
+      "capabilities": ["C4"],
+      "channelVectors": ["CH-24-FAILURE-DOMAIN-RELATIVITY"],
+      "classification": "adversarial",
+      "given": ["Equivalent failures are observed at different Channel boundaries"],
+      "when": ["Each adapter records the failure relative to its observer"],
+      "then": ["It selects exactly one declared failure domain", "No domain value claims global topology"],
+      "cases": ["local-endpoint", "transport", "remote-endpoint", "remote-provider", "unknown"],
+      "expected": { "frameDecision": "none", "resultClass": "process-failure", "effectCountNotAsserted": "The vector varies the observer, not the effect; the count is not what it fixes." }
+    }
+  ]
+}

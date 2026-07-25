@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "group": {
+    "id": "plan-observation-and-parity",
+    "capabilities": ["C2", "C7", "C9", "C10"],
+    "status": "PB1 neutral vectors; data only; validated without loading either stack",
+    "fixture": "vectors/fixture-contract.json",
+    "schemas": ["schemas/binding-plan.json", "schemas/binding-observation.json"],
+    "note": "The C7 and C10 vectors state the obligation each stack harness must discharge in PB4 and PB5. PB1 fixes what must be equal and what may differ; it does not execute the comparison."
+  },
+  "vectors": [
+    {
+      "id": "PB-53-PLAN-IS-FROZEN-AND-INSPECTABLE",
+      "capabilities": ["C2"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": ["Negotiation succeeded"],
+      "when": ["Each declared Binding Plan fact is retrieved by name from the established binding"],
+      "then": ["Every fact answers without invoking the provider", "The values match what negotiation fixed", "A compiled realization answers the same questions as an explicit-data realization"],
+      "expected": { "frameDecision": "none", "resultClass": "negotiation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-54-COMPACT-IDENTIFIERS-ARE-NOT-IDENTITY",
+      "capabilities": ["C1", "C2"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": ["The plan assigned compact identifiers after canonical negotiation"],
+      "when": ["The plan facts and the observation set are inspected"],
+      "then": ["Both report canonical references, never compact identifiers", "The assignments are recorded as plan data scoped to this binding"],
+      "expected": { "frameDecision": "none", "resultClass": "negotiation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-55-OBSERVATION-COMPLETE-ON-SUCCESS",
+      "capabilities": ["C9"],
+      "channelVectors": ["CH-01-CORRELATION-ECHO"],
+      "classification": "valid",
+      "given": ["A request completed with a successful Outcome"],
+      "when": ["The observation is produced"],
+      "then": ["Every normative field is present", "The correlation mapping records a host-native Execution distinct from every Channel identity", "Timing is recorded but drives no semantic decision"],
+      "expected": { "frameDecision": "accept", "resultClass": "outcome-succeeded" }
+    },
+    {
+      "id": "PB-56-OBSERVATION-COMPLETE-ON-DENIAL",
+      "capabilities": ["C9", "C3"],
+      "channelVectors": ["CH-12-DENIAL-IS-NOT-A-FRAME"],
+      "classification": "valid",
+      "given": ["A local authority denial emitted no frame"],
+      "when": ["The observation is produced"],
+      "then": ["Every normative field is still present", "terminalStatus is denied, authorityDecisionPoint is host-local, and providerEffectCount and copyCount are zero", "An unobservable value uses its declared absent form rather than being omitted"],
+      "expected": { "frameDecision": "none", "resultClass": "denial", "effectCount": 0 }
+    },
+    {
+      "id": "PB-57-OBSERVATION-RECORDS-MAPPING-OBLIGATIONS",
+      "capabilities": ["C9", "C5"],
+      "channelVectors": ["CH-07-PAYLOAD-COVARIANCE"],
+      "classification": "additive-compatible",
+      "given": ["A payload was projected from command Shape version 2 to version 1"],
+      "when": ["The observation is produced"],
+      "then": ["The projection appears as a mapping obligation", "A representation mapping is distinguishable from a semantic translation, which would require an explicit Adapter Component"],
+      "expected": { "frameDecision": "accept", "resultClass": "request" }
+    },
+    {
+      "id": "PB-58-DIRECT-AND-PROCESS-PARITY-ON-SUCCESS",
+      "capabilities": ["C7"],
+      "channelVectors": ["CH-01-CORRELATION-ECHO"],
+      "classification": "valid",
+      "phase": "PB4",
+      "given": ["One fixed-direct-call realization and one negotiated-process realization of the same contract"],
+      "when": ["Both execute the successful request vector"],
+      "then": ["Every field in the parity profile is equal", "Excluded fields differ only as their stated reasons permit"],
+      "expected": { "frameDecision": "accept", "resultClass": "outcome-succeeded" }
+    },
+    {
+      "id": "PB-59-DIRECT-AND-PROCESS-PARITY-ON-DENIAL",
+      "capabilities": ["C7", "C3"],
+      "channelVectors": ["CH-12-DENIAL-IS-NOT-A-FRAME"],
+      "classification": "valid",
+      "phase": "PB4",
+      "given": ["Both realizations of the same contract"],
+      "when": ["Both execute the local-denial vector"],
+      "then": ["Both report frameDecision none, resultClass denial, and zero provider effects", "The no-frame decision is identical even though only one realization has a wire"],
+      "expected": { "frameDecision": "none", "resultClass": "denial", "effectCount": 0 }
+    },
+    {
+      "id": "PB-60-COPY-ACCOUNTING-DIFFERS-WITHOUT-BREAKING-PARITY",
+      "capabilities": ["C7", "C6", "C9"],
+      "channelVectors": [],
+      "classification": "valid",
+      "phase": "PB4",
+      "given": ["A copied-immutable-blob resource in both realizations"],
+      "when": ["Both execute the resource vector"],
+      "then": ["copyCount is 1 across the process seam and 0 in the direct call", "Parity still holds, because copy accounting is an excluded field with exactly this stated reason", "flavor, ownership, integrityVerified, and accepted are equal"],
+      "expected": { "frameDecision": "accept", "resultClass": "outcome-succeeded" }
+    },
+    {
+      "id": "PB-61-INDEPENDENT-PROVIDER-ACCEPTED-BY-BOTH-HOSTS",
+      "capabilities": ["C10"],
+      "channelVectors": [],
+      "classification": "valid",
+      "phase": "PB5",
+      "given": ["A provider endpoint that depends on neither stack"],
+      "when": ["Each stack hosts it over the negotiated process realization"],
+      "then": ["Both hosts establish, invoke, and observe the same category-level results", "The contract is demonstrably implementable without importing either private model"],
+      "expected": { "frameDecision": "accept", "resultClass": "outcome-succeeded" }
+    },
+    {
+      "id": "PB-62-NO-SHARED-SEMANTIC-RUNTIME",
+      "capabilities": ["C10", "C7"],
+      "channelVectors": [],
+      "classification": "valid",
+      "phase": "PB5",
+      "given": ["Both stacks and the neutral artifacts"],
+      "when": ["The dependency guards run"],
+      "then": ["Neither stack references the other's assemblies, private types, codecs, or semantic runtime logic", "The neutral layer contains no generated stack source and no runtime helper"],
+      "expected": { "frameDecision": "none", "resultClass": "negotiation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-63-BOTH-HOST-DIRECTIONS",
+      "capabilities": ["C10"],
+      "channelVectors": ["CH-01-CORRELATION-ECHO", "CH-13-SEMANTIC-FAILED-OUTCOME"],
+      "classification": "valid",
+      "phase": "PB5",
+      "given": ["Reference hosting Minimal, and Minimal hosting Reference"],
+      "when": ["Both directions execute the same success and shaped-failure vectors"],
+      "then": ["Both directions produce the same category-level observations", "Neither direction depends on the other's private runtime"],
+      "expected": { "frameDecision": "accept", "resultClass": "outcome-succeeded" }
+    }
+  ]
+}

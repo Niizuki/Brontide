@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "contract": {
+    "id": "brontide.portable-binding.references-and-shape-floor",
+    "version": "0.1-draft",
+    "status": "PB1 neutral contract; planned experimental work; not ratified; not part of Brontide Base",
+    "designedFor": "Brontide Architecture 0.8 section 16 and 18.1 (Complete Draft)",
+    "plan": "docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md",
+    "capabilities": ["C1", "C5"]
+  },
+  "canonicalReference": {
+    "normalizes": "PB0 finding 1: Cooling v2 uses structured {name,version}; Catalog v1 uses 'name@version' strings.",
+    "structuredForm": {
+      "encoding": "record with exactly the fields below; unknown fields are rejected",
+      "fields": [
+        { "name": "name", "shape": "Text", "required": true, "rule": "canonicalNamePortableProfile" },
+        { "name": "version", "shape": "Integer.Signed64", "required": true, "rule": "integer >= 1" }
+      ]
+    },
+    "textForm": {
+      "pattern": "<name>@<version>",
+      "permittedPositions": [
+        "map keys where a single string key is structurally required, specifically the fragment map of a record value"
+      ],
+      "rule": "The text form is a rendering of the structured form and never a distinct identity. Parsing splits on the last '@'."
+    },
+    "canonicalNamePortableProfile": {
+      "derivedFrom": "Reference/src/Brontide.Reference.Core/Names.cs CanonicalName.TryParse",
+      "sourceRule": "Non-empty, equal to its own trim, at most one ':' separating an authority path from a concept path; each path splits on '.' into non-empty segments whose characters are Unicode letter-or-digit, '_' or '-'.",
+      "portableNarrowing": "The portable profile restricts segment characters to ASCII [A-Za-z0-9_-]. This is a deliberate narrowing of the Reference rule, recorded here rather than left implicit: a Unicode-letter name is a valid Brontide canonical name but is not portable in binding 0.1.",
+      "regex": "^(?:[A-Za-z0-9_-]+(?:\\.[A-Za-z0-9_-]+)*:)?[A-Za-z0-9_-]+(?:\\.[A-Za-z0-9_-]+)*$",
+      "maxBytes": 256
+    },
+    "identitySpaces": [
+      { "space": "component", "reference": "structured", "note": "The Component whose contract is established." },
+      { "space": "provider", "reference": "structured", "note": "The endpoint offering the Component." },
+      { "space": "operation", "reference": "structured", "note": "A negotiated Operation." },
+      { "space": "shape", "reference": "structured", "note": "An input, result, or detail Shape." },
+      { "space": "fragment", "reference": "structured", "note": "A declared Fragment." },
+      { "space": "dependency", "reference": "structured", "note": "A declared profile or binding dependency." },
+      { "space": "binding-plan", "reference": "opaque-text", "note": "Identifies one binding scope; see binding-plan.json." },
+      { "space": "channel", "reference": "opaque-text", "note": "Channel correlation; see channel-envelope.json." },
+      { "space": "request", "reference": "opaque-text", "note": "Channel correlation; see channel-envelope.json." },
+      { "space": "resource", "reference": "structured-resource", "note": "See payload-representation.json." }
+    ],
+    "compactIdentifiers": {
+      "capability": "C1",
+      "rule": "A binding may assign compact unsigned-integer identifiers to negotiated Operation, Shape, and Fragment references after canonical negotiation succeeds.",
+      "constraints": [
+        "A compact identifier is scoped to one established binding and is meaningless outside it.",
+        "A compact identifier never appears in a Binding Plan fact, an observation, or any persisted artifact as identity.",
+        "A compact identifier is never assigned before canonical negotiation completes.",
+        "Receiving a compact identifier that was not assigned in the current binding is 'unsupported-contract'.",
+        "Compact identifiers occupy the unsigned range 0..65535."
+      ],
+      "gapClosed": "PB0 recorded compact identifiers as missing from both experiments; this is their first neutral definition."
+    }
+  },
+  "shapeFloor": {
+    "capability": "C5",
+    "measuredAgainst": [
+      "Reference/src/Brontide.Reference.Experimental.Binding/ShapeValueCodec.cs",
+      "Minimal/src/Brontide.Minimal.Binding/PortableBinding.fs"
+    ],
+    "scalars": [
+      {
+        "name": "Text",
+        "version": 1,
+        "domain": "Unicode scalar sequence encoded as UTF-8",
+        "fixtureUse": "Cooling 'loop', 'failureMode'; Catalog item names and tags",
+        "bound": "maxTextBytes"
+      },
+      {
+        "name": "Boolean",
+        "version": 1,
+        "domain": "true or false",
+        "fixtureUse": "Cooling 'enabled', 'coolingEnabled'",
+        "bound": null
+      },
+      {
+        "name": "Integer.Signed64",
+        "version": 1,
+        "domain": "-9223372036854775808 .. 9223372036854775807",
+        "fixtureUse": "Cooling 'revision', 'providerEffectCount'",
+        "bound": null
+      },
+      {
+        "name": "Decimal",
+        "version": 1,
+        "domain": "exact decimal fraction: mantissa (Integer.Signed64) scaled by 10^exponent",
+        "fixtureUse": "declared floor member; no current Cooling or Catalog fixture uses it",
+        "bound": "exponent in -28..28",
+        "note": "Both stack codecs currently reject Decimal at the boundary. It is declared here because the portable floor must state its scalar set once; a stack that does not implement it declares so through an unsupported-contract negotiation failure rather than by silently accepting and mangling the value."
+      },
+      {
+        "name": "Bytes",
+        "version": 1,
+        "domain": "opaque octet sequence",
+        "fixtureUse": "referenced-resource content and integrity payloads",
+        "bound": "maxByteStringBytes"
+      }
+    ],
+    "composites": [
+      {
+        "kind": "unit",
+        "rule": "Carries no information. Legal only where the declared Shape is unit."
+      },
+      {
+        "kind": "record",
+        "rule": "An ordered-by-encoding map of declared fields plus a map of attached Fragments.",
+        "fieldRules": [
+          "Field names are unique and match the portable member-token profile [A-Za-z0-9_-]+.",
+          "A required field must be present.",
+          "An optional field is either present with a conforming value or absent. A present-but-null optional field is 'invalid-payload' unless its declared Shape is unit, which is the one Shape whose value encodes as null.",
+          "A field not declared by the Shape is governed by fragmentPolicy and the projection rules below."
+        ],
+        "fragmentPolicy": {
+          "open": "Undeclared Fragments may be attached and are projected away by a consumer that does not recognize them.",
+          "closed": "Only Fragments declared by the negotiated Operation may be attached; any other Fragment is 'invalid-payload'."
+        }
+      },
+      {
+        "kind": "sequence",
+        "rule": "An ordered, homogeneous list of the declared item Shape. Order is semantic and is preserved exactly.",
+        "bound": "maxSequenceItems"
+      },
+      {
+        "kind": "choice",
+        "rule": "Exactly one named alternative and its value. An alternative not declared by the Shape is 'invalid-payload' rather than 'unsupported-kind', because the envelope kind was recognized."
+      }
+    ],
+    "projection": {
+      "capability": "C5",
+      "channelVector": "CH-07-PAYLOAD-COVARIANCE",
+      "additiveRule": "A consumer recognizing Shape version N accepts a payload declared at version M > N when every difference is additive: new optional fields and new Fragments. It projects the payload to version N by canonically ignoring the unrecognized additive structure.",
+      "nonAdditiveRule": "A new required field, a removed field, a changed field Shape, or a changed cardinality is not additive. The result is 'invalid-payload' and no provider effect begins.",
+      "constraintValueExemption": {
+        "capability": "C8",
+        "channelVector": "CH-08-AUTHORITY-NO-PROJECTION",
+        "linkedArchitectureVector": "BR-08-ADV-C8-001",
+        "rule": "Values in an authority or control position are never projected. An unrecognized Constraint value version makes the atom Unknown and the request is denied locally; no frame crosses a pre-provider boundary.",
+        "rationale": "Projection discards unrecognized structure. Discarding narrowing semantics from an authority value would widen authority, so payload covariance must not reach authority positions."
+      }
+    },
+    "forbiddenContent": {
+      "capability": "C4",
+      "channelVector": "CH-18-FOREIGN-RUNTIME-DATA-FORBIDDEN",
+      "rule": "No exception, stack trace, runtime type identity, or authority object representation may appear in any position.",
+      "rejectedFieldNames": ["$type", "typeName", "exception", "stackTrace", "innerException", "targetSite"],
+      "matching": "case-insensitive",
+      "outcome": "A rejected field name in a control position is 'malformed-message'; in a declared payload position it is 'invalid-payload'.",
+      "derivedFrom": "BoundaryJson.ForbiddenProperties in both stacks, generalized to the neutral contract"
+    }
+  }
+}

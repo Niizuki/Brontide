@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "fixture": {
+    "id": "brontide.portable-binding.fixture.cooling",
+    "version": "0.1-draft",
+    "status": "PB1 neutral fixture; data only; validates without loading either stack",
+    "role": "The subject contract for the PB1 vectors. It restates the Cooling experiment in the neutral form defined by schemas/component-contract.json, and adds the encoding-edge Shapes the golden encodings need.",
+    "derivedFrom": ["interchange/manifest-v2.json", "interchange/catalog/manifest-v1.json"]
+  },
+  "contractVersion": 1,
+  "component": { "name": "interchange.tests.cooling-component", "version": 1 },
+  "provider": { "name": "interchange.tests.fixture-provider", "version": 1 },
+  "provisions": [
+    { "kind": "operation", "reference": { "name": "interchange.tests.cooling.set-enabled", "version": 1 }, "providerSpecific": false },
+    { "kind": "binding", "reference": { "name": "interchange.tests.portable-cbor-core", "version": 1 }, "providerSpecific": true },
+    { "kind": "resource-flavor", "reference": { "name": "interchange.tests.copied-immutable-blob", "version": 1 }, "providerSpecific": false }
+  ],
+  "requirements": [
+    { "kind": "profile", "reference": { "name": "interchange.tests.cooling-profile", "version": 1 }, "strength": "required", "providerSpecific": false },
+    { "kind": "binding", "reference": { "name": "interchange.tests.portable-cbor-core", "version": 1 }, "strength": "required", "providerSpecific": true },
+    { "kind": "feature", "reference": { "name": "interchange.tests.streaming", "version": 1 }, "strength": "opposed", "providerSpecific": false }
+  ],
+  "operations": [
+    {
+      "reference": { "name": "interchange.tests.cooling.set-enabled", "version": 1 },
+      "inputShape": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "resultShape": { "name": "interchange.tests.cooling.result", "version": 1 },
+      "detailShape": { "name": "interchange.tests.cooling.details", "version": 1 },
+      "requiredFragments": [{ "name": "interchange.tests.cooling.host-context", "version": 1 }],
+      "resourceFlavors": ["copied-immutable-blob"]
+    }
+  ],
+  "shapes": [
+    {
+      "reference": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "open",
+      "fields": [
+        { "name": "loop", "shape": { "name": "Text", "version": 1 }, "required": true },
+        { "name": "enabled", "shape": { "name": "Boolean", "version": 1 }, "required": true },
+        { "name": "failureMode", "shape": { "name": "Text", "version": 1 }, "required": false }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.cooling.command", "version": 2 },
+      "kind": "record",
+      "fragmentPolicy": "open",
+      "additiveOver": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "fields": [
+        { "name": "loop", "shape": { "name": "Text", "version": 1 }, "required": true },
+        { "name": "enabled", "shape": { "name": "Boolean", "version": 1 }, "required": true },
+        { "name": "failureMode", "shape": { "name": "Text", "version": 1 }, "required": false },
+        { "name": "requestedBy", "shape": { "name": "Text", "version": 1 }, "required": false }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.cooling.command", "version": 3 },
+      "kind": "record",
+      "fragmentPolicy": "open",
+      "nonAdditiveOver": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "nonAdditiveReason": "adds a required field",
+      "fields": [
+        { "name": "loop", "shape": { "name": "Text", "version": 1 }, "required": true },
+        { "name": "enabled", "shape": { "name": "Boolean", "version": 1 }, "required": true },
+        { "name": "reason", "shape": { "name": "Text", "version": 1 }, "required": true }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.cooling.result", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "fields": [
+        { "name": "loop", "shape": { "name": "Text", "version": 1 }, "required": true },
+        { "name": "coolingEnabled", "shape": { "name": "Boolean", "version": 1 }, "required": true },
+        { "name": "revision", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
+        { "name": "providerEffectCount", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.cooling.details", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "fields": [
+        { "name": "code", "shape": { "name": "Text", "version": 1 }, "required": true },
+        { "name": "message", "shape": { "name": "Text", "version": 1 }, "required": true }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.encoding.tags", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "role": "Exercises sequence nesting for the golden encodings.",
+      "fields": [
+        { "name": "tags", "shape": { "name": "interchange.tests.encoding.text-sequence", "version": 1 }, "required": true }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.encoding.text-sequence", "version": 1 },
+      "kind": "sequence",
+      "itemShape": { "name": "Text", "version": 1 }
+    },
+    {
+      "reference": { "name": "interchange.tests.encoding.integers", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "role": "Exercises every shortest-form integer width boundary for the golden encodings.",
+      "fields": [
+        { "name": "i00", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
+        { "name": "i01", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
+        { "name": "i02", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
+        { "name": "i03", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
+        { "name": "i04", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
+        { "name": "i05", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
+        { "name": "i06", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
+        { "name": "i07", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
+        { "name": "i08", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
+        { "name": "i09", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.encoding.scalars", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "role": "Exercises the byte string, the allowlisted Decimal tag, and unit for the golden encodings.",
+      "fields": [
+        { "name": "b", "shape": { "name": "Bytes", "version": 1 }, "required": true },
+        { "name": "d", "shape": { "name": "Decimal", "version": 1 }, "required": true },
+        { "name": "u", "shape": { "name": "Unit", "version": 1 }, "required": true }
+      ]
+    }
+  ],
+  "fragments": [
+    {
+      "reference": { "name": "interchange.tests.cooling.host-context", "version": 1 },
+      "hostShape": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "fields": [
+        { "name": "requesterLabel", "shape": { "name": "Text", "version": 1 }, "required": true }
+      ]
+    }
+  ],
+  "authority": {
+    "presentationMode": "cross-trust-no-capability-transfer",
+    "trustBoundaryCrossed": true,
+    "noCapabilityTransfer": true,
+    "constraintPolicy": "fail-closed"
+  },
+  "representation": {
+    "representation": "portable-cbor-core-0.1",
+    "framing": "length-delimited",
+    "resourceFlavors": ["copied-immutable-blob"],
+    "acceptedResourceHandles": []
+  },
+  "limits": {
+    "maxFrameBytes": 65536,
+    "maxNestingDepth": 32,
+    "maxRecordFields": 256,
+    "maxFragmentsPerRecord": 16,
+    "maxSequenceItems": 4096,
+    "maxTextBytes": 16384,
+    "maxByteStringBytes": 32768,
+    "maxResourceBytes": 32768,
+    "ioTimeoutMilliseconds": 10000,
+    "maxConcurrentRequests": 1
+  },
+  "lifecycle": {
+    "replayProtectionDeclared": true,
+    "replayWindow": "binding",
+    "features": {
+      "establishment": true,
+      "readiness-signal": true,
+      "single-invocation": true,
+      "clean-withdrawal": true,
+      "clean-termination": true,
+      "retry": false,
+      "cancellation": false,
+      "streaming": false,
+      "ordering-guarantee": false,
+      "exactly-once-execution": false
+    }
+  }
+}

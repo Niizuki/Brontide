@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "contract": {
+    "id": "brontide.portable-binding.channel-envelope",
+    "version": "0.1-draft",
+    "status": "PB1 neutral contract; planned experimental work; not ratified; not part of Brontide Base",
+    "designedFor": "Brontide Architecture 0.8 section 16 and 18.1 (Complete Draft)",
+    "plan": "docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md",
+    "capabilities": ["C4"],
+    "channelContract": "docs/future/channel/Brontide-Draft-Channel-Contract-0.1.md",
+    "channelVectors": "conformance/channel-0.1-vectors.json"
+  },
+  "taxonomyRule": "The protocol categories, process categories, and failure domains below are reproduced from conformance/channel-0.1-vectors.json and must remain exactly that set. This contract adds no category and removes none.",
+  "envelope": {
+    "unknownFieldPolicy": "reject",
+    "unknownFieldOutcome": "malformed-message",
+    "fields": [
+      { "name": "contractVersion", "shape": "Integer.Signed64", "required": true, "rule": "A value the endpoint does not recognize is 'unsupported-version'." },
+      { "name": "kind", "shape": "Text", "required": true, "rule": "A value outside envelopeKinds is 'unsupported-kind'." },
+      { "name": "channelId", "shape": "Text", "required": true },
+      { "name": "requestId", "shape": "Text", "required": false, "rule": "Required for request, outcome, and any protocol-error correlated to a request." },
+      { "name": "executionId", "shape": "Text", "required": false },
+      { "name": "body", "shape": "kind-determined", "required": true }
+    ]
+  },
+  "envelopeKinds": [
+    { "id": "establish", "direction": "host-to-provider", "body": "component contract document", "legalStates": ["unestablished"], "resultClass": "negotiation" },
+    { "id": "establish-accepted", "direction": "provider-to-host", "body": "negotiated contract acknowledgement and assigned compact identifiers", "legalStates": ["establishing"], "resultClass": "negotiation" },
+    { "id": "ready", "direction": "provider-to-host", "body": "empty record", "legalStates": ["established"], "resultClass": "negotiation", "introducedBy": "PB1", "note": "Neither experiment had an explicit readiness signal; C8 requires one because no provider effect may occur before readiness." },
+    { "id": "request", "direction": "host-to-provider", "body": "operation reference, input value, and declared resources", "legalStates": ["ready"], "resultClass": "request" },
+    { "id": "outcome", "direction": "provider-to-host", "body": "succeeded result value or failed detail value", "legalStates": ["active"], "resultClass": ["outcome-succeeded", "outcome-failed"] },
+    { "id": "protocol-error", "direction": "either", "body": "portable category and non-normative local code", "legalStates": ["establishing", "established", "ready", "active", "withdrawn"], "resultClass": "protocol-error" },
+    { "id": "withdraw", "direction": "either", "body": "empty record", "legalStates": ["ready", "active"], "resultClass": "negotiation", "introducedBy": "PB1" },
+    { "id": "terminate", "direction": "either", "body": "empty record", "legalStates": ["established", "ready", "withdrawn"], "resultClass": "negotiation" }
+  ],
+  "notAnEnvelopeKind": [
+    {
+      "id": "denial",
+      "reason": "A local authority denial emits no frame (CH-12-DENIAL-IS-NOT-A-FRAME). It is an observation with frameDecision 'none' and resultClass 'denial'.",
+      "presentIn": "the Cooling experiment, whose denial is emitted by the provider-side host adapter after the frame boundary",
+      "migration": "PB2 and PB3 must not carry the Cooling denial kind into the portable envelope set."
+    },
+    {
+      "id": "process-failure",
+      "reason": "Process loss is observed locally, not signalled. It has frameDecision 'none' and resultClass 'process-failure'."
+    }
+  ],
+  "messageKindMapping": {
+    "purpose": "Maps each message kind PB0 inventoried to the neutral envelope kind and the governing Channel vector, closing the C4 'fixture-specific' classification.",
+    "entries": [
+      { "cooling": "activate", "catalog": "activate", "neutral": "establish", "channelVectors": ["CH-03-UNSUPPORTED-VERSION", "CH-04-UNSUPPORTED-CONTRACT"] },
+      { "cooling": "activation", "catalog": null, "neutral": "establish-accepted", "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"] },
+      { "cooling": null, "catalog": null, "neutral": "ready", "channelVectors": ["CH-21-STATE-VIOLATION"] },
+      { "cooling": "invoke", "catalog": "invoke", "neutral": "request", "channelVectors": ["CH-01-CORRELATION-ECHO", "CH-19-UNSUPPORTED-OPERATION", "CH-20-INVALID-PAYLOAD"] },
+      { "cooling": "outcome", "catalog": "result", "neutral": "outcome", "channelVectors": ["CH-01-CORRELATION-ECHO", "CH-02-CORRELATION-MISMATCH", "CH-13-SEMANTIC-FAILED-OUTCOME"] },
+      { "cooling": "denial", "catalog": null, "neutral": null, "channelVectors": ["CH-12-DENIAL-IS-NOT-A-FRAME"], "note": "Frameless in the neutral contract." },
+      { "cooling": "protocol-error", "catalog": "protocol-error", "neutral": "protocol-error", "channelVectors": ["CH-05-UNKNOWN-KIND", "CH-06-MALFORMED-MESSAGE", "CH-14-PROTOCOL-CODE-MAPPING", "CH-22-INTERNAL-PROTOCOL-FAILURE"] },
+      { "cooling": null, "catalog": null, "neutral": "withdraw", "channelVectors": ["CH-21-STATE-VIOLATION"] },
+      { "cooling": "shutdown", "catalog": "shutdown", "neutral": "terminate", "channelVectors": ["CH-17-PEER-TERMINATED"] }
+    ]
+  },
+  "correlation": {
+    "identityRule": "Channel correlation identities are opaque and never equal host-native Execution or Occurrence identities.",
+    "source": "conformance/channel-0.1-vectors.json conventions.identityRule",
+    "identities": [
+      { "id": "channelId", "scope": "one established binding", "opaque": true },
+      { "id": "requestId", "scope": "one request within one binding", "opaque": true, "replayIdentity": true },
+      { "id": "executionId", "scope": "one request; carried only when the peer echoes it", "opaque": true, "optional": true }
+    ],
+    "rules": [
+      { "case": "the outcome echoes every carried identity", "expected": { "frameDecision": "accept", "resultClass": "outcome-succeeded" }, "channelVector": "CH-01-CORRELATION-ECHO" },
+      { "case": "the outcome carries a requestId the host did not send", "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "correlation-mismatch", "failureDomain": "local-endpoint" }, "channelVector": "CH-02-CORRELATION-MISMATCH" },
+      { "case": "a required correlation identity is absent", "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message" } },
+      { "case": "an accepted requestId reappears inside the declared replay window", "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "replay-detected", "effectCount": 0 }, "channelVector": "CH-15-REPLAY-DECLARED" }
+    ],
+    "hostNativeMappingRule": "The host records a distinct host-native Execution identity for each accepted outcome and reports the correlation mapping as a C9 observation."
+  },
+  "protocolErrorCategories": [
+    { "id": "malformed-message", "detail": "Required envelope fields absent or malformed, or an encoding rule violated. No foreign parser exception crosses." },
+    { "id": "unsupported-version", "detail": "A declared contract or envelope version the endpoint does not recognize." },
+    { "id": "unsupported-contract", "detail": "An unrecognized contract, required feature, Shape, Fragment, dependency, or resource flavor." },
+    { "id": "unsupported-kind", "detail": "A structurally valid envelope whose kind or body discriminator is unknown." },
+    { "id": "unsupported-operation", "detail": "A request naming an Operation outside the established contract." },
+    { "id": "correlation-mismatch", "detail": "A claimed outcome whose correlation identities do not match an outstanding request." },
+    { "id": "invalid-payload", "detail": "An input that cannot conform through permitted payload projection, including a refused resource and an integrity mismatch." },
+    { "id": "invalid-authority-presentation", "detail": "A Capability crossing a trust boundary, a missing no-capability-transfer declaration, or a constraint policy other than fail-closed." },
+    { "id": "replay-detected", "detail": "A repeated requestId inside the declared replay window." },
+    { "id": "limit-exceeded", "detail": "An inbound frame or value exceeding a declared bound." },
+    { "id": "state-violation", "detail": "A recognized kind that is illegal in the current lifecycle state." },
+    { "id": "internal-protocol-failure", "detail": "The endpoint cannot continue protocol processing. No exception, stack trace, or runtime type crosses." }
+  ],
+  "processFailureCategories": [
+    { "id": "transport-unavailable" },
+    { "id": "transport-interrupted" },
+    { "id": "timeout" },
+    { "id": "peer-terminated" },
+    { "id": "peer-unavailable" },
+    { "id": "resource-exhausted" },
+    { "id": "unknown", "detail": "Retains the reason narrower attribution was impossible." }
+  ],
+  "failureDomains": [
+    { "id": "local-endpoint" },
+    { "id": "transport" },
+    { "id": "remote-endpoint" },
+    { "id": "remote-provider" },
+    { "id": "unknown" }
+  ],
+  "failureSeparation": {
+    "capability": "C4",
+    "rule": "Semantic failure, protocol rejection, process loss, and local denial remain four distinct observations.",
+    "distinctions": [
+      { "observation": "shaped failed Outcome", "resultClass": "outcome-failed", "frameDecision": "accept", "detail": "The Operation reported structured failure details in its declared detail Shape. Result is absent. This is not a protocol or process failure.", "channelVector": "CH-13-SEMANTIC-FAILED-OUTCOME" },
+      { "observation": "protocol rejection", "resultClass": "protocol-error", "frameDecision": "reject" },
+      { "observation": "process loss", "resultClass": "process-failure", "frameDecision": "none", "channelVector": "CH-17-PEER-TERMINATED" },
+      { "observation": "local denial", "resultClass": "denial", "frameDecision": "none", "channelVector": "CH-12-DENIAL-IS-NOT-A-FRAME" }
+    ],
+    "noExceptionTransport": {
+      "rule": "No private exception, stack trace, runtime type name, or authority object crosses the seam in any of the four observations.",
+      "channelVector": "CH-18-FOREIGN-RUNTIME-DATA-FORBIDDEN"
+    }
+  },
+  "localCodeRule": {
+    "rule": "An endpoint may carry a local diagnostic code alongside the portable category. Local code strings are non-normative and never drive portable semantics.",
+    "channelVector": "CH-14-PROTOCOL-CODE-MAPPING",
+    "examples": [
+      { "localCode": "resource-refused", "portableCategory": "invalid-payload", "origin": "Catalog experiment" },
+      { "localCode": "replay", "portableCategory": "replay-detected", "origin": "Catalog experiment" },
+      { "localCode": "unsupported-protocol", "portableCategory": "unsupported-version", "origin": "Cooling experiment" }
+    ]
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "contract": {
+    "id": "brontide.portable-binding.limits-and-lifecycle",
+    "version": "0.1-draft",
+    "status": "PB1 neutral contract; planned experimental work; not ratified; not part of Brontide Base",
+    "designedFor": "Brontide Architecture 0.8 section 16 and 18.1 (Complete Draft)",
+    "plan": "docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md",
+    "capabilities": ["C8"]
+  },
+  "purpose": "Unifies the two inconsistent limit surfaces PB0 inventoried and makes the lifecycle states explicit instead of implicit.",
+  "normalizedFrom": {
+    "cooling": { "nestingDepth": 64, "ioTimeoutMilliseconds": 10000, "frameBytes": null, "replayWindow": null },
+    "catalog": { "nestingDepth": 32, "ioTimeoutMilliseconds": null, "frameBytes": 65536, "replayWindow": "per-endpoint request-id set for the provider process lifetime" },
+    "resolution": "Take the tighter bound wherever the two experiments disagree and adopt each surface that only one of them declared, so the neutral limit set is the intersection of permissiveness rather than the union."
+  },
+  "limits": {
+    "declarationRule": "Every limit below is declared in the contract and frozen into the Binding Plan. An undeclared limit is not enforceable, and an unbounded limit is not permitted.",
+    "enforcementRule": "Limits are enforced before uncontrolled work begins. A limit violation never produces a partial provider effect.",
+    "values": [
+      { "id": "maxFrameBytes", "value": 65536, "unit": "bytes", "source": "catalog", "appliesTo": "one length-delimited frame body", "violation": "limit-exceeded" },
+      { "id": "maxNestingDepth", "value": 32, "unit": "levels", "source": "catalog (tighter than Cooling's 64)", "appliesTo": "decoder nesting of arrays and maps", "violation": "limit-exceeded" },
+      { "id": "maxRecordFields", "value": 256, "unit": "fields", "source": "neutral", "appliesTo": "one record value's field map", "violation": "limit-exceeded" },
+      { "id": "maxFragmentsPerRecord", "value": 16, "unit": "fragments", "source": "neutral", "appliesTo": "one record value's fragment map", "violation": "limit-exceeded" },
+      { "id": "maxSequenceItems", "value": 4096, "unit": "items", "source": "neutral", "appliesTo": "one sequence value", "violation": "limit-exceeded" },
+      { "id": "maxTextBytes", "value": 16384, "unit": "bytes", "source": "neutral", "appliesTo": "one Text scalar's UTF-8 encoding", "violation": "limit-exceeded" },
+      { "id": "maxByteStringBytes", "value": 32768, "unit": "bytes", "source": "neutral", "appliesTo": "one Bytes scalar", "violation": "limit-exceeded" },
+      { "id": "maxResourceBytes", "value": 32768, "unit": "bytes", "source": "neutral", "appliesTo": "one copied-immutable-blob resource", "violation": "limit-exceeded" },
+      { "id": "ioTimeoutMilliseconds", "value": 10000, "unit": "milliseconds", "source": "cooling", "appliesTo": "one blocking read or write on the process seam", "violation": "timeout" },
+      { "id": "maxConcurrentRequests", "value": 1, "unit": "requests", "source": "cooling 'single-invocation'", "appliesTo": "one established binding", "violation": "state-violation" }
+    ],
+    "consistencyRule": "maxResourceBytes must not exceed maxByteStringBytes, and no single value bound may exceed maxFrameBytes, because every value is carried inside one frame."
+  },
+  "replayProtection": {
+    "capability": "C8",
+    "channelVector": "CH-15-REPLAY-DECLARED",
+    "declared": true,
+    "scope": "one established binding at one endpoint",
+    "window": "From establishment until termination. The window ends with the binding; it is not persisted and does not survive a peer restart.",
+    "identity": "requestId",
+    "rule": "A requestId accepted inside the window is rejected on a second appearance and the effect is not repeated.",
+    "violation": "replay-detected",
+    "effectCount": 0,
+    "source": "catalog per-endpoint request-id set, generalized from the provider process lifetime to the binding lifetime"
+  },
+  "lifecycle": {
+    "capability": "C8",
+    "statesAreExplicit": "PB0 recorded the Cooling and Catalog lifecycles as implicit in their message ordering. The states below are the neutral contract's explicit state machine.",
+    "states": [
+      { "id": "unestablished", "terminal": false, "detail": "No contract exists. Only an establish frame is legal." },
+      { "id": "establishing", "terminal": false, "detail": "An establish frame was sent or received and negotiation is in progress. No provider effect may occur." },
+      { "id": "established", "terminal": false, "detail": "Negotiation succeeded and the Binding Plan is frozen. The provider is not yet ready." },
+      { "id": "ready", "terminal": false, "detail": "The provider signalled readiness. Requests are legal." },
+      { "id": "active", "terminal": false, "detail": "A request is outstanding and its correlated outcome has not arrived." },
+      { "id": "withdrawn", "terminal": false, "detail": "The binding was withdrawn cleanly. No new request is legal; an outstanding outcome may still be accepted." },
+      { "id": "terminated", "terminal": true, "detail": "The binding ended. No frame is legal." },
+      { "id": "failed", "terminal": true, "detail": "The binding ended through a protocol error or process failure. No frame is legal." }
+    ],
+    "transitions": [
+      { "from": "unestablished", "to": "establishing", "on": "establish" },
+      { "from": "establishing", "to": "established", "on": "establish-accepted" },
+      { "from": "establishing", "to": "failed", "on": "protocol-error" },
+      { "from": "established", "to": "ready", "on": "ready" },
+      { "from": "ready", "to": "active", "on": "request" },
+      { "from": "active", "to": "ready", "on": "outcome" },
+      { "from": "active", "to": "failed", "on": "protocol-error" },
+      { "from": "ready", "to": "withdrawn", "on": "withdraw" },
+      { "from": "active", "to": "withdrawn", "on": "withdraw" },
+      { "from": "withdrawn", "to": "terminated", "on": "terminate" },
+      { "from": "ready", "to": "terminated", "on": "terminate" },
+      { "from": "established", "to": "terminated", "on": "terminate" }
+    ],
+    "illegalTransitionOutcome": "state-violation",
+    "invariants": [
+      "No provider effect occurs before the 'ready' state is reached.",
+      "A request is legal only in 'ready'. A second concurrent request is 'state-violation' because maxConcurrentRequests is 1.",
+      "An outcome is legal only in 'active' and only with a matching correlation. A duplicate terminal outcome is 'state-violation'.",
+      "Correlation mismatch, illegal state, peer termination, timeout, and interruption never fabricate a success.",
+      "Reaching a terminal state releases no resource by implication; the copied-immutable-blob flavor requires no release, and the addressing-only handle is released by the provider session ending."
+    ]
+  },
+  "lifecycleFeatures": {
+    "declaredSupported": [
+      { "id": "establishment", "supported": true },
+      { "id": "readiness-signal", "supported": true },
+      { "id": "single-invocation", "supported": true, "detail": "maxConcurrentRequests is 1 in version 0.1." },
+      { "id": "clean-withdrawal", "supported": true },
+      { "id": "clean-termination", "supported": true }
+    ],
+    "declaredUnsupported": [
+      { "id": "retry", "supported": false, "ifRequiredOutcome": "unsupported-contract" },
+      { "id": "cancellation", "supported": false, "ifRequiredOutcome": "unsupported-contract" },
+      { "id": "streaming", "supported": false, "ifRequiredOutcome": "unsupported-contract" },
+      { "id": "ordering-guarantee", "supported": false, "ifRequiredOutcome": "unsupported-contract" },
+      { "id": "exactly-once-execution", "supported": false, "ifRequiredOutcome": "unsupported-contract" }
+    ],
+    "rule": "An unsupported feature is refused at negotiation rather than silently ignored, so no consumer can infer a guarantee version 0.1 does not make."
+  }
+}
