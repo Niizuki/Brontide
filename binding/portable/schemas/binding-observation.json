@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "contract": {
+    "id": "brontide.portable-binding.binding-observation",
+    "version": "0.1-draft",
+    "status": "PB1 neutral contract; planned experimental work; not ratified; not part of Brontide Base",
+    "designedFor": "Brontide Architecture 0.8 section 16 and 18.1 (Complete Draft)",
+    "plan": "docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md",
+    "capabilities": ["C9"]
+  },
+  "purpose": "The unified observation set every completed or rejected interaction can report. PB0 classified C9 as fixture-specific because the experiments expose only 'providerEffectCount', 'crossedBoundaries', and correlation identities, and the universal form was explicitly not ratified.",
+  "governingRule": {
+    "rule": "Diagnostics do not drive portable semantics. An observation records what happened; it never decides what happens.",
+    "consequence": "A parity check compares the normative fields below. Non-normative fields may differ between realizations without failing parity."
+  },
+  "normativeFields": [
+    { "id": "selectedProvider", "shape": "canonicalReference", "required": true },
+    { "id": "selectionReason", "shape": "Text", "required": true },
+    { "id": "negotiatedOperations", "shape": "sequence<canonicalReference>", "required": true },
+    { "id": "negotiatedContractVersion", "shape": "Integer.Signed64", "required": true },
+    { "id": "representation", "shape": "Text", "required": true, "enumSource": "payload-representation.json representations" },
+    { "id": "crossedBoundaries", "shape": "sequence<Text>", "required": true, "enum": ["process", "trust", "none"] },
+    { "id": "copyCount", "shape": "Integer.Signed64", "required": true, "detail": "Payload and resource copies across the seam. A forbidden implicit copy is visible here rather than inferred." },
+    { "id": "referencedResources", "shape": "sequence<resourceObservation>", "required": true },
+    { "id": "authorityDecisionPoint", "shape": "Text", "required": true, "enumSource": "authority-presentation.json authorityDecisionPoint" },
+    { "id": "authorityDecision", "shape": "Text", "required": true, "enum": ["permitted", "denied", "unknown"] },
+    { "id": "mappingObligations", "shape": "sequence<Text>", "required": true, "detail": "Projections and adapter obligations discharged, such as an additive projection from Shape version 2 to version 1." },
+    { "id": "retryCount", "shape": "Integer.Signed64", "required": true, "fixedValue": 0, "detail": "Version 0.1 makes no retry promise, so the value is always 0; the field exists so a future retry is not silently invisible." },
+    { "id": "interrupted", "shape": "Boolean", "required": true },
+    { "id": "failureDomain", "shape": "Text", "required": false, "enumSource": "channel-envelope.json failureDomains", "detail": "Present whenever terminalStatus is not 'succeeded'." },
+    { "id": "terminalStatus", "shape": "Text", "required": true, "enum": ["succeeded", "failed", "denied", "protocol-error", "process-failure"] },
+    { "id": "correlationMapping", "shape": "correlationMapping", "required": true },
+    { "id": "providerEffectCount", "shape": "Integer.Signed64", "required": true, "detail": "Required wherever it is observable. A failure path must report 0." },
+    { "id": "timing", "shape": "timingObservation", "required": true }
+  ],
+  "nonNormativeFields": [
+    { "id": "localCode", "shape": "Text", "detail": "The endpoint's own diagnostic code. Never drives semantics; see CH-14-PROTOCOL-CODE-MAPPING." },
+    { "id": "localMessage", "shape": "Text", "detail": "Human-readable diagnostic text. Must contain no exception, stack trace, or runtime type name." }
+  ],
+  "resourceObservation": {
+    "fields": [
+      { "name": "flavor", "shape": "Text", "required": true, "enumSource": "payload-representation.json flavors" },
+      { "name": "ownership", "shape": "Text", "required": true, "enum": ["copied", "provider-retained"] },
+      { "name": "copies", "shape": "Integer.Signed64", "required": true },
+      { "name": "integrityVerified", "shape": "Boolean", "required": true },
+      { "name": "accepted", "shape": "Boolean", "required": true }
+    ]
+  },
+  "correlationMapping": {
+    "fields": [
+      { "name": "channelId", "shape": "Text", "required": true },
+      { "name": "requestId", "shape": "Text", "required": true },
+      { "name": "hostNativeExecution", "shape": "Text", "required": true, "rule": "Distinct from every Channel correlation identity, per the Channel identity rule." }
+    ]
+  },
+  "timingObservation": {
+    "fields": [
+      { "name": "establishedAtElapsedMilliseconds", "shape": "Integer.Signed64", "required": true },
+      { "name": "requestElapsedMilliseconds", "shape": "Integer.Signed64", "required": true }
+    ],
+    "determinismRule": "Timing values are observations, never inputs to a semantic decision. Parity checks exclude them because they are not category-level facts."
+  },
+  "parityProfile": {
+    "capability": "C7",
+    "phase": "PB4",
+    "comparedFields": [
+      "authorityDecision",
+      "authorityDecisionPoint",
+      "terminalStatus",
+      "failureDomain",
+      "providerEffectCount",
+      "negotiatedOperations",
+      "negotiatedContractVersion",
+      "mappingObligations",
+      "interrupted",
+      "retryCount"
+    ],
+    "excludedFields": [
+      { "id": "representation", "reason": "A direct-call realization has no wire representation to compare." },
+      { "id": "framing", "reason": "Same as representation." },
+      { "id": "crossedBoundaries", "reason": "The realization is exactly what differs." },
+      { "id": "copyCount", "reason": "Copy accounting differs by realization by design: the copied-immutable-blob flavor is 1 across a process seam and 0 in a direct call." },
+      { "id": "correlationMapping", "reason": "Identities are opaque and per-run." },
+      { "id": "timing", "reason": "Not a category-level fact." },
+      { "id": "localCode", "reason": "Non-normative." },
+      { "id": "localMessage", "reason": "Non-normative." }
+    ],
+    "rule": "Two realizations of the same vector have parity when every compared field is equal. An excluded field may differ only in the way its stated reason permits.",
+    "resourceParityRule": "referencedResources compares 'flavor', 'ownership', 'integrityVerified', and 'accepted'; it excludes 'copies' for the reason given above."
+  },
+  "completenessRule": {
+    "rule": "Every normative field is present on every terminal observation, including rejections and denials. An unobservable value is reported with its declared absent form rather than omitted.",
+    "denialProfile": {
+      "detail": "A local denial produces a complete observation even though no frame was emitted.",
+      "expected": {
+        "terminalStatus": "denied",
+        "authorityDecision": "denied",
+        "authorityDecisionPoint": "host-local",
+        "providerEffectCount": 0,
+        "copyCount": 0,
+        "crossedBoundaries": ["none"],
+        "interrupted": false,
+        "retryCount": 0
+      }
+    }
+  }
+}

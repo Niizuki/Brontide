@@ -1,6 +1,6 @@
 # Portable Component Binding — neutral contract artifacts (`binding/portable/`)
 
-**Status:** PB0 scaffold — planned experimental work; not ratified; not part of Brontide Base.
+**Status:** PB1 complete — planned experimental work; not ratified; not part of Brontide Base.
 **Designed for:** Brontide Architecture 0.8 §16 and §18.1 (Complete Draft).
 **Plan:** [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
 
@@ -17,20 +17,63 @@ neutral source and owns its adapters.
 | `contract-matrix.md` | C1–C10 baseline inventory: owner, existing basis, classification, gap-to-close per capability | PB0 |
 | `representation-choice.md` | D3 / §11 chain-conjunction representation choice and revocation ceiling per stack (Portable Binding freeze prerequisite) | PB0 |
 | `open-decisions.md` | The two open owner decisions (wire representation; referenced-resource floor) with option sets and recommendations | PB0 |
-| `schemas/` | Data-only versioned neutral contracts (references, Shape floor, plans, envelopes) | PB1 |
-| `vectors/` | Valid, additive-compatible, and adversarial fixtures with expected outcomes | PB1 |
+| [`schemas/`](schemas/README.md) | Data-only versioned neutral contracts (references, Shape floor, plans, envelopes) | PB1 |
+| [`vectors/`](vectors/README.md) | Valid, additive-compatible, and adversarial fixtures with expected outcomes | PB1 |
 
 ## PB0 exit checklist (plan §5)
 
 - [x] Inventory the existing Cooling/Catalog surface and map each field, message kind, value
   variant, correlation identity, error code, limit, resource rule, and observation to C1–C10 with an
   owner, classification, and expected category-level observation (`contract-matrix.md`).
-- [ ] Author the neutral vectors so every C-item and Channel vector has an evidence path (PB1).
+- [x] Author the neutral vectors so every C-item and Channel vector has an evidence path
+  ([`vectors/`](vectors/README.md), PB1).
 - [x] Chain-conjunction representation choice recorded per stack (`representation-choice.md`) —
   **non-pinned interim**; transcription into the pinned delivery ledgers is deferred to the
   authorized repinning / fresh-review window.
 - [x] Resolve the two encoding blockers — **deterministic CBOR core** (wire) and **copied immutable
   blob** (referenced-resource floor), recorded 2026-07-24 (see `open-decisions.md`).
+
+## PB1 exit checklist (plan §5)
+
+- [x] Data-only versioned contracts for every PB1 bullet: canonical references and the Shape floor;
+  Component provisions and requirements; negotiated Operations, input/result/detail Shapes and
+  required Fragments; authority-presentation mode and the cross-trust `no-capability-transfer`
+  declaration; inline and referenced-shaped-resource declarations; delivery/hardening limits and
+  lifecycle features; immutable Binding Plan facts; Channel envelopes, correlation, protocol errors
+  and process-failure observations; and the C9 observation set
+  ([`schemas/`](schemas/README.md), eight files).
+- [x] Valid, additive-compatible, and adversarial fixtures with exact expected outcomes: 63 vectors
+  covering C1–C10, all 24 Channel 0.1 vectors, every protocol-error and process-failure category, and
+  every failure domain ([`vectors/`](vectors/README.md)).
+- [x] Deterministic byte forms — six golden CBOR encodings plus seven encodings that must be
+  rejected. The gate re-derives each golden value from its description rather than trusting the
+  checked-in bytes.
+- [x] Neutral layer free of generated stack source and runtime helpers; the gate fails on any file
+  here that is not `.json` or `.md`.
+- [x] Validated without loading either stack:
+  [`build/verify-portable-binding.ps1`](../../build/verify-portable-binding.ps1), invoked by
+  [`build/verify-interchange.ps1`](../../build/verify-interchange.ps1).
+
+**Exit:** the artifacts are self-contained, deterministic, linkable from both implementations, and
+validated without loading either stack.
+
+## What PB1 deliberately left to later phases
+
+PB1 fixes the contract; it does not implement it. Three findings recorded here are migration
+obligations for **PB2** (Reference) and **PB3** (Minimal), each stated in the schema that creates it
+rather than only in this index:
+
+1. **Map key ordering** is RFC 8949 bytewise-on-encoded-key order, not the ordinal string comparison
+   the Cooling JSON codec uses. `G1` in the golden encodings is the smallest case where the two
+   disagree.
+2. **Values are schema-guided** and carry no kind discriminator, unlike the retained
+   `inline-tagged-json` representation.
+3. **Denial is frameless.** The Cooling `denial` message kind must not become a portable envelope
+   kind.
+
+The C7 and C10 vectors carry a `phase` marker (PB4 or PB5) because they state an obligation a stack
+harness discharges later. PB1 fixes what must be equal and what may differ; it does not execute the
+comparison.
 
 ## Boundary
 

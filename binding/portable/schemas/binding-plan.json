@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "contract": {
+    "id": "brontide.portable-binding.binding-plan",
+    "version": "0.1-draft",
+    "status": "PB1 neutral contract; planned experimental work; not ratified; not part of Brontide Base",
+    "designedFor": "Brontide Architecture 0.8 section 16 and 18.1 (Complete Draft)",
+    "plan": "docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md",
+    "capabilities": ["C2"]
+  },
+  "purpose": "One immutable, inspectable Binding Plan for one binding scope. PB0 classified this as 'normalize': the plan facts exist today but are scattered across Cooling's 'binding' block and Catalog's flat 'resourceBoundary' and 'payloadLimitBytes' fields.",
+  "immutability": {
+    "rule": "Every fact below is fixed when negotiation succeeds and never changes for the life of the binding scope.",
+    "changeRule": "A change to any fact requires a new binding scope with a new planId. There is no renegotiation in place.",
+    "realizationRule": "The plan may be explicit data or compiled away, but both realizations expose equivalent evidence of what was fixed. A compiled realization still answers every inspection question below."
+  },
+  "inspectability": {
+    "rule": "Each fact is retrievable by name from an established binding without invoking the provider.",
+    "capability": "C2"
+  },
+  "facts": [
+    {
+      "group": "identity",
+      "entries": [
+        { "id": "planId", "shape": "Text", "detail": "Opaque identifier of one binding scope. Not a canonical reference and never persisted as identity." },
+        { "id": "contractVersion", "shape": "Integer.Signed64" }
+      ]
+    },
+    {
+      "group": "negotiated contracts",
+      "entries": [
+        { "id": "component", "shape": "canonicalReference" },
+        { "id": "provider", "shape": "canonicalReference" },
+        { "id": "operations", "shape": "sequence<canonicalReference>" },
+        { "id": "shapes", "shape": "sequence<canonicalReference>" },
+        { "id": "fragments", "shape": "sequence<canonicalReference>" },
+        { "id": "satisfiedRequirements", "shape": "sequence<canonicalReference>" },
+        { "id": "compactIdentifierAssignments", "shape": "sequence<compactAssignment>", "detail": "Binding-scoped only; never identity outside this plan." }
+      ]
+    },
+    {
+      "group": "actor endpoints",
+      "entries": [
+        { "id": "hostEndpoint", "shape": "Text", "detail": "Opaque host-side endpoint designation." },
+        { "id": "providerEndpoint", "shape": "Text", "detail": "Opaque provider-side endpoint designation." },
+        { "id": "selectedProvider", "shape": "canonicalReference" },
+        { "id": "selectionReason", "shape": "Text", "detail": "Why this provider was selected. Version 0.1 performs no provider selection policy, so the value records the fixed or negotiated basis." }
+      ]
+    },
+    {
+      "group": "authority",
+      "entries": [
+        { "id": "authorityPresentationMode", "shape": "Text", "enumSource": "authority-presentation.json presentationModes" },
+        { "id": "trustBoundaryCrossed", "shape": "Boolean" },
+        { "id": "noCapabilityTransfer", "shape": "Boolean", "detail": "Must be true whenever trustBoundaryCrossed is true." },
+        { "id": "constraintPolicy", "shape": "Text", "fixedValue": "fail-closed" },
+        { "id": "authorityDecisionPoint", "shape": "Text", "enumSource": "authority-presentation.json authorityDecisionPoint" },
+        { "id": "chainConjunctionTier", "shape": "Text", "fixedValue": "carried", "detail": "Cross-trust revocability is carried-tier by default; a resolver or indirection point is declared, never assumed." }
+      ]
+    },
+    {
+      "group": "payload representation",
+      "entries": [
+        { "id": "representation", "shape": "Text", "enumSource": "payload-representation.json representations" },
+        { "id": "framing", "shape": "Text", "enum": ["length-delimited", "direct-call"] },
+        { "id": "resourceFlavors", "shape": "sequence<Text>", "enumSource": "payload-representation.json flavors" },
+        { "id": "acceptedResourceHandles", "shape": "sequence<Text>", "detail": "The declared accept list for the addressing-only-handle flavor; empty when that flavor is not negotiated." }
+      ]
+    },
+    {
+      "group": "resource ownership",
+      "entries": [
+        { "id": "resourceOwnership", "shape": "Text", "enum": ["copied", "provider-retained", "none"] },
+        { "id": "implicitCopyPermitted", "shape": "Boolean", "fixedValue": false },
+        { "id": "integrityAlgorithm", "shape": "Text", "detail": "SHA-256 when a copied-immutable-blob flavor is negotiated; absent otherwise." }
+      ]
+    },
+    {
+      "group": "synchronization",
+      "entries": [
+        { "id": "maxConcurrentRequests", "shape": "Integer.Signed64", "fixedValue": 1 },
+        { "id": "orderingGuarantee", "shape": "Text", "fixedValue": "none" },
+        { "id": "realization", "shape": "Text", "enum": ["fixed-direct-call", "negotiated-process"] },
+        { "id": "crossedBoundaries", "shape": "sequence<Text>", "enum": ["process", "trust", "none"] }
+      ]
+    },
+    {
+      "group": "delivery limits",
+      "entries": [
+        { "id": "limits", "shape": "limitDeclaration", "enumSource": "limits-and-lifecycle.json limits.values" },
+        { "id": "replayProtectionDeclared", "shape": "Boolean" },
+        { "id": "replayWindow", "shape": "Text" }
+      ]
+    },
+    {
+      "group": "failure and lifecycle behaviour",
+      "entries": [
+        { "id": "lifecycleFeatures", "shape": "sequence<featureDeclaration>", "enumSource": "limits-and-lifecycle.json lifecycleFeatures" },
+        { "id": "terminalStates", "shape": "sequence<Text>", "fixedValue": ["terminated", "failed"] },
+        { "id": "failureDomainsObservable", "shape": "sequence<Text>", "enumSource": "channel-envelope.json failureDomains" },
+        { "id": "exceptionTransportPermitted", "shape": "Boolean", "fixedValue": false }
+      ]
+    }
+  ],
+  "compactAssignment": {
+    "fields": [
+      { "name": "reference", "shape": "canonicalReference", "required": true },
+      { "name": "space", "shape": "Text", "required": true, "enum": ["operation", "shape", "fragment"] },
+      { "name": "compactId", "shape": "Integer.Signed64", "required": true, "rule": "0..65535, unique within its space in this plan." }
+    ]
+  },
+  "parityRule": {
+    "capability": "C7",
+    "rule": "A fixed-direct-call plan and a negotiated-process plan for the same contract differ only in 'realization', 'framing', 'crossedBoundaries', and the copy accounting the realization implies. Every other fact is equal.",
+    "usedBy": "PB4 direct-versus-process parity"
+  },
+  "compositionHandoff": {
+    "capability": "C2",
+    "phase": "PB7",
+    "rule": "A resolved Component requirement and an offered provision produce a Binding Plan during activation preflight. The plan is established and the provider is ready before any ordinary interaction starts.",
+    "outOfScope": ["discovery", "acquisition", "provider selection policy", "generations", "mediation", "hot swap"],
+    "note": "PB1 fixes only which facts the handoff must produce. The adapter itself is PB7 work."
+  }
+}

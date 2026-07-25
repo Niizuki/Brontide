@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "fixture": {
+    "id": "brontide.portable-binding.golden-encodings",
+    "version": "0.1-draft",
+    "status": "PB1 neutral golden values; data only",
+    "representation": "portable-cbor-core-0.1",
+    "contract": "schemas/payload-representation.json",
+    "shapes": "vectors/fixture-contract.json"
+  },
+  "purpose": "Deterministic byte forms for the portable representation. These are the reason Decision 1 chose deterministic CBOR: a cross-stack golden vector needs one encoding per value. build/verify-portable-binding.ps1 re-derives every 'cbor' field from its 'value' description and fails on any divergence, so these bytes are verified rather than asserted.",
+  "valueDescription": {
+    "note": "The 'value' field describes a shaped value using explicit kind discriminators. The wire form is schema-guided and carries no discriminators; the description exists so the golden bytes can be recomputed without loading either stack.",
+    "kinds": {
+      "record": "{ kind, fields: { name: value }, fragments: { 'name@version': { name: value } } }",
+      "sequence": "{ kind, items: [value] }",
+      "choice": "{ kind, case, value }",
+      "text": "{ kind, value }",
+      "boolean": "{ kind, value }",
+      "integer": "{ kind, value }",
+      "decimal": "{ kind, exponent, mantissa }",
+      "bytes": "{ kind, hex }",
+      "unit": "{ kind }"
+    }
+  },
+  "encodings": [
+    {
+      "id": "G1-COOLING-COMMAND-MINIMAL",
+      "shape": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "demonstrates": [
+        "Record encodes as a two-item array of [fields map, fragments map].",
+        "An absent optional field is omitted rather than encoded as null.",
+        "Deterministic key order puts 'loop' before 'enabled' because the encoded key 0x64... sorts before 0x67.... Ordinal string order would reverse them, which is the divergence PB2 and PB3 must handle."
+      ],
+      "value": {
+        "kind": "record",
+        "fields": {
+          "loop": { "kind": "text", "value": "primary" },
+          "enabled": { "kind": "boolean", "value": true }
+        },
+        "fragments": {}
+      },
+      "cbor": "82a2646c6f6f70677072696d61727967656e61626c6564f5a0"
+    },
+    {
+      "id": "G2-COOLING-COMMAND-WITH-FRAGMENT",
+      "shape": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "demonstrates": [
+        "A present optional field participates in key ordering.",
+        "An attached Fragment keys the fragments map by the canonical text form 'name@version'.",
+        "A 40-byte key uses the one-byte length argument 0x78 0x28 rather than an inline argument."
+      ],
+      "value": {
+        "kind": "record",
+        "fields": {
+          "loop": { "kind": "text", "value": "primary" },
+          "enabled": { "kind": "boolean", "value": true },
+          "failureMode": { "kind": "text", "value": "none" }
+        },
+        "fragments": {
+          "interchange.tests.cooling.host-context@1": {
+            "requesterLabel": { "kind": "text", "value": "operator" }
+          }
+        }
+      },
+      "cbor": "82a3646c6f6f70677072696d61727967656e61626c6564f56b6661696c7572654d6f6465646e6f6e65a17828696e7465726368616e67652e74657374732e636f6f6c696e672e686f73742d636f6e746578744031a16e7265717565737465724c6162656c686f70657261746f72"
+    },
+    {
+      "id": "G3-COOLING-RESULT",
+      "shape": { "name": "interchange.tests.cooling.result", "version": 1 },
+      "demonstrates": [
+        "Four keys of four different lengths order by encoded length prefix first.",
+        "Small non-negative integers use the inline argument form."
+      ],
+      "value": {
+        "kind": "record",
+        "fields": {
+          "loop": { "kind": "text", "value": "primary" },
+          "coolingEnabled": { "kind": "boolean", "value": true },
+          "revision": { "kind": "integer", "value": 7 },
+          "providerEffectCount": { "kind": "integer", "value": 1 }
+        },
+        "fragments": {}
+      },
+      "cbor": "82a4646c6f6f70677072696d617279687265766973696f6e076e636f6f6c696e67456e61626c6564f57370726f7669646572456666656374436f756e7401a0"
+    },
+    {
+      "id": "G4-SEQUENCE-NESTING",
+      "shape": { "name": "interchange.tests.encoding.tags", "version": 1 },
+      "demonstrates": [
+        "A sequence encodes as a definite-length array in declared order and is never re-sorted."
+      ],
+      "value": {
+        "kind": "record",
+        "fields": {
+          "tags": {
+            "kind": "sequence",
+            "items": [
+              { "kind": "text", "value": "alpha" },
+              { "kind": "text", "value": "beta" }
+            ]
+          }
+        },
+        "fragments": {}
+      },
+      "cbor": "82a164746167738265616c7068616462657461a0"
+    },
+    {
+      "id": "G5-INTEGER-WIDTH-BOUNDARIES",
+      "shape": { "name": "interchange.tests.encoding.integers", "version": 1 },
+      "demonstrates": [
+        "Every shortest-form unsigned width: inline, 1-byte, 2-byte, 4-byte, and 8-byte arguments.",
+        "Negative integers use major type 1 with argument -1-n.",
+        "Equal-length keys order by their bytewise content."
+      ],
+      "value": {
+        "kind": "record",
+        "fields": {
+          "i00": { "kind": "integer", "value": 0 },
+          "i01": { "kind": "integer", "value": 23 },
+          "i02": { "kind": "integer", "value": 24 },
+          "i03": { "kind": "integer", "value": 255 },
+          "i04": { "kind": "integer", "value": 256 },
+          "i05": { "kind": "integer", "value": 65535 },
+          "i06": { "kind": "integer", "value": 65536 },
+          "i07": { "kind": "integer", "value": 4294967296 },
+          "i08": { "kind": "integer", "value": -1 },
+          "i09": { "kind": "integer", "value": -25 }
+        },
+        "fragments": {}
+      },
+      "cbor": "82aa636930300063693031176369303218186369303318ff636930341901006369303519ffff636930361a00010000636930371b00000001000000006369303820636930393818a0"
+    },
+    {
+      "id": "G6-BYTES-DECIMAL-UNIT",
+      "shape": { "name": "interchange.tests.encoding.scalars", "version": 1 },
+      "demonstrates": [
+        "A byte string uses major type 2.",
+        "The one allowlisted tag, 4, carries [exponent, mantissa] with a normalized mantissa.",
+        "Unit encodes as simple value 22 (null), the one position where null is legal."
+      ],
+      "value": {
+        "kind": "record",
+        "fields": {
+          "b": { "kind": "bytes", "hex": "010203" },
+          "d": { "kind": "decimal", "exponent": -2, "mantissa": 1234 },
+          "u": { "kind": "unit" }
+        },
+        "fragments": {}
+      },
+      "cbor": "82a36162430102036164c482211904d26175f6a0"
+    }
+  ],
+  "framedExample": {
+    "id": "F1-FRAMED-MINIMAL-COMMAND",
+    "of": "G1-COOLING-COMMAND-MINIMAL",
+    "demonstrates": "The 4-byte big-endian length prefix that makes the portable wire length-delimited and bounded.",
+    "bodyBytes": 25,
+    "framed": "0000001982a2646c6f6f70677072696d61727967656e61626c6564f5a0"
+  },
+  "rejectedEncodings": [
+    {
+      "id": "R1-INDEFINITE-LENGTH-MAP",
+      "cbor": "82bf646c6f6f70677072696d617279ffa0",
+      "reason": "The fields map uses the indefinite-length head 0xbf.",
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message" }
+    },
+    {
+      "id": "R2-NON-SHORTEST-INTEGER",
+      "cbor": "82a1637265761807a0",
+      "reason": "The integer 7 is encoded with a 1-byte argument (0x18 0x07) where the inline form 0x07 represents it exactly.",
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message" }
+    },
+    {
+      "id": "R3-UNSORTED-MAP-KEYS",
+      "cbor": "82a267656e61626c6564f5646c6f6f70677072696d617279a0",
+      "reason": "The fields map lists 'enabled' before 'loop', which is ordinal string order rather than deterministic encoded-key order.",
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message" }
+    },
+    {
+      "id": "R4-DUPLICATE-MAP-KEY",
+      "cbor": "82a3646c6f6f70677072696d617279646c6f6f70667365636f6e6467656e61626c6564f5a0",
+      "reason": "The key 'loop' appears twice.",
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message" }
+    },
+    {
+      "id": "R5-FLOAT-FORBIDDEN",
+      "cbor": "82a163726576fb4008000000000000a0",
+      "reason": "A double-precision float (0xfb) appears where an integer is declared. Floats are excluded from the deterministic core.",
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message" }
+    },
+    {
+      "id": "R6-DISALLOWED-TAG",
+      "cbor": "82a16162c074323032362d30372d32355430303a30303a30305aa0",
+      "reason": "Tag 0 (standard date-time string) is outside the allowlist, which contains only tag 4.",
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message" }
+    },
+    {
+      "id": "R7-TRAILING-BYTES",
+      "cbor": "82a2646c6f6f70677072696d61727967656e61626c6564f5a000",
+      "reason": "A trailing 0x00 follows the complete top-level item inside one frame.",
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message" }
+    }
+  ]
+}

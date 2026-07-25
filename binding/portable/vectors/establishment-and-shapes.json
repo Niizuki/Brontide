@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "group": {
+    "id": "establishment-and-shapes",
+    "capabilities": ["C1", "C5"],
+    "status": "PB1 neutral vectors; data only; validated without loading either stack",
+    "fixture": "vectors/fixture-contract.json",
+    "schemas": ["schemas/component-contract.json", "schemas/references-and-shape-floor.json"]
+  },
+  "vectors": [
+    {
+      "id": "PB-01-EXACT-ESTABLISHMENT",
+      "capabilities": ["C1", "C2"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": ["The host requires the fixture contract", "The provider offers an exactly equal contract"],
+      "when": ["Negotiation runs in the declared order"],
+      "then": ["Every required requirement matches a provision", "The Binding Plan is frozen", "No provider effect has occurred"],
+      "expected": { "frameDecision": "accept", "resultClass": "negotiation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-02-CONTRACT-VERSION-SKEW",
+      "capabilities": ["C1"],
+      "channelVectors": ["CH-03-UNSUPPORTED-VERSION"],
+      "classification": "adversarial",
+      "given": ["The endpoint recognizes contractVersion 1"],
+      "when": ["An establish frame declares contractVersion 2"],
+      "then": ["Negotiation fails closed", "No provider activation begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-version", "effectCount": 0 }
+    },
+    {
+      "id": "PB-03-REQUIRED-REQUIREMENT-UNMET",
+      "capabilities": ["C1"],
+      "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
+      "classification": "adversarial",
+      "given": ["The host declares the cooling-profile requirement at strength 'required'"],
+      "when": ["The provider offers no matching provision"],
+      "then": ["Negotiation fails closed", "No provider activation begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-contract", "effectCount": 0 }
+    },
+    {
+      "id": "PB-04-OPPOSED-REQUIREMENT-OFFERED",
+      "capabilities": ["C1"],
+      "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
+      "classification": "adversarial",
+      "given": ["The host declares the streaming feature at strength 'opposed'"],
+      "when": ["The provider offers a streaming provision"],
+      "then": ["Negotiation fails closed rather than silently ignoring the provision"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-contract", "effectCount": 0 }
+    },
+    {
+      "id": "PB-05-UNKNOWN-CONTRACT-FIELD",
+      "capabilities": ["C1"],
+      "channelVectors": ["CH-06-MALFORMED-MESSAGE"],
+      "classification": "adversarial",
+      "given": ["A structurally complete contract document"],
+      "when": ["It carries a field the contract does not declare"],
+      "then": ["The document is rejected before negotiation", "No foreign parser exception crosses"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message", "effectCount": 0 }
+    },
+    {
+      "id": "PB-06-UNKNOWN-ENUMERATION-VALUE",
+      "capabilities": ["C1"],
+      "channelVectors": ["CH-06-MALFORMED-MESSAGE"],
+      "classification": "adversarial",
+      "given": ["A requirement declares a 'strength' value"],
+      "when": ["The value is outside the declared enumeration"],
+      "then": ["The document is rejected rather than defaulted to a permissive strength"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message", "effectCount": 0 }
+    },
+    {
+      "id": "PB-07-COMPACT-IDENTIFIER-BEFORE-NEGOTIATION",
+      "capabilities": ["C1"],
+      "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
+      "classification": "adversarial",
+      "given": ["Compact identifiers are assigned only after canonical negotiation succeeds"],
+      "when": ["A frame references a compact identifier that this binding never assigned"],
+      "then": ["The reference does not resolve to any canonical identity", "No provider effect begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-contract", "effectCount": 0 }
+    },
+    {
+      "id": "PB-08-NAME-OUTSIDE-PORTABLE-PROFILE",
+      "capabilities": ["C1"],
+      "channelVectors": ["CH-06-MALFORMED-MESSAGE"],
+      "classification": "adversarial",
+      "given": ["The portable canonical-name profile restricts segments to ASCII [A-Za-z0-9_-]"],
+      "when": ["A contract declares a name with a segment outside that profile, or with two ':' separators"],
+      "then": ["The reference is rejected rather than accepted as an opaque string"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message", "effectCount": 0 }
+    },
+    {
+      "id": "PB-09-REQUEST-BEFORE-READY",
+      "capabilities": ["C1", "C8"],
+      "channelVectors": ["CH-21-STATE-VIOLATION"],
+      "classification": "adversarial",
+      "given": ["Negotiation succeeded and the binding is in state 'established'"],
+      "when": ["A request frame arrives before the readiness signal"],
+      "then": ["The request is refused", "No provider effect occurs before readiness"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "state-violation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-10-INLINE-NESTED-AND-REPEATED-VALUES",
+      "capabilities": ["C5"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": ["An established binding and a ready provider"],
+      "when": ["A request carries a record containing a sequence of records with repeated text items"],
+      "then": ["The value conforms to the declared Shape", "Sequence order is preserved exactly"],
+      "expected": { "frameDecision": "accept", "resultClass": "request" }
+    },
+    {
+      "id": "PB-11-ADDITIVE-PROJECTION",
+      "capabilities": ["C5"],
+      "channelVectors": ["CH-07-PAYLOAD-COVARIANCE"],
+      "linkedArchitectureVector": "BR-08-ADV-C8-003",
+      "classification": "additive-compatible",
+      "given": ["The input is declared at command Shape version 2, which adds only the optional field 'requestedBy'", "The consumer recognizes version 1"],
+      "when": ["The consumer projects the payload to version 1"],
+      "then": ["The unrecognized optional field is canonically ignored", "The request remains eligible for authority evaluation", "The projection is recorded as a mapping obligation"],
+      "expected": { "frameDecision": "accept", "resultClass": "request" }
+    },
+    {
+      "id": "PB-12-NON-ADDITIVE-SKEW",
+      "capabilities": ["C5"],
+      "channelVectors": ["CH-20-INVALID-PAYLOAD"],
+      "classification": "adversarial",
+      "given": ["The input is declared at command Shape version 3, which adds the required field 'reason'", "The consumer recognizes version 1"],
+      "when": ["The consumer attempts to project the payload"],
+      "then": ["The difference is not additive and projection is refused", "No provider effect begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-payload", "effectCount": 0 }
+    },
+    {
+      "id": "PB-13-CLOSED-FRAGMENT-POLICY-VIOLATED",
+      "capabilities": ["C5"],
+      "channelVectors": ["CH-20-INVALID-PAYLOAD"],
+      "classification": "adversarial",
+      "given": ["The result Shape declares fragmentPolicy 'closed'"],
+      "when": ["An outcome attaches a Fragment the negotiated Operation does not declare"],
+      "then": ["The value is refused rather than projected away"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-payload", "effectCount": 0 }
+    },
+    {
+      "id": "PB-14-NULL-IN-NON-UNIT-OPTIONAL-FIELD",
+      "capabilities": ["C5"],
+      "channelVectors": ["CH-20-INVALID-PAYLOAD"],
+      "classification": "adversarial",
+      "given": ["'failureMode' is an optional Text field"],
+      "when": ["It is present and encoded as the null simple value"],
+      "then": ["The value is refused, because absence is expressed by omission and null belongs only to unit"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-payload", "effectCount": 0 }
+    },
+    {
+      "id": "PB-15-UNKNOWN-CHOICE-ALTERNATIVE",
+      "capabilities": ["C5"],
+      "channelVectors": ["CH-20-INVALID-PAYLOAD"],
+      "classification": "adversarial",
+      "given": ["A choice Shape declares its alternatives"],
+      "when": ["A value names an alternative outside that set"],
+      "then": ["The category is invalid-payload rather than unsupported-kind, because the envelope kind was recognized"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-payload", "effectCount": 0 }
+    },
+    {
+      "id": "PB-16-EXCEPTION-SHAPED-PAYLOAD-DATA",
+      "capabilities": ["C5", "C4"],
+      "channelVectors": ["CH-18-FOREIGN-RUNTIME-DATA-FORBIDDEN"],
+      "classification": "adversarial",
+      "given": ["A declared payload position"],
+      "when": ["It carries a field named 'stackTrace' or '$type'"],
+      "then": ["The frame is rejected before semantic use", "No runtime type identity is admitted"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-payload", "effectCount": 0 }
+    },
+    {
+      "id": "PB-17-EXCEPTION-SHAPED-CONTROL-DATA",
+      "capabilities": ["C4"],
+      "channelVectors": ["CH-18-FOREIGN-RUNTIME-DATA-FORBIDDEN"],
+      "classification": "adversarial",
+      "given": ["A control position in the envelope rather than a declared payload position"],
+      "when": ["It carries a field named 'exception' or 'innerException'"],
+      "then": ["The frame is rejected before semantic use", "The category follows the field position"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message", "effectCount": 0 }
+    }
+  ]
+}

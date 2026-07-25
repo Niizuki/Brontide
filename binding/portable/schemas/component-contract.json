@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "contract": {
+    "id": "brontide.portable-binding.component-contract",
+    "version": "0.1-draft",
+    "status": "PB1 neutral contract; planned experimental work; not ratified; not part of Brontide Base",
+    "designedFor": "Brontide Architecture 0.8 section 16 and 18.1 (Complete Draft)",
+    "plan": "docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md",
+    "capabilities": ["C1", "C5"]
+  },
+  "purpose": "One versioned Component contract established before any provider effect. It replaces the two divergent manifest encodings that PB0 inventoried (Cooling v2 and Catalog v1) with a single neutral form.",
+  "contractDocument": {
+    "unknownFieldPolicy": "reject",
+    "unknownFieldOutcome": "malformed-message",
+    "fields": [
+      { "name": "contractVersion", "shape": "Integer.Signed64", "required": true, "rule": "Must equal 1 for this contract revision. Any other value is 'unsupported-version'." },
+      { "name": "component", "shape": "canonicalReference", "required": true },
+      { "name": "provider", "shape": "canonicalReference", "required": true },
+      { "name": "provisions", "shape": "sequence<provision>", "required": true },
+      { "name": "requirements", "shape": "sequence<requirement>", "required": true },
+      { "name": "operations", "shape": "sequence<operation>", "required": true },
+      { "name": "shapes", "shape": "sequence<shapeDeclaration>", "required": true },
+      { "name": "fragments", "shape": "sequence<fragmentDeclaration>", "required": true },
+      { "name": "authority", "shape": "authorityPresentation", "required": true, "see": "authority-presentation.json" },
+      { "name": "representation", "shape": "representationDeclaration", "required": true, "see": "payload-representation.json" },
+      { "name": "limits", "shape": "limitDeclaration", "required": true, "see": "limits-and-lifecycle.json" },
+      { "name": "lifecycle", "shape": "lifecycleDeclaration", "required": true, "see": "limits-and-lifecycle.json" }
+    ]
+  },
+  "provision": {
+    "purpose": "What this Component offers. PB0 recorded no explicit provision or requirement vocabulary in either experiment; this is its first neutral definition.",
+    "fields": [
+      { "name": "kind", "shape": "Text", "required": true, "enum": ["operation", "profile", "binding", "resource-flavor", "feature"] },
+      { "name": "reference", "shape": "canonicalReference", "required": true },
+      { "name": "providerSpecific", "shape": "Boolean", "required": true }
+    ]
+  },
+  "requirement": {
+    "purpose": "What this Component needs from its peer.",
+    "fields": [
+      { "name": "kind", "shape": "Text", "required": true, "enum": ["operation", "profile", "binding", "resource-flavor", "feature"] },
+      { "name": "reference", "shape": "canonicalReference", "required": true },
+      { "name": "strength", "shape": "Text", "required": true, "enum": ["required", "preferred", "optional", "opposed"] },
+      { "name": "providerSpecific", "shape": "Boolean", "required": true }
+    ],
+    "strengthSemantics": {
+      "required": "Negotiation fails closed with 'unsupported-contract' unless the peer provides an exactly matching provision.",
+      "preferred": "Negotiation succeeds without it, and the absence is recorded as a C9 selection reason.",
+      "optional": "Negotiation succeeds without it and the absence is unremarkable.",
+      "opposed": "Negotiation fails closed with 'unsupported-contract' if the peer provides it."
+    }
+  },
+  "operation": {
+    "fields": [
+      { "name": "reference", "shape": "canonicalReference", "required": true },
+      { "name": "inputShape", "shape": "canonicalReference", "required": true },
+      { "name": "resultShape", "shape": "canonicalReference", "required": true },
+      { "name": "detailShape", "shape": "canonicalReference", "required": true, "rule": "The Shape of a shaped failed Outcome. It is required because a semantic failure must be shaped rather than exception-borne." },
+      { "name": "requiredFragments", "shape": "sequence<canonicalReference>", "required": true },
+      { "name": "resourceFlavors", "shape": "sequence<Text>", "required": true, "rule": "Declared referenced-resource flavors this Operation accepts; empty means inline payloads only." }
+    ],
+    "normalizes": "Cooling declares inputShape and outputShape with a separate details Shape reachable only through the failure path; Catalog declares inputShape and outputShape with no detail Shape at all. The neutral contract names all three positions explicitly."
+  },
+  "shapeDeclaration": {
+    "fields": [
+      { "name": "reference", "shape": "canonicalReference", "required": true },
+      { "name": "kind", "shape": "Text", "required": true, "enum": ["record", "sequence", "choice", "scalar", "unit"] },
+      { "name": "fragmentPolicy", "shape": "Text", "required": false, "enum": ["open", "closed"], "rule": "Required when kind is 'record'; forbidden otherwise." },
+      { "name": "fields", "shape": "sequence<fieldDeclaration>", "required": false, "rule": "Required when kind is 'record'; forbidden otherwise." },
+      { "name": "itemShape", "shape": "canonicalReference", "required": false, "rule": "Required when kind is 'sequence'; forbidden otherwise." },
+      { "name": "alternatives", "shape": "sequence<alternativeDeclaration>", "required": false, "rule": "Required when kind is 'choice'; forbidden otherwise." },
+      { "name": "scalar", "shape": "Text", "required": false, "rule": "Required when kind is 'scalar'; names a Shape floor scalar." }
+    ]
+  },
+  "fieldDeclaration": {
+    "fields": [
+      { "name": "name", "shape": "Text", "required": true, "rule": "Portable member-token profile [A-Za-z0-9_-]+, unique within the Shape." },
+      { "name": "shape", "shape": "canonicalReference", "required": true },
+      { "name": "required", "shape": "Boolean", "required": true }
+    ]
+  },
+  "alternativeDeclaration": {
+    "fields": [
+      { "name": "name", "shape": "Text", "required": true },
+      { "name": "shape", "shape": "canonicalReference", "required": true }
+    ]
+  },
+  "fragmentDeclaration": {
+    "fields": [
+      { "name": "reference", "shape": "canonicalReference", "required": true },
+      { "name": "hostShape", "shape": "canonicalReference", "required": true },
+      { "name": "fields", "shape": "sequence<fieldDeclaration>", "required": true }
+    ]
+  },
+  "negotiation": {
+    "capability": "C1",
+    "order": [
+      "Validate the contract document structurally; a malformed document is 'malformed-message'.",
+      "Compare contractVersion; a mismatch is 'unsupported-version'.",
+      "Match every 'required' requirement against an exactly equal peer provision; a miss is 'unsupported-contract'.",
+      "Reject any 'opposed' requirement the peer provides; a hit is 'unsupported-contract'.",
+      "Compare each negotiated Operation's inputShape, resultShape, detailShape, and requiredFragments for exact equality; a difference is 'unsupported-contract'.",
+      "Resolve the authority presentation mode; an unsatisfiable mode is 'invalid-authority-presentation'.",
+      "Resolve the representation and resource flavors; an unsupported one is 'unsupported-contract'.",
+      "Resolve limits and lifecycle features; an unsupported required feature is 'unsupported-contract'.",
+      "Only then assign binding-scoped compact identifiers and freeze the Binding Plan."
+    ],
+    "failClosedRule": "Every step above completes before any provider activation. A failure at any step produces zero provider effects.",
+    "exactnessRule": "Version 0.1 negotiates by exact reference equality. There is no structural similarity matching, no nearest-version selection, and no inference of authority from provider availability.",
+    "unknownHandling": [
+      { "what": "an unknown required Operation", "outcome": "unsupported-operation" },
+      { "what": "an unknown Shape, Fragment, or dependency reference", "outcome": "unsupported-contract" },
+      { "what": "an unknown required feature", "outcome": "unsupported-contract" },
+      { "what": "an unknown contract field", "outcome": "malformed-message" },
+      { "what": "an unknown value in a declared enumeration", "outcome": "malformed-message" }
+    ]
+  }
+}

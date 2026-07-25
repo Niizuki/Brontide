@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "group": {
+    "id": "authority-and-resources",
+    "capabilities": ["C3", "C6"],
+    "status": "PB1 neutral vectors; data only; validated without loading either stack",
+    "fixture": "vectors/fixture-contract.json",
+    "schemas": ["schemas/authority-presentation.json", "schemas/payload-representation.json"]
+  },
+  "vectors": [
+    {
+      "id": "PB-18-LOCAL-DENIAL-EMITS-NO-FRAME",
+      "capabilities": ["C3"],
+      "channelVectors": ["CH-12-DENIAL-IS-NOT-A-FRAME"],
+      "classification": "valid",
+      "given": ["The local receiving authority boundary denies a request"],
+      "when": ["The host records the attempted Execution"],
+      "then": ["No Channel frame is emitted", "No far-side effect occurs", "A complete observation is still produced"],
+      "expected": { "frameDecision": "none", "resultClass": "denial", "effectCount": 0 }
+    },
+    {
+      "id": "PB-19-AUTHORITY-VALUE-NOT-PROJECTED",
+      "capabilities": ["C3", "C5"],
+      "channelVectors": ["CH-08-AUTHORITY-NO-PROJECTION"],
+      "linkedArchitectureVector": "BR-08-ADV-C8-001",
+      "classification": "adversarial",
+      "given": ["A Constraint value at version 2 adds narrowing semantics", "The evaluator recognizes only version 1"],
+      "when": ["The request presents that authority position"],
+      "then": ["The value is not projected, because projection would discard narrowing and widen authority", "The atom is Unknown and the request is denied", "No frame crosses a pre-provider boundary"],
+      "expected": { "frameDecision": "none", "resultClass": "denial", "effectCount": 0 }
+    },
+    {
+      "id": "PB-20-STRONG-KLEENE-ANYOF-PERMITS",
+      "capabilities": ["C3"],
+      "channelVectors": ["CH-09-STRONG-KLEENE-FALLBACK"],
+      "linkedArchitectureVector": "BR-08-ADV-C7-002",
+      "classification": "valid",
+      "given": ["Authority is AnyOf(SatisfiedKnown, Unknown)"],
+      "when": ["The target evaluates the request structurally"],
+      "then": ["The expression is True", "The request may proceed"],
+      "expected": { "frameDecision": "emit", "resultClass": "request" }
+    },
+    {
+      "id": "PB-21-STRONG-KLEENE-ALLOF-DENIES",
+      "capabilities": ["C3"],
+      "channelVectors": ["CH-10-STRONG-KLEENE-UNKNOWN-DENIES"],
+      "linkedArchitectureVector": "BR-08-ADV-C7-003",
+      "classification": "adversarial",
+      "given": ["Authority is AllOf(SatisfiedKnown, Unknown)"],
+      "when": ["The target evaluates the request structurally"],
+      "then": ["The expression is Unknown", "Unknown never resolves to permitted", "The request is denied without a far-side effect"],
+      "expected": { "frameDecision": "none", "resultClass": "denial", "effectCount": 0 }
+    },
+    {
+      "id": "PB-22-CAPABILITY-IN-BODY-ACROSS-TRUST",
+      "capabilities": ["C3"],
+      "channelVectors": ["CH-11-NO-CAPABILITY-TRANSFER"],
+      "classification": "adversarial",
+      "given": ["The binding declares cross-trust-no-capability-transfer"],
+      "when": ["A request body contains a Capability, Constraint expression, or derivation chain"],
+      "then": ["The authority presentation fails closed", "No provider effect begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-authority-presentation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-23-MISSING-NO-CAPABILITY-TRANSFER-DECLARATION",
+      "capabilities": ["C3"],
+      "channelVectors": ["CH-11-NO-CAPABILITY-TRANSFER"],
+      "classification": "adversarial",
+      "given": ["The realization crosses a declared trust boundary"],
+      "when": ["The contract omits the no-capability-transfer declaration"],
+      "then": ["Negotiation fails closed rather than defaulting to a permissive mode"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-authority-presentation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-24-MISSING-REQUIRED-FRAGMENT",
+      "capabilities": ["C3", "C5"],
+      "channelVectors": ["CH-20-INVALID-PAYLOAD"],
+      "classification": "adversarial",
+      "given": ["The Operation declares the host-context Fragment as required"],
+      "when": ["A request omits it"],
+      "then": ["The request is refused before provider activation", "Attribution is not inferred from delivery"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-payload", "effectCount": 0 }
+    },
+    {
+      "id": "PB-25-COPIED-IMMUTABLE-BLOB-ACCEPTED",
+      "capabilities": ["C6"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": ["The plan negotiated the copied-immutable-blob flavor", "The resource declares a SHA-256 content hash"],
+      "when": ["The request carries the resource and the hash verifies"],
+      "then": ["The provider receives an independent immutable copy", "No release signal is required", "The observation records ownership 'copied' and the realization's copy count"],
+      "expected": { "frameDecision": "accept", "resultClass": "outcome-succeeded" }
+    },
+    {
+      "id": "PB-26-RESOURCE-INTEGRITY-MISMATCH",
+      "capabilities": ["C6"],
+      "channelVectors": ["CH-20-INVALID-PAYLOAD"],
+      "classification": "adversarial",
+      "given": ["A copied-immutable-blob resource declares a content hash"],
+      "when": ["The received octets hash to a different value"],
+      "then": ["The resource is refused before any provider effect", "The mismatch is not reported as a successful negotiation"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-payload", "effectCount": 0 }
+    },
+    {
+      "id": "PB-27-ADDRESSING-HANDLE-ACCEPTED",
+      "capabilities": ["C6"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": ["The plan negotiated the addressing-only-handle flavor with a declared accept list"],
+      "when": ["A request carries a handle inside that list"],
+      "then": ["The handle conveys addressing only", "The provider domain still performs its own admission", "No octets cross and the copy count stays zero"],
+      "expected": { "frameDecision": "accept", "resultClass": "outcome-succeeded" }
+    },
+    {
+      "id": "PB-28-RESOURCE-SCOPE-REFUSED",
+      "capabilities": ["C6"],
+      "channelVectors": ["CH-20-INVALID-PAYLOAD", "CH-14-PROTOCOL-CODE-MAPPING"],
+      "classification": "adversarial",
+      "given": ["The plan declares which handles are accepted"],
+      "when": ["A request carries a handle outside that list"],
+      "then": ["The resource is refused before any provider effect", "The portable category is invalid-payload and the local code 'resource-refused' stays non-normative", "The refusal is not an authority decision, because a handle carries no authority"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-payload", "effectCount": 0 }
+    },
+    {
+      "id": "PB-29-UNSUPPORTED-RESOURCE-FLAVOR",
+      "capabilities": ["C6"],
+      "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
+      "classification": "adversarial",
+      "given": ["Borrowed read-only regions and transferred ownership are 0.1 non-goals"],
+      "when": ["A contract declares either flavor"],
+      "then": ["Negotiation fails closed", "There is no fallback and no silent downgrade to the copied flavor"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-contract", "effectCount": 0 }
+    },
+    {
+      "id": "PB-30-FORBIDDEN-IMPLICIT-COPY",
+      "capabilities": ["C6"],
+      "channelVectors": ["CH-20-INVALID-PAYLOAD"],
+      "classification": "adversarial",
+      "given": ["The addressing-only-handle flavor permits no copy at all"],
+      "when": ["A frame carries resource octets for a handle-flavored resource"],
+      "then": ["The frame is refused rather than silently materializing a copy", "The copy count remains zero"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "invalid-payload", "effectCount": 0 }
+    },
+    {
+      "id": "PB-31-RESOURCE-EXCEEDS-DECLARED-BOUND",
+      "capabilities": ["C6", "C8"],
+      "channelVectors": ["CH-16-DECLARED-LIMIT"],
+      "classification": "adversarial",
+      "given": ["maxResourceBytes is declared as 32768"],
+      "when": ["A copied-immutable-blob resource exceeds it"],
+      "then": ["The bound is enforced before uncontrolled work", "No partial provider effect begins"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "limit-exceeded", "effectCount": 0 }
+    },
+    {
+      "id": "PB-32-RELEASE-SIGNAL-FOR-COPIED-FLAVOR",
+      "capabilities": ["C6", "C8"],
+      "channelVectors": ["CH-21-STATE-VIOLATION"],
+      "classification": "adversarial",
+      "given": ["The copied-immutable-blob flavor requires no release signal and defines none"],
+      "when": ["A frame carries a release signal for that resource"],
+      "then": ["The frame is refused rather than treated as a harmless no-op"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "state-violation", "effectCount": 0 }
+    }
+  ]
+}

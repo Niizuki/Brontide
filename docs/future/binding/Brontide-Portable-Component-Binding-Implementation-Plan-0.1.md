@@ -1,7 +1,7 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Planned experimental work
-**Date:** 2026-07-23
+**Status:** Partially implemented experimental work — PB0 and PB1 complete; PB2 onward planned
+**Date:** 2026-07-23 (delivery status updated 2026-07-25)
 **Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
 **Design sources:** [Composition and Components](../composition/Brontide-Design-Note-Composition-0.1.md),
@@ -143,6 +143,26 @@ cross-stack directions, validate neutral artifacts, and restore any generated ev
 deterministically. The repository-wide gate invokes it.
 
 ## 5. Delivery sequence
+
+### Delivery status (2026-07-25)
+
+| Phase | State | Evidence |
+| --- | --- | --- |
+| PB0 — baseline and contract freeze | **Complete** | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md), [`representation-choice.md`](../../../binding/portable/representation-choice.md), [`open-decisions.md`](../../../binding/portable/open-decisions.md) |
+| PB1 — neutral manifests, plans, and vectors | **Complete** | [`schemas/`](../../../binding/portable/schemas/README.md) (8 files), [`vectors/`](../../../binding/portable/vectors/README.md) (63 vectors, 6 golden encodings), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
+| PB2 — Reference native implementation | Planned — next | — |
+| PB3 — Minimal native implementation | Planned | — |
+| PB4 — direct and process realization parity | Planned | — |
+| PB5 — cross-stack and independent-provider matrix | Planned | — |
+| PB6 — resource, lifecycle, and hardening completion | Planned | — |
+| PB7 — Composition handoff | Planned | — |
+| PB8 — evidence, documentation, and review closure | Planned | — |
+
+Nothing below PB1 has been implemented. The neutral contract exists and is gated; neither stack has
+been refactored against it, so no C-item yet has executable two-stack evidence. PB1 recorded three
+migration obligations that PB2 and PB3 must both discharge: deterministic map key ordering differs
+from the Cooling codec's ordinal string ordering, portable values are schema-guided rather than
+self-describing, and the Cooling `denial` message kind must not become a portable envelope kind.
 
 ### PB0 — baseline and contract freeze
 
@@ -339,10 +359,21 @@ promotion, and an Architecture 0.8 implementation claim remain separate decision
 | Owner | Question | Blocking point |
 | --- | --- | --- |
 | Brontide architecture maintainers | Ratify the provisional Channel Shape/category names or publish an explicitly migrated revision? | Blocks a stable public Portable Binding version; experimental PB0-PB6 may proceed against a versioned draft. |
-| Portable Binding contract maintainers | Which restricted schema-guided CBOR subset, scalar tags, canonicalization rules, identifier widths, and maximum bounds define the first process realization? | Blocks PB1 wire fixtures and PB4 portable-process conformance. |
-| Portable Binding contract maintainers with both stack owners | What is the smallest referenced-shaped-resource v0.1 contract: copied immutable blob, borrowed read-only region, transferred ownership, or a deliberately smaller subset? | Blocks PB1 resource schema and PB6 completion. |
 
 ## Resolved questions
+
+- **2026-07-25 — Wire representation:** deterministic CBOR core. RFC 8949 §4.2.1 core-deterministic
+  encoding, definite lengths, shortest-form arguments, bytewise-on-encoded-key map ordering, major
+  types 0-5 plus simple values 20/21/22 and the single allowlisted tag 4 for `Decimal`; 4-byte
+  big-endian length-delimited framing bounded at 65 536 bytes. Values are schema-guided and carry no
+  kind discriminator. Retained JSON-lines is diagnostic and legacy only. Decision recorded
+  2026-07-24 in [`open-decisions.md`](../../../binding/portable/open-decisions.md); exact rules pinned
+  by PB1 in [`payload-representation.json`](../../../binding/portable/schemas/payload-representation.json).
+- **2026-07-25 — Referenced-shaped-resource v0.1 floor:** copied immutable blob, with integrity by
+  SHA-256 content hash, no borrow interval and no release signal, and no fallback. Catalog's
+  addressing-only handle is retained as a second declared flavor. Borrowed read-only regions and
+  transferred ownership are 0.1 non-goals that fail negotiation closed. Decision recorded 2026-07-24;
+  schema pinned by PB1 in the same file.
 
 - **2026-07-23 — Architecture scope:** Portable Binding remains outside Brontide Base and does not
   change either stack's Architecture 0.7 target.

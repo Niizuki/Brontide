@@ -1,7 +1,8 @@
 # Portable Binding — implementation-neutral contract matrix (C1–C10)
 
-**Status:** PB0 baseline inventory complete for the C1–C10 mapping. Neutral vectors are authored in
-PB1. Capability text summarises plan §2 and is subordinate to the plan.
+**Status:** PB0 baseline inventory complete for the C1–C10 mapping; PB1 neutral schemas and vectors
+authored (see [PB1 evidence paths](#pb1-evidence-paths)). Capability text summarises plan §2 and is
+subordinate to the plan.
 
 **Owner legend:** CM = Portable Binding contract maintainers · Ref = Reference stack owner ·
 Min = Minimal stack owner · Both = CM + both stack owners.
@@ -23,6 +24,39 @@ the C-item but absent · **blocked** = gated on an open owner decision (see `ope
 | C8 — bounded lifecycle + declared limits | CM | Limits: Cooling depth 64 + 10 s I/O timeout (no byte/replay); Catalog 65 536 bytes + depth 32 + per-session replay window. Lifecycle: activate→invoke→(denial\|result\|failure)→shutdown; `single-invocation` | **normalize** (limits inconsistent; lifecycle states implicit) | Unify the declared limit set; enumerate explicit establishment/readiness/invocation/withdrawal/termination states → PB1/PB6 |
 | C9 — attributable observations | CM | `providerEffectCount` (result field), `crossedBoundaries`, `executionId`/`occurrenceId`, host-enrichment/boundary provenance, failure-domain distinction | **fixture-specific** ("universal form of binding observations… not ratified") | Define the unified C9 observation set (selected provider, representation, copies, authority point, retry, terminal status, timing…) → PB1 |
 | C10 — executable interop evidence | Both | Ref-hosts-Min and Min-hosts-Ref both pass; independence guards enforce no shared types | reusable + **missing** | Add an **implementation-neutral** provider/fixture depending on neither stack → PB5 |
+
+## PB1 evidence paths
+
+Every C-item now has a neutral schema and at least one vector. Vector ids are unique across
+[`vectors/`](vectors/README.md) and the gate fails if any capability, Channel vector, protocol-error
+category, process-failure category, or failure domain loses its coverage.
+
+| Capability | Neutral schema | Vectors | PB1 status |
+| --- | --- | --- | --- |
+| C1 | [`component-contract.json`](schemas/component-contract.json), [`references-and-shape-floor.json`](schemas/references-and-shape-floor.json) | PB-01 – PB-09, PB-54 | Closed. Compact identifiers, the missing item, are defined and scoped to one binding. |
+| C2 | [`binding-plan.json`](schemas/binding-plan.json) | PB-01, PB-39, PB-53, PB-54 | Closed. One consolidated, immutable, inspectable plan replaces the scattered fields. |
+| C3 | [`authority-presentation.json`](schemas/authority-presentation.json) | PB-18 – PB-24, PB-56, PB-59 | Closed. `no-capability-transfer` generalised; local denial is frameless. |
+| C4 | [`channel-envelope.json`](schemas/channel-envelope.json) | PB-42 – PB-52, PB-16, PB-17 | Closed. Both experiments' message kinds map to neutral envelope kinds; the taxonomy is reproduced exactly. |
+| C5 | [`references-and-shape-floor.json`](schemas/references-and-shape-floor.json) | PB-10 – PB-17, PB-57 | Closed. One reference encoding; Constraint values exempt from additive projection. |
+| C6 | [`payload-representation.json`](schemas/payload-representation.json) | PB-25 – PB-32, PB-60 | Closed for the declared floor: copied immutable blob plus the retained addressing-only handle. Borrow and transfer stay 0.1 non-goals. |
+| C7 | [`binding-observation.json`](schemas/binding-observation.json) parity profile, [`binding-plan.json`](schemas/binding-plan.json) parity rule | PB-58 – PB-60, PB-62 | Contract fixed; the direct-vs-process comparison executes in PB4. |
+| C8 | [`limits-and-lifecycle.json`](schemas/limits-and-lifecycle.json) | PB-09, PB-31 – PB-41 | Closed. One limit set (tighter bound wins) and an explicit state machine. |
+| C9 | [`binding-observation.json`](schemas/binding-observation.json) | PB-55 – PB-57 | Closed. The unified observation set is defined, with normative and non-normative fields separated. |
+| C10 | [`fixture-contract.json`](vectors/fixture-contract.json) | PB-61 – PB-63 | Contract fixed; the independent provider and cross-stack matrix execute in PB5. |
+
+Deterministic byte evidence lives in [`vectors/golden-encodings.json`](vectors/golden-encodings.json)
+and is re-derived by [`build/verify-portable-binding.ps1`](../../build/verify-portable-binding.ps1)
+rather than trusted as checked-in text.
+
+### Where a PB1 vector deliberately asserts less than PB0 expected
+
+Six process-failure and correlation vectors declare `effectCountNotAsserted` with a reason instead of
+claiming zero provider effects. A timeout, a peer termination, an interrupted frame, a correlation
+mismatch, an unknown envelope kind, and an internal protocol failure each leave the observing
+endpoint unable to know whether the peer already performed the effect. C4 requires that success is
+never fabricated; asserting a zero effect count in those cases would fabricate the converse. Every
+pre-provider rejection still asserts `effectCount: 0`, and the gate rejects an adversarial vector that
+neither states a count nor explains why it is unobservable.
 
 ## Baseline inventory: existing neutral surface
 
