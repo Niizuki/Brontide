@@ -1,0 +1,55 @@
+# Brontide line-ending policy
+#
+# Why this file exists: the working tree was showing every text file as
+# modified (equal insert/delete counts) because committed blobs had mixed
+# line endings (docs stored LF, all C#/F# source stored CRLF) while the
+# working tree was uniformly CRLF. Without a policy, Visual Studio re-churns
+# endings on save and buries every real diff — and threatens the
+# "clean worktree" precondition the repository gate and evidence closure
+# require.
+#
+# Policy: git stores LF for all text; the working tree is normalized on the
+# next `git add --renormalize .`. Binary types are never touched.
+#
+# NOTE ON PINNED EVIDENCE: architecture docs and conformance JSON are already
+# stored LF, so renormalizing does NOT change their content or SHA-256. The
+# renormalize commit should touch only the CRLF-in-repo set (source + a few
+# READMEs/fixtures). Inspect `git diff --cached` before committing and confirm
+# no evidence-pinned document appears; if one does, route it through the
+# authorized repinning/fresh-review window instead.
+
+# Default: treat everything as text, normalize to LF in the repo.
+* text=auto eol=lf
+
+# Explicit text types (documentation, data, source, config)
+*.md       text eol=lf
+*.txt      text eol=lf
+*.json     text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+*.cs       text eol=lf diff=csharp
+*.fs       text eol=lf
+*.fsi      text eol=lf
+*.csproj   text eol=lf
+*.fsproj   text eol=lf
+*.props    text eol=lf
+*.targets  text eol=lf
+*.editorconfig text eol=lf
+
+# Windows-native tooling that prefers CRLF
+*.sln      text eol=crlf
+*.ps1      text eol=crlf
+*.cmd      text eol=crlf
+*.bat      text eol=crlf
+
+# Binary — never normalize
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.ico      binary
+*.pdf      binary
+*.dll      binary
+*.pdb      binary
+*.exe      binary
+*.zip      binary

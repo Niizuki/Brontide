@@ -1,0 +1,22 @@
+# Brontide editor policy (companion to .gitattributes)
+# Stops Visual Studio and other editors from re-churning line endings.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+[*.{sln,ps1,cmd,bat}]
+end_of_line = crlf
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{cs,fs,fsi}]
+indent_size = 4
+
+[*.{json,csproj,fsproj,props,targets,yml,yaml}]
+indent_size = 2

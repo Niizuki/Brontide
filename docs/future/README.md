@@ -10,7 +10,9 @@ the implementations have not delivered it.
 is the next implementation goal. It turns retained Cooling and Catalog experiments into a reusable
 Binding Plan and Channel realization. Its first stage, PB0, inventories the existing Cooling and
 Catalog behaviour, maps it to the C1-C10 capability contract and the Channel 0.1 vectors, and
-creates the data-only neutral contract under `binding/portable/`.
+creates the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).
+The PB0 scaffold, C1-C10 baseline inventory, representation choice, and the two open owner decisions
+are recorded there; the PB1 schemas and vectors remain to be written.
 
 The former Priority 0 documentation relocation is complete; its archived plan is the
 [Pinned Documentation Relocation Plan 0.1](../archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).
