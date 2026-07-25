@@ -4,19 +4,17 @@ This directory is the authoritative entry point for planned, draft, proposed, wo
 otherwise unimplemented work. A document belongs here even when it is the “current architecture” if
 the implementations have not delivered it.
 
-## Priority 0 — relocate pinned documentation (executed)
-
-The [Pinned Documentation Relocation Plan 0.1](./documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md)
-has been executed under an authorized evidence-repinning window: the previously pinned root and
-`docs/` documents now live in their classified `docs/` and `<stack>/docs/future/` locations, and
-every dependent path and hash pin has been repinned. Its confirming fresh independent reviews and
-closure are the remaining step before the plan moves to `docs/archive/`.
-
 ## Priority 1 — Portable Component Binding
 
 [Portable Component Binding Implementation Plan 0.1](./binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
-is the next implementation goal after Priority 0. It turns retained Cooling and Catalog experiments
-into a reusable Binding Plan and Channel realization.
+is the next implementation goal. It turns retained Cooling and Catalog experiments into a reusable
+Binding Plan and Channel realization. Its first stage, PB0, inventories the existing Cooling and
+Catalog behaviour, maps it to the C1-C10 capability contract and the Channel 0.1 vectors, and
+creates the data-only neutral contract under `binding/portable/`.
+
+The former Priority 0 documentation relocation is complete; its archived plan is the
+[Pinned Documentation Relocation Plan 0.1](../archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).
+No documentation prerequisite now precedes planned implementation work.
 
 ## Other planned areas
 

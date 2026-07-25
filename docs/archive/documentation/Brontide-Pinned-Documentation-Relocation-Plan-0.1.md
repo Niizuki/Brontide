@@ -1,6 +1,7 @@
 # Brontide Pinned Documentation Relocation Plan 0.1
 
-**Status:** Priority 0 future work; execute before other planned implementation work
+**Status:** Executed and archival; completed 2026-07-25 under an authorized evidence-repinning and
+fresh-review window
 **Date:** 2026-07-23
 **Scope:** Documentation paths and evidence controls only; no architecture or implementation
 semantics change
@@ -67,13 +68,34 @@ The relocation is complete only when:
 - `docs/README.md`, `docs/current/README.md`, `docs/future/README.md`,
   `docs/temporary/README.md`, and `docs/archive/README.md` agree.
 
+## Execution record
+
+The migration ran as one deliberate evidence change:
+
+- Nineteen documents moved to the classified locations in the table above; the repository root now
+  holds only standard project-control files, `README.md`, `AGENTS.md`, and
+  `Brontide-Architecture-Status.json`.
+- Every Markdown link and plain-text canonical path reference was repaired, including the ledger
+  path hardcoded in `build/verify-channel-vectors.ps1`.
+- The status registry, the Architecture 0.7 requirement vocabulary, both Architecture 0.7 delivery
+  matrices, and the Channel and adversarial vector inventories were repinned. Content hashes changed
+  only where repaired links required it; the unchanged Architecture 0.5 baseline and 0.8 change-plan
+  pins verified against their existing values.
+- Commit `c7c2eb4` is the relocation and the pinned review target. Commit `25bf73f` records the
+  retargeted review request, fresh conforming Reference and Minimal attestations from
+  `agent:relocation-independent-review`, and the regenerated closure that preserves the original
+  temporary-plan deletion authorization.
+- `build/verify-independent-review.ps1 -RequireComplete` and the complete repository gate
+  `build/verify-interchange.ps1` both pass from a clean worktree.
+
 ## Open questions (owners needed)
 
-| Owner | Question | Blocking point |
-| --- | --- | --- |
-| Repository maintainer | When should the evidence-repinning and fresh-review window be authorized? | Blocks execution of this Priority 0 plan; ordinary work must preserve the current stable paths. |
+None; this plan is complete.
 
 ## Resolved questions
+
+- **2026-07-25 — Review window:** the repository maintainer authorized the evidence-repinning and
+  fresh-review window, and the migration executed under it.
 
 - **2026-07-23 — Priority:** complete this relocation before other planned implementation work once
   the required review window is authorized.

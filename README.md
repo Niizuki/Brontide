@@ -12,8 +12,8 @@ future, temporary, or archival:
 - [`docs/archive/`](./docs/archive/README.md) — completed or superseded work.
 
 Repository-wide design, plan, ledger, and correction documents now live under `docs/` and each
-stack's `docs/future/`, classified by the documentation map. The
-[Pinned Documentation Relocation Plan 0.1](./docs/future/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md)
+stack's `docs/future/`, classified by the documentation map. The completed
+[Pinned Documentation Relocation Plan 0.1](./docs/archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md)
 carried out that move under an authorized evidence-repinning window and repinned every dependent
 evidence trail; the repository root now holds only standard project-control files, this `README.md`,
 `AGENTS.md`, and `Brontide-Architecture-Status.json`.

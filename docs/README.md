@@ -48,11 +48,13 @@ See [`current/README.md`](./current/README.md) for the compact current-material 
 ## Future work
 
 [`future/README.md`](./future/README.md) is the single entry point for planned and unimplemented
-work. Its Priority 0 item, the
-[`Pinned Documentation Relocation Plan`](./future/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md),
-has been executed: the previously pinned root and `docs/` documents now live in their classified
-locations and every dependent path and hash pin has been repinned. Its confirming fresh independent
-reviews and closure are the remaining step before the plan is archived.
+work. Its former Priority 0 item, the
+[`Pinned Documentation Relocation Plan`](./archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md),
+is complete and archived: the previously pinned root and `docs/` documents now live in their
+classified locations, every dependent path and hash pin has been repinned, and fresh independent
+reviews and an authorized closure confirm the move changed no architecture or implementation
+semantics. [`Portable Component Binding`](./future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
+is now the head of planned implementation work.
 
 The principal planned areas are:
 
