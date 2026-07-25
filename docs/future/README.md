@@ -12,18 +12,21 @@ Binding Plan and Channel realization. Its first stage, PB0, inventories the exis
 Catalog behaviour, maps it to the C1-C10 capability contract and the Channel 0.1 vectors, and
 creates the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).
 
-**PB0 and PB1 are complete.** The PB0 scaffold, C1-C10 baseline inventory, representation choice, and
-both resolved owner decisions are recorded there, and PB1 has authored the neutral contract itself:
-eight data-only schemas, 63 vectors covering C1-C10 and all 24 Channel 0.1 vectors, and deterministic
-golden CBOR encodings. [`build/verify-portable-binding.ps1`](../../build/verify-portable-binding.ps1)
-validates the neutral layer without loading either stack and runs inside the repository gate.
+**PB0, PB1, and PB2 are complete.** The PB0 scaffold, C1-C10 baseline inventory, representation
+choice, and both resolved owner decisions are recorded there; PB1 authored the neutral contract
+itself, as eight data-only schemas, 63 vectors covering C1-C10 and all 24 Channel 0.1 vectors, and
+deterministic golden CBOR encodings; and PB2 implemented that contract natively in the Reference
+stack under [`Brontide.Reference.Experimental.Binding/Portable/`](../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/),
+in a fixed direct-call and a negotiated process realization whose category-level observations match.
+Cooling and Catalog are now fixtures over the reusable layer rather than definitions of it.
+[`build/verify-portable-binding.ps1`](../../build/verify-portable-binding.ps1) validates the neutral
+layer without loading either stack and then runs the Reference evidence against it.
 
-**PB2 is the next item**: the Reference native implementation, refactoring reusable behaviour out of
-`Brontide.Reference.Experimental.Binding` behind the fixture-neutral contract, with Cooling and
-Catalog becoming adapters over the reusable layer rather than definitions of it. PB1 recorded three
-migration obligations PB2 and PB3 must both handle — deterministic map key ordering, schema-guided
-values, and frameless denial — in
-[`binding/portable/README.md`](../../binding/portable/README.md).
+**PB3 is the next item**: the corresponding native implementation in `Brontide.Minimal.Binding`,
+using Minimal-owned algebraic data types and explicit results rather than a translation of the
+Reference surface. The three migration obligations PB1 recorded — deterministic map key ordering,
+schema-guided values, and frameless denial — are discharged on the Reference side and still face
+PB3; they are described in [`binding/portable/README.md`](../../binding/portable/README.md).
 
 The former Priority 0 documentation relocation is complete; its archived plan is the
 [Pinned Documentation Relocation Plan 0.1](../archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).

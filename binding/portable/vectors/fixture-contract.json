@@ -12,6 +12,7 @@
   "provider": { "name": "interchange.tests.fixture-provider", "version": 1 },
   "provisions": [
     { "kind": "operation", "reference": { "name": "interchange.tests.cooling.set-enabled", "version": 1 }, "providerSpecific": false },
+    { "kind": "profile", "reference": { "name": "interchange.tests.cooling-profile", "version": 1 }, "providerSpecific": false },
     { "kind": "binding", "reference": { "name": "interchange.tests.portable-cbor-core", "version": 1 }, "providerSpecific": true },
     { "kind": "resource-flavor", "reference": { "name": "interchange.tests.copied-immutable-blob", "version": 1 }, "providerSpecific": false }
   ],
@@ -100,6 +101,15 @@
       "itemShape": { "name": "Text", "version": 1 }
     },
     {
+      "reference": { "name": "interchange.tests.encoding.choice", "version": 1 },
+      "kind": "choice",
+      "role": "Exercises the declared alternative set, and an alternative outside it.",
+      "alternatives": [
+        { "name": "text", "shape": { "name": "Text", "version": 1 } },
+        { "name": "count", "shape": { "name": "Integer.Signed64", "version": 1 } }
+      ]
+    },
+    {
       "reference": { "name": "interchange.tests.encoding.integers", "version": 1 },
       "kind": "record",
       "fragmentPolicy": "closed",
@@ -135,6 +145,14 @@
       "hostShape": { "name": "interchange.tests.cooling.command", "version": 1 },
       "fields": [
         { "name": "requesterLabel", "shape": { "name": "Text", "version": 1 }, "required": true }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.cooling.note", "version": 1 },
+      "hostShape": { "name": "interchange.tests.cooling.result", "version": 1 },
+      "role": "Declared by the contract but not by the negotiated Operation, which is what the closed fragment policy refuses.",
+      "fields": [
+        { "name": "note", "shape": { "name": "Text", "version": 1 }, "required": true }
       ]
     }
   ],

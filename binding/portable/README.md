@@ -1,6 +1,7 @@
 # Portable Component Binding — neutral contract artifacts (`binding/portable/`)
 
-**Status:** PB1 complete — planned experimental work; not ratified; not part of Brontide Base.
+**Status:** PB1 complete and PB2 implemented in the Reference stack — planned experimental work; not
+ratified; not part of Brontide Base.
 **Designed for:** Brontide Architecture 0.8 §16 and §18.1 (Complete Draft).
 **Plan:** [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
 
@@ -71,9 +72,27 @@ rather than only in this index:
 3. **Denial is frameless.** The Cooling `denial` message kind must not become a portable envelope
    kind.
 
+Reference discharged all three in PB2. PB3 faces the same three on the Minimal side.
+
 The C7 and C10 vectors carry a `phase` marker (PB4 or PB5) because they state an obligation a stack
 harness discharges later. PB1 fixes what must be equal and what may differ; it does not execute the
 comparison.
+
+## What PB2 changed here
+
+PB2 implemented the contract in the Reference stack and found three places where the fixture could
+not satisfy its own vectors. Each was corrected in
+[`vectors/fixture-contract.json`](vectors/fixture-contract.json) as data; no vector, schema, or
+golden encoding changed:
+
+1. The fixture required `interchange.tests.cooling-profile` at strength `required` while offering no
+   matching provision, so PB-01's "every required requirement matches a provision" could not hold
+   against the fixture negotiating with itself. The provision was added.
+2. There was no choice Shape, so PB-15 had no declared alternative set to violate.
+   `interchange.tests.encoding.choice@1` was added.
+3. There was no Fragment declared by the contract but outside the negotiated Operation, so PB-13's
+   closed-policy refusal could not be distinguished from an undeclared-Fragment refusal.
+   `interchange.tests.cooling.note@1` was added, hosted by the closed result Shape.
 
 ## Boundary
 

@@ -1,11 +1,16 @@
-# Validates the Portable Component Binding neutral contract artifacts under binding/portable/.
+# Validates the Portable Component Binding neutral contract artifacts under binding/portable/, and
+# then the Reference stack's native evidence against them.
 #
-# PB1 scope: the neutral layer only. This script loads neither stack, builds no project, and starts
-# no provider. Plan section 4 anticipates that later phases extend it to build provider endpoints and
-# run the cross-stack matrix; those steps arrive with PB2 through PB5.
+# The neutral section loads neither stack, builds no project, and starts no provider. The PB2 section
+# below builds the Reference binding and runs its portable vectors, including one realization across
+# a real process boundary. PB3 adds the Minimal side and PB5 adds the cross-stack matrix.
+#
+# Pass -NeutralOnly when a caller already runs the stack suites itself, as the repository gate does.
 #
 # The golden CBOR encodings are re-derived here from their value descriptions rather than trusted, so
 # a checked-in byte string that does not follow the deterministic rules fails the build.
+
+param([switch]$NeutralOnly)
 
 $ErrorActionPreference = 'Stop'
 
@@ -634,4 +639,38 @@ if ($failures.Count -gt 0) {
 }
 
 Write-Host "Portable binding verification passed: $($schemaFiles.Count) neutral schemas, $vectorCount vectors covering $($allowedCapabilities.Count) capabilities and $($channelVectorIds.Count) Channel vectors, and $goldenCount re-derived golden encodings."
+
+# ---------------------------------------------------------------------------
+# PB2: the Reference stack's native evidence against the neutral contract
+# ---------------------------------------------------------------------------
+
+if ($NeutralOnly) {
+    Write-Host 'Skipping the Reference native portable evidence: -NeutralOnly was requested.'
+    exit 0
+}
+
+function Invoke-Checked {
+    param([Parameter(Mandatory = $true)][scriptblock]$Command)
+
+    & $Command
+    if ($LASTEXITCODE -ne 0) {
+        throw "Command failed with exit code ${LASTEXITCODE}: $Command"
+    }
+}
+
+$portableTests = Join-Path $repositoryRoot 'Reference\tests\Brontide.Reference.Interchange.Tests\Brontide.Reference.Interchange.Tests.csproj'
+$referenceProviderProject = Join-Path $repositoryRoot 'Reference\src\Brontide.Reference.Interchange.Provider\Brontide.Reference.Interchange.Provider.csproj'
+
+Invoke-Checked { dotnet build $referenceProviderProject }
+Invoke-Checked { dotnet build $portableTests }
+Invoke-Checked { dotnet test $portableTests --no-build --filter 'FullyQualifiedName~Brontide.Reference.Interchange.Tests.Portable' }
+
+# The cross-process suite needs the built provider endpoint; it runs the same portable contract over
+# a real duplex process boundary.
+$env:BRONTIDE_REFERENCE_PROVIDER = Join-Path $repositoryRoot 'Reference\src\Brontide.Reference.Interchange.Provider\bin\Debug\net10.0\Brontide.Reference.Interchange.Provider.exe'
+Invoke-Checked {
+    dotnet test $portableTests --no-build --filter 'Category=CrossProcess&FullyQualifiedName~Portable'
+}
+
+Write-Host 'Reference native portable-binding evidence passed, including the cross-process realization.'
 exit 0
