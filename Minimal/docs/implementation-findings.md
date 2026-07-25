@@ -2,7 +2,7 @@
 
 These findings describe retained implementation evidence, including historical Architecture 0.5
 results. New architectural decisions come from
-[Architecture 0.7](../../Brontide-Architecture-0.7.md); planned Minimal responses are classified in
+[Architecture 0.7](../../docs/current/architecture/Brontide-Architecture-0.7.md); planned Minimal responses are classified in
 [`architecture-0.7-delivery.md`](./architecture-0.7-delivery.md). A historical finding is not
 silently upgraded to 0.7 evidence.
 

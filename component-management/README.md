@@ -2,7 +2,7 @@
 
 This tree carries the neutral, data-only fixtures for the experimental fake Component Manager
 planned by
-[Brontide Component Management Implementation Plan 0.1](../Brontide-Component-Management-Implementation-Plan-0.1.md).
+[Brontide Component Management Implementation Plan 0.1](../docs/future/component-management/Brontide-Component-Management-Implementation-Plan-0.1.md).
 It may contain data and documentation only — never a shared runtime library, semantic
 implementation logic, or code either stack executes. Each stack parses these files into its own
 native types and computes its own observations.

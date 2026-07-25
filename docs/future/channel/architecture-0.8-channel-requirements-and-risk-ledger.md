@@ -4,12 +4,12 @@ Status: non-runtime planning evidence for the Architecture 0.8 `Channel` directi
 requirements and risk register, not a ratified Channel contract, an extension specification, or an
 implementation claim. It adds no Brontide Base term.
 
-Design source: [Channel Design Note 0.1](../Brontide-Design-Note-Channel-0.1.md).
-Draft semantic contract: [Draft Channel Contract 0.1](../Brontide-Draft-Channel-Contract-0.1.md).
-Shared vectors: [Channel 0.1 conformance vectors](../conformance/channel-0.1-vectors.json).
+Design source: [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md).
+Draft semantic contract: [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md).
+Shared vectors: [Channel 0.1 conformance vectors](../../../conformance/channel-0.1-vectors.json).
 Evidence base: the retained Cooling and Catalog interchange proofs governed by the
-[Reference/Minimal Interchange Implementation Plan 0.1](./archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
-Architecture context: [Brontide Architecture 0.8](../Brontide-Architecture-0.8.md) §6.16, §8,
+[Reference/Minimal Interchange Implementation Plan 0.1](../../archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
+Architecture context: [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §6.16, §8,
 §13.6, §16.4, §19, §24, §33, §35.1.
 
 This ledger is the deliverable the Reference and Minimal 0.3 plan phases R6/M6 call for. It exists

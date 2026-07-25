@@ -5,7 +5,7 @@
 **Status:** Work-in-progress design note, version 0.1
 **Originally extracted from:** Brontide Architecture 0.6, §18.2
 
-**Current architecture context:** [Brontide Architecture 0.7](./Brontide-Architecture-0.7.md),
+**Current architecture context:** [Brontide Architecture 0.7](../../current/architecture/Brontide-Architecture-0.7.md),
 §18.2; the current architecture document retains a summary section under the same number.
 **Scope:** Records design directions. Nothing in this note enlarges Brontide Base,
 ratifies a Storage vocabulary or Persistence extension, requires a database, or makes

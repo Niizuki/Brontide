@@ -5,7 +5,7 @@
 **Status:** Work-in-progress design note, version 0.1
 **Originally extracted from:** Brontide Architecture 0.6, §16.6
 
-**Current architecture context:** [Brontide Architecture 0.7](./Brontide-Architecture-0.7.md),
+**Current architecture context:** [Brontide Architecture 0.7](../../current/architecture/Brontide-Architecture-0.7.md),
 §16.6; the current architecture document retains a summary section under the same number.
 **Scope:** Records a design direction. Nothing in this note is a normative Brontide
 mechanism, adds an Brontide Base term, or defines conformance requirements.

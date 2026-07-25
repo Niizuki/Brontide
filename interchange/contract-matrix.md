@@ -13,5 +13,5 @@
 
 No Brontide ambiguity blocks this fixture. Two findings remain deliberately provisional: the portable
 descriptor vocabulary and the universal form of binding observations are not ratified. Current
-design is sourced from [Architecture 0.7](../Brontide-Architecture-0.7.md); this retained matrix is
+design is sourced from [Architecture 0.7](../docs/current/architecture/Brontide-Architecture-0.7.md); this retained matrix is
 not 0.7 conformance evidence.

@@ -3,8 +3,8 @@
   "architecture": {
     "revision": "0.7",
     "status": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
-    "path": "Brontide-Architecture-0.7.md",
-    "sha256": "C801E4C4A5177115DA97A8CCCCBA5FBB7A320946D484D94D81D9FB49F13A7940",
+    "path": "docs/current/architecture/Brontide-Architecture-0.7.md",
+    "sha256": "7B01AA9A6D831173CD42FB253A87097271384BD3EA39C839678E1025AF6B98D6",
     "reviewedCommit": "06e473e05c7e8b4ae1364db17b4884807f0a676c"
   },
   "requirements": [

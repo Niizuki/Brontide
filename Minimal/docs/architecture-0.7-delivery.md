@@ -1,15 +1,15 @@
 # Brontide Minimal Stack Architecture 0.7 implementation notes
 
-Designed for: [Brontide Architecture 0.7](../../Brontide-Architecture-0.7.md)
+Designed for: [Brontide Architecture 0.7](../../docs/current/architecture/Brontide-Architecture-0.7.md)
 
 Status: M1-M2 tested; remaining work is partial; no Architecture 0.7 conformance or ratification claim
 
 These notes record useful implementation detail against the stated target. The related
-[implementation plan](../../Brontide-Minimal-Stack-Implementation-Plan-0.3.md),
+[implementation plan](./future/Brontide-Minimal-Stack-Implementation-Plan-0.3.md),
 [requirements](../../conformance/architecture-0.7-requirements.json), and
 [test matrix](../conformance/architecture-0.7.json) are supporting material rather than a formal
 routing hierarchy. They do not relabel retained Architecture 0.5 evidence. The permanent
-[implementation correction status](../../docs/implementation-correction-status.md) records those
+[implementation correction status](../../docs/archive/corrections/implementation-correction-status.md) records those
 separate gates and their independently reviewed deletion outcome.
 
 ## Architecture 0.7 change coverage
@@ -40,7 +40,7 @@ Architecture 0.5 evidence.
 - C7 is `non-runtime`: Genesis/World minting, opaque Model custody, and target-side `World.step`
   evaluation stay separate, and the process seam carries no Capability.
 - C8 is `non-runtime`: the repository-wide
-  [Mediation risk ledger](../../docs/architecture-0.7-mediation-risk-ledger.md) records Selection,
+  [Mediation risk ledger](../../docs/archive/architecture/architecture-0.7-mediation-risk-ledger.md) records Selection,
   Distribution, Arbitration, authority topology, provenance, deputy, affinity, residue, and trust
   obligations without adding a `Mediator` participant.
 
@@ -104,6 +104,6 @@ facts already touch recorded Minimal evidence without changing it:
 
 The recorded 0.8 composition, Component-management, minimum-topology, and trust-admission
 directions remain non-normative; their experimental coverage belongs to the
-[Component Management Implementation Plan 0.1](../../Brontide-Component-Management-Implementation-Plan-0.1.md),
+[Component Management Implementation Plan 0.1](../../docs/future/component-management/Brontide-Component-Management-Implementation-Plan-0.1.md),
 not to this ledger. That work is a requirements and risk ledger only; it does not expand the
 Architecture 0.7 implementation claim or pre-ratify 0.8.

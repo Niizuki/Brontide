@@ -5,12 +5,12 @@
 **Status:** Work-in-progress design note, version 0.1
 **Originally extracted from:** Brontide Architecture 0.6, §18.1
 
-**Current architecture context:** [Brontide Architecture 0.8](./Brontide-Architecture-0.8.md),
+**Current architecture context:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md),
 §18.1; the current architecture document retains a summary section under the same number. Staged
 acquisition and generation management are expanded in
-[Component Management](./docs/future/component-management/Brontide-Design-Note-Component-Management-0.1.md). The broader Environment,
+[Component Management](../component-management/Brontide-Design-Note-Component-Management-0.1.md). The broader Environment,
 Gatekeeper, protection, and relational-transparency direction is recorded in
-[Topology Environments and the Guardian Family](./Brontide-Design-Note-Topology-0.1.md).
+[Topology Environments and the Guardian Family](../topology/Brontide-Design-Note-Topology-0.1.md).
 **Scope:** Records design directions. Nothing in this note enlarges Brontide Base,
 ratifies the Component model or the Brontide Portable Binding, or defines conformance
 requirements.
@@ -512,7 +512,7 @@ that membership identity, source, lifetime, and relevant relations remain visibl
 this membership floor remains required for Composition occurrences.
 
 The richer direction is resolved in
-[Topology Environments and the Guardian Family](./Brontide-Design-Note-Topology-0.1.md). Ordinary Environments
+[Topology Environments and the Guardian Family](../topology/Brontide-Design-Note-Topology-0.1.md). Ordinary Environments
 remain overlapping topology identities rather than Components and have no Gatekeeper requirement. A Gatekeeper
 is the specialised Guardian and Actor through which a Protected Environment admits covered
 crossings; it may be realised by a Component, but is not itself a Component or Port. An Environment

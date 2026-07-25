@@ -1,6 +1,6 @@
 # Brontide Reference Stack milestone evidence
 
-Designed for: [Brontide Architecture 0.7](../../Brontide-Architecture-0.7.md)
+Designed for: [Brontide Architecture 0.7](../../docs/current/architecture/Brontide-Architecture-0.7.md)
 
 The mechanically checked source for Architecture 0.5 requirement status is
 [`../conformance/architecture-0.5.json`](../conformance/architecture-0.5.json). This document is the

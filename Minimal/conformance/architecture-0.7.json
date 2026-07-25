@@ -4,8 +4,8 @@
   "architecture": {
     "revision": "0.7",
     "status": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
-    "path": "Brontide-Architecture-0.7.md",
-    "sha256": "C801E4C4A5177115DA97A8CCCCBA5FBB7A320946D484D94D81D9FB49F13A7940",
+    "path": "docs/current/architecture/Brontide-Architecture-0.7.md",
+    "sha256": "7B01AA9A6D831173CD42FB253A87097271384BD3EA39C839678E1025AF6B98D6",
     "reviewedCommit": "06e473e05c7e8b4ae1364db17b4884807f0a676c"
   },
   "requirements": [
@@ -124,8 +124,8 @@
       "section": "8,13.5",
       "classification": "non-runtime",
       "component": "Minimal authority-boundary documentation audit",
-      "positiveEvidence": [{ "path": "docs/public-boundaries.md", "anchor": "Base authority boundaries" }],
-      "negativeEvidence": [{ "path": "docs/public-boundaries.md", "anchor": "not cross either seam" }],
+      "positiveEvidence": [{ "path": "docs/current/policies/public-boundaries.md", "anchor": "Base authority boundaries" }],
+      "negativeEvidence": [{ "path": "docs/current/policies/public-boundaries.md", "anchor": "not cross either seam" }],
       "status": "implemented",
       "rationale": "Minimal keeps issuance in Genesis/World, opaque custody in Model references, evaluation in World.step, and no Capability on the process seam."
     },
@@ -135,8 +135,8 @@
       "section": "6.9,18.1,18.2,26.1",
       "classification": "non-runtime",
       "component": "Architecture 0.7 Mediation risk ledger",
-      "positiveEvidence": [{ "path": "docs/architecture-0.7-mediation-risk-ledger.md", "anchor": "Distribution" }],
-      "negativeEvidence": [{ "path": "docs/architecture-0.7-mediation-risk-ledger.md", "anchor": "Neither stack introduces a universal" }],
+      "positiveEvidence": [{ "path": "docs/archive/architecture/architecture-0.7-mediation-risk-ledger.md", "anchor": "Distribution" }],
+      "negativeEvidence": [{ "path": "docs/archive/architecture/architecture-0.7-mediation-risk-ledger.md", "anchor": "Neither stack introduces a universal" }],
       "status": "implemented",
       "rationale": "The required Selection, Distribution, Arbitration, topology, provenance, deputy, affinity, residue, and trust risks are recorded without runtime conformance claims."
     }

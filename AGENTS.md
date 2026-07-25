@@ -165,15 +165,16 @@ experimental projects and do not present it as Brontide Base conformance.
 - Keep the repository root limited to standard project-control files, `README.md`, `AGENTS.md`, and
   `Brontide-Architecture-Status.json`. Repository-wide Markdown belongs under `docs/`;
   implementation-owned documentation belongs under `Reference/` or `Minimal/`.
-- Direct or transitive evidence pins are the only root-placement exception. Do not move such a file
-  during ordinary cleanup, create a redirect stub, or invalidate a closed evidence trail. Record the
-  blocked move in the
-  [`Priority 0 relocation plan`](docs/future/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md)
-  and preserve the stable path until the user authorizes evidence repinning and fresh review.
-- Before beginning any other planned implementation work, inspect [`docs/future/README.md`](docs/future/README.md).
-  The Priority 0 pinned-document relocation precedes other future work when its required
-  repinning/review window is authorized. If authorization is absent, report the dependency and
-  preserve the pinned files rather than silently bypassing it.
+- Documents carrying direct or transitive evidence pins now live at their classified `docs/` or
+  `<stack>/docs/` paths, which are the stable evidence paths. Do not move or rewrite such a file
+  during ordinary cleanup, create a redirect stub, or invalidate a closed evidence trail. Moving one
+  requires explicit user authorization to repin the evidence and obtain fresh independent review, as
+  the completed
+  [`pinned documentation relocation`](docs/archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md)
+  did; report the blocked move and preserve the current path until that authorization exists.
+- Before beginning any planned implementation work, inspect [`docs/future/README.md`](docs/future/README.md)
+  for the current priority order and take the highest-priority item unless the user directs
+  otherwise.
 - Archive Architecture 0.5 and earlier work under `docs/archive/foundation/`; archive later work by
   area rather than by date.
 - Implementation plans end with `## Open questions (owners needed)` containing only unresolved

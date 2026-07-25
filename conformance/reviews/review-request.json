@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "createdAt": "2026-07-18T00:00:00+02:00",
-  "reviewTargetCommit": "2049554c8e7ee5c26e4fcae6a103997737aa90f2",
+  "reviewTargetCommit": "c7c2eb4cf03ba973aa87f5fdb2e272e393ceb332",
   "architectureStatusRegistry": {
     "path": "Brontide-Architecture-Status.json",
-    "sha256": "A864A563FF95BD234C807BFE3D2BFE1517742A1F87F64B0A5A662565C54B262E"
+    "sha256": "284928E7E86A69B35D501A2E46F38CFE951B9F35D51341266197336F4D6F816B"
   },
   "stacks": [
     {
@@ -41,7 +41,7 @@
       "findingId": "A",
       "closingCommit": "e18aab6b568d2442fba20b642cc766662c1186da",
       "evidence": {
-        "path": "docs/implementation-correction-status.md",
+        "path": "docs/archive/corrections/implementation-correction-status.md",
         "anchor": "Minimal Base authority"
       }
     },
@@ -49,7 +49,7 @@
       "findingId": "B",
       "closingCommit": "e18aab6b568d2442fba20b642cc766662c1186da",
       "evidence": {
-        "path": "docs/implementation-correction-status.md",
+        "path": "docs/archive/corrections/implementation-correction-status.md",
         "anchor": "stable traceability"
       }
     },
@@ -57,7 +57,7 @@
       "findingId": "C",
       "closingCommit": "e18aab6b568d2442fba20b642cc766662c1186da",
       "evidence": {
-        "path": "docs/implementation-correction-status.md",
+        "path": "docs/archive/corrections/implementation-correction-status.md",
         "anchor": "interchange breadth and cost"
       }
     },
@@ -65,7 +65,7 @@
       "findingId": "D",
       "closingCommit": "69628a194834454169014b5b05dc8a6c2ad4d812",
       "evidence": {
-        "path": "docs/implementation-correction-status.md",
+        "path": "docs/archive/corrections/implementation-correction-status.md",
         "anchor": "engineering controls"
       }
     },
@@ -73,7 +73,7 @@
       "findingId": "E",
       "closingCommit": "e18aab6b568d2442fba20b642cc766662c1186da",
       "evidence": {
-        "path": "docs/implementation-correction-status.md",
+        "path": "docs/archive/corrections/implementation-correction-status.md",
         "anchor": "maintainability and performance"
       }
     },
@@ -81,7 +81,7 @@
       "findingId": "F",
       "closingCommit": "e292ce3d4598f9665b87a77490f10878d46f3c2f",
       "evidence": {
-        "path": "docs/implementation-correction-status.md",
+        "path": "docs/archive/corrections/implementation-correction-status.md",
         "anchor": "independent-review invariant gaps"
       }
     }

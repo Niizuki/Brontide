@@ -3,13 +3,13 @@
 ## Design Note: Channel
 
 **Status:** Work-in-progress design note, version 0.1; not ratified, not Brontide Base.
-**Current architecture context:** [Brontide Architecture 0.8](./Brontide-Architecture-0.8.md),
+**Current architecture context:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md),
 especially §6.16, §8, §13.6, §16.4, §19, §24, §33, and §35.1.
 **Evidence base:** the retained Cooling and Catalog interchange proofs, each implemented
 independently in the Reference (C#) and Minimal (F#) stacks and crossing a real process boundary,
 governed by the
-[Reference/Minimal Interchange Implementation Plan 0.1](./docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
-**Related direction:** [Composition and Components](./Brontide-Design-Note-Composition-0.1.md) (the
+[Reference/Minimal Interchange Implementation Plan 0.1](../../archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
+**Related direction:** [Composition and Components](../composition/Brontide-Design-Note-Composition-0.1.md) (the
 Portable Binding is Channel's first intended realisation).
 
 ## Purpose and boundary
@@ -269,7 +269,7 @@ against both stacks. Delivery guarantees, ordering, and long-running Executions 
 protocols as Channel; they are the evidence Channel is extracted from, not its specification.
 
 These open items are tracked as a register in the
-[Channel requirements and risk ledger](./docs/architecture-0.8-channel-requirements-and-risk-ledger.md),
+[Channel requirements and risk ledger](./architecture-0.8-channel-requirements-and-risk-ledger.md),
 the R6/M6 hand-off artifact, which also records the forward test scenarios — including a
 Channel-providing Component required by another Component — without implementing any of them.
 

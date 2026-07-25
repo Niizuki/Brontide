@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "contract": {
     "version": "0.1-draft",
-    "path": "Brontide-Draft-Channel-Contract-0.1.md",
+    "path": "docs/future/channel/Brontide-Draft-Channel-Contract-0.1.md",
     "status": "authored semantic vectors; stack harnesses pending; not ratified"
   },
   "conventions": {

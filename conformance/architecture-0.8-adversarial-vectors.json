@@ -3,7 +3,7 @@
   "changePlan": {
     "revision": "0.8",
     "status": "Executed change plan; the 0.8 document edit (C1-C14) is complete per Architecture 0.8 §35",
-    "path": "Brontide-Architecture-0.8-Change-Plan.md",
+    "path": "docs/archive/architecture/Brontide-Architecture-0.8-Change-Plan.md",
     "sha256": "225DE03BFEC85A6529E7D1FBF9AADDBAA5E32342E343D208A90A727BB63CF8B2",
     "sha256Note": "Canonical UTF-8/LF hash refreshed for the completed 0.8 document edit; refresh deliberately on any further plan edit."
   },

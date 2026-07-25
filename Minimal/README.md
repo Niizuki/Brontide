@@ -2,7 +2,7 @@
 
 Brontide Minimal Stack is the independent F# implementation and headless counterpoint.
 
-**Designed for:** [Brontide Architecture 0.7](../Brontide-Architecture-0.7.md)
+**Designed for:** [Brontide Architecture 0.7](../docs/current/architecture/Brontide-Architecture-0.7.md)
 
 **Status:** Partial implementation with explicitly labelled experiments
 
@@ -68,7 +68,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build\verify-interchan
 ```
 
 See [`docs/integration-guide.md`](./docs/integration-guide.md) for the binding quick reference.
-See [`../docs/public-boundaries.md`](../docs/public-boundaries.md) for payload, timeout, cleanup,
+See [`../docs/current/policies/public-boundaries.md`](../docs/current/policies/public-boundaries.md) for payload, timeout, cleanup,
 redaction, replay, and denial-of-service assumptions.
 
 See `docs/milestone-evidence.md` for the implemented first boundary and the Event/Flow, Macro

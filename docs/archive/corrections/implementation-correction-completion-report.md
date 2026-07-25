@@ -118,7 +118,7 @@ continue to own their local Architecture 0.7 targets and limitations.
 
 The closure evidence is retained in:
 
-- [`implementation-correction-status.md`](../../implementation-correction-status.md);
+- [`implementation-correction-status.md`](./implementation-correction-status.md);
 - [`review-request.json`](../../../conformance/reviews/review-request.json);
 - [`reference.json`](../../../conformance/reviews/attestations/reference.json);
 - [`minimal.json`](../../../conformance/reviews/attestations/minimal.json); and
