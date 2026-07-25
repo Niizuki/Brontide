@@ -242,11 +242,14 @@ sandbox target here in the same change.
 
 ## Git, branches, and pull requests
 
-- Do not create a branch, pull request, or task record unless the user asks for one or the active
-  workflow requires it.
+- **Do new work on a branch and open a pull request.** This is the default for implementation,
+  documentation, and evidence work alike, so changes are reviewable before they reach `main`.
+  Commit directly to `main` only when there is an explicit reason: the user asks for it, or the
+  change is small and self-evident enough that review would add nothing. State which reason applied.
+- Do not create a task record unless the user asks for one or the active workflow requires it.
 - There is no task/ticket naming scheme. Do not invent task identifiers, issue numbers, lane names,
   or mandatory prefixes.
-- When a branch is useful, choose a short descriptive name. A plain name such as `Brontide Minimal Stack-binding` or
+- Choose a short descriptive branch name. A plain name such as `Brontide Minimal Stack-binding` or
   `docs-agent-guidance` is fine; follow an explicitly requested name when one is given.
 - Commit subjects should be concise, lowercase-imperative, have no trailing period, and describe the change. Conventional Commit form is welcome
   (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `build:`, `chore:`), but a scope is optional and
