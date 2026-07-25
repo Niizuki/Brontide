@@ -224,6 +224,53 @@ may adopt system persistence without adopting system Presentation, or system ide
 giving up its own scheduler. Deeper participation can provide native reuse, composition,
 inspection, and substitution; it is an opportunity, not an entry fee.
 
+## Familiar ideas, one layer down
+
+Much of this will look familiar to application programmers, and that is deliberate. Brontide is
+**inspired by** ideas that matured inside programming languages and application frameworks, and
+applies them to the machinery systems are built out of rather than to the code running on top of
+it. It does not adopt their mechanisms.
+
+**Dependency injection and substitution** — the strongest influence. An Actor receives its
+providers, its clock, and its external observations as declared, inspectable inputs rather than
+discovering them through global state or ambient context. That is what makes replacing one
+provider with another an ordinary operation instead of a refactor, and it is why substitutability
+is the thing the whole evidence programme tests. The kinship is in the principle — explicit
+provision over ambient discovery — not in the machinery. Brontide is not a dependency injection
+container: a Capability is authority, not a resolved reference, and Brontide never infers
+authority from the fact that something was supplied to it. Delivery is not permission.
+
+**Event-based messaging** — a secondary influence, already visible in Event being one of the
+eight Base terms and in Event Distribution appearing above as a system-native facility. A
+Brontide Event is a record that something happened, addressable and attributable. It is not a
+message bus: Base promises no ordering, no retry, no delivery guarantee, and no subscription
+semantics. Those questions belong to Channel and to Flow, and are being answered deliberately
+rather than assumed.
+
+Neither idea transplants cleanly to this layer, and the difficulty is worth stating rather than
+glossing. An operating system must also answer scheduling, resource arbitration, automation,
+device mediation, and failure containment — all of which Brontide Base withholds on purpose.
+Whether these principles hold up when applied downward is a question the evidence programme is
+still testing, not a result it claims.
+
+### On the phrases "Brontide system" and "Brontide OS"
+
+Brontide is a specification, not an operating system, and the architecture says so directly: it
+defines a computational architecture that may be implemented by firmware, runtimes, operating
+systems, distributed environments, or future systems designed around Brontide directly.
+
+Two shorthands are nonetheless useful, in the same way one says a POSIX system:
+
+- **Brontide system** — anything implementing the Brontide standard, across that whole range: a
+  sensor's firmware, a hosted runtime, an operating system, a distributed environment.
+- **Brontide OS** — the operating-system case of it specifically. Such a system is an intended
+  eventual target.
+
+Both are accurate and welcome used that way. The distinction is worth keeping: *Brontide system*
+is the general term, and calling a microcontroller's firmware a "Brontide OS" would claim
+machinery the Embedded Test exists to prove unnecessary. Neither phrase names a product, and no
+Brontide operating system exists today.
+
 ## No implementation gets to be the truth
 
 The most common death of a good specification: the first popular implementation becomes the
