@@ -1,5 +1,27 @@
 using Brontide.Reference.Experimental.Binding;
+using Brontide.Reference.Experimental.Binding.Portable;
 using Brontide.Reference.Vocabularies.Cooling;
+
+// The portable verbs run the reusable Portable Component Binding over a real duplex process
+// boundary. The verbs below them remain the retained line-delimited experiments, which stay the
+// cross-stack baseline until the Minimal side implements the portable contract.
+if (args.Contains("--portable", StringComparer.Ordinal))
+{
+    var portableCatalog = args.Contains("--catalog", StringComparer.Ordinal);
+    var portableEndpoint = new PortableProviderEndpoint(
+        portableCatalog ? CatalogPortableFixture.Contract : CoolingPortableFixture.Contract,
+        portableCatalog
+            ? new CatalogPortableHandler()
+            : new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+        PortableRealization.NegotiatedProcess);
+    await using var portableDuplex = new PortableStreamDuplex(
+        Console.OpenStandardInput(),
+        Console.OpenStandardOutput(),
+        PortableLimits.Declared,
+        ownsStreams: true);
+    await PortableProviderProcessLoop.RunAsync(portableDuplex, portableEndpoint, PortableLimits.Declared);
+    return 0;
+}
 
 var crashAfterActivation = args.Contains("--crash-after-activation", StringComparer.Ordinal);
 var rejectProtocol = args.Contains("--reject-protocol", StringComparer.Ordinal);

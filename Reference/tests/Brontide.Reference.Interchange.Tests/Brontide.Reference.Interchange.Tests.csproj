@@ -24,5 +24,10 @@
     <None Include="..\..\..\interchange\**\*"
           Link="interchange\%(RecursiveDir)%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
+    <!-- The neutral portable-binding contract is read, never restated: the vectors and golden
+         encodings the tests assert against are the checked-in data-only artifacts. -->
+    <None Include="..\..\..\binding\portable\**\*.json"
+          Link="binding\portable\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

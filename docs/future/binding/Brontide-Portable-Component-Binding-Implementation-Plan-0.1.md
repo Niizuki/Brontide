@@ -1,6 +1,6 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Partially implemented experimental work — PB0 and PB1 complete; PB2 onward planned
+**Status:** Partially implemented experimental work — PB0, PB1, and PB2 complete; PB3 onward planned
 **Date:** 2026-07-23 (delivery status updated 2026-07-25)
 **Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
@@ -150,19 +150,27 @@ deterministically. The repository-wide gate invokes it.
 | --- | --- | --- |
 | PB0 — baseline and contract freeze | **Complete** | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md), [`representation-choice.md`](../../../binding/portable/representation-choice.md), [`open-decisions.md`](../../../binding/portable/open-decisions.md) |
 | PB1 — neutral manifests, plans, and vectors | **Complete** | [`schemas/`](../../../binding/portable/schemas/README.md) (8 files), [`vectors/`](../../../binding/portable/vectors/README.md) (63 vectors, 6 golden encodings), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
-| PB2 — Reference native implementation | Planned — next | — |
-| PB3 — Minimal native implementation | Planned | — |
+| PB2 — Reference native implementation | **Complete** | [`Reference/src/Brontide.Reference.Experimental.Binding/Portable/`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/), [`Reference/tests/Brontide.Reference.Interchange.Tests/Portable/`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
+| PB3 — Minimal native implementation | Planned — next | — |
 | PB4 — direct and process realization parity | Planned | — |
 | PB5 — cross-stack and independent-provider matrix | Planned | — |
 | PB6 — resource, lifecycle, and hardening completion | Planned | — |
 | PB7 — Composition handoff | Planned | — |
 | PB8 — evidence, documentation, and review closure | Planned | — |
 
-Nothing below PB1 has been implemented. The neutral contract exists and is gated; neither stack has
-been refactored against it, so no C-item yet has executable two-stack evidence. PB1 recorded three
-migration obligations that PB2 and PB3 must both discharge: deterministic map key ordering differs
-from the Cooling codec's ordinal string ordering, portable values are schema-guided rather than
-self-describing, and the Cooling `denial` message kind must not become a portable envelope kind.
+Nothing below PB2 has been implemented. The neutral contract exists and is gated, and Reference now
+implements it natively in both realizations, so every C item has single-stack executable evidence
+and none yet has two-stack evidence. PB2 discharged the three migration obligations PB1 recorded:
+map keys are sorted on their complete encoding rather than by the Cooling codec's ordinal string
+comparison, portable values are schema-guided and carry no kind discriminator, and local denial is
+frameless, so the Cooling `denial` message kind did not enter the portable envelope set.
+
+PB2 also closed three gaps in the PB1 fixture that made vectors unsatisfiable as written. The
+fixture required the `cooling-profile` at strength `required` while offering no matching provision,
+which contradicted PB-01; it declared no choice Shape, which PB-15 needs; and it declared no Fragment
+outside the negotiated Operation, which PB-13 needs. All three were added to
+[`vectors/fixture-contract.json`](../../../binding/portable/vectors/fixture-contract.json) as data;
+no vector, schema, or golden encoding changed.
 
 ### PB0 — baseline and contract freeze
 
@@ -218,6 +226,28 @@ cross-stack orchestration is involved.
 
 **Exit:** Reference passes all neutral vectors and both its direct-call and local process
 realizations report equal semantic observations.
+
+**Delivered.** The reusable layer lives under
+`Reference/src/Brontide.Reference.Experimental.Binding/Portable/` and owns the deterministic CBOR
+core, the portable references and Shape floor, the contract document and negotiation, the frozen and
+inspectable Binding Plan, local authority under strong Kleene evaluation, referenced resources, the
+lifecycle machine with declared limits and replay, the Channel envelopes, and the C9 observation
+set. Cooling and Catalog are fixtures over that layer: each is a contract document plus a handler,
+and the reusable layer contains no rule of either. `PortableCoreAdapter` is the Reference-owned
+adapter between the stack's `ShapeValue` model and the neutral positions.
+
+Evidence covers PB-01 through PB-60 and PB-62; PB-61 and PB-63 are the cross-stack matrix and stay
+deferred to PB5, which `PortableVectorCoverageTests` asserts explicitly rather than leaving implied.
+The golden encodings are read from the neutral artifacts and reproduced byte for byte rather than
+restated. Parity is measured between the fixed direct-call realization and the negotiated process
+realization over a local duplex seam, and the same contract additionally runs across a real process
+boundary through the `--portable` verb of `Brontide.Reference.Interchange.Provider`.
+
+Two limits of this phase are worth stating plainly. The retained line-delimited Cooling and Catalog
+experiments are untouched and remain the cross-stack baseline, because retiring them needs the
+Minimal side of the portable contract from PB3. And `copyCount` counts referenced-resource copies
+only: an inline payload is the message rather than a copy of a resource, which is what makes the
+PB-60 accounting of one copy across the process seam and none in the direct call exact.
 
 ### PB3 — Minimal native implementation
 
