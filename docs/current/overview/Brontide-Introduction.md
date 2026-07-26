@@ -271,6 +271,71 @@ is the general term, and calling a microcontroller's firmware a "Brontide OS" wo
 machinery the Embedded Test exists to prove unnecessary. Neither phrase names a product, and no
 Brontide operating system exists today.
 
+## Saying what a system is made of
+
+Calling something a Brontide system says it implements the standard. It does not say what the
+thing is built out of, and it does not say what it promises to anyone else. Those are two
+different questions, and conflating them is how "we use X" quietly becomes "we are compatible
+with X". They get two different words.
+
+**Constellation** — the set of Components a particular system is actually built from. It is
+concrete and specific to one system: not a standard, not portable, not a claim. A Constellation
+is named after where most of it comes from, and the parts that come from elsewhere are named too:
+
+> *OS xy runs a Brontide constellation, with yz for storage and its own scheduler.*
+
+Naming the exceptions is not politeness; it is the part that carries the information. A
+Constellation described only by its dominant source has said almost nothing.
+
+The astronomical sense is the useful one. A constellation is a grouping an observer recognises,
+and different observers group the same stars differently — which is exactly the situation here.
+There is no universal answer to what counts as part of "the system", and a term that pretends
+otherwise would be hiding a real disagreement rather than settling it.
+
+**Nucleus** — the part of its Constellation that a system declares central: the Components it
+treats as load-bearing rather than swappable. This is deliberately a *claim by that system*, not
+a fact about Brontide. Two systems built from nearly the same Components may draw the line
+differently and both be right, because they are answering "what is this system, if you take it
+apart?" — a question about that system's own design intent.
+
+Nucleus is not **Base**. Base is the specification's normative minimum, identical everywhere and
+not up for local interpretation. A system's Nucleus is its own opinion, and may contain far more
+than Base, or Components Brontide never defined.
+
+### What it is made of, versus what it promises
+
+A **Profile** — the architecture's named interoperability contract — is what software targets. A
+General-Purpose System Profile or a Static Embedded Profile tells another party what to expect.
+A Constellation is what one build happens to contain. The relationship is worth stating plainly:
+
+- **Profile** — portable, named, targetable. What a system *promises*.
+- **Constellation** — specific, local, descriptive. What a system is *made of*.
+- **Nucleus** — the part of the Constellation that system calls central.
+
+So a Constellation names **provenance**, never conformance. Describing a system as running a
+Brontide constellation says where its parts came from; it does not say the system conforms to
+anything. Conformance is claimed by Profile, and it is checked. Keeping those apart is what stops
+"built with Brontide" from drifting into an unearned compatibility claim.
+
+A system that wants to say all three at once should be able to do it in three lines rather than a
+paragraph:
+
+```
+Implementation AB claims the General-Purpose System Profile:
+    Constellation predominantly Brontide, storage from yz
+    Nucleus +xy -yx
+```
+
+Read: AB targets the General-Purpose System Profile, is built mostly from Brontide Components but
+takes storage elsewhere, and considers `xy` central while `yx` is present but replaceable. The
+deltas are the point — a system's disagreement with the usual shape is usually the interesting
+part, and it should cost one line to say.
+
+*Constellation* and *Nucleus* are naming conventions recorded here, in the same register as
+*Brontide system* and *Brontide OS* above. Profile is the architecture's term and carries
+conformance meaning; these two describe and do not oblige. If they earn their way into normative
+use, that is a change to the specification and to the evidence that goes with it.
+
 ## No implementation gets to be the truth
 
 The most common death of a good specification: the first popular implementation becomes the
