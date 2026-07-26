@@ -11,6 +11,8 @@ operational repository policy. It does not contain planned implementation work.
 - [Public API rationale](./policies/public-api-rationale.md) records public-surface compatibility
   decisions.
 - [.NET SDK support policy](./policies/sdk-policy.md) records the selected-SDK policy.
+- [ADR — "Stack" becomes "Graph"](./policies/ADR-stack-becomes-graph.md) records the accepted
+  terminology direction and the opportunistic execution policy that goes with it.
 
 The following current documents now live within this directory tree; the stack READMEs remain with
 their implementations:
