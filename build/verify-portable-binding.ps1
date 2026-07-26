@@ -1,9 +1,10 @@
 # Validates the Portable Component Binding neutral contract artifacts under binding/portable/, and
-# then the Reference stack's native evidence against them.
+# then each stack's native evidence against them.
 #
-# The neutral section loads neither stack, builds no project, and starts no provider. The PB2 section
-# below builds the Reference binding and runs its portable vectors, including one realization across
-# a real process boundary. PB3 adds the Minimal side and PB5 adds the cross-stack matrix.
+# The neutral section loads neither stack, builds no project, and starts no provider. The PB2 and PB3
+# sections below build the Reference and Minimal bindings and run their portable vectors, each
+# including one realization across a real process boundary. PB5 adds the cross-stack matrix, which
+# pairs the two implementations this script still runs separately.
 #
 # Pass -NeutralOnly when a caller already runs the stack suites itself, as the repository gate does.
 #
@@ -645,7 +646,7 @@ Write-Host "Portable binding verification passed: $($schemaFiles.Count) neutral 
 # ---------------------------------------------------------------------------
 
 if ($NeutralOnly) {
-    Write-Host 'Skipping the Reference native portable evidence: -NeutralOnly was requested.'
+    Write-Host 'Skipping the native portable evidence for both stacks: -NeutralOnly was requested.'
     exit 0
 }
 
@@ -673,4 +674,24 @@ Invoke-Checked {
 }
 
 Write-Host 'Reference native portable-binding evidence passed, including the cross-process realization.'
+
+# ---------------------------------------------------------------------------
+# PB3: the Minimal stack's native evidence against the same neutral contract
+# ---------------------------------------------------------------------------
+
+$minimalPortableTests = Join-Path $repositoryRoot 'Minimal\tests\Brontide.Minimal.Interchange.Tests\Brontide.Minimal.Interchange.Tests.fsproj'
+$minimalProviderProject = Join-Path $repositoryRoot 'Minimal\src\Brontide.Minimal.Interchange.Provider\Brontide.Minimal.Interchange.Provider.fsproj'
+
+Invoke-Checked { dotnet build $minimalProviderProject }
+Invoke-Checked { dotnet build $minimalPortableTests }
+Invoke-Checked { dotnet test $minimalPortableTests --no-build --filter 'FullyQualifiedName~Brontide.Minimal.Interchange.Tests.Portable' }
+
+# The Minimal cross-process suite needs its own built provider endpoint, which serves the portable
+# contract over a real duplex process boundary through the --portable verb.
+$env:BRONTIDE_MINIMAL_PROVIDER = Join-Path $repositoryRoot 'Minimal\src\Brontide.Minimal.Interchange.Provider\bin\Debug\net10.0\Brontide.Minimal.Interchange.Provider.exe'
+Invoke-Checked {
+    dotnet test $minimalPortableTests --no-build --filter 'Category=CrossProcess&FullyQualifiedName~Portable'
+}
+
+Write-Host 'Minimal native portable-binding evidence passed, including the cross-process realization.'
 exit 0

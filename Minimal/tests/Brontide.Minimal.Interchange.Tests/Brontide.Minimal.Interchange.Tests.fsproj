@@ -20,9 +20,25 @@
     <None Include="..\..\..\interchange\**\*"
           Link="interchange\%(RecursiveDir)%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
+    <!-- The neutral portable-binding contract is read, never restated: the vectors and golden
+         encodings are the authority these tests measure this stack against. -->
+    <None Include="..\..\..\binding\portable\**\*.json"
+          Link="binding\portable\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\binding\portable\**\*.md"
+          Link="binding\portable\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="InterchangeTests.fs" />
+    <Compile Include="Portable\PortableTestHarness.fs" />
+    <Compile Include="Portable\PortableEncodingTests.fs" />
+    <Compile Include="Portable\PortableEstablishmentTests.fs" />
+    <Compile Include="Portable\PortableAuthorityAndResourceTests.fs" />
+    <Compile Include="Portable\PortableLifecycleAndChannelTests.fs" />
+    <Compile Include="Portable\PortablePlanObservationAndParityTests.fs" />
+    <Compile Include="Portable\PortableCrossProcessTests.fs" />
+    <Compile Include="Portable\PortableVectorCoverageTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

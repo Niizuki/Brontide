@@ -21,6 +21,17 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   for the shared `component-management/` fixtures. It is not a real marketplace, package manager,
   loader, or security product, and is not an Architecture 0.8 conformance claim; CM1-CM6 remain
   planned.
+- `Brontide.Minimal.Binding` (`Portable/`) is the Minimal native realization of the
+  [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md),
+  built against the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).
+  Its PB3 phase implements deterministic-CBOR encoding, negotiation and a frozen Binding Plan, local
+  authority with frameless denial, referenced resources, the lifecycle machine, and the C9
+  observation set, in a fixed direct-call and a negotiated process realization. Refusals are explicit
+  results over Minimal-owned algebraic types rather than raised failures, and Cooling and Catalog are
+  fixtures over that layer rather than definitions of it. The retained line-delimited Cooling and
+  Catalog experiments in the same project stay the cross-stack baseline until PB5 pairs the two
+  portable implementations. PB4 and PB6-PB8 remain planned. Nothing here is an Architecture 0.8
+  conformance claim or part of Brontide Minimal Stack Base.
 - Reference/Minimal entanglement is a future cross-process experiment. Neither implementation is allowed
   to become the other's in-process compatibility layer.
 

@@ -35,7 +35,7 @@ Invoke-Checked {
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-vectors.ps1')
 }
 Invoke-Checked {
-    # -NeutralOnly: the Reference portable vectors and the cross-process realization run below with
+    # -NeutralOnly: both stacks' portable vectors and their cross-process realizations run below with
     # the rest of the stack suites, so the portable gate does not build and test them twice.
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-portable-binding.ps1') -NeutralOnly
 }
