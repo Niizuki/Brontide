@@ -38,6 +38,8 @@ with its classification and repinned every dependent evidence path.
 - [`module-boundaries.md`](./current/policies/module-boundaries.md),
   [`public-api-rationale.md`](./current/policies/public-api-rationale.md), and
   [`sdk-policy.md`](./current/policies/sdk-policy.md) describe maintained repository policy.
+- [`ADR-stack-becomes-graph.md`](./current/policies/ADR-stack-becomes-graph.md) records the accepted
+  rename of "Stack" to "Graph" and why its execution is deferred and opportunistic.
 - [`public-boundaries.md`](./current/policies/public-boundaries.md) is maintained boundary policy,
   now under `docs/current/policies/` with its conformance-matrix evidence repinned.
 - Stack-specific current documentation is indexed by

@@ -287,6 +287,13 @@ is named after where most of it comes from, and the parts that come from elsewhe
 Naming the exceptions is not politeness; it is the part that carries the information. A
 Constellation described only by its dominant source has said almost nothing.
 
+If a familiar shape helps: a Constellation is close to what Linux calls a distribution — assembled
+from many sources, named, and shipped as a usable whole, with its own opinion about what is
+essential. That comparison also shows there are two ordinary ways to name one. It may be described
+by provenance, as *a Brontide constellation*, in the way one says a GNU/Linux system; or it may
+carry a proper name its assembler chose, the way a distribution does. The first says where the
+parts came from. The second says who put them together and stands behind the result.
+
 The astronomical sense is the useful one. A constellation is a grouping an observer recognises,
 and different observers group the same stars differently — which is exactly the situation here.
 There is no universal answer to what counts as part of "the system", and a term that pretends
@@ -301,6 +308,36 @@ apart?" — a question about that system's own design intent.
 Nucleus is not **Base**. Base is the specification's normative minimum, identical everywhere and
 not up for local interpretation. A system's Nucleus is its own opinion, and may contain far more
 than Base, or Components Brontide never defined.
+
+### Constellations nest
+
+Nothing requires a Constellation's members to be single Components. A working system today spans a
+laptop, a phone, a watch, and a handful of services, and each of those is a system with a
+Constellation of its own. The larger grouping is a Constellation too; its members simply happen to
+be systems rather than parts.
+
+What changes with distance is the view, not the thing. From outside, a peer is usually opaque: you
+see the contracts at its edge and not the structure behind them, so you count it as one member.
+That opacity belongs to your vantage point rather than to the peer, and the architecture is careful
+never to claim otherwise — of a sealed embedded leaf it says the profile "does not deny that the
+firmware was composed; it states that the construction is not an exposed portable contract of that
+participant."
+
+So it is fair to treat a peer as a single member, and overreaching to call it atomic. *Opaque from
+here* says the same useful thing and claims nothing about what the peer is made of. It is the
+distinction boxed compositions already draw for applications: private is not simple, and is never
+the same as non-conforming.
+
+Two rules keep the nesting honest.
+
+**Conformance does not nest.** An outer system's Profile claim says nothing about its members'
+claims: extension conformance is asymmetric across that boundary rather than inherited by every
+contained device or Component. A General-Purpose System may contain a leaf that claims only Base.
+Membership is not a promise made on anyone else's behalf.
+
+**A Nucleus does not nest either.** A system's Nucleus is its opinion about its own members. What a
+member considers central to itself is that member's business, and invisible from outside unless it
+chooses to expose it. Calling a peer central says that it matters here, not what it contains.
 
 ### What it is made of, versus what it promises
 
