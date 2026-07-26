@@ -3,14 +3,42 @@ module Brontide.Minimal.Interchange.Provider.Program
 open System
 open System.Collections.Generic
 open Brontide.Minimal.Binding
+open Brontide.Minimal.Binding.Portable
 open Brontide.Minimal.Vocabularies.Cooling
+
+/// Runs the reusable Portable Component Binding over a real duplex process boundary. The verbs
+/// below it remain the retained line-delimited experiments, which stay the cross-stack baseline
+/// until PB5 pairs the two portable implementations.
+let private runPortable (arguments: string array) =
+    let catalog = arguments |> Array.contains "--catalog"
+
+    let endpoint =
+        PortableProviderEndpoint(
+            (if catalog then CatalogFixture.contract else CoolingFixture.contract),
+            (if catalog then CatalogHandler() :> IPortableOperationHandler else CoolingHandler()),
+            Realization.NegotiatedProcess
+        )
+
+    let duplex: IPortableDuplex =
+        PortableStreamDuplex(
+            Console.OpenStandardInput(),
+            Console.OpenStandardOutput(),
+            PortableLimits.declared,
+            true
+        )
+
+    (PortableProviderProcessLoop.run duplex endpoint PortableLimits.declared).Wait()
+    duplex.Close()
+    0
 
 [<EntryPoint>]
 let main arguments =
     let crashAfterActivation = arguments |> Array.contains "--crash-after-activation"
     let rejectProtocol = arguments |> Array.contains "--reject-protocol"
 
-    if arguments |> Array.contains "--catalog" then
+    if arguments |> Array.contains "--portable" then
+        runPortable arguments
+    elif arguments |> Array.contains "--catalog" then
         let catalog = Dictionary<string, CatalogItem>(StringComparer.Ordinal)
 
         let invoke (invocation: CatalogInvocation) =

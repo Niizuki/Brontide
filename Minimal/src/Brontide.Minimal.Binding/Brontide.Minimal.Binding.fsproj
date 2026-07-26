@@ -12,5 +12,27 @@
     <Compile Include="PortableBinding.fs" />
     <Compile Include="CatalogBinding.fs" />
     <Compile Include="CoolingBindingHost.fs" />
+    <!-- The PB3 portable binding: a reusable layer the retained experiments above do not define. -->
+    <Compile Include="Portable\PortableTaxonomy.fs" />
+    <Compile Include="Portable\PortableReferences.fs" />
+    <Compile Include="Portable\PortableLimits.fs" />
+    <Compile Include="Portable\PortableCbor.fs" />
+    <Compile Include="Portable\PortableValue.fs" />
+    <Compile Include="Portable\PortableContract.fs" />
+    <Compile Include="Portable\PortableShapeCatalog.fs" />
+    <Compile Include="Portable\PortableValueCodec.fs" />
+    <Compile Include="Portable\PortableAuthority.fs" />
+    <Compile Include="Portable\PortableResources.fs" />
+    <Compile Include="Portable\PortableLifecycle.fs" />
+    <Compile Include="Portable\PortableBindingPlan.fs" />
+    <Compile Include="Portable\PortableNegotiation.fs" />
+    <Compile Include="Portable\PortableEnvelope.fs" />
+    <Compile Include="Portable\PortableFraming.fs" />
+    <Compile Include="Portable\PortableObservation.fs" />
+    <Compile Include="Portable\PortableProviderEndpoint.fs" />
+    <Compile Include="Portable\PortableConversation.fs" />
+    <Compile Include="Portable\PortableBindingHost.fs" />
+    <Compile Include="Portable\PortableModelAdapter.fs" />
+    <Compile Include="Portable\PortableFixtures.fs" />
   </ItemGroup>
 </Project>

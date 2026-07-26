@@ -1,7 +1,7 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Partially implemented experimental work — PB0, PB1, and PB2 complete; PB3 onward planned
-**Date:** 2026-07-23 (delivery status updated 2026-07-25)
+**Status:** Partially implemented experimental work — PB0 through PB3 complete; PB4 onward planned
+**Date:** 2026-07-23 (delivery status updated 2026-07-26)
 **Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
 **Design sources:** [Composition and Components](../composition/Brontide-Design-Note-Composition-0.1.md),
@@ -144,23 +144,24 @@ deterministically. The repository-wide gate invokes it.
 
 ## 5. Delivery sequence
 
-### Delivery status (2026-07-25)
+### Delivery status (2026-07-26)
 
 | Phase | State | Evidence |
 | --- | --- | --- |
 | PB0 — baseline and contract freeze | **Complete** | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md), [`representation-choice.md`](../../../binding/portable/representation-choice.md), [`open-decisions.md`](../../../binding/portable/open-decisions.md) |
 | PB1 — neutral manifests, plans, and vectors | **Complete** | [`schemas/`](../../../binding/portable/schemas/README.md) (8 files), [`vectors/`](../../../binding/portable/vectors/README.md) (63 vectors, 6 golden encodings), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB2 — Reference native implementation | **Complete** | [`Reference/src/Brontide.Reference.Experimental.Binding/Portable/`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/), [`Reference/tests/Brontide.Reference.Interchange.Tests/Portable/`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
-| PB3 — Minimal native implementation | Planned — next | — |
-| PB4 — direct and process realization parity | Planned | — |
+| PB3 — Minimal native implementation | **Complete** | [`Minimal/src/Brontide.Minimal.Binding/Portable/`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/), [`Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
+| PB4 — direct and process realization parity | Planned — next | — |
 | PB5 — cross-stack and independent-provider matrix | Planned | — |
 | PB6 — resource, lifecycle, and hardening completion | Planned | — |
 | PB7 — Composition handoff | Planned | — |
 | PB8 — evidence, documentation, and review closure | Planned | — |
 
-Nothing below PB2 has been implemented. The neutral contract exists and is gated, and Reference now
-implements it natively in both realizations, so every C item has single-stack executable evidence
-and none yet has two-stack evidence. PB2 discharged the three migration obligations PB1 recorded:
+Nothing below PB3 has been implemented. The neutral contract exists and is gated, and both stacks now
+implement it natively in both realizations, so every C item has executable evidence in each stack
+independently and none yet has *paired* two-stack evidence: PB5 is what runs one stack's host against
+the other's provider. PB2 discharged the three migration obligations PB1 recorded:
 map keys are sorted on their complete encoding rather than by the Cooling codec's ordinal string
 comparison, portable values are schema-guided and carry no kind discriminator, and local denial is
 frameless, so the Cooling `denial` message kind did not enter the portable envelope set.
@@ -262,6 +263,35 @@ Channel boundary.
 
 **Exit:** Minimal passes all neutral vectors and both its direct-call and local process
 realizations report equal semantic observations.
+
+**Delivered.** The reusable layer lives under `Minimal/src/Brontide.Minimal.Binding/Portable/` and
+owns the same contract Reference implements, in Minimal's own terms rather than as a translation of
+the Reference surface. Every refusal is an explicit `PortableResult` value carrying its portable
+category, so a denial that never leaves the endpoint is a returned value rather than a raised
+failure; the Shape body is an algebraic union, so "required for one kind and forbidden for the rest"
+is structural; the lifecycle is an immutable record whose illegal transition leaves the previous
+state intact; and the two resource flavors are separate union cases, so a handle has nowhere to put
+octets and the forbidden implicit copy is unrepresentable in memory as well as refused on the wire.
+`PortableModelAdapter` is the Minimal-owned adapter between the stack's `ShapeValue` model and the
+neutral positions, and it refuses a decimal that does not fit rather than rounding one.
+
+PB3 discharged the same three migration obligations on the Minimal side: map keys are sorted on their
+complete encoding rather than by the retained JSON codec's ordinal comparison, portable values are
+schema-guided and carry no kind discriminator, and local denial is frameless, so the retained
+`denial` message kind did not enter the portable envelope set.
+
+Evidence covers PB-01 through PB-60 and PB-62; PB-61 and PB-63 are the cross-stack matrix and stay
+deferred to PB5, which `PortableVectorCoverageTests` asserts explicitly rather than leaving implied.
+The golden encodings are read from the neutral artifacts and reproduced byte for byte. Parity is
+measured between the fixed direct-call realization and the negotiated process realization over a
+local duplex seam, and the same contract additionally runs across a real process boundary through the
+`--portable` verb of `Brontide.Minimal.Interchange.Provider`.
+
+Two limits of this phase are worth stating plainly. The retained line-delimited Cooling and Catalog
+experiments in both stacks are untouched and remain the cross-stack baseline, because retiring them
+needs PB5 to pair the two portable implementations. And the two stacks have still never spoken to
+each other over the portable contract: each has passed the same neutral vectors alone, which is what
+PB3 promised and no more.
 
 ### PB4 — direct and process realization parity
 

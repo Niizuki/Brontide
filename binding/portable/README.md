@@ -1,7 +1,7 @@
 # Portable Component Binding — neutral contract artifacts (`binding/portable/`)
 
-**Status:** PB1 complete and PB2 implemented in the Reference stack — planned experimental work; not
-ratified; not part of Brontide Base.
+**Status:** PB1 complete and implemented natively in both stacks (PB2 Reference, PB3 Minimal) —
+planned experimental work; not ratified; not part of Brontide Base.
 **Designed for:** Brontide Architecture 0.8 §16 and §18.1 (Complete Draft).
 **Plan:** [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
 
@@ -72,7 +72,7 @@ rather than only in this index:
 3. **Denial is frameless.** The Cooling `denial` message kind must not become a portable envelope
    kind.
 
-Reference discharged all three in PB2. PB3 faces the same three on the Minimal side.
+Reference discharged all three in PB2 and Minimal discharged the same three independently in PB3.
 
 The C7 and C10 vectors carry a `phase` marker (PB4 or PB5) because they state an obligation a stack
 harness discharges later. PB1 fixes what must be equal and what may differ; it does not execute the
@@ -93,6 +93,13 @@ golden encoding changed:
 3. There was no Fragment declared by the contract but outside the negotiated Operation, so PB-13's
    closed-policy refusal could not be distinguished from an undeclared-Fragment refusal.
    `interchange.tests.cooling.note@1` was added, hosted by the closed result Shape.
+
+## What PB3 changed here
+
+Nothing. PB3 implemented the same contract in the Minimal stack and found no fixture, schema, vector,
+or golden encoding that needed correcting, which is the first evidence that the PB2 corrections above
+were fixture defects rather than contract ones. The gate now runs both stacks' native evidence after
+validating the neutral layer.
 
 ## Boundary
 
