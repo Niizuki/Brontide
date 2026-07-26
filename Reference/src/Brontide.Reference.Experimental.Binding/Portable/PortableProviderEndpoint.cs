@@ -95,7 +95,34 @@ public sealed class PortableProviderEndpoint
 
     public void Fail() => _lifecycle.Fail();
 
+    /// <summary>
+    /// Handles one request, or refuses it with a portable category.
+    /// </summary>
+    /// <remarks>
+    /// A refusal ends the binding, because the lifecycle's declared transition on a protocol error
+    /// is to the failed state. Applying it here rather than in the transport is what keeps the
+    /// direct realization's endpoint state equal to the process realization's.
+    /// </remarks>
     public PortableProviderOutcome Request(
+        PortableChannelRequestId requestId,
+        PortableOperationReference? operation,
+        int? compactOperation,
+        PortableShapeReference inputShape,
+        PortableValue input,
+        IReadOnlyList<PortableResource> resources)
+    {
+        try
+        {
+            return RequestCore(requestId, operation, compactOperation, inputShape, input, resources);
+        }
+        catch (PortableFaultException)
+        {
+            _lifecycle.Fail();
+            throw;
+        }
+    }
+
+    private PortableProviderOutcome RequestCore(
         PortableChannelRequestId requestId,
         PortableOperationReference? operation,
         int? compactOperation,
@@ -156,7 +183,6 @@ public sealed class PortableProviderEndpoint
         {
             // The provider's own runtime failed. Only the portable category crosses: no exception,
             // stack trace, or runtime type name is admitted into the observation or the frame.
-            _lifecycle.Fail();
             throw new PortableFaultException(
                 PortableProtocolCategory.InternalProtocolFailure,
                 "handler-failure",

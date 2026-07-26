@@ -163,12 +163,6 @@ internal static class CborTestExtensions
     public static CborMap With(this CborMap map, string key, CborItem value) =>
         new([.. map.Entries.Where(entry => entry.Key != key).Append(new CborMapEntry(key, value))]);
 
-    public static CborMap Without(this CborMap map, string key) =>
-        new([.. map.Entries.Where(entry => entry.Key != key)]);
-
-    public static CborMap Map(this CborMap map, string key) =>
-        (CborMap)map.Entries.Single(entry => entry.Key == key).Value;
-
     public static CborArray Array(this CborMap map, string key) =>
         (CborArray)map.Entries.Single(entry => entry.Key == key).Value;
 

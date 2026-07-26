@@ -184,6 +184,28 @@ public sealed class PortableLifecycleAndChannelTests
         });
     }
 
+    [Test]
+    public void A_stream_that_ends_inside_the_length_prefix_is_also_an_interruption()
+    {
+        // Two bytes of a four-byte prefix is not a clean end between frames; reporting it as a
+        // terminated peer would attribute the loss to the wrong domain.
+        using var partial = new MemoryStream([0, 0]);
+        var interrupted = Assert.ThrowsAsync<PortableProcessFailureException>(async () =>
+            await PortableFraming.ReadFrameAsync(partial, PortableLimits.Declared, CancellationToken.None));
+
+        using var empty = new MemoryStream([]);
+        var terminated = Assert.ThrowsAsync<PortableProcessFailureException>(async () =>
+            await PortableFraming.ReadFrameAsync(empty, PortableLimits.Declared, CancellationToken.None));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(interrupted!.Category, Is.EqualTo(PortableProcessCategory.TransportInterrupted));
+            Assert.That(interrupted.Domain, Is.EqualTo(PortableFailureDomain.Transport));
+            Assert.That(terminated!.Category, Is.EqualTo(PortableProcessCategory.PeerTerminated));
+            Assert.That(terminated.Domain, Is.EqualTo(PortableFailureDomain.RemoteProvider));
+        });
+    }
+
     // PB-42-CORRELATION-ECHO
     [Test]
     public async Task An_Outcome_echoing_every_carried_identity_is_accepted()
@@ -287,6 +309,27 @@ public sealed class PortableLifecycleAndChannelTests
                     [])).Category,
                 Is.EqualTo(PortableProtocolCategory.UnsupportedOperation));
             Assert.That(handler.ProviderEffectCount, Is.Zero);
+        });
+    }
+
+    [Test]
+    public async Task An_Operation_outside_the_contract_is_reported_as_a_result_not_raised_at_the_caller()
+    {
+        // The host reports every terminal interaction as an observation. A rejection decided while
+        // preparing the request is still a rejection, so it must not escape as an exception.
+        await using var host = await PortableTestHarness.DirectHostAsync();
+        var result = await host.InvokeAsync(
+            PortableOperationReference.Parse("interchange.tests.cooling.set-disabled", 1),
+            CoolingPortableFixture.CommandV1,
+            CoolingPortableFixture.Command("primary", enabled: true),
+            PortableTestHarness.Permitted());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Category, Is.EqualTo(PortableProtocolCategory.UnsupportedOperation));
+            Assert.That(result.ResultClass, Is.EqualTo(PortableResultClass.ProtocolError));
+            Assert.That(result.Observation.TerminalStatus, Is.EqualTo(PortableTerminalStatus.ProtocolError));
+            Assert.That(result.Observation.ProviderEffectCount, Is.Zero);
         });
     }
 

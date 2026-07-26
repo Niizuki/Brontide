@@ -100,13 +100,16 @@ public sealed class PortableBindingHost : IAsyncDisposable
     public PortableRequestDecision PrepareRequest(
         PortableOperationReference operation,
         PortableShapeReference inputShape,
-        PortableConstraint authority)
+        PortableConstraint authority) =>
+        PrepareRequest(operation, inputShape, authority, NewCorrelation());
+
+    private PortableRequestDecision PrepareRequest(
+        PortableOperationReference operation,
+        PortableShapeReference inputShape,
+        PortableConstraint authority,
+        PortableCorrelationMapping correlation)
     {
         ArgumentNullException.ThrowIfNull(authority);
-        var correlation = new PortableCorrelationMapping(
-            ChannelId,
-            PortableChannelRequestId.New(),
-            PortableHostExecutionId.New());
         var admission = _gate.Evaluate(authority);
         if (!admission.MayProceed)
         {
@@ -146,33 +149,39 @@ public sealed class PortableBindingHost : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(authority);
         var presented = resources ?? [];
-        var decision = prepared ?? PrepareRequest(operation, inputShape, authority);
         var started = _clock.ElapsedMilliseconds;
 
-        if (!decision.MayEmit)
-        {
-            return new PortableInteractionResult(
-                PortableFrameDecision.None,
-                PortableResultClass.Denial,
-                null,
-                null,
-                null,
-                decision.DenialObservation!);
-        }
-
+        // The correlation exists before the preparation does, because a rejection raised while
+        // preparing still has to be reported as a complete observation rather than thrown at the
+        // caller. Naming an Operation outside the contract is exactly such a rejection.
+        var correlation = prepared?.Correlation ?? NewCorrelation();
         var resourceObservations = presented
             .Select(resource => PortableResourceCodec.Observe(resource, _conversation.Realization))
             .ToImmutableArray();
         var copies = resourceObservations.Sum(resource => resource.Copies);
+        var obligations = prepared?.MappingObligations ?? ImmutableArray<string>.Empty;
 
         try
         {
+            var decision = prepared ?? PrepareRequest(operation, inputShape, authority, correlation);
+            obligations = decision.MappingObligations;
+            if (!decision.MayEmit)
+            {
+                return new PortableInteractionResult(
+                    PortableFrameDecision.None,
+                    PortableResultClass.Denial,
+                    null,
+                    null,
+                    null,
+                    decision.DenialObservation!);
+            }
+
             _lifecycle.Apply(PortableEnvelopeKind.Request);
-            _lifecycle.RecordRequest(decision.Correlation.RequestId);
+            _lifecycle.RecordRequest(correlation.RequestId);
             var receipt = await _conversation.RequestAsync(
                 Plan,
                 ChannelId,
-                decision.Correlation.RequestId,
+                correlation.RequestId,
                 execution,
                 operation,
                 null,
@@ -200,12 +209,12 @@ public sealed class PortableBindingHost : IAsyncDisposable
                 succeeded ? PortableTerminalStatus.Succeeded : PortableTerminalStatus.Failed,
                 PortableAuthorityDecision.Permitted,
                 Plan.AuthorityDecisionPoint,
-                decision.Correlation,
+                correlation,
                 succeeded ? null : PortableFailureDomain.RemoteProvider,
                 receipt.ProviderEffectCount,
                 copies,
                 resourceObservations,
-                decision.MappingObligations,
+                obligations,
                 false,
                 Timing(_clock.ElapsedMilliseconds - started),
                 null,
@@ -221,12 +230,12 @@ public sealed class PortableBindingHost : IAsyncDisposable
         catch (PortableFaultException fault)
         {
             _lifecycle.Fail();
-            return Rejected(fault, decision, resourceObservations, started);
+            return Rejected(fault, correlation, obligations, resourceObservations, started);
         }
         catch (PortableProcessFailureException failure)
         {
             _lifecycle.Fail();
-            return Lost(failure, decision, resourceObservations, started);
+            return Lost(failure, correlation, obligations, resourceObservations, started);
         }
     }
 
@@ -244,9 +253,13 @@ public sealed class PortableBindingHost : IAsyncDisposable
 
     public ValueTask DisposeAsync() => _conversation.DisposeAsync();
 
+    private PortableCorrelationMapping NewCorrelation() =>
+        new(ChannelId, PortableChannelRequestId.New(), PortableHostExecutionId.New());
+
     private PortableInteractionResult Rejected(
         PortableFaultException fault,
-        PortableRequestDecision decision,
+        PortableCorrelationMapping correlation,
+        ImmutableArray<string> obligations,
         ImmutableArray<PortableResourceObservation> resources,
         long started) =>
         new(
@@ -259,13 +272,13 @@ public sealed class PortableBindingHost : IAsyncDisposable
                 PortableTerminalStatus.ProtocolError,
                 PortableAuthorityDecision.Permitted,
                 Plan.AuthorityDecisionPoint,
-                decision.Correlation,
+                correlation,
                 fault.Domain,
                 // A rejection never produces a partial provider effect.
                 0,
                 0,
                 resources,
-                decision.MappingObligations,
+                obligations,
                 false,
                 Timing(_clock.ElapsedMilliseconds - started),
                 fault.LocalCode,
@@ -273,7 +286,8 @@ public sealed class PortableBindingHost : IAsyncDisposable
 
     private PortableInteractionResult Lost(
         PortableProcessFailureException failure,
-        PortableRequestDecision decision,
+        PortableCorrelationMapping correlation,
+        ImmutableArray<string> obligations,
         ImmutableArray<PortableResourceObservation> resources,
         long started) =>
         new(
@@ -286,12 +300,12 @@ public sealed class PortableBindingHost : IAsyncDisposable
                 PortableTerminalStatus.ProcessFailure,
                 PortableAuthorityDecision.Permitted,
                 Plan.AuthorityDecisionPoint,
-                decision.Correlation,
+                correlation,
                 failure.Domain,
                 0,
                 0,
                 resources,
-                decision.MappingObligations,
+                obligations,
                 failure.Category == PortableProcessCategory.TransportInterrupted,
                 Timing(_clock.ElapsedMilliseconds - started),
                 failure.Category.Token(),

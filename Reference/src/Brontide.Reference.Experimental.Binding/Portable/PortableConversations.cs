@@ -173,7 +173,14 @@ public sealed class PortableProcessConversation(IPortableDuplex duplex, Portable
         }
 
         var outcome = PortableOutcomeBody.Decode(envelope.Body);
-        var value = PortableValueCodec.Decode(plan.Catalog, outcome.ValueShape, outcome.Value);
+
+        // The Operation's declared Fragments govern the decode, exactly as they govern the direct
+        // realization's validation. Decoding with an empty set would refuse a declared Fragment on
+        // the wire that a direct call accepts.
+        var declared = operation is { } reference
+            ? plan.Operation(reference).RequiredFragments
+            : ImmutableArray<PortableFragmentReference>.Empty;
+        var value = PortableValueCodec.Decode(plan.Catalog, outcome.ValueShape, outcome.Value, declared);
         return new PortableOutcomeReceipt(outcome.Status, outcome.ValueShape, value, outcome.ProviderEffectCount);
     }
 

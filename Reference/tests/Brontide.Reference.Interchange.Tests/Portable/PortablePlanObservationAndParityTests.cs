@@ -183,6 +183,31 @@ public sealed class PortablePlanObservationAndParityTests
         });
     }
 
+    [Test]
+    public void A_refused_request_leaves_the_endpoint_failed_in_the_direct_realization_too()
+    {
+        // The lifecycle's declared transition on a protocol error is to the failed state. Applying
+        // it only in the transport would leave the two realizations in different endpoint states
+        // after the same refusal.
+        var endpoint = PortableTestHarness.CoolingEndpoint(PortableRealization.FixedDirectCall);
+        endpoint.Establish(CoolingPortableFixture.Contract, "host");
+        endpoint.SignalReady();
+
+        Assert.Throws<PortableFaultException>(() => endpoint.Request(
+            PortableChannelRequestId.New(),
+            PortableOperationReference.Parse("interchange.tests.cooling.set-disabled", 1),
+            null,
+            CoolingPortableFixture.CommandV1,
+            CoolingPortableFixture.Command("primary", enabled: true),
+            []));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(endpoint.State, Is.EqualTo(PortableLifecycleState.Failed));
+            Assert.That(endpoint.State.IsTerminal(), Is.True);
+        });
+    }
+
     // PB-62-NO-SHARED-SEMANTIC-RUNTIME
     [Test]
     public void The_portable_layer_imports_no_other_stack_runtime_and_the_neutral_layer_stays_data_only()

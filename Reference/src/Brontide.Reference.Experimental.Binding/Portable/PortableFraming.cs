@@ -59,12 +59,22 @@ public static class PortableFraming
         ArgumentNullException.ThrowIfNull(stream);
         ArgumentNullException.ThrowIfNull(limits);
         var prefix = new byte[PrefixBytes];
-        if (!await FillAsync(stream, prefix, allowCleanEnd: true, cancellationToken).ConfigureAwait(false))
+        var prefixBytes = await FillAsync(stream, prefix, cancellationToken).ConfigureAwait(false);
+        if (prefixBytes == 0)
         {
+            // Nothing at all arrived, so the peer ended between frames rather than inside one.
             throw new PortableProcessFailureException(
                 PortableProcessCategory.PeerTerminated,
                 PortableFailureDomain.RemoteProvider,
                 "The peer closed the seam between frames.");
+        }
+
+        if (prefixBytes < PrefixBytes)
+        {
+            throw new PortableProcessFailureException(
+                PortableProcessCategory.TransportInterrupted,
+                PortableFailureDomain.Transport,
+                "The stream ended inside a length prefix; the partial frame was discarded.");
         }
 
         var declared = BinaryPrimitives.ReadUInt32BigEndian(prefix);
@@ -81,7 +91,7 @@ public static class PortableFraming
         }
 
         var body = new byte[declared];
-        if (!await FillAsync(stream, body, allowCleanEnd: false, cancellationToken).ConfigureAwait(false))
+        if (await FillAsync(stream, body, cancellationToken).ConfigureAwait(false) < body.Length)
         {
             throw new PortableProcessFailureException(
                 PortableProcessCategory.TransportInterrupted,
@@ -92,10 +102,10 @@ public static class PortableFraming
         return body;
     }
 
-    private static async ValueTask<bool> FillAsync(
+    /// <summary>Reads until the buffer is full or the stream ends, reporting how much arrived.</summary>
+    private static async ValueTask<int> FillAsync(
         Stream stream,
         Memory<byte> buffer,
-        bool allowCleanEnd,
         CancellationToken cancellationToken)
     {
         var filled = 0;
@@ -104,13 +114,13 @@ public static class PortableFraming
             var read = await stream.ReadAsync(buffer[filled..], cancellationToken).ConfigureAwait(false);
             if (read == 0)
             {
-                return allowCleanEnd && filled == 0 ? false : filled == buffer.Length;
+                break;
             }
 
             filled += read;
         }
 
-        return true;
+        return filled;
     }
 }
 
