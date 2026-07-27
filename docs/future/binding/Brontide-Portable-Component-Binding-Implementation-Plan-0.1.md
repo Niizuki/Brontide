@@ -1,6 +1,7 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Partially implemented experimental work — PB0 through PB5 complete; PB6 onward planned
+**Status:** Partially implemented experimental work — PB0 through PB5 complete; PB6 partially
+delivered (see its section for the delivered subset and what remains); PB7 onward planned
 **Date:** 2026-07-23 (delivery status updated 2026-07-27)
 **Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
@@ -154,7 +155,7 @@ deterministically. The repository-wide gate invokes it.
 | PB3 — Minimal native implementation | **Complete** | [`Minimal/src/Brontide.Minimal.Binding/Portable/`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/), [`Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB4 — direct and process realization parity | **Complete** | [`Reference .../Portable/PortableRealizationParityTests.cs`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/PortableRealizationParityTests.cs), [`Minimal .../Portable/PortableRealizationParityTests.fs`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/PortableRealizationParityTests.fs), both `PortableChannelVectorCoverageTests`, both `PortableCrossProcessTests` |
 | PB5 — cross-stack and independent-provider matrix | **Complete** | both stacks' `PortableCrossStackTests` and `PortableNeutralProviderTests`, [`binding/neutral-provider/`](../../../binding/neutral-provider/README.md), [`catalog-fixture-contract.json`](../../../binding/portable/vectors/catalog-fixture-contract.json) |
-| PB6 — resource, lifecycle, and hardening completion | Planned — next | — |
+| PB6 — resource, lifecycle, and hardening completion | **Partially delivered** — decoder property tests, the failure-path leak proof, and total transport classification are in; resource and lifecycle adversarial coverage remains | both stacks' `PortableDecoderPropertyTests`, `PortableProcessCategoryTests`, and the `a failure path leaks nothing` cases in `PortableRealizationParityTests` |
 | PB7 — Composition handoff | Planned | — |
 | PB8 — evidence, documentation, and review closure | Planned | — |
 
@@ -431,6 +432,74 @@ exhaustion. Fuzz or property-test decoders within deterministic bounds. Prove th
 not leak a provider effect, authority, resource handle, exception, or false success.
 
 **Exit:** C6 and C8 have positive and negative evidence in both stacks and across the process seam.
+
+**Partially delivered.** Three of the phase's bullets are done in both stacks; the resource and
+lifecycle adversarial coverage is not. The exit criterion above is therefore **not** met.
+
+#### Delivered
+
+**Decoders are property-tested within deterministic bounds.** Every vector before this presented
+input a person wrote. The new suites present input nobody wrote: arbitrary bytes, every single-byte
+mutation and every truncation of a valid frame, nesting past the declared depth up to 10 000 levels,
+and hostile length prefixes. The generators are seeded and the iteration counts fixed, so a failure
+reproduces and the suite cannot go intermittently red. Minimal states the property more strongly than
+Reference can: refusals there are returned values rather than raised failures, so its claim is not
+"it raises only the right exception" but "it does not raise at all".
+
+**Failure paths are proved to leak nothing.** Across every failing scenario in the matrix, in both
+realizations: no provider effect, no value presented by a refusal, no runtime type or stack trace in
+the diagnostics, no resource observed by a frameless denial, and no false success.
+
+**The transport's process-category classification is total.**
+
+#### Findings
+
+Each of the three appeared identically in both stacks, which is itself worth recording: independent
+implementation catches divergence between the two, and cannot catch a blind spot they share. All
+three were found by testing a property rather than a case.
+
+1. **Resource observations claimed an acceptance and an integrity check that never happened.** They
+   were built before dispatch from facts about the *flavor*, so an interaction that failed still
+   reported `accepted: true`, and a blob whose content hash did not verify still reported
+   `integrityVerified: true`. Both are false successes in the C9 observation set, and both are fields
+   the C7 parity profile compares — so the two stacks agreed with each other while both were wrong,
+   and no parity check could have found it. Acceptance and integrity are facts about a completed
+   admission rather than about a flavor; a failed interaction now reports neither, while flavor,
+   ownership, and copy count still describe what was presented.
+2. **The transport let foreign exceptions escape.** The duplex named only the disposed-stream and I/O
+   cases, so any other failure a stream can raise travelled out of the binding as a runtime type —
+   the one thing C4 says never crosses the seam, and reachable from a peer's behaviour rather than
+   from a defect in this code. Classification is now total: an allocation failure is
+   `resource-exhausted`, a disposed stream or I/O failure is `transport-unavailable`, a cancellation
+   past the declared bound is `timeout`, and anything else is `unknown` carrying why narrower
+   attribution was impossible.
+3. **Two declared process categories had no reachable path.** `resource-exhausted` and `unknown` were
+   declared because the Channel taxonomy requires them, and PB-51 asserted the declared set was
+   complete and unique — a statement about an enumeration, not about behaviour. Closing finding 2
+   gave both a genuine path, and each now has behavioural evidence in both stacks.
+
+A fourth observation is recorded rather than fixed: **`peer-unavailable` is unreachable in version
+0.1 by design.** The binding layer never starts a peer; it is handed a duplex that is already
+connected, and starting one is the host harness's concern above the binding. Both stacks assert the
+unreachable set is exactly this one value, so a future change to it fails the build and brings the
+reasoning back for review. Manufacturing a path so the enumeration looked evenly covered would have
+been the dishonest alternative.
+
+#### Remaining
+
+- Referenced-resource adversarial coverage: premature reuse, unsupported fallback, and ownership
+  transfer or borrowing. Part of this work is determining which of these the 0.1 floor makes
+  *unrepresentable* rather than merely refused — a copied immutable blob has no release signal and an
+  addressing-only handle carries no octets, so some of these conditions may have no expressible form
+  to test. Where that is so, record it as PB-29 records the non-goal flavors, rather than inventing a
+  vector.
+- Lifecycle adversarial coverage: establishment failure before activation proving no provider effect,
+  unknown lifecycle actions, and duplicate terminal responses exercised over the seam rather than
+  against the lifecycle object alone.
+- Cross-seam versions of the C6 vectors still tested only at codec level: forbidden implicit copy,
+  release signal for the copied flavor, resource beyond the declared bound, and unsupported flavor.
+  PB5 already carries integrity mismatch and scope refusal across the seam.
+- The PB6 completion record, and any gate wiring the remaining suites need.
 
 ### PB7 — Composition handoff without Component Manager expansion
 

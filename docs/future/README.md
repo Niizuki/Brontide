@@ -43,10 +43,21 @@ had not — that Catalog was never a shared contract, and that the neutral fixtu
 encodable as published, because it carries documentation fields the contract rejects. Both are fixed
 in the neutral data, and no neutral vector is deferred in either stack any more.
 
-**PB6 is the next item**: resource, lifecycle, and hardening completion — adversarial coverage for
-ownership and borrowing, release and completion, scope escape, integrity mismatch, and the
-establishment, withdrawal, timeout, and peer-loss paths, with property-tested decoders inside
-deterministic bounds.
+**PB6 is in progress**: resource, lifecycle, and hardening completion. Three of its bullets are
+delivered in both stacks — decoders property-tested inside deterministic bounds, a proof that failure
+paths leak no provider effect, value, runtime type, resource, or false success, and a total
+classification of transport failures into declared process categories. Its exit criterion is not met:
+the referenced-resource and lifecycle adversarial coverage remains, along with cross-seam versions of
+the C6 vectors still tested only at codec level.
+
+Testing properties rather than cases found three defects, each present identically in both stacks —
+which is the interesting part, because independent implementation catches divergence between the two
+and cannot catch a blind spot they share. Resource observations claimed an acceptance and an
+integrity check that never happened, in fields the parity profile compares, so both stacks agreed
+while both were wrong. The transport let foreign exceptions escape the binding. And two declared
+process categories had no path that could produce them. The plan's PB6 section records all three,
+and records why `peer-unavailable` stays unreachable in version 0.1 rather than manufacturing a path
+for it.
 
 The former Priority 0 documentation relocation is complete; its archived plan is the
 [Pinned Documentation Relocation Plan 0.1](../archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).

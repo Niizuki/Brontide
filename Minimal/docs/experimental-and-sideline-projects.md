@@ -36,7 +36,13 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   the cross-stack baseline, though PB5 has now paired the implementations: this host drives the
   Reference provider and an [implementation-neutral provider](../../binding/neutral-provider/README.md)
   over the portable contract, reaching the same category-level observations it reaches talking to
-  itself. PB6-PB8 remain planned. Nothing here is an Architecture 0.8 conformance claim or part of Brontide
+  itself. PB6 has since property-tested the decoders inside deterministic bounds and proved that
+  failure paths leak no provider effect, value, runtime type, resource, or false success. Doing so
+  corrected three defects here: resource observations claimed an acceptance and an integrity check
+  that never happened, the transport let foreign exceptions escape the binding, and two declared
+  process categories had no path that could produce them. The referenced-resource and lifecycle
+  adversarial coverage PB6 also calls for is not yet delivered, so PB6 is partially delivered and
+  PB7-PB8 remain planned. Nothing here is an Architecture 0.8 conformance claim or part of Brontide
   Minimal Stack Base.
 - Reference/Minimal entanglement is a future cross-process experiment. Neither implementation is allowed
   to become the other's in-process compatibility layer.
