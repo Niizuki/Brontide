@@ -1,8 +1,9 @@
 # Portable Component Binding — neutral contract artifacts (`binding/portable/`)
 
-**Status:** PB1 complete, implemented natively in both stacks (PB2 Reference, PB3 Minimal), and
-measured for direct-versus-process parity in each (PB4) — planned experimental work; not ratified;
-not part of Brontide Base.
+**Status:** PB1 complete, implemented natively in both stacks (PB2 Reference, PB3 Minimal), measured
+for direct-versus-process parity in each (PB4), and paired across the stacks and against an
+[implementation-neutral provider](../neutral-provider/README.md) (PB5) — planned experimental work;
+not ratified; not part of Brontide Base.
 **Designed for:** Brontide Architecture 0.8 §16 and §18.1 (Complete Draft).
 **Plan:** [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
 
@@ -116,6 +117,28 @@ The `phase` markers stay: PB-58 through PB-60 are now executed, and the remainin
 (PB-61, PB-63) are still the obligations no single stack can discharge alone. The Channel accounting
 each stack runs derives from the `channelVectors` declarations in these vector files, so a Channel
 vector that loses its portable cover here fails both stacks' builds.
+
+## What PB5 changed here
+
+Two things, and both were found by doing something no earlier phase did: reading these files from
+outside the two stacks.
+
+1. **A Catalog fixture contract now exists.** PB1 declared only Cooling, so each stack authored its
+   own Catalog fixture and the two drifted — different Operation names, and a disagreeing
+   `providerSpecific` flag. Negotiation matches both exactly, so the stacks could not establish a
+   Catalog binding at all, and nothing noticed while each ran Catalog only against itself.
+   [`vectors/catalog-fixture-contract.json`](vectors/catalog-fixture-contract.json) is the single
+   declaration both are now measured against, and both stacks moved to meet it.
+2. **The fixtures now separate annotation from contract data.** They carry documentation alongside
+   the contract — `additiveOver` on a Shape version, `role` on the encoding-edge Shapes — and
+   [`schemas/component-contract.json`](schemas/component-contract.json) declares exactly which fields
+   a contract document has, with `unknownFieldPolicy: reject`. A faithful transcode of these files
+   was therefore a malformed contract. Both stacks had hand-written their contracts from these files
+   and dropped the annotations by eye, so neither had ever discovered it. Each fixture now declares
+   its own `annotationFields`, making the distinction data rather than a convention someone has to
+   know, and forcing a future annotation to declare itself.
+
+No schema, vector, or golden encoding changed.
 
 ## Boundary
 

@@ -1,11 +1,14 @@
 # Validates the Portable Component Binding neutral contract artifacts under binding/portable/, and
 # then each stack's native evidence against them.
 #
-# The neutral section loads neither stack, builds no project, and starts no provider. The PB2 and PB3
-# sections below build the Reference and Minimal bindings and run their portable vectors, which since
-# PB4 include the direct-versus-process parity matrix, the Channel 0.1 coverage accounting, and that
-# whole matrix repeated across a real process boundary. PB5 adds the cross-stack matrix, which pairs
-# the two implementations this script still runs separately.
+# The neutral section loads neither stack and starts no provider. It does build the
+# implementation-neutral provider, because PB5 checks that endpoint's independence from what it
+# actually resolved, and that check belongs with the neutral layer rather than with either stack.
+#
+# The PB2 and PB3 sections below build the Reference and Minimal bindings and run their portable
+# vectors, which since PB4 include the direct-versus-process parity matrix, the Channel 0.1 coverage
+# accounting, and that whole matrix repeated across a real process boundary. PB5 adds the cross-stack
+# rows: each stack's host against the other's provider, and both hosts against the neutral one.
 #
 # Pass -NeutralOnly when a caller already runs the stack suites itself, as the repository gate does.
 #
@@ -276,6 +279,7 @@ $requiredPaths = @(
     (Join-Path $schemaRoot 'channel-envelope.json'),
     (Join-Path $schemaRoot 'binding-observation.json'),
     (Join-Path $vectorRoot 'fixture-contract.json'),
+    (Join-Path $vectorRoot 'catalog-fixture-contract.json'),
     (Join-Path $vectorRoot 'golden-encodings.json'),
     (Join-Path $vectorRoot 'establishment-and-shapes.json'),
     (Join-Path $vectorRoot 'authority-and-resources.json'),
@@ -303,7 +307,7 @@ $goldenInventory = Read-JsonFile (Join-Path $vectorRoot 'golden-encodings.json')
 
 $schemaFiles = Get-ChildItem -LiteralPath $schemaRoot -Filter '*.json' -File
 $vectorFiles = Get-ChildItem -LiteralPath $vectorRoot -Filter '*.json' -File |
-    Where-Object { $_.Name -notin @('fixture-contract.json', 'golden-encodings.json') }
+    Where-Object { $_.Name -notin @('fixture-contract.json', 'catalog-fixture-contract.json', 'golden-encodings.json') }
 
 # ---------------------------------------------------------------------------
 # Neutrality: the checked-in neutral layer stays data only
@@ -646,11 +650,6 @@ Write-Host "Portable binding verification passed: $($schemaFiles.Count) neutral 
 # PB2: the Reference stack's native evidence against the neutral contract
 # ---------------------------------------------------------------------------
 
-if ($NeutralOnly) {
-    Write-Host 'Skipping the native portable evidence for both stacks: -NeutralOnly was requested.'
-    exit 0
-}
-
 function Invoke-Checked {
     param([Parameter(Mandatory = $true)][scriptblock]$Command)
 
@@ -660,40 +659,81 @@ function Invoke-Checked {
     }
 }
 
+$neutralProviderProject = Join-Path $repositoryRoot 'binding\neutral-provider\PortableBinding.NeutralProvider\PortableBinding.NeutralProvider.csproj'
+Invoke-Checked { dotnet build $neutralProviderProject }
+
+# ---------------------------------------------------------------------------
+# PB5: the implementation-neutral provider imports neither stack
+# ---------------------------------------------------------------------------
+#
+# The repository's project-graph and assembly-graph guards scope themselves to Reference\ and
+# Minimal\, so this endpoint is outside both by construction. Its independence is therefore checked
+# here, against what it actually resolved rather than against what its project file says.
+
+$neutralDeps = Join-Path $repositoryRoot 'binding\neutral-provider\PortableBinding.NeutralProvider\bin\Debug\net10.0\PortableBinding.NeutralProvider.deps.json'
+if (-not (Test-Path -LiteralPath $neutralDeps)) {
+    Write-Error "The implementation-neutral provider was not built: '$neutralDeps' does not exist."
+    exit 1
+}
+
+$neutralGraph = Get-Content -Raw -LiteralPath $neutralDeps -Encoding UTF8 | ConvertFrom-Json
+$neutralLibraries = @($neutralGraph.libraries.PSObject.Properties | ForEach-Object { $_.Name })
+$borrowed = @($neutralLibraries | Where-Object { $_ -like 'Brontide.*' })
+if ($borrowed.Count -gt 0) {
+    Write-Error "The implementation-neutral provider resolved Brontide assemblies: $($borrowed -join ', ')."
+    exit 1
+}
+
+Write-Host "Implementation-neutral provider independence verified: $($neutralLibraries.Count) resolved libraries, none from either stack."
+
+
+if ($NeutralOnly) {
+    Write-Host 'Skipping the native portable evidence for both stacks: -NeutralOnly was requested.'
+    exit 0
+}
+
 $portableTests = Join-Path $repositoryRoot 'Reference\tests\Brontide.Reference.Interchange.Tests\Brontide.Reference.Interchange.Tests.csproj'
 $referenceProviderProject = Join-Path $repositoryRoot 'Reference\src\Brontide.Reference.Interchange.Provider\Brontide.Reference.Interchange.Provider.csproj'
+$minimalProviderProject = Join-Path $repositoryRoot 'Minimal\src\Brontide.Minimal.Interchange.Provider\Brontide.Minimal.Interchange.Provider.fsproj'
 
+# PB5 pairs the implementations, so every endpoint the matrix names is built before either stack's
+# suite runs, and both stacks see all three provider paths. The neutral provider was already built
+# above, because its independence is checked even when only the neutral layer is verified.
 Invoke-Checked { dotnet build $referenceProviderProject }
+Invoke-Checked { dotnet build $minimalProviderProject }
+
+$env:BRONTIDE_REFERENCE_PROVIDER = Join-Path $repositoryRoot 'Reference\src\Brontide.Reference.Interchange.Provider\bin\Debug\net10.0\Brontide.Reference.Interchange.Provider.exe'
+$env:BRONTIDE_MINIMAL_PROVIDER = Join-Path $repositoryRoot 'Minimal\src\Brontide.Minimal.Interchange.Provider\bin\Debug\net10.0\Brontide.Minimal.Interchange.Provider.exe'
+$env:BRONTIDE_NEUTRAL_PROVIDER = Join-Path $repositoryRoot 'binding\neutral-provider\PortableBinding.NeutralProvider\bin\Debug\net10.0\PortableBinding.NeutralProvider.exe'
+
 Invoke-Checked { dotnet build $portableTests }
 Invoke-Checked { dotnet test $portableTests --no-build --filter 'FullyQualifiedName~Brontide.Reference.Interchange.Tests.Portable' }
 
-# The cross-process suite needs the built provider endpoint; it runs the same portable contract over
-# a real duplex process boundary, including every PB4 parity scenario.
-$env:BRONTIDE_REFERENCE_PROVIDER = Join-Path $repositoryRoot 'Reference\src\Brontide.Reference.Interchange.Provider\bin\Debug\net10.0\Brontide.Reference.Interchange.Provider.exe'
+# The cross-process suite runs the same portable contract over a real duplex process boundary,
+# including every PB4 parity scenario; the cross-stack and neutral-provider suites carry the same
+# matrix against the Minimal endpoint and the implementation-neutral one.
 Invoke-Checked {
     dotnet test $portableTests --no-build --filter 'Category=CrossProcess&FullyQualifiedName~Portable'
 }
 
-Write-Host 'Reference native portable-binding evidence passed, including the cross-process realization.'
+Write-Host 'Reference native portable-binding evidence passed, including the cross-process, cross-stack, and neutral-provider realizations.'
 
 # ---------------------------------------------------------------------------
 # PB3: the Minimal stack's native evidence against the same neutral contract
 # ---------------------------------------------------------------------------
 
 $minimalPortableTests = Join-Path $repositoryRoot 'Minimal\tests\Brontide.Minimal.Interchange.Tests\Brontide.Minimal.Interchange.Tests.fsproj'
-$minimalProviderProject = Join-Path $repositoryRoot 'Minimal\src\Brontide.Minimal.Interchange.Provider\Brontide.Minimal.Interchange.Provider.fsproj'
 
-Invoke-Checked { dotnet build $minimalProviderProject }
 Invoke-Checked { dotnet build $minimalPortableTests }
 Invoke-Checked { dotnet test $minimalPortableTests --no-build --filter 'FullyQualifiedName~Brontide.Minimal.Interchange.Tests.Portable' }
 
-# The Minimal cross-process suite needs its own built provider endpoint, which serves the portable
-# contract over a real duplex process boundary through the --portable verb, including every PB4
-# parity scenario.
-$env:BRONTIDE_MINIMAL_PROVIDER = Join-Path $repositoryRoot 'Minimal\src\Brontide.Minimal.Interchange.Provider\bin\Debug\net10.0\Brontide.Minimal.Interchange.Provider.exe'
+# The Minimal cross-process suite serves the portable contract over a real duplex process boundary
+# through its own --portable verb, including every PB4 parity scenario; the cross-stack and
+# neutral-provider suites carry the same matrix against the Reference endpoint and the
+# implementation-neutral one.
 Invoke-Checked {
     dotnet test $minimalPortableTests --no-build --filter 'Category=CrossProcess&FullyQualifiedName~Portable'
 }
 
-Write-Host 'Minimal native portable-binding evidence passed, including the cross-process realization.'
+Write-Host 'Minimal native portable-binding evidence passed, including the cross-process, cross-stack, and neutral-provider realizations.'
 exit 0

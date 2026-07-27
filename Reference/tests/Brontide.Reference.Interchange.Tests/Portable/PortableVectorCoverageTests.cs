@@ -76,11 +76,11 @@ public sealed class PortableVectorCoverageTests
             ["PB-59-DIRECT-AND-PROCESS-PARITY-ON-DENIAL"] = "PortablePlanObservationAndParityTests",
             ["PB-60-COPY-ACCOUNTING-DIFFERS-WITHOUT-BREAKING-PARITY"] = "PortablePlanObservationAndParityTests",
 
-            // PB5 owns the cross-stack matrix. Reference alone cannot host a Minimal provider or an
-            // implementation-neutral one, so these stay deferred rather than being claimed here.
-            ["PB-61-INDEPENDENT-PROVIDER-ACCEPTED-BY-BOTH-HOSTS"] = "deferred:PB5",
+            // PB5 discharged the cross-stack matrix: this stack now hosts a Minimal provider and an
+            // implementation-neutral one, so nothing here is deferred.
+            ["PB-61-INDEPENDENT-PROVIDER-ACCEPTED-BY-BOTH-HOSTS"] = "PortableNeutralProviderTests",
             ["PB-62-NO-SHARED-SEMANTIC-RUNTIME"] = "PortablePlanObservationAndParityTests",
-            ["PB-63-BOTH-HOST-DIRECTIONS"] = "deferred:PB5"
+            ["PB-63-BOTH-HOST-DIRECTIONS"] = "PortableCrossStackTests"
         }.ToImmutableSortedDictionary(StringComparer.Ordinal);
 
     [Test]
@@ -102,18 +102,18 @@ public sealed class PortableVectorCoverageTests
         });
     }
 
+    /// <summary>
+    /// Nothing is deferred any more. PB5 was the last phase that owed a vector no single stack could
+    /// discharge alone, so a deferral reappearing here is a claim that needs its own justification.
+    /// </summary>
     [Test]
-    public void The_deferred_vectors_are_exactly_the_cross_stack_matrix()
+    public void No_neutral_vector_is_deferred()
     {
         var deferred = Coverage
             .Where(entry => entry.Value.StartsWith("deferred:", StringComparison.Ordinal))
             .Select(entry => entry.Key)
             .ToImmutableArray();
 
-        Assert.That(deferred, Is.EquivalentTo(new[]
-        {
-            "PB-61-INDEPENDENT-PROVIDER-ACCEPTED-BY-BOTH-HOSTS",
-            "PB-63-BOTH-HOST-DIRECTIONS"
-        }));
+        Assert.That(deferred, Is.Empty);
     }
 }
