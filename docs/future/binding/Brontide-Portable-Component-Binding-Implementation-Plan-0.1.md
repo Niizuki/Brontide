@@ -155,7 +155,7 @@ deterministically. The repository-wide gate invokes it.
 | PB3 — Minimal native implementation | **Complete** | [`Minimal/src/Brontide.Minimal.Binding/Portable/`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/), [`Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB4 — direct and process realization parity | **Complete** | [`Reference .../Portable/PortableRealizationParityTests.cs`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/PortableRealizationParityTests.cs), [`Minimal .../Portable/PortableRealizationParityTests.fs`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/PortableRealizationParityTests.fs), both `PortableChannelVectorCoverageTests`, both `PortableCrossProcessTests` |
 | PB5 — cross-stack and independent-provider matrix | **Complete** | both stacks' `PortableCrossStackTests` and `PortableNeutralProviderTests`, [`binding/neutral-provider/`](../../../binding/neutral-provider/README.md), [`catalog-fixture-contract.json`](../../../binding/portable/vectors/catalog-fixture-contract.json) |
-| PB6 — resource, lifecycle, and hardening completion | **Partially delivered** — decoder property tests, the failure-path leak proof, and total transport classification are in; resource and lifecycle adversarial coverage remains | both stacks' `PortableDecoderPropertyTests`, `PortableProcessCategoryTests`, and the `a failure path leaks nothing` cases in `PortableRealizationParityTests` |
+| PB6 — resource, lifecycle, and hardening completion | **Partially delivered** — decoder property tests, the failure-path leak proof, total transport classification, and the cross-seam C6 refusals are in; lifecycle adversarial coverage remains | both stacks' `PortableDecoderPropertyTests`, `PortableProcessCategoryTests`, `PortableResourceSeamTests`, and the `a failure path leaks nothing` cases in `PortableRealizationParityTests` |
 | PB7 — Composition handoff | Planned | — |
 | PB8 — evidence, documentation, and review closure | Planned | — |
 
@@ -452,6 +452,28 @@ the diagnostics, no resource observed by a frameless denial, and no false succes
 
 **The transport's process-category classification is total.**
 
+**The C6 refusals are decided by an endpoint across a real seam.** PB-26 and PB-29 through PB-32
+called the resource codec directly, which proves a static function refuses a malformed resource but
+not that the endpoint does — and the endpoint is what a hostile peer actually reaches. Admission sits
+behind decode, lifecycle, and operation resolution, so a refusal a unit test reaches in one call may
+be unreachable, or reached in the wrong order, once those run first. Both stacks now present each
+frame to a conforming endpoint over the seam: octets beside a handle, a release signal on the copied
+flavor, a resource past the declared bound, a non-goal flavor named on a request, and a content hash
+that does not verify. Each is refused with the category the vector states, and none reaches the
+provider. The frames are built by hand rather than through a host, because a conforming host cannot
+produce most of them.
+
+**Two of the phase's conditions are unrepresentable in the 0.1 floor rather than merely refused.**
+Premature reuse and a release-then-use sequence need a resource with a lifetime a peer can observe
+ending, and the declared floor has neither: a copied immutable blob is transferred whole and has no
+release signal, and an addressing-only handle carries no octets to release. There is no frame that
+expresses "use this after its interval", so there is nothing for a vector to present. Unsupported
+fallback is the same shape — no fallback policy is declared for 0.1, so a request cannot name one to
+have it refused. Both stacks assert the declared flavor set rather than only recording this in prose,
+so adding a borrowed or transferred flavor later fails the build and brings the reasoning back for
+review. This follows how PB-29 records the non-goal flavors, rather than inventing a vector for a
+condition the contract cannot express.
+
 #### Findings
 
 Each of the three appeared identically in both stacks, which is itself worth recording: independent
@@ -487,18 +509,9 @@ been the dishonest alternative.
 
 #### Remaining
 
-- Referenced-resource adversarial coverage: premature reuse, unsupported fallback, and ownership
-  transfer or borrowing. Part of this work is determining which of these the 0.1 floor makes
-  *unrepresentable* rather than merely refused — a copied immutable blob has no release signal and an
-  addressing-only handle carries no octets, so some of these conditions may have no expressible form
-  to test. Where that is so, record it as PB-29 records the non-goal flavors, rather than inventing a
-  vector.
 - Lifecycle adversarial coverage: establishment failure before activation proving no provider effect,
   unknown lifecycle actions, and duplicate terminal responses exercised over the seam rather than
   against the lifecycle object alone.
-- Cross-seam versions of the C6 vectors still tested only at codec level: forbidden implicit copy,
-  release signal for the copied flavor, resource beyond the declared bound, and unsupported flavor.
-  PB5 already carries integrity mismatch and scope refusal across the seam.
 - The PB6 completion record, and any gate wiring the remaining suites need.
 
 ### PB7 — Composition handoff without Component Manager expansion
