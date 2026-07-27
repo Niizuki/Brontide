@@ -59,6 +59,13 @@ Invoke-Checked { dotnet test $minimalSolution --no-build }
 $env:BRONTIDE_MINIMAL_PROVIDER = Join-Path $repositoryRoot 'Minimal\src\Brontide.Minimal.Interchange.Provider\bin\Debug\net10.0\Brontide.Minimal.Interchange.Provider.exe'
 $env:BRONTIDE_REFERENCE_PROVIDER = Join-Path $repositoryRoot 'Reference\src\Brontide.Reference.Interchange.Provider\bin\Debug\net10.0\Brontide.Reference.Interchange.Provider.exe'
 
+# The implementation-neutral provider is outside both solutions on purpose, so the gate builds it
+# explicitly. Without it the PB5 rows that pair each host with a provider depending on neither stack
+# would silently skip rather than fail, which is the one outcome a completeness gate must not allow.
+$neutralProviderProject = Join-Path $repositoryRoot 'binding\neutral-provider\PortableBinding.NeutralProvider\PortableBinding.NeutralProvider.csproj'
+Invoke-Checked { dotnet build $neutralProviderProject }
+$env:BRONTIDE_NEUTRAL_PROVIDER = Join-Path $repositoryRoot 'binding\neutral-provider\PortableBinding.NeutralProvider\bin\Debug\net10.0\PortableBinding.NeutralProvider.exe'
+
 Invoke-Checked {
     dotnet run --project (Join-Path $repositoryRoot 'Reference\benchmarks\Brontide.Reference.Benchmarks\Brontide.Reference.Benchmarks.csproj') --no-build -- --iterations 100
 }

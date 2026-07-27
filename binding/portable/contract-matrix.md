@@ -42,7 +42,7 @@ category, process-failure category, or failure domain loses its coverage.
 | C7 | [`binding-observation.json`](schemas/binding-observation.json) parity profile, [`binding-plan.json`](schemas/binding-plan.json) parity rule | PB-58 – PB-60, PB-62 | Closed for one stack at a time. PB4 executed the comparison in each stack over every result class a host can reach, including across a real process boundary, and closed the four divergences it found. Pairing the two stacks remains PB5. |
 | C8 | [`limits-and-lifecycle.json`](schemas/limits-and-lifecycle.json) | PB-09, PB-31 – PB-41 | Closed. One limit set (tighter bound wins) and an explicit state machine. |
 | C9 | [`binding-observation.json`](schemas/binding-observation.json) | PB-55 – PB-57 | Closed. The unified observation set is defined, with normative and non-normative fields separated. |
-| C10 | [`fixture-contract.json`](vectors/fixture-contract.json) | PB-61 – PB-63 | Contract fixed; the independent provider and cross-stack matrix execute in PB5. |
+| C10 | [`fixture-contract.json`](vectors/fixture-contract.json), [`catalog-fixture-contract.json`](vectors/catalog-fixture-contract.json) | PB-61 – PB-63 | Closed. PB5 executed all six combinations: both host directions over the negotiated process realization, both hosts against the [implementation-neutral provider](../neutral-provider/README.md), and both fixed direct calls. Building the neutral provider found that the fixture declaration was not encodable as published; the fixtures now separate annotation from contract data. |
 
 Deterministic byte evidence lives in [`vectors/golden-encodings.json`](vectors/golden-encodings.json)
 and is re-derived by [`build/verify-portable-binding.ps1`](../../build/verify-portable-binding.ps1)

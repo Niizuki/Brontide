@@ -310,8 +310,8 @@ module CatalogFixture =
 
     let component' = componentRef "interchange.tests.catalog-component" 1
     let provider = providerRef "interchange.tests.catalog-provider" 1
-    let upsert = operationRef "interchange.tests.catalog.upsert" 1
-    let find = operationRef "interchange.tests.catalog.find" 1
+    let upsert = operationRef "interchange.tests.catalog.upsert-items" 1
+    let find = operationRef "interchange.tests.catalog.find-items" 1
 
     let item = shapeRef "interchange.tests.catalog.item" 1
     let itemSequence = shapeRef "interchange.tests.catalog.item-sequence" 1
@@ -335,10 +335,10 @@ module CatalogFixture =
           Provider = provider
           Provisions =
             [ { Kind = DependencyKind.Operation
-                Reference = dependencyRef "interchange.tests.catalog.upsert" 1
+                Reference = dependencyRef "interchange.tests.catalog.upsert-items" 1
                 ProviderSpecific = false }
               { Kind = DependencyKind.Operation
-                Reference = dependencyRef "interchange.tests.catalog.find" 1
+                Reference = dependencyRef "interchange.tests.catalog.find-items" 1
                 ProviderSpecific = false }
               { Kind = DependencyKind.ResourceFlavor
                 Reference = dependencyRef "interchange.tests.addressing-only-handle" 1

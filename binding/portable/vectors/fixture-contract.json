@@ -5,154 +5,528 @@
     "version": "0.1-draft",
     "status": "PB1 neutral fixture; data only; validates without loading either stack",
     "role": "The subject contract for the PB1 vectors. It restates the Cooling experiment in the neutral form defined by schemas/component-contract.json, and adds the encoding-edge Shapes the golden encodings need.",
-    "derivedFrom": ["interchange/manifest-v2.json", "interchange/catalog/manifest-v1.json"]
+    "derivedFrom": [
+      "interchange/manifest-v2.json",
+      "interchange/catalog/manifest-v1.json"
+    ]
   },
+  "annotationFields": [
+    "additiveOver",
+    "nonAdditiveOver",
+    "nonAdditiveReason",
+    "role"
+  ],
+  "annotationFieldsNote": "Field names that document the fixture rather than declare the contract. schemas/component-contract.json declares exactly which fields a contract document carries, and its unknownFieldPolicy is 'reject', so a consumer transcoding this file to the wire form must drop these. PB1 and PB2/PB3 never noticed: each stack hand-wrote its contract from this file rather than reading it, so the annotations were dropped by hand. The PB5 implementation-neutral provider reads the file as published and is the first consumer that had to be told.",
   "contractVersion": 1,
-  "component": { "name": "interchange.tests.cooling-component", "version": 1 },
-  "provider": { "name": "interchange.tests.fixture-provider", "version": 1 },
+  "component": {
+    "name": "interchange.tests.cooling-component",
+    "version": 1
+  },
+  "provider": {
+    "name": "interchange.tests.fixture-provider",
+    "version": 1
+  },
   "provisions": [
-    { "kind": "operation", "reference": { "name": "interchange.tests.cooling.set-enabled", "version": 1 }, "providerSpecific": false },
-    { "kind": "profile", "reference": { "name": "interchange.tests.cooling-profile", "version": 1 }, "providerSpecific": false },
-    { "kind": "binding", "reference": { "name": "interchange.tests.portable-cbor-core", "version": 1 }, "providerSpecific": true },
-    { "kind": "resource-flavor", "reference": { "name": "interchange.tests.copied-immutable-blob", "version": 1 }, "providerSpecific": false }
+    {
+      "kind": "operation",
+      "reference": {
+        "name": "interchange.tests.cooling.set-enabled",
+        "version": 1
+      },
+      "providerSpecific": false
+    },
+    {
+      "kind": "profile",
+      "reference": {
+        "name": "interchange.tests.cooling-profile",
+        "version": 1
+      },
+      "providerSpecific": false
+    },
+    {
+      "kind": "binding",
+      "reference": {
+        "name": "interchange.tests.portable-cbor-core",
+        "version": 1
+      },
+      "providerSpecific": true
+    },
+    {
+      "kind": "resource-flavor",
+      "reference": {
+        "name": "interchange.tests.copied-immutable-blob",
+        "version": 1
+      },
+      "providerSpecific": false
+    }
   ],
   "requirements": [
-    { "kind": "profile", "reference": { "name": "interchange.tests.cooling-profile", "version": 1 }, "strength": "required", "providerSpecific": false },
-    { "kind": "binding", "reference": { "name": "interchange.tests.portable-cbor-core", "version": 1 }, "strength": "required", "providerSpecific": true },
-    { "kind": "feature", "reference": { "name": "interchange.tests.streaming", "version": 1 }, "strength": "opposed", "providerSpecific": false }
+    {
+      "kind": "profile",
+      "reference": {
+        "name": "interchange.tests.cooling-profile",
+        "version": 1
+      },
+      "strength": "required",
+      "providerSpecific": false
+    },
+    {
+      "kind": "binding",
+      "reference": {
+        "name": "interchange.tests.portable-cbor-core",
+        "version": 1
+      },
+      "strength": "required",
+      "providerSpecific": true
+    },
+    {
+      "kind": "feature",
+      "reference": {
+        "name": "interchange.tests.streaming",
+        "version": 1
+      },
+      "strength": "opposed",
+      "providerSpecific": false
+    }
   ],
   "operations": [
     {
-      "reference": { "name": "interchange.tests.cooling.set-enabled", "version": 1 },
-      "inputShape": { "name": "interchange.tests.cooling.command", "version": 1 },
-      "resultShape": { "name": "interchange.tests.cooling.result", "version": 1 },
-      "detailShape": { "name": "interchange.tests.cooling.details", "version": 1 },
-      "requiredFragments": [{ "name": "interchange.tests.cooling.host-context", "version": 1 }],
-      "resourceFlavors": ["copied-immutable-blob"]
+      "reference": {
+        "name": "interchange.tests.cooling.set-enabled",
+        "version": 1
+      },
+      "inputShape": {
+        "name": "interchange.tests.cooling.command",
+        "version": 1
+      },
+      "resultShape": {
+        "name": "interchange.tests.cooling.result",
+        "version": 1
+      },
+      "detailShape": {
+        "name": "interchange.tests.cooling.details",
+        "version": 1
+      },
+      "requiredFragments": [
+        {
+          "name": "interchange.tests.cooling.host-context",
+          "version": 1
+        }
+      ],
+      "resourceFlavors": [
+        "copied-immutable-blob"
+      ]
     }
   ],
   "shapes": [
     {
-      "reference": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "reference": {
+        "name": "interchange.tests.cooling.command",
+        "version": 1
+      },
       "kind": "record",
       "fragmentPolicy": "open",
       "fields": [
-        { "name": "loop", "shape": { "name": "Text", "version": 1 }, "required": true },
-        { "name": "enabled", "shape": { "name": "Boolean", "version": 1 }, "required": true },
-        { "name": "failureMode", "shape": { "name": "Text", "version": 1 }, "required": false }
+        {
+          "name": "loop",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "shape": {
+            "name": "Boolean",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "failureMode",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          },
+          "required": false
+        }
       ]
     },
     {
-      "reference": { "name": "interchange.tests.cooling.command", "version": 2 },
+      "reference": {
+        "name": "interchange.tests.cooling.command",
+        "version": 2
+      },
       "kind": "record",
       "fragmentPolicy": "open",
-      "additiveOver": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "additiveOver": {
+        "name": "interchange.tests.cooling.command",
+        "version": 1
+      },
       "fields": [
-        { "name": "loop", "shape": { "name": "Text", "version": 1 }, "required": true },
-        { "name": "enabled", "shape": { "name": "Boolean", "version": 1 }, "required": true },
-        { "name": "failureMode", "shape": { "name": "Text", "version": 1 }, "required": false },
-        { "name": "requestedBy", "shape": { "name": "Text", "version": 1 }, "required": false }
+        {
+          "name": "loop",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "shape": {
+            "name": "Boolean",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "failureMode",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          },
+          "required": false
+        },
+        {
+          "name": "requestedBy",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          },
+          "required": false
+        }
       ]
     },
     {
-      "reference": { "name": "interchange.tests.cooling.command", "version": 3 },
+      "reference": {
+        "name": "interchange.tests.cooling.command",
+        "version": 3
+      },
       "kind": "record",
       "fragmentPolicy": "open",
-      "nonAdditiveOver": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "nonAdditiveOver": {
+        "name": "interchange.tests.cooling.command",
+        "version": 1
+      },
       "nonAdditiveReason": "adds a required field",
       "fields": [
-        { "name": "loop", "shape": { "name": "Text", "version": 1 }, "required": true },
-        { "name": "enabled", "shape": { "name": "Boolean", "version": 1 }, "required": true },
-        { "name": "reason", "shape": { "name": "Text", "version": 1 }, "required": true }
+        {
+          "name": "loop",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "enabled",
+          "shape": {
+            "name": "Boolean",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "reason",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          },
+          "required": true
+        }
       ]
     },
     {
-      "reference": { "name": "interchange.tests.cooling.result", "version": 1 },
+      "reference": {
+        "name": "interchange.tests.cooling.result",
+        "version": 1
+      },
       "kind": "record",
       "fragmentPolicy": "closed",
       "fields": [
-        { "name": "loop", "shape": { "name": "Text", "version": 1 }, "required": true },
-        { "name": "coolingEnabled", "shape": { "name": "Boolean", "version": 1 }, "required": true },
-        { "name": "revision", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
-        { "name": "providerEffectCount", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true }
+        {
+          "name": "loop",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "coolingEnabled",
+          "shape": {
+            "name": "Boolean",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "revision",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "providerEffectCount",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          },
+          "required": true
+        }
       ]
     },
     {
-      "reference": { "name": "interchange.tests.cooling.details", "version": 1 },
+      "reference": {
+        "name": "interchange.tests.cooling.details",
+        "version": 1
+      },
       "kind": "record",
       "fragmentPolicy": "closed",
       "fields": [
-        { "name": "code", "shape": { "name": "Text", "version": 1 }, "required": true },
-        { "name": "message", "shape": { "name": "Text", "version": 1 }, "required": true }
+        {
+          "name": "code",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "message",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          },
+          "required": true
+        }
       ]
     },
     {
-      "reference": { "name": "interchange.tests.encoding.tags", "version": 1 },
+      "reference": {
+        "name": "interchange.tests.encoding.tags",
+        "version": 1
+      },
       "kind": "record",
       "fragmentPolicy": "closed",
       "role": "Exercises sequence nesting for the golden encodings.",
       "fields": [
-        { "name": "tags", "shape": { "name": "interchange.tests.encoding.text-sequence", "version": 1 }, "required": true }
+        {
+          "name": "tags",
+          "shape": {
+            "name": "interchange.tests.encoding.text-sequence",
+            "version": 1
+          },
+          "required": true
+        }
       ]
     },
     {
-      "reference": { "name": "interchange.tests.encoding.text-sequence", "version": 1 },
+      "reference": {
+        "name": "interchange.tests.encoding.text-sequence",
+        "version": 1
+      },
       "kind": "sequence",
-      "itemShape": { "name": "Text", "version": 1 }
+      "itemShape": {
+        "name": "Text",
+        "version": 1
+      }
     },
     {
-      "reference": { "name": "interchange.tests.encoding.choice", "version": 1 },
+      "reference": {
+        "name": "interchange.tests.encoding.choice",
+        "version": 1
+      },
       "kind": "choice",
       "role": "Exercises the declared alternative set, and an alternative outside it.",
       "alternatives": [
-        { "name": "text", "shape": { "name": "Text", "version": 1 } },
-        { "name": "count", "shape": { "name": "Integer.Signed64", "version": 1 } }
+        {
+          "name": "text",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          }
+        },
+        {
+          "name": "count",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          }
+        }
       ]
     },
     {
-      "reference": { "name": "interchange.tests.encoding.integers", "version": 1 },
+      "reference": {
+        "name": "interchange.tests.encoding.integers",
+        "version": 1
+      },
       "kind": "record",
       "fragmentPolicy": "closed",
       "role": "Exercises every shortest-form integer width boundary for the golden encodings.",
       "fields": [
-        { "name": "i00", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
-        { "name": "i01", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
-        { "name": "i02", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
-        { "name": "i03", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
-        { "name": "i04", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
-        { "name": "i05", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
-        { "name": "i06", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
-        { "name": "i07", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
-        { "name": "i08", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true },
-        { "name": "i09", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true }
+        {
+          "name": "i00",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "i01",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "i02",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "i03",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "i04",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "i05",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "i06",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "i07",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "i08",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "i09",
+          "shape": {
+            "name": "Integer.Signed64",
+            "version": 1
+          },
+          "required": true
+        }
       ]
     },
     {
-      "reference": { "name": "interchange.tests.encoding.scalars", "version": 1 },
+      "reference": {
+        "name": "interchange.tests.encoding.scalars",
+        "version": 1
+      },
       "kind": "record",
       "fragmentPolicy": "closed",
       "role": "Exercises the byte string, the allowlisted Decimal tag, and unit for the golden encodings.",
       "fields": [
-        { "name": "b", "shape": { "name": "Bytes", "version": 1 }, "required": true },
-        { "name": "d", "shape": { "name": "Decimal", "version": 1 }, "required": true },
-        { "name": "u", "shape": { "name": "Unit", "version": 1 }, "required": true }
+        {
+          "name": "b",
+          "shape": {
+            "name": "Bytes",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "d",
+          "shape": {
+            "name": "Decimal",
+            "version": 1
+          },
+          "required": true
+        },
+        {
+          "name": "u",
+          "shape": {
+            "name": "Unit",
+            "version": 1
+          },
+          "required": true
+        }
       ]
     }
   ],
   "fragments": [
     {
-      "reference": { "name": "interchange.tests.cooling.host-context", "version": 1 },
-      "hostShape": { "name": "interchange.tests.cooling.command", "version": 1 },
+      "reference": {
+        "name": "interchange.tests.cooling.host-context",
+        "version": 1
+      },
+      "hostShape": {
+        "name": "interchange.tests.cooling.command",
+        "version": 1
+      },
       "fields": [
-        { "name": "requesterLabel", "shape": { "name": "Text", "version": 1 }, "required": true }
+        {
+          "name": "requesterLabel",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          },
+          "required": true
+        }
       ]
     },
     {
-      "reference": { "name": "interchange.tests.cooling.note", "version": 1 },
-      "hostShape": { "name": "interchange.tests.cooling.result", "version": 1 },
+      "reference": {
+        "name": "interchange.tests.cooling.note",
+        "version": 1
+      },
+      "hostShape": {
+        "name": "interchange.tests.cooling.result",
+        "version": 1
+      },
       "role": "Declared by the contract but not by the negotiated Operation, which is what the closed fragment policy refuses.",
       "fields": [
-        { "name": "note", "shape": { "name": "Text", "version": 1 }, "required": true }
+        {
+          "name": "note",
+          "shape": {
+            "name": "Text",
+            "version": 1
+          },
+          "required": true
+        }
       ]
     }
   ],
@@ -165,7 +539,9 @@
   "representation": {
     "representation": "portable-cbor-core-0.1",
     "framing": "length-delimited",
-    "resourceFlavors": ["copied-immutable-blob"],
+    "resourceFlavors": [
+      "copied-immutable-blob"
+    ],
     "acceptedResourceHandles": []
   },
   "limits": {

@@ -74,11 +74,11 @@ module PortableVectorCoverage =
               "PB-59-DIRECT-AND-PROCESS-PARITY-ON-DENIAL", "PortablePlanObservationAndParityTests"
               "PB-60-COPY-ACCOUNTING-DIFFERS-WITHOUT-BREAKING-PARITY", "PortablePlanObservationAndParityTests"
 
-              // PB5 owns the cross-stack matrix. Minimal alone cannot host a Reference provider or an
-              // implementation-neutral one, so these stay deferred rather than being claimed here.
-              "PB-61-INDEPENDENT-PROVIDER-ACCEPTED-BY-BOTH-HOSTS", "deferred:PB5"
+              // PB5 discharged the cross-stack matrix: this stack now hosts a Reference provider and
+              // an implementation-neutral one, so nothing here is deferred.
+              "PB-61-INDEPENDENT-PROVIDER-ACCEPTED-BY-BOTH-HOSTS", "PortableNeutralProviderTests"
               "PB-62-NO-SHARED-SEMANTIC-RUNTIME", "PortablePlanObservationAndParityTests"
-              "PB-63-BOTH-HOST-DIRECTIONS", "deferred:PB5" ]
+              "PB-63-BOTH-HOST-DIRECTIONS", "PortableCrossStackTests" ]
 
     /// A portable vector counts as executed when this stack runs it rather than defers it.
     let executed vector =
@@ -110,15 +110,14 @@ type PortableVectorCoverageTests() =
                 "The coverage map names a vector the neutral layer no longer declares."
             ))
 
+    /// Nothing is deferred any more. PB5 was the last phase that owed a vector no single stack could
+    /// discharge alone, so a deferral reappearing here is a claim that needs its own justification.
     [<Test>]
-    member _.``the deferred vectors are exactly the cross-stack matrix``() =
+    member _.``no neutral vector is deferred``() =
         let deferred =
             coverage
             |> Map.toList
             |> List.filter (fun (_, evidence) -> evidence.StartsWith "deferred:")
             |> List.map fst
 
-        Assert.That(
-            deferred,
-            Is.EquivalentTo [ "PB-61-INDEPENDENT-PROVIDER-ACCEPTED-BY-BOTH-HOSTS"; "PB-63-BOTH-HOST-DIRECTIONS" ]
-        )
+        Assert.That(deferred, Is.Empty)
