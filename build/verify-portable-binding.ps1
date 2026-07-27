@@ -2,9 +2,10 @@
 # then each stack's native evidence against them.
 #
 # The neutral section loads neither stack, builds no project, and starts no provider. The PB2 and PB3
-# sections below build the Reference and Minimal bindings and run their portable vectors, each
-# including one realization across a real process boundary. PB5 adds the cross-stack matrix, which
-# pairs the two implementations this script still runs separately.
+# sections below build the Reference and Minimal bindings and run their portable vectors, which since
+# PB4 include the direct-versus-process parity matrix, the Channel 0.1 coverage accounting, and that
+# whole matrix repeated across a real process boundary. PB5 adds the cross-stack matrix, which pairs
+# the two implementations this script still runs separately.
 #
 # Pass -NeutralOnly when a caller already runs the stack suites itself, as the repository gate does.
 #
@@ -667,7 +668,7 @@ Invoke-Checked { dotnet build $portableTests }
 Invoke-Checked { dotnet test $portableTests --no-build --filter 'FullyQualifiedName~Brontide.Reference.Interchange.Tests.Portable' }
 
 # The cross-process suite needs the built provider endpoint; it runs the same portable contract over
-# a real duplex process boundary.
+# a real duplex process boundary, including every PB4 parity scenario.
 $env:BRONTIDE_REFERENCE_PROVIDER = Join-Path $repositoryRoot 'Reference\src\Brontide.Reference.Interchange.Provider\bin\Debug\net10.0\Brontide.Reference.Interchange.Provider.exe'
 Invoke-Checked {
     dotnet test $portableTests --no-build --filter 'Category=CrossProcess&FullyQualifiedName~Portable'
@@ -687,7 +688,8 @@ Invoke-Checked { dotnet build $minimalPortableTests }
 Invoke-Checked { dotnet test $minimalPortableTests --no-build --filter 'FullyQualifiedName~Brontide.Minimal.Interchange.Tests.Portable' }
 
 # The Minimal cross-process suite needs its own built provider endpoint, which serves the portable
-# contract over a real duplex process boundary through the --portable verb.
+# contract over a real duplex process boundary through the --portable verb, including every PB4
+# parity scenario.
 $env:BRONTIDE_MINIMAL_PROVIDER = Join-Path $repositoryRoot 'Minimal\src\Brontide.Minimal.Interchange.Provider\bin\Debug\net10.0\Brontide.Minimal.Interchange.Provider.exe'
 Invoke-Checked {
     dotnet test $minimalPortableTests --no-build --filter 'Category=CrossProcess&FullyQualifiedName~Portable'

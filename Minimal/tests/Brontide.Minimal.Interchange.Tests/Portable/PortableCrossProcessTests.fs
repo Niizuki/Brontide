@@ -50,6 +50,52 @@ type PortableCrossProcessTests() =
             if not (provider.WaitForExit 5000) then
                 provider.Kill true
 
+    static member Scenarios: ParityScenario seq = Seq.ofList PortableParityMatrix.scenarios
+
+    /// PB4 over a real operating-system process boundary: the same parity profile the local seam
+    /// measured is reproduced when the provider is a separate process.
+    ///
+    /// The local seam proves the encoding, the bounds, and the copy accounting; it cannot prove that
+    /// the endpoint needs nothing of the host's process. Running the whole matrix here rather than
+    /// one happy path is what makes the process realization's parity claim cover its refusals too.
+    [<TestCaseSource("Scenarios")>]
+    member _.``the parity profile survives a real process boundary``(scenario: ParityScenario) =
+        let direct = runScenario scenario true
+        use provider = startProvider scenario.ProviderArguments
+
+        try
+            let host =
+                PortableBindingHost
+                    .Establish(scenario.Contract, conversation provider, "minimal-cross-process")
+                    .Result
+                |> expectOk
+
+            let crossed =
+                host
+                    .Invoke(
+                        scenario.Operation,
+                        scenario.InputShape,
+                        scenario.Input,
+                        scenario.Authority,
+                        scenario.Resources
+                    )
+                    .Result
+
+            assertAll (fun () ->
+                Assert.That(crossed.FrameDecision, Is.EqualTo scenario.Frame)
+                Assert.That(crossed.ResultClass, Is.EqualTo scenario.Result)
+                Assert.That(crossed.Category, Is.EqualTo scenario.Category)
+
+                Assert.That(
+                    (InteractionResult.parityProfile crossed = InteractionResult.parityProfile direct),
+                    Is.True,
+                    parityDifference direct crossed
+                )
+
+                Assert.That(BindingPlan.tryFact "framing" host.Plan, Is.EqualTo(Some "length-delimited")))
+        finally
+            stop provider
+
     [<Test>]
     member _.``a provider in its own process establishes, invokes, and reports a success``() =
         use provider = startProvider [ "--portable" ]

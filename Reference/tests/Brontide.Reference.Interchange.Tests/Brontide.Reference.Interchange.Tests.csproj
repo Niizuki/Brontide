@@ -29,5 +29,10 @@
     <None Include="..\..\..\binding\portable\**\*.json"
           Link="binding\portable\%(RecursiveDir)%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
+    <!-- The Channel 0.1 vectors are the source of the coverage accounting, so the ids this stack
+         claims to execute are checked against the authored file rather than against a copy of it. -->
+    <None Include="..\..\..\conformance\channel-0.1-vectors.json"
+          Link="conformance\channel-0.1-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

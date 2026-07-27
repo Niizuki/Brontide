@@ -197,6 +197,14 @@ public sealed class PortableFaultException(
     /// </summary>
     public PortableFailureDomain Domain { get; } = domain;
 
+    /// <summary>The same refusal, observed from another endpoint's position.</summary>
+    /// <remarks>
+    /// Only the domain moves. The category, the local code, and the message describe the decision,
+    /// which is unchanged by who is looking at it.
+    /// </remarks>
+    public PortableFaultException AtDomain(PortableFailureDomain domain) =>
+        new(Category, LocalCode, Message, domain);
+
     public static PortableFaultException Malformed(string localCode, string message) =>
         new(PortableProtocolCategory.MalformedMessage, localCode, message);
 

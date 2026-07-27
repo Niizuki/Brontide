@@ -12,7 +12,7 @@ namespace Brontide.Reference.Interchange.Tests.Portable;
 /// </remarks>
 public sealed class PortableVectorCoverageTests
 {
-    private static readonly ImmutableSortedDictionary<string, string> Coverage =
+    internal static readonly ImmutableSortedDictionary<string, string> Coverage =
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["PB-01-EXACT-ESTABLISHMENT"] = "PortableEstablishmentTests",

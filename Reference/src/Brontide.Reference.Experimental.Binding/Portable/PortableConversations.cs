@@ -58,14 +58,28 @@ public sealed class PortableDirectConversation(PortableProviderEndpoint endpoint
         PortableChannelId channel,
         CancellationToken cancellationToken)
     {
-        var accepted = _endpoint.Establish(required, hostEndpoint);
-        return ValueTask.FromResult(accepted.Contract);
+        try
+        {
+            var accepted = _endpoint.Establish(required, hostEndpoint);
+            return ValueTask.FromResult(accepted.Contract);
+        }
+        catch (PortableFaultException fault)
+        {
+            throw AsPeerDecision(fault);
+        }
     }
 
     public ValueTask AwaitReadyAsync(PortableChannelId channel, CancellationToken cancellationToken)
     {
-        _endpoint.SignalReady();
-        return ValueTask.CompletedTask;
+        try
+        {
+            _endpoint.SignalReady();
+            return ValueTask.CompletedTask;
+        }
+        catch (PortableFaultException fault)
+        {
+            throw AsPeerDecision(fault);
+        }
     }
 
     public ValueTask<PortableOutcomeReceipt> RequestAsync(
@@ -80,12 +94,19 @@ public sealed class PortableDirectConversation(PortableProviderEndpoint endpoint
         IReadOnlyList<PortableResource> resources,
         CancellationToken cancellationToken)
     {
-        var outcome = _endpoint.Request(request, operation, compactOperation, inputShape, input, resources);
-        return ValueTask.FromResult(new PortableOutcomeReceipt(
-            outcome.Status,
-            outcome.ValueShape,
-            outcome.Value,
-            outcome.ProviderEffectCount));
+        try
+        {
+            var outcome = _endpoint.Request(request, operation, compactOperation, inputShape, input, resources);
+            return ValueTask.FromResult(new PortableOutcomeReceipt(
+                outcome.Status,
+                outcome.ValueShape,
+                outcome.Value,
+                outcome.ProviderEffectCount));
+        }
+        catch (PortableFaultException fault)
+        {
+            throw AsPeerDecision(fault);
+        }
     }
 
     public ValueTask WithdrawAsync(PortableChannelId channel, CancellationToken cancellationToken)
@@ -101,6 +122,22 @@ public sealed class PortableDirectConversation(PortableProviderEndpoint endpoint
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    /// <summary>
+    /// Reports a refusal the provider endpoint decided the way the process realization reports the
+    /// same decision.
+    /// </summary>
+    /// <remarks>
+    /// The failure domain names which endpoint decided, relative to the observer. The provider
+    /// endpoint is the host's peer in both realizations; what the realization changes is the
+    /// distance between them, not who decided. A domain that tracked the distance would turn an
+    /// observer-relative fact into a transport fact, and one vector would report two domains.
+    /// A fault the endpoint already attributed elsewhere is left alone.
+    /// </remarks>
+    private static PortableFaultException AsPeerDecision(PortableFaultException fault) =>
+        fault.Domain == PortableFailureDomain.LocalEndpoint
+            ? fault.AtDomain(PortableFailureDomain.RemoteEndpoint)
+            : fault;
 }
 
 /// <summary>The negotiated process realization over a bounded, length-delimited duplex.</summary>

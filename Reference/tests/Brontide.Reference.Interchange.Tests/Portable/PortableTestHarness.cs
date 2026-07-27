@@ -41,6 +41,51 @@ internal static class PortableTestHarness
         return ids.ToImmutable();
     }
 
+    /// <summary>
+    /// Which Channel 0.1 vectors each portable vector preserves, as the neutral layer declares it.
+    /// </summary>
+    /// <remarks>
+    /// Reading the mapping keeps the Channel accounting derived rather than restated: a stack claims
+    /// to execute a Channel vector only by executing a portable vector that the neutral artifacts say
+    /// preserves it.
+    /// </remarks>
+    public static ImmutableDictionary<string, ImmutableArray<string>> NeutralChannelReferences()
+    {
+        var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>(StringComparer.Ordinal);
+        foreach (var file in Directory.GetFiles(Path.Combine(NeutralRoot, "vectors"), "*.json"))
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(file));
+            if (!document.RootElement.TryGetProperty("vectors", out var vectors))
+            {
+                continue;
+            }
+
+            foreach (var vector in vectors.EnumerateArray())
+            {
+                builder[vector.GetProperty("id").GetString()!] = vector.TryGetProperty("channelVectors", out var channel)
+                    ? [.. channel.EnumerateArray().Select(item => item.GetString()!)]
+                    : [];
+            }
+        }
+
+        return builder.ToImmutable();
+    }
+
+    /// <summary>Every Channel 0.1 vector id, read from the authored conformance file.</summary>
+    public static ImmutableArray<string> ChannelVectorIds()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "conformance", "channel-0.1-vectors.json");
+        Assert.That(File.Exists(path), Is.True, $"The Channel vector file '{path}' was not copied to the test output.");
+        using var document = JsonDocument.Parse(File.ReadAllText(path));
+        return
+        [
+            .. document.RootElement
+                .GetProperty("vectors")
+                .EnumerateArray()
+                .Select(vector => vector.GetProperty("id").GetString()!)
+        ];
+    }
+
     public static PortableProviderEndpoint CoolingEndpoint(
         PortableRealization realization,
         IPortableOperationHandler? handler = null,

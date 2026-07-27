@@ -38,6 +38,12 @@ type IPortableProviderConversation =
     abstract Close: unit -> unit
 
 /// The fixed direct-call realization: no wire, no encoding, no copy.
+///
+/// A refusal the provider endpoint decided is reported the way the process realization reports the
+/// same decision. The failure domain names which endpoint decided, relative to the observer, and the
+/// provider endpoint is the host's peer in both realizations; what the realization changes is the
+/// distance between them, not who decided. A domain that tracked the distance would turn an
+/// observer-relative fact into a transport fact, and one vector would report two domains.
 type PortableDirectConversation(endpoint: PortableProviderEndpoint) =
 
     interface IPortableProviderConversation with
@@ -46,9 +52,11 @@ type PortableDirectConversation(endpoint: PortableProviderEndpoint) =
         member _.Establish(required, hostEndpoint, _) =
             endpoint.Establish(required, hostEndpoint)
             |> Result.map (fun accepted -> accepted.Contract)
+            |> PortableFault.asPeerDecision
             |> Task.FromResult
 
-        member _.AwaitReady _ = endpoint.SignalReady() |> Task.FromResult
+        member _.AwaitReady _ =
+            endpoint.SignalReady() |> PortableFault.asPeerDecision |> Task.FromResult
 
         member _.Request(_, _, request, _, designation, inputShape, input, resources) =
             endpoint.Request(request, designation, inputShape, input, resources)
@@ -57,6 +65,7 @@ type PortableDirectConversation(endpoint: PortableProviderEndpoint) =
                   ValueShape = outcome.ValueShape
                   Value = outcome.Value
                   ProviderEffectCount = outcome.ProviderEffectCount })
+            |> PortableFault.asPeerDecision
             |> Task.FromResult
 
         member _.Withdraw _ = endpoint.Withdraw() |> Task.FromResult

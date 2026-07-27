@@ -28,6 +28,11 @@
     <None Include="..\..\..\binding\portable\**\*.md"
           Link="binding\portable\%(RecursiveDir)%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest" />
+    <!-- The Channel 0.1 vectors are the source of the coverage accounting, so the ids this stack
+         claims to execute are checked against the authored file rather than against a copy of it. -->
+    <None Include="..\..\..\conformance\channel-0.1-vectors.json"
+          Link="conformance\channel-0.1-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="InterchangeTests.fs" />
@@ -37,8 +42,10 @@
     <Compile Include="Portable\PortableAuthorityAndResourceTests.fs" />
     <Compile Include="Portable\PortableLifecycleAndChannelTests.fs" />
     <Compile Include="Portable\PortablePlanObservationAndParityTests.fs" />
-    <Compile Include="Portable\PortableCrossProcessTests.fs" />
     <Compile Include="Portable\PortableVectorCoverageTests.fs" />
+    <Compile Include="Portable\PortableRealizationParityTests.fs" />
+    <Compile Include="Portable\PortableChannelVectorCoverageTests.fs" />
+    <Compile Include="Portable\PortableCrossProcessTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

@@ -6,11 +6,12 @@ open NUnit.Framework
 ///
 /// Every neutral vector is either executed here or explicitly deferred with the phase that owns it.
 /// The map is checked against the neutral artifacts, so a vector added there without evidence here
-/// fails the build rather than silently going uncovered.
-[<TestFixture>]
-type PortableVectorCoverageTests() =
+/// fails the build rather than silently going uncovered. The Channel accounting reads it too, which
+/// is why it is a module value rather than a field of the fixture.
+[<RequireQualifiedAccess>]
+module PortableVectorCoverage =
 
-    let coverage =
+    let map =
         Map.ofList
             [ "PB-01-EXACT-ESTABLISHMENT", "PortableEstablishmentTests"
               "PB-02-CONTRACT-VERSION-SKEW", "PortableEstablishmentTests"
@@ -78,6 +79,17 @@ type PortableVectorCoverageTests() =
               "PB-61-INDEPENDENT-PROVIDER-ACCEPTED-BY-BOTH-HOSTS", "deferred:PB5"
               "PB-62-NO-SHARED-SEMANTIC-RUNTIME", "PortablePlanObservationAndParityTests"
               "PB-63-BOTH-HOST-DIRECTIONS", "deferred:PB5" ]
+
+    /// A portable vector counts as executed when this stack runs it rather than defers it.
+    let executed vector =
+        match Map.tryFind vector map with
+        | Some evidence -> not (evidence.StartsWith "deferred:")
+        | None -> false
+
+[<TestFixture>]
+type PortableVectorCoverageTests() =
+
+    let coverage = PortableVectorCoverage.map
 
     [<Test>]
     member _.``every neutral vector is either executed here or explicitly deferred``() =
