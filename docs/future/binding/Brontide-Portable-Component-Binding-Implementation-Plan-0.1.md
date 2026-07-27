@@ -1,7 +1,6 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Partially implemented experimental work — PB0 through PB5 complete; PB6 partially
-delivered (see its section for the delivered subset and what remains); PB7 onward planned
+**Status:** Partially implemented experimental work — PB0 through PB6 complete; PB7 onward planned
 **Date:** 2026-07-23 (delivery status updated 2026-07-27)
 **Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
@@ -155,8 +154,8 @@ deterministically. The repository-wide gate invokes it.
 | PB3 — Minimal native implementation | **Complete** | [`Minimal/src/Brontide.Minimal.Binding/Portable/`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/), [`Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB4 — direct and process realization parity | **Complete** | [`Reference .../Portable/PortableRealizationParityTests.cs`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/PortableRealizationParityTests.cs), [`Minimal .../Portable/PortableRealizationParityTests.fs`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/PortableRealizationParityTests.fs), both `PortableChannelVectorCoverageTests`, both `PortableCrossProcessTests` |
 | PB5 — cross-stack and independent-provider matrix | **Complete** | both stacks' `PortableCrossStackTests` and `PortableNeutralProviderTests`, [`binding/neutral-provider/`](../../../binding/neutral-provider/README.md), [`catalog-fixture-contract.json`](../../../binding/portable/vectors/catalog-fixture-contract.json) |
-| PB6 — resource, lifecycle, and hardening completion | **Partially delivered** — decoder property tests, the failure-path leak proof, total transport classification, and the cross-seam C6 refusals are in; lifecycle adversarial coverage remains | both stacks' `PortableDecoderPropertyTests`, `PortableProcessCategoryTests`, `PortableResourceSeamTests`, and the `a failure path leaks nothing` cases in `PortableRealizationParityTests` |
-| PB7 — Composition handoff | Planned | — |
+| PB6 — resource, lifecycle, and hardening completion | **Complete** | both stacks' `PortableDecoderPropertyTests`, `PortableProcessCategoryTests`, `PortableResourceSeamTests`, `PortableLifecycleSeamTests`, and the `a failure path leaks nothing` cases in `PortableRealizationParityTests` |
+| PB7 — Composition handoff | Planned — next | — |
 | PB8 — evidence, documentation, and review closure | Planned | — |
 
 Nothing below PB5 has been implemented. The neutral contract exists and is gated, both stacks
@@ -433,8 +432,9 @@ not leak a provider effect, authority, resource handle, exception, or false succ
 
 **Exit:** C6 and C8 have positive and negative evidence in both stacks and across the process seam.
 
-**Partially delivered.** Three of the phase's bullets are done in both stacks; the resource and
-lifecycle adversarial coverage is not. The exit criterion above is therefore **not** met.
+**Delivered.** C6 and C8 have positive and negative evidence in both stacks and across the process
+seam, so the exit criterion is met. What follows separates what was built from what building it
+found, because the findings are the more useful half.
 
 #### Delivered
 
@@ -462,6 +462,28 @@ flavor, a resource past the declared bound, a non-goal flavor named on a request
 that does not verify. Each is refused with the category the vector states, and none reaches the
 provider. The frames are built by hand rather than through a host, because a conforming host cannot
 produce most of them.
+
+**The C8 lifecycle refusals are decided by an endpoint across a real seam.** PB-09 and PB-36 through
+PB-39 drive the lifecycle object directly, which proves the state machine rejects an illegal
+transition but not that the endpoint applies it to an arriving frame — and an arriving frame is where
+a peer's illegal sequence actually lands. A frame is decoded, its kind resolved, and its body read
+before any state is consulted, so an endpoint can refuse for the wrong reason or in the wrong order.
+Both stacks now send deliberate sequences: a request before any establishment, a second
+establishment, a request after withdrawal, a declared kind a provider never receives, an
+unrecognized kind, and a replayed request identity. None produces an Outcome and none reaches the
+provider.
+
+The case that most needed the seam is establishment failure. An endpoint that activated its provider
+first and negotiated second would satisfy every other vector in the phase and still be wrong, so the
+test asserts the absence of both the readiness signal and the acceptance, not merely the presence of
+a refusal.
+
+Writing these surfaced an ordering worth recording, though not a defect: **a malformed frame is
+refused before its kind's direction is weighed.** An `outcome` carries a correlation identity by
+declaration, so one built without it is refused as malformed rather than as a state violation. That
+order is right — a frame that cannot be read has no direction to judge — but it is easy to assume the
+reverse, and assuming the reverse would tell a peer to fix its sequencing when its encoder is what is
+wrong. Both stacks assert the ordering explicitly.
 
 **Two of the phase's conditions are unrepresentable in the 0.1 floor rather than merely refused.**
 Premature reuse and a release-then-use sequence need a resource with a lifetime a peer can observe
@@ -507,12 +529,19 @@ unreachable set is exactly this one value, so a future change to it fails the bu
 reasoning back for review. Manufacturing a path so the enumeration looked evenly covered would have
 been the dishonest alternative.
 
-#### Remaining
+#### On method
 
-- Lifecycle adversarial coverage: establishment failure before activation proving no provider effect,
-  unknown lifecycle actions, and duplicate terminal responses exercised over the seam rather than
-  against the lifecycle object alone.
-- The PB6 completion record, and any gate wiring the remaining suites need.
+Every defect in this phase was found by testing a property rather than a case, and every one of them
+appeared identically in both stacks. That combination is worth stating plainly, because the
+programme's central safeguard is independent implementation, and independent implementation is
+exactly what cannot find these. Two stacks written from one contract by one reader share that
+reader's assumptions. They diverge where the contract is ambiguous — which is what PB4 and PB5
+found — and they agree wherever the contract is silent, which is where PB6's defects lived.
+
+The sharpest illustration is the resource-observation defect. `accepted` and `integrityVerified` are
+fields the C7 parity profile compares, so both stacks reported the same wrong values and every parity
+check passed. No amount of cross-checking the two implementations against each other could have
+surfaced it; only asking what the observation *claimed*, against what had actually happened, did.
 
 ### PB7 — Composition handoff without Component Manager expansion
 

@@ -40,9 +40,11 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   failure paths leak no provider effect, value, runtime type, resource, or false success. Doing so
   corrected three defects here: resource observations claimed an acceptance and an integrity check
   that never happened, the transport let foreign exceptions escape the binding, and two declared
-  process categories had no path that could produce them. The referenced-resource and lifecycle
-  adversarial coverage PB6 also calls for is not yet delivered, so PB6 is partially delivered and
-  PB7-PB8 remain planned. Nothing here is an Architecture 0.8 conformance claim or part of Brontide
+  process categories had no path that could produce them. The C6 and C8 refusals are now decided by
+  an endpoint across a real seam rather than by a codec or a lifecycle value called directly. All
+  three defects appeared identically in the Reference stack too, which is why they matter:
+  independent implementation catches divergence between the two and cannot catch a blind spot they
+  share. PB7-PB8 remain planned. Nothing here is an Architecture 0.8 conformance claim or part of Brontide
   Minimal Stack Base.
 - Reference/Minimal entanglement is a future cross-process experiment. Neither implementation is allowed
   to become the other's in-process compatibility layer.
