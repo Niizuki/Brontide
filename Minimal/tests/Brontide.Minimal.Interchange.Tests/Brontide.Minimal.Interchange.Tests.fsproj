@@ -46,6 +46,7 @@
     <Compile Include="Portable\PortableVectorCoverageTests.fs" />
     <Compile Include="Portable\PortableRealizationParityTests.fs" />
     <Compile Include="Portable\PortableChannelVectorCoverageTests.fs" />
+    <Compile Include="Portable\PortableDecoderPropertyTests.fs" />
     <Compile Include="Portable\PortableCrossProcessTests.fs" />
     <Compile Include="Portable\PortableCrossStackTests.fs" />
     <Compile Include="Portable\PortableNeutralProviderTests.fs" />

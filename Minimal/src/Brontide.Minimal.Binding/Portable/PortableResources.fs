@@ -99,6 +99,17 @@ module PortableResource =
           IntegrityVerified = flavour = ResourceFlavor.CopiedImmutableBlob
           Accepted = true }
 
+    /// The same resource as observed by an interaction that failed.
+    ///
+    /// Acceptance and integrity are facts about a completed admission, not about the flavor. An
+    /// interaction that never completed one observed neither, so claiming either would be a false
+    /// success in the observation set: a refused blob would report that its content hash verified.
+    /// The flavor, ownership, and copy count still hold, because those describe what was presented.
+    let asRefused (observation: ResourceObservation) =
+        { observation with
+            IntegrityVerified = false
+            Accepted = false }
+
 /// Codec and admission rules for referenced resources.
 [<RequireQualifiedAccess>]
 module ResourceCodec =

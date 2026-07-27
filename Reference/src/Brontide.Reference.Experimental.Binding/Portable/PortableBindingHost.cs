@@ -286,7 +286,7 @@ public sealed class PortableBindingHost : IAsyncDisposable
                 // A rejection never produces a partial provider effect.
                 0,
                 0,
-                resources,
+                [.. resources.Select(resource => resource.AsRefused())],
                 obligations,
                 false,
                 Timing(_clock.ElapsedMilliseconds - started),
@@ -313,7 +313,7 @@ public sealed class PortableBindingHost : IAsyncDisposable
                 failure.Domain,
                 0,
                 0,
-                resources,
+                [.. resources.Select(resource => resource.AsRefused())],
                 obligations,
                 failure.Category == PortableProcessCategory.TransportInterrupted,
                 Timing(_clock.ElapsedMilliseconds - started),

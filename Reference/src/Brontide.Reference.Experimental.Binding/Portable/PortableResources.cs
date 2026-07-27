@@ -84,7 +84,20 @@ public sealed record PortableResourceObservation(
     string Ownership,
     long Copies,
     bool IntegrityVerified,
-    bool Accepted);
+    bool Accepted)
+{
+    /// <summary>
+    /// The same resource as observed by an interaction that failed.
+    /// </summary>
+    /// <remarks>
+    /// Acceptance and integrity are facts about a completed admission, not about the flavor. An
+    /// interaction that never completed one observed neither, so claiming either would be a false
+    /// success in the observation set: a refused blob would report that its content hash verified.
+    /// The flavor, ownership, and copy count still hold, because those describe what was presented.
+    /// </remarks>
+    public PortableResourceObservation AsRefused() =>
+        this with { IntegrityVerified = false, Accepted = false };
+}
 
 /// <summary>Codec and admission rules for referenced resources.</summary>
 public static class PortableResourceCodec
