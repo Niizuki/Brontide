@@ -176,6 +176,15 @@ public sealed class PortableBindingHost : IAsyncDisposable
                     decision.DenialObservation!);
             }
 
+            // No Capability crosses a trust boundary, so the host refuses to present one before
+            // anything is emitted. Leaving the scan to the far endpoint would let the content cross
+            // first, and would let whatever payload rule happens to catch it name the category: the
+            // process realization rejected an authority presentation as an undeclared field.
+            if (Plan.TrustBoundaryCrossed)
+            {
+                PortableAuthorityVocabulary.RequireNoCapabilityContent(input);
+            }
+
             _lifecycle.Apply(PortableEnvelopeKind.Request);
             _lifecycle.RecordRequest(correlation.RequestId);
             var receipt = await _conversation.RequestAsync(

@@ -164,6 +164,44 @@ module PortableTestHarness =
             | _ -> Array.empty)
         |> List.ofArray
 
+    /// Which Channel 0.1 vectors each portable vector preserves, as the neutral layer declares it.
+    ///
+    /// Reading the mapping keeps the Channel accounting derived rather than restated: a stack claims
+    /// to execute a Channel vector only by executing a portable vector the neutral artifacts say
+    /// preserves it.
+    let neutralChannelReferences () =
+        Directory.GetFiles(Path.Combine(neutralRoot, "vectors"), "*.json")
+        |> Array.collect (fun file ->
+            use document = JsonDocument.Parse(File.ReadAllText file)
+
+            match document.RootElement.TryGetProperty "vectors" with
+            | true, vectors ->
+                vectors.EnumerateArray()
+                |> Seq.map (fun vector ->
+                    let id = vector.GetProperty("id").GetString() |> str
+
+                    let channel =
+                        match vector.TryGetProperty "channelVectors" with
+                        | true, items -> items.EnumerateArray() |> Seq.map (fun item -> item.GetString() |> str) |> List.ofSeq
+                        | _ -> []
+
+                    id, channel)
+                |> Array.ofSeq
+            | _ -> Array.empty)
+        |> Map.ofArray
+
+    /// Every Channel 0.1 vector id, read from the authored conformance file.
+    let channelVectorIds () =
+        let path =
+            Path.Combine(TestContext.CurrentContext.TestDirectory, "conformance", "channel-0.1-vectors.json")
+
+        Assert.That(File.Exists path, Is.True, $"The Channel vector file '{path}' was not copied to the test output.")
+        use document = JsonDocument.Parse(File.ReadAllText path)
+
+        document.RootElement.GetProperty("vectors").EnumerateArray()
+        |> Seq.map (fun vector -> vector.GetProperty("id").GetString() |> str)
+        |> List.ofSeq
+
     let expectOk (result: PortableResult<'T>) =
         match result with
         | Ok value -> value

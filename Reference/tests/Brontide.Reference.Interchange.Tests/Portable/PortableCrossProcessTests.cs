@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Brontide.Reference.Experimental.Binding.Portable;
 
@@ -35,6 +36,16 @@ public sealed class PortableCrossProcessTests
         return process;
     }
 
+    private static async Task StopAsync(Process process)
+    {
+        if (!process.HasExited)
+        {
+            process.Kill(entireProcessTree: true);
+        }
+
+        await process.WaitForExitAsync();
+    }
+
     private static PortableProcessConversation Conversation(Process process, PortableLimits limits) =>
         new(
             new PortableStreamDuplex(
@@ -43,6 +54,53 @@ public sealed class PortableCrossProcessTests
                 limits,
                 ownsStreams: false),
             limits);
+
+    public static IEnumerable<PortableParityScenario> Scenarios => PortableParityMatrix.Scenarios;
+
+    /// <summary>
+    /// PB4 over a real operating-system process boundary: the same parity profile the local seam
+    /// measured is reproduced when the provider is a separate process.
+    /// </summary>
+    /// <remarks>
+    /// The local seam proves the encoding, the bounds, and the copy accounting; it cannot prove that
+    /// the endpoint needs nothing of the host's process. Running the whole matrix here rather than
+    /// one happy path is what makes the process realization's parity claim cover its refusals too.
+    /// </remarks>
+    [TestCaseSource(nameof(Scenarios))]
+    public async Task The_parity_profile_survives_a_real_process_boundary(PortableParityScenario scenario)
+    {
+        ArgumentNullException.ThrowIfNull(scenario);
+        var direct = await PortableRealizationParityTests.RunAsync(scenario, direct: true);
+
+        using var process = StartProvider([.. scenario.ProviderArguments]);
+        try
+        {
+            await using var host = await PortableBindingHost.EstablishAsync(
+                scenario.Contract,
+                Conversation(process, PortableLimits.Declared),
+                "reference-cross-process");
+
+            var crossed = await host.InvokeAsync(
+                scenario.Operation,
+                scenario.InputShape,
+                scenario.Input,
+                scenario.Authority,
+                scenario.Resources);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(crossed.FrameDecision, Is.EqualTo(scenario.Frame));
+                Assert.That(crossed.ResultClass, Is.EqualTo(scenario.Result));
+                Assert.That(crossed.Category, Is.EqualTo(scenario.Category));
+                Assert.That(crossed.ParityProfile(), Is.EqualTo(direct.ParityProfile()));
+                Assert.That(host.Plan.Fact("framing"), Is.EqualTo("length-delimited"));
+            });
+        }
+        finally
+        {
+            await StopAsync(process);
+        }
+    }
 
     [Test]
     public async Task A_provider_in_its_own_process_establishes_invokes_and_reports_a_success()
@@ -76,12 +134,7 @@ public sealed class PortableCrossProcessTests
         }
         finally
         {
-            if (!process.HasExited)
-            {
-                process.Kill(entireProcessTree: true);
-            }
-
-            await process.WaitForExitAsync();
+            await StopAsync(process);
         }
     }
 
@@ -112,12 +165,7 @@ public sealed class PortableCrossProcessTests
         }
         finally
         {
-            if (!process.HasExited)
-            {
-                process.Kill(entireProcessTree: true);
-            }
-
-            await process.WaitForExitAsync();
+            await StopAsync(process);
         }
     }
 }

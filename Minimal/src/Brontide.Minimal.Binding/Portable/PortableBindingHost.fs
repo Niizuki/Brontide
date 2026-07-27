@@ -239,6 +239,13 @@ type PortableBindingHost
 
                 let opened =
                     portable {
+                        // No Capability crosses a trust boundary, so the host refuses to present one
+                        // before anything is emitted. Leaving the scan to the far endpoint would let
+                        // the content cross first, and would let whatever payload rule happens to
+                        // catch it name the category instead of the authority rule.
+                        if BindingPlan.trustBoundaryCrossed plan then
+                            do! PortableAuthorityVocabulary.requireNoCapabilityValue input
+
                         do! advance EnvelopeKind.Request
                         let! next = Lifecycle.recordRequest correlation.Request lifecycle
                         lifecycle <- next

@@ -1,7 +1,7 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Partially implemented experimental work — PB0 through PB3 complete; PB4 onward planned
-**Date:** 2026-07-23 (delivery status updated 2026-07-26)
+**Status:** Partially implemented experimental work — PB0 through PB4 complete; PB5 onward planned
+**Date:** 2026-07-23 (delivery status updated 2026-07-27)
 **Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
 **Design sources:** [Composition and Components](../composition/Brontide-Design-Note-Composition-0.1.md),
@@ -144,7 +144,7 @@ deterministically. The repository-wide gate invokes it.
 
 ## 5. Delivery sequence
 
-### Delivery status (2026-07-26)
+### Delivery status (2026-07-27)
 
 | Phase | State | Evidence |
 | --- | --- | --- |
@@ -152,14 +152,15 @@ deterministically. The repository-wide gate invokes it.
 | PB1 — neutral manifests, plans, and vectors | **Complete** | [`schemas/`](../../../binding/portable/schemas/README.md) (8 files), [`vectors/`](../../../binding/portable/vectors/README.md) (63 vectors, 6 golden encodings), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB2 — Reference native implementation | **Complete** | [`Reference/src/Brontide.Reference.Experimental.Binding/Portable/`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/), [`Reference/tests/Brontide.Reference.Interchange.Tests/Portable/`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB3 — Minimal native implementation | **Complete** | [`Minimal/src/Brontide.Minimal.Binding/Portable/`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/), [`Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
-| PB4 — direct and process realization parity | Planned — next | — |
-| PB5 — cross-stack and independent-provider matrix | Planned | — |
+| PB4 — direct and process realization parity | **Complete** | [`Reference .../Portable/PortableRealizationParityTests.cs`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/PortableRealizationParityTests.cs), [`Minimal .../Portable/PortableRealizationParityTests.fs`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/PortableRealizationParityTests.fs), both `PortableChannelVectorCoverageTests`, both `PortableCrossProcessTests` |
+| PB5 — cross-stack and independent-provider matrix | Planned — next | — |
 | PB6 — resource, lifecycle, and hardening completion | Planned | — |
 | PB7 — Composition handoff | Planned | — |
 | PB8 — evidence, documentation, and review closure | Planned | — |
 
-Nothing below PB3 has been implemented. The neutral contract exists and is gated, and both stacks now
-implement it natively in both realizations, so every C item has executable evidence in each stack
+Nothing below PB4 has been implemented. The neutral contract exists and is gated, both stacks
+implement it natively in both realizations, and PB4 has now measured those two realizations against
+each other across the portable observation set. Every C item has executable evidence in each stack
 independently and none yet has *paired* two-stack evidence: PB5 is what runs one stack's host against
 the other's provider. PB2 discharged the three migration obligations PB1 recorded:
 map keys are sorted on their complete encoding rather than by the Cooling codec's ordinal string
@@ -306,6 +307,56 @@ diagnostic/legacy experiment but cannot silently become the portable wire contra
 
 **Exit:** every Channel 0.1 vector executes independently in both stacks, and direct/process parity
 holds for the portable observation set.
+
+**Delivered.** Each stack owns a parity matrix of thirteen scenarios, stated once as data and
+executed unchanged in both realizations. A scenario is a record rather than a function, because a
+function could send a different request to each realization and still report parity. The matrix
+covers every portable result class a host can reach — success, shaped failed Outcome, local denial,
+and protocol rejection — which is what PB2 and PB3 did not: they measured a success, a denial, and a
+resource, leaving the refusals, whose decision point genuinely moves between the realizations,
+unmeasured.
+
+Measuring them found four divergences, the same four in each stack independently, and PB4 closed
+them:
+
+1. **A refusal the provider endpoint decided reported two different failure domains.** The direct
+   realization reported `local-endpoint` and the process realization `remote-endpoint`, for the
+   missing-required-Fragment, resource-integrity-mismatch, and resource-scope-refused vectors. The
+   failure domain names which endpoint decided, relative to the observer, and the provider endpoint
+   is the host's peer in both realizations; only the distance between them changes. A domain that
+   tracked the distance would turn an observer-relative fact into a transport fact. The fixed
+   direct-call realization now attributes an endpoint-decided refusal the way the process
+   realization already did.
+2. **An authority-bearing request body was rejected under two different categories.** The direct
+   realization refused it as `invalid-authority-presentation`, because the endpoint's authority scan
+   runs before the body is given a Shape; the process realization refused it as `invalid-payload`,
+   because the host's schema-guided encoder rejected the carrying field first. The category was
+   therefore decided by whichever rule happened to fire, and only the far endpoint enforced C3. The
+   host now scans for authority-bearing content before it emits anything, so no Capability crosses a
+   trust boundary even when a declared field could carry one, and both realizations name the
+   authority rule.
+
+The excluded fields are asserted to differ as their stated reasons permit rather than to agree
+silently: a copied blob is one copy across the seam and none in a direct call, correlation identities
+are per-run, and crossed boundaries name the realization. The parity profiles are additionally
+reproduced against a provider in its own operating-system process, for every scenario rather than one
+happy path, through the `--portable` verb of each stack's interchange provider.
+
+Every Channel 0.1 vector now has executed evidence in each stack, accounted for by derivation rather
+than by assertion: `PortableChannelVectorCoverageTests` reads
+[`conformance/channel-0.1-vectors.json`](../../../conformance/channel-0.1-vectors.json) and the
+neutral vectors' own `channelVectors` declarations, and a Channel vector counts as executed only when
+some portable vector the neutral layer says preserves it is executed rather than deferred by that
+stack. Removing a test, deferring a vector, or renaming a Channel vector fails the build. The two
+PB5 deferrals are checked not to be the sole cover for any Channel vector.
+
+The portable wire is length-delimited and bounded, and a retained line-delimited JSON message is
+refused on its length prefix alone, so the legacy protocol cannot silently become the portable wire
+contract.
+
+One limit of this phase is worth stating plainly. Parity here is parity *within* a stack: each stack
+compared its own two realizations. The two stacks have still never spoken to each other over the
+portable contract, and neither has hosted an implementation-neutral provider. Both remain PB5.
 
 ### PB5 — cross-stack and independent-provider matrix
 

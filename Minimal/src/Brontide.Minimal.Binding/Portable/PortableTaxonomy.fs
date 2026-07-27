@@ -227,6 +227,19 @@ module PortableFault =
           Message = message
           Domain = FailureDomain.RemoteEndpoint }
 
+    /// The same refusal observed from another endpoint's position. Only the domain moves: the
+    /// category, the local code, and the message describe the decision, not who is looking at it.
+    let atDomain domain (fault: PortableFault) = { fault with Domain = domain }
+
+    /// Restates a refusal a peer endpoint decided, leaving one it already attributed elsewhere
+    /// alone.
+    let asPeerDecision result =
+        result
+        |> Result.mapError (function
+            | Refused fault when fault.Domain = FailureDomain.LocalEndpoint ->
+                Refused(atDomain FailureDomain.RemoteEndpoint fault)
+            | error -> error)
+
 [<AutoOpen>]
 module PortableResults =
 

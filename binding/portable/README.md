@@ -1,7 +1,8 @@
 # Portable Component Binding — neutral contract artifacts (`binding/portable/`)
 
-**Status:** PB1 complete and implemented natively in both stacks (PB2 Reference, PB3 Minimal) —
-planned experimental work; not ratified; not part of Brontide Base.
+**Status:** PB1 complete, implemented natively in both stacks (PB2 Reference, PB3 Minimal), and
+measured for direct-versus-process parity in each (PB4) — planned experimental work; not ratified;
+not part of Brontide Base.
 **Designed for:** Brontide Architecture 0.8 §16 and §18.1 (Complete Draft).
 **Plan:** [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
 
@@ -100,6 +101,21 @@ Nothing. PB3 implemented the same contract in the Minimal stack and found no fix
 or golden encoding that needed correcting, which is the first evidence that the PB2 corrections above
 were fixture defects rather than contract ones. The gate now runs both stacks' native evidence after
 validating the neutral layer.
+
+## What PB4 changed here
+
+Nothing again, and this time that is the more interesting result. PB4 executed the C7 parity
+obligation these vectors state, over every portable result class a host can reach, and the four
+divergences it found were both stacks reporting an endpoint-decided refusal in two failure domains
+and an authority-bearing body under two categories. Both were implementation defects measured against
+the parity profile in [`schemas/binding-observation.json`](schemas/binding-observation.json), which
+already said which fields must be equal and which may differ and why. The contract needed no
+amendment to adjudicate them.
+
+The `phase` markers stay: PB-58 through PB-60 are now executed, and the remaining PB5 markers
+(PB-61, PB-63) are still the obligations no single stack can discharge alone. The Channel accounting
+each stack runs derives from the `channelVectors` declarations in these vector files, so a Channel
+vector that loses its portable cover here fails both stacks' builds.
 
 ## Boundary
 

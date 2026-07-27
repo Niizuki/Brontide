@@ -28,10 +28,15 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   authority with frameless denial, referenced resources, the lifecycle machine, and the C9
   observation set, in a fixed direct-call and a negotiated process realization. Refusals are explicit
   results over Minimal-owned algebraic types rather than raised failures, and Cooling and Catalog are
-  fixtures over that layer rather than definitions of it. The retained line-delimited Cooling and
-  Catalog experiments in the same project stay the cross-stack baseline until PB5 pairs the two
-  portable implementations. PB4 and PB6-PB8 remain planned. Nothing here is an Architecture 0.8
-  conformance claim or part of Brontide Minimal Stack Base.
+  fixtures over that layer rather than definitions of it. Its PB4 phase measured the two
+  realizations against each other over every portable result class a host can reach, and closed the
+  two divergences that found: an endpoint-decided refusal reported two failure domains, and an
+  authority-bearing body was refused under two categories. Every Channel 0.1 vector now has executed
+  evidence here. The retained line-delimited Cooling and Catalog experiments in the same project stay
+  the cross-stack baseline until PB5 pairs the two portable implementations, which is also why the
+  parity measured so far is between this stack's own two realizations rather than between the stacks.
+  PB5-PB8 remain planned. Nothing here is an Architecture 0.8 conformance claim or part of Brontide
+  Minimal Stack Base.
 - Reference/Minimal entanglement is a future cross-process experiment. Neither implementation is allowed
   to become the other's in-process compatibility layer.
 
