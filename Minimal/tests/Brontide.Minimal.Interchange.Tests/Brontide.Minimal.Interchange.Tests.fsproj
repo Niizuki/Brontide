@@ -48,6 +48,7 @@
     <Compile Include="Portable\PortableChannelVectorCoverageTests.fs" />
     <Compile Include="Portable\PortableCrossProcessTests.fs" />
     <Compile Include="Portable\PortableCrossStackTests.fs" />
+    <Compile Include="Portable\PortableNeutralProviderTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

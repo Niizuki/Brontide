@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>PortableBinding.NeutralProvider</RootNamespace>
+    <AssemblyName>PortableBinding.NeutralProvider</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Formats.Cbor" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The contract this endpoint serves is the checked-in neutral data, read at run time. It is
+         not restated in source here, which is what makes serving it evidence that the contract is
+         implementable from its published form. -->
+    <None Include="..\..\portable\vectors\fixture-contract.json"
+          Link="contracts\fixture-contract.json"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\portable\vectors\catalog-fixture-contract.json"
+          Link="contracts\catalog-fixture-contract.json"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

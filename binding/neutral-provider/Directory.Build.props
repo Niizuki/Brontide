@@ -1,0 +1,15 @@
+<Project>
+  <!--
+    The implementation-neutral provider is its own build boundary. It sits outside Reference/ and
+    Minimal/ deliberately: it must be buildable and runnable without either stack's props, packages,
+    or project graph, because that independence is the evidence it exists to produce.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+</Project>

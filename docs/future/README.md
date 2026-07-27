@@ -12,7 +12,7 @@ Binding Plan and Channel realization. Its first stage, PB0, inventories the exis
 Catalog behaviour, maps it to the C1-C10 capability contract and the Channel 0.1 vectors, and
 creates the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).
 
-**PB0 through PB4 are complete.** The PB0 scaffold, C1-C10 baseline inventory, representation
+**PB0 through PB5 are complete.** The PB0 scaffold, C1-C10 baseline inventory, representation
 choice, and both resolved owner decisions are recorded there; PB1 authored the neutral contract
 itself, as eight data-only schemas, 63 vectors covering C1-C10 and all 24 Channel 0.1 vectors, and
 deterministic golden CBOR encodings; PB2 implemented that contract natively in the Reference
@@ -35,10 +35,18 @@ migration obligations PB1 recorded — deterministic map key ordering, schema-gu
 frameless denial — were discharged on both sides in PB2 and PB3; they are described in
 [`binding/portable/README.md`](../../binding/portable/README.md).
 
-**PB5 is the next item**: the cross-stack and independent-provider matrix. PB4's parity is parity
-within a stack — each compared its own two realizations. The two stacks have still never spoken to
-each other over the portable contract, and neither has hosted a provider that depends on neither
-stack.
+**PB5 paired the implementations.** All six combinations of the cross-stack matrix pass: each stack's
+host against the other's provider, each host against an
+[implementation-neutral provider](../../binding/neutral-provider/README.md) that imports no Brontide
+assembly, and both fixed direct calls. Pairing them found two things four phases of independent work
+had not — that Catalog was never a shared contract, and that the neutral fixture declaration was not
+encodable as published, because it carries documentation fields the contract rejects. Both are fixed
+in the neutral data, and no neutral vector is deferred in either stack any more.
+
+**PB6 is the next item**: resource, lifecycle, and hardening completion — adversarial coverage for
+ownership and borrowing, release and completion, scope escape, integrity mismatch, and the
+establishment, withdrawal, timeout, and peer-loss paths, with property-tested decoders inside
+deterministic bounds.
 
 The former Priority 0 documentation relocation is complete; its archived plan is the
 [Pinned Documentation Relocation Plan 0.1](../archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).

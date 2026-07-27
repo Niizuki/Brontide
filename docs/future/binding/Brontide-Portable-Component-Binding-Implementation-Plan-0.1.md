@@ -1,6 +1,6 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Partially implemented experimental work — PB0 through PB4 complete; PB5 onward planned
+**Status:** Partially implemented experimental work — PB0 through PB5 complete; PB6 onward planned
 **Date:** 2026-07-23 (delivery status updated 2026-07-27)
 **Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
@@ -153,16 +153,16 @@ deterministically. The repository-wide gate invokes it.
 | PB2 — Reference native implementation | **Complete** | [`Reference/src/Brontide.Reference.Experimental.Binding/Portable/`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/), [`Reference/tests/Brontide.Reference.Interchange.Tests/Portable/`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB3 — Minimal native implementation | **Complete** | [`Minimal/src/Brontide.Minimal.Binding/Portable/`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/), [`Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB4 — direct and process realization parity | **Complete** | [`Reference .../Portable/PortableRealizationParityTests.cs`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/PortableRealizationParityTests.cs), [`Minimal .../Portable/PortableRealizationParityTests.fs`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/PortableRealizationParityTests.fs), both `PortableChannelVectorCoverageTests`, both `PortableCrossProcessTests` |
-| PB5 — cross-stack and independent-provider matrix | Planned — next | — |
-| PB6 — resource, lifecycle, and hardening completion | Planned | — |
+| PB5 — cross-stack and independent-provider matrix | **Complete** | both stacks' `PortableCrossStackTests` and `PortableNeutralProviderTests`, [`binding/neutral-provider/`](../../../binding/neutral-provider/README.md), [`catalog-fixture-contract.json`](../../../binding/portable/vectors/catalog-fixture-contract.json) |
+| PB6 — resource, lifecycle, and hardening completion | Planned — next | — |
 | PB7 — Composition handoff | Planned | — |
 | PB8 — evidence, documentation, and review closure | Planned | — |
 
-Nothing below PB4 has been implemented. The neutral contract exists and is gated, both stacks
-implement it natively in both realizations, and PB4 has now measured those two realizations against
-each other across the portable observation set. Every C item has executable evidence in each stack
-independently and none yet has *paired* two-stack evidence: PB5 is what runs one stack's host against
-the other's provider. PB2 discharged the three migration obligations PB1 recorded:
+Nothing below PB5 has been implemented. The neutral contract exists and is gated, both stacks
+implement it natively in both realizations, PB4 measured those two realizations against each other
+across the portable observation set, and PB5 has now paired the two stacks and added a provider that
+depends on neither. Every C item has executable evidence in each stack independently and, since PB5,
+paired evidence across them. PB2 discharged the three migration obligations PB1 recorded:
 map keys are sorted on their complete encoding rather than by the Cooling codec's ordinal string
 comparison, portable values are schema-guided and carry no kind discriminator, and local denial is
 frameless, so the Cooling `denial` message kind did not enter the portable envelope set.
@@ -378,6 +378,46 @@ be demonstrated without teaching the reusable layer fixture-specific rules.
 
 **Exit:** both directions and the independent provider pass without shared executable semantic
 logic or private runtime types.
+
+**Delivered.** All six combinations pass. The scenarios are the PB4 parity matrix unchanged, and the
+baseline each combination is measured against is the hosting stack talking to itself, so a difference
+is attributable to the peer rather than to the scenario. The two direct-call rows were already
+covered by PB4; the four process rows are new.
+
+Pairing the implementations found two things that four phases of independent work had not.
+
+**Catalog was never a shared contract.** PB1 declared only the Cooling fixture, so each stack
+authored its own Catalog fixture and the two drifted: Reference kept the retained experiment's
+`upsert-items`/`find-items` Operation names while Minimal shortened them, and the two disagreed on
+`providerSpecific` for the addressing-only-handle dependency. Negotiation matches both exactly, so
+the stacks could not establish a Catalog binding at all — and the drift was invisible while each ran
+Catalog only against itself.
+[`catalog-fixture-contract.json`](../../../binding/portable/vectors/catalog-fixture-contract.json) is
+now the single declaration both are measured against; neither stack was simply right, and both moved.
+A `PortableFixtureAlignmentTests` in each stack compares both fixtures against their neutral
+declarations, so the next drift fails there rather than in the cross-stack matrix where the cause is
+far less obvious.
+
+**The neutral declaration was not encodable as published.** The fixture files carry documentation
+alongside the contract — `additiveOver` on a Shape version, `role` on the encoding-edge Shapes — and
+[`component-contract.json`](../../../binding/portable/schemas/component-contract.json) declares
+exactly which fields a contract document has, rejecting unknown ones. A faithful transcode of the
+file was therefore a malformed contract. Neither stack had noticed, because neither reads the file:
+each hand-wrote its contract from it and dropped the annotations by eye. The fixtures now declare
+their own `annotationFields`, so the distinction is data rather than a convention someone has to
+know. This is the clearest single result of the phase: the first consumer to read the published form
+found it insufficient, which is exactly what an implementation-neutral endpoint is for.
+
+The independent provider lives at [`binding/neutral-provider/`](../../../binding/neutral-provider/README.md).
+Three properties make it evidence rather than a third implementation, and each is checked: it imports
+no Brontide assembly (the gate reads its resolved `.deps.json`, which names two libraries, neither
+from a stack); it transcodes the contract from the checked-in declaration at run time rather than
+restating it in source; and it reads and writes the wire with the base class library's CBOR codec
+rather than either stack's. That two hand-written deterministic-CBOR cores and an off-the-shelf
+decoder all agree is what makes "the representation is standard CBOR" a fact about the representation
+rather than about the two codecs.
+
+PB-61 and PB-63 are no longer deferred in either stack's coverage map, and no neutral vector is.
 
 ### PB6 — resource, lifecycle, and hardening completion
 

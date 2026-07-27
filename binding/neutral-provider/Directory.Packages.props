@@ -1,0 +1,14 @@
+<Project>
+  <!--
+    This boundary's authoritative dependency-version manifest. It names exactly one package: the
+    base class library's CBOR codec. Reading the portable wire with an off-the-shelf decoder rather
+    than a hand-written one is part of the point — it shows the representation is standard
+    deterministic CBOR and not whatever the two stacks' codecs happen to agree on.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="System.Formats.Cbor" Version="9.0.0" />
+  </ItemGroup>
+</Project>
