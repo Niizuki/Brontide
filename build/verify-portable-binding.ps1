@@ -276,6 +276,7 @@ $requiredPaths = @(
     (Join-Path $schemaRoot 'channel-envelope.json'),
     (Join-Path $schemaRoot 'binding-observation.json'),
     (Join-Path $vectorRoot 'fixture-contract.json'),
+    (Join-Path $vectorRoot 'catalog-fixture-contract.json'),
     (Join-Path $vectorRoot 'golden-encodings.json'),
     (Join-Path $vectorRoot 'establishment-and-shapes.json'),
     (Join-Path $vectorRoot 'authority-and-resources.json'),
@@ -303,7 +304,7 @@ $goldenInventory = Read-JsonFile (Join-Path $vectorRoot 'golden-encodings.json')
 
 $schemaFiles = Get-ChildItem -LiteralPath $schemaRoot -Filter '*.json' -File
 $vectorFiles = Get-ChildItem -LiteralPath $vectorRoot -Filter '*.json' -File |
-    Where-Object { $_.Name -notin @('fixture-contract.json', 'golden-encodings.json') }
+    Where-Object { $_.Name -notin @('fixture-contract.json', 'catalog-fixture-contract.json', 'golden-encodings.json') }
 
 # ---------------------------------------------------------------------------
 # Neutrality: the checked-in neutral layer stays data only

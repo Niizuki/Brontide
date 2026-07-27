@@ -91,14 +91,14 @@ public static class CatalogPortableFixture
                 new PortableProvision(
                     PortableDependencyKind.ResourceFlavor,
                     PortableDependencyReference.Parse("interchange.tests.addressing-only-handle", 1),
-                    true)
+                    false)
             ],
             [
                 new PortableRequirement(
                     PortableDependencyKind.ResourceFlavor,
                     PortableDependencyReference.Parse("interchange.tests.addressing-only-handle", 1),
                     PortableRequirementStrength.Required,
-                    true)
+                    false)
             ],
             [
                 new PortableOperationDeclaration(Upsert, UpsertCommand, UpsertResult, Details, [], [flavor]),

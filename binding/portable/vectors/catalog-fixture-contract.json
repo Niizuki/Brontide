@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "fixture": {
+    "id": "brontide.portable-binding.fixture.catalog",
+    "version": "0.1-draft",
+    "status": "PB5 neutral fixture; data only; validates without loading either stack",
+    "role": "The second subject contract, used by the PB5 cross-stack matrix for multiple Operations, nested and repeated data, and the provider-scoped resource handle. It restates the retained Catalog experiment in the neutral form defined by schemas/component-contract.json.",
+    "derivedFrom": ["interchange/catalog/manifest-v1.json"],
+    "note": "PB1 declared only the Cooling fixture, so each stack authored its own Catalog fixture and the two drifted: the Operation names and one providerSpecific flag disagreed, and negotiation matches both exactly. The drift was invisible while each stack ran Catalog only against itself. This file is the single declaration both stacks are now measured against; the Operation names follow the retained experiment, and the resource-flavor dependency is not providerSpecific, matching how the Cooling fixture declares copied-immutable-blob."
+  },
+  "contractVersion": 1,
+  "component": { "name": "interchange.tests.catalog-component", "version": 1 },
+  "provider": { "name": "interchange.tests.catalog-provider", "version": 1 },
+  "provisions": [
+    {
+      "kind": "operation",
+      "reference": { "name": "interchange.tests.catalog.upsert-items", "version": 1 },
+      "providerSpecific": false
+    },
+    {
+      "kind": "operation",
+      "reference": { "name": "interchange.tests.catalog.find-items", "version": 1 },
+      "providerSpecific": false
+    },
+    {
+      "kind": "resource-flavor",
+      "reference": { "name": "interchange.tests.addressing-only-handle", "version": 1 },
+      "providerSpecific": false
+    }
+  ],
+  "requirements": [
+    {
+      "kind": "resource-flavor",
+      "reference": { "name": "interchange.tests.addressing-only-handle", "version": 1 },
+      "strength": "required",
+      "providerSpecific": false
+    }
+  ],
+  "operations": [
+    {
+      "reference": { "name": "interchange.tests.catalog.upsert-items", "version": 1 },
+      "inputShape": { "name": "interchange.tests.catalog.upsert-command", "version": 1 },
+      "resultShape": { "name": "interchange.tests.catalog.upsert-result", "version": 1 },
+      "detailShape": { "name": "interchange.tests.catalog.details", "version": 1 },
+      "requiredFragments": [],
+      "resourceFlavors": ["addressing-only-handle"]
+    },
+    {
+      "reference": { "name": "interchange.tests.catalog.find-items", "version": 1 },
+      "inputShape": { "name": "interchange.tests.catalog.find-command", "version": 1 },
+      "resultShape": { "name": "interchange.tests.catalog.find-result", "version": 1 },
+      "detailShape": { "name": "interchange.tests.catalog.details", "version": 1 },
+      "requiredFragments": [],
+      "resourceFlavors": ["addressing-only-handle"]
+    }
+  ],
+  "shapes": [
+    {
+      "reference": { "name": "interchange.tests.catalog.item", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "fields": [
+        { "name": "id", "shape": { "name": "Text", "version": 1 }, "required": true },
+        { "name": "title", "shape": { "name": "Text", "version": 1 }, "required": true },
+        {
+          "name": "tags",
+          "shape": { "name": "interchange.tests.catalog.text-sequence", "version": 1 },
+          "required": true
+        }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.catalog.item-sequence", "version": 1 },
+      "kind": "sequence",
+      "itemShape": { "name": "interchange.tests.catalog.item", "version": 1 }
+    },
+    {
+      "reference": { "name": "interchange.tests.catalog.text-sequence", "version": 1 },
+      "kind": "sequence",
+      "itemShape": { "name": "Text", "version": 1 }
+    },
+    {
+      "reference": { "name": "interchange.tests.catalog.upsert-command", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "fields": [
+        {
+          "name": "items",
+          "shape": { "name": "interchange.tests.catalog.item-sequence", "version": 1 },
+          "required": true
+        }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.catalog.upsert-result", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "fields": [
+        { "name": "stored", "shape": { "name": "Integer.Signed64", "version": 1 }, "required": true }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.catalog.find-command", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "fields": [
+        {
+          "name": "ids",
+          "shape": { "name": "interchange.tests.catalog.text-sequence", "version": 1 },
+          "required": true
+        }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.catalog.find-result", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "fields": [
+        {
+          "name": "items",
+          "shape": { "name": "interchange.tests.catalog.item-sequence", "version": 1 },
+          "required": true
+        }
+      ]
+    },
+    {
+      "reference": { "name": "interchange.tests.catalog.details", "version": 1 },
+      "kind": "record",
+      "fragmentPolicy": "closed",
+      "fields": [
+        { "name": "code", "shape": { "name": "Text", "version": 1 }, "required": true },
+        { "name": "message", "shape": { "name": "Text", "version": 1 }, "required": true }
+      ]
+    }
+  ],
+  "fragments": [],
+  "authority": {
+    "presentationMode": "cross-trust-no-capability-transfer",
+    "trustBoundaryCrossed": true,
+    "noCapabilityTransfer": true,
+    "constraintPolicy": "fail-closed"
+  },
+  "representation": {
+    "representation": "portable-cbor-core-0.1",
+    "framing": "length-delimited",
+    "resourceFlavors": ["addressing-only-handle"],
+    "acceptedResourceHandles": ["catalog-provider/primary"]
+  },
+  "limits": {
+    "maxFrameBytes": 65536,
+    "maxNestingDepth": 32,
+    "maxRecordFields": 256,
+    "maxFragmentsPerRecord": 16,
+    "maxSequenceItems": 4096,
+    "maxTextBytes": 16384,
+    "maxByteStringBytes": 32768,
+    "maxResourceBytes": 32768,
+    "ioTimeoutMilliseconds": 10000,
+    "maxConcurrentRequests": 1
+  },
+  "lifecycle": {
+    "replayProtectionDeclared": true,
+    "replayWindow": "binding",
+    "features": {
+      "establishment": true,
+      "readiness-signal": true,
+      "single-invocation": true,
+      "clean-withdrawal": true,
+      "clean-termination": true,
+      "retry": false,
+      "cancellation": false,
+      "streaming": false,
+      "ordering-guarantee": false,
+      "exactly-once-execution": false
+    }
+  }
+}
