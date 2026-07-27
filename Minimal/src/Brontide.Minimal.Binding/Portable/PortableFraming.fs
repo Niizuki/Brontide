@@ -115,16 +115,37 @@ type PortableStreamDuplex(inbound: Stream, outbound: Stream, limits: PortableLim
         task {
             use timeout = new CancellationTokenSource(PortableLimits.ioTimeout limits)
 
+            // The classification below is total on purpose. It previously named only the
+            // cancellation, disposed-stream, and I/O cases, so any other failure a stream can raise
+            // travelled out of the binding as a runtime type — the one thing C4 says never crosses
+            // the seam. Being total is also what gives 'resource-exhausted' and 'unknown' a way to
+            // occur at all: both are declared by the Channel taxonomy, and neither had a path here
+            // before.
+            //
+            // Catching an allocation failure is ordinarily poor practice. At this boundary it is the
+            // contract: the alternative is not a healthier process but a foreign exception in the
+            // caller's hands, and the taxonomy has a value for exactly this condition.
             try
                 return! work timeout.Token
             with
             | :? OperationCanceledException ->
                 return
                     lost ProcessCategory.Timeout FailureDomain.Transport "The seam exceeded the declared io timeout."
+            | :? OutOfMemoryException ->
+                return
+                    lost ProcessCategory.ResourceExhausted FailureDomain.Transport "The seam ran out of memory."
             | :? ObjectDisposedException ->
                 return lost ProcessCategory.TransportUnavailable FailureDomain.Transport "The seam is unavailable."
             | :? IOException ->
                 return lost ProcessCategory.TransportUnavailable FailureDomain.Transport "The seam is unavailable."
+            | _ ->
+                // 'unknown' retains why narrower attribution was impossible, which is the whole of
+                // what the Channel vector asks of it. The runtime type is deliberately not in the text.
+                return
+                    lost
+                        ProcessCategory.Unknown
+                        FailureDomain.Unknown
+                        "The seam failed and reported no condition this endpoint can attribute more narrowly."
         }
 
     interface IPortableDuplex with

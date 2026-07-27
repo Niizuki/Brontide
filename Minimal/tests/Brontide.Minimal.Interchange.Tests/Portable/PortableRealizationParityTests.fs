@@ -303,6 +303,72 @@ type PortableRealizationParityTests() =
             Assert.That(direct.Observation.ProviderEffectCount, Is.EqualTo expected)
             Assert.That(crossed.Observation.ProviderEffectCount, Is.EqualTo expected))
 
+    /// PB6: a failure path leaks no provider effect, no authority value, no resource, no runtime
+    /// type, and no false success — in either realization.
+    ///
+    /// Each vector already asserts its own category. This asserts what none of them does
+    /// individually: that across every way an interaction can fail, the observation carries nothing
+    /// it should not. A leak is much likelier to appear in the paths nobody looked at twice.
+    [<TestCaseSource("FailingScenarios")>]
+    member _.``a failure path leaks nothing``(scenario: ParityScenario) =
+        for direct in [ true; false ] do
+            let result = runScenario scenario direct
+            let realization = if direct then "direct" else "process"
+
+            let diagnostics =
+                let code = result.Observation.LocalCode |> Option.defaultValue ""
+                let message = result.Observation.LocalMessage |> Option.defaultValue ""
+                $"{code}|{message}"
+
+            assertAll (fun () ->
+                Assert.That(
+                    result.Observation.ProviderEffectCount,
+                    Is.EqualTo 0L,
+                    $"{realization}: a failure reported a provider effect."
+                )
+
+                Assert.That(
+                    result.Observation.TerminalStatus,
+                    Is.Not.EqualTo TerminalStatus.Succeeded,
+                    $"{realization}: a failure reported success."
+                )
+
+                // A shaped failed Outcome carries its declared detail value; a denial and a protocol
+                // rejection carry no value at all, because there is no shaped position for one.
+                if scenario.Result <> ResultClass.OutcomeFailed then
+                    Assert.That(result.Value, Is.EqualTo None, $"{realization}: a refusal presented a value.")
+
+                // Nothing of the runtime crosses into the observation.
+                for marker in [ "Brontide."; "Microsoft.FSharp"; "System."; "Exception"; "   at " ] do
+                    Assert.That(diagnostics, Does.Not.Contain marker, $"{realization}: leaked '{marker}'.")
+
+                // A frameless denial never left the host, so it observed no resource at all.
+                if scenario.Result = ResultClass.Denial then
+                    Assert.That(
+                        result.Observation.ReferencedResources,
+                        Is.Empty,
+                        $"{realization}: a frameless denial observed a resource."
+                    )
+
+                    Assert.That(
+                        result.Observation.CopyCount,
+                        Is.EqualTo 0L,
+                        $"{realization}: a denial copied something."
+                    )
+
+                // No presented resource is reported as accepted by an interaction that failed on it.
+                if scenario.Category = Some ProtocolCategory.InvalidPayload && not scenario.Resources.IsEmpty then
+                    Assert.That(
+                        result.Observation.ReferencedResources |> List.filter (fun resource -> resource.Accepted),
+                        Is.Empty,
+                        $"{realization}: a refused resource was reported as accepted."
+                    ))
+
+    static member FailingScenarios: ParityScenario seq =
+        PortableParityMatrix.scenarios
+        |> List.filter (fun scenario -> scenario.Result <> ResultClass.OutcomeSucceeded)
+        |> Seq.ofList
+
     /// The excluded fields are excluded because they genuinely differ, not because they happen to
     /// agree. A copied blob is one copy across the seam and none in a direct call.
     [<Test>]

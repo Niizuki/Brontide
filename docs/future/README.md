@@ -12,7 +12,7 @@ Binding Plan and Channel realization. Its first stage, PB0, inventories the exis
 Catalog behaviour, maps it to the C1-C10 capability contract and the Channel 0.1 vectors, and
 creates the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).
 
-**PB0 through PB5 are complete.** The PB0 scaffold, C1-C10 baseline inventory, representation
+**PB0 through PB6 are complete.** The PB0 scaffold, C1-C10 baseline inventory, representation
 choice, and both resolved owner decisions are recorded there; PB1 authored the neutral contract
 itself, as eight data-only schemas, 63 vectors covering C1-C10 and all 24 Channel 0.1 vectors, and
 deterministic golden CBOR encodings; PB2 implemented that contract natively in the Reference
@@ -43,10 +43,28 @@ had not — that Catalog was never a shared contract, and that the neutral fixtu
 encodable as published, because it carries documentation fields the contract rejects. Both are fixed
 in the neutral data, and no neutral vector is deferred in either stack any more.
 
-**PB6 is the next item**: resource, lifecycle, and hardening completion — adversarial coverage for
-ownership and borrowing, release and completion, scope escape, integrity mismatch, and the
-establishment, withdrawal, timeout, and peer-loss paths, with property-tested decoders inside
-deterministic bounds.
+**PB6 hardened both stacks.** Decoders are property-tested inside deterministic bounds, failure paths
+are proved to leak no provider effect, value, runtime type, resource, or false success, transport
+failures classify totally into declared process categories, and the C6 and C8 refusals are now
+decided by an endpoint across a real seam rather than by a codec or a lifecycle object called
+directly.
+
+Testing properties rather than cases found three defects, each present identically in both stacks.
+Resource observations claimed an acceptance and an integrity check that never happened, in fields the
+parity profile compares. The transport let foreign exceptions escape the binding. And two declared
+process categories had no path that could produce them.
+
+That they appeared in *both* stacks is the finding worth carrying forward. The programme's central
+safeguard is independent implementation, and independent implementation is exactly what cannot catch
+these: two stacks written from one contract by one reader diverge where the contract is ambiguous —
+which is what PB4 and PB5 found — and agree wherever it is silent, which is where PB6's defects
+lived. The plan's PB6 section records all three, the ordering rule that a malformed frame is refused
+before its direction is weighed, and why `peer-unavailable` and premature resource reuse stay
+unreachable in version 0.1 rather than being given manufactured paths.
+
+**PB7 is the next item**: the narrow Composition handoff by which a resolved Component requirement
+and offered provision produce a Binding Plan during activation preflight, without expanding into
+discovery, acquisition, provider selection, generations, mediation, or hot swap.
 
 The former Priority 0 documentation relocation is complete; its archived plan is the
 [Pinned Documentation Relocation Plan 0.1](../archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).

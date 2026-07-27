@@ -1,6 +1,6 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Partially implemented experimental work — PB0 through PB5 complete; PB6 onward planned
+**Status:** Partially implemented experimental work — PB0 through PB6 complete; PB7 onward planned
 **Date:** 2026-07-23 (delivery status updated 2026-07-27)
 **Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
@@ -154,8 +154,8 @@ deterministically. The repository-wide gate invokes it.
 | PB3 — Minimal native implementation | **Complete** | [`Minimal/src/Brontide.Minimal.Binding/Portable/`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/), [`Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB4 — direct and process realization parity | **Complete** | [`Reference .../Portable/PortableRealizationParityTests.cs`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/PortableRealizationParityTests.cs), [`Minimal .../Portable/PortableRealizationParityTests.fs`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/PortableRealizationParityTests.fs), both `PortableChannelVectorCoverageTests`, both `PortableCrossProcessTests` |
 | PB5 — cross-stack and independent-provider matrix | **Complete** | both stacks' `PortableCrossStackTests` and `PortableNeutralProviderTests`, [`binding/neutral-provider/`](../../../binding/neutral-provider/README.md), [`catalog-fixture-contract.json`](../../../binding/portable/vectors/catalog-fixture-contract.json) |
-| PB6 — resource, lifecycle, and hardening completion | Planned — next | — |
-| PB7 — Composition handoff | Planned | — |
+| PB6 — resource, lifecycle, and hardening completion | **Complete** | both stacks' `PortableDecoderPropertyTests`, `PortableProcessCategoryTests`, `PortableResourceSeamTests`, `PortableLifecycleSeamTests`, and the `a failure path leaks nothing` cases in `PortableRealizationParityTests` |
+| PB7 — Composition handoff | Planned — next | — |
 | PB8 — evidence, documentation, and review closure | Planned | — |
 
 Nothing below PB5 has been implemented. The neutral contract exists and is gated, both stacks
@@ -431,6 +431,117 @@ exhaustion. Fuzz or property-test decoders within deterministic bounds. Prove th
 not leak a provider effect, authority, resource handle, exception, or false success.
 
 **Exit:** C6 and C8 have positive and negative evidence in both stacks and across the process seam.
+
+**Delivered.** C6 and C8 have positive and negative evidence in both stacks and across the process
+seam, so the exit criterion is met. What follows separates what was built from what building it
+found, because the findings are the more useful half.
+
+#### Delivered
+
+**Decoders are property-tested within deterministic bounds.** Every vector before this presented
+input a person wrote. The new suites present input nobody wrote: arbitrary bytes, every single-byte
+mutation and every truncation of a valid frame, nesting past the declared depth up to 10 000 levels,
+and hostile length prefixes. The generators are seeded and the iteration counts fixed, so a failure
+reproduces and the suite cannot go intermittently red. Minimal states the property more strongly than
+Reference can: refusals there are returned values rather than raised failures, so its claim is not
+"it raises only the right exception" but "it does not raise at all".
+
+**Failure paths are proved to leak nothing.** Across every failing scenario in the matrix, in both
+realizations: no provider effect, no value presented by a refusal, no runtime type or stack trace in
+the diagnostics, no resource observed by a frameless denial, and no false success.
+
+**The transport's process-category classification is total.**
+
+**The C6 refusals are decided by an endpoint across a real seam.** PB-26 and PB-29 through PB-32
+called the resource codec directly, which proves a static function refuses a malformed resource but
+not that the endpoint does — and the endpoint is what a hostile peer actually reaches. Admission sits
+behind decode, lifecycle, and operation resolution, so a refusal a unit test reaches in one call may
+be unreachable, or reached in the wrong order, once those run first. Both stacks now present each
+frame to a conforming endpoint over the seam: octets beside a handle, a release signal on the copied
+flavor, a resource past the declared bound, a non-goal flavor named on a request, and a content hash
+that does not verify. Each is refused with the category the vector states, and none reaches the
+provider. The frames are built by hand rather than through a host, because a conforming host cannot
+produce most of them.
+
+**The C8 lifecycle refusals are decided by an endpoint across a real seam.** PB-09 and PB-36 through
+PB-39 drive the lifecycle object directly, which proves the state machine rejects an illegal
+transition but not that the endpoint applies it to an arriving frame — and an arriving frame is where
+a peer's illegal sequence actually lands. A frame is decoded, its kind resolved, and its body read
+before any state is consulted, so an endpoint can refuse for the wrong reason or in the wrong order.
+Both stacks now send deliberate sequences: a request before any establishment, a second
+establishment, a request after withdrawal, a declared kind a provider never receives, an
+unrecognized kind, and a replayed request identity. None produces an Outcome and none reaches the
+provider.
+
+The case that most needed the seam is establishment failure. An endpoint that activated its provider
+first and negotiated second would satisfy every other vector in the phase and still be wrong, so the
+test asserts the absence of both the readiness signal and the acceptance, not merely the presence of
+a refusal.
+
+Writing these surfaced an ordering worth recording, though not a defect: **a malformed frame is
+refused before its kind's direction is weighed.** An `outcome` carries a correlation identity by
+declaration, so one built without it is refused as malformed rather than as a state violation. That
+order is right — a frame that cannot be read has no direction to judge — but it is easy to assume the
+reverse, and assuming the reverse would tell a peer to fix its sequencing when its encoder is what is
+wrong. Both stacks assert the ordering explicitly.
+
+**Two of the phase's conditions are unrepresentable in the 0.1 floor rather than merely refused.**
+Premature reuse and a release-then-use sequence need a resource with a lifetime a peer can observe
+ending, and the declared floor has neither: a copied immutable blob is transferred whole and has no
+release signal, and an addressing-only handle carries no octets to release. There is no frame that
+expresses "use this after its interval", so there is nothing for a vector to present. Unsupported
+fallback is the same shape — no fallback policy is declared for 0.1, so a request cannot name one to
+have it refused. Both stacks assert the declared flavor set rather than only recording this in prose,
+so adding a borrowed or transferred flavor later fails the build and brings the reasoning back for
+review. This follows how PB-29 records the non-goal flavors, rather than inventing a vector for a
+condition the contract cannot express.
+
+#### Findings
+
+Each of the three appeared identically in both stacks, which is itself worth recording: independent
+implementation catches divergence between the two, and cannot catch a blind spot they share. All
+three were found by testing a property rather than a case.
+
+1. **Resource observations claimed an acceptance and an integrity check that never happened.** They
+   were built before dispatch from facts about the *flavor*, so an interaction that failed still
+   reported `accepted: true`, and a blob whose content hash did not verify still reported
+   `integrityVerified: true`. Both are false successes in the C9 observation set, and both are fields
+   the C7 parity profile compares — so the two stacks agreed with each other while both were wrong,
+   and no parity check could have found it. Acceptance and integrity are facts about a completed
+   admission rather than about a flavor; a failed interaction now reports neither, while flavor,
+   ownership, and copy count still describe what was presented.
+2. **The transport let foreign exceptions escape.** The duplex named only the disposed-stream and I/O
+   cases, so any other failure a stream can raise travelled out of the binding as a runtime type —
+   the one thing C4 says never crosses the seam, and reachable from a peer's behaviour rather than
+   from a defect in this code. Classification is now total: an allocation failure is
+   `resource-exhausted`, a disposed stream or I/O failure is `transport-unavailable`, a cancellation
+   past the declared bound is `timeout`, and anything else is `unknown` carrying why narrower
+   attribution was impossible.
+3. **Two declared process categories had no reachable path.** `resource-exhausted` and `unknown` were
+   declared because the Channel taxonomy requires them, and PB-51 asserted the declared set was
+   complete and unique — a statement about an enumeration, not about behaviour. Closing finding 2
+   gave both a genuine path, and each now has behavioural evidence in both stacks.
+
+A fourth observation is recorded rather than fixed: **`peer-unavailable` is unreachable in version
+0.1 by design.** The binding layer never starts a peer; it is handed a duplex that is already
+connected, and starting one is the host harness's concern above the binding. Both stacks assert the
+unreachable set is exactly this one value, so a future change to it fails the build and brings the
+reasoning back for review. Manufacturing a path so the enumeration looked evenly covered would have
+been the dishonest alternative.
+
+#### On method
+
+Every defect in this phase was found by testing a property rather than a case, and every one of them
+appeared identically in both stacks. That combination is worth stating plainly, because the
+programme's central safeguard is independent implementation, and independent implementation is
+exactly what cannot find these. Two stacks written from one contract by one reader share that
+reader's assumptions. They diverge where the contract is ambiguous — which is what PB4 and PB5
+found — and they agree wherever the contract is silent, which is where PB6's defects lived.
+
+The sharpest illustration is the resource-observation defect. `accepted` and `integrityVerified` are
+fields the C7 parity profile compares, so both stacks reported the same wrong values and every parity
+check passed. No amount of cross-checking the two implementations against each other could have
+surfaced it; only asking what the observation *claimed*, against what had actually happened, did.
 
 ### PB7 — Composition handoff without Component Manager expansion
 

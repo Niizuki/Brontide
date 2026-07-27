@@ -43,6 +43,8 @@ type PortableBindingHost
         Lifecycle.apply kind lifecycle |> Result.map (fun next -> lifecycle <- next)
 
     let rejected (fault: PortableFault) correlation obligations resources started =
+        let resources = resources |> List.map PortableResource.asRefused
+
         { FrameDecision = FrameDecision.Reject
           ResultClass = ResultClass.ProtocolError
           Category = Some fault.Category
@@ -67,6 +69,8 @@ type PortableBindingHost
                 (Some fault.Message) }
 
     let interrupted (failure: ProcessFailure) correlation obligations resources started =
+        let resources = resources |> List.map PortableResource.asRefused
+
         { FrameDecision = FrameDecision.None
           ResultClass = ResultClass.ProcessFailure
           Category = None
