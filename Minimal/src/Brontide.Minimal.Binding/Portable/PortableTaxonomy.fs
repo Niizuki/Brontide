@@ -118,6 +118,17 @@ module ProcessCategory =
         | ProcessCategory.ResourceExhausted -> "resource-exhausted"
         | ProcessCategory.Unknown -> "unknown"
 
+    /// The complete declared set, in the order the Channel taxonomy lists it. It exists so evidence
+    /// can be measured against the whole set rather than against the cases someone remembered.
+    let declared =
+        [ ProcessCategory.TransportUnavailable
+          ProcessCategory.TransportInterrupted
+          ProcessCategory.Timeout
+          ProcessCategory.PeerTerminated
+          ProcessCategory.PeerUnavailable
+          ProcessCategory.ResourceExhausted
+          ProcessCategory.Unknown ]
+
 [<RequireQualifiedAccess>]
 module FailureDomain =
     let token domain =

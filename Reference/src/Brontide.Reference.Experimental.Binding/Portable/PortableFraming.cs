@@ -142,14 +142,9 @@ public sealed class PortableStreamDuplex(Stream inbound, Stream outbound, Portab
                 PortableFailureDomain.Transport,
                 "A blocking write exceeded the declared io timeout.");
         }
-        catch (Exception exception) when (
-            exception is ObjectDisposedException ||
-            (exception is IOException and not PortableProcessFailureException))
+        catch (Exception exception) when (exception is not PortableProcessFailureException)
         {
-            throw new PortableProcessFailureException(
-                PortableProcessCategory.TransportUnavailable,
-                PortableFailureDomain.Transport,
-                "The seam is unavailable for writing.");
+            throw Classify(exception, "writing");
         }
     }
 
@@ -167,16 +162,45 @@ public sealed class PortableStreamDuplex(Stream inbound, Stream outbound, Portab
                 PortableFailureDomain.Transport,
                 "No frame arrived within the declared io timeout.");
         }
-        catch (Exception exception) when (
-            exception is ObjectDisposedException ||
-            (exception is IOException and not PortableProcessFailureException))
+        catch (Exception exception) when (exception is not PortableProcessFailureException)
         {
-            throw new PortableProcessFailureException(
-                PortableProcessCategory.TransportUnavailable,
-                PortableFailureDomain.Transport,
-                "The seam is unavailable for reading.");
+            throw Classify(exception, "reading");
         }
     }
+
+    /// <summary>
+    /// Turns whatever the transport raised into exactly one declared process category.
+    /// </summary>
+    /// <remarks>
+    /// The classification is total on purpose. It previously named only the disposed-stream and
+    /// I/O cases, so any other failure a stream can raise travelled out of the binding as a runtime
+    /// type — the one thing C4 says never crosses the seam. Being total is also what gives
+    /// 'resource-exhausted' and 'unknown' a way to occur at all: both are declared by the Channel
+    /// taxonomy, and neither had a path here before.
+    ///
+    /// Catching an allocation failure is ordinarily poor practice. At this boundary it is the
+    /// contract: the alternative is not a healthier process but a foreign exception in the caller's
+    /// hands, and the taxonomy has a value for exactly this condition.
+    /// </remarks>
+    private static PortableProcessFailureException Classify(Exception exception, string direction) =>
+        exception switch
+        {
+            OutOfMemoryException => new PortableProcessFailureException(
+                PortableProcessCategory.ResourceExhausted,
+                PortableFailureDomain.Transport,
+                $"The seam ran out of memory while {direction}."),
+            ObjectDisposedException or IOException => new PortableProcessFailureException(
+                PortableProcessCategory.TransportUnavailable,
+                PortableFailureDomain.Transport,
+                $"The seam is unavailable for {direction}."),
+
+            // 'unknown' retains why narrower attribution was impossible, which is the whole of what
+            // the Channel vector asks of it. The runtime type is deliberately not part of the text.
+            _ => new PortableProcessFailureException(
+                PortableProcessCategory.Unknown,
+                PortableFailureDomain.Unknown,
+                $"The seam failed while {direction} and reported no condition this endpoint can attribute more narrowly.")
+        };
 
     public async ValueTask DisposeAsync()
     {
