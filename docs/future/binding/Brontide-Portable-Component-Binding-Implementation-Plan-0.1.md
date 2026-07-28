@@ -618,9 +618,27 @@ promotion, and an Architecture 0.8 implementation claim remain separate decision
 
 ## Open questions (owners needed)
 
+Eight questions were raised by PB4, PB5, and PB6 and are **awaiting an owner ruling**. Each is
+currently running on a provisional choice made by the implementer so the phase could proceed; a
+provisional choice is not a decision, and overturning one is expected to be cheap because each sits
+behind a named seam.
+
+Each is written up in full — what was observed, what runs today and why, the alternatives with their
+trade-offs, and what a ruling would change — in
+[`binding/portable/open-decisions.md`](../../../binding/portable/open-decisions.md). That file is
+self-contained: it needs no other context to answer, including none of this plan.
+
 | Owner | Question | Blocking point |
 | --- | --- | --- |
 | Brontide architecture maintainers | Ratify the provisional Channel Shape/category names or publish an explicitly migrated revision? | Blocks a stable public Portable Binding version; experimental PB0-PB6 may proceed against a versioned draft. |
+| Brontide architecture maintainers | **Decision 10:** what supplements independent implementation as a safeguard? Every PB6 defect was present identically in both stacks, so comparing them could not have found any of it. | Blocks nothing mechanical, and is the most consequential question here: it concerns what the two-stack design does *not* cover. |
+| Portable Binding contract maintainers | **Decision 3:** does `failureDomain` name which endpoint decided, or how far away it was? | Blocks nothing today; the answer either confirms current behaviour or removes a field from the C7 parity profile. |
+| Contract maintainers with both stack owners | **Decision 4:** is the no-capability-transfer scan enforced at the host, the endpoint, or both? | Blocks nothing today; C3 currently holds only because the host also scans before emitting. |
+| Portable Binding contract maintainers | **Decision 5:** confirm the Catalog fixture's canonical form, and decide whether the neutral layer owes it vectors as well as a contract. | Blocks a third implementer working only from the neutral layer, who receives a Catalog contract carrying no expected observations. |
+| Portable Binding contract maintainers | **Decision 6:** how is fixture annotation separated from contract data? | Blocks nothing today; the convention lives in the fixtures rather than in the schema declaring the rule it works around. |
+| Both stack owners with contract maintainers | **Decision 7:** should an allocation failure be caught at the transport boundary and reported as `resource-exhausted`? | Blocks nothing today; the alternative to catching it is a runtime type crossing the seam, which C4 forbids. |
+| Portable Binding contract maintainers | **Decision 8:** is `peer-unavailable` being unreachable in 0.1 acceptable, or should the binding layer own peer startup? | Blocks a complete CH-23 claim if an unreachable declared category counts as a gap. |
+| Contract maintainers with both stack owners | **Decision 9:** premature reuse, release-then-use, and unsupported fallback are unrepresentable in the 0.1 resource floor. Accept, widen the floor, or narrow C6's text? | Blocks a complete C6 claim if those conditions are considered in scope for 0.1. |
 
 ## Resolved questions
 
