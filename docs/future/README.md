@@ -62,6 +62,13 @@ lived. The plan's PB6 section records all three, the ordering rule that a malfor
 before its direction is weighed, and why `peer-unavailable` and premature resource reuse stay
 unreachable in version 0.1 rather than being given manufactured paths.
 
+**Eight owner decisions are open**, raised by PB4, PB5, and PB6 and each running on a provisional
+implementer choice until ruled on. They are written up in full, and answerable without any other
+context, in [`binding/portable/open-decisions.md`](../../binding/portable/open-decisions.md); the
+plan's [Open questions](./binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md#open-questions-owners-needed)
+table indexes them with their owners. Decision 10 is the one to read first: it asks what supplements
+independent implementation, given that every PB6 defect was present identically in both stacks.
+
 **PB7 is the next item**: the narrow Composition handoff by which a resolved Component requirement
 and offered provision produce a Binding Plan during activation preflight, without expanding into
 discovery, acquisition, provider selection, generations, mediation, or hot swap.

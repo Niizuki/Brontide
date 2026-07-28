@@ -19,7 +19,7 @@ neutral source and owns its adapters.
 | --- | --- | --- |
 | `contract-matrix.md` | C1–C10 baseline inventory: owner, existing basis, classification, gap-to-close per capability | PB0 |
 | `representation-choice.md` | D3 / §11 chain-conjunction representation choice and revocation ceiling per stack (Portable Binding freeze prerequisite) | PB0 |
-| `open-decisions.md` | The two open owner decisions (wire representation; referenced-resource floor) with option sets and recommendations | PB0 |
+| [`open-decisions.md`](open-decisions.md) | Owner decisions with option sets and recommendations. The two PB0 encoding blockers are recorded; **eight further decisions raised by PB4, PB5, and PB6 are open** and each is running on a provisional implementer choice until ruled on | PB0, extended PB4-PB6 |
 | [`schemas/`](schemas/README.md) | Data-only versioned neutral contracts (references, Shape floor, plans, envelopes) | PB1 |
 | [`vectors/`](vectors/README.md) | Valid, additive-compatible, and adversarial fixtures with expected outcomes | PB1 |
 
