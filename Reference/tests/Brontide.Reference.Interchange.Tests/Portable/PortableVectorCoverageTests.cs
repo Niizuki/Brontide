@@ -80,7 +80,16 @@ public sealed class PortableVectorCoverageTests
             // implementation-neutral one, so nothing here is deferred.
             ["PB-61-INDEPENDENT-PROVIDER-ACCEPTED-BY-BOTH-HOSTS"] = "PortableNeutralProviderTests",
             ["PB-62-NO-SHARED-SEMANTIC-RUNTIME"] = "PortablePlanObservationAndParityTests",
-            ["PB-63-BOTH-HOST-DIRECTIONS"] = "PortableCrossStackTests"
+            ["PB-63-BOTH-HOST-DIRECTIONS"] = "PortableCrossStackTests",
+
+            // Decision 5 gave the Catalog fixture the vectors it had never had: the neutral layer
+            // declared what Catalog is without stating what it must do.
+            ["PB-64-CATALOG-MULTIPLE-OPERATIONS-NEGOTIATED"] = "PortableCatalogTests",
+            ["PB-65-CATALOG-REQUEST-SELECTS-ITS-OPERATION"] = "PortableCatalogTests",
+            ["PB-66-CATALOG-SEQUENCE-OF-RECORDS-CARRYING-SEQUENCES"] = "PortableCatalogTests",
+            ["PB-67-CATALOG-FAILED-OUTCOME-USES-THE-DECLARED-DETAIL-SHAPE"] = "PortableCatalogTests",
+            ["PB-68-CATALOG-HANDLE-IS-NOT-AN-ADMISSION-DECISION"] = "PortableCatalogTests",
+            ["PB-69-CATALOG-UNNEGOTIATED-FLAVOR-IN-REQUEST"] = "PortableCatalogTests"
         }.ToImmutableSortedDictionary(StringComparer.Ordinal);
 
     [Test]

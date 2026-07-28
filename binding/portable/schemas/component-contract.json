@@ -12,6 +12,22 @@
   "contractDocument": {
     "unknownFieldPolicy": "reject",
     "unknownFieldOutcome": "malformed-message",
+    "annotation": {
+      "purpose": "A published contract document may carry documentation beside the contract it declares: which Shape version is additive over which, why another is not, what role an encoding-edge Shape plays. That information is machine-readable and worth keeping adjacent to what it describes. But 'fields' below is exhaustive and unknownFieldPolicy is 'reject', so without a declared mechanism a faithful transcode of such a document is a malformed contract.",
+      "mechanism": "A document carrying annotation declares 'annotationFields': the names in it that document rather than declare. A consumer transcoding the document to the wire form drops those names wherever they occur, at any nesting depth, and validates what remains against 'fields'.",
+      "artifactEnvelope": {
+        "rule": "Four further names are dropped, at the document root only, because they describe the artifact rather than the contract it declares.",
+        "names": ["schemaVersion", "fixture", "annotationFields", "annotationFieldsNote"],
+        "rootOnly": "These are dropped only at the root. The same name nested inside the contract data is contract data, and is kept or rejected on its own merits."
+      },
+      "rules": [
+        "A name not listed in 'annotationFields' and not one of the four root envelope names is contract data. A new annotation that does not declare itself therefore becomes 'malformed-message' at the first consumer that transcodes the document, rather than being silently tolerated.",
+        "No name in 'annotationFields' may equal a field this schema declares. Annotation may not shadow contract data.",
+        "An empty 'annotationFields' declares that the document carries no annotation beyond the root envelope. That is a positive statement, not the same as omitting the member.",
+        "Dropping is by name, not by position, so a name declared as annotation is annotation everywhere below the root."
+      ],
+      "whyItIsDeclaredHere": "PB5 finding, ruled on as Decision 6 in binding/portable/open-decisions.md and recorded 2026-07-28. Both stacks hand-wrote their contracts from the fixture files and dropped the annotations by eye, so neither had ever transcoded one and neither discovered the conflict. The implementation-neutral provider was the first consumer to read a fixture as published, and could not use it. The mechanism lives here, rather than only in each fixture, so that an implementer working from schemas/ alone learns the rule instead of having to infer it from a fixture."
+    },
     "fields": [
       { "name": "contractVersion", "shape": "Integer.Signed64", "required": true, "rule": "Must equal 1 for this contract revision. Any other value is 'unsupported-version'." },
       { "name": "component", "shape": "canonicalReference", "required": true },
