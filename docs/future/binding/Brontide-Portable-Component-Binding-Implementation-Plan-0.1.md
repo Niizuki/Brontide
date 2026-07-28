@@ -149,7 +149,7 @@ deterministically. The repository-wide gate invokes it.
 | Phase | State | Evidence |
 | --- | --- | --- |
 | PB0 — baseline and contract freeze | **Complete** | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md), [`representation-choice.md`](../../../binding/portable/representation-choice.md), [`open-decisions.md`](../../../binding/portable/open-decisions.md) |
-| PB1 — neutral manifests, plans, and vectors | **Complete** | [`schemas/`](../../../binding/portable/schemas/README.md) (8 files), [`vectors/`](../../../binding/portable/vectors/README.md) (63 vectors, 6 golden encodings), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
+| PB1 — neutral manifests, plans, and vectors | **Complete** | [`schemas/`](../../../binding/portable/schemas/README.md) (8 files), [`vectors/`](../../../binding/portable/vectors/README.md) (63 vectors at PB1; 71 since the Catalog group Decision 5 added, plus 6 golden encodings), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB2 — Reference native implementation | **Complete** | [`Reference/src/Brontide.Reference.Experimental.Binding/Portable/`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/), [`Reference/tests/Brontide.Reference.Interchange.Tests/Portable/`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB3 — Minimal native implementation | **Complete** | [`Minimal/src/Brontide.Minimal.Binding/Portable/`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/), [`Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB4 — direct and process realization parity | **Complete** | [`Reference .../Portable/PortableRealizationParityTests.cs`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/PortableRealizationParityTests.cs), [`Minimal .../Portable/PortableRealizationParityTests.fs`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/PortableRealizationParityTests.fs), both `PortableChannelVectorCoverageTests`, both `PortableCrossProcessTests` |
@@ -618,29 +618,78 @@ promotion, and an Architecture 0.8 implementation claim remain separate decision
 
 ## Open questions (owners needed)
 
-Eight questions were raised by PB4, PB5, and PB6 and are **awaiting an owner ruling**. Each is
-currently running on a provisional choice made by the implementer so the phase could proceed; a
-provisional choice is not a decision, and overturning one is expected to be cheap because each sits
-behind a named seam.
-
-Each is written up in full — what was observed, what runs today and why, the alternatives with their
-trade-offs, and what a ruling would change — in
-[`binding/portable/open-decisions.md`](../../../binding/portable/open-decisions.md). That file is
-self-contained: it needs no other context to answer, including none of this plan.
+One question remains open. The eight raised by PB4, PB5, and PB6 were all recorded on 2026-07-28 and
+have moved to [Resolved questions](#resolved-questions); each remains written up in full — what was
+observed, what was running and why, the alternatives with their trade-offs, and what the ruling
+changed — in [`binding/portable/open-decisions.md`](../../../binding/portable/open-decisions.md).
 
 | Owner | Question | Blocking point |
 | --- | --- | --- |
 | Brontide architecture maintainers | Ratify the provisional Channel Shape/category names or publish an explicitly migrated revision? | Blocks a stable public Portable Binding version; experimental PB0-PB6 may proceed against a versioned draft. |
-| Brontide architecture maintainers | **Decision 10:** what supplements independent implementation as a safeguard? Every PB6 defect was present identically in both stacks, so comparing them could not have found any of it. | Blocks nothing mechanical, and is the most consequential question here: it concerns what the two-stack design does *not* cover. |
-| Portable Binding contract maintainers | **Decision 3:** does `failureDomain` name which endpoint decided, or how far away it was? | Blocks nothing today; the answer either confirms current behaviour or removes a field from the C7 parity profile. |
-| Contract maintainers with both stack owners | **Decision 4:** is the no-capability-transfer scan enforced at the host, the endpoint, or both? | Blocks nothing today; C3 currently holds only because the host also scans before emitting. |
-| Portable Binding contract maintainers | **Decision 5:** confirm the Catalog fixture's canonical form, and decide whether the neutral layer owes it vectors as well as a contract. | Blocks a third implementer working only from the neutral layer, who receives a Catalog contract carrying no expected observations. |
-| Portable Binding contract maintainers | **Decision 6:** how is fixture annotation separated from contract data? | Blocks nothing today; the convention lives in the fixtures rather than in the schema declaring the rule it works around. |
-| Both stack owners with contract maintainers | **Decision 7:** should an allocation failure be caught at the transport boundary and reported as `resource-exhausted`? | Blocks nothing today; the alternative to catching it is a runtime type crossing the seam, which C4 forbids. |
-| Portable Binding contract maintainers | **Decision 8:** is `peer-unavailable` being unreachable in 0.1 acceptable, or should the binding layer own peer startup? | Blocks a complete CH-23 claim if an unreachable declared category counts as a gap. |
-| Contract maintainers with both stack owners | **Decision 9:** premature reuse, release-then-use, and unsupported fallback are unrepresentable in the 0.1 resource floor. Accept, widen the floor, or narrow C6's text? | Blocks a complete C6 claim if those conditions are considered in scope for 0.1. |
 
 ## Resolved questions
+
+The eight below were raised by PB4, PB5, and PB6, ran on a provisional implementer choice while each
+phase proceeded, and were recorded on **2026-07-28**. Four confirm the provisional choice unchanged;
+four create follow-on work, marked as such. Full option sets and rationale stay in
+[`binding/portable/open-decisions.md`](../../../binding/portable/open-decisions.md).
+
+- **2026-07-28 — Decision 3, failure domain of an endpoint-decided refusal:** `failureDomain` names
+  **which endpoint decided**, recorded relative to the observer as CH-24 requires, not how far away it
+  was. Distance stays visible in `crossedBoundaries`, which the parity profile excludes. The field
+  remains in `parityProfile.comparedFields` and the direct realization's re-attribution to
+  `remote-endpoint` stands. No change to what runs.
+- **2026-07-28 — Decision 4, where the no-capability-transfer scan is enforced:** **both the host and
+  the endpoint** scan. The host refuses before emitting, so no Capability reaches the wire even in a
+  declared field; the endpoint scan is retained because an endpoint must never depend on its peer
+  having scanned. The duplicate walk of the request body is the accepted cost of C3 holding
+  absolutely. No change to what runs.
+- **2026-07-28 — Decision 5, the Catalog fixture's canonical form and its vectors:** the declaration
+  in [`catalog-fixture-contract.json`](../../../binding/portable/vectors/catalog-fixture-contract.json)
+  is **confirmed as it stands** — Operation names following the retained experiment, and the
+  addressing-only-handle dependency `providerSpecific: false`. Neither stack changes. **Creates work,
+  now done:** [`catalog-vectors.json`](../../../binding/portable/vectors/catalog-vectors.json)
+  declares PB-64 through PB-71 plus three group properties, and both stacks execute all of them, so
+  the neutral layer states what Catalog must *do* and not only what it is. Authoring them fixed where
+  a resource refusal splits between `unsupported-contract` (flavor level) and `invalid-payload`
+  (instance level), and found the Catalog *handlers* drifted apart across all three implementations
+  on partial-match and count semantics. PB-70 and PB-71 settle both, deriving the rules from the
+  declared Shapes rather than from whichever implementation was read first, and Minimal was brought
+  to them.
+- **2026-07-28 — Decision 6, separating fixture annotation from contract data:** **the schema declares
+  the mechanism.** `component-contract.json` now carries a `contractDocument.annotation` block naming
+  how a document declares its own documentation fields and which four root names are the artifact
+  envelope; the per-fixture `annotationFields` list stays as the expression of the rule. An
+  implementer working only from `schemas/` no longer has to discover it from a fixture — which is how
+  PB5 found it. Enforced by the portable-binding gate, which drops the declared annotation and root
+  envelope from each fixture and requires what remains to be exactly the contract document.
+- **2026-07-28 — Decision 7, allocation failure at the transport boundary:** an allocation failure maps
+  to **`resource-exhausted`** and classification stays total. The ordinary objection to catching it
+  assumes the alternative is a healthier process; here the alternative is a foreign runtime type in
+  the caller's hands, which C4 forbids. No change to what runs.
+- **2026-07-28 — Decision 8, `peer-unavailable` unreachable in 0.1:** **by design.** The binding layer
+  is handed an already-connected duplex and never starts a peer, so the condition has no observation
+  point in it; owning peer startup would widen the layer to process lifetime and launch policy for one
+  observation. Narrowing the 0.1 profile was rejected because the taxonomy is reproduced exactly from
+  `conformance/channel-0.1-vectors.json`. Both stacks keep asserting the unreachable set is exactly
+  this one value. No change to what runs.
+- **2026-07-28 — Decision 9, three C6 conditions unrepresentable at the resource floor:** **accepted
+  for 0.1**, and Decision 2 is not reopened — premature reuse, release-then-use, and unsupported
+  fallback stay unrepresentable rather than being given manufactured paths, with the declared flavor
+  set asserted so a future widening fails the build. **Creates work, now done:** C6's text in
+  [`contract-matrix.md`](../../../binding/portable/contract-matrix.md) states that borrow interval,
+  lifetime, release signal, and fallback policy are declared-but-unexercised at this floor, so the
+  capability stops reading broader than its evidence. A lifetime-bearing flavor is a 0.2 conversation.
+- **2026-07-28 — Decision 10, what supplements independent implementation:** **a property per
+  capability, and a contract-completeness review at each phase boundary.** Two implementations written
+  from one contract by one reader diverge where it is ambiguous and agree where it is silent, so
+  independence detects ambiguity and is structurally blind to silence — which is why all three PB6
+  defects appeared identically in both stacks, in fields the parity profile compares. Every capability
+  now states at least one property holding over all its vectors, and each phase boundary gets a review
+  pass asking what the contract does *not* say. Neutral-implementation-first was considered and not
+  adopted: strongest, most expensive, and the completeness review should reach most of it far cheaper.
+  **Creates work, now done:** adopted as a standing ground rule in
+  [`AGENTS.md`](../../../AGENTS.md).
 
 - **2026-07-25 — Wire representation:** deterministic CBOR core. RFC 8949 §4.2.1 core-deterministic
   encoding, definite lengths, shortest-form arguments, bytewise-on-encoded-key map ordering, major

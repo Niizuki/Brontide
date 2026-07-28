@@ -1,0 +1,224 @@
+{
+  "schemaVersion": 1,
+  "group": {
+    "id": "catalog",
+    "capabilities": ["C1", "C2", "C3", "C4", "C5", "C6"],
+    "status": "PB6 neutral vectors, authored for Decision 5; data only; validated without loading either stack",
+    "fixture": "vectors/catalog-fixture-contract.json",
+    "schemas": [
+      "schemas/component-contract.json",
+      "schemas/references-and-shape-floor.json",
+      "schemas/payload-representation.json",
+      "schemas/channel-envelope.json"
+    ],
+    "note": "Every other vector group is authored against the Cooling fixture. PB5 declared the Catalog fixture contract but no vectors over it, so the neutral layer stated what Catalog is without stating what it must do, and a third implementation working only from binding/portable/ received a contract carrying no expected observations. Decision 5, recorded 2026-07-28, closed that. These vectors cover only what Cooling structurally cannot: more than one Operation, a sequence of records that each carry a sequence, a declared detail Shape, and the provider-scoped addressing-only handle. Where an existing vector already states a rule generally, it is named here rather than restated.",
+    "domainSemanticsNote": "PB-70 and PB-71 pin two provider-domain rules the fixture contract had left unstated, after authoring PB-64 through PB-69 found the three implementations disagreeing about them. Both rules are derived from the declared Shapes rather than adopted from whichever implementation happened to be read first, because making one stack conform to another is the collapse the two-stack design exists to prevent. Every group above states a rule about the binding layer; these two state a rule about the fixture's domain, and they are here rather than in schemas/component-contract.json because that schema deliberately says nothing about what a provider does."
+  },
+  "vectors": [
+    {
+      "id": "PB-64-CATALOG-MULTIPLE-OPERATIONS-NEGOTIATED",
+      "capabilities": ["C1", "C2"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": [
+        "A contract declares two Operations, each with its own input, result, and detail Shapes",
+        "Both are offered as provisions and the addressing-only-handle requirement is met"
+      ],
+      "when": [
+        "The binding is established once"
+      ],
+      "then": [
+        "Both Operations are negotiated in the same binding",
+        "The frozen plan carries both, each with its own three Shape positions",
+        "Neither Operation is activated by establishment alone, so the provider effect count is still zero"
+      ],
+      "expected": {
+        "frameDecision": "accept",
+        "resultClass": "outcome-succeeded",
+        "effectCount": 0
+      },
+      "whyCoolingCannotStateThis": "The Cooling fixture declares exactly one Operation, so PB-01 cannot distinguish negotiating a set from negotiating a single element."
+    },
+    {
+      "id": "PB-65-CATALOG-REQUEST-SELECTS-ITS-OPERATION",
+      "capabilities": ["C1", "C4"],
+      "channelVectors": ["CH-14-PROTOCOL-CODE-MAPPING"],
+      "classification": "valid",
+      "given": [
+        "A binding with two negotiated Operations"
+      ],
+      "when": [
+        "Two requests are issued in sequence over the same binding, each naming a different Operation"
+      ],
+      "then": [
+        "Each request is routed by the Operation it names",
+        "Each result is shaped by that Operation's own result Shape, not by the other's",
+        "Sequential invocation is legal, because single-invocation bounds concurrency at one and does not cap a binding's lifetime invocations"
+      ],
+      "expected": {
+        "frameDecision": "accept",
+        "resultClass": "outcome-succeeded"
+      },
+      "whyCoolingCannotStateThis": "With one declared Operation, routing on the named Operation and defaulting to the only one are indistinguishable."
+    },
+    {
+      "id": "PB-66-CATALOG-SEQUENCE-OF-RECORDS-CARRYING-SEQUENCES",
+      "capabilities": ["C5"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": [
+        "An input Shape whose field is a sequence of records, each of which carries a sequence of Text"
+      ],
+      "when": [
+        "A request carries several such records, including one with an empty inner sequence"
+      ],
+      "then": [
+        "Nesting and repetition are preserved through the representation in both directions",
+        "An empty inner sequence stays an empty sequence and does not become absent or null",
+        "Item order is preserved, because a sequence is ordered while a record's fields are not"
+      ],
+      "expected": {
+        "frameDecision": "accept",
+        "resultClass": "outcome-succeeded"
+      },
+      "extends": "PB-10-INLINE-NESTED-AND-REPEATED-VALUES states nesting and repetition over the Cooling Shapes. This adds the case Cooling has no Shape for: a repeated container whose elements are themselves repeated containers."
+    },
+    {
+      "id": "PB-67-CATALOG-FAILED-OUTCOME-USES-THE-DECLARED-DETAIL-SHAPE",
+      "capabilities": ["C4", "C5"],
+      "channelVectors": ["CH-13-SEMANTIC-FAILED-OUTCOME"],
+      "classification": "valid",
+      "given": [
+        "An Operation declaring a detail Shape",
+        "A binding whose provider domain holds no item under the requested identifier"
+      ],
+      "when": [
+        "A request asks for that identifier"
+      ],
+      "then": [
+        "The Outcome is a shaped semantic failure, not a protocol error and not an exception",
+        "The detail value conforms to the Operation's declared detail Shape and the result is absent",
+        "The provider effect count stays zero, because a lookup that stored nothing performed no effect"
+      ],
+      "expected": {
+        "frameDecision": "accept",
+        "resultClass": "outcome-failed",
+        "effectCount": 0
+      },
+      "whyCoolingCannotStateThis": "PB-47 states that a failed Outcome crosses as a shaped value. This states that it is shaped by the Operation's *declared* detail Shape, which is checkable only where the contract declares one. The retained Catalog experiment declared no detail Shape at all; the neutral contract requires all three positions, and this is the vector that exercises the addition."
+    },
+    {
+      "id": "PB-68-CATALOG-HANDLE-IS-NOT-AN-ADMISSION-DECISION",
+      "capabilities": ["C3", "C6"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": [
+        "A binding that accepts a provider-scoped addressing-only handle"
+      ],
+      "when": [
+        "The same in-scope handle accompanies two requests, one the provider domain can satisfy and one it cannot"
+      ],
+      "then": [
+        "The handle is accepted in both, because it is in the declared accept list",
+        "The outcomes still differ, because the provider domain performs its own admission after addressing succeeds",
+        "Possession of an accepted handle therefore conveys where to look and never what may be done"
+      ],
+      "expected": {
+        "frameDecision": "accept",
+        "resultClass": "outcome-failed"
+      },
+      "whyThisIsNotPb27": "PB-27 states that an in-scope handle is accepted and conveys addressing only. This states the consequence that makes the claim falsifiable: holding the accepted handle does not determine the outcome, so acceptance of the handle and admission by the domain are two decisions rather than one."
+    },
+    {
+      "id": "PB-69-CATALOG-UNNEGOTIATED-FLAVOR-IN-REQUEST",
+      "capabilities": ["C6"],
+      "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT", "CH-14-PROTOCOL-CODE-MAPPING"],
+      "classification": "adversarial",
+      "given": [
+        "A binding whose plan negotiated the addressing-only-handle flavor and no other"
+      ],
+      "when": [
+        "A request carries a copied-immutable-blob resource, which is a flavor the 0.1 floor declares and the Cooling binding negotiates, but this binding did not"
+      ],
+      "then": [
+        "The resource is refused before any provider effect",
+        "The portable category is unsupported-contract, because a resource flavor is a contract-level fact frozen in the plan, and the local code 'resource-flavor-unnegotiated' stays non-normative",
+        "A flavor negotiated by some other binding confers nothing on this one",
+        "The observation records the presented resource with acceptance false rather than omitting it, because an admission that never completed must not be claimed"
+      ],
+      "expected": {
+        "frameDecision": "reject",
+        "resultClass": "protocol-error",
+        "category": "unsupported-contract",
+        "effectCount": 0
+      },
+      "whereTheCategoryBoundaryFalls": "This is the vector that fixes where a resource refusal splits between two categories, which no earlier vector states. A refusal at the *flavor* level is unsupported-contract, because the flavor is a term of the frozen contract: PB-29 reaches it during negotiation and this reaches it after establishment, and both answer the same way. A refusal at the *instance* level is invalid-payload, because the flavor was negotiated and only this particular resource is inadmissible: PB-28's out-of-scope handle and PB-26's failed content hash are both that case."
+    },
+    {
+      "id": "PB-70-CATALOG-PARTIAL-MATCH-FAILS-WHOLE",
+      "capabilities": ["C4", "C5"],
+      "channelVectors": ["CH-13-SEMANTIC-FAILED-OUTCOME"],
+      "classification": "valid",
+      "given": [
+        "A provider domain holding an item under one identifier",
+        "An Operation whose result Shape declares a sequence of items and no field for absent identifiers"
+      ],
+      "when": [
+        "A request asks for that identifier together with one the domain does not hold"
+      ],
+      "then": [
+        "The whole Outcome is a shaped semantic failure; no partial result crosses",
+        "The detail conforms to the declared detail Shape, which is where an absent identifier can be reported",
+        "The provider effect count stays zero"
+      ],
+      "expected": {
+        "frameDecision": "accept",
+        "resultClass": "outcome-failed",
+        "effectCount": 0
+      },
+      "whyAllOrNothing": "The declared result Shape is a sequence of items with no companion field for the identifiers that missed. A partial success would therefore return fewer items than were asked for and give the caller no way to learn which ones were absent, so the information would be silently dropped. The contract already declares a detail Shape for exactly this report. The rule is derived from the declared Shapes rather than adopted from any implementation."
+    },
+    {
+      "id": "PB-71-CATALOG-UPSERT-COUNT-IS-THIS-REQUEST",
+      "capabilities": ["C5", "C9"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": [
+        "A binding over which an earlier request already stored one or more items"
+      ],
+      "when": [
+        "A second request stores a different number of previously unseen items"
+      ],
+      "then": [
+        "The result's count answers how many items this request stored",
+        "It is not the running total the session holds, which the command did not ask about",
+        "The count is therefore a function of the request, so it is the same on a fresh binding and on a used one"
+      ],
+      "expected": {
+        "frameDecision": "accept",
+        "resultClass": "outcome-succeeded"
+      },
+      "whyThisRequest": "'stored' is the result of an upsert-items command carrying a sequence of items, so the natural reading of the acknowledgement is how many of those items were stored. A session running total is a different quantity, is not derivable from the command, and makes an otherwise request-determined result depend on binding history."
+    }
+  ],
+  "properties": [
+    {
+      "id": "CATALOG-P1",
+      "capabilities": ["C1", "C2"],
+      "statement": "Over every vector in this group, the established plan's negotiated Operation set is exactly the two the fixture declares, and every request's named Operation is a member of it.",
+      "why": "Decision 10 requires each capability to state at least one property holding over all its vectors, rather than only per-vector expectations. A per-vector expectation cannot catch a binding that quietly accepts an Operation outside its own plan, because no single vector presents one."
+    },
+    {
+      "id": "CATALOG-P2",
+      "capabilities": ["C6", "C3"],
+      "statement": "Over every vector in this group, no resource carried by any request causes octets to cross the boundary: the copy count is zero in every realization, including where the outcome differs. Every resource the observation reports as *accepted* is of the one flavor this binding negotiated; a resource of any other flavor appears with acceptance false and is never reported as admitted.",
+      "why": "The addressing-only handle is the only flavor this binding negotiates, and it carries no octets by construction. Stating it over the whole group makes a future flavor change fail here rather than silently start copying. The acceptance clause is the PB6 lesson stated as a property: a refused resource is still observed, so quantifying over reported resources rather than over accepted ones would assert something false — which is how this property was first written, and how it failed."
+    },
+    {
+      "id": "CATALOG-P3",
+      "capabilities": ["C4", "C5"],
+      "statement": "Over every vector in this group, a non-succeeded outcome carries no result value, and a succeeded outcome carries no detail value; neither ever carries both.",
+      "why": "This is the property PB6 showed was missing in kind: the three defects it found were all cases where an observation claimed something that never happened. A per-vector expectation states what the outcome should be; this states what an outcome may never simultaneously contain, over every path in the group."
+    }
+  ]
+}

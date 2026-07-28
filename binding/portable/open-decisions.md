@@ -1,15 +1,17 @@
 # Portable Binding — open owner decisions
 
-**Status:** Decisions 1 and 2 (the PB0 exit blockers) are **recorded**. Decisions 3 through 10 are
-**open and awaiting an owner ruling**; each was raised by evidence in PB4, PB5, or PB6, and each is
-currently running on a provisional choice made by the implementer so that the phase could proceed.
-Non-pinned.
+**Status:** All ten decisions are **recorded**. Decisions 1 and 2 (the PB0 exit blockers) were
+recorded 2026-07-24. Decisions 3 through 10 were raised by evidence in PB4, PB5, or PB6, ran on a
+provisional implementer choice while each phase proceeded, and were recorded 2026-07-28. Four of
+those eight confirm the provisional choice unchanged; four confirm it and create follow-on work,
+tracked under [Work the rulings create](#work-the-rulings-create). Non-pinned.
 
 **How to read this file.** Every decision below is written to be answerable without any other
-context: it states what was observed, what is running today and why, what the alternatives are, and
-what a ruling would change. A provisional choice is *not* a decision — it is a placeholder that the
-owner may confirm or overturn, and overturning one is expected to be cheap because each is isolated
-behind a named seam.
+context: it states what was observed, what was running when the question was raised and why, what the
+alternatives were, and what the ruling changed. A provisional choice was *not* a decision — it was a
+placeholder the owner could confirm or overturn, and overturning one was cheap because each was
+isolated behind a named seam. Each decision keeps its full option set after the ruling, so a later
+reader can see what was rejected and on what grounds.
 
 ## Index
 
@@ -17,14 +19,14 @@ behind a named seam.
 | --- | --- | --- | --- |
 | 1 | Portable wire representation | PB0 | **Recorded** 2026-07-24 — deterministic CBOR core |
 | 2 | Referenced-shaped-resource v0.1 floor | PB0 | **Recorded** 2026-07-24 — copied immutable blob |
-| 3 | Failure domain of a refusal decided by the provider endpoint | PB4 | **Open** — running provisionally |
-| 4 | Where the no-capability-transfer scan is enforced | PB4 | **Open** — running provisionally |
-| 5 | Catalog fixture canonical form, and whether it needs vectors | PB5 | **Open** — running provisionally |
-| 6 | How fixture annotation is separated from contract data | PB5 | **Open** — running provisionally |
-| 7 | Catching an allocation failure at the transport boundary | PB6 | **Open** — running provisionally |
-| 8 | `peer-unavailable` is unreachable in version 0.1 | PB6 | **Open** — recorded as by-design |
-| 9 | The resource floor leaves three C6 conditions unrepresentable | PB6 | **Open** — recorded as by-design |
-| 10 | What supplements independent implementation as a safeguard | PB6 | **Open** — no provisional answer |
+| 3 | Failure domain of a refusal decided by the provider endpoint | PB4 | **Recorded** 2026-07-28 — the domain names which endpoint decided |
+| 4 | Where the no-capability-transfer scan is enforced | PB4 | **Recorded** 2026-07-28 — both host and endpoint |
+| 5 | Catalog fixture canonical form, and whether it needs vectors | PB5 | **Recorded** 2026-07-28 — confirmed as declared; Catalog vectors owed |
+| 6 | How fixture annotation is separated from contract data | PB5 | **Recorded** 2026-07-28 — the schema declares the mechanism |
+| 7 | Catching an allocation failure at the transport boundary | PB6 | **Recorded** 2026-07-28 — `resource-exhausted` |
+| 8 | `peer-unavailable` is unreachable in version 0.1 | PB6 | **Recorded** 2026-07-28 — by design for 0.1 |
+| 9 | The resource floor leaves three C6 conditions unrepresentable | PB6 | **Recorded** 2026-07-28 — accepted; C6's text narrowed |
+| 10 | What supplements independent implementation as a safeguard | PB6 | **Recorded** 2026-07-28 — property tests and completeness review |
 
 ---
 
@@ -99,10 +101,23 @@ encoding question remains implicit).
 
 # Decisions raised by PB4, PB5, and PB6
 
-The eight below are open. Each arose because implementing or testing a phase surfaced a question the
-contract did not answer. In every case the implementer chose provisionally so the phase could finish,
-and the choice is named here so it can be confirmed or overturned deliberately rather than inherited
-by accident.
+The eight below were recorded on 2026-07-28. Each arose because implementing or testing a phase
+surfaced a question the contract did not answer. In every case the implementer chose provisionally so
+the phase could finish, and the choice was named here so it could be confirmed or overturned
+deliberately rather than inherited by accident. Every one was ruled on deliberately; none was
+inherited.
+
+## Work the rulings create
+
+Four rulings confirm what was running and change nothing: Decisions 3, 4, 7, and 8. The other four
+create work, listed here so a reader can tell a recorded decision from a discharged one:
+
+| Ruling | Work it creates | State |
+| --- | --- | --- |
+| 5 | Author a neutral Catalog vector group, and give it executed evidence in both stacks | Done |
+| 6 | Declare the annotation mechanism in `schemas/component-contract.json` | Done |
+| 9 | Narrow C6's text so borrow, lifetime, release, and fallback read as declared-but-unexercised | Done |
+| 10 | Adopt property-per-capability and phase-boundary completeness review as standing practice | Done |
 
 ---
 
@@ -141,7 +156,12 @@ of *who decided*, because that is what a host acts on; distance is already visib
 small and local: drop `failureDomain` from `parityProfile.comparedFields` and revert the
 re-attribution in each stack's direct conversation.
 
-**Decision (open).**
+**Decision (recorded):** **Option A — the domain names which endpoint decided.** Recorded 2026-07-28
+by user:JakHoh. `failureDomain` is an attribution of who decided, recorded relative to the observer as
+CH-24 requires, and not a statement about distance; distance stays visible in `crossedBoundaries`,
+which the parity profile deliberately excludes. `failureDomain` therefore remains in
+`parityProfile.comparedFields`, and the direct realization's re-attribution of an endpoint-decided
+refusal to `remote-endpoint` stands. No change to what is running.
 
 ---
 
@@ -178,7 +198,11 @@ request body on every request, which is measurable if it matters; if the owner w
 honest reduction is to scan control positions eagerly and payload positions only when the plan
 declares a trust boundary, not to remove either side.
 
-**Decision (open).**
+**Decision (recorded):** **Option A — both the host and the endpoint scan.** Recorded 2026-07-28 by
+user:JakHoh. The host refuses before emitting, so no Capability reaches the wire even in a declared
+field; the endpoint's scan is retained because an endpoint must never depend on its peer having
+scanned. The duplicate walk of the request body is accepted as the cost of C3 holding absolutely
+rather than by the peer's good behaviour. No change to what is running.
 
 ---
 
@@ -221,7 +245,53 @@ A second question follows. The neutral layer now carries a Catalog **contract** 
 PB5's central lesson was that a contract nobody reads from the outside is a contract nobody has
 checked; Catalog currently has that shape.
 
-**Decision (open).**
+**Decision (recorded):** **Option B — confirm the declaration, and author the Catalog vectors.**
+Recorded 2026-07-28 by user:JakHoh. The canonical form stands exactly as
+`vectors/catalog-fixture-contract.json` declares it: the Operation names follow the retained
+experiment (`interchange.tests.catalog.upsert-items` and `find-items`), and the addressing-only-handle
+dependency is `providerSpecific: false`, on the reading that the flavor is a general capability while
+the handle scope is carried by `acceptedResourceHandles`. Neither stack changes.
+
+The second half of the ruling was work, and it is done. `vectors/catalog-vectors.json` declares
+PB-64 through PB-71 over the Catalog fixture, and both stacks execute all eight plus the group's three
+properties. The neutral layer now states what Catalog must *do* and not only what it is, so a third
+implementation working from `binding/portable/` alone receives expected observations rather than a
+bare contract.
+
+Authoring them settled two boundaries no earlier vector had, and turned up one finding:
+
+- **Where a resource refusal splits between two categories** (PB-69). A refusal at the *flavor* level
+  is `unsupported-contract`, because a flavor is a term of the frozen contract — PB-29 reaches that
+  during negotiation and PB-69 after establishment, and both answer the same way. A refusal at the
+  *instance* level is `invalid-payload`: PB-28's out-of-scope handle, PB-26's failed content hash.
+  The vector was first written asserting `invalid-payload` for both, and both stacks disagreed with
+  it identically, each already carrying a deliberate `resource-flavor-unnegotiated` local code. The
+  vector was wrong and was corrected to the implementations rather than the reverse.
+- **That an accepted handle is not an admission decision** (PB-68). PB-27 states that a handle
+  conveys addressing only; PB-68 states the consequence that makes it falsifiable — the same accepted
+  handle accompanies both a success and a shaped failure.
+- **A finding, now closed: the Catalog *handlers* had drifted**, in the same way PB5 found the
+  contracts had. Minimal failed a lookup only when every requested identifier was missing and
+  answered with those it found, while Reference and the implementation-neutral provider both failed
+  when any was missing; Minimal answered `stored` with the session running total while the other two
+  answered this request's item count. Nothing noticed, because until PB-64 through PB-69 no vector
+  exercised Catalog across implementations.
+
+  PB-70 and PB-71 settle both, and Minimal was brought to them. The rules are **derived from the
+  declared Shapes, not adopted from whichever implementation was read first** — that distinction is
+  the point, because making one stack conform to another is the collapse the two-stack design exists
+  to prevent. `find-result` declares a sequence of items and no companion field for identifiers that
+  missed, so a partial success would drop which ones were absent with no way for the caller to
+  recover it, while the contract already declares a detail Shape for exactly that report; and
+  `stored` acknowledges an `upsert-items` command carrying N items, so a session running total
+  answers a question the command did not ask and makes an otherwise request-determined result depend
+  on binding history. That the neutral provider — written cold from the published artifacts — had
+  independently reached both readings is corroboration rather than proof, but it is the corroboration
+  PB5 said to value.
+
+  These two rules are about the fixture's domain rather than the binding layer, which is why they
+  live in the vectors and not in `schemas/component-contract.json`: that schema deliberately says
+  nothing about what a provider does, and teaching it to would cost more than it buys.
 
 ---
 
@@ -256,7 +326,14 @@ contract at the first consumer.
 list as its expression. An implementer working only from `schemas/` should not have to discover the
 rule from a fixture. Option A is what runs today and is not wrong, only under-advertised.
 
-**Decision (open).**
+**Decision (recorded):** **Option B — the schema declares the mechanism.** Recorded 2026-07-28 by
+user:JakHoh. `schemas/component-contract.json` now names the annotation mechanism once, as part of the
+`contractDocument` rules that already set `unknownFieldPolicy: reject`, so an implementer working only
+from `schemas/` learns that a fixture may carry documentation fields and that they are dropped before
+transcoding. The per-fixture `annotationFields` list stays as the expression of the rule: the schema
+states that the mechanism exists and how a consumer applies it, and each fixture states which names it
+uses. Option A was not wrong, only under-advertised, and this keeps its local self-declaration while
+removing the need to discover the rule from a fixture — which is how PB5 found it.
 
 ---
 
@@ -287,7 +364,12 @@ and the Channel taxonomy declares `resource-exhausted` for exactly this conditio
 purpose is that nothing foreign crosses it cannot have an exception. If the owner disagrees, Option B
 is the safer retreat and keeps the escape closed.
 
-**Decision (open).**
+**Decision (recorded):** **Option A — an allocation failure maps to `resource-exhausted`.** Recorded
+2026-07-28 by user:JakHoh. Classification at the transport boundary stays total. The ordinary
+objection to catching an allocation failure assumes the alternative is a healthier process; here the
+alternative is a foreign runtime type in the caller's hands, which C4 forbids, and the Channel
+taxonomy declares `resource-exhausted` for exactly this condition. The known cost is accepted: the
+observation may be produced by a process that cannot continue. No change to what is running.
 
 ---
 
@@ -316,7 +398,15 @@ fails and this reasoning returns for review.
 the rule that the taxonomy is reproduced exactly, which is worth more than an even-looking
 enumeration.
 
-**Decision (open).**
+**Decision (recorded):** **Option A — record as by-design.** Recorded 2026-07-28 by user:JakHoh.
+`peer-unavailable` stays declared and unreachable in version 0.1. The binding layer is handed an
+already-connected duplex and never starts a peer, so there is no point in it at which the condition
+can be observed; giving it peer startup would widen the layer's responsibility to process lifetime and
+launch policy for the sake of one observation. Narrowing the 0.1 profile was rejected because the
+taxonomy is reproduced exactly from `conformance/channel-0.1-vectors.json` and `channel-envelope.json`
+states that this contract adds no category and removes none. Both stacks continue to assert that the
+unreachable set is exactly this one value, so a change fails the build and returns this reasoning for
+review. No change to what is running.
 
 ---
 
@@ -350,7 +440,17 @@ borrowed or transferred flavor later fails the build and brings this back for re
 **Recommendation: Option A** for 0.1, with Option C as a documentation follow-up if the owner agrees
 that C6's text currently reads broader than the floor supports. Option B is a 0.2 conversation.
 
-**Decision (open).**
+**Decision (recorded):** **Option A, with Option C as the follow-up.** Recorded 2026-07-28 by
+user:JakHoh. The narrow floor stands for 0.1: premature reuse, release-then-use, and unsupported
+fallback stay unrepresentable rather than being given manufactured paths, and both stacks continue to
+assert the declared flavor set so that adding a borrowed or transferred flavor later fails the build
+and brings this back for review. Decision 2 is not reopened, and a lifetime-bearing flavor is a 0.2
+conversation.
+
+Option C is adopted alongside it: C6's text in `contract-matrix.md` now states that borrow interval,
+lifetime, release signal, and fallback policy are declared-but-unexercised at this floor, so the
+capability stops reading broader than its evidence. That is a correction to an over-broad capability
+statement, not an edit made to match an implementation — the narrower capability is what 0.1 means.
 
 ---
 
@@ -393,4 +493,26 @@ the stacks implement — rather than after — is what would have caught Decisio
 instead of PB5. This is a decision about how the programme works, not about the binding, which is why
 it is stated here rather than settled by an implementer.
 
-**Decision (open).**
+**Decision (recorded):** **Options A and B together.** Recorded 2026-07-28 by user:JakHoh. Both become
+standing practice rather than one-off responses to PB6:
+
+- **A — a property per capability.** Every capability states at least one property that must hold over
+  *all* of its vectors, not only per-vector expectations. This is what found all three PB6 defects,
+  and it targets the gap directly: a property is a claim about every path, so it can fail where no
+  single case was written. The known risk is a vacuous property, which is a review obligation on the
+  property rather than a reason to skip it.
+- **B — a contract-completeness review at each phase boundary.** A pass that asks what the contract
+  does *not* say, per capability, kept separate from conformance review, which by construction can
+  only check what was written down. It attacks silence at the source rather than downstream.
+
+C is not adopted. Writing the implementation-neutral endpoint from the published artifacts before
+either stack implements a phase is the strongest of the four and would have caught Decision 6's
+finding at PB1 instead of PB5, but it costs a third implementation per phase and the neutral provider
+is not maintained as a first-class stack. B is expected to reach most of what C would, at a fraction
+of the cost. D is rejected: the three PB6 defects were real and reached the wire.
+
+The finding this answers is worth restating, because it is the reason the ruling is not "test harder":
+two implementations written from one contract by one reader **diverge where the contract is ambiguous
+and agree where it is silent**. Independence — the programme's central safeguard — detects
+disagreement, so it covers ambiguity and is structurally blind to silence. A and B are the practices
+that test silence.

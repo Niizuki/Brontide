@@ -62,12 +62,30 @@ lived. The plan's PB6 section records all three, the ordering rule that a malfor
 before its direction is weighed, and why `peer-unavailable` and premature resource reuse stay
 unreachable in version 0.1 rather than being given manufactured paths.
 
-**Eight owner decisions are open**, raised by PB4, PB5, and PB6 and each running on a provisional
-implementer choice until ruled on. They are written up in full, and answerable without any other
-context, in [`binding/portable/open-decisions.md`](../../binding/portable/open-decisions.md); the
-plan's [Open questions](./binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md#open-questions-owners-needed)
-table indexes them with their owners. Decision 10 is the one to read first: it asks what supplements
-independent implementation, given that every PB6 defect was present identically in both stacks.
+**All eight owner decisions raised by PB4, PB5, and PB6 were recorded on 2026-07-28**, with their
+option sets and rationale retained in
+[`binding/portable/open-decisions.md`](../../binding/portable/open-decisions.md) and dated rulings in
+the plan's [Resolved questions](./binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md#resolved-questions).
+Four confirmed the provisional choice unchanged; four created work, all of it now done.
+
+Decision 10 is the one to read first, because it is about the programme rather than the binding.
+Given that every PB6 defect was present identically in both stacks, it asks what supplements
+independent implementation, and answers with two standing practices: **every capability states at
+least one property holding over all its vectors**, and **each phase boundary gets a
+contract-completeness review** asking what the contract does *not* say. Both are now ground rules in
+[`AGENTS.md`](../../AGENTS.md). The reasoning is that two implementations written from one contract
+by one reader diverge where it is *ambiguous* and agree where it is *silent*, so independence detects
+ambiguity and is structurally blind to silence.
+
+Decision 5 also gave the Catalog fixture the vectors it had never had — PB-64 through PB-71, executed
+in both stacks — closing the case where the neutral layer declared what Catalog is without stating
+what it must do. Doing so found that the Catalog *handlers* had drifted apart across all three
+implementations on partial-match and count semantics, which the fixture contract never declared.
+PB-70 and PB-71 settle both, with the rules derived from the declared Shapes rather than adopted from
+whichever implementation was read first, and Minimal brought to them.
+
+One question remains open, and it is not one of the eight: whether to ratify the provisional Channel
+Shape and category names or publish an explicitly migrated revision.
 
 **PB7 is the next item**: the narrow Composition handoff by which a resolved Component requirement
 and offered provision produce a Binding Plan during activation preflight, without expanding into

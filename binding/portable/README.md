@@ -19,9 +19,9 @@ neutral source and owns its adapters.
 | --- | --- | --- |
 | `contract-matrix.md` | C1–C10 baseline inventory: owner, existing basis, classification, gap-to-close per capability | PB0 |
 | `representation-choice.md` | D3 / §11 chain-conjunction representation choice and revocation ceiling per stack (Portable Binding freeze prerequisite) | PB0 |
-| [`open-decisions.md`](open-decisions.md) | Owner decisions with option sets and recommendations. The two PB0 encoding blockers are recorded; **eight further decisions raised by PB4, PB5, and PB6 are open** and each is running on a provisional implementer choice until ruled on | PB0, extended PB4-PB6 |
+| [`open-decisions.md`](open-decisions.md) | Owner decisions with option sets, recommendations, and rulings. **All ten are recorded**: the two PB0 encoding blockers on 2026-07-24, and the eight raised by PB4, PB5, and PB6 on 2026-07-28 | PB0, extended PB4-PB6, recorded 2026-07-28 |
 | [`schemas/`](schemas/README.md) | Data-only versioned neutral contracts (references, Shape floor, plans, envelopes) | PB1 |
-| [`vectors/`](vectors/README.md) | Valid, additive-compatible, and adversarial fixtures with expected outcomes | PB1 |
+| [`vectors/`](vectors/README.md) | Valid, additive-compatible, and adversarial fixtures with expected outcomes | PB1, Catalog group added 2026-07-28 |
 
 ## PB0 exit checklist (plan §5)
 
@@ -139,6 +139,37 @@ outside the two stacks.
    know, and forcing a future annotation to declare itself.
 
 No schema, vector, or golden encoding changed.
+
+## What the recorded decisions changed here
+
+All eight decisions raised by PB4, PB5, and PB6 were recorded on 2026-07-28. Four confirmed what was
+already running and changed nothing: the failure domain names which endpoint decided (3), the
+no-capability-transfer scan runs at both the host and the endpoint (4), an allocation failure maps to
+`resource-exhausted` (7), and `peer-unavailable` stays declared and unreachable in 0.1 (8). Four
+changed something here:
+
+1. **Catalog has vectors** (Decision 5). PB5 gave the Catalog fixture a contract but no vectors, so
+   this layer stated what Catalog *is* without stating what it must *do*.
+   [`vectors/catalog-vectors.json`](vectors/catalog-vectors.json) declares PB-64 through PB-71 and
+   three group properties; both stacks execute all of them. Authoring them fixed where a resource
+   refusal splits between `unsupported-contract` and `invalid-payload`, and found that the Catalog
+   *handlers* had drifted apart across all three implementations on partial-match and count
+   semantics — the same class of drift PB5 found in the contracts. PB-70 and PB-71 settle both, with
+   the rules derived from the declared Shapes rather than adopted from whichever implementation was
+   read first, and Minimal was brought to them.
+2. **The annotation mechanism is declared in the schema** (Decision 6).
+   [`schemas/component-contract.json`](schemas/component-contract.json) now carries a
+   `contractDocument.annotation` block, so an implementer working only from `schemas/` learns the
+   rule instead of inferring it from a fixture. The per-fixture `annotationFields` list stays as its
+   expression, and the gate now checks the mechanism: it drops each fixture's declared annotation and
+   the four root envelope names, and requires what remains to be exactly the contract document.
+3. **C6's text no longer reads broader than its evidence** (Decision 9).
+   [`contract-matrix.md`](contract-matrix.md) states that borrow interval, lifetime, release signal,
+   and fallback policy are declared-but-unexercised at the 0.1 copied-immutable-blob floor.
+4. **Properties are a standing practice** (Decision 10), recorded as a ground rule in
+   [`AGENTS.md`](../../AGENTS.md). The Catalog group is the first to carry them, and one failed
+   immediately on a claim that was not true — which is the practice working rather than a defect in
+   it.
 
 ## Boundary
 
