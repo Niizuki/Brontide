@@ -296,6 +296,86 @@ public sealed class PortableCatalogTests
         });
     }
 
+    // PB-70-CATALOG-PARTIAL-MATCH-FAILS-WHOLE
+    [Test]
+    public async Task A_lookup_answers_for_every_identifier_or_for_none()
+    {
+        var handler = new CatalogPortableHandler();
+        await using var host = await CatalogHostAsync(handler);
+
+        await host.InvokeAsync(
+            CatalogPortableFixture.Upsert,
+            CatalogPortableFixture.UpsertCommand,
+            CatalogPortableFixture.UpsertCommandValue(CatalogPortableFixture.ItemValue("a", "Alpha", "one")),
+            PortableTestHarness.Permitted(),
+            [CatalogPortableFixture.Handle()]);
+
+        var effectsAfterUpsert = handler.ProviderEffectCount;
+
+        // One identifier is held and one is not. The result Shape is a sequence of items with no
+        // companion field for the ones that missed, so a partial answer would drop which identifier
+        // was absent with no way for the caller to recover it.
+        var partial = await host.InvokeAsync(
+            CatalogPortableFixture.Find,
+            CatalogPortableFixture.FindCommand,
+            CatalogPortableFixture.FindCommandValue("a", "absent"),
+            PortableTestHarness.Permitted(),
+            [CatalogPortableFixture.Handle()]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(partial.FrameDecision, Is.EqualTo(PortableFrameDecision.Accept));
+            Assert.That(partial.ResultClass, Is.EqualTo(PortableResultClass.OutcomeFailed));
+
+            // The detail Shape is where an absent identifier is reported.
+            var detail = (PortableRecordValue)partial.Value!;
+            Assert.That(detail.Fields, Does.ContainKey("code"));
+            Assert.That(detail.Fields, Does.Not.ContainKey("items"), "No partial result crosses.");
+
+            Assert.That(
+                handler.ProviderEffectCount,
+                Is.EqualTo(effectsAfterUpsert),
+                "A lookup that answered for nothing performed no further effect.");
+        });
+    }
+
+    // PB-71-CATALOG-UPSERT-COUNT-IS-THIS-REQUEST
+    [Test]
+    public async Task The_upsert_count_answers_this_request_and_not_the_session_total()
+    {
+        var handler = new CatalogPortableHandler();
+        await using var host = await CatalogHostAsync(handler);
+
+        static long Stored(PortableInteractionResult result) =>
+            ((PortableIntegerValue)((PortableRecordValue)result.Value!).Fields["stored"]).Value;
+
+        var first = await host.InvokeAsync(
+            CatalogPortableFixture.Upsert,
+            CatalogPortableFixture.UpsertCommand,
+            CatalogPortableFixture.UpsertCommandValue(
+                CatalogPortableFixture.ItemValue("a", "Alpha", "one"),
+                CatalogPortableFixture.ItemValue("b", "Beta", "two")),
+            PortableTestHarness.Permitted(),
+            [CatalogPortableFixture.Handle()]);
+
+        // Different, previously unseen items. A session running total would answer 3 here.
+        var second = await host.InvokeAsync(
+            CatalogPortableFixture.Upsert,
+            CatalogPortableFixture.UpsertCommand,
+            CatalogPortableFixture.UpsertCommandValue(CatalogPortableFixture.ItemValue("c", "Gamma")),
+            PortableTestHarness.Permitted(),
+            [CatalogPortableFixture.Handle()]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Stored(first), Is.EqualTo(2));
+            Assert.That(
+                Stored(second),
+                Is.EqualTo(1),
+                "The count answers how many items this request stored, not how many the session holds.");
+        });
+    }
+
     // ------------------------------------------------------------------------------------------
     // Properties over the whole group (Decision 10).
     //

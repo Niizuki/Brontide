@@ -17,7 +17,7 @@ These are data only and validate without loading either stack.
 | [`limits-lifecycle-and-channel.json`](limits-lifecycle-and-channel.json) | C8 and C4 — declared limits, lifecycle states, envelopes, correlation, failure taxonomy |
 | [`plan-observation-and-parity.json`](plan-observation-and-parity.json) | C2, C9, C7, C10 — plan facts, observation completeness, realization parity, interoperability |
 | [`catalog-fixture-contract.json`](catalog-fixture-contract.json) | The second subject contract: the Catalog experiment restated in the neutral form |
-| [`catalog-vectors.json`](catalog-vectors.json) | PB-64 – PB-69 over the Catalog fixture — a negotiated Operation set, nested repeated containers, a declared detail Shape, and the addressing-only handle |
+| [`catalog-vectors.json`](catalog-vectors.json) | PB-64 – PB-71 over the Catalog fixture — a negotiated Operation set, nested repeated containers, a declared detail Shape, the addressing-only handle, and two fixture-domain rules |
 
 ## Vector form
 
@@ -40,7 +40,7 @@ Vectors carrying a `phase` (PB4 or PB5) state an obligation a stack harness disc
 fixes what must be equal and what may differ; it does not execute the comparison.
 
 Vector ids are two-digit by the gate's pattern, so the space is `PB-01` through `PB-99`; `PB-01`
-through `PB-63` are PB1's and `PB-64` through `PB-69` are the Catalog group's.
+through `PB-63` are PB1's and `PB-64` through `PB-71` are the Catalog group's.
 
 ## Golden encodings are verified, not asserted
 
@@ -76,6 +76,26 @@ Two of its vectors fix where a boundary falls that no earlier vector settled:
 - **PB-68** makes PB-27's claim falsifiable. PB-27 states that an accepted handle conveys addressing
   only; PB-68 states the consequence — the same accepted handle accompanies both a success and a
   shaped failure, so admitting the handle and admitting the request are two decisions.
+
+## Two of them state a domain rule, not a binding rule
+
+`PB-70` and `PB-71` are unlike every other vector here: they pin what the Catalog *provider domain*
+does, rather than what the binding layer does. They exist because authoring PB-64 through PB-69
+found the three implementations answering two unstated questions differently — whether a lookup for
+a mix of held and absent identifiers succeeds partially or fails whole, and whether the upsert count
+answers this request or the session total.
+
+Both rules are **derived from the declared Shapes rather than adopted from an implementation**.
+`find-result` declares a sequence of items and no companion field for identifiers that missed, so a
+partial success drops which ones were absent with no way to recover it, while the contract already
+declares a detail Shape for that report. `stored` acknowledges a command carrying N items, so a
+running total answers a question the command did not ask and makes the result depend on binding
+history. That distinction matters: making one stack conform to another is the collapse the two-stack
+design exists to prevent, so the vector is the authority and each implementation conforms to it.
+
+They live here rather than in [`../schemas/component-contract.json`](../schemas/component-contract.json)
+because that schema deliberately says nothing about what a provider does, and teaching it to would
+cost the neutral contract its domain-independence for the sake of a fixture.
 
 ## Properties, not only cases
 

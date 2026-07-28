@@ -77,11 +77,12 @@ contract-completeness review** asking what the contract does *not* say. Both are
 by one reader diverge where it is *ambiguous* and agree where it is *silent*, so independence detects
 ambiguity and is structurally blind to silence.
 
-Decision 5 also gave the Catalog fixture the vectors it had never had — PB-64 through PB-69, executed
+Decision 5 also gave the Catalog fixture the vectors it had never had — PB-64 through PB-71, executed
 in both stacks — closing the case where the neutral layer declared what Catalog is without stating
-what it must do. Doing so found that the two stacks' Catalog *handlers* had drifted apart on
-partial-match and count semantics, which the fixture contract never declared; that residue is
-recorded in `open-decisions.md` rather than settled by an implementer.
+what it must do. Doing so found that the Catalog *handlers* had drifted apart across all three
+implementations on partial-match and count semantics, which the fixture contract never declared.
+PB-70 and PB-71 settle both, with the rules derived from the declared Shapes rather than adopted from
+whichever implementation was read first, and Minimal brought to them.
 
 One question remains open, and it is not one of the eight: whether to ratify the provisional Channel
 Shape and category names or publish an explicitly migrated revision.

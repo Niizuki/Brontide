@@ -293,6 +293,83 @@ type PortableCatalogTests() =
             Assert.That(observed.Accepted, Is.False)
             Assert.That(observed.IntegrityVerified, Is.False))
 
+    [<Test>]
+    member _.``PB-70 a lookup answers for every identifier or for none``() =
+        let host, handler = catalogHost ()
+
+        invokeWith
+            host
+            CatalogFixture.upsert
+            CatalogFixture.upsertCommand
+            (CatalogFixture.upsertCommandValue [ CatalogFixture.itemValue "a" "Alpha" [ "one" ] ])
+            [ handle ]
+        |> ignore
+
+        let effectsAfterUpsert = handler.ProviderEffectCount
+
+        // One identifier is held and one is not. The result Shape is a sequence of items with no
+        // companion field for the ones that missed, so a partial answer would drop which identifier
+        // was absent with no way for the caller to recover it.
+        let partial =
+            invokeWith
+                host
+                CatalogFixture.find
+                CatalogFixture.findCommand
+                (CatalogFixture.findCommandValue [ "a"; "absent" ])
+                [ handle ]
+
+        assertAll (fun () ->
+            Assert.That(partial.FrameDecision, Is.EqualTo FrameDecision.Accept)
+            Assert.That(partial.ResultClass, Is.EqualTo ResultClass.OutcomeFailed)
+
+            // The detail Shape is where an absent identifier is reported.
+            let detail = Option.get partial.Value
+            Assert.That((PortableRecord.tryField "code" detail).IsSome, Is.True)
+            Assert.That((PortableRecord.tryField "items" detail).IsSome, Is.False, "No partial result crosses.")
+
+            Assert.That(
+                handler.ProviderEffectCount,
+                Is.EqualTo effectsAfterUpsert,
+                "A lookup that answered for nothing performed no further effect."
+            ))
+
+    [<Test>]
+    member _.``PB-71 the upsert count answers this request and not the session total``() =
+        let host, _ = catalogHost ()
+
+        let storedCount (result: InteractionResult) =
+            match result.Value |> Option.bind (PortableRecord.tryField "stored") with
+            | Some(PortableInteger value) -> value
+            | _ -> -1L
+
+        let first =
+            invokeWith
+                host
+                CatalogFixture.upsert
+                CatalogFixture.upsertCommand
+                (CatalogFixture.upsertCommandValue
+                    [ CatalogFixture.itemValue "a" "Alpha" [ "one" ]
+                      CatalogFixture.itemValue "b" "Beta" [ "two" ] ])
+                [ handle ]
+
+        // Different, previously unseen items. A session running total would answer 3 here.
+        let second =
+            invokeWith
+                host
+                CatalogFixture.upsert
+                CatalogFixture.upsertCommand
+                (CatalogFixture.upsertCommandValue [ CatalogFixture.itemValue "c" "Gamma" [] ])
+                [ handle ]
+
+        assertAll (fun () ->
+            Assert.That(storedCount first, Is.EqualTo 2L)
+
+            Assert.That(
+                storedCount second,
+                Is.EqualTo 1L,
+                "The count answers how many items this request stored, not how many the session holds."
+            ))
+
     // ----------------------------------------------------------------------------------------
     // Properties over the whole group (Decision 10).
     //

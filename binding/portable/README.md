@@ -150,12 +150,13 @@ changed something here:
 
 1. **Catalog has vectors** (Decision 5). PB5 gave the Catalog fixture a contract but no vectors, so
    this layer stated what Catalog *is* without stating what it must *do*.
-   [`vectors/catalog-vectors.json`](vectors/catalog-vectors.json) declares PB-64 through PB-69 and
+   [`vectors/catalog-vectors.json`](vectors/catalog-vectors.json) declares PB-64 through PB-71 and
    three group properties; both stacks execute all of them. Authoring them fixed where a resource
-   refusal splits between `unsupported-contract` and `invalid-payload`, and found that the two
-   stacks' Catalog *handlers* had drifted apart on partial-match and count semantics — the same class
-   of drift PB5 found in their contracts, and recorded rather than silently pinned, because the
-   fixture contract declares neither.
+   refusal splits between `unsupported-contract` and `invalid-payload`, and found that the Catalog
+   *handlers* had drifted apart across all three implementations on partial-match and count
+   semantics — the same class of drift PB5 found in the contracts. PB-70 and PB-71 settle both, with
+   the rules derived from the declared Shapes rather than adopted from whichever implementation was
+   read first, and Minimal was brought to them.
 2. **The annotation mechanism is declared in the schema** (Decision 6).
    [`schemas/component-contract.json`](schemas/component-contract.json) now carries a
    `contractDocument.annotation` block, so an implementer working only from `schemas/` learns the

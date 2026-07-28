@@ -89,7 +89,12 @@ public sealed class PortableVectorCoverageTests
             ["PB-66-CATALOG-SEQUENCE-OF-RECORDS-CARRYING-SEQUENCES"] = "PortableCatalogTests",
             ["PB-67-CATALOG-FAILED-OUTCOME-USES-THE-DECLARED-DETAIL-SHAPE"] = "PortableCatalogTests",
             ["PB-68-CATALOG-HANDLE-IS-NOT-AN-ADMISSION-DECISION"] = "PortableCatalogTests",
-            ["PB-69-CATALOG-UNNEGOTIATED-FLAVOR-IN-REQUEST"] = "PortableCatalogTests"
+            ["PB-69-CATALOG-UNNEGOTIATED-FLAVOR-IN-REQUEST"] = "PortableCatalogTests",
+
+            // Two fixture-domain rules the contract had left unstated, and which the three
+            // implementations answered differently until the vectors settled them.
+            ["PB-70-CATALOG-PARTIAL-MATCH-FAILS-WHOLE"] = "PortableCatalogTests",
+            ["PB-71-CATALOG-UPSERT-COUNT-IS-THIS-REQUEST"] = "PortableCatalogTests"
         }.ToImmutableSortedDictionary(StringComparer.Ordinal);
 
     [Test]

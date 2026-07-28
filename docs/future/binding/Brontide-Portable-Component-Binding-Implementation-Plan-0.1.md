@@ -149,7 +149,7 @@ deterministically. The repository-wide gate invokes it.
 | Phase | State | Evidence |
 | --- | --- | --- |
 | PB0 — baseline and contract freeze | **Complete** | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md), [`representation-choice.md`](../../../binding/portable/representation-choice.md), [`open-decisions.md`](../../../binding/portable/open-decisions.md) |
-| PB1 — neutral manifests, plans, and vectors | **Complete** | [`schemas/`](../../../binding/portable/schemas/README.md) (8 files), [`vectors/`](../../../binding/portable/vectors/README.md) (63 vectors at PB1; 69 since the Catalog group Decision 5 added, plus 6 golden encodings), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
+| PB1 — neutral manifests, plans, and vectors | **Complete** | [`schemas/`](../../../binding/portable/schemas/README.md) (8 files), [`vectors/`](../../../binding/portable/vectors/README.md) (63 vectors at PB1; 71 since the Catalog group Decision 5 added, plus 6 golden encodings), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB2 — Reference native implementation | **Complete** | [`Reference/src/Brontide.Reference.Experimental.Binding/Portable/`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/), [`Reference/tests/Brontide.Reference.Interchange.Tests/Portable/`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB3 — Minimal native implementation | **Complete** | [`Minimal/src/Brontide.Minimal.Binding/Portable/`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/), [`Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB4 — direct and process realization parity | **Complete** | [`Reference .../Portable/PortableRealizationParityTests.cs`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/PortableRealizationParityTests.cs), [`Minimal .../Portable/PortableRealizationParityTests.fs`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/PortableRealizationParityTests.fs), both `PortableChannelVectorCoverageTests`, both `PortableCrossProcessTests` |
@@ -649,12 +649,13 @@ four create follow-on work, marked as such. Full option sets and rationale stay 
   is **confirmed as it stands** — Operation names following the retained experiment, and the
   addressing-only-handle dependency `providerSpecific: false`. Neither stack changes. **Creates work,
   now done:** [`catalog-vectors.json`](../../../binding/portable/vectors/catalog-vectors.json)
-  declares PB-64 through PB-69 plus three group properties, and both stacks execute all of them, so
+  declares PB-64 through PB-71 plus three group properties, and both stacks execute all of them, so
   the neutral layer states what Catalog must *do* and not only what it is. Authoring them fixed where
   a resource refusal splits between `unsupported-contract` (flavor level) and `invalid-payload`
-  (instance level), and found that the two stacks' Catalog *handlers* had drifted apart on
-  partial-match and count semantics — recorded in `open-decisions.md` rather than pinned, because the
-  fixture contract declares neither.
+  (instance level), and found the Catalog *handlers* drifted apart across all three implementations
+  on partial-match and count semantics. PB-70 and PB-71 settle both, deriving the rules from the
+  declared Shapes rather than from whichever implementation was read first, and Minimal was brought
+  to them.
 - **2026-07-28 — Decision 6, separating fixture annotation from contract data:** **the schema declares
   the mechanism.** `component-contract.json` now carries a `contractDocument.annotation` block naming
   how a document declares its own documentation fields and which four root names are the artifact

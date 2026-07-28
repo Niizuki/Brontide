@@ -253,7 +253,7 @@ dependency is `providerSpecific: false`, on the reading that the flavor is a gen
 the handle scope is carried by `acceptedResourceHandles`. Neither stack changes.
 
 The second half of the ruling was work, and it is done. `vectors/catalog-vectors.json` declares
-PB-64 through PB-69 over the Catalog fixture, and both stacks execute all six plus the group's three
+PB-64 through PB-71 over the Catalog fixture, and both stacks execute all eight plus the group's three
 properties. The neutral layer now states what Catalog must *do* and not only what it is, so a third
 implementation working from `binding/portable/` alone receives expected observations rather than a
 bare contract.
@@ -270,14 +270,28 @@ Authoring them settled two boundaries no earlier vector had, and turned up one f
 - **That an accepted handle is not an admission decision** (PB-68). PB-27 states that a handle
   conveys addressing only; PB-68 states the consequence that makes it falsifiable — the same accepted
   handle accompanies both a success and a shaped failure.
-- **A finding: the two stacks' Catalog *handlers* had drifted**, in the same way PB5 found their
-  contracts had. Reference fails a lookup when any requested identifier is missing and answers in
-  requested order; Minimal fails only when every one is missing and answers with those it found. They
-  also count `stored` differently — this request's items versus the session total. Nothing noticed,
-  because until now no vector exercised Catalog across both stacks. The vectors deliberately do not
-  pin either behaviour: partial-match and count semantics are domain choices the fixture contract
-  never declares, so a vector turning on one would assert something the contract does not say. It is
-  recorded here as the open residue of this decision rather than settled by an implementer.
+- **A finding, now closed: the Catalog *handlers* had drifted**, in the same way PB5 found the
+  contracts had. Minimal failed a lookup only when every requested identifier was missing and
+  answered with those it found, while Reference and the implementation-neutral provider both failed
+  when any was missing; Minimal answered `stored` with the session running total while the other two
+  answered this request's item count. Nothing noticed, because until PB-64 through PB-69 no vector
+  exercised Catalog across implementations.
+
+  PB-70 and PB-71 settle both, and Minimal was brought to them. The rules are **derived from the
+  declared Shapes, not adopted from whichever implementation was read first** — that distinction is
+  the point, because making one stack conform to another is the collapse the two-stack design exists
+  to prevent. `find-result` declares a sequence of items and no companion field for identifiers that
+  missed, so a partial success would drop which ones were absent with no way for the caller to
+  recover it, while the contract already declares a detail Shape for exactly that report; and
+  `stored` acknowledges an `upsert-items` command carrying N items, so a session running total
+  answers a question the command did not ask and makes an otherwise request-determined result depend
+  on binding history. That the neutral provider — written cold from the published artifacts — had
+  independently reached both readings is corroboration rather than proof, but it is the corroboration
+  PB5 said to value.
+
+  These two rules are about the fixture's domain rather than the binding layer, which is why they
+  live in the vectors and not in `schemas/component-contract.json`: that schema deliberately says
+  nothing about what a provider does, and teaching it to would cost more than it buys.
 
 ---
 
