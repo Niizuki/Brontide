@@ -39,5 +39,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi8-participant-extension-vectors.json"
           Link="component-management\fixtures\cbi8-participant-extension-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi9-dependency-revision-vectors.json"
+          Link="component-management\fixtures\cbi9-dependency-revision-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

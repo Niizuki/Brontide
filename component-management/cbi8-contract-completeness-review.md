@@ -14,7 +14,9 @@ review.
    same Capability, target Actor, Operation, and scope is not a stand-in, because the holder is part
    of what makes a grant that grant (CBI6 C3). Removal and substitution are declined with an
    explicit route — CBI7 retirement and a fresh CBI6 admission — and stay future work until a member
-   can declare which grants it depends on.
+   can declare which grants it depends on. Closed on 2026-07-30 by
+   [CBI9](./cbi9-capability-contract.md), which adds that declaration and admits removal and
+   substitution while every declared dependency stays covered.
 2. **Precedence between participants was named as the question this slice had to answer first.**
    Disposition: it does not arise. Precedence would be needed to decide which participant may be
    dropped from a live set; refusing every drop removes the question rather than answering it

@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi9-dependency-revision-vectors",
+  "vectors": [
+    {
+      "id": "cbi9-01-drop-undepended",
+      "expectedKind": "revised",
+      "expectedCode": "participant-set-revised",
+      "expectedParticipantsEvaluated": 2,
+      "expectedInForceParticipants": 2,
+      "expectedInForceGrants": 3,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi9-02-drop-depended",
+      "expectedKind": "declined",
+      "expectedCode": "dependency-not-covered",
+      "expectedParticipantsEvaluated": 2,
+      "expectedInForceParticipants": 3,
+      "expectedInForceGrants": 4,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi9-03-substitute-holder",
+      "expectedKind": "revised",
+      "expectedCode": "participant-set-revised",
+      "expectedParticipantsEvaluated": 3,
+      "expectedInForceParticipants": 3,
+      "expectedInForceGrants": 4,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi9-04-unchanged",
+      "expectedKind": "declined",
+      "expectedCode": "participant-set-unchanged",
+      "expectedParticipantsEvaluated": 0,
+      "expectedInForceParticipants": 3,
+      "expectedInForceGrants": 4,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi9-05-empty",
+      "expectedKind": "declined",
+      "expectedCode": "participant-set-empty",
+      "expectedParticipantsEvaluated": 0,
+      "expectedInForceParticipants": 3,
+      "expectedInForceGrants": 4,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi9-06-declaration-mismatch",
+      "expectedKind": "declined",
+      "expectedCode": "dependency-declaration-mismatch",
+      "expectedParticipantsEvaluated": 0,
+      "expectedInForceParticipants": 3,
+      "expectedInForceGrants": 4,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi9-07-declaration-empty",
+      "expectedKind": "declined",
+      "expectedCode": "dependency-declaration-empty",
+      "expectedParticipantsEvaluated": 0,
+      "expectedInForceParticipants": 3,
+      "expectedInForceGrants": 4,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi9-08-declaration-unsatisfied",
+      "expectedKind": "declined",
+      "expectedCode": "dependency-unsatisfied",
+      "expectedParticipantsEvaluated": 0,
+      "expectedInForceParticipants": 3,
+      "expectedInForceGrants": 4,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi9-09-retained-identity-drift",
+      "expectedKind": "declined",
+      "expectedCode": "authority-revalidation-mismatch",
+      "expectedParticipantsEvaluated": 0,
+      "expectedInForceParticipants": 3,
+      "expectedInForceGrants": 4,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi9-10-added-participant-denied",
+      "expectedKind": "declined",
+      "expectedCode": "authority-not-admitted",
+      "expectedParticipantsEvaluated": 3,
+      "expectedInForceParticipants": 3,
+      "expectedInForceGrants": 4,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi9-11-added-shared-local-actor",
+      "expectedKind": "declined",
+      "expectedCode": "local-actor-conflict",
+      "expectedParticipantsEvaluated": 3,
+      "expectedInForceParticipants": 3,
+      "expectedInForceGrants": 4,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi9-12-retained-participant-revoked",
+      "expectedKind": "withdrawn",
+      "expectedCode": "authority-not-renewed",
+      "expectedParticipantsEvaluated": 2,
+      "expectedInForceParticipants": 0,
+      "expectedInForceGrants": 0,
+      "expectedReleased": false
+    },
+    {
+      "id": "cbi9-13-retirement-failure",
+      "expectedKind": "retirement-failed",
+      "expectedCode": "authority-retirement-failed",
+      "expectedParticipantsEvaluated": 2,
+      "expectedInForceParticipants": 0,
+      "expectedInForceGrants": 0,
+      "expectedReleased": false
+    }
+  ]
+}

@@ -108,8 +108,11 @@ unchanged.
 ## C10 — evidence remains bounded
 
 CBI8 proves fail-closed in-place growth of one participant set over one released singleton binding.
-It does not remove or substitute a participant in place, order participants by priority, let a
-participant declare itself required, exercise any granted Operation, notify the provider that the
-set changed, or provide production identity, policy, distribution, or security.
+Removal and substitution in place are covered separately by
+[CBI9](./cbi9-capability-contract.md), under a dependency the resolved Component definition
+declares; CBI8's growth-only rule remains the safe one wherever no such declaration exists. CBI8
+itself does not order participants by priority, let a participant declare itself required, exercise
+any granted Operation, notify the provider that the set changed, or provide production identity,
+policy, distribution, or security.
 
 Property: every CBI8 status statement preserves these limits.

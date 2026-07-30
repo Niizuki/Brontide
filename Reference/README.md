@@ -70,6 +70,11 @@ CBI8 adds participants to that set in place while the member stays released. Rem
 an unchanged set, a collision with a participant already live, and an addition CM5 does not admit
 are all declined without disturbing the binding; only an evaluated lapse in a retained participant
 retires it.
+CBI9 removes and substitutes participants of that set under a dependency declared by the resolved
+definition and mapped explicitly to CM5 tuples. A revision is admitted while every declared
+dependency stays covered, so a substitute may hold what a departing participant held; an uncovered
+dependency, an unsatisfied or empty declaration, and a declaration that does not match the
+generation's record are all declined.
 
 ## Build and test
 

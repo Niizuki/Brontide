@@ -267,13 +267,30 @@ a retained participant retires it. The
 [`contract-completeness review`](../../component-management/cbi8-contract-completeness-review.md)
 bound this to growth of one set over one released singleton binding.
 
-Participant removal and substitution in place is the next implementable integration item, and its
-prerequisite is now explicit: a member must be able to declare which grants its ordinary interaction
-depends on before any participant can be dropped from a live set, and participant precedence follows
-from that declaration rather than preceding it. CM4 binding-exercise projection, cross-vocabulary
-Operation mapping, multi-member and relational lifecycles, replacement, child Ports, mediation,
-wider Provider Sets, and real distribution remain future work. PB8's independent reviews and
-Decision 11 owner ruling remain separate governance prerequisites rather than implementation work.
+CBI9 supplies that prerequisite and then removes and substitutes participants of a live set. The
+declaration is not the caller's opinion: its names must equal the requested authority CM2 already
+records for the CBI1-selected definition, so the Component states what its interaction depends on
+and the caller supplies only the explicit typed mapping from each declared name to the CM5
+Capability, target Actor, Operation, and scope that satisfies it. A revision is admitted while every
+declared dependency stays covered by some participant of the intended set. Because the declaration
+names tuples rather than holders, **a substitute with a different receiving-domain holder can satisfy
+a dependency the departing participant used to satisfy** — which is the point CBI8 could not reach,
+and which revises CBI8's reasoning rather than contradicting it, since CBI8's growth-only rule
+remains correct wherever no declaration exists. It also closes participant precedence for good:
+coverage decides who may leave, so no participant is ranked above another. A declaration cannot be
+introduced to bless a set that never covered it, and an empty declaration licenses nothing. The
+[`CBI9 capability contract`](../../component-management/cbi9-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi9-contract-completeness-review.md)
+bound this to one set under one declaration over one released singleton binding, and record the
+boundary worth carrying forward: the declaration is trusted as the Component's own statement, and
+nothing checks it against what the member's ordinary interaction actually does.
+
+Verifying a declaration against observed interaction is therefore the next implementable integration
+item: CM4 binding-exercise projection is the nearest evidence source, because a binding exercise is
+the first record of what an activated member actually did. Cross-vocabulary Operation mapping,
+multi-member and relational lifecycles, replacement, child Ports, mediation, wider Provider Sets,
+and real distribution remain future work. PB8's independent reviews and Decision 11 owner ruling
+remain separate governance prerequisites rather than implementation work.
 
 ## Other planned areas
 

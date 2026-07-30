@@ -115,6 +115,12 @@ substitute holding the identical tuples is still a different grant, so removal a
 through retirement and fresh admission. That is also why participant precedence never has to be
 decided. A declined extension changes nothing; an evaluated lapse in a retained participant retires
 the member.
+CBI9 supplies what the two before it lacked — a statement, taken from the resolved Component
+definition rather than the caller, of which grants the member's interaction depends on — and then
+removes and substitutes participants while every declared dependency stays covered. Because the
+declaration names Capability, target Actor, Operation, and scope rather than holders, a substitute
+can satisfy what a departing participant used to satisfy, and participant precedence never has to be
+decided. Nothing here checks the declaration against what the member actually does.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary
