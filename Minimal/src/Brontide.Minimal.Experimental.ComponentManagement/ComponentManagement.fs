@@ -37,6 +37,12 @@ type ArtifactId = private ArtifactId of string
 type EvidenceId = private EvidenceId of string
 type IssuerId = private IssuerId of string
 type PreferenceId = private PreferenceId of string
+type ResolutionRequestId = private ResolutionRequestId of string
+type RequirementId = private RequirementId of string
+type ParameterId = private ParameterId of string
+type MediationId = private MediationId of string
+type GenerationId = private GenerationId of string
+type RestartScopeId = private RestartScopeId of string
 type TopologyNodeId = private TopologyNodeId of string
 type FunctionId = private FunctionId of string
 type ClaimId = private ClaimId of string
@@ -111,6 +117,36 @@ module IssuerId =
 module PreferenceId =
     let create v = PreferenceId(IdentifierSyntax.require "PreferenceId" v)
     let value (PreferenceId v) = v
+
+[<RequireQualifiedAccess>]
+module ResolutionRequestId =
+    let create v = ResolutionRequestId(IdentifierSyntax.require "ResolutionRequestId" v)
+    let value (ResolutionRequestId v) = v
+
+[<RequireQualifiedAccess>]
+module RequirementId =
+    let create v = RequirementId(IdentifierSyntax.require "RequirementId" v)
+    let value (RequirementId v) = v
+
+[<RequireQualifiedAccess>]
+module ParameterId =
+    let create v = ParameterId(IdentifierSyntax.require "ParameterId" v)
+    let value (ParameterId v) = v
+
+[<RequireQualifiedAccess>]
+module MediationId =
+    let create v = MediationId(IdentifierSyntax.require "MediationId" v)
+    let value (MediationId v) = v
+
+[<RequireQualifiedAccess>]
+module GenerationId =
+    let create v = GenerationId(IdentifierSyntax.require "GenerationId" v)
+    let value (GenerationId v) = v
+
+[<RequireQualifiedAccess>]
+module RestartScopeId =
+    let create v = RestartScopeId(IdentifierSyntax.require "RestartScopeId" v)
+    let value (RestartScopeId v) = v
 
 [<RequireQualifiedAccess>]
 module TopologyNodeId =

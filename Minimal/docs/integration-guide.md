@@ -43,8 +43,23 @@ attributable and deterministically ordered; a source endpoint is not a publisher
 `FakeComponentSource.acquire` returns `Staged` or `Refused`. `FakeComponentSource.remove` returns a
 new unavailable source state, leaving an earlier staged value unchanged.
 
-CM1 is deliberately inert. Do not add resolution, activation, Actor, or authority machinery to this
-path; those belong to later phases. The observable C1-C7 boundary is in
+CM1 is deliberately inert. Do not add resolution behavior to the discovery or acquisition path.
+The observable C1-C7 boundary is in
 [`../../component-management/cm1-capability-contract.md`](../../component-management/cm1-capability-contract.md).
 The completed absence audit is
 [`../../component-management/cm1-contract-completeness-review.md`](../../component-management/cm1-contract-completeness-review.md).
+
+## Fake Component Management CM2
+
+Create a native `ResolutionRequest` from explicit definitions, candidates, existing occurrences,
+occupied bindings, preferences, Parameter observations, Port envelopes, topology policy, and local
+candidate-policy observations, then call `FakeGenerationResolver.resolve`. The algebraic result is
+`Resolved`, `WiderGenerationRequired`, or `Refused`; no refusal carries a partial generation.
+
+CM2 fills required Provider Set positions only, retains compatible occupied `1..1` bindings by
+default, and preserves alternatives and exclusions. It is effect-free: it has no preparation,
+activation, Actor, authority, or active-generation API. Dependency cycles return
+`CycleRequiresCm3`. The C1-C10 boundary and completed absence audit are
+[`../../component-management/cm2-capability-contract.md`](../../component-management/cm2-capability-contract.md)
+and
+[`../../component-management/cm2-contract-completeness-review.md`](../../component-management/cm2-contract-completeness-review.md).

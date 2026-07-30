@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cm2-resolution-vectors",
+  "description": "Data-only CM2 observable vector inventory. Native suites construct equivalent stack-owned inputs; no executable resolver logic is shared.",
+  "vectors": [
+    { "id": "cm2-01", "capability": "C1,C3,C10", "observation": "compatible occupied 1..1 member retained; preference unused and explained; no active-generation effect", "outcome": "resolved" },
+    { "id": "cm2-02", "capability": "C3,C4", "observation": "authorised replacement permits explicit preference to win before affinity, generic, and other tiers", "outcome": "resolved" },
+    { "id": "cm2-03", "capability": "C4", "observation": "only lower-bound positions fill automatically; explicit admissible preselection may use optional capacity", "outcome": "resolved" },
+    { "id": "cm2-04", "capability": "C2,C9", "observation": "Composition Parameter expands recursive structure before Activation Parameter binding", "outcome": "resolved" },
+    { "id": "cm2-05", "capability": "C5", "observation": "occurrence sharing requires requirement permission plus provider isolation, lifecycle, authority, and scope agreement", "outcome": "resolved" },
+    { "id": "cm2-06", "capability": "C6", "observation": "multi-member logical endpoint without declared Mediation fails closed", "outcome": "mediation-required" },
+    { "id": "cm2-07", "capability": "C6", "observation": "policy-bearing Host-erased Mediation without dedicated Component fails closed", "outcome": "mediation-requires-component" },
+    { "id": "cm2-08", "capability": "C6,C10", "observation": "dedicated policy-bearing Mediation retains every backing member and non-direct Binding Plan", "outcome": "resolved" },
+    { "id": "cm2-09", "capability": "C7", "observation": "child inside runtime-open Port envelope resolves without mutating parent generation", "outcome": "resolved" },
+    { "id": "cm2-10", "capability": "C7", "observation": "child exceeding non-widenable Port authority envelope fails closed", "outcome": "port-envelope-exceeded" },
+    { "id": "cm2-11", "capability": "C7", "observation": "child exceeding widenable Port envelope produces explicit wider-parent proposal", "outcome": "wider-parent-generation-required" },
+    { "id": "cm2-12", "capability": "C8", "observation": "topology claims are independently accepted, refined, or rejected without relation collapse", "outcome": "resolved" },
+    { "id": "cm2-13", "capability": "C4,C10", "observation": "definition and candidate permutations produce equal complete outcomes", "outcome": "resolved" },
+    { "id": "cm2-14", "capability": "C2", "observation": "unsupported Constraint and unbounded required cardinality fail before partial generation", "outcome": "structured-refusal" },
+    { "id": "cm2-15", "capability": "C2,C9", "observation": "missing structure precedes Activation Parameter evaluation; dependency cycles defer explicitly to CM3", "outcome": "structured-refusal" }
+  ]
+}

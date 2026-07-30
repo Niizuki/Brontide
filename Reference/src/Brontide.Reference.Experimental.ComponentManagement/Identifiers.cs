@@ -113,6 +113,30 @@ public readonly record struct PreferenceId(string Value)
     public override string ToString() => Value;
 }
 
+public readonly record struct ResolutionRequestId(string Value)
+{
+    public static ResolutionRequestId Create(string value) => new(IdentifierSyntax.Require(value, nameof(ResolutionRequestId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct RequirementId(string Value)
+{
+    public static RequirementId Create(string value) => new(IdentifierSyntax.Require(value, nameof(RequirementId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct ParameterId(string Value)
+{
+    public static ParameterId Create(string value) => new(IdentifierSyntax.Require(value, nameof(ParameterId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct MediationId(string Value)
+{
+    public static MediationId Create(string value) => new(IdentifierSyntax.Require(value, nameof(MediationId)));
+    public override string ToString() => Value;
+}
+
 public readonly record struct GenerationId(string Value)
 {
     public static GenerationId Create(string value) => new(IdentifierSyntax.Require(value, nameof(GenerationId)));
