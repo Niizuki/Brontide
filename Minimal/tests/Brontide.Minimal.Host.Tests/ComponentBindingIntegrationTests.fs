@@ -260,6 +260,13 @@ type ComponentBindingIntegrationTests() =
     let auditOperation = OperationId.create "cooling.read-log"
     let providerLocalActor = LocalActorReferenceId.create "local.cooling-provider"
     let supervisorLocalActor = LocalActorReferenceId.create "local.cooling-supervisor"
+    let observer = ActorId.create "actor.cooling-observer"
+    let observerEvidence = EvidenceId.create "evidence.cooling-observer"
+    let observerRelationshipId = RelationshipRequestId.create "relationship.cooling-observer"
+    let observeAuthorityId = AuthorityRequestId.create "authority.cooling-observe"
+    let observeCapability = CapabilityId.create "capability.cooling-observe"
+    let observeOperation = OperationId.create "cooling.observe"
+    let observerLocalActor = LocalActorReferenceId.create "local.cooling-observer"
 
     let setEvidence evidence subject : AdmissionEvidence =
         { Evidence = evidence
@@ -270,7 +277,7 @@ type ComponentBindingIntegrationTests() =
           ExpiresAt = evaluationTime.AddHours(1.0)
           State = AdmissionEvidenceState.Current }
 
-    let setPolicy supervisorActor : LocalAuthorityPolicy =
+    let setPolicyWith supervisorActor observerActor : LocalAuthorityPolicy =
         { Policy = AuthorityPolicyId.create "policy.integration-set"
           TrustedIssuers = [ authorityIssuer ]
           RelationshipRules =
@@ -289,7 +296,15 @@ type ComponentBindingIntegrationTests() =
                 LocalActor = Some supervisorActor
                 RequiredEvidence = [ supervisorEvidence ]
                 KnownMistake = false
-                Rationale = "component supervisor admitted" } ]
+                Rationale = "component supervisor admitted" }
+              { Rule = PolicyRuleId.create "rule.component-observer"
+                ProposedActor = observer
+                Kind = ActorRelationshipKind.ComponentParticipant
+                Disposition = PolicyDisposition.Allow
+                LocalActor = Some observerActor
+                RequiredEvidence = [ observerEvidence ]
+                KnownMistake = false
+                Rationale = "component observer admitted" } ]
           AuthorityRules =
             [ { Rule = PolicyRuleId.create "rule.cooling-control"
                 RelationshipKind = ActorRelationshipKind.ComponentParticipant
@@ -317,10 +332,41 @@ type ComponentBindingIntegrationTests() =
                 Scope = authorityScope
                 Disposition = PolicyDisposition.Allow
                 KnownMistake = false
-                Rationale = "narrow cooling audit admitted" } ] }
+                Rationale = "narrow cooling audit admitted" }
+              { Rule = PolicyRuleId.create "rule.cooling-observe"
+                RelationshipKind = ActorRelationshipKind.ComponentParticipant
+                Capability = observeCapability
+                Target = authorityTarget
+                Operation = observeOperation
+                Scope = authorityScope
+                Disposition = PolicyDisposition.Allow
+                KnownMistake = false
+                Rationale = "narrow cooling observation admitted" } ] }
 
-    let participantSet occurrence supervisorActor : ComponentParticipantRequest list =
-        let policy = setPolicy supervisorActor
+    let setPolicy supervisorActor = setPolicyWith supervisorActor observerLocalActor
+
+    let observerRequest policy : AuthorityAdmissionRequest =
+        { Request = AdmissionRequestId.create "admission.set-observer"
+          Participant = observer
+          EvaluationTime = evaluationTime
+          Evidence = [ setEvidence observerEvidence observer ]
+          Relationships =
+            [ { Request = observerRelationshipId
+                ProposedActor = observer
+                Kind = ActorRelationshipKind.ComponentParticipant
+                Evidence = [ observerEvidence ] } ]
+          Authority =
+            [ { Request = observeAuthorityId
+                Relationship = observerRelationshipId
+                Capability = observeCapability
+                Target = authorityTarget
+                Operation = observeOperation
+                Scope = authorityScope
+                Unlimited = false } ]
+          Policy = policy }
+
+    let participantSetWith occurrence supervisorActor observerActor : ComponentParticipantRequest list =
+        let policy = setPolicyWith supervisorActor observerActor
         [ { Mapping =
               { Occurrence = occurrence
                 Participant = participant }
@@ -373,6 +419,9 @@ type ComponentBindingIntegrationTests() =
                       Unlimited = false } ]
                 Policy = policy } } ]
 
+    let participantSet occurrence supervisorActor =
+        participantSetWith occurrence supervisorActor observerLocalActor
+
     let revoked (entry: ComponentParticipantRequest) =
         { entry with
             Request =
@@ -385,8 +434,6 @@ type ComponentBindingIntegrationTests() =
     let withAuthority (entry: ComponentParticipantRequest) authority =
         { entry with
             Request = { entry.Request with Authority = authority } }
-
-    let observer = ActorId.create "actor.cooling-observer"
 
     let revokedRequest (request: AuthorityAdmissionRequest) =
         { request with
@@ -414,6 +461,14 @@ type ComponentBindingIntegrationTests() =
         | ComponentParticipantRevalidationKind.Withdrawn -> "withdrawn"
         | ComponentParticipantRevalidationKind.RetirementFailed -> "retirement-failed"
         | ComponentParticipantRevalidationKind.ActivationUnavailable -> "activation-unavailable"
+
+    let extensionToken kind =
+        match kind with
+        | ComponentParticipantExtensionKind.Extended -> "extended"
+        | ComponentParticipantExtensionKind.Declined -> "declined"
+        | ComponentParticipantExtensionKind.Withdrawn -> "withdrawn"
+        | ComponentParticipantExtensionKind.RetirementFailed -> "retirement-failed"
+        | ComponentParticipantExtensionKind.ActivationUnavailable -> "activation-unavailable"
 
     let participantFailureToken kind =
         match kind with
@@ -1397,6 +1452,184 @@ type ComponentBindingIntegrationTests() =
                     unaffected.Authority.Kind,
                     Is.EqualTo AuthorityAdmissionOutcomeKind.Admitted)
                 Assert.That(CompositionStage.token memberValue.Stage, Is.EqualTo "retired"))
+        }
+
+    [<Test>]
+    member _.``shared CBI8 vectors extend or decline without disturbing the member``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi8-participant-extension-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI8 vector identity must be a string"
+                    | value -> value
+                let resolution, selected, occurrence = prepared ()
+                let handler = CoolingHandler()
+                let baselineConversation =
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(
+                            CoolingFixture.contract,
+                            handler,
+                            Realization.FixedDirectCall))
+                    :> IPortableProviderConversation
+                let conversation =
+                    if scenario = "cbi8-11-retirement-failure" then
+                        FailingRetirementConversation(baselineConversation)
+                        :> IPortableProviderConversation
+                    else
+                        baselineConversation
+                let observerActor =
+                    if scenario = "cbi8-09-added-shared-local-actor" then
+                        supervisorLocalActor
+                    else
+                        observerLocalActor
+                let participants = participantSetWith occurrence supervisorLocalActor observerActor
+                let! active =
+                    ComponentParticipantAdmission.activate
+                        resolution
+                        selected
+                        participants
+                        (runtimeRequest (plan [ occurrence ]))
+                        conversation
+                let memberValue = active.Lifecycle.Value.Member.Value
+                let baseline = participants |> List.map _.Request
+                let providerRequest = List.item 0 baseline
+                let supervisorRequest = List.item 1 baseline
+                let observerBaseline =
+                    observerRequest (setPolicyWith supervisorLocalActor observerActor)
+                let intended =
+                    match scenario with
+                    | "cbi8-01-added"
+                    | "cbi8-09-added-shared-local-actor" -> baseline @ [ observerBaseline ]
+                    | "cbi8-02-participant-removed" -> [ providerRequest ]
+                    | "cbi8-03-participant-substituted" -> [ providerRequest; observerBaseline ]
+                    | "cbi8-04-unchanged" -> baseline
+                    | "cbi8-05-added-identity-collision" ->
+                        baseline
+                        @ [ { observerBaseline with
+                                Authority =
+                                  [ { List.exactlyOne observerBaseline.Authority with
+                                        Request = authorityId } ] } ]
+                    | "cbi8-06-added-unlimited-grant" ->
+                        baseline
+                        @ [ { observerBaseline with
+                                Authority =
+                                  [ { List.exactlyOne observerBaseline.Authority with
+                                        Unlimited = true } ] } ]
+                    | "cbi8-07-retained-identity-drift" ->
+                        [ providerRequest
+                          { supervisorRequest with
+                              Authority =
+                                [ { List.exactlyOne supervisorRequest.Authority with
+                                      Capability = CapabilityId.create "capability.other" } ] }
+                          observerBaseline ]
+                    | "cbi8-08-added-participant-denied" ->
+                        baseline @ [ revokedRequest observerBaseline ]
+                    | "cbi8-10-retained-participant-revoked"
+                    | "cbi8-11-retirement-failure" ->
+                        [ providerRequest
+                          revokedRequest supervisorRequest
+                          observerBaseline ]
+                    | other -> invalidArg (nameof scenario) (sprintf "unknown CBI8 vector %s" other)
+                let! result =
+                    ComponentParticipantExtension.extend
+                        active
+                        intended
+                        (sprintf "set extension %s" scenario)
+                let released = vector.GetProperty("expectedReleased").GetBoolean()
+                multiple (fun () ->
+                    Assert.That(
+                        extensionToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.CurrentAuthority.Length,
+                        Is.EqualTo(vector.GetProperty("expectedParticipantsEvaluated").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.InForce
+                        |> Option.map (fun inForce -> inForce.Admissions.Length)
+                        |> Option.defaultValue 0,
+                        Is.EqualTo(vector.GetProperty("expectedInForceParticipants").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.InForce
+                        |> Option.map (fun inForce -> inForce.Grants.Length)
+                        |> Option.defaultValue 0,
+                        Is.EqualTo(vector.GetProperty("expectedInForceGrants").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        CompositionStage.token memberValue.Stage,
+                        Is.EqualTo(if released then "released" else "retired"),
+                        scenario)
+                    // A set is in force exactly while the member is released.
+                    Assert.That(result.InForce.IsSome, Is.EqualTo released, scenario)
+                    Assert.That(handler.ProviderEffectCount, Is.Zero, scenario))
+        }
+
+    [<Test>]
+    member _.``an extended set is revalidated as one set``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let participants = participantSet occurrence supervisorLocalActor
+            let! active =
+                ComponentParticipantAdmission.activate
+                    resolution
+                    selected
+                    participants
+                    (runtimeRequest (plan [ occurrence ]))
+                    (directCooling CoolingFixture.contract)
+            let memberValue = active.Lifecycle.Value.Member.Value
+            let intended =
+                (participants |> List.map _.Request)
+                @ [ observerRequest (setPolicy supervisorLocalActor) ]
+            let! extension =
+                ComponentParticipantExtension.extend active intended "extend with an observer"
+            let extended = extension.InForce.Value
+            let! revalidated =
+                ComponentParticipantRevalidation.revalidate
+                    extended
+                    intended
+                    "extended set revalidation"
+            multiple (fun () ->
+                Assert.That(extension.Kind, Is.EqualTo ComponentParticipantExtensionKind.Extended)
+                Assert.That(
+                    revalidated.Kind,
+                    Is.EqualTo ComponentParticipantRevalidationKind.Continued)
+                Assert.That(revalidated.CurrentAuthority.Length, Is.EqualTo 3)
+                Assert.That(CompositionStage.token memberValue.Stage, Is.EqualTo "released"))
+        }
+
+    [<Test>]
+    member _.``refused CBI6 set cannot be extended``() =
+        task {
+            let unavailable =
+                { Admissions = []
+                  Grants = []
+                  Lifecycle = None
+                  Failure = None }
+            let _, _, occurrence = prepared ()
+            let! result =
+                ComponentParticipantExtension.extend
+                    unavailable
+                    (participantSet occurrence supervisorLocalActor |> List.map _.Request)
+                    "set extension unavailable"
+            multiple (fun () ->
+                Assert.That(
+                    result.Kind,
+                    Is.EqualTo ComponentParticipantExtensionKind.ActivationUnavailable)
+                Assert.That(result.InForce, Is.EqualTo None)
+                Assert.That(result.CurrentAuthority, Is.Empty))
         }
 
     [<Test>]

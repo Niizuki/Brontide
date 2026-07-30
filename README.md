@@ -110,6 +110,11 @@ shared member is retired rather than the set narrowed: nothing in an admitted se
 participants its ordinary interaction depends on, so continuing would decide that invisibly. The
 result names which participants did not renew, and retirement closes the local gate before peer
 cleanup.
+CBI8 grows an admitted set in place while the member stays released, and refuses to shrink one: a
+substitute holding the identical tuples is still a different grant, so removal and substitution go
+through retirement and fresh admission. That is also why participant precedence never has to be
+decided. A declined extension changes nothing; an evaluated lapse in a retained participant retires
+the member.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

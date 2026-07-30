@@ -57,6 +57,8 @@ from conformance review.
 The CBI7 contract is complete for exact revalidation and fail-closed withdrawal of one participant
 set over one released singleton binding. Finding 1 is the decision CBI6 deferred and is now closed;
 finding 10's alternatives — participant replacement in place, precedence between participants, and
-revocation propagation — remain future work rather than gaps in this contract. No finding requires
+revocation propagation — remain future work rather than gaps in this contract, except that
+[CBI8](./cbi8-capability-contract.md) has since delivered in-place addition and shown that
+precedence is a prerequisite of removal rather than of replacement generally. No finding requires
 widening it into CM4 binding-exercise projection, cross-vocabulary Operation mapping, multi-member
 or relational lifecycles, mediation, real distribution, or Architecture 0.8 conformance.

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi8-participant-extension-vectors",
+  "vectors": [
+    {
+      "id": "cbi8-01-added",
+      "expectedKind": "extended",
+      "expectedCode": "participant-set-extended",
+      "expectedParticipantsEvaluated": 3,
+      "expectedInForceParticipants": 3,
+      "expectedInForceGrants": 4,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi8-02-participant-removed",
+      "expectedKind": "declined",
+      "expectedCode": "participant-not-retained",
+      "expectedParticipantsEvaluated": 0,
+      "expectedInForceParticipants": 2,
+      "expectedInForceGrants": 3,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi8-03-participant-substituted",
+      "expectedKind": "declined",
+      "expectedCode": "participant-not-retained",
+      "expectedParticipantsEvaluated": 0,
+      "expectedInForceParticipants": 2,
+      "expectedInForceGrants": 3,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi8-04-unchanged",
+      "expectedKind": "declined",
+      "expectedCode": "participant-set-unchanged",
+      "expectedParticipantsEvaluated": 0,
+      "expectedInForceParticipants": 2,
+      "expectedInForceGrants": 3,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi8-05-added-identity-collision",
+      "expectedKind": "declined",
+      "expectedCode": "authority-identity-not-distinct",
+      "expectedParticipantsEvaluated": 0,
+      "expectedInForceParticipants": 2,
+      "expectedInForceGrants": 3,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi8-06-added-unlimited-grant",
+      "expectedKind": "declined",
+      "expectedCode": "authority-shape-unsupported",
+      "expectedParticipantsEvaluated": 0,
+      "expectedInForceParticipants": 2,
+      "expectedInForceGrants": 3,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi8-07-retained-identity-drift",
+      "expectedKind": "declined",
+      "expectedCode": "authority-revalidation-mismatch",
+      "expectedParticipantsEvaluated": 0,
+      "expectedInForceParticipants": 2,
+      "expectedInForceGrants": 3,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi8-08-added-participant-denied",
+      "expectedKind": "declined",
+      "expectedCode": "authority-not-admitted",
+      "expectedParticipantsEvaluated": 3,
+      "expectedInForceParticipants": 2,
+      "expectedInForceGrants": 3,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi8-09-added-shared-local-actor",
+      "expectedKind": "declined",
+      "expectedCode": "local-actor-conflict",
+      "expectedParticipantsEvaluated": 3,
+      "expectedInForceParticipants": 2,
+      "expectedInForceGrants": 3,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi8-10-retained-participant-revoked",
+      "expectedKind": "withdrawn",
+      "expectedCode": "authority-not-renewed",
+      "expectedParticipantsEvaluated": 3,
+      "expectedInForceParticipants": 0,
+      "expectedInForceGrants": 0,
+      "expectedReleased": false
+    },
+    {
+      "id": "cbi8-11-retirement-failure",
+      "expectedKind": "retirement-failed",
+      "expectedCode": "authority-retirement-failed",
+      "expectedParticipantsEvaluated": 3,
+      "expectedInForceParticipants": 0,
+      "expectedInForceGrants": 0,
+      "expectedReleased": false
+    }
+  ]
+}

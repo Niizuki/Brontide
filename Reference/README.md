@@ -66,6 +66,10 @@ CBI7 revalidates that set from fresh explicit CM5 requests. The identical set re
 keeps the member released; a changed membership, identity drift, or any participant that does not
 renew retires it before further ordinary interaction, and the result names which participants did
 not renew rather than narrowing the set.
+CBI8 adds participants to that set in place while the member stays released. Removal, substitution,
+an unchanged set, a collision with a participant already live, and an addition CM5 does not admit
+are all declined without disturbing the binding; only an evaluated lapse in a retained participant
+retires it.
 
 ## Build and test
 
