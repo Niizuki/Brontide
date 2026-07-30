@@ -65,7 +65,7 @@ type FixtureTests() =
         equal (List.length fixture.Packages) 5
         equal (List.length fixture.ComponentDefinitions) 5
         equal (List.length fixture.ActivatedOccurrences) 3
-        equal (List.length fixture.Storefront) 3
+        equal (List.length fixture.Storefront) 4
 
     [<Test>]
     member _.``Catalog expectations surface every required cm0 case``() =

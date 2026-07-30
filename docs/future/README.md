@@ -124,13 +124,31 @@ The former Priority 0 documentation relocation is complete; its archived plan is
 [Pinned Documentation Relocation Plan 0.1](../archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).
 No documentation prerequisite now precedes planned implementation work.
 
+## Priority 2 — Component Management
+
+[Component Management Implementation Plan 0.1](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md)
+is the next implementable programme while Portable Binding awaits reviewer and owner actions. CM0
+and CM1 are complete independently in both stacks. CM1 adds standardised contract/version
+discovery across zero or more fake sources, deterministic attributable candidates, immutable staged
+acquisition, contested evidence with attributable fake-policy decisions, source disappearance, four
+structured fail-closed acquisition categories, and an explicit zero-effect boundary. Its C1-C7
+behaviour and phase-wide properties live in the data-only
+[`CM1 capability contract`](../../component-management/cm1-capability-contract.md).
+Its required phase-boundary
+[`contract-completeness review`](../../component-management/cm1-contract-completeness-review.md)
+is complete with every finding corrected.
+
+CM2 — recursive generational resolution — is the next implementation phase. CM1 does not select a
+candidate, construct a Proposed Stack, resolve a generation, prepare or activate a Component,
+establish an Actor, or grant authority.
+
 ## Other planned areas
 
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [`Brontide-Architecture-0.8.md`](./architecture/Brontide-Architecture-0.8.md) | Complete draft; implementation evidence pending; not ratified. |
 | Channel | [`Channel Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Cooling/Catalog evidence exists; reusable Channel realization remains planned. |
-| Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0 fixtures are implemented; CM1–CM6 remain planned. |
+| Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0–CM1 are implemented independently in both stacks; CM2–CM6 remain planned. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |
 | Persistent Information | [`Persistent Information Design Note`](./persistent-information/Brontide-Design-Note-Persistent-Information-0.1.md) | Design direction only. |

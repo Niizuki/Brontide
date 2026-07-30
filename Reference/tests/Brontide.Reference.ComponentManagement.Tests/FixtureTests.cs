@@ -64,7 +64,7 @@ public sealed class FixtureTests
             Assert.That(fixture.Packages, Has.Count.EqualTo(5));
             Assert.That(fixture.ComponentDefinitions, Has.Count.EqualTo(5));
             Assert.That(fixture.ActivatedOccurrences, Has.Count.EqualTo(3));
-            Assert.That(fixture.Storefront, Has.Count.EqualTo(3));
+            Assert.That(fixture.Storefront, Has.Count.EqualTo(4));
         });
     }
 

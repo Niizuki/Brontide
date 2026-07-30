@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cm1-source-evidence",
+  "description": "CM1 source-to-evidence availability. Data only; an advertisement does not imply that its source supplied every claim about the artifact.",
+  "availability": [
+    { "source": "src.local-cache", "evidence": "ev.integrity-cooling" },
+    { "source": "src.local-cache", "evidence": "ev.review-cooling" },
+    { "source": "src.contoso-mirror", "evidence": "ev.integrity-cooling" },
+    { "source": "src.contoso-mirror", "evidence": "ev.review-cooling" },
+    { "source": "src.bazaar", "evidence": "ev.review-fab-positive" },
+    { "source": "src.bazaar", "evidence": "ev.review-fab-negative" }
+  ]
+}

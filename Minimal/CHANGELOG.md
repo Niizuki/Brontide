@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased — Component Management CM1 experimental evidence
+
+### Added
+
+- A Minimal-native discovery pipeline over pure fake-source states, with standard contract/version
+  queries, deterministic source/package/definition ordering, source-endpoint and publisher
+  attribution, duplicate claims, advertised package versions, and the source-neutral storefront
+  projection.
+- Immutable staged artifacts carrying source-attributed contested evidence and fake-policy
+  decisions; acquisition returns a `Staged`/`Refused` union with four exhaustive refusal cases.
+  Source removal is a pure transition and every CM1 result reports no selection, resolution,
+  preparation, activation, Actor establishment, or Capability grant.
+- A separate neutral source/evidence-availability fixture, exhaustive enumeration-permutation
+  properties, a falsifiable local/remote storefront comparison, and the completed CM1
+  contract-completeness review.
+
+This remains a fake Architecture 0.8 experiment outside Brontide Minimal Stack Base. It is not a
+marketplace, package manager, loader, security product, conformance claim, or component-version
+change.
+
 ## Unreleased — Portable Component Binding 0.1 experimental evidence
 
 ### Added

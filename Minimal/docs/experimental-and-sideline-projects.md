@@ -18,9 +18,12 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   for the
   [Component Management Implementation Plan 0.1](../../docs/future/component-management/Brontide-Component-Management-Implementation-Plan-0.1.md).
   Its CM0 phase implements native private-union identity spaces and a strict, fail-closed loader
-  for the shared `component-management/` fixtures. It is not a real marketplace, package manager,
-  loader, or security product, and is not an Architecture 0.8 conformance claim; CM1-CM6 remain
-  planned.
+  for the shared `component-management/` fixtures. CM1 adds a standard query, deterministic
+  attributable discovery from any number of pure fake-source states, immutable staged acquisition,
+  source-attributed contested evidence, explicit fake-policy decisions, four algebraic refusal
+  values, and an all-false lifecycle/authority effect observation. It stops before selection and
+  resolution. It is not a real marketplace, package manager, loader, or security product, and is
+  not an Architecture 0.8 conformance claim; CM2-CM6 remain planned.
 - `Brontide.Minimal.Binding` (`Portable/`) is the Minimal native realization of the
   [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md),
   built against the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).

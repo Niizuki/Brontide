@@ -161,6 +161,30 @@ public readonly record struct ObserverId(string Value)
     public override string ToString() => Value;
 }
 
+public readonly record struct DiscoveryQueryId
+{
+    private DiscoveryQueryId(string value) => Value = value;
+    public string Value { get; }
+    public static DiscoveryQueryId Create(string value) => new(IdentifierSyntax.Require(value, nameof(DiscoveryQueryId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct TargetEnvironmentId
+{
+    private TargetEnvironmentId(string value) => Value = value;
+    public string Value { get; }
+    public static TargetEnvironmentId Create(string value) => new(IdentifierSyntax.Require(value, nameof(TargetEnvironmentId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct EvidencePolicyId
+{
+    private EvidencePolicyId(string value) => Value = value;
+    public string Value { get; }
+    public static EvidencePolicyId Create(string value) => new(IdentifierSyntax.Require(value, nameof(EvidencePolicyId)));
+    public override string ToString() => Value;
+}
+
 /// <summary>Requirement cardinality such as <c>1..1</c> or <c>0..*</c>.</summary>
 public readonly record struct Cardinality(int Minimum, int? Maximum)
 {
