@@ -83,6 +83,10 @@ CBI11 narrows a declaration only to a successor resolution of the same position 
 strictly fewer authorities, with each retained one keeping its exact tuple and observed use vetoing
 its own removal. It never retires a member; a later CBI9 revision releases what the narrower
 declaration no longer needs.
+CBI12 activates several independent members under one CM4 activation. No member is released until
+every member is Ready and CM4 accepts the activation; a failed member retires the ones that
+succeeded; and a cyclic group carrying Relational Initialisation is refused rather than activated
+without it.
 
 ## Build and test
 

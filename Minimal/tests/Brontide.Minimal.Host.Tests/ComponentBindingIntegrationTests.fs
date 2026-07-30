@@ -406,6 +406,95 @@ type ComponentBindingIntegrationTests() =
                 Operation = auditOperation
                 Scope = authorityScope } ] }
 
+    let secondaryRequirementId = RequirementId.create "req.cooling-secondary"
+    let secondaryProvider = DefinitionId.create "def.test.cooling-secondary"
+    let secondaryContractId = ContractId.create "brontide.fake.cooling-secondary"
+
+    /// Two independent requirements, so the generation resolves two distinct occurrences.
+    let pairRequest () =
+        let single = request (Cardinality.parse "1..1")
+        let consumerDefinition =
+            single.Definitions |> List.find (fun item -> item.Definition = consumer)
+        let providerDefinition =
+            single.Definitions |> List.find (fun item -> item.Definition = provider)
+        let candidate = List.exactlyOne single.Candidates
+        let secondaryRequirement =
+            { List.exactlyOne consumerDefinition.Requirements with
+                Requirement = secondaryRequirementId
+                Contract = secondaryContractId }
+        { single with
+            Definitions =
+                [ { consumerDefinition with
+                      Requirements =
+                        consumerDefinition.Requirements @ [ secondaryRequirement ] }
+                  providerDefinition
+                  { providerDefinition with
+                      Definition = secondaryProvider
+                      Provides = [ { Contract = secondaryContractId; Version = version } ] } ]
+            Candidates =
+                [ candidate
+                  { candidate with
+                      Definition = secondaryProvider
+                      Provides = [ { Contract = secondaryContractId; Version = version } ] } ] }
+
+    /// A genuinely cyclic group: one strongly connected component carrying protocols.
+    let protocolPlan (occurrences: OccurrenceId list) =
+        let forward = ActivationEdgeId.create "edge.forward"
+        let backward = ActivationEdgeId.create "edge.backward"
+        let forwardProtocol = LifecycleProtocolId.create "protocol.forward"
+        let backwardProtocol = LifecycleProtocolId.create "protocol.backward"
+        let declare identity edge from' target : LifecycleProtocolDeclaration =
+            { Protocol = identity
+              Edge = edge
+              From = from'
+              To = target
+              Operation = LifecycleOperationId.create "lifecycle.handshake"
+              Authority = [ CapabilityId.create "capability.lifecycle-handshake" ]
+              InputShape = ShapeId.create "shape.handshake-in"
+              OutputShape = ShapeId.create "shape.handshake-out"
+              Ordering = "ordered"
+              TimeoutMilliseconds = 1000
+              RetryLimit = 0
+              Idempotent = true
+              Completion = "acknowledged"
+              Failure = "abort"
+              Rollback = "release" }
+        let edge identity from' target protocol : ActivationDependency =
+            { Edge = identity
+              From = from'
+              To = target
+              Kind = ActivationDependencyKind.RelationalInitialisation
+              Contract = contractId
+              Version = version
+              ObservedBeforeRelease = true
+              Protocol = Some protocol
+              CrossingPort = None
+              AllowWiderRegionProposal = false }
+        let groupRequest =
+            { Request = ActivationGroupRequestId.create "group.integration"
+              Generation = GenerationId.create "gen.lifecycle"
+              RestartScope = RestartScopeId.create "restart.lifecycle"
+              Members = occurrences |> List.map activationMember
+              Edges =
+                [ edge forward (List.item 0 occurrences) (List.item 1 occurrences) forwardProtocol
+                  edge backward (List.item 1 occurrences) (List.item 0 occurrences) backwardProtocol ]
+              Protocols =
+                [ declare forwardProtocol forward (List.item 0 occurrences) (List.item 1 occurrences)
+                  declare backwardProtocol backward (List.item 1 occurrences) (List.item 0 occurrences) ]
+              RegionCrossings = [] }
+        match FakeActivationGroupPlanner.plan groupRequest with
+        | Planned value -> value
+        | outcome -> failwithf "Expected a cyclic CM3 plan, got %A." outcome
+
+    let groupFailureToken kind =
+        match kind with
+        | ComponentGroupActivationFailureKind.PlanUnsupported -> "plan-unsupported"
+        | ComponentGroupActivationFailureKind.PreparationUnavailable -> "preparation-unavailable"
+        | ComponentGroupActivationFailureKind.RuntimeRefusedBeforeStart -> "runtime-refused-before-start"
+        | ComponentGroupActivationFailureKind.MemberEstablishmentRefused ->
+            "member-establishment-refused"
+        | ComponentGroupActivationFailureKind.MemberReleaseRefused -> "member-release-refused"
+
     let controlOnlyDependency definition : ComponentGrantDependency =
         { Definition = definition
           Entries =
@@ -1863,6 +1952,188 @@ type ComponentBindingIntegrationTests() =
                     // A set is in force exactly while the member is released.
                     Assert.That(result.InForce.IsSome, Is.EqualTo released, scenario)
                     Assert.That(handler.ProviderEffectCount, Is.Zero, scenario))
+        }
+
+    [<Test>]
+    member _.``shared CBI12 vectors open ordinary interaction for every member or none``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi12-group-activation-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI12 vector identity must be a string"
+                    | value -> value
+                let resolution = pairRequest () |> FakeGenerationResolver.resolve
+                let providerSets =
+                    match resolution with
+                    | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                    | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+                let positionFor requirement =
+                    providerSets
+                    |> List.find (fun item -> item.Requirement = requirement)
+                    |> fun item -> List.exactlyOne item.Members
+                let handlers = [ CoolingHandler(); CoolingHandler() ]
+                let substituted =
+                    { CoolingFixture.contract with
+                        Provider = expectProvider "brontide.fake.substituted" }
+                let secondContract =
+                    if scenario = "cbi12-02-second-member-refused" then
+                        substituted
+                    else
+                        CoolingFixture.contract
+                let conversationFor document handler =
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(document, handler, Realization.FixedDirectCall))
+                    :> IPortableProviderConversation
+                let primary =
+                    { Selection =
+                        { selection (positionFor requirementId) with
+                            HostEndpoint = "group-host-primary" }
+                      Conversation =
+                        conversationFor CoolingFixture.contract (List.item 0 handlers) }
+                let secondarySelection =
+                    { selection (positionFor secondaryRequirementId) with
+                        Requirement =
+                            if scenario = "cbi12-03-preparation-refused" then
+                                RequirementId.create "req.absent"
+                            else
+                                secondaryRequirementId
+                        HostEndpoint = "group-host-secondary" }
+                let secondary =
+                    { Selection = secondarySelection
+                      Conversation = conversationFor secondContract (List.item 1 handlers) }
+                let members = [ primary; secondary ]
+                let occurrences = members |> List.map _.Selection.Occurrence
+                let planValue =
+                    match scenario with
+                    | "cbi12-04-unselected-member" ->
+                        plan (occurrences @ [ OccurrenceId.create "occ.extra" ])
+                    | "cbi12-05-protocol-group" -> protocolPlan occurrences
+                    | _ -> plan occurrences
+                let runtime =
+                    if scenario = "cbi12-06-runtime-refused" then
+                        { runtimeRequest planValue with
+                            Release =
+                                { Release = ReleaseId.create "release.integration"
+                                  FailureMoment = ReleaseFailureMoment.BeforeCutover } }
+                    else
+                        runtimeRequest planValue
+                let! result = ComponentGroupLifecycle.activate resolution members runtime
+                let expectedFailure =
+                    let value = vector.GetProperty("expectedFailureKind")
+                    if value.ValueKind = JsonValueKind.Null then None else Some(value.GetString())
+                let actualFailure =
+                    result.Failure |> Option.map (fun failure -> groupFailureToken failure.Kind)
+                let expectedCode =
+                    let value = vector.GetProperty("expectedCode")
+                    if value.ValueKind = JsonValueKind.Null then None else Some(value.GetString())
+                let expectedRuntimeActive =
+                    let value = vector.GetProperty("expectedRuntimeActive")
+                    if value.ValueKind = JsonValueKind.Null then
+                        None
+                    else
+                        Some(value.GetBoolean())
+                let actualRuntimeActive =
+                    result.Runtime
+                    |> Option.map (fun outcome ->
+                        outcome.Kind = ActivationRuntimeOutcomeKind.Active)
+                let released = result.Members |> List.filter _.Member.IsReleased
+                let retired =
+                    result.Members
+                    |> List.filter (fun outcome ->
+                        CompositionStage.token outcome.Member.Stage = "retired")
+                multiple (fun () ->
+                    Assert.That(
+                        ComponentGroupLifecycle.isActive result,
+                        Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()),
+                        scenario)
+                    Assert.That(actualFailure, Is.EqualTo expectedFailure, scenario)
+                    Assert.That(
+                        result.Failure |> Option.map _.Code,
+                        Is.EqualTo expectedCode,
+                        scenario)
+                    Assert.That(
+                        result.Members.Length,
+                        Is.EqualTo(vector.GetProperty("expectedMembers").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        released.Length,
+                        Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        retired.Length,
+                        Is.EqualTo(vector.GetProperty("expectedRetired").GetInt32()),
+                        scenario)
+                    Assert.That(actualRuntimeActive, Is.EqualTo expectedRuntimeActive, scenario)
+                    // Either every member is released or none is.
+                    Assert.That(
+                        released.Length = result.Members.Length || released.IsEmpty,
+                        Is.True,
+                        scenario)
+                    Assert.That(
+                        handlers |> List.sumBy _.ProviderEffectCount,
+                        Is.EqualTo 0L,
+                        scenario))
+        }
+
+    [<Test>]
+    member _.``a failed member leaves no other member reachable``() =
+        task {
+            let resolution = pairRequest () |> FakeGenerationResolver.resolve
+            let providerSets =
+                match resolution with
+                | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            let positionFor requirement =
+                providerSets
+                |> List.find (fun item -> item.Requirement = requirement)
+                |> fun item -> List.exactlyOne item.Members
+            let handlers = [ CoolingHandler(); CoolingHandler() ]
+            let conversationFor document handler =
+                PortableDirectConversation(
+                    PortableProviderEndpoint(document, handler, Realization.FixedDirectCall))
+                :> IPortableProviderConversation
+            let members =
+                [ { Selection =
+                      { selection (positionFor requirementId) with
+                          HostEndpoint = "group-host-primary" }
+                    Conversation = conversationFor CoolingFixture.contract (List.item 0 handlers) }
+                  { Selection =
+                      { selection (positionFor secondaryRequirementId) with
+                          Requirement = secondaryRequirementId
+                          HostEndpoint = "group-host-secondary" }
+                    Conversation =
+                      conversationFor
+                          { CoolingFixture.contract with
+                              Provider = expectProvider "brontide.fake.substituted" }
+                          (List.item 1 handlers) } ]
+            let occurrences = members |> List.map _.Selection.Occurrence
+            let! result =
+                ComponentGroupLifecycle.activate resolution members (runtimeRequest (plan occurrences))
+            let survivor = (List.item 0 result.Members).Member
+            let! attempted =
+                survivor.Invoke(
+                    CoolingFixture.setEnabled,
+                    CoolingFixture.commandV1,
+                    CoolingFixture.authorizedCommand "primary" true,
+                    PortableConstraint.Atom PortableTruth.Satisfied)
+            let interaction =
+                match attempted with
+                | Ok value -> value
+                | Error error -> failwithf "Expected a shaped gate refusal, got %A." error
+            multiple (fun () ->
+                Assert.That(ComponentGroupLifecycle.isActive result, Is.False)
+                Assert.That(
+                    result.Failure.Value.Member,
+                    Is.EqualTo(Some (List.item 1 result.Members).Occurrence))
+                Assert.That(CompositionStage.token survivor.Stage, Is.EqualTo "retired")
+                Assert.That(interaction.Category, Is.EqualTo(Some ProtocolCategory.StateViolation)))
         }
 
     [<Test>]

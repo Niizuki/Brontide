@@ -318,14 +318,30 @@ declaration the Component will be held to. The
 [`contract-completeness review`](../../component-management/cbi11-contract-completeness-review.md)
 bound it to one declaration over one released singleton binding.
 
-**Multi-member activation is the next implementable integration item, and it is the constant every
-slice so far has held fixed.** CBI1 through CBI11 all govern one member of one direct `1..1`
-position; the first question a second member raises is the release barrier — whether ordinary
-interaction opens per member or only once every member of an activation group is Ready — and CM3
-already distinguishes protocol-free groups from ones carrying Relational Initialisation, which is
-where the answer has to come from. Replacement, child Ports, mediation, wider Provider Sets, and
-real distribution remain future work behind it. PB8's independent reviews and Decision 11 owner
-ruling remain separate governance prerequisites rather than implementation work.
+CBI12 relaxes the constant every earlier slice held fixed and activates several members together.
+**The release barrier is the activation, not the member.** CM4 models one logical Release for an
+activation attempt, so ordinary interaction opens for every member at once or for none — the answer
+comes from the runtime's own shape rather than from a preference, and both stacks assert it as a
+property over every vector. A member that reached Ready while another failed is retired, gate first,
+so no member is left holding an open channel because a sibling failed; each stack proves it by
+attempting an ordinary Operation on the survivor and requiring a state refusal. Cyclic groups are
+refused: a multi-member group is a strongly connected component, which is what Relational
+Initialisation exists for, and the vector uses a genuinely cyclic CM3 plan — two relational edges,
+each with its own complete protocol — rather than a hand-made shape. The
+[`CBI12 capability contract`](../../component-management/cbi12-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi12-contract-completeness-review.md)
+bound it to independent, protocol-free members within one activation.
+
+**Authority for a multi-member activation is the next implementable integration item.** CBI12 moved
+the lifecycle to several members while CBI3 and CBI6 through CBI11 still govern one, so the
+programme now has a lifecycle that spans an activation and an authority story that does not. The
+first questions are whether a participant set is admitted per member or per activation, and whether
+the release barrier and the authority barrier are the same barrier — CBI12's answer for Release
+suggests they should be, but the receiving domain admits participants against a Component, not
+against an attempt, so it has to be decided rather than assumed. Relational Initialisation,
+replacement, child Ports, mediation, wider Provider Sets, and real distribution remain future work
+behind it. PB8's independent reviews and Decision 11 owner ruling remain separate governance
+prerequisites rather than implementation work.
 
 ## Other planned areas
 
