@@ -129,6 +129,16 @@ participant retires it — a malformed request decides nothing, evaluated loss d
 bounded behavior is recorded in the [CBI8 capability contract](./cbi8-capability-contract.md) and
 completed [contract-completeness review](./cbi8-contract-completeness-review.md).
 
+CBI9 supplies what CBI7 and CBI8 both stopped at — a statement of which grants the member's ordinary
+interaction depends on — and then removes and substitutes participants of a live set. The declared
+names come from CM2's record of the selected definition's requested authority, so the Component says
+what it depends on and the caller only maps each name to the CM5 tuple that satisfies it. A revision
+is admitted while every declared dependency stays covered, which lets a substitute with a different
+holder satisfy a dependency the departing participant used to satisfy, and which means participant
+precedence never has to be decided. An empty declaration licenses nothing. Its bounded behavior is
+recorded in the [CBI9 capability contract](./cbi9-capability-contract.md) and completed
+[contract-completeness review](./cbi9-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -235,6 +245,16 @@ outcome kinds and codes. Each vector also pins how many participants were evalua
 set still in force is, and whether the member is still released, so "nothing changed" is a checked
 answer rather than an assumption. The fixture contains no evaluator, policy, identity rule, cleanup
 mechanism, or portable runtime.
+
+### `cbi9-dependency-revision-vectors` sections
+
+`vectors` names two admitted revisions — dropping a participant nothing depends on, and substituting
+the holder of a declared dependency — and eleven refusals covering an uncovered dependency, an
+unchanged or empty set, a declaration that misnames, empties, or fails to match the set in force,
+retained identity drift, a denied addition, a shared local Actor, a retained participant revoked,
+and retirement cleanup failure. Each vector pins the outcome kind, code, evaluated count, in-force
+set size and grant count, and whether the member is still released. The fixture contains no
+evaluator, resolver, policy, coverage rule, or portable runtime.
 
 ### `cm0-mice-topology` sections
 

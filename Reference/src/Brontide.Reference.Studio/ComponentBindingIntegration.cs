@@ -1325,6 +1325,301 @@ public static class ComponentParticipantExtension
             reason);
 }
 
+public sealed record ComponentGrantDependencyEntry(
+    string DeclaredAuthority,
+    Cm.CapabilityId Capability,
+    Cm.ActorId Target,
+    Cm.OperationId Operation,
+    Cm.CapabilityScopeId Scope);
+
+public sealed record ComponentGrantDependency(
+    Cm.DefinitionId Definition,
+    IReadOnlyList<ComponentGrantDependencyEntry> Entries);
+
+public enum ComponentParticipantRevisionKind
+{
+    Revised,
+    Declined,
+    Withdrawn,
+    RetirementFailed,
+    ActivationUnavailable,
+}
+
+public sealed record ComponentParticipantRevisionResult(
+    ComponentParticipantRevisionKind Kind,
+    ComponentParticipantAdmissionResult? InForce,
+    IReadOnlyList<ComponentParticipantObservation> CurrentAuthority,
+    IReadOnlyList<Cm.ActorId> Unrenewed,
+    Portable.PortableReplacementRecord? Replacement,
+    string Code,
+    string Reason)
+{
+    public bool IsRevised => Kind == ComponentParticipantRevisionKind.Revised;
+}
+
+/// <summary>
+/// Removes and substitutes participants of a live set, under a dependency the resolved Component
+/// definition declared.
+/// </summary>
+/// <remarks>
+/// The declaration is what CBI7 and CBI8 lacked. Its names come from CM2's record of the selected
+/// definition's requested authority, so the Component states what its interaction depends on and
+/// the caller only maps each name to the CM5 tuple that satisfies it. Because the declaration names
+/// tuples rather than holders, a substitute that satisfies the same dependency is enough.
+/// </remarks>
+public static class ComponentParticipantRevision
+{
+    public static async ValueTask<ComponentParticipantRevisionResult> ReviseAsync(
+        Cm.ResolutionOutcome resolution,
+        ComponentBindingSelection selection,
+        ComponentParticipantAdmissionResult active,
+        ComponentGrantDependency dependency,
+        IReadOnlyList<Cm.AuthorityAdmissionRequest> requests,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(active);
+        ArgumentNullException.ThrowIfNull(dependency);
+        ArgumentNullException.ThrowIfNull(requests);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (!active.IsActive || active.Lifecycle?.Member is not { } member)
+        {
+            return new(
+                ComponentParticipantRevisionKind.ActivationUnavailable,
+                null,
+                Array.Empty<ComponentParticipantObservation>(),
+                Array.Empty<Cm.ActorId>(),
+                null,
+                "active-authority-unavailable",
+                "CBI9 requires one released Active CBI6 result with a completely admitted participant set.");
+        }
+
+        if (Declaration(resolution, selection, dependency, active) is { } undeclared)
+        {
+            return Decline(active, undeclared.Code, undeclared.Reason);
+        }
+
+        var prior = active.Admissions;
+        var priorByActor = prior.ToDictionary(item => item.Participant);
+        var ordered = requests
+            .OrderBy(item => item.Participant.Value, StringComparer.Ordinal)
+            .ToArray();
+        if (Structure(prior, ordered) is { } declined)
+        {
+            return Decline(active, declined.Code, declined.Reason);
+        }
+
+        var retained = ordered.Where(item => priorByActor.ContainsKey(item.Participant)).ToArray();
+        if (retained.Any(item => !ComponentParticipantRevalidation.MatchesPrior(
+                priorByActor[item.Participant],
+                item)))
+        {
+            return Decline(
+                active,
+                "authority-revalidation-mismatch",
+                "A retained request does not identify the same relationship and grants that admitted this member.");
+        }
+
+        var evaluator = new Cm.FakeAuthorityAdmissionEvaluator();
+        var current = ordered
+            .Select(item => new ComponentParticipantObservation(item.Participant, evaluator.Evaluate(item)))
+            .ToArray();
+        var unrenewed = current
+            .Where(item => priorByActor.TryGetValue(item.Participant, out var existing) &&
+                !ComponentParticipantRevalidation.IsSameAdmission(existing.Authority, item.Authority))
+            .Select(item => item.Participant)
+            .ToArray();
+        if (unrenewed.Length > 0)
+        {
+            var (replacement, failure) = await ComponentParticipantRevalidation
+                .TryRetireAsync(member, retirementReason, cancellationToken)
+                .ConfigureAwait(false);
+            return new(
+                failure is null
+                    ? ComponentParticipantRevisionKind.Withdrawn
+                    : ComponentParticipantRevisionKind.RetirementFailed,
+                null,
+                current,
+                unrenewed,
+                replacement,
+                failure is null ? "authority-not-renewed" : "authority-retirement-failed",
+                failure ?? $"The receiving domain no longer admits the identical authority for {string.Join(", ", unrenewed.Select(item => item.Value))}.");
+        }
+
+        var refusedAdditions = ordered
+            .Where((item, index) =>
+                !priorByActor.ContainsKey(item.Participant) &&
+                !ComponentParticipantAdmission.IsExactAdmission(current[index].Authority, item))
+            .Select(item => item.Participant.Value)
+            .ToArray();
+        if (refusedAdditions.Length > 0)
+        {
+            return Decline(
+                active,
+                "authority-not-admitted",
+                $"CM5 did not admit the exact submitted authority for {string.Join(", ", refusedAdditions)}.",
+                current);
+        }
+
+        var holders = current
+            .Select(item => item.Authority.Observation.Relationships[0].LocalActor.Value)
+            .ToArray();
+        if (ComponentParticipantAdmission.FirstDuplicate(holders) is { } sharedHolder)
+        {
+            return Decline(
+                active,
+                "local-actor-conflict",
+                $"The revised set would map two participants onto the receiving-domain Actor '{sharedHolder}'.",
+                current);
+        }
+
+        var grants = current
+            .SelectMany(item => item.Authority.Observation.Grants)
+            .OrderBy(item => item.Grant.Value, StringComparer.Ordinal)
+            .ToArray();
+        var uncovered = Uncovered(dependency, grants);
+        if (uncovered.Length > 0)
+        {
+            return Decline(
+                active,
+                "dependency-not-covered",
+                $"The intended set holds no grant satisfying declared authority {string.Join(", ", uncovered)}.",
+                current);
+        }
+
+        return new(
+            ComponentParticipantRevisionKind.Revised,
+            new(current, grants, active.Lifecycle, null),
+            current,
+            Array.Empty<Cm.ActorId>(),
+            null,
+            "participant-set-revised",
+            $"The participant set now holds {current.Length} participants and {grants.Length} grants, still covering every declared dependency.");
+    }
+
+    private static (string Code, string Reason)? Declaration(
+        Cm.ResolutionOutcome resolution,
+        ComponentBindingSelection selection,
+        ComponentGrantDependency dependency,
+        ComponentParticipantAdmissionResult active)
+    {
+        var declared = resolution.Generation?.RequestedAuthority
+            .FirstOrDefault(item => item.Definition == selection.Definition);
+        if (dependency.Definition != selection.Definition || declared is null)
+        {
+            return (
+                "dependency-declaration-mismatch",
+                "The declaration must name the CBI1-selected definition recorded by the completed generation.");
+        }
+
+        if (declared.RequestedAuthority.Count == 0)
+        {
+            return (
+                "dependency-declaration-empty",
+                "The selected definition requests no authority, which states nothing about what its interaction depends on; use CBI8 to grow the set or CBI7 to retire it.");
+        }
+
+        var names = dependency.Entries
+            .Select(item => item.DeclaredAuthority)
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .ToArray();
+        var expected = declared.RequestedAuthority
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .ToArray();
+        if (!names.SequenceEqual(expected, StringComparer.Ordinal) ||
+            ComponentParticipantAdmission.FirstDuplicate(dependency.Entries.Select(Tuple)) is not null)
+        {
+            return (
+                "dependency-declaration-mismatch",
+                "The declaration must map exactly the authority the selected definition requests, once each, to distinct tuples.");
+        }
+
+        var uncovered = Uncovered(dependency, active.Grants);
+        return uncovered.Length > 0
+            ? (
+                "dependency-unsatisfied",
+                $"The set in force holds no grant satisfying declared authority {string.Join(", ", uncovered)}, so it never covered this declaration.")
+            : null;
+    }
+
+    private static (string Code, string Reason)? Structure(
+        IReadOnlyList<ComponentParticipantObservation> prior,
+        IReadOnlyList<Cm.AuthorityAdmissionRequest> intended)
+    {
+        if (intended.Count == 0)
+        {
+            return (
+                "participant-set-empty",
+                "A revision must leave at least one participant; an empty set is not an admitted set.");
+        }
+
+        if (ComponentParticipantAdmission.FirstDuplicate(
+                intended.Select(item => item.Participant.Value)) is { } repeated)
+        {
+            return (
+                "participant-not-distinct",
+                $"Participant '{repeated}' appears in more than one request.");
+        }
+
+        if (intended.Count == prior.Count &&
+            intended.All(item => prior.Any(existing => existing.Participant == item.Participant)))
+        {
+            return (
+                "participant-set-unchanged",
+                "The intended set is the current one; revalidating it is CBI7.");
+        }
+
+        if (ComponentParticipantAdmission.DistinctIdentities(intended) is { } collision)
+        {
+            return collision;
+        }
+
+        var added = intended
+            .Where(item => !prior.Any(existing => existing.Participant == item.Participant))
+            .ToArray();
+        return added.All(ComponentParticipantAdmission.SupportedShape)
+            ? null
+            : (
+                "authority-shape-unsupported",
+                "CBI9 supports one ComponentParticipant relationship per added participant and distinct narrow authority tuples dependent on it.");
+    }
+
+    private static string[] Uncovered(
+        ComponentGrantDependency dependency,
+        IReadOnlyList<Cm.LocalCapabilityGrant> grants)
+    {
+        var held = grants.Select(Tuple).ToHashSet(StringComparer.Ordinal);
+        return dependency.Entries
+            .Where(entry => !held.Contains(Tuple(entry)))
+            .Select(entry => entry.DeclaredAuthority)
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    private static string Tuple(ComponentGrantDependencyEntry entry) =>
+        $"{entry.Capability.Value}|{entry.Target.Value}|{entry.Operation.Value}|{entry.Scope.Value}";
+
+    private static string Tuple(Cm.LocalCapabilityGrant grant) =>
+        $"{grant.Capability.Value}|{grant.Target.Value}|{grant.Operation.Value}|{grant.Scope.Value}";
+
+    private static ComponentParticipantRevisionResult Decline(
+        ComponentParticipantAdmissionResult active,
+        string code,
+        string reason,
+        IReadOnlyList<ComponentParticipantObservation>? current = null) =>
+        new(
+            ComponentParticipantRevisionKind.Declined,
+            active,
+            current ?? Array.Empty<ComponentParticipantObservation>(),
+            Array.Empty<Cm.ActorId>(),
+            null,
+            code,
+            reason);
+}
+
 /// <summary>
 /// Projects one native CBI3 result into the canonical, data-only CBI4 comparison profile.
 /// </summary>

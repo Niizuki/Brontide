@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased — CBI9 declared grant dependency and participant revision
+
+### Added
+
+- Minimal Host removal and substitution of participants in a live set, admitted while every declared
+  dependency stays covered by the intended set.
+- An algebraic dependency declaration whose names must equal the requested authority CM2 records for
+  the CBI1-selected definition, with the caller supplying only the explicit typed mapping from each
+  declared name to a CM5 Capability, target Actor, Operation, and scope.
+- Shared revision vectors pinning outcome kinds, codes, evaluated counts, in-force set size and
+  grant count, and whether the member is still released, plus a phase-boundary completeness review.
+
+CBI9 closes the question CBI7 and CBI8 both deferred, and disposes of participant precedence:
+coverage decides who may leave. It does not verify that a Component's declared authority is truthful
+or complete, revoke a departing participant's authority elsewhere, or transfer state between a
+departing and an arriving participant.
+
 ## Unreleased — CBI8 in-place participant extension
 
 ### Added

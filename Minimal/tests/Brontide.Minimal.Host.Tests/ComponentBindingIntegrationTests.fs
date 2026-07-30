@@ -52,7 +52,7 @@ type ComponentBindingIntegrationTests() =
     let evaluationTime = DateTimeOffset(2026, 7, 30, 10, 0, 0, TimeSpan.Zero)
     let multiple action = Assert.Multiple(Action action)
 
-    let request cardinality =
+    let requestWith cardinality declaredAuthority =
         let requirement =
             { Requirement = requirementId
               Contract = contractId
@@ -89,7 +89,7 @@ type ComponentBindingIntegrationTests() =
               Requirements = []
               CompositionParameters = []
               ActivationParameters = []
-              RequestedAuthority = [] }
+              RequestedAuthority = declaredAuthority }
         let candidate =
             { Definition = provider
               Source = SourceId.create "src.test"
@@ -123,6 +123,8 @@ type ComponentBindingIntegrationTests() =
           Ports = []
           TopologyClaims = [] }
 
+    let request cardinality = requestWith cardinality []
+
     let resolve cardinality =
         request cardinality |> FakeGenerationResolver.resolve
 
@@ -141,10 +143,14 @@ type ComponentBindingIntegrationTests() =
           ProviderEndpoint = "cooling-provider"
           RequiredContract = CoolingFixture.contract }
 
-    let prepared () =
-        let resolution = resolve (Cardinality.parse "1..1")
+    let preparedWith declaredAuthority =
+        let resolution =
+            requestWith (Cardinality.parse "1..1") declaredAuthority
+            |> FakeGenerationResolver.resolve
         let memberValue = memberOf resolution
         resolution, selection memberValue, memberValue.Occurrence
+
+    let prepared () = preparedWith []
 
     let activationMember occurrence =
         { Occurrence = occurrence
@@ -267,6 +273,12 @@ type ComponentBindingIntegrationTests() =
     let observeCapability = CapabilityId.create "capability.cooling-observe"
     let observeOperation = OperationId.create "cooling.observe"
     let observerLocalActor = LocalActorReferenceId.create "local.cooling-observer"
+    let deputy = ActorId.create "actor.cooling-deputy"
+    let deputyEvidence = EvidenceId.create "evidence.cooling-deputy"
+    let deputyRelationshipId = RelationshipRequestId.create "relationship.cooling-deputy"
+    let deputyAuthorityId = AuthorityRequestId.create "authority.cooling-deputy-audit"
+    let deputyLocalActor = LocalActorReferenceId.create "local.cooling-deputy"
+    let declaredAuthority = [ "cooling.control"; "cooling.audit" ]
 
     let setEvidence evidence subject : AdmissionEvidence =
         { Evidence = evidence
@@ -277,7 +289,7 @@ type ComponentBindingIntegrationTests() =
           ExpiresAt = evaluationTime.AddHours(1.0)
           State = AdmissionEvidenceState.Current }
 
-    let setPolicyWith supervisorActor observerActor : LocalAuthorityPolicy =
+    let setPolicyFor supervisorActor observerActor deputyActor : LocalAuthorityPolicy =
         { Policy = AuthorityPolicyId.create "policy.integration-set"
           TrustedIssuers = [ authorityIssuer ]
           RelationshipRules =
@@ -304,7 +316,15 @@ type ComponentBindingIntegrationTests() =
                 LocalActor = Some observerActor
                 RequiredEvidence = [ observerEvidence ]
                 KnownMistake = false
-                Rationale = "component observer admitted" } ]
+                Rationale = "component observer admitted" }
+              { Rule = PolicyRuleId.create "rule.component-deputy"
+                ProposedActor = deputy
+                Kind = ActorRelationshipKind.ComponentParticipant
+                Disposition = PolicyDisposition.Allow
+                LocalActor = Some deputyActor
+                RequiredEvidence = [ deputyEvidence ]
+                KnownMistake = false
+                Rationale = "component deputy admitted" } ]
           AuthorityRules =
             [ { Rule = PolicyRuleId.create "rule.cooling-control"
                 RelationshipKind = ActorRelationshipKind.ComponentParticipant
@@ -343,7 +363,52 @@ type ComponentBindingIntegrationTests() =
                 KnownMistake = false
                 Rationale = "narrow cooling observation admitted" } ] }
 
+    let setPolicyWith supervisorActor observerActor =
+        setPolicyFor supervisorActor observerActor deputyLocalActor
+
     let setPolicy supervisorActor = setPolicyWith supervisorActor observerLocalActor
+
+    let deputyRequest policy : AuthorityAdmissionRequest =
+        { Request = AdmissionRequestId.create "admission.set-deputy"
+          Participant = deputy
+          EvaluationTime = evaluationTime
+          Evidence = [ setEvidence deputyEvidence deputy ]
+          Relationships =
+            [ { Request = deputyRelationshipId
+                ProposedActor = deputy
+                Kind = ActorRelationshipKind.ComponentParticipant
+                Evidence = [ deputyEvidence ] } ]
+          Authority =
+            [ { Request = deputyAuthorityId
+                Relationship = deputyRelationshipId
+                Capability = auditCapability
+                Target = authorityTarget
+                Operation = auditOperation
+                Scope = authorityScope
+                Unlimited = false } ]
+          Policy = policy }
+
+    let dependency definition : ComponentGrantDependency =
+        { Definition = definition
+          Entries =
+            [ { DeclaredAuthority = "cooling.control"
+                Capability = capability
+                Target = authorityTarget
+                Operation = operation
+                Scope = authorityScope }
+              { DeclaredAuthority = "cooling.audit"
+                Capability = auditCapability
+                Target = authorityTarget
+                Operation = auditOperation
+                Scope = authorityScope } ] }
+
+    let revisionToken kind =
+        match kind with
+        | ComponentParticipantRevisionKind.Revised -> "revised"
+        | ComponentParticipantRevisionKind.Declined -> "declined"
+        | ComponentParticipantRevisionKind.Withdrawn -> "withdrawn"
+        | ComponentParticipantRevisionKind.RetirementFailed -> "retirement-failed"
+        | ComponentParticipantRevisionKind.ActivationUnavailable -> "activation-unavailable"
 
     let observerRequest policy : AuthorityAdmissionRequest =
         { Request = AdmissionRequestId.create "admission.set-observer"
@@ -421,6 +486,18 @@ type ComponentBindingIntegrationTests() =
 
     let participantSet occurrence supervisorActor =
         participantSetWith occurrence supervisorActor observerLocalActor
+
+    let participantTrio occurrence policy : ComponentParticipantRequest list =
+        let pair =
+            participantSet occurrence supervisorLocalActor
+            |> List.map (fun entry ->
+                { entry with
+                    Request = { entry.Request with Policy = policy } })
+        pair
+        @ [ { Mapping =
+                { Occurrence = occurrence
+                  Participant = observer }
+              Request = observerRequest policy } ]
 
     let revoked (entry: ComponentParticipantRequest) =
         { entry with
@@ -1608,6 +1685,224 @@ type ComponentBindingIntegrationTests() =
                     Is.EqualTo ComponentParticipantRevalidationKind.Continued)
                 Assert.That(revalidated.CurrentAuthority.Length, Is.EqualTo 3)
                 Assert.That(CompositionStage.token memberValue.Stage, Is.EqualTo "released"))
+        }
+
+    [<Test>]
+    member _.``shared CBI9 vectors revise the set only while the declaration stays covered``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi9-dependency-revision-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI9 vector identity must be a string"
+                    | value -> value
+                let declared =
+                    if scenario = "cbi9-07-declaration-empty" then [] else declaredAuthority
+                let resolution, selected, occurrence = preparedWith declared
+                let handler = CoolingHandler()
+                let baselineConversation =
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(
+                            CoolingFixture.contract,
+                            handler,
+                            Realization.FixedDirectCall))
+                    :> IPortableProviderConversation
+                let conversation =
+                    if scenario = "cbi9-13-retirement-failure" then
+                        FailingRetirementConversation(baselineConversation)
+                        :> IPortableProviderConversation
+                    else
+                        baselineConversation
+                let deputyActor =
+                    if scenario = "cbi9-11-added-shared-local-actor" then
+                        observerLocalActor
+                    else
+                        deputyLocalActor
+                let policy = setPolicyFor supervisorLocalActor observerLocalActor deputyActor
+                let participants = participantTrio occurrence policy
+                let! active =
+                    ComponentParticipantAdmission.activate
+                        resolution
+                        selected
+                        participants
+                        (runtimeRequest (plan [ occurrence ]))
+                        conversation
+                let memberValue = active.Lifecycle.Value.Member.Value
+                let providerRequest = (List.item 0 participants).Request
+                let supervisorRequest = (List.item 1 participants).Request
+                let observerBaseline = (List.item 2 participants).Request
+                let deputyBaseline = deputyRequest policy
+                let declaration =
+                    match scenario with
+                    | "cbi9-06-declaration-mismatch" ->
+                        { Definition = selected.Definition
+                          Entries =
+                            [ { DeclaredAuthority = "cooling.control"
+                                Capability = capability
+                                Target = authorityTarget
+                                Operation = operation
+                                Scope = authorityScope }
+                              { DeclaredAuthority = "cooling.other"
+                                Capability = auditCapability
+                                Target = authorityTarget
+                                Operation = auditOperation
+                                Scope = authorityScope } ] }
+                    | "cbi9-07-declaration-empty" ->
+                        { Definition = selected.Definition; Entries = [] }
+                    | "cbi9-08-declaration-unsatisfied" ->
+                        { Definition = selected.Definition
+                          Entries =
+                            [ { DeclaredAuthority = "cooling.control"
+                                Capability = CapabilityId.create "capability.other"
+                                Target = authorityTarget
+                                Operation = operation
+                                Scope = authorityScope }
+                              { DeclaredAuthority = "cooling.audit"
+                                Capability = auditCapability
+                                Target = authorityTarget
+                                Operation = auditOperation
+                                Scope = authorityScope } ] }
+                    | _ -> dependency selected.Definition
+                let intended =
+                    match scenario with
+                    | "cbi9-01-drop-undepended" -> [ providerRequest; supervisorRequest ]
+                    | "cbi9-02-drop-depended" -> [ providerRequest; observerBaseline ]
+                    | "cbi9-03-substitute-holder"
+                    | "cbi9-11-added-shared-local-actor" ->
+                        [ providerRequest; observerBaseline; deputyBaseline ]
+                    | "cbi9-04-unchanged" ->
+                        [ providerRequest; supervisorRequest; observerBaseline ]
+                    | "cbi9-05-empty" -> []
+                    | "cbi9-06-declaration-mismatch"
+                    | "cbi9-07-declaration-empty"
+                    | "cbi9-08-declaration-unsatisfied" -> [ providerRequest; supervisorRequest ]
+                    | "cbi9-09-retained-identity-drift" ->
+                        [ providerRequest
+                          { supervisorRequest with
+                              Authority =
+                                [ { List.exactlyOne supervisorRequest.Authority with
+                                      Capability = CapabilityId.create "capability.other" } ] } ]
+                    | "cbi9-10-added-participant-denied" ->
+                        [ providerRequest; observerBaseline; revokedRequest deputyBaseline ]
+                    | "cbi9-12-retained-participant-revoked"
+                    | "cbi9-13-retirement-failure" ->
+                        [ providerRequest; revokedRequest supervisorRequest ]
+                    | other -> invalidArg (nameof scenario) (sprintf "unknown CBI9 vector %s" other)
+                let! result =
+                    ComponentParticipantRevision.revise
+                        resolution
+                        selected
+                        active
+                        declaration
+                        intended
+                        (sprintf "set revision %s" scenario)
+                let released = vector.GetProperty("expectedReleased").GetBoolean()
+                multiple (fun () ->
+                    Assert.That(
+                        revisionToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.CurrentAuthority.Length,
+                        Is.EqualTo(vector.GetProperty("expectedParticipantsEvaluated").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.InForce
+                        |> Option.map (fun inForce -> inForce.Admissions.Length)
+                        |> Option.defaultValue 0,
+                        Is.EqualTo(vector.GetProperty("expectedInForceParticipants").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.InForce
+                        |> Option.map (fun inForce -> inForce.Grants.Length)
+                        |> Option.defaultValue 0,
+                        Is.EqualTo(vector.GetProperty("expectedInForceGrants").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        CompositionStage.token memberValue.Stage,
+                        Is.EqualTo(if released then "released" else "retired"),
+                        scenario)
+                    // A set is in force exactly while the member is released.
+                    Assert.That(result.InForce.IsSome, Is.EqualTo released, scenario)
+                    Assert.That(handler.ProviderEffectCount, Is.Zero, scenario))
+        }
+
+    [<Test>]
+    member _.``a substitute satisfies the declaration a different holder used to satisfy``() =
+        task {
+            let resolution, selected, occurrence = preparedWith declaredAuthority
+            let policy = setPolicy supervisorLocalActor
+            let participants = participantTrio occurrence policy
+            let! active =
+                ComponentParticipantAdmission.activate
+                    resolution
+                    selected
+                    participants
+                    (runtimeRequest (plan [ occurrence ]))
+                    (directCooling CoolingFixture.contract)
+            let memberValue = active.Lifecycle.Value.Member.Value
+            let intended =
+                [ (List.item 0 participants).Request
+                  (List.item 2 participants).Request
+                  deputyRequest policy ]
+            let! result =
+                ComponentParticipantRevision.revise
+                    resolution
+                    selected
+                    active
+                    (dependency selected.Definition)
+                    intended
+                    "substitute the audit holder"
+            let inForce = result.InForce.Value
+            let auditGrants =
+                inForce.Grants
+                |> List.filter (fun grant ->
+                    grant.Capability = auditCapability && grant.Operation = auditOperation)
+            multiple (fun () ->
+                Assert.That(result.Kind, Is.EqualTo ComponentParticipantRevisionKind.Revised)
+                // The participant that used to satisfy the declared audit dependency is gone.
+                Assert.That(
+                    inForce.Admissions |> List.exists (fun item -> item.Participant = supervisor),
+                    Is.False)
+                Assert.That(auditGrants.Length, Is.EqualTo 1)
+                // A different receiving-domain Actor now satisfies it.
+                Assert.That((List.exactlyOne auditGrants).Holder, Is.EqualTo deputyLocalActor)
+                Assert.That(CompositionStage.token memberValue.Stage, Is.EqualTo "released"))
+        }
+
+    [<Test>]
+    member _.``refused CBI6 set cannot be revised``() =
+        task {
+            let resolution, selected, _ = preparedWith declaredAuthority
+            let unavailable =
+                { Admissions = []
+                  Grants = []
+                  Lifecycle = None
+                  Failure = None }
+            let! result =
+                ComponentParticipantRevision.revise
+                    resolution
+                    selected
+                    unavailable
+                    (dependency selected.Definition)
+                    []
+                    "set revision unavailable"
+            multiple (fun () ->
+                Assert.That(
+                    result.Kind,
+                    Is.EqualTo ComponentParticipantRevisionKind.ActivationUnavailable)
+                Assert.That(result.InForce, Is.EqualTo None)
+                Assert.That(result.CurrentAuthority, Is.Empty))
         }
 
     [<Test>]

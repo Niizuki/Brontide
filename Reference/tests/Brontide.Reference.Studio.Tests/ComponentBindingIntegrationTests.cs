@@ -48,6 +48,15 @@ public sealed class ComponentBindingIntegrationTests
     private static readonly OperationId ObserveOperation = OperationId.Create("cooling.observe");
     private static readonly LocalActorReferenceId ObserverLocalActor =
         LocalActorReferenceId.Create("local.cooling-observer");
+    private static readonly ActorId Deputy = ActorId.Create("actor.cooling-deputy");
+    private static readonly EvidenceId DeputyEvidence = EvidenceId.Create("evidence.cooling-deputy");
+    private static readonly RelationshipRequestId DeputyRelationship =
+        RelationshipRequestId.Create("relationship.cooling-deputy");
+    private static readonly AuthorityRequestId DeputyAuthority =
+        AuthorityRequestId.Create("authority.cooling-deputy-audit");
+    private static readonly LocalActorReferenceId DeputyLocalActor =
+        LocalActorReferenceId.Create("local.cooling-deputy");
+    private static readonly string[] DeclaredAuthority = ["cooling.control", "cooling.audit"];
 
     [Test]
     public void Completed_direct_one_to_one_resolution_enters_portable_preflight()
@@ -883,6 +892,246 @@ public sealed class ComponentBindingIntegrationTests
         });
     }
 
+    [Test]
+    public async Task Shared_cbi9_vectors_revise_the_set_only_while_the_declaration_stays_covered()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi9-dependency-revision-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, member, handler) = await RevisionResult(scenario);
+            var released = vector.GetProperty("expectedReleased").GetBoolean();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    RevisionToken(result.Kind),
+                    Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                    scenario);
+                Assert.That(
+                    result.CurrentAuthority,
+                    Has.Count.EqualTo(vector.GetProperty("expectedParticipantsEvaluated").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.InForce?.Admissions.Count ?? 0,
+                    Is.EqualTo(vector.GetProperty("expectedInForceParticipants").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.InForce?.Grants.Count ?? 0,
+                    Is.EqualTo(vector.GetProperty("expectedInForceGrants").GetInt32()),
+                    scenario);
+                Assert.That(
+                    member.Stage,
+                    Is.EqualTo(
+                        released ? PortableCompositionStage.Released : PortableCompositionStage.Retired),
+                    scenario);
+                Assert.That(
+                    result.InForce,
+                    released ? Is.Not.Null : Is.Null,
+                    $"{scenario}: a set is in force exactly while the member is released.");
+                Assert.That(handler.ProviderEffectCount, Is.Zero, scenario);
+            });
+        }
+    }
+
+    [Test]
+    public async Task A_substitute_satisfies_the_declaration_a_different_holder_used_to_satisfy()
+    {
+        var (result, member, _) = await RevisionResult("cbi9-03-substitute-holder");
+        var inForce = result.InForce!;
+        var auditGrants = inForce.Grants
+            .Where(grant => grant.Capability == AuditCapability && grant.Operation == AuditOperation)
+            .ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsRevised, Is.True);
+            Assert.That(
+                inForce.Admissions.Select(item => item.Participant),
+                Does.Not.Contain(Supervisor),
+                "The participant that used to satisfy the declared audit dependency is gone.");
+            Assert.That(auditGrants, Has.Length.EqualTo(1));
+            Assert.That(
+                auditGrants[0].Holder,
+                Is.EqualTo(LocalActorReferenceId.Create("local.cooling-deputy")),
+                "A different receiving-domain Actor now satisfies it.");
+            Assert.That(member.Stage, Is.EqualTo(PortableCompositionStage.Released));
+        });
+    }
+
+    [Test]
+    public async Task Refused_cbi6_set_cannot_be_revised()
+    {
+        var (resolution, selection, _) = LifecycleInput(DeclaredAuthority);
+        var unavailable = new ComponentParticipantAdmissionResult(
+            Array.Empty<ComponentParticipantObservation>(),
+            Array.Empty<LocalCapabilityGrant>(),
+            null,
+            null);
+
+        var result = await ComponentParticipantRevision.ReviseAsync(
+            resolution,
+            selection,
+            unavailable,
+            Dependency(selection.Definition),
+            ParticipantSet(SupervisorLocalActor).Select(item => item.Request).ToArray(),
+            "set revision unavailable");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentParticipantRevisionKind.ActivationUnavailable));
+            Assert.That(result.InForce, Is.Null);
+            Assert.That(result.CurrentAuthority, Is.Empty);
+        });
+    }
+
+    private static async Task<(
+        ComponentParticipantRevisionResult Result,
+        PortableCompositionMember Member,
+        CoolingPortableHandler Handler)>
+        RevisionResult(string scenario)
+    {
+        var declared = scenario == "cbi9-07-declaration-empty" ? [] : DeclaredAuthority;
+        var (resolution, selection, occurrence) = LifecycleInput(declared);
+        var handler = new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry());
+        IPortableProviderConversation conversation = new PortableDirectConversation(
+            new PortableProviderEndpoint(
+                CoolingPortableFixture.Contract,
+                handler,
+                PortableRealization.FixedDirectCall));
+        if (scenario == "cbi9-13-retirement-failure")
+        {
+            conversation = new FailingRetirementConversation(conversation);
+        }
+
+        var deputyActor = scenario == "cbi9-11-added-shared-local-actor"
+            ? ObserverLocalActor
+            : DeputyLocalActor;
+        var policy = SetPolicy(SupervisorLocalActor, ObserverLocalActor, deputyActor);
+        var participants = ParticipantTrio(occurrence, policy);
+        var active = await ComponentParticipantAdmission.ActivateAsync(
+            resolution,
+            selection,
+            participants,
+            RuntimeRequest(Plan(occurrence)),
+            conversation);
+        var provider = participants[0].Request;
+        var supervisor = participants[1].Request;
+        var observer = participants[2].Request;
+        var deputy = DeputyRequest(policy);
+
+        var dependency = scenario switch
+        {
+            "cbi9-06-declaration-mismatch" => new ComponentGrantDependency(
+                selection.Definition,
+                [
+                    new("cooling.control", Capability, Target, Operation, AuthorityScope),
+                    new("cooling.other", AuditCapability, Target, AuditOperation, AuthorityScope),
+                ]),
+            "cbi9-07-declaration-empty" => new ComponentGrantDependency(selection.Definition, []),
+            "cbi9-08-declaration-unsatisfied" => new ComponentGrantDependency(
+                selection.Definition,
+                [
+                    new("cooling.control", CapabilityId.Create("capability.other"), Target, Operation, AuthorityScope),
+                    new("cooling.audit", AuditCapability, Target, AuditOperation, AuthorityScope),
+                ]),
+            _ => Dependency(selection.Definition),
+        };
+
+        AuthorityAdmissionRequest[] intended = scenario switch
+        {
+            "cbi9-01-drop-undepended" => [provider, supervisor],
+            "cbi9-02-drop-depended" => [provider, observer],
+            "cbi9-03-substitute-holder" or "cbi9-11-added-shared-local-actor" =>
+                [provider, observer, deputy],
+            "cbi9-04-unchanged" => [provider, supervisor, observer],
+            "cbi9-05-empty" => [],
+            "cbi9-06-declaration-mismatch" or "cbi9-07-declaration-empty"
+                or "cbi9-08-declaration-unsatisfied" => [provider, supervisor],
+            "cbi9-09-retained-identity-drift" =>
+            [
+                provider,
+                supervisor with
+                {
+                    Authority =
+                    [
+                        supervisor.Authority.Single() with
+                        {
+                            Capability = CapabilityId.Create("capability.other"),
+                        },
+                    ],
+                },
+            ],
+            "cbi9-10-added-participant-denied" => [provider, observer, Revoked(deputy)],
+            "cbi9-12-retained-participant-revoked" or "cbi9-13-retirement-failure" =>
+                [provider, Revoked(supervisor)],
+            _ => throw new ArgumentOutOfRangeException(nameof(scenario), scenario, "unknown CBI9 vector"),
+        };
+
+        var result = await ComponentParticipantRevision.ReviseAsync(
+            resolution,
+            selection,
+            active,
+            dependency,
+            intended,
+            $"set revision {scenario}");
+        return (result, active.Lifecycle!.Member!, handler);
+    }
+
+    private static ComponentGrantDependency Dependency(DefinitionId definition) =>
+        new(
+            definition,
+            [
+                new("cooling.control", Capability, Target, Operation, AuthorityScope),
+                new("cooling.audit", AuditCapability, Target, AuditOperation, AuthorityScope),
+            ]);
+
+    private static ComponentParticipantRequest[] ParticipantTrio(
+        OccurrenceId occurrence,
+        LocalAuthorityPolicy policy)
+    {
+        var pair = ParticipantSet(SupervisorLocalActor, ObserverLocalActor)
+            .Select(item => item with { Request = item.Request with { Policy = policy } })
+            .ToArray();
+        return
+        [
+            pair[0],
+            pair[1],
+            new(new(occurrence, Observer), ObserverRequest(policy)),
+        ];
+    }
+
+    private static AuthorityAdmissionRequest DeputyRequest(LocalAuthorityPolicy policy) =>
+        new(
+            AdmissionRequestId.Create("admission.set-deputy"),
+            Deputy,
+            EvaluationTime,
+            [SetEvidence(DeputyEvidence, Deputy)],
+            [new(DeputyRelationship, Deputy, ActorRelationshipKind.ComponentParticipant, [DeputyEvidence])],
+            [new(DeputyAuthority, DeputyRelationship, AuditCapability, Target, AuditOperation, AuthorityScope, false)],
+            policy);
+
+    private static string RevisionToken(ComponentParticipantRevisionKind kind) => kind switch
+    {
+        ComponentParticipantRevisionKind.Revised => "revised",
+        ComponentParticipantRevisionKind.Declined => "declined",
+        ComponentParticipantRevisionKind.Withdrawn => "withdrawn",
+        ComponentParticipantRevisionKind.RetirementFailed => "retirement-failed",
+        ComponentParticipantRevisionKind.ActivationUnavailable => "activation-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
     private static AuthorityAdmissionRequest ParticipantRequestFor(ActorId participant)
     {
         var policy = SetPolicy(SupervisorLocalActor, ObserverLocalActor);
@@ -1247,6 +1496,12 @@ public sealed class ComponentBindingIntegrationTests
     private static LocalAuthorityPolicy SetPolicy(
         LocalActorReferenceId supervisorActor,
         LocalActorReferenceId observerActor) =>
+        SetPolicy(supervisorActor, observerActor, DeputyLocalActor);
+
+    private static LocalAuthorityPolicy SetPolicy(
+        LocalActorReferenceId supervisorActor,
+        LocalActorReferenceId observerActor,
+        LocalActorReferenceId deputyActor) =>
         new(
             AuthorityPolicyId.Create("policy.integration-set"),
             [AuthorityIssuer],
@@ -1278,6 +1533,15 @@ public sealed class ComponentBindingIntegrationTests
                     [ObserverEvidence],
                     false,
                     "component observer admitted"),
+                new(
+                    PolicyRuleId.Create("rule.component-deputy"),
+                    Deputy,
+                    ActorRelationshipKind.ComponentParticipant,
+                    PolicyDisposition.Allow,
+                    deputyActor,
+                    [DeputyEvidence],
+                    false,
+                    "component deputy admitted"),
             ],
             [
                 new(
@@ -1476,9 +1740,14 @@ public sealed class ComponentBindingIntegrationTests
     private static ResolutionOutcome Resolve(Cardinality cardinality) =>
         new FakeGenerationResolver().Resolve(Request(cardinality));
 
-    private static (ResolutionOutcome Resolution, ComponentBindingSelection Selection, OccurrenceId Occurrence) LifecycleInput()
+    private static (ResolutionOutcome Resolution, ComponentBindingSelection Selection, OccurrenceId Occurrence) LifecycleInput() =>
+        LifecycleInput([]);
+
+    private static (ResolutionOutcome Resolution, ComponentBindingSelection Selection, OccurrenceId Occurrence)
+        LifecycleInput(IReadOnlyList<string> declaredAuthority)
     {
-        var resolution = Resolve(Cardinality.Parse("1..1"));
+        var resolution = new FakeGenerationResolver().Resolve(
+            Request(Cardinality.Parse("1..1"), declaredAuthority));
         var member = resolution.Generation!.ProviderSets.Single().Members.Single();
         return (resolution, Selection(member), member.Occurrence);
     }
@@ -1591,7 +1860,9 @@ public sealed class ComponentBindingIntegrationTests
                 }));
     }
 
-    private static ResolutionRequest Request(Cardinality cardinality)
+    private static ResolutionRequest Request(Cardinality cardinality) => Request(cardinality, []);
+
+    private static ResolutionRequest Request(Cardinality cardinality, IReadOnlyList<string> declaredAuthority)
     {
         var requirement = new ResolutionRequirement(
             Requirement,
@@ -1627,7 +1898,7 @@ public sealed class ComponentBindingIntegrationTests
             Array.Empty<ResolutionRequirement>(),
             Array.Empty<CompositionParameterDeclaration>(),
             Array.Empty<ActivationParameterDeclaration>(),
-            Array.Empty<string>());
+            declaredAuthority.ToArray());
         var candidate = new ResolutionCandidate(
             Provider,
             SourceId.Create("src.test"),

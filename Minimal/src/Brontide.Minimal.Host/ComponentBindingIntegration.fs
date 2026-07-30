@@ -1303,6 +1303,343 @@ module ComponentParticipantExtension =
                         "CBI8 requires one released Active CBI6 result with a completely admitted participant set." }
         }
 
+type ComponentGrantDependencyEntry =
+    { DeclaredAuthority: string
+      Capability: CapabilityId
+      Target: ActorId
+      Operation: OperationId
+      Scope: CapabilityScopeId }
+
+type ComponentGrantDependency =
+    { Definition: DefinitionId
+      Entries: ComponentGrantDependencyEntry list }
+
+[<RequireQualifiedAccess>]
+type ComponentParticipantRevisionKind =
+    | Revised
+    | Declined
+    | Withdrawn
+    | RetirementFailed
+    | ActivationUnavailable
+
+type ComponentParticipantRevisionResult =
+    { Kind: ComponentParticipantRevisionKind
+      InForce: ComponentParticipantAdmissionResult option
+      CurrentAuthority: ComponentParticipantObservation list
+      Unrenewed: ActorId list
+      Replacement: ReplacementRecord option
+      Code: string
+      Reason: string }
+
+/// Removes and substitutes participants of a live set, under a dependency the resolved Component
+/// definition declared.
+///
+/// The declaration is what CBI7 and CBI8 lacked. Its names come from CM2's record of the selected
+/// definition's requested authority, so the Component states what its interaction depends on and
+/// the caller only maps each name to the CM5 tuple that satisfies it. Because the declaration names
+/// tuples rather than holders, a substitute that satisfies the same dependency is enough.
+[<RequireQualifiedAccess>]
+module ComponentParticipantRevision =
+    let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
+
+    let private entryTuple (entry: ComponentGrantDependencyEntry) =
+        sprintf
+            "%s|%s|%s|%s"
+            (CapabilityId.value entry.Capability)
+            (ActorId.value entry.Target)
+            (OperationId.value entry.Operation)
+            (CapabilityScopeId.value entry.Scope)
+
+    let private grantTuple (grant: LocalCapabilityGrant) =
+        sprintf
+            "%s|%s|%s|%s"
+            (CapabilityId.value grant.Capability)
+            (ActorId.value grant.Target)
+            (OperationId.value grant.Operation)
+            (CapabilityScopeId.value grant.Scope)
+
+    let private uncovered (dependency: ComponentGrantDependency) grants =
+        let held = grants |> List.map grantTuple |> Set.ofList
+        dependency.Entries
+        |> List.filter (fun entry -> not (Set.contains (entryTuple entry) held))
+        |> List.map _.DeclaredAuthority
+        |> List.sortWith ordinal
+
+    let private decline (active: ComponentParticipantAdmissionResult) code reason current =
+        { Kind = ComponentParticipantRevisionKind.Declined
+          InForce = Some active
+          CurrentAuthority = current
+          Unrenewed = []
+          Replacement = None
+          Code = code
+          Reason = reason }
+
+    let private declaration
+        (resolution: ResolutionOutcome)
+        (selection: ComponentBindingSelection)
+        (dependency: ComponentGrantDependency)
+        (active: ComponentParticipantAdmissionResult)
+        =
+        let declared =
+            match resolution with
+            | ResolutionOutcome.Resolved(_, generation) ->
+                generation.RequestedAuthority
+                |> List.tryFind (fun item -> item.Definition = selection.Definition)
+            | _ -> None
+        match declared with
+        | None -> Error(
+                      "dependency-declaration-mismatch",
+                      "The declaration must name the CBI1-selected definition recorded by the completed generation.")
+        | Some _ when dependency.Definition <> selection.Definition ->
+            Error(
+                "dependency-declaration-mismatch",
+                "The declaration must name the CBI1-selected definition recorded by the completed generation.")
+        | Some declared when declared.RequestedAuthority.IsEmpty ->
+            Error(
+                "dependency-declaration-empty",
+                "The selected definition requests no authority, which states nothing about what its interaction depends on; use CBI8 to grow the set or CBI7 to retire it.")
+        | Some declared ->
+            let names = dependency.Entries |> List.map _.DeclaredAuthority |> List.sortWith ordinal
+            let expected = declared.RequestedAuthority |> List.sortWith ordinal
+            let repeatedTuple =
+                dependency.Entries
+                |> List.map entryTuple
+                |> ComponentParticipantAdmission.firstDuplicate
+            if names <> expected || repeatedTuple.IsSome then
+                Error(
+                    "dependency-declaration-mismatch",
+                    "The declaration must map exactly the authority the selected definition requests, once each, to distinct tuples.")
+            else
+                match uncovered dependency active.Grants with
+                | [] -> Ok()
+                | missing ->
+                    Error(
+                        "dependency-unsatisfied",
+                        sprintf
+                            "The set in force holds no grant satisfying declared authority %s, so it never covered this declaration."
+                            (String.Join(", ", missing)))
+
+    let private structure
+        (prior: ComponentParticipantObservation list)
+        (intended: AuthorityAdmissionRequest list)
+        =
+        let isRetained participant =
+            prior |> List.exists (fun existing -> existing.Participant = participant)
+        match intended with
+        | [] ->
+            Error(
+                "participant-set-empty",
+                "A revision must leave at least one participant; an empty set is not an admitted set.")
+        | _ ->
+            let repeated =
+                intended
+                |> List.map (fun request -> ActorId.value request.Participant)
+                |> ComponentParticipantAdmission.firstDuplicate
+            match repeated with
+            | Some actor ->
+                Error(
+                    "participant-not-distinct",
+                    sprintf "Participant '%s' appears in more than one request." actor)
+            | None when
+                intended.Length = prior.Length
+                && intended |> List.forall (fun request -> isRetained request.Participant)
+                ->
+                Error(
+                    "participant-set-unchanged",
+                    "The intended set is the current one; revalidating it is CBI7.")
+            | None ->
+                match ComponentParticipantAdmission.distinctIdentities intended with
+                | Error collision -> Error collision
+                | Ok() ->
+                    let added =
+                        intended
+                        |> List.filter (fun request -> not (isRetained request.Participant))
+                    if added |> List.forall ComponentParticipantAdmission.supportedShape then
+                        Ok()
+                    else
+                        Error(
+                            "authority-shape-unsupported",
+                            "CBI9 supports one ComponentParticipant relationship per added participant and distinct narrow authority tuples dependent on it.")
+
+    let revise
+        (resolution: ResolutionOutcome)
+        (selection: ComponentBindingSelection)
+        (active: ComponentParticipantAdmissionResult)
+        (dependency: ComponentGrantDependency)
+        (requests: AuthorityAdmissionRequest list)
+        retirementReason
+        =
+        task {
+            if String.IsNullOrWhiteSpace retirementReason then
+                invalidArg (nameof retirementReason) "retirement reason is required"
+
+            match ComponentParticipantAdmission.isActive active, active.Lifecycle with
+            | true, Some { Member = Some memberValue } ->
+                match declaration resolution selection dependency active with
+                | Error(code, reason) -> return decline active code reason []
+                | Ok() ->
+                    let prior = active.Admissions
+                    let priorOf participant =
+                        prior |> List.tryFind (fun existing -> existing.Participant = participant)
+                    let ordered =
+                        requests
+                        |> List.sortWith (fun left right ->
+                            ordinal
+                                (ActorId.value left.Participant)
+                                (ActorId.value right.Participant))
+                    match structure prior ordered with
+                    | Error(code, reason) -> return decline active code reason []
+                    | Ok() ->
+                        let mismatched =
+                            ordered
+                            |> List.exists (fun request ->
+                                match priorOf request.Participant with
+                                | Some priorItem ->
+                                    not (
+                                        ComponentParticipantRevalidation.matchesPrior
+                                            priorItem
+                                            request)
+                                | None -> false)
+                        if mismatched then
+                            return
+                                decline
+                                    active
+                                    "authority-revalidation-mismatch"
+                                    "A retained request does not identify the same relationship and grants that admitted this member."
+                                    []
+                        else
+                            let current =
+                                ordered
+                                |> List.map (fun request ->
+                                    { Participant = request.Participant
+                                      Authority = FakeAuthorityAdmission.evaluate request })
+                            let unrenewed =
+                                current
+                                |> List.filter (fun observation ->
+                                    match priorOf observation.Participant with
+                                    | Some priorItem ->
+                                        not (
+                                            ComponentParticipantRevalidation.isSameAdmission
+                                                priorItem.Authority
+                                                observation.Authority)
+                                    | None -> false)
+                                |> List.map _.Participant
+                            if not unrenewed.IsEmpty then
+                                let! retired =
+                                    ComponentParticipantRevalidation.tryRetire
+                                        memberValue
+                                        retirementReason
+                                match retired with
+                                | Ok replacement ->
+                                    return
+                                        { Kind = ComponentParticipantRevisionKind.Withdrawn
+                                          InForce = None
+                                          CurrentAuthority = current
+                                          Unrenewed = unrenewed
+                                          Replacement = Some replacement
+                                          Code = "authority-not-renewed"
+                                          Reason =
+                                            sprintf
+                                                "The receiving domain no longer admits the identical authority for %s."
+                                                (String.Join(
+                                                    ", ",
+                                                    unrenewed |> List.map ActorId.value)) }
+                                | Error detail ->
+                                    return
+                                        { Kind = ComponentParticipantRevisionKind.RetirementFailed
+                                          InForce = None
+                                          CurrentAuthority = current
+                                          Unrenewed = unrenewed
+                                          Replacement = None
+                                          Code = "authority-retirement-failed"
+                                          Reason = detail }
+                            else
+                                let refusedAdditions =
+                                    List.zip ordered current
+                                    |> List.filter (fun (request, observation) ->
+                                        (priorOf request.Participant).IsNone
+                                        && not (
+                                            ComponentParticipantAdmission.isExactAdmission
+                                                request
+                                                observation.Authority))
+                                    |> List.map (fun (request, _) ->
+                                        ActorId.value request.Participant)
+                                if not refusedAdditions.IsEmpty then
+                                    return
+                                        decline
+                                            active
+                                            "authority-not-admitted"
+                                            (sprintf
+                                                "CM5 did not admit the exact submitted authority for %s."
+                                                (String.Join(", ", refusedAdditions)))
+                                            current
+                                else
+                                    let holders =
+                                        current
+                                        |> List.map (fun observation ->
+                                            observation.Authority.Observation.Relationships
+                                            |> List.exactlyOne
+                                            |> fun relationship ->
+                                                LocalActorReferenceId.value relationship.LocalActor)
+                                    match ComponentParticipantAdmission.firstDuplicate holders with
+                                    | Some shared ->
+                                        return
+                                            decline
+                                                active
+                                                "local-actor-conflict"
+                                                (sprintf
+                                                    "The revised set would map two participants onto the receiving-domain Actor '%s'."
+                                                    shared)
+                                                current
+                                    | None ->
+                                        let grants =
+                                            current
+                                            |> List.collect (fun observation ->
+                                                observation.Authority.Observation.Grants)
+                                            |> List.sortWith (fun left right ->
+                                                ordinal
+                                                    (CapabilityGrantId.value left.Grant)
+                                                    (CapabilityGrantId.value right.Grant))
+                                        match uncovered dependency grants with
+                                        | (_ :: _) as missing ->
+                                            return
+                                                decline
+                                                    active
+                                                    "dependency-not-covered"
+                                                    (sprintf
+                                                        "The intended set holds no grant satisfying declared authority %s."
+                                                        (String.Join(", ", missing)))
+                                                    current
+                                        | [] ->
+                                            return
+                                                { Kind = ComponentParticipantRevisionKind.Revised
+                                                  InForce =
+                                                    Some
+                                                        { Admissions = current
+                                                          Grants = grants
+                                                          Lifecycle = active.Lifecycle
+                                                          Failure = None }
+                                                  CurrentAuthority = current
+                                                  Unrenewed = []
+                                                  Replacement = None
+                                                  Code = "participant-set-revised"
+                                                  Reason =
+                                                    sprintf
+                                                        "The participant set now holds %d participants and %d grants, still covering every declared dependency."
+                                                        current.Length
+                                                        grants.Length }
+            | _ ->
+                return
+                    { Kind = ComponentParticipantRevisionKind.ActivationUnavailable
+                      InForce = None
+                      CurrentAuthority = []
+                      Unrenewed = []
+                      Replacement = None
+                      Code = "active-authority-unavailable"
+                      Reason =
+                        "CBI9 requires one released Active CBI6 result with a completely admitted participant set." }
+        }
+
 [<RequireQualifiedAccess>]
 module ComponentAuthorityComparison =
     let private stringNode (value: string) : JsonNode | null = JsonValue.Create value
