@@ -9,5 +9,6 @@
     <Compile Include="Resolution.fs" />
     <Compile Include="ActivationGroups.fs" />
     <Compile Include="ActivationRuntime.fs" />
+    <Compile Include="AuthorityAdmission.fs" />
   </ItemGroup>
 </Project>

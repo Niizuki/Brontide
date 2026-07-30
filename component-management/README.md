@@ -45,6 +45,15 @@ explicit recovery or degradation. It does not discover, resolve, load arbitrary 
 authority policy. Its completed phase-boundary absence audit is the
 [CM4 contract-completeness review](./cm4-contract-completeness-review.md).
 
+CM5's observable behavior is defined by the
+[authority-admission capability contract](./cm5-capability-contract.md). CM5 independently
+evaluates attributable fake evidence, requested Actor relationships, and exact narrow authority
+tuples under receiving-domain policy, then records local Actor mappings, Capability grants,
+revocation or expiry refusals, unlimited-authority denial, and attributable policy mistakes. It is
+not cryptographic, federated, or production security evidence. Its completed phase-boundary absence
+audit is the
+[CM5 contract-completeness review](./cm5-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -93,6 +102,13 @@ categories. Each native suite constructs equivalent stack-owned runtime inputs a
 computes stage, gate, Release, cutover, binding, scope, child-attachment, and rollback observations;
 the fixture contains no activation algorithm, executable Component, authority policy, or rollback
 mechanism.
+
+### `cm5-authority-admission-vectors` sections
+
+`vectors` is the shared data-only inventory of CM5 evidence, relationship, local-policy, and narrow
+grant capabilities and expected outcome categories. Each native suite constructs its own typed
+requests and independently computes every decision and effect; the fixture contains no verifier,
+policy evaluator, Actor mapper, Capability implementation, or security mechanism.
 
 ### `cm0-mice-topology` sections
 

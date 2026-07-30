@@ -23,6 +23,7 @@
     <Compile Include="ResolutionTests.fs" />
     <Compile Include="ActivationGroupTests.fs" />
     <Compile Include="ActivationRuntimeTests.fs" />
+    <Compile Include="AuthorityAdmissionTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

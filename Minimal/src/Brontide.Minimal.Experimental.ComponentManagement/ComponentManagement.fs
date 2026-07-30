@@ -48,6 +48,15 @@ type LifecycleProtocolId = private LifecycleProtocolId of string
 type LifecycleOperationId = private LifecycleOperationId of string
 type LifecycleInputId = private LifecycleInputId of string
 type CapabilityId = private CapabilityId of string
+type OperationId = private OperationId of string
+type CapabilityScopeId = private CapabilityScopeId of string
+type AdmissionRequestId = private AdmissionRequestId of string
+type RelationshipRequestId = private RelationshipRequestId of string
+type AuthorityRequestId = private AuthorityRequestId of string
+type AuthorityPolicyId = private AuthorityPolicyId of string
+type PolicyRuleId = private PolicyRuleId of string
+type LocalActorReferenceId = private LocalActorReferenceId of string
+type CapabilityGrantId = private CapabilityGrantId of string
 type ShapeId = private ShapeId of string
 type ActivationAttemptId = private ActivationAttemptId of string
 type PreparationId = private PreparationId of string
@@ -186,6 +195,51 @@ module LifecycleInputId =
 module CapabilityId =
     let create v = CapabilityId(IdentifierSyntax.require "CapabilityId" v)
     let value (CapabilityId v) = v
+
+[<RequireQualifiedAccess>]
+module OperationId =
+    let create v = OperationId(IdentifierSyntax.require "OperationId" v)
+    let value (OperationId v) = v
+
+[<RequireQualifiedAccess>]
+module CapabilityScopeId =
+    let create v = CapabilityScopeId(IdentifierSyntax.require "CapabilityScopeId" v)
+    let value (CapabilityScopeId v) = v
+
+[<RequireQualifiedAccess>]
+module AdmissionRequestId =
+    let create v = AdmissionRequestId(IdentifierSyntax.require "AdmissionRequestId" v)
+    let value (AdmissionRequestId v) = v
+
+[<RequireQualifiedAccess>]
+module RelationshipRequestId =
+    let create v = RelationshipRequestId(IdentifierSyntax.require "RelationshipRequestId" v)
+    let value (RelationshipRequestId v) = v
+
+[<RequireQualifiedAccess>]
+module AuthorityRequestId =
+    let create v = AuthorityRequestId(IdentifierSyntax.require "AuthorityRequestId" v)
+    let value (AuthorityRequestId v) = v
+
+[<RequireQualifiedAccess>]
+module AuthorityPolicyId =
+    let create v = AuthorityPolicyId(IdentifierSyntax.require "AuthorityPolicyId" v)
+    let value (AuthorityPolicyId v) = v
+
+[<RequireQualifiedAccess>]
+module PolicyRuleId =
+    let create v = PolicyRuleId(IdentifierSyntax.require "PolicyRuleId" v)
+    let value (PolicyRuleId v) = v
+
+[<RequireQualifiedAccess>]
+module LocalActorReferenceId =
+    let create v = LocalActorReferenceId(IdentifierSyntax.require "LocalActorReferenceId" v)
+    let value (LocalActorReferenceId v) = v
+
+[<RequireQualifiedAccess>]
+module CapabilityGrantId =
+    let create v = CapabilityGrantId(IdentifierSyntax.require "CapabilityGrantId" v)
+    let value (CapabilityGrantId v) = v
 
 [<RequireQualifiedAccess>]
 module ShapeId =
