@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi10-observed-interaction-vectors",
+  "vectors": [
+    {
+      "id": "cbi10-01-consistent",
+      "expectedKind": "consistent",
+      "expectedCode": "interaction-consistent",
+      "expectedExercises": 1,
+      "expectedUnexercised": 1,
+      "expectedUncovered": 0,
+      "expectedRuntimeActive": true,
+      "expectedReleased": true,
+      "expectedProviderEffects": 1
+    },
+    {
+      "id": "cbi10-02-nothing-observed",
+      "expectedKind": "consistent",
+      "expectedCode": "interaction-consistent",
+      "expectedExercises": 0,
+      "expectedUnexercised": 2,
+      "expectedUncovered": 0,
+      "expectedRuntimeActive": true,
+      "expectedReleased": true,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi10-03-denied-before-any-frame",
+      "expectedKind": "consistent",
+      "expectedCode": "interaction-consistent",
+      "expectedExercises": 0,
+      "expectedUnexercised": 2,
+      "expectedUncovered": 0,
+      "expectedRuntimeActive": true,
+      "expectedReleased": true,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi10-04-undeclared-authority",
+      "expectedKind": "undeclared-use",
+      "expectedCode": "interaction-undeclared",
+      "expectedExercises": 1,
+      "expectedUnexercised": 2,
+      "expectedUncovered": 0,
+      "expectedRuntimeActive": false,
+      "expectedReleased": false,
+      "expectedProviderEffects": 1
+    },
+    {
+      "id": "cbi10-05-unmapped-operation",
+      "expectedKind": "undeclared-use",
+      "expectedCode": "interaction-undeclared",
+      "expectedExercises": 1,
+      "expectedUnexercised": 2,
+      "expectedUncovered": 0,
+      "expectedRuntimeActive": false,
+      "expectedReleased": false,
+      "expectedProviderEffects": 1
+    },
+    {
+      "id": "cbi10-06-ungranted-authority",
+      "expectedKind": "ungranted-use",
+      "expectedCode": "interaction-ungranted",
+      "expectedExercises": 1,
+      "expectedUnexercised": 1,
+      "expectedUncovered": 1,
+      "expectedRuntimeActive": false,
+      "expectedReleased": false,
+      "expectedProviderEffects": 1
+    },
+    {
+      "id": "cbi10-07-retirement-failure",
+      "expectedKind": "retirement-failed",
+      "expectedCode": "authority-retirement-failed",
+      "expectedExercises": 1,
+      "expectedUnexercised": 2,
+      "expectedUncovered": 0,
+      "expectedRuntimeActive": false,
+      "expectedReleased": false,
+      "expectedProviderEffects": 1
+    },
+    {
+      "id": "cbi10-08-declaration-mismatch",
+      "expectedKind": "declined",
+      "expectedCode": "dependency-declaration-mismatch",
+      "expectedExercises": 0,
+      "expectedUnexercised": 0,
+      "expectedUncovered": 0,
+      "expectedRuntimeActive": null,
+      "expectedReleased": true,
+      "expectedProviderEffects": 1
+    },
+    {
+      "id": "cbi10-09-mapping-not-distinct",
+      "expectedKind": "declined",
+      "expectedCode": "operation-mapping-not-distinct",
+      "expectedExercises": 0,
+      "expectedUnexercised": 0,
+      "expectedUncovered": 0,
+      "expectedRuntimeActive": null,
+      "expectedReleased": true,
+      "expectedProviderEffects": 1
+    }
+  ]
+}

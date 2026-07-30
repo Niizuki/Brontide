@@ -1089,6 +1089,193 @@ public sealed class ComponentBindingIntegrationTests
         return (result, active.Lifecycle!.Member!, handler);
     }
 
+    [Test]
+    public async Task Shared_cbi10_vectors_verify_the_declaration_against_what_the_member_did()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi10-observed-interaction-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (verdict, member, handler) = await VerificationResult(scenario);
+            var released = vector.GetProperty("expectedReleased").GetBoolean();
+            var expectedRuntime = vector.GetProperty("expectedRuntimeActive");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    VerdictToken(verdict.Kind),
+                    Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                    scenario);
+                Assert.That(
+                    verdict.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                    scenario);
+                Assert.That(
+                    verdict.Exercises,
+                    Has.Count.EqualTo(vector.GetProperty("expectedExercises").GetInt32()),
+                    scenario);
+                Assert.That(
+                    verdict.Unexercised,
+                    Has.Count.EqualTo(vector.GetProperty("expectedUnexercised").GetInt32()),
+                    scenario);
+                Assert.That(
+                    verdict.Uncovered,
+                    Has.Count.EqualTo(vector.GetProperty("expectedUncovered").GetInt32()),
+                    scenario);
+                Assert.That(
+                    verdict.Runtime is null
+                        ? (bool?)null
+                        : verdict.Runtime.Kind == ActivationRuntimeOutcomeKind.Active,
+                    Is.EqualTo(
+                        expectedRuntime.ValueKind == JsonValueKind.Null
+                            ? (bool?)null
+                            : expectedRuntime.GetBoolean()),
+                    scenario);
+                Assert.That(
+                    member.Stage,
+                    Is.EqualTo(
+                        released ? PortableCompositionStage.Released : PortableCompositionStage.Retired),
+                    scenario);
+                Assert.That(
+                    handler.ProviderEffectCount,
+                    Is.EqualTo(vector.GetProperty("expectedProviderEffects").GetInt32()),
+                    scenario);
+
+                // The runtime accepts the projection exactly when the verification is consistent.
+                if (verdict.Runtime is { } runtime)
+                {
+                    Assert.That(
+                        runtime.Kind == ActivationRuntimeOutcomeKind.Active,
+                        Is.EqualTo(verdict.IsConsistent),
+                        scenario);
+                }
+            });
+        }
+    }
+
+    [Test]
+    public async Task Undeclared_use_is_condemned_by_the_runtime_rather_than_by_the_verifier()
+    {
+        var (verdict, _, _) = await VerificationResult("cbi10-04-undeclared-authority");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(verdict.Kind, Is.EqualTo(ComponentInteractionVerdictKind.UndeclaredUse));
+            Assert.That(
+                verdict.Runtime!.Kind,
+                Is.EqualTo(ActivationRuntimeOutcomeKind.BindingObservationConflict),
+                "CM4's own rule refuses a delivered exercise the authority check denied.");
+            Assert.That(verdict.Exercises.Single().AuthorityAdmitted, Is.False);
+            Assert.That(verdict.Exercises.Single().Delivery, Is.EqualTo(BindingDeliveryResult.Delivered));
+            Assert.That(verdict.Replacement, Is.Not.Null);
+        });
+    }
+
+    private static async Task<(
+        ComponentInteractionVerdict Verdict,
+        PortableCompositionMember Member,
+        CoolingPortableHandler Handler)>
+        VerificationResult(string scenario)
+    {
+        var (resolution, selection, occurrence) = LifecycleInput(DeclaredAuthority);
+        var handler = new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry());
+        IPortableProviderConversation conversation = new PortableDirectConversation(
+            new PortableProviderEndpoint(
+                CoolingPortableFixture.Contract,
+                handler,
+                PortableRealization.FixedDirectCall));
+        if (scenario == "cbi10-07-retirement-failure")
+        {
+            conversation = new FailingRetirementConversation(conversation);
+        }
+
+        var policy = SetPolicy(SupervisorLocalActor, ObserverLocalActor);
+        var participants = ParticipantSet(SupervisorLocalActor)
+            .Select(item => item with { Request = item.Request with { Policy = policy } })
+            .ToArray();
+        var runtimeRequest = RuntimeRequest(Plan(occurrence));
+        var active = await ComponentParticipantAdmission.ActivateAsync(
+            resolution,
+            selection,
+            participants,
+            runtimeRequest,
+            conversation);
+        var member = active.Lifecycle!.Member!;
+
+        // The observations are real: the host invokes the released member and records what came back.
+        var observations = new List<ComponentObservedInteraction>();
+        if (scenario != "cbi10-02-nothing-observed")
+        {
+            var constraint = scenario == "cbi10-03-denied-before-any-frame"
+                ? PortableConstraint.Atom(PortableTruth.Unsatisfied)
+                : PortableConstraint.Atom(PortableTruth.Satisfied);
+            var result = await member.InvokeAsync(
+                CoolingPortableFixture.SetEnabled,
+                CoolingPortableFixture.CommandV1,
+                CoolingPortableFixture.Command("primary", enabled: true),
+                constraint);
+            observations.Add(new(CoolingPortableFixture.SetEnabled, result));
+        }
+
+        var dependency = scenario == "cbi10-06-ungranted-authority"
+            ? new ComponentGrantDependency(
+                selection.Definition,
+                [
+                    new("cooling.control", Capability, Target, Operation, CapabilityScopeId.Create("scope.other")),
+                    new("cooling.audit", AuditCapability, Target, AuditOperation, AuthorityScope),
+                ])
+            : scenario == "cbi10-08-declaration-mismatch"
+                ? new ComponentGrantDependency(
+                    selection.Definition,
+                    [
+                        new("cooling.control", Capability, Target, Operation, AuthorityScope),
+                        new("cooling.other", AuditCapability, Target, AuditOperation, AuthorityScope),
+                    ])
+                : Dependency(selection.Definition);
+
+        IReadOnlyList<ComponentOperationAuthorityMapping> attribution = scenario switch
+        {
+            "cbi10-04-undeclared-authority" or "cbi10-07-retirement-failure" =>
+                [new(CoolingPortableFixture.SetEnabled, "cooling.other")],
+            "cbi10-05-unmapped-operation" => [],
+            "cbi10-09-mapping-not-distinct" =>
+            [
+                new(CoolingPortableFixture.SetEnabled, "cooling.control"),
+                new(CoolingPortableFixture.SetEnabled, "cooling.audit"),
+            ],
+            _ => [new(CoolingPortableFixture.SetEnabled, "cooling.control")],
+        };
+
+        var verdict = await ComponentInteractionVerification.VerifyAsync(
+            resolution,
+            selection,
+            active,
+            dependency,
+            attribution,
+            observations,
+            runtimeRequest,
+            $"observed interaction {scenario}");
+        return (verdict, member, handler);
+    }
+
+    private static string VerdictToken(ComponentInteractionVerdictKind kind) => kind switch
+    {
+        ComponentInteractionVerdictKind.Consistent => "consistent",
+        ComponentInteractionVerdictKind.UndeclaredUse => "undeclared-use",
+        ComponentInteractionVerdictKind.UngrantedUse => "ungranted-use",
+        ComponentInteractionVerdictKind.RetirementFailed => "retirement-failed",
+        ComponentInteractionVerdictKind.Declined => "declined",
+        ComponentInteractionVerdictKind.ActivationUnavailable => "activation-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
     private static ComponentGrantDependency Dependency(DefinitionId definition) =>
         new(
             definition,

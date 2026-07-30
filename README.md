@@ -120,7 +120,12 @@ definition rather than the caller, of which grants the member's interaction depe
 removes and substitutes participants while every declared dependency stays covered. Because the
 declaration names Capability, target Actor, Operation, and scope rather than holders, a substitute
 can satisfy what a departing participant used to satisfy, and participant precedence never has to be
-decided. Nothing here checks the declaration against what the member actually does.
+decided.
+CBI10 then checks that declaration against what the member actually did. Each observed interaction
+becomes a CM4 binding exercise whose authority admission is derived rather than claimed, so the
+runtime's own rule condemns interaction outside the declaration; an interaction that emitted no
+frame exercised nothing, and undeclared or ungranted use retires the member. It detects a
+declaration contradicted by use, never one contradicted by disuse.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

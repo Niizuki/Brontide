@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased — CBI10 observed-interaction verification
+
+### Added
+
+- Reference Studio verification of a CBI9 declaration against the portable interactions the member actually
+  performed, projected into CM4 binding exercises.
+- Derived, never claimed, authority admission on each projected exercise, so CM4's own rule that
+  delivery cannot succeed when the external authority check denied it is what condemns interaction
+  outside the declaration.
+- Shared observed-interaction vectors pinning verdict kinds and codes, projected exercise counts,
+  unexercised and uncovered declared authorities, the runtime's verdict, the member's stage, and the
+  provider effects the interactions caused, plus a phase-boundary completeness review.
+
+CBI10 supersedes CBI3's refusal of caller-authored binding-exercise authority by deriving that
+authority instead of accepting it. It detects a declaration contradicted by use, never one
+contradicted by disuse, and it neither authorizes a future interaction nor undoes a past one.
+
 ## Unreleased — CBI9 declared grant dependency and participant revision
 
 ### Added

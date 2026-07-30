@@ -285,12 +285,30 @@ bound this to one set under one declaration over one released singleton binding,
 boundary worth carrying forward: the declaration is trusted as the Component's own statement, and
 nothing checks it against what the member's ordinary interaction actually does.
 
-Verifying a declaration against observed interaction is therefore the next implementable integration
-item: CM4 binding-exercise projection is the nearest evidence source, because a binding exercise is
-the first record of what an activated member actually did. Cross-vocabulary Operation mapping,
-multi-member and relational lifecycles, replacement, child Ports, mediation, wider Provider Sets,
-and real distribution remain future work. PB8's independent reviews and Decision 11 owner ruling
-remain separate governance prerequisites rather than implementation work.
+CBI10 verifies that declaration against what the member actually did, and closes CBI9's finding in
+one direction. Each observed portable interaction is projected into one CM4 binding exercise whose
+`AuthorityAdmitted` fact is **derived** from the declaration and the grants in force rather than
+claimed by the caller, so **CM4's own rule — delivery cannot succeed when the external authority
+check denied it — is what condemns interaction outside the declaration**, and both stacks assert the
+equivalence as a property: the runtime accepts the projection exactly when the verification is
+consistent. An interaction that emitted no frame exercised nothing, because it reached no provider;
+an interaction that cannot be attributed to declared authority is undeclared use, so omitting a
+mapping entry hides nothing; and undeclared or ungranted use retires the member, since verification
+cannot undo an interaction that already happened. Declared authority nothing exercised, and declared
+authority no participant covers, are reported rather than condemned. This also supersedes CBI3's
+refusal of caller-authored binding-exercise authority by deriving that authority instead of
+accepting it. The [`CBI10 capability contract`](../../component-management/cbi10-capability-contract.md)
+and [`contract-completeness review`](../../component-management/cbi10-contract-completeness-review.md)
+bound it to the interactions it is given over one released singleton binding.
+
+The direction CBI10 cannot check is the next implementable item: absence of use is not evidence of
+absence of need, so a declared dependency nothing exercised cannot be shown unnecessary, and an
+over-declared set keeps participants CBI9 will not release. Deciding what evidence could retire an
+unexercised declaration — and what it would take for a Component to narrow its own declaration
+safely — is the open question. Multi-member and relational lifecycles, replacement, child Ports,
+mediation, wider Provider Sets, and real distribution remain future work. PB8's independent reviews
+and Decision 11 owner ruling remain separate governance prerequisites rather than implementation
+work.
 
 ## Other planned areas
 

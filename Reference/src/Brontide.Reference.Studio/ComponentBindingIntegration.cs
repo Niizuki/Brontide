@@ -304,7 +304,7 @@ public static class ComponentBindingLifecycle
         }
     }
 
-    private static bool TrySupportedGroup(
+    internal static bool TrySupportedGroup(
         Cm.ActivationGroupPlan plan,
         Cm.OccurrenceId selectedOccurrence,
         out Cm.ActivationGroupObservation? group)
@@ -316,7 +316,7 @@ public static class ComponentBindingLifecycle
             group.Protocols.Count == 0;
     }
 
-    private static IReadOnlyList<Cm.MemberStageOutcome> StageOutcomes(
+    internal static IReadOnlyList<Cm.MemberStageOutcome> StageOutcomes(
         Cm.ActivationGroupObservation group,
         Cm.OccurrenceId member,
         Cm.ActivationStage? failedStage) =>
@@ -1500,11 +1500,14 @@ public static class ComponentParticipantRevision
             $"The participant set now holds {current.Length} participants and {grants.Length} grants, still covering every declared dependency.");
     }
 
-    private static (string Code, string Reason)? Declaration(
+    /// <summary>
+    /// Checks that the declaration is the one the generation records, without asking whether the
+    /// set in force covers it.
+    /// </summary>
+    internal static (string Code, string Reason)? DeclarationShape(
         Cm.ResolutionOutcome resolution,
         ComponentBindingSelection selection,
-        ComponentGrantDependency dependency,
-        ComponentParticipantAdmissionResult active)
+        ComponentGrantDependency dependency)
     {
         var declared = resolution.Generation?.RequestedAuthority
             .FirstOrDefault(item => item.Definition == selection.Definition);
@@ -1529,12 +1532,23 @@ public static class ComponentParticipantRevision
         var expected = declared.RequestedAuthority
             .OrderBy(item => item, StringComparer.Ordinal)
             .ToArray();
-        if (!names.SequenceEqual(expected, StringComparer.Ordinal) ||
-            ComponentParticipantAdmission.FirstDuplicate(dependency.Entries.Select(Tuple)) is not null)
-        {
-            return (
+        return names.SequenceEqual(expected, StringComparer.Ordinal) &&
+            ComponentParticipantAdmission.FirstDuplicate(dependency.Entries.Select(Tuple)) is null
+            ? null
+            : (
                 "dependency-declaration-mismatch",
                 "The declaration must map exactly the authority the selected definition requests, once each, to distinct tuples.");
+    }
+
+    private static (string Code, string Reason)? Declaration(
+        Cm.ResolutionOutcome resolution,
+        ComponentBindingSelection selection,
+        ComponentGrantDependency dependency,
+        ComponentParticipantAdmissionResult active)
+    {
+        if (DeclarationShape(resolution, selection, dependency) is { } invalid)
+        {
+            return invalid;
         }
 
         var uncovered = Uncovered(dependency, active.Grants);
@@ -1587,7 +1601,7 @@ public static class ComponentParticipantRevision
                 "CBI9 supports one ComponentParticipant relationship per added participant and distinct narrow authority tuples dependent on it.");
     }
 
-    private static string[] Uncovered(
+    internal static string[] Uncovered(
         ComponentGrantDependency dependency,
         IReadOnlyList<Cm.LocalCapabilityGrant> grants)
     {
@@ -1599,10 +1613,10 @@ public static class ComponentParticipantRevision
             .ToArray();
     }
 
-    private static string Tuple(ComponentGrantDependencyEntry entry) =>
+    internal static string Tuple(ComponentGrantDependencyEntry entry) =>
         $"{entry.Capability.Value}|{entry.Target.Value}|{entry.Operation.Value}|{entry.Scope.Value}";
 
-    private static string Tuple(Cm.LocalCapabilityGrant grant) =>
+    internal static string Tuple(Cm.LocalCapabilityGrant grant) =>
         $"{grant.Capability.Value}|{grant.Target.Value}|{grant.Operation.Value}|{grant.Scope.Value}";
 
     private static ComponentParticipantRevisionResult Decline(
@@ -1615,6 +1629,196 @@ public static class ComponentParticipantRevision
             active,
             current ?? Array.Empty<ComponentParticipantObservation>(),
             Array.Empty<Cm.ActorId>(),
+            null,
+            code,
+            reason);
+}
+
+public sealed record ComponentObservedInteraction(
+    Portable.PortableOperationReference Operation,
+    Portable.PortableInteractionResult Result);
+
+public sealed record ComponentOperationAuthorityMapping(
+    Portable.PortableOperationReference Operation,
+    string DeclaredAuthority);
+
+public enum ComponentInteractionVerdictKind
+{
+    Consistent,
+    UndeclaredUse,
+    UngrantedUse,
+    RetirementFailed,
+    Declined,
+    ActivationUnavailable,
+}
+
+public sealed record ComponentInteractionVerdict(
+    ComponentInteractionVerdictKind Kind,
+    Cm.ActivationRuntimeOutcome? Runtime,
+    IReadOnlyList<Cm.BindingExerciseDeclaration> Exercises,
+    IReadOnlyList<string> Unexercised,
+    IReadOnlyList<string> Uncovered,
+    Portable.PortableReplacementRecord? Replacement,
+    string Code,
+    string Reason)
+{
+    public bool IsConsistent => Kind == ComponentInteractionVerdictKind.Consistent;
+}
+
+/// <summary>
+/// Verifies a CBI9 declaration against what the member actually did, through CM4 binding exercises
+/// projected from observed portable interactions.
+/// </summary>
+/// <remarks>
+/// The admission fact of each projected exercise is derived from the declaration and the grants in
+/// force, so CM4's own rule — delivery cannot succeed when the external authority check denied it —
+/// is what condemns use outside the declaration. The caller supplies observations and an attribution
+/// mapping, never an admission.
+/// </remarks>
+public static class ComponentInteractionVerification
+{
+    public static async ValueTask<ComponentInteractionVerdict> VerifyAsync(
+        Cm.ResolutionOutcome resolution,
+        ComponentBindingSelection selection,
+        ComponentParticipantAdmissionResult active,
+        ComponentGrantDependency dependency,
+        IReadOnlyList<ComponentOperationAuthorityMapping> attribution,
+        IReadOnlyList<ComponentObservedInteraction> observations,
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(active);
+        ArgumentNullException.ThrowIfNull(dependency);
+        ArgumentNullException.ThrowIfNull(attribution);
+        ArgumentNullException.ThrowIfNull(observations);
+        ArgumentNullException.ThrowIfNull(runtimeRequest);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (!active.IsActive || active.Lifecycle?.Member is not { } member)
+        {
+            return Verdict(
+                ComponentInteractionVerdictKind.ActivationUnavailable,
+                "active-authority-unavailable",
+                "CBI10 requires one released Active CBI6 result with a completely admitted participant set.");
+        }
+
+        if (ComponentParticipantRevision.DeclarationShape(resolution, selection, dependency) is { } invalid)
+        {
+            return Verdict(ComponentInteractionVerdictKind.Declined, invalid.Code, invalid.Reason);
+        }
+
+        if (ComponentParticipantAdmission.FirstDuplicate(
+                attribution.Select(item => item.Operation.ToString())) is { } repeated)
+        {
+            return Verdict(
+                ComponentInteractionVerdictKind.Declined,
+                "operation-mapping-not-distinct",
+                $"Operation '{repeated}' is attributed to more than one declared authority.");
+        }
+
+        if (!ComponentBindingLifecycle.TrySupportedGroup(runtimeRequest.Plan, selection.Occurrence, out var group))
+        {
+            return Verdict(
+                ComponentInteractionVerdictKind.Declined,
+                "plan-unsupported",
+                "CBI10 projects exercises onto the one protocol-free activation group CBI2 activated.");
+        }
+
+        // No frame, no exercise: a locally denied request reached no provider. Any emitted frame
+        // counts, because the receiving domain cannot know what a frame the provider already saw
+        // caused.
+        var delivered = observations
+            .Where(item => item.Result.FrameDecision != Portable.PortableFrameDecision.None)
+            .ToArray();
+        var declared = dependency.Entries.ToDictionary(item => item.DeclaredAuthority, StringComparer.Ordinal);
+        var uncoveredNames = ComponentParticipantRevision.Uncovered(dependency, active.Grants)
+            .ToHashSet(StringComparer.Ordinal);
+        var attributed = delivered
+            .Select(item => attribution
+                .FirstOrDefault(entry => entry.Operation == item.Operation)?.DeclaredAuthority)
+            .ToArray();
+
+        var exercises = attributed
+            .Select((name, index) => new Cm.BindingExerciseDeclaration(
+                Cm.BindingExerciseId.Create($"exercise.observed-{index + 1}"),
+                Cm.BindingId.Create($"binding.{selection.Occurrence.Value}"),
+                selection.Occurrence,
+                selection.Occurrence,
+                Cm.SourceId.Create("source.portable-observation"),
+                Cm.BindingExposureKind.Distinct,
+                null,
+                Cm.RoutingDecisionId.Create($"routing.observed-{index + 1}"),
+                name is not null && declared.ContainsKey(name) && !uncoveredNames.Contains(name),
+                Cm.BindingDeliveryResult.Delivered,
+                null))
+            .ToArray();
+        var runtime = new Cm.FakeActivationRuntime().Activate(runtimeRequest with
+        {
+            StageOutcomes = ComponentBindingLifecycle.StageOutcomes(group!, selection.Occurrence, null),
+            BindingExercises = exercises,
+        });
+
+        var exercised = attributed
+            .Where(name => name is not null && declared.ContainsKey(name))
+            .Select(name => name!)
+            .ToHashSet(StringComparer.Ordinal);
+        var unexercised = dependency.Entries
+            .Select(item => item.DeclaredAuthority)
+            .Where(name => !exercised.Contains(name))
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .ToArray();
+        var uncovered = uncoveredNames.OrderBy(item => item, StringComparer.Ordinal).ToArray();
+
+        var undeclared = attributed.Any(name => name is null || !declared.ContainsKey(name));
+        var ungranted = attributed.Any(name => name is not null && uncoveredNames.Contains(name));
+        if (undeclared || ungranted)
+        {
+            var (replacement, failure) = await ComponentParticipantRevalidation
+                .TryRetireAsync(member, retirementReason, cancellationToken)
+                .ConfigureAwait(false);
+            return new(
+                failure is null
+                    ? undeclared
+                        ? ComponentInteractionVerdictKind.UndeclaredUse
+                        : ComponentInteractionVerdictKind.UngrantedUse
+                    : ComponentInteractionVerdictKind.RetirementFailed,
+                runtime,
+                exercises,
+                unexercised,
+                uncovered,
+                replacement,
+                failure is null
+                    ? undeclared ? "interaction-undeclared" : "interaction-ungranted"
+                    : "authority-retirement-failed",
+                failure ?? (undeclared
+                    ? "A delivered interaction could not be attributed to any authority the Component declared."
+                    : "A delivered interaction exercised declared authority no participant holds a grant for."));
+        }
+
+        return new(
+            ComponentInteractionVerdictKind.Consistent,
+            runtime,
+            exercises,
+            unexercised,
+            uncovered,
+            null,
+            "interaction-consistent",
+            $"{exercises.Length} delivered interaction(s) stayed inside the declaration.");
+    }
+
+    private static ComponentInteractionVerdict Verdict(
+        ComponentInteractionVerdictKind kind,
+        string code,
+        string reason) =>
+        new(
+            kind,
+            null,
+            Array.Empty<Cm.BindingExerciseDeclaration>(),
+            Array.Empty<string>(),
+            Array.Empty<string>(),
             null,
             code,
             reason);

@@ -109,9 +109,11 @@ behavior unchanged.
 
 CBI9 proves fail-closed revision of one participant set, under one declaration derived from one
 resolved definition, over one released singleton binding. It does not verify that the Component's
-declared authority is truthful or complete, exercise any granted Operation, notify the provider that
-the set changed, transfer state between a departing and an arriving participant, revoke a departing
-participant's authority anywhere outside this set, order participants by priority, or provide
-production identity, policy, distribution, or security.
+declared authority is truthful or complete — [CBI10](./cbi10-capability-contract.md) separately
+checks it against observed interaction, and only in the direction use can contradict. CBI9 itself
+does not exercise any granted Operation, notify the provider that the set changed, transfer state
+between a departing and an arriving participant, revoke a departing participant's authority anywhere
+outside this set, order participants by priority, or provide production identity, policy,
+distribution, or security.
 
 Property: every CBI9 status statement preserves these limits.
