@@ -54,6 +54,10 @@ remains receiving-domain evidence and is never inserted into a portable contract
 CBI4 independently serializes five native integrated outcomes into a canonical profile pinned by
 the shared fixture, covering complete CM5 parity, CM4 effects, portable lifecycle, and stable
 resolution and Binding Plan facts. It adds no integrated process protocol.
+CBI5 revalidates the exact native relationship and grant behind one active CBI3 binding from fresh
+explicit CM5 inputs. Exact renewal preserves Release; revocation, expiry, request mismatch, or a
+different local admission retires the member before further ordinary interaction, and cleanup
+failure cannot reopen the local gate.
 
 ## Build and test
 

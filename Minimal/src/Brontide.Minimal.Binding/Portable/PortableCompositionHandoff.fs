@@ -383,6 +383,18 @@ type CompositionMember private (requirement: ResolvedRequirement, provision: Off
         task {
             match stage, answeringProvider with
             | (CompositionStage.Interconnected host | CompositionStage.Released host), Some provider ->
+                // Authority and composition withdrawal must close the local ordinary-interaction
+                // gate before peer cleanup. A peer refusal cannot be allowed to restore access.
+                let closedRecord =
+                    { Scope = requirement.Scope
+                      RetiredPlan = BindingPlan.planId host.Plan
+                      Component = BindingPlan.component' host.Plan
+                      Provider = provider
+                      TerminalState = "failed"
+                      Reason = reason
+                      ReplacementPermitted = false }
+
+                stage <- CompositionStage.Retired(host, closedRecord)
                 let! withdrawn = host.Withdraw()
                 let! terminated = host.Terminate()
 

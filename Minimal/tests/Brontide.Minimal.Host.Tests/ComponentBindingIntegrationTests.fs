@@ -3,10 +3,35 @@ namespace Brontide.Minimal.Host.Tests
 open System
 open System.IO
 open System.Text.Json
+open System.Threading.Tasks
 open NUnit.Framework
 open Brontide.Minimal.Binding.Portable
 open Brontide.Minimal.Experimental.ComponentManagement
 open Brontide.Minimal.Host
+
+type private FailingRetirementConversation(inner: IPortableProviderConversation) =
+    interface IPortableProviderConversation with
+        member _.Realization = inner.Realization
+        member _.Establish(required, hostEndpoint, channel) =
+            inner.Establish(required, hostEndpoint, channel)
+        member _.AwaitReady channel = inner.AwaitReady channel
+        member _.Request(plan, channel, request, execution, designation, inputShape, input, resources) =
+            inner.Request(
+                plan,
+                channel,
+                request,
+                execution,
+                designation,
+                inputShape,
+                input,
+                resources)
+        member _.Withdraw _ =
+            stateViolation
+                "withdraw-refused"
+                "the test peer refused withdrawal"
+            |> Task.FromResult
+        member _.Terminate channel = inner.Terminate channel
+        member _.Close() = inner.Close()
 
 [<TestFixture>]
 type ComponentBindingIntegrationTests() =
@@ -727,4 +752,155 @@ type ComponentBindingIntegrationTests() =
                         else
                             value.GetProperty("kind").GetString()
                     Assert.That(actualFailure, Is.EqualTo(expectedFailure), scenario))
+        }
+
+    [<Test>]
+    member _.``shared CBI5 vectors revalidate or close the released member``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi5-authority-withdrawal-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI5 vector identity must be a string"
+                    | value -> value
+                let resolution, selected, occurrence = prepared ()
+                let handler = CoolingHandler()
+                let baselineConversation =
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(
+                            CoolingFixture.contract,
+                            handler,
+                            Realization.FixedDirectCall))
+                    :> IPortableProviderConversation
+                let conversation =
+                    if scenario = "cbi5-05-retirement-failure" then
+                        FailingRetirementConversation(baselineConversation)
+                        :> IPortableProviderConversation
+                    else
+                        baselineConversation
+                let! active =
+                    ComponentAuthorityIntegration.activate
+                        resolution
+                        selected
+                        { Occurrence = occurrence; Participant = participant }
+                        (runtimeRequest (plan [ occurrence ]))
+                        (admission ())
+                        conversation
+                let memberValue = active.Lifecycle.Value.Member.Value
+                let mutable request = admission ()
+                match scenario with
+                | "cbi5-01-current"
+                | "cbi5-05-retirement-failure" -> ()
+                | "cbi5-02-revoked" ->
+                    request <-
+                        { request with
+                            Evidence =
+                                request.Evidence
+                                |> List.map (fun evidence ->
+                                    { evidence with
+                                        State = AdmissionEvidenceState.Revoked }) }
+                | "cbi5-03-expired" ->
+                    request <-
+                        { request with
+                            EvaluationTime = (List.exactlyOne request.Evidence).ExpiresAt }
+                | "cbi5-04-request-mismatch" ->
+                    request <-
+                        { request with
+                            Authority =
+                                [ { List.exactlyOne request.Authority with
+                                      Capability = CapabilityId.create "capability.other" } ] }
+                | other -> invalidArg (nameof scenario) (sprintf "unknown CBI5 vector %s" other)
+                if scenario = "cbi5-05-retirement-failure" then
+                    request <-
+                        { request with
+                            Evidence =
+                                request.Evidence
+                                |> List.map (fun evidence ->
+                                    { evidence with
+                                        State = AdmissionEvidenceState.Revoked }) }
+                let! result =
+                    ComponentAuthorityRevalidation.revalidate
+                        active
+                        request
+                        (sprintf "authority revalidation %s" scenario)
+                let! afterWithdrawal =
+                    if result.Kind = ComponentAuthorityRevalidationKind.Continued then
+                        Task.FromResult None
+                    else
+                        task {
+                            let! attempted =
+                                memberValue.Invoke(
+                                    CoolingFixture.setEnabled,
+                                    CoolingFixture.commandV1,
+                                    CoolingFixture.authorizedCommand "primary" true,
+                                    PortableConstraint.AllOf
+                                        [ PortableConstraint.Atom PortableTruth.Satisfied
+                                          PortableConstraint.Atom PortableTruth.Satisfied ])
+                            return
+                                match attempted with
+                                | Ok interaction -> Some interaction
+                                | Error error -> failwithf "Expected a shaped gate refusal, got %A." error
+                        }
+                let kind =
+                    match result.Kind with
+                    | ComponentAuthorityRevalidationKind.Continued -> "continued"
+                    | ComponentAuthorityRevalidationKind.Withdrawn -> "withdrawn"
+                    | ComponentAuthorityRevalidationKind.RetirementFailed -> "retirement-failed"
+                    | ComponentAuthorityRevalidationKind.ActivationUnavailable ->
+                        "activation-unavailable"
+                multiple (fun () ->
+                    Assert.That(
+                        kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        CompositionStage.token memberValue.Stage,
+                        Is.EqualTo(if result.Kind = ComponentAuthorityRevalidationKind.Continued then
+                                       "released"
+                                   else
+                                       "retired"),
+                        scenario)
+                    Assert.That(
+                        result.Replacement.IsSome,
+                        Is.EqualTo(result.Kind = ComponentAuthorityRevalidationKind.Withdrawn),
+                        scenario)
+                    Assert.That(
+                        afterWithdrawal |> Option.bind _.Category,
+                        Is.EqualTo(
+                            if result.Kind = ComponentAuthorityRevalidationKind.Continued then
+                                None
+                            else
+                                Some ProtocolCategory.StateViolation),
+                        scenario)
+                    Assert.That(handler.ProviderEffectCount, Is.Zero, scenario))
+        }
+
+    [<Test>]
+    member _.``refused CBI3 result cannot be revalidated as active``() =
+        task {
+            let unavailable =
+                { Authority = None
+                  Lifecycle = None
+                  Failure = None }
+            let! result =
+                ComponentAuthorityRevalidation.revalidate
+                    unavailable
+                    (admission ())
+                    "authority unavailable"
+            multiple (fun () ->
+                Assert.That(
+                    result.Kind,
+                    Is.EqualTo ComponentAuthorityRevalidationKind.ActivationUnavailable)
+                Assert.That(result.CurrentAuthority, Is.EqualTo None)
+                Assert.That(result.Replacement, Is.EqualTo None))
         }

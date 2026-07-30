@@ -492,6 +492,168 @@ public sealed class ComponentBindingIntegrationTests
         }
     }
 
+    [Test]
+    public async Task Shared_cbi5_vectors_revalidate_or_close_the_released_member()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi5-authority-withdrawal-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, member, handler) = await RevalidationResult(scenario);
+            var expectedKind = vector.GetProperty("expectedKind").GetString();
+            PortableInteractionResult? afterWithdrawal = null;
+            if (result.Kind != ComponentAuthorityRevalidationKind.Continued)
+            {
+                afterWithdrawal = await member.InvokeAsync(
+                    CoolingPortableFixture.SetEnabled,
+                    CoolingPortableFixture.CommandV1,
+                    CoolingPortableFixture.Command("primary", enabled: true),
+                    PortableConstraint.AllOf(
+                        PortableConstraint.Atom(PortableTruth.Satisfied),
+                        PortableConstraint.Atom(PortableTruth.Satisfied)));
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(RevalidationKindToken(result.Kind), Is.EqualTo(expectedKind), scenario);
+                Assert.That(
+                    result.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                    scenario);
+                Assert.That(
+                    member.Stage,
+                    Is.EqualTo(
+                        result.Kind == ComponentAuthorityRevalidationKind.Continued
+                            ? PortableCompositionStage.Released
+                            : PortableCompositionStage.Retired),
+                    scenario);
+                Assert.That(
+                    result.Replacement,
+                    result.Kind == ComponentAuthorityRevalidationKind.Withdrawn
+                        ? Is.Not.Null
+                        : Is.Null,
+                    scenario);
+                Assert.That(
+                    afterWithdrawal?.Category,
+                    result.Kind == ComponentAuthorityRevalidationKind.Continued
+                        ? Is.Null
+                        : Is.EqualTo(PortableProtocolCategory.StateViolation),
+                    scenario);
+                Assert.That(handler.ProviderEffectCount, Is.Zero, scenario);
+            });
+        }
+    }
+
+    [Test]
+    public async Task Refused_cbi3_result_cannot_be_revalidated_as_active()
+    {
+        var unavailable = new ComponentAuthorityIntegrationResult(null, null, null);
+        var result = await ComponentAuthorityRevalidation.RevalidateAsync(
+            unavailable,
+            Admission(),
+            "authority unavailable");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentAuthorityRevalidationKind.ActivationUnavailable));
+            Assert.That(result.CurrentAuthority, Is.Null);
+            Assert.That(result.Replacement, Is.Null);
+        });
+    }
+
+    private static async Task<(
+        ComponentAuthorityRevalidationResult Result,
+        PortableCompositionMember Member,
+        CoolingPortableHandler Handler)>
+        RevalidationResult(string scenario)
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var handler = new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry());
+        IPortableProviderConversation conversation = new PortableDirectConversation(
+            new PortableProviderEndpoint(
+                CoolingPortableFixture.Contract,
+                handler,
+                PortableRealization.FixedDirectCall));
+        if (scenario == "cbi5-05-retirement-failure")
+        {
+            conversation = new FailingRetirementConversation(conversation);
+        }
+
+        var active = await ComponentAuthorityIntegration.ActivateAsync(
+            resolution,
+            selection,
+            new(occurrence, Participant),
+            RuntimeRequest(Plan(occurrence)),
+            Admission(),
+            conversation);
+        var member = active.Lifecycle!.Member!;
+        var request = Admission();
+
+        switch (scenario)
+        {
+            case "cbi5-01-current":
+            case "cbi5-05-retirement-failure":
+                break;
+            case "cbi5-02-revoked":
+                request = request with
+                {
+                    Evidence = request.Evidence
+                        .Select(item => item with { State = AdmissionEvidenceState.Revoked })
+                        .ToArray(),
+                };
+                break;
+            case "cbi5-03-expired":
+                request = request with { EvaluationTime = request.Evidence.Single().ExpiresAt };
+                break;
+            case "cbi5-04-request-mismatch":
+                request = request with
+                {
+                    Authority =
+                    [
+                        request.Authority.Single() with
+                        {
+                            Capability = CapabilityId.Create("capability.other"),
+                        },
+                    ],
+                };
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(scenario), scenario, "unknown CBI5 vector");
+        }
+
+        if (scenario == "cbi5-05-retirement-failure")
+        {
+            request = request with
+            {
+                Evidence = request.Evidence
+                    .Select(item => item with { State = AdmissionEvidenceState.Revoked })
+                    .ToArray(),
+            };
+        }
+
+        var result = await ComponentAuthorityRevalidation.RevalidateAsync(
+            active,
+            request,
+            $"authority revalidation {scenario}");
+        return (result, member, handler);
+    }
+
+    private static string RevalidationKindToken(ComponentAuthorityRevalidationKind kind) => kind switch
+    {
+        ComponentAuthorityRevalidationKind.Continued => "continued",
+        ComponentAuthorityRevalidationKind.Withdrawn => "withdrawn",
+        ComponentAuthorityRevalidationKind.RetirementFailed => "retirement-failed",
+        ComponentAuthorityRevalidationKind.ActivationUnavailable => "activation-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
     private static async Task<ComponentAuthorityIntegrationResult> ComparisonResult(string scenario)
     {
         var (resolution, originalSelection, occurrence) = LifecycleInput();
@@ -747,4 +909,61 @@ public sealed class ComponentBindingIntegrationTests
             "reference-component-host",
             "cooling-provider",
             CoolingPortableFixture.Contract);
+
+    private sealed class FailingRetirementConversation(IPortableProviderConversation inner)
+        : IPortableProviderConversation
+    {
+        public PortableRealization Realization => inner.Realization;
+
+        public ValueTask<PortableContractDocument> EstablishAsync(
+            PortableContractDocument required,
+            string hostEndpoint,
+            PortableChannelId channel,
+            CancellationToken cancellationToken) =>
+            inner.EstablishAsync(required, hostEndpoint, channel, cancellationToken);
+
+        public ValueTask AwaitReadyAsync(
+            PortableChannelId channel,
+            CancellationToken cancellationToken) =>
+            inner.AwaitReadyAsync(channel, cancellationToken);
+
+        public ValueTask<PortableOutcomeReceipt> RequestAsync(
+            PortableBindingPlan plan,
+            PortableChannelId channel,
+            PortableChannelRequestId request,
+            PortableChannelExecutionId? execution,
+            PortableOperationReference? operation,
+            int? compactOperation,
+            PortableShapeReference inputShape,
+            PortableValue input,
+            IReadOnlyList<PortableResource> resources,
+            CancellationToken cancellationToken) =>
+            inner.RequestAsync(
+                plan,
+                channel,
+                request,
+                execution,
+                operation,
+                compactOperation,
+                inputShape,
+                input,
+                resources,
+                cancellationToken);
+
+        public ValueTask WithdrawAsync(
+            PortableChannelId channel,
+            CancellationToken cancellationToken) =>
+            ValueTask.FromException(
+                new PortableFaultException(
+                    PortableProtocolCategory.StateViolation,
+                    "withdraw-refused",
+                    "the test peer refused withdrawal"));
+
+        public ValueTask TerminateAsync(
+            PortableChannelId channel,
+            CancellationToken cancellationToken) =>
+            inner.TerminateAsync(channel, cancellationToken);
+
+        public ValueTask DisposeAsync() => inner.DisposeAsync();
+    }
 }

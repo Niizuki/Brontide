@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — CBI5 authority withdrawal
+
+### Added
+
+- Minimal Host revalidation of the exact CM5 relationship and grant behind one active CBI3 binding,
+  using fresh explicit time, evidence, and policy.
+- Algebraic withdrawal results, shared vectors, and a phase-boundary completeness review.
+
+### Fixed
+
+- PB7 retirement now closes the local member gate before peer withdrawal and termination, so a
+  cleanup failure is visible without leaving ordinary interaction released.
+
+CBI5 governs subsequent ordinary interaction for one singleton binding. It does not cancel
+in-flight execution or provide distributed revocation.
+
 ## Unreleased — CBI4 integrated profile comparison
 
 ### Added

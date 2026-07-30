@@ -61,7 +61,7 @@
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableBindingHost.fs", "layer": "portable", "manualSourceLines": 357 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableBindingPlan.fs", "layer": "portable", "manualSourceLines": 214 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableCbor.fs", "layer": "portable", "manualSourceLines": 447 },
-        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableCompositionHandoff.fs", "layer": "portable", "manualSourceLines": 474 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableCompositionHandoff.fs", "layer": "portable", "manualSourceLines": 486 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableContract.fs", "layer": "portable", "manualSourceLines": 737 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableConversation.fs", "layer": "portable", "manualSourceLines": 370 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableEnvelope.fs", "layer": "portable", "manualSourceLines": 347 },
@@ -80,16 +80,16 @@
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableValue.fs", "layer": "portable", "manualSourceLines": 130 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableValueCodec.fs", "layer": "portable", "manualSourceLines": 404 }
       ],
-      "layerSourceLines": { "retained-experiment": 2498, "portable": 6392 },
-      "manualSourceLines": 8890,
+      "layerSourceLines": { "retained-experiment": 2498, "portable": 6404 },
+      "manualSourceLines": 8902,
       "generatedSourceLines": 0,
-      "totalSourceLines": 8890
+      "totalSourceLines": 8902
     }
   ],
   "sourceCostComparison": {
     "note": "The two portable layers differ by about 13% in source lines while sharing no code. That is a cost comparison between two independent implementations of one contract, not a quality measure. Fixtures are inside both counts, because each stack carries Cooling and Catalog as declaration data plus a handler.",
-    "referencePortableLines": 7337,
-    "minimalPortableLines": 6392
+    "referencePortableLines": 7346,
+    "minimalPortableLines": 6404
   },
   "portableRealizationFacts": {
     "note": "Representation, allocation, copy, and payload-bound facts for both realizations, as plan section 5 PB8 requires. Each fact states how it is known: 'declared' is fixed by the neutral contract, 'asserted' is checked by a named vector in both stacks, and 'measured' is counted from the artifacts.",

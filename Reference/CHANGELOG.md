@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — CBI5 authority withdrawal
+
+### Added
+
+- Reference Studio revalidation of the exact CM5 relationship and grant behind one active CBI3
+  binding, using fresh explicit time, evidence, and policy.
+- Fail-closed retirement for revoked, expired, mismatched, or non-identical authority, plus shared
+  withdrawal vectors and a phase-boundary completeness review.
+
+CBI5 governs subsequent ordinary interaction for one singleton binding. It does not cancel
+in-flight execution or provide distributed revocation.
+
 ## Unreleased — CBI4 integrated profile comparison
 
 ### Added

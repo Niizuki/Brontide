@@ -96,6 +96,13 @@ to answer the same questions without sharing runtime code. Its bounded claim is 
 [CBI4 capability contract](./cbi4-capability-contract.md) and completed
 [contract-completeness review](./cbi4-contract-completeness-review.md).
 
+CBI5 revalidates the exact CM5 relationship and grant that admitted an active CBI3 binding using a
+fresh explicit request. Exact renewal keeps the member released; revocation, expiry, request
+mismatch, or any non-identical local admission retires it before another ordinary Operation can
+reach the provider. Cleanup failure remains visible while the local gate stays closed. Its bounded
+behavior is recorded in the [CBI5 capability contract](./cbi5-capability-contract.md) and completed
+[contract-completeness review](./cbi5-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -166,6 +173,13 @@ behavior.
 and SHA-256 of the exact canonical integrated profile. Each composition root constructs and
 executes its own native CBI3 scenario. The fixture contains no serializer, lifecycle coordinator,
 authority evaluator, portable runtime, or process protocol.
+
+### `cbi5-authority-withdrawal-vectors` sections
+
+`vectors` names exact renewal, revoked evidence, expired evidence, request mismatch, and retirement
+cleanup failure with stable outcome codes. Each composition root reconstructs and evaluates its own
+native CM5 request and PB7 member. The fixture contains no evaluator, clock, cleanup mechanism,
+portable authority, or runtime implementation.
 
 ### `cm0-mice-topology` sections
 

@@ -486,6 +486,154 @@ public static class ComponentAuthorityIntegration
         new(authority, lifecycle, new(kind, code, reason));
 }
 
+public enum ComponentAuthorityRevalidationKind
+{
+    Continued,
+    Withdrawn,
+    RetirementFailed,
+    ActivationUnavailable,
+}
+
+public sealed record ComponentAuthorityRevalidationResult(
+    ComponentAuthorityRevalidationKind Kind,
+    Cm.AuthorityAdmissionOutcome? CurrentAuthority,
+    Portable.PortableReplacementRecord? Replacement,
+    string Code,
+    string Reason)
+{
+    public bool IsActive => Kind == ComponentAuthorityRevalidationKind.Continued;
+}
+
+/// <summary>Revalidates the exact CM5 grant that gated CBI3 and retires PB7 when it is lost.</summary>
+public static class ComponentAuthorityRevalidation
+{
+    public static async ValueTask<ComponentAuthorityRevalidationResult> RevalidateAsync(
+        ComponentAuthorityIntegrationResult active,
+        Cm.AuthorityAdmissionRequest request,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(active);
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (!active.IsActive ||
+            active.Authority is not { } previous ||
+            active.Lifecycle?.Member is not { } member ||
+            previous.Observation.Relationships.Count != 1 ||
+            previous.Observation.Grants.Count != 1)
+        {
+            return new(
+                ComponentAuthorityRevalidationKind.ActivationUnavailable,
+                null,
+                null,
+                "active-authority-unavailable",
+                "CBI5 requires one released Active CBI3 result with one relationship and grant.");
+        }
+
+        Cm.AuthorityAdmissionOutcome? current = null;
+        var code = "authority-revalidation-mismatch";
+        if (MatchesPreviousRequest(previous, request))
+        {
+            current = new Cm.FakeAuthorityAdmissionEvaluator().Evaluate(request);
+            if (IsSameAdmission(previous, current))
+            {
+                return new(
+                    ComponentAuthorityRevalidationKind.Continued,
+                    current,
+                    null,
+                    "authority-current",
+                    "The exact receiving-domain relationship and grant remain admitted.");
+            }
+
+            code = "authority-not-renewed";
+        }
+
+        try
+        {
+            var replacement = await member.RetireAsync(retirementReason, cancellationToken)
+                .ConfigureAwait(false);
+            return new(
+                ComponentAuthorityRevalidationKind.Withdrawn,
+                current,
+                replacement,
+                code,
+                "The prior authority is no longer current, so the portable member was retired.");
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception error)
+        {
+            var detail = error is Portable.PortableFaultException fault
+                ? $"{fault.LocalCode}: {fault.Message}"
+                : error.Message;
+            return new(
+                ComponentAuthorityRevalidationKind.RetirementFailed,
+                current,
+                null,
+                "authority-retirement-failed",
+                detail);
+        }
+    }
+
+    private static bool MatchesPreviousRequest(
+        Cm.AuthorityAdmissionOutcome previous,
+        Cm.AuthorityAdmissionRequest request)
+    {
+        var relationship = previous.Observation.Relationships[0];
+        var grant = previous.Observation.Grants[0];
+        return request.Request == previous.Observation.Request &&
+            request.Policy.Policy == previous.Observation.Policy &&
+            request.Participant == relationship.ProposedActor &&
+            request.Relationships.Count == 1 &&
+            request.Authority.Count == 1 &&
+            request.Relationships[0].Request == relationship.Request &&
+            request.Relationships[0].ProposedActor == relationship.ProposedActor &&
+            request.Relationships[0].Kind == relationship.Kind &&
+            request.Authority[0].Request == grant.Request &&
+            request.Authority[0].Relationship == relationship.Request &&
+            request.Authority[0].Capability == grant.Capability &&
+            request.Authority[0].Target == grant.Target &&
+            request.Authority[0].Operation == grant.Operation &&
+            request.Authority[0].Scope == grant.Scope &&
+            !request.Authority[0].Unlimited;
+    }
+
+    private static bool IsSameAdmission(
+        Cm.AuthorityAdmissionOutcome previous,
+        Cm.AuthorityAdmissionOutcome current)
+    {
+        if (current.Kind != Cm.AuthorityAdmissionOutcomeKind.Admitted ||
+            current.Observation.Relationships.Count != 1 ||
+            current.Observation.Grants.Count != 1)
+        {
+            return false;
+        }
+
+        var oldRelationship = previous.Observation.Relationships[0];
+        var newRelationship = current.Observation.Relationships[0];
+        var oldGrant = previous.Observation.Grants[0];
+        var newGrant = current.Observation.Grants[0];
+        return newRelationship.Request == oldRelationship.Request &&
+            newRelationship.ProposedActor == oldRelationship.ProposedActor &&
+            newRelationship.Kind == oldRelationship.Kind &&
+            newRelationship.LocalActor == oldRelationship.LocalActor &&
+            newRelationship.Policy == oldRelationship.Policy &&
+            newRelationship.Rule == oldRelationship.Rule &&
+            newGrant.Grant == oldGrant.Grant &&
+            newGrant.Request == oldGrant.Request &&
+            newGrant.Holder == oldGrant.Holder &&
+            newGrant.Capability == oldGrant.Capability &&
+            newGrant.Target == oldGrant.Target &&
+            newGrant.Operation == oldGrant.Operation &&
+            newGrant.Scope == oldGrant.Scope &&
+            newGrant.Policy == oldGrant.Policy &&
+            newGrant.Rule == oldGrant.Rule;
+    }
+}
+
 /// <summary>
 /// Projects one native CBI3 result into the canonical, data-only CBI4 comparison profile.
 /// </summary>

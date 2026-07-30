@@ -27,5 +27,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi4-integrated-comparison-vectors.json"
           Link="component-management\fixtures\cbi4-integrated-comparison-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi5-authority-withdrawal-vectors.json"
+          Link="component-management\fixtures\cbi5-authority-withdrawal-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -96,6 +96,10 @@ CBI4 now compares five equivalent integrated executions through independently pr
 profiles. Equality covers the complete CM5 profile digest, CBI3 decision, CM4 effects, portable
 lifecycle, and stable plan facts; it remains data-only evidence, not integrated cross-process
 execution or general substitutability.
+CBI5 revalidates the exact relationship and grant behind one active CBI3 binding. Revocation,
+expiry, or identity drift retires the portable member and closes ordinary interaction before peer
+cleanup; exact renewal leaves it released. This is bounded post-activation evidence, not
+distributed revocation or cancellation of an in-flight Operation.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary
