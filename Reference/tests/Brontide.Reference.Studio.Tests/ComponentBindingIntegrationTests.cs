@@ -114,8 +114,183 @@ public sealed class ComponentBindingIntegrationTests
         });
     }
 
+    [Test]
+    public async Task Singleton_lifecycle_derives_cm4_stages_and_releases_only_after_active()
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var request = RuntimeRequest(Plan(occurrence)) with
+        {
+            StageOutcomes =
+            [
+                new(
+                    Plan(occurrence).Groups.Single().Group,
+                    occurrence,
+                    ActivationStage.LocalInitialisation,
+                    false,
+                    "untrusted caller claim"),
+            ],
+        };
+        var conversation = DirectCooling(CoolingPortableFixture.Contract);
+
+        var result = await ComponentBindingLifecycle.ActivateAsync(
+            resolution,
+            selection,
+            request,
+            conversation);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsActive, Is.True);
+            Assert.That(result.Runtime!.Kind, Is.EqualTo(ActivationRuntimeOutcomeKind.Active));
+            Assert.That(result.Runtime.Observation.Effects.Released, Is.True);
+            Assert.That(result.Runtime.Observation.Effects.CapabilityGranted, Is.False);
+            Assert.That(result.Member!.Stage, Is.EqualTo(PortableCompositionStage.Released));
+            Assert.That(result.Member.Plan, Is.Not.Null);
+        });
+    }
+
+    [Test]
+    public async Task Cm4_preflight_refusal_prevents_provider_contact()
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var request = RuntimeRequest(Plan(occurrence)) with
+        {
+            Release = new(ReleaseId.Create("release.integration"), ReleaseFailureMoment.BeforeCutover),
+        };
+
+        var result = await ComponentBindingLifecycle.ActivateAsync(
+            resolution,
+            selection,
+            request,
+            DirectCooling(CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Failure!.Kind, Is.EqualTo(ComponentBindingLifecycleFailureKind.RuntimeRefusedBeforeStart));
+            Assert.That(result.Runtime!.Kind, Is.EqualTo(ActivationRuntimeOutcomeKind.ReleaseFailedBeforeCutover));
+            Assert.That(result.Member!.Stage, Is.EqualTo(PortableCompositionStage.LocalInitialisation));
+            Assert.That(result.Member.Plan, Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task Unsupported_activation_group_is_refused_before_provider_contact()
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var extra = OccurrenceId.Create("occ.extra");
+
+        var result = await ComponentBindingLifecycle.ActivateAsync(
+            resolution,
+            selection,
+            RuntimeRequest(Plan(occurrence, extra)),
+            DirectCooling(CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Failure!.Kind, Is.EqualTo(ComponentBindingLifecycleFailureKind.PlanUnsupported));
+            Assert.That(result.Runtime, Is.Null);
+            Assert.That(result.Member!.Stage, Is.EqualTo(PortableCompositionStage.LocalInitialisation));
+        });
+    }
+
+    [Test]
+    public async Task Activation_plan_cannot_replace_the_cbi1_selected_occurrence()
+    {
+        var (resolution, selection, _) = LifecycleInput();
+
+        var result = await ComponentBindingLifecycle.ActivateAsync(
+            resolution,
+            selection,
+            RuntimeRequest(Plan(OccurrenceId.Create("occ.replacement"))),
+            DirectCooling(CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Failure!.Kind, Is.EqualTo(ComponentBindingLifecycleFailureKind.PlanUnsupported));
+            Assert.That(result.Runtime, Is.Null);
+            Assert.That(result.Member!.Stage, Is.EqualTo(PortableCompositionStage.LocalInitialisation));
+            Assert.That(result.Member.Plan, Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task Portable_interconnection_refusal_is_projected_as_cm4_establishment_failure()
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var substituted = CoolingPortableFixture.Contract with
+        {
+            Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
+        };
+
+        var result = await ComponentBindingLifecycle.ActivateAsync(
+            resolution,
+            selection,
+            RuntimeRequest(Plan(occurrence)),
+            DirectCooling(substituted));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Failure!.Kind, Is.EqualTo(ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused));
+            Assert.That(result.Runtime!.Kind, Is.EqualTo(ActivationRuntimeOutcomeKind.EstablishmentFailed));
+            Assert.That(result.Member!.Stage, Is.Not.EqualTo(PortableCompositionStage.Released));
+        });
+    }
+
     private static ResolutionOutcome Resolve(Cardinality cardinality) =>
         new FakeGenerationResolver().Resolve(Request(cardinality));
+
+    private static (ResolutionOutcome Resolution, ComponentBindingSelection Selection, OccurrenceId Occurrence) LifecycleInput()
+    {
+        var resolution = Resolve(Cardinality.Parse("1..1"));
+        var member = resolution.Generation!.ProviderSets.Single().Members.Single();
+        return (resolution, Selection(member), member.Occurrence);
+    }
+
+    private static ActivationGroupPlan Plan(params OccurrenceId[] occurrences)
+    {
+        var members = occurrences.Select(occurrence => new ActivationGroupMember(
+            occurrence,
+            DefinitionId.Create($"def.{occurrence.Value}"),
+            RegionId.Create("region.integration"),
+            new[] { new ProvidedContract(Contract, Version) },
+            Array.Empty<LifecycleInputId>(),
+            Array.Empty<LifecycleInputId>(),
+            Array.Empty<OccurrenceId>())).ToArray();
+        var outcome = new FakeActivationGroupPlanner().Plan(new(
+            ActivationGroupRequestId.Create("group.integration"),
+            GenerationId.Create("gen.lifecycle"),
+            RestartScopeId.Create("restart.lifecycle"),
+            members,
+            Array.Empty<ActivationDependency>(),
+            Array.Empty<LifecycleProtocolDeclaration>(),
+            Array.Empty<RegionCrossingDeclaration>()));
+        return outcome.Plan!;
+    }
+
+    private static ActivationRuntimeRequest RuntimeRequest(ActivationGroupPlan plan)
+    {
+        var retained = GenerationId.Create("gen.retained");
+        return new(
+            ActivationAttemptId.Create("activation.integration"),
+            plan,
+            plan.RestartScope,
+            retained,
+            new[] { new ActiveScopeSnapshot(plan.RestartScope, retained, RuntimeScopeStatus.Active) },
+            null,
+            Array.Empty<MemberStageOutcome>(),
+            Array.Empty<RuntimeInteractionAttempt>(),
+            Array.Empty<BindingExerciseDeclaration>(),
+            new ReleaseDeclaration(ReleaseId.Create("release.integration"), ReleaseFailureMoment.None),
+            RollbackAvailability.Available,
+            RetainedGenerationDisposition.TerminateAfterRelease,
+            null);
+    }
+
+    private static IPortableProviderConversation DirectCooling(PortableContractDocument document) =>
+        new PortableDirectConversation(new PortableProviderEndpoint(
+            document,
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            PortableRealization.FixedDirectCall));
 
     private static ResolutionRequest Request(Cardinality cardinality)
     {

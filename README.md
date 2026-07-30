@@ -86,6 +86,9 @@ substitutability, security, or Architecture 0.8 conformance.
 The first CBI1 integration slice now lets each stack's composition root carry a completed native
 CM2 direct `1..1` decision into Portable Binding PB7 preflight through an explicit typed mapping,
 without reselecting the provider or inventing a Binding Plan.
+CBI2 then coordinates that member with one singleton, protocol-free CM4 plan: CM4 is validated
+before provider contact, lifecycle observations come from PB7 state rather than caller claims, and
+the portable gate opens only after CM4 reaches Active. CM5 authority remains outside this slice.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

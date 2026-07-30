@@ -104,6 +104,64 @@ type ComponentBindingIntegrationTests() =
           ProviderEndpoint = "cooling-provider"
           RequiredContract = CoolingFixture.contract }
 
+    let prepared () =
+        let resolution = resolve (Cardinality.parse "1..1")
+        let memberValue = memberOf resolution
+        resolution, selection memberValue, memberValue.Occurrence
+
+    let activationMember occurrence =
+        { Occurrence = occurrence
+          Definition = DefinitionId.create (sprintf "def.%s" (OccurrenceId.value occurrence))
+          Region = RegionId.create "region.integration"
+          Provides = [ { Contract = contractId; Version = version } ]
+          RequiredReadyInputs = []
+          AvailableReadyInputs = []
+          WaitsForReadyOf = [] }
+
+    let plan occurrences =
+        let groupRequest =
+            { Request = ActivationGroupRequestId.create "group.integration"
+              Generation = GenerationId.create "gen.lifecycle"
+              RestartScope = RestartScopeId.create "restart.lifecycle"
+              Members = occurrences |> List.map activationMember
+              Edges = []
+              Protocols = []
+              RegionCrossings = [] }
+        match FakeActivationGroupPlanner.plan groupRequest with
+        | Planned value -> value
+        | outcome -> failwithf "Expected a CM3 plan, got %A." outcome
+
+    let runtimeRequest planValue =
+        let retained = GenerationId.create "gen.retained"
+        { Attempt = ActivationAttemptId.create "activation.integration"
+          Plan = planValue
+          RequestedRestartScope = planValue.RestartScope
+          RetainedGeneration = retained
+          ActiveScopes =
+            [ { Scope = planValue.RestartScope
+                Generation = retained
+                Status = RuntimeScopeStatus.ActiveScope } ]
+          Preparation = None
+          StageOutcomes = []
+          InteractionAttempts = []
+          BindingExercises = []
+          Release =
+            { Release = ReleaseId.create "release.integration"
+              FailureMoment = ReleaseFailureMoment.NoReleaseFailure }
+          Rollback = RollbackAvailability.Available
+          RetainedDisposition = RetainedGenerationDisposition.TerminateAfterRelease
+          Child = None }
+
+    let directCooling document =
+        PortableDirectConversation(
+            PortableProviderEndpoint(document, CoolingHandler(), Realization.FixedDirectCall))
+        :> IPortableProviderConversation
+
+    let expectProvider name =
+        match PortableProviderRef.tryCreate name 1 with
+        | Ok value -> value
+        | Error error -> failwithf "Expected provider reference, got %A." error
+
     [<Test>]
     member _.``completed direct one to one resolution enters portable preflight``() =
         let resolution = resolve (Cardinality.parse "1..1")
@@ -188,3 +246,144 @@ type ComponentBindingIntegrationTests() =
                     Is.EqualTo ComponentBindingIntegrationFailureKind.MappingInvalid)
                 Assert.That(failure.Code, Is.EqualTo "endpoint-invalid"))
         | Prepared _ -> Assert.Fail "An empty endpoint reached portable preflight."
+
+    [<Test>]
+    member _.``singleton lifecycle derives CM4 stages and releases only after Active``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let planValue = plan [ occurrence ]
+            let group = planValue.Groups |> List.exactlyOne
+            let request =
+                { runtimeRequest planValue with
+                    StageOutcomes =
+                        [ { Group = group.Group
+                            Member = occurrence
+                            Stage = ActivationStage.LocalInitialisation
+                            Succeeded = false
+                            Detail = "untrusted caller claim" } ] }
+            let! result =
+                ComponentBindingLifecycle.activate
+                    resolution
+                    selected
+                    request
+                    (directCooling CoolingFixture.contract)
+
+            match result.Member, result.Runtime, result.Failure with
+            | Some memberValue, Some runtime, None ->
+                multiple (fun () ->
+                    Assert.That(runtime.Kind, Is.EqualTo ActivationRuntimeOutcomeKind.Active)
+                    Assert.That(runtime.Observation.Effects.Released, Is.True)
+                    Assert.That(runtime.Observation.Effects.CapabilityGranted, Is.False)
+                    Assert.That(CompositionStage.token memberValue.Stage, Is.EqualTo "released")
+                    Assert.That(memberValue.TryPlan.IsSome, Is.True))
+            | state -> Assert.Fail(sprintf "Expected Active lifecycle, got %A." state)
+        }
+
+    [<Test>]
+    member _.``CM4 preflight refusal prevents provider contact``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let request =
+                { runtimeRequest (plan [ occurrence ]) with
+                    Release =
+                        { Release = ReleaseId.create "release.integration"
+                          FailureMoment = ReleaseFailureMoment.BeforeCutover } }
+            let! result =
+                ComponentBindingLifecycle.activate
+                    resolution
+                    selected
+                    request
+                    (directCooling CoolingFixture.contract)
+
+            match result.Member, result.Runtime, result.Failure with
+            | Some memberValue, Some runtime, Some failure ->
+                multiple (fun () ->
+                    Assert.That(
+                        failure.Kind,
+                        Is.EqualTo ComponentBindingLifecycleFailureKind.RuntimeRefusedBeforeStart)
+                    Assert.That(
+                        runtime.Kind,
+                        Is.EqualTo ActivationRuntimeOutcomeKind.ReleaseFailedBeforeCutover)
+                    Assert.That(
+                        CompositionStage.token memberValue.Stage,
+                        Is.EqualTo "local-initialisation")
+                    Assert.That(memberValue.TryPlan, Is.EqualTo None))
+            | state -> Assert.Fail(sprintf "Expected preflight refusal, got %A." state)
+        }
+
+    [<Test>]
+    member _.``unsupported activation group is refused before provider contact``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let extra = OccurrenceId.create "occ.extra"
+            let! result =
+                ComponentBindingLifecycle.activate
+                    resolution
+                    selected
+                    (runtimeRequest (plan [ occurrence; extra ]))
+                    (directCooling CoolingFixture.contract)
+
+            match result.Member, result.Runtime, result.Failure with
+            | Some memberValue, None, Some failure ->
+                multiple (fun () ->
+                    Assert.That(
+                        failure.Kind,
+                        Is.EqualTo ComponentBindingLifecycleFailureKind.PlanUnsupported)
+                    Assert.That(
+                        CompositionStage.token memberValue.Stage,
+                        Is.EqualTo "local-initialisation"))
+            | state -> Assert.Fail(sprintf "Expected unsupported-plan refusal, got %A." state)
+        }
+
+    [<Test>]
+    member _.``activation plan cannot replace the CBI1 selected occurrence``() =
+        task {
+            let resolution, selected, _ = prepared ()
+            let! result =
+                ComponentBindingLifecycle.activate
+                    resolution
+                    selected
+                    (runtimeRequest (plan [ OccurrenceId.create "occ.replacement" ]))
+                    (directCooling CoolingFixture.contract)
+
+            match result.Member, result.Runtime, result.Failure with
+            | Some memberValue, None, Some failure ->
+                multiple (fun () ->
+                    Assert.That(
+                        failure.Kind,
+                        Is.EqualTo ComponentBindingLifecycleFailureKind.PlanUnsupported)
+                    Assert.That(
+                        CompositionStage.token memberValue.Stage,
+                        Is.EqualTo "local-initialisation")
+                    Assert.That(memberValue.TryPlan, Is.EqualTo None))
+            | state -> Assert.Fail(sprintf "Expected selected-occurrence refusal, got %A." state)
+        }
+
+    [<Test>]
+    member _.``portable interconnection refusal becomes CM4 establishment failure``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let substituted =
+                { CoolingFixture.contract with
+                    Provider = expectProvider "brontide.fake.substituted" }
+            let! result =
+                ComponentBindingLifecycle.activate
+                    resolution
+                    selected
+                    (runtimeRequest (plan [ occurrence ]))
+                    (directCooling substituted)
+
+            match result.Member, result.Runtime, result.Failure with
+            | Some memberValue, Some runtime, Some failure ->
+                multiple (fun () ->
+                    Assert.That(
+                        failure.Kind,
+                        Is.EqualTo ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused)
+                    Assert.That(
+                        runtime.Kind,
+                        Is.EqualTo ActivationRuntimeOutcomeKind.EstablishmentFailed)
+                    Assert.That(
+                        CompositionStage.token memberValue.Stage,
+                        Is.Not.EqualTo "released"))
+            | state -> Assert.Fail(sprintf "Expected establishment refusal, got %A." state)
+        }

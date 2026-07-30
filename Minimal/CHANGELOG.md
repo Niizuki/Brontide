@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — CBI2 portable lifecycle orchestration
+
+### Added
+
+- A Minimal Host coordinator for one CBI1 member and one singleton, protocol-free CM4 plan.
+- CM4 preflight before provider contact, PB7-derived stage evidence, portable-refusal projection,
+  and portable Release only after CM4 Active.
+- Native lifecycle tests plus the CBI2 capability contract and contract-completeness review.
+
+CBI2 grants no authority and does not support relational or multi-member activation, replacement,
+child Ports, mediation, wider Provider Sets, or general interoperability.
+
 ## Unreleased — CBI1 Component Management / Portable Binding integration
 
 ### Added

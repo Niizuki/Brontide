@@ -45,6 +45,9 @@ isolation, durable rollback, cryptographic verification, federation, or producti
 Reference Studio now also owns the CBI1 composition-root adapter: a completed direct `1..1` CM2
 provider position and explicit identity mapping can enter PB7 preflight, while wider, mediated,
 missing, indirect, or mismatched positions fail before a provider starts.
+Its CBI2 coordinator aligns that member with one singleton, protocol-free CM4 lifecycle, deriving
+stage evidence from PB7 and releasing the portable gate only after CM4 reaches Active. It does not
+perform CM5 authority admission or support multi-member or relational activation.
 
 ## Build and test
 
