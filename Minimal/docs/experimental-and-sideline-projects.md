@@ -28,9 +28,12 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   wider-parent outcomes. CM3 adds Minimal-native, effect-free maximal strongly connected
   activation-group planning, exact contract/version and bounded lifecycle checks, Ready analysis,
   declared Region containment, closed-gate stage plans, and structured wider-parent or refusal
-  outcomes. It is not a real marketplace, package manager, loader, resolver policy product,
-  activation host, or security product, and is not an Architecture 0.8 conformance claim; CM4-CM6
-  remain planned.
+  outcomes. CM4 adds a Minimal-native deterministic fake Host for optional preparation, complete
+  establishment, exact gates, logical Release, post-Release binding evidence, scoped replacement,
+  child-Port activation, and explicit rollback or degradation. It is not a real marketplace,
+  package manager, loader, resolver policy product, production activation host, durable rollback
+  system, or security product, and is not an Architecture 0.8 conformance claim; CM5-CM6 remain
+  planned.
 - `Brontide.Minimal.Binding` (`Portable/`) is the Minimal native realization of the
   [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md),
   built against the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).

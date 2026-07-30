@@ -8,5 +8,6 @@
     <Compile Include="Discovery.fs" />
     <Compile Include="Resolution.fs" />
     <Compile Include="ActivationGroups.fs" />
+    <Compile Include="ActivationRuntime.fs" />
   </ItemGroup>
 </Project>

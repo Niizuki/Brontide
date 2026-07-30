@@ -49,6 +49,12 @@ type LifecycleOperationId = private LifecycleOperationId of string
 type LifecycleInputId = private LifecycleInputId of string
 type CapabilityId = private CapabilityId of string
 type ShapeId = private ShapeId of string
+type ActivationAttemptId = private ActivationAttemptId of string
+type PreparationId = private PreparationId of string
+type ReleaseId = private ReleaseId of string
+type RuntimeInteractionId = private RuntimeInteractionId of string
+type BindingExerciseId = private BindingExerciseId of string
+type RoutingDecisionId = private RoutingDecisionId of string
 type GenerationId = private GenerationId of string
 type RestartScopeId = private RestartScopeId of string
 type TopologyNodeId = private TopologyNodeId of string
@@ -185,6 +191,36 @@ module CapabilityId =
 module ShapeId =
     let create v = ShapeId(IdentifierSyntax.require "ShapeId" v)
     let value (ShapeId v) = v
+
+[<RequireQualifiedAccess>]
+module ActivationAttemptId =
+    let create v = ActivationAttemptId(IdentifierSyntax.require "ActivationAttemptId" v)
+    let value (ActivationAttemptId v) = v
+
+[<RequireQualifiedAccess>]
+module PreparationId =
+    let create v = PreparationId(IdentifierSyntax.require "PreparationId" v)
+    let value (PreparationId v) = v
+
+[<RequireQualifiedAccess>]
+module ReleaseId =
+    let create v = ReleaseId(IdentifierSyntax.require "ReleaseId" v)
+    let value (ReleaseId v) = v
+
+[<RequireQualifiedAccess>]
+module RuntimeInteractionId =
+    let create v = RuntimeInteractionId(IdentifierSyntax.require "RuntimeInteractionId" v)
+    let value (RuntimeInteractionId v) = v
+
+[<RequireQualifiedAccess>]
+module BindingExerciseId =
+    let create v = BindingExerciseId(IdentifierSyntax.require "BindingExerciseId" v)
+    let value (BindingExerciseId v) = v
+
+[<RequireQualifiedAccess>]
+module RoutingDecisionId =
+    let create v = RoutingDecisionId(IdentifierSyntax.require "RoutingDecisionId" v)
+    let value (RoutingDecisionId v) = v
 
 [<RequireQualifiedAccess>]
 module GenerationId =

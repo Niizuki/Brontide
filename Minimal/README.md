@@ -48,13 +48,15 @@ The implementation currently provides:
   resources, an explicit lifecycle, the C9 observation set, a fixed direct-call and a negotiated
   process realization, and the Composition handoff that turns a resolved requirement and an offered
   provision into a Binding Plan at activation preflight;
-- the fake Component Management CM0-CM3 phases: strict neutral-fixture loading, deterministic
+- the fake Component Management CM0-CM4 phases: strict neutral-fixture loading, deterministic
   attributable discovery, immutable staged acquisition, evidence-policy observations, and pure
   source-removal transitions, followed by Minimal-native effect-free recursive resolution into
   immutable Proposed Stack and generation values, and deterministic strongly-connected
-  activation-group planning with closed lifecycle and ordinary-interaction gates, stopping before
-  preparation, runtime establishment, lifecycle execution, Ready reporting, Release, Actor
-  establishment, authority grants, or active-generation mutation;
+  activation-group planning followed by a Minimal-native deterministic fake Host for optional
+  preparation, named establishment, lifecycle and ordinary gates, Ready, logical Release, scoped
+  replacement, child-Port attachment, post-Release binding evidence, and explicit rollback or
+  degradation; it does not load arbitrary code, provide production isolation or durable rollback,
+  or decide authority grants;
 - a headless host and five F# test assemblies.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

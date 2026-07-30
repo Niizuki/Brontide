@@ -1,7 +1,7 @@
 # Brontide Component Management Implementation Plan 0.1
 
 Status: Partially implemented experimental work
-Implementation state: CM0-CM3 are implemented and tested independently in both stacks; CM4-CM6
+Implementation state: CM0-CM4 are implemented and tested independently in both stacks; CM5-CM6
 remain planned.
 Designed for: [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §18.1, §19,
 §20.1, §24, and §33, Complete Draft, not ratified
@@ -101,12 +101,12 @@ the future `Topology` extension direction recorded in the
 
 ## 4. Delivery sequence
 
-Delivery status: CM0-CM3 are implemented in both stacks
+Delivery status: CM0-CM4 are implemented in both stacks
 (`Reference/src/Brontide.Reference.Experimental.ComponentManagement` with tests in
 `Reference/tests/Brontide.Reference.ComponentManagement.Tests`, and
 `Minimal/src/Brontide.Minimal.Experimental.ComponentManagement` with tests in
 `Minimal/tests/Brontide.Minimal.ComponentManagement.Tests`), sharing the data-only fixtures under
-the root `component-management/` tree. CM4-CM6 remain planned.
+the root `component-management/` tree. CM5-CM6 remain planned.
 
 ### CM0 — vocabulary and fixtures
 
@@ -281,6 +281,26 @@ host-assisted device, establish and Release the device's internal generation bef
 exported boundary into the outer generation. Distinguish this initial attachment to an empty Port
 from replacement of an active child, which requires its own lifecycle contract.
 
+Implementation record (2026-07-30): the
+[`CM4 capability contract`](../../../component-management/cm4-capability-contract.md) defines
+C1-C10 and their phase-wide properties. Both stacks independently implement a deterministic fake
+Host over successful CM3 plans: optional effect-free preparation, complete member-stage evidence,
+exact lifecycle and ordinary gate enforcement, one typed logical Release, post-Release distinct and
+mediated binding observations, exact restart-scope replacement, retained-generation disposition,
+child-Port and host-assisted activation, and explicit pre-cutover preservation, rollback,
+rollback-unavailable degradation, or retained-generation corruption. The shared
+[`CM4 vector inventory`](../../../component-management/fixtures/cm4-activation-runtime-vectors.json)
+is data only.
+
+The required phase-boundary
+[`contract-completeness review`](../../../component-management/cm4-contract-completeness-review.md)
+is complete. It found and closed silence around preparation snapshots, target/retained generation
+identity, complete stage products, declared post-Release edges, typed Release evidence,
+contradictory binding observations, retained-generation disposition, child-parent scope identity,
+host-assisted ordering, Capability non-grant, and deep CM3-plan snapshots. Real loading, production
+isolation, durable rollback, and authority admission remain outside CM4; CM5 owns requested Actor
+relationships and Capability policy.
+
 ### CM5 — authority and admission seam
 
 Expose requested Actor relationships and authority as requests for local policy, never self-grants.
@@ -448,3 +468,10 @@ than in delivery prose.
 - **2026-07-30 — CM3 completeness:** the phase-boundary absence audit is complete with every finding
   corrected; preparation, runtime establishment, lifecycle execution, Ready reporting, Release,
   scoped restart, rollback, and active-generation mutation remain explicitly owned by CM4.
+- **2026-07-30 — CM4 delivery:** C1-C10 optional preparation, complete establishment stages, exact
+  lifecycle and ordinary gates, logical Release, post-Release binding evidence, scoped replacement,
+  child-Port activation, retirement, rollback, and degradation outcomes are implemented
+  independently in both stacks. CM5-CM6 remain future work.
+- **2026-07-30 — CM4 completeness:** the phase-boundary absence audit is complete with every finding
+  corrected; authority admission, requested Actor relationships, Capability grants, revocation,
+  expiry, and attributable policy mistakes remain explicitly owned by CM5.

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cm4-activation-runtime-vectors",
+  "vectors": [
+    { "id": "cm4-01", "capability": "C1", "scenario": "no preparation proceeds to establishment", "outcome": "active" },
+    { "id": "cm4-02", "capability": "C1", "scenario": "preparation completes without runtime effects", "outcome": "active" },
+    { "id": "cm4-03", "capability": "C1", "scenario": "preparation failure preserves all active scopes", "outcome": "preparation-failed" },
+    { "id": "cm4-04", "capability": "C2", "scenario": "retained generation mismatches exact restart scope", "outcome": "restart-scope-conflict" },
+    { "id": "cm4-05", "capability": "C3", "scenario": "all planned stage observations form a complete prefix", "outcome": "active" },
+    { "id": "cm4-06", "capability": "C3", "scenario": "member fails relational initialisation", "outcome": "establishment-failed" },
+    { "id": "cm4-07", "capability": "C4", "scenario": "ordinary interaction attempted before release", "outcome": "interaction-refused" },
+    { "id": "cm4-08", "capability": "C4", "scenario": "exact bounded lifecycle operation is admitted relationally", "outcome": "active" },
+    { "id": "cm4-09", "capability": "C5", "scenario": "one member does not reach Ready", "outcome": "establishment-failed" },
+    { "id": "cm4-10", "capability": "C5", "scenario": "one logical release opens the generation", "outcome": "active" },
+    { "id": "cm4-11", "capability": "C6", "scenario": "distinct and mediated bindings retain identity and provenance", "outcome": "active" },
+    { "id": "cm4-12", "capability": "C7", "scenario": "release fails before cutover and retained generation stays active", "outcome": "release-failed-before-cutover" },
+    { "id": "cm4-13", "capability": "C7", "scenario": "post-cutover failure restores intact retained generation", "outcome": "rolled-back" },
+    { "id": "cm4-14", "capability": "C7", "scenario": "post-cutover rollback is declared unavailable", "outcome": "rollback-unavailable" },
+    { "id": "cm4-15", "capability": "C7", "scenario": "retained generation is corrupted", "outcome": "retained-generation-corrupted" },
+    { "id": "cm4-16", "capability": "C8", "scenario": "empty runtime-open child Port attaches while parent stays active", "outcome": "active" },
+    { "id": "cm4-17", "capability": "C8", "scenario": "occupied Port replacement lacks lifecycle declaration", "outcome": "replacement-lifecycle-required" },
+    { "id": "cm4-18", "capability": "C8", "scenario": "host-assisted export precedes internal release", "outcome": "host-assisted-order-conflict" },
+    { "id": "cm4-19", "capability": "C9", "scenario": "request attempts wider restart scope", "outcome": "restart-scope-conflict" },
+    { "id": "cm4-20", "capability": "C10", "scenario": "permuted observations produce the same complete outcome", "outcome": "active" }
+  ]
+}

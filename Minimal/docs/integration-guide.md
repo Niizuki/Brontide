@@ -80,3 +80,21 @@ boundary and completed absence audit are
 [`../../component-management/cm3-capability-contract.md`](../../component-management/cm3-capability-contract.md)
 and
 [`../../component-management/cm3-contract-completeness-review.md`](../../component-management/cm3-contract-completeness-review.md).
+
+## Fake Component Management CM4
+
+Create an `ActivationRuntimeRequest` from one successful CM3 `ActivationGroupPlan`, the exact
+restart scope and retained generation, a complete active-scope snapshot, one member outcome for
+every planned stage, explicit interaction and post-Release binding observations, a typed Release,
+rollback availability, retained-generation disposition, and an optional child-Port declaration.
+Call `FakeActivationRuntime.activate`.
+
+The Host validates all inputs before establishment, advances groups and stages without inventing
+member order, admits only exact declared lifecycle traffic before Release, admits declared ordinary
+edges and binding exercises only afterward, and returns complete scope/effect evidence for success,
+pre-cutover failure, restoration, or degradation. It is deterministic fake runtime evidence, not a
+loader, process supervisor, durable rollback system, or authority policy. The C1-C10 boundary and
+completed absence audit are
+[`../../component-management/cm4-capability-contract.md`](../../component-management/cm4-capability-contract.md)
+and
+[`../../component-management/cm4-contract-completeness-review.md`](../../component-management/cm4-contract-completeness-review.md).

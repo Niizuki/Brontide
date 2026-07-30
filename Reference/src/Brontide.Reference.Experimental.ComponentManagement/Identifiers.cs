@@ -185,6 +185,42 @@ public readonly record struct ShapeId(string Value)
     public override string ToString() => Value;
 }
 
+public readonly record struct ActivationAttemptId(string Value)
+{
+    public static ActivationAttemptId Create(string value) => new(IdentifierSyntax.Require(value, nameof(ActivationAttemptId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct PreparationId(string Value)
+{
+    public static PreparationId Create(string value) => new(IdentifierSyntax.Require(value, nameof(PreparationId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct ReleaseId(string Value)
+{
+    public static ReleaseId Create(string value) => new(IdentifierSyntax.Require(value, nameof(ReleaseId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct RuntimeInteractionId(string Value)
+{
+    public static RuntimeInteractionId Create(string value) => new(IdentifierSyntax.Require(value, nameof(RuntimeInteractionId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct BindingExerciseId(string Value)
+{
+    public static BindingExerciseId Create(string value) => new(IdentifierSyntax.Require(value, nameof(BindingExerciseId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct RoutingDecisionId(string Value)
+{
+    public static RoutingDecisionId Create(string value) => new(IdentifierSyntax.Require(value, nameof(RoutingDecisionId)));
+    public override string ToString() => Value;
+}
+
 public readonly record struct GenerationId(string Value)
 {
     public static GenerationId Create(string value) => new(IdentifierSyntax.Require(value, nameof(GenerationId)));
