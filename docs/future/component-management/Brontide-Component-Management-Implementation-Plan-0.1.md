@@ -1,8 +1,8 @@
 # Brontide Component Management Implementation Plan 0.1
 
 Status: Partially implemented experimental work
-Implementation state: CM0-CM4 are implemented and tested independently in both stacks; CM5-CM6
-remain planned.
+Implementation state: CM0-CM5 are implemented and tested independently in both stacks; CM6 remains
+planned.
 Designed for: [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §18.1, §19,
 §20.1, §24, and §33, Complete Draft, not ratified
 Design source:
@@ -101,12 +101,12 @@ the future `Topology` extension direction recorded in the
 
 ## 4. Delivery sequence
 
-Delivery status: CM0-CM4 are implemented in both stacks
+Delivery status: CM0-CM5 are implemented in both stacks
 (`Reference/src/Brontide.Reference.Experimental.ComponentManagement` with tests in
 `Reference/tests/Brontide.Reference.ComponentManagement.Tests`, and
 `Minimal/src/Brontide.Minimal.Experimental.ComponentManagement` with tests in
 `Minimal/tests/Brontide.Minimal.ComponentManagement.Tests`), sharing the data-only fixtures under
-the root `component-management/` tree. CM5-CM6 remain planned.
+the root `component-management/` tree. CM6 remains planned.
 
 ### CM0 — vocabulary and fixtures
 
@@ -309,6 +309,27 @@ revoked or expired evidence, and policy mistakes that are recorded as local deci
 does not need production cryptography to prove that evidence, policy, and authority establishment
 are distinct stages.
 
+Implementation record (2026-07-30): the
+[`CM5 capability contract`](../../../component-management/cm5-capability-contract.md) defines
+C1-C10 and their phase-wide properties. Both stacks independently implement a deterministic fake
+receiving-domain evaluator with strongly typed relationship, authority, policy, Operation, scope,
+local-Actor-reference, and grant identities. It evaluates exact required evidence at an injected
+instant; applies local relationship and authority mappings in separate stages; refuses unverified,
+untrusted, subject-mismatched, revoked, expired, future, unknown, and unlimited requests; mints only
+exact narrow grants; and attributes deliberately mistaken rules to the local policy. The shared
+[`CM5 vector inventory`](../../../component-management/fixtures/cm5-authority-admission-vectors.json)
+is data only.
+
+The required phase-boundary
+[`contract-completeness review`](../../../component-management/cm5-contract-completeness-review.md)
+is complete. It found and closed silence around rule-selected evidence, time boundaries,
+multi-defect evidence precedence, deny-rule Actor references, identity uniqueness, unreferenced
+evidence, participant consistency, structural unlimited-authority refusal, policy-mistake
+attribution, overall outcome categories, dependency scope, and exact grant provenance. Production
+cryptography, trust roots, Delegation, Terminus, cross-domain federation, effect withdrawal, and
+integration with CM4 remain outside CM5; CM6 owns independent serialized comparison of the fake
+model.
+
 ### CM6 — independent comparison
 
 Run common external fixtures through both native implementations and compare resolved records and
@@ -475,3 +496,10 @@ than in delivery prose.
 - **2026-07-30 — CM4 completeness:** the phase-boundary absence audit is complete with every finding
   corrected; authority admission, requested Actor relationships, Capability grants, revocation,
   expiry, and attributable policy mistakes remain explicitly owned by CM5.
+- **2026-07-30 — CM5 delivery:** C1-C10 evidence evaluation, local Actor relationship mapping,
+  exact narrow Capability grants, revoked and expired evidence refusal, unlimited-authority denial,
+  deterministic partial admission, and attributable local policy mistakes are implemented
+  independently in both stacks. CM6 remains future work.
+- **2026-07-30 — CM5 completeness:** the phase-boundary absence audit is complete with every finding
+  corrected; serialized or process-boundary comparison of the independent implementations remains
+  explicitly owned by CM6.

@@ -30,14 +30,16 @@ realisations therefore live in `Brontide.Reference.Experimental.Composition`, no
 conformance.
 
 `Brontide.Reference.Experimental.ComponentManagement` now implements the fake Component Management
-CM0-CM4 phases: strict neutral-fixture loading, deterministic attributable discovery, immutable
+CM0-CM5 phases: strict neutral-fixture loading, deterministic attributable discovery, immutable
 staged acquisition, evidence-policy observations, source disappearance, effect-free recursive
 resolution into an inspectable Proposed Stack and immutable generation, and deterministic
 strongly-connected activation-group planning followed by a deterministic fake Host for optional
 preparation, named establishment, lifecycle and ordinary gates, Ready, logical Release, scoped
 replacement, child-Port attachment, post-Release binding evidence, and explicit rollback or
-degradation. It does not load arbitrary code, provide production isolation or durable rollback, or
-decide authority grants.
+degradation, followed by Reference-native evidence evaluation, receiving-policy Actor mapping,
+exact narrow Capability admission, withdrawal on revoked or expired evidence, unlimited-authority
+refusal, and attributable policy mistakes. It does not load arbitrary code, provide production
+isolation, durable rollback, cryptographic verification, federation, or production authority.
 
 ## Build and test
 

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cm5-authority-admission-vectors",
+  "vectors": [
+    { "id": "cm5-01", "capability": "C1", "scenario": "self-asserted relationship and authority lack local rules", "outcome": "denied" },
+    { "id": "cm5-02", "capability": "C1", "scenario": "local relationship and authority rules establish narrow effects", "outcome": "admitted" },
+    { "id": "cm5-03", "capability": "C2", "scenario": "verified current evidence from a trusted issuer is accepted", "outcome": "admitted" },
+    { "id": "cm5-04", "capability": "C2", "scenario": "unverified evidence cannot satisfy admission", "outcome": "denied" },
+    { "id": "cm5-05", "capability": "C2", "scenario": "evidence for another Actor is subject-mismatched", "outcome": "denied" },
+    { "id": "cm5-06", "capability": "C3", "scenario": "receiving policy assigns the local Actor reference", "outcome": "admitted" },
+    { "id": "cm5-07", "capability": "C3", "scenario": "missing evidence reference is invalid input", "outcome": "invalid-request" },
+    { "id": "cm5-08", "capability": "C4", "scenario": "denied relationship blocks dependent authority", "outcome": "denied" },
+    { "id": "cm5-09", "capability": "C4", "scenario": "accepted relationship does not grant absent authority", "outcome": "partially-admitted" },
+    { "id": "cm5-10", "capability": "C5", "scenario": "grant repeats the exact requested tuple", "outcome": "admitted" },
+    { "id": "cm5-11", "capability": "C5", "scenario": "malicious unlimited-authority request is structurally denied", "outcome": "partially-admitted" },
+    { "id": "cm5-12", "capability": "C6", "scenario": "unknown Capability has no local mapping", "outcome": "partially-admitted" },
+    { "id": "cm5-13", "capability": "C6", "scenario": "untrusted issuer cannot satisfy admission", "outcome": "denied" },
+    { "id": "cm5-14", "capability": "C7", "scenario": "mistaken narrow allow is applied and attributed to local policy", "outcome": "admitted" },
+    { "id": "cm5-15", "capability": "C7", "scenario": "mistaken deny is applied and attributed to local policy", "outcome": "denied" },
+    { "id": "cm5-16", "capability": "C8", "scenario": "revoked evidence withdraws relationship and dependent grant", "outcome": "denied" },
+    { "id": "cm5-17", "capability": "C8", "scenario": "expired evidence at the injected instant withdraws admission", "outcome": "denied" },
+    { "id": "cm5-18", "capability": "C9", "scenario": "one accepted and one denied authority request remain distinct", "outcome": "partially-admitted" },
+    { "id": "cm5-19", "capability": "C9", "scenario": "permuted semantic inputs produce the same observation", "outcome": "admitted" },
+    { "id": "cm5-20", "capability": "C10", "scenario": "every effect and refusal has a complete evidence and policy trail", "outcome": "partially-admitted" }
+  ]
+}

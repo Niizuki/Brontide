@@ -179,6 +179,60 @@ public readonly record struct CapabilityId(string Value)
     public override string ToString() => Value;
 }
 
+public readonly record struct OperationId(string Value)
+{
+    public static OperationId Create(string value) => new(IdentifierSyntax.Require(value, nameof(OperationId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct CapabilityScopeId(string Value)
+{
+    public static CapabilityScopeId Create(string value) => new(IdentifierSyntax.Require(value, nameof(CapabilityScopeId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct AdmissionRequestId(string Value)
+{
+    public static AdmissionRequestId Create(string value) => new(IdentifierSyntax.Require(value, nameof(AdmissionRequestId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct RelationshipRequestId(string Value)
+{
+    public static RelationshipRequestId Create(string value) => new(IdentifierSyntax.Require(value, nameof(RelationshipRequestId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct AuthorityRequestId(string Value)
+{
+    public static AuthorityRequestId Create(string value) => new(IdentifierSyntax.Require(value, nameof(AuthorityRequestId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct AuthorityPolicyId(string Value)
+{
+    public static AuthorityPolicyId Create(string value) => new(IdentifierSyntax.Require(value, nameof(AuthorityPolicyId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct PolicyRuleId(string Value)
+{
+    public static PolicyRuleId Create(string value) => new(IdentifierSyntax.Require(value, nameof(PolicyRuleId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct LocalActorReferenceId(string Value)
+{
+    public static LocalActorReferenceId Create(string value) => new(IdentifierSyntax.Require(value, nameof(LocalActorReferenceId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct CapabilityGrantId(string Value)
+{
+    public static CapabilityGrantId Create(string value) => new(IdentifierSyntax.Require(value, nameof(CapabilityGrantId)));
+    public override string ToString() => Value;
+}
+
 public readonly record struct ShapeId(string Value)
 {
     public static ShapeId Create(string value) => new(IdentifierSyntax.Require(value, nameof(ShapeId)));
