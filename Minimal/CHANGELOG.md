@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased — CBI1 Component Management / Portable Binding integration
+
+### Added
+
+- A Minimal Host composition-root adapter from one completed direct `1..1` CM2 provider position
+  to PB7 preflight, using explicit CM definition/occurrence and portable Component/provider
+  identities.
+- Algebraic fail-closed outcomes for unresolved, wider, mediated, empty or multiple, indirect,
+  identity-mismatched, invalidly addressed, and portable-preflight-refused positions.
+- Native integration tests plus the CBI1 capability contract and contract-completeness review.
+
+CBI1 prepares no provider, fixes no Binding Plan, grants no authority, and makes no real
+interchange or Architecture 0.8 conformance claim.
+
 ## Unreleased — Component Management CM4 experimental evidence
 
 ### Added

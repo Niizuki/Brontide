@@ -11,11 +11,13 @@
     <ProjectReference Include="..\Brontide.Minimal.Extensions.Flow\Brontide.Minimal.Extensions.Flow.fsproj" />
     <ProjectReference Include="..\Brontide.Minimal.Experimental.Enrichment\Brontide.Minimal.Experimental.Enrichment.fsproj" />
     <ProjectReference Include="..\Brontide.Minimal.Experimental.Composition\Brontide.Minimal.Experimental.Composition.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Experimental.ComponentManagement\Brontide.Minimal.Experimental.ComponentManagement.fsproj" />
     <ProjectReference Include="..\Brontide.Minimal.Vocabularies.Cooling\Brontide.Minimal.Vocabularies.Cooling.fsproj" />
     <ProjectReference Include="..\Brontide.Minimal.Vocabularies.Imaging\Brontide.Minimal.Vocabularies.Imaging.fsproj" />
     <ProjectReference Include="..\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ComponentBindingIntegration.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

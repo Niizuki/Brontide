@@ -83,6 +83,9 @@ records the completed CM0-CM6 independent fake managers in both stacks, includin
 comparison across real processes in both host directions. This remains bounded experimental
 evidence and does not imply a real online marketplace, production package manager, general
 substitutability, security, or Architecture 0.8 conformance.
+The first CBI1 integration slice now lets each stack's composition root carry a completed native
+CM2 direct `1..1` decision into Portable Binding PB7 preflight through an explicit typed mapping,
+without reselecting the provider or inventing a Binding Plan.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

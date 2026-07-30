@@ -42,6 +42,9 @@ refusal, and attributable policy mistakes. CM6 reconstructs complete scenarios i
 types and compares canonical full CM5 profiles with a Minimal provider across a bounded JSON Lines
 process seam; the reciprocal Minimal-host test exercises this provider. It does not load arbitrary code, provide production
 isolation, durable rollback, cryptographic verification, federation, or production authority.
+Reference Studio now also owns the CBI1 composition-root adapter: a completed direct `1..1` CM2
+provider position and explicit identity mapping can enter PB7 preflight, while wider, mediated,
+missing, indirect, or mismatched positions fail before a provider starts.
 
 ## Build and test
 
