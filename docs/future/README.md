@@ -12,10 +12,11 @@ Binding Plan and Channel realization. Its first stage, PB0, inventories the exis
 Catalog behaviour, maps it to the C1-C10 capability contract and the Channel 0.1 vectors, and
 creates the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).
 
-**PB0 through PB6 are complete.** The PB0 scaffold, C1-C10 baseline inventory, representation
+**PB0 through PB7 are complete.** The PB0 scaffold, C1-C10 baseline inventory, representation
 choice, and both resolved owner decisions are recorded there; PB1 authored the neutral contract
 itself, as eight data-only schemas, 63 vectors covering C1-C10 and all 24 Channel 0.1 vectors, and
-deterministic golden CBOR encodings; PB2 implemented that contract natively in the Reference
+deterministic golden CBOR encodings — the only later addition is PB7's ninth schema and its eleven
+vectors; PB2 implemented that contract natively in the Reference
 stack under [`Brontide.Reference.Experimental.Binding/Portable/`](../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/);
 and PB3 implemented it independently in the Minimal stack under
 [`Brontide.Minimal.Binding/Portable/`](../../Minimal/src/Brontide.Minimal.Binding/Portable/), using
@@ -62,16 +63,34 @@ lived. The plan's PB6 section records all three, the ordering rule that a malfor
 before its direction is weighed, and why `peer-unavailable` and premature resource reuse stay
 unreachable in version 0.1 rather than being given manufactured paths.
 
-**Eight owner decisions are open**, raised by PB4, PB5, and PB6 and each running on a provisional
+**PB7 added the Composition handoff**: the narrow seam by which a resolved Component requirement and
+an offered provision produce a Binding Plan during activation preflight. It consumes a resolution and
+never produces one, so four of its eleven vectors are refusals — a Provider Set, a mediated exposure,
+a provider the resolution did not select, and a Component the three inputs disagree about — because
+approximating any of them would make the Component Management programme's decisions here, invisibly.
+A controlled experimental composition in each stack establishes and releases bindings across both
+realizations, with the ordinary-interaction gate closed until every required member is ready. The
+seam was declared in [`binding/portable/schemas/composition-handoff.json`](../../binding/portable/schemas/composition-handoff.json)
+before either stack implemented it.
+
+Pointing a new consumer at the layer found what six phases of using it had not: **negotiation never
+compares provider identity**, so the Binding Plan's provider fact reports who the host asked for
+rather than who answered. Both stacks do this identically, and every fixture derives from one
+declaration, so the two have always agreed. The handoff checks it provisionally; the contract
+question is Decision 11.
+
+**Nine owner decisions are open**, raised by PB4 through PB7 and each running on a provisional
 implementer choice until ruled on. They are written up in full, and answerable without any other
 context, in [`binding/portable/open-decisions.md`](../../binding/portable/open-decisions.md); the
 plan's [Open questions](./binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md#open-questions-owners-needed)
 table indexes them with their owners. Decision 10 is the one to read first: it asks what supplements
-independent implementation, given that every PB6 defect was present identically in both stacks.
+independent implementation, given that every PB6 defect was present identically in both stacks — and
+PB7's finding is another instance of the same gap.
 
-**PB7 is the next item**: the narrow Composition handoff by which a resolved Component requirement
-and offered provision produce a Binding Plan during activation preflight, without expanding into
-discovery, acquisition, provider selection, generations, mediation, or hot swap.
+**PB8 is the next and last item**: evidence, documentation, and review closure — the stack READMEs,
+milestone evidence, Channel ledger, and contract matrix; a re-measurement of representation,
+allocation, and copy costs; the complete repository gate from a clean worktree; and fresh independent
+reviews of Reference, Minimal, and the neutral contract.
 
 The former Priority 0 documentation relocation is complete; its archived plan is the
 [Pinned Documentation Relocation Plan 0.1](../archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).

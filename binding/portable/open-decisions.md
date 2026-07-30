@@ -1,8 +1,8 @@
 # Portable Binding — open owner decisions
 
-**Status:** Decisions 1 and 2 (the PB0 exit blockers) are **recorded**. Decisions 3 through 10 are
-**open and awaiting an owner ruling**; each was raised by evidence in PB4, PB5, or PB6, and each is
-currently running on a provisional choice made by the implementer so that the phase could proceed.
+**Status:** Decisions 1 and 2 (the PB0 exit blockers) are **recorded**. Decisions 3 through 11 are
+**open and awaiting an owner ruling**; each was raised by evidence in PB4, PB5, PB6, or PB7, and each
+is currently running on a provisional choice made by the implementer so that the phase could proceed.
 Non-pinned.
 
 **How to read this file.** Every decision below is written to be answerable without any other
@@ -25,6 +25,7 @@ behind a named seam.
 | 8 | `peer-unavailable` is unreachable in version 0.1 | PB6 | **Open** — recorded as by-design |
 | 9 | The resource floor leaves three C6 conditions unrepresentable | PB6 | **Open** — recorded as by-design |
 | 10 | What supplements independent implementation as a safeguard | PB6 | **Open** — no provisional answer |
+| 11 | The plan's provider fact names who was asked, not who answered | PB7 | **Open** — running provisionally |
 
 ---
 
@@ -392,5 +393,47 @@ most expensive; the neutral provider makes a partial version of it cheap, and re
 the stacks implement — rather than after — is what would have caught Decision 6's finding at PB1
 instead of PB5. This is a decision about how the programme works, not about the binding, which is why
 it is stated here rather than settled by an implementer.
+
+**Decision (open).**
+
+---
+
+## Decision 11 — the plan's provider fact names who was asked, not who answered
+
+**Owner:** Portable Binding contract maintainers.
+**Raised by:** PB7, while giving the Composition handoff a provider identity to preserve.
+**Blocks:** nothing today, because PB7's handoff performs the check itself. It blocks any host that
+uses the binding layer without that seam and needs to know which provider answered.
+
+**Context.** A contract document declares both a `component` and a `provider`. Negotiation compares
+the Component by exact reference equality and **never compares the provider at all**. The Binding
+Plan's `provider` and `selectedProvider` facts — and the `selectedProvider` field of every C9
+observation built from them — are read from the **required** document, which is the host's own
+declaration. So an endpoint may offer the required Component while answering as a different provider,
+and the established plan will report the provider the host asked for.
+
+Both stacks do this, identically, and nothing before PB7 could have noticed. Every fixture on both
+sides derives from one neutral declaration, so the required and offered providers agree in every
+vector, in both cross-stack directions, and against the implementation-neutral provider. The fact and
+the truth coincide everywhere the programme has looked.
+
+The `provider` field also means two different things by side: on an offered document it is the
+endpoint identifying itself, and on a required document it is closer to an expectation. Nothing
+reconciles the two.
+
+| Option | What it is | Pros | Cons |
+| --- | --- | --- | --- |
+| **A. Check at the composition seam** *(running)* | The handoff witnesses the offered contract during establishment, refuses a substitution as `unsupported-contract`, and abandons the binding | Which provision was selected is genuinely a composition fact; no contract or plan change; a substitution cannot reach Release | A host that uses the binding layer without the handoff still cannot learn who answered, and the plan fact remains a claim about the host's own declaration |
+| **B. Negotiation compares provider identity** | Add provider equality to the negotiation steps, refusing a mismatch as `unsupported-contract` | The check lives where every other exact-match rule lives; every consumer gets it | Changes what a required document *means*: naming a provider becomes binding rather than expectational, and a host that wants "any provider of this Component" needs a way to say so |
+| **C. The plan reports the answering provider** | Keep negotiation as it is, but read `provider`/`selectedProvider` from the offered document | The fact stops describing the host's own input; observations name who actually served | Changes a frozen plan fact and a C9 field; PB4's parity evidence and PB2/PB3 plan-fact vectors would need re-measuring, and it papers over the two meanings rather than resolving them |
+| **D. Accept and document** | Record that the fact names the required declaration and leave it | No change | An observation field named `selectedProvider` that does not name the selected provider is exactly the shape of PB6's first defect |
+
+**Recommendation: B, with C.** The two together make the fact true by construction: negotiation
+refuses a mismatch, so the required and offered providers are equal whenever a plan exists, and
+reading the fact from the offered document then says what actually happened. If B alone is chosen,
+the two are equal anyway and C becomes cosmetic; if C alone is chosen, the fact becomes true without
+the mismatch ever being refused. Option A stays valuable either way, because a composition still has
+to check that the endpoint it reached is the provision its resolution selected — but it should not be
+the only place the question is asked.
 
 **Decision (open).**

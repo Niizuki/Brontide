@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "contract": {
+    "id": "brontide.portable-binding.composition-handoff",
+    "version": "0.1-draft",
+    "status": "PB7 neutral contract; planned experimental work; not ratified; not part of Brontide Base",
+    "designedFor": "Brontide Architecture 0.8 section 18.1 (Complete Draft)",
+    "plan": "docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md",
+    "capabilities": ["C2", "C8"]
+  },
+  "purpose": "The narrow seam by which a resolved Component requirement and an offered provision produce a Binding Plan during activation preflight. It consumes a resolution; it does not produce one. Discovery, acquisition, provider selection policy, generations, mediation, and hot swap stay outside it, and each is refused here rather than approximated.",
+  "boundary": {
+    "consumes": "A resolution some other machinery already made: which Component contract is required, in which binding scope, and which provision was selected for it.",
+    "produces": "One established Binding Plan for that scope, or one refusal that starts no provider.",
+    "outOfScope": [
+      "discovery",
+      "acquisition",
+      "provider selection policy",
+      "resolved generations",
+      "mediation",
+      "hot swap",
+      "Relational Initialisation"
+    ],
+    "refusalRule": "An input naming anything in 'outOfScope' is refused with a declared category. The seam never silently narrows a Provider Set to its first member, never erases a declared Mediation into a direct binding, and never selects among candidates.",
+    "laterUse": "The Component Manager plan (CM2, CM4) is expected to call this seam once per '1..1' requirement it has already resolved. Nothing here assumes that manager exists."
+  },
+  "resolvedRequirement": {
+    "note": "What the resolution decided, expressed in portable terms. Every field is fixed before Interconnection begins.",
+    "fields": [
+      { "name": "bindingScope", "shape": "Text", "required": true, "rule": "Identifies one binding scope. It is the composition's identity for this position and survives withdrawal, termination, and replacement; the planId does not." },
+      { "name": "component", "shape": "canonicalReference", "required": true, "rule": "The required Component contract. Matched by exact reference equality, as version 0.1 negotiation is." },
+      { "name": "requiredProvider", "shape": "canonicalReference", "required": false, "rule": "Present when the resolution selected a provider-specific provision. Absent when the requirement names only the contract." },
+      { "name": "cardinality", "shape": "cardinalityDeclaration", "required": true, "rule": "Version 0.1 supports exactly 1..1. Any other bound is refused: a Provider Set needs membership, exposure, and mediation semantics this seam does not own." },
+      { "name": "exposure", "shape": "Text", "required": true, "enum": ["distinct", "mediated"], "rule": "Version 0.1 supports 'distinct' only. 'mediated' is refused rather than erased, because an erased Mediation still carries provenance, deputy, and authority obligations." },
+      { "name": "hostEndpoint", "shape": "Text", "required": true, "rule": "The host-side endpoint designation this scope binds from. It becomes the plan's hostEndpoint fact unchanged." }
+    ]
+  },
+  "cardinalityDeclaration": {
+    "fields": [
+      { "name": "minimum", "shape": "Integer.Signed64", "required": true, "fixedValue": 1 },
+      { "name": "maximum", "shape": "Integer.Signed64", "required": true, "fixedValue": 1 }
+    ]
+  },
+  "offeredProvision": {
+    "note": "What the selected provision claims, before any frame is exchanged. The claim is checked against the requirement at preflight and against the answering endpoint at Interconnection.",
+    "fields": [
+      { "name": "component", "shape": "canonicalReference", "required": true, "rule": "The Component contract this provision offers." },
+      { "name": "provider", "shape": "canonicalReference", "required": true, "rule": "The provider identity the resolution selected." },
+      { "name": "providerEndpoint", "shape": "Text", "required": true, "rule": "Opaque designation of the endpoint through which the provision is reached." }
+    ]
+  },
+  "preflight": {
+    "rule": "Every check runs before any conversation exists, so a refusal here emits no frame, starts no provider, and produces no provider effect. It is frameless like a local authority denial, but it is a contract refusal rather than an authority decision, so its result class is 'protocol-error' rather than 'denial'.",
+    "order": [
+      { "step": 1, "check": "component-match", "rule": "The requirement, the offered provision, and the host's required contract document all name the same Component, by exact reference equality. A host declaration that disagrees with its own resolution is refused here rather than discovered at negotiation.", "refusal": { "category": "unsupported-contract", "frameDecision": "none", "failureDomain": "local-endpoint" } },
+      { "step": 2, "check": "provider-match", "rule": "When the requirement names a requiredProvider, the provision's provider equals it. Absent a requiredProvider, any provider the resolution selected is accepted here and still checked at step 6.", "refusal": { "category": "unsupported-contract", "frameDecision": "none", "failureDomain": "local-endpoint" } },
+      { "step": 3, "check": "cardinality", "rule": "The declared cardinality is exactly 1..1.", "refusal": { "category": "unsupported-contract", "frameDecision": "none", "failureDomain": "local-endpoint" } },
+      { "step": 4, "check": "exposure", "rule": "The declared exposure is 'distinct'.", "refusal": { "category": "unsupported-contract", "frameDecision": "none", "failureDomain": "local-endpoint" } },
+      { "step": 5, "check": "contract-negotiation", "rule": "The established contract is negotiated by the existing rules in component-contract.json and binding-plan.json. This seam adds no matching rule and relaxes none.", "refusal": { "category": "as negotiation declares", "frameDecision": "reject", "failureDomain": "local-endpoint or remote-endpoint, as the deciding endpoint" } },
+      { "step": 6, "check": "provider-identity", "rule": "The provider the answering endpoint offers equals the provider the resolution selected. Version 0.1 negotiation matches the Component exactly but never compares provider identity, because which provision was selected is a composition fact rather than a contract fact. This step is where a substituted provider is caught.", "refusal": { "category": "unsupported-contract", "frameDecision": "reject", "failureDomain": "local-endpoint" } }
+    ],
+    "planFactsFixedBeforeInterconnection": {
+      "rule": "None. The resolution fixes bindingScope, component, requiredProvider, cardinality, exposure, and hostEndpoint; no Binding Plan fact is answerable until negotiation succeeds.",
+      "reason": "A plan fact answerable before negotiation would be a claim about an agreement that does not exist yet. The plan is frozen by Interconnection or not at all."
+    }
+  },
+  "stages": [
+    {
+      "id": "local-initialisation",
+      "fixes": ["bindingScope", "component", "requiredProvider", "cardinality", "exposure", "hostEndpoint"],
+      "rule": "The member exists and holds its resolution. It has no same-group peer relationship, no conversation, and no plan.",
+      "gate": "closed"
+    },
+    {
+      "id": "interconnection",
+      "fixes": ["every fact in binding-plan.json"],
+      "rule": "Preflight runs, the contract is negotiated, the plan is frozen, and the readiness signal arrives. The plan's hostEndpoint is the requirement's, and step 6 has established that the provider which answered is the one the resolution selected. The plan's own provider fact is read from the required document rather than from the answer, which is the subject of Decision 11 in open-decisions.md.",
+      "gate": "closed"
+    },
+    {
+      "id": "ready",
+      "fixes": [],
+      "rule": "The member reports its establishment outcome. The binding lifecycle is in its ready state; group readiness is the composition's judgement, not this seam's.",
+      "gate": "closed"
+    },
+    {
+      "id": "release",
+      "fixes": [],
+      "rule": "The composition opens the ordinary-interaction gate. Release requires the readiness signal: releasing a member that never reached ready is refused as a state violation.",
+      "gate": "open"
+    },
+    {
+      "id": "withdrawal-and-termination",
+      "fixes": [],
+      "rule": "The gate closes and a replacement record is produced. Withdrawal and termination end this binding scope's plan; they do not end the binding scope.",
+      "gate": "closed"
+    }
+  ],
+  "interactionGate": {
+    "capability": "C8",
+    "rule": "No ordinary interaction starts before the plan is established and the provider is ready. An interaction attempted before Release is refused as 'state-violation', emits no frame, and produces no provider effect.",
+    "reason": "The release barrier is what makes activation logically simultaneous. A member that answered before Release would be Active while its group was not.",
+    "notGated": "Establishment, readiness, withdrawal, and termination are lifecycle traffic and are not ordinary interaction. The gate governs ordinary interaction only.",
+    "closedStages": {
+      "rule": "The gate is closed in every stage except 'release'. An ordinary interaction attempted in Local Initialisation, after Interconnection, or after retirement is refused identically: category 'state-violation', local code 'gate-closed', no frame, no provider effect.",
+      "reason": "Retirement closes the gate rather than opening a third behaviour. A member that reported a refusal differently before Release than after it would make the gate's meaning depend on which side of the binding's life it was asked from."
+    },
+    "observation": {
+      "rule": "A gate refusal reports a complete observation whenever a plan exists to observe against, which is every stage after Interconnection. In Local Initialisation there is no plan, so the refusal carries the category and local code alone.",
+      "terminalStatus": "protocol-error",
+      "authorityDecision": "unknown",
+      "authorityDecisionPoint": "host-local",
+      "failureDomain": "local-endpoint",
+      "providerEffectCount": 0,
+      "copyCount": 0,
+      "authorityNote": "The gate refuses before the authority boundary is reached, so no authority decision exists. 'unknown' is the declared absent form; reporting 'permitted' would claim an evaluation that never ran."
+    }
+  },
+  "replacementRecord": {
+    "rule": "Withdrawal and termination produce one record for a future replacement generation. It is data about a binding that has ended, and it grants nothing: a replacement generation still resolves, preflights, negotiates, and releases from the beginning.",
+    "fields": [
+      { "name": "bindingScope", "shape": "Text", "required": true, "rule": "The scope a replacement generation would re-bind. It is the same value the retired requirement carried." },
+      { "name": "retiredPlanId", "shape": "Text", "required": true, "rule": "The plan that ended. A replacement never reuses it: re-establishing the same scope produces a new planId, because there is no renegotiation in place." },
+      { "name": "component", "shape": "canonicalReference", "required": true },
+      { "name": "provider", "shape": "canonicalReference", "required": true, "rule": "Who actually answered, so a replacement policy can tell whether it is replacing the same provider or a different one." },
+      { "name": "terminalState", "shape": "Text", "required": true, "enum": ["withdrawn", "terminated", "failed"] },
+      { "name": "reason", "shape": "Text", "required": true, "rule": "Why the binding ended, as a non-normative local diagnostic." },
+      { "name": "replacementPermitted", "shape": "Boolean", "required": true, "rule": "Whether the scope may be re-bound. Version 0.1 permits replacement after a clean withdrawal or termination and refuses it after a failure, because a failed binding's provider state is unknown to this seam." }
+    ]
+  },
+  "notPromised": [
+    "That a replacement preserves Actor identity, in-progress work, or state. Those are Slot and Hot-swap Class contracts, and version 0.1 declares none.",
+    "That several members release atomically. The gate is per binding; a group barrier is composition machinery above this seam.",
+    "That a withdrawn binding can be resumed. Withdrawal ends the plan; only a new plan can follow."
+  ]
+}

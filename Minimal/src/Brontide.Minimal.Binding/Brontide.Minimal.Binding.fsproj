@@ -32,6 +32,7 @@
     <Compile Include="Portable\PortableProviderEndpoint.fs" />
     <Compile Include="Portable\PortableConversation.fs" />
     <Compile Include="Portable\PortableBindingHost.fs" />
+    <Compile Include="Portable\PortableCompositionHandoff.fs" />
     <Compile Include="Portable\PortableModelAdapter.fs" />
     <Compile Include="Portable\PortableFixtures.fs" />
   </ItemGroup>

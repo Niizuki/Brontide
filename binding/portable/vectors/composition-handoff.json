@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "group": {
+    "id": "composition-handoff",
+    "capabilities": ["C2", "C8"],
+    "status": "PB7 neutral vectors; data only; validated without loading either stack",
+    "fixture": "vectors/fixture-contract.json",
+    "schemas": ["schemas/composition-handoff.json", "schemas/binding-plan.json"],
+    "note": "The handoff consumes a resolution rather than producing one. Four of these vectors are refusals of things the seam deliberately does not implement; refusing them is what keeps discovery, selection, Provider Sets, and mediation outside version 0.1."
+  },
+  "vectors": [
+    {
+      "id": "PB-64-HANDOFF-PRODUCES-A-PLAN",
+      "capabilities": ["C2"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": ["A resolved 1..1 requirement naming the fixture component in one binding scope", "An offered provision naming the fixture provider"],
+      "when": ["The handoff runs activation preflight and Interconnection"],
+      "then": ["One Binding Plan is frozen for that scope", "The plan's hostEndpoint is the requirement's and its provider is the selected provision's", "The binding scope is carried on the established binding rather than replaced by the planId", "No ordinary interaction has occurred"],
+      "expected": { "frameDecision": "accept", "resultClass": "negotiation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-65-PREFLIGHT-FIXES-NO-PLAN-FACT",
+      "capabilities": ["C2"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": ["A resolved requirement and an offered provision that have passed preflight"],
+      "when": ["The member is inspected before Interconnection runs"],
+      "then": ["The resolution facts are answerable: bindingScope, component, requiredProvider, cardinality, exposure, hostEndpoint", "No Binding Plan fact is answerable, because no contract has been negotiated", "A plan fact answerable here would claim an agreement that does not exist"],
+      "expected": { "frameDecision": "none", "resultClass": "negotiation", "effectCount": 0 }
+    },
+    {
+      "id": "PB-66-PREFLIGHT-REFUSES-COMPONENT-MISMATCH",
+      "capabilities": ["C2", "C1"],
+      "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
+      "classification": "adversarial",
+      "given": ["A resolved requirement naming one Component contract"],
+      "when": ["The offered provision names a different Component contract"],
+      "then": ["The handoff refuses before any conversation exists", "No frame is emitted and no provider is started", "The refusal is a contract refusal rather than an authority denial"],
+      "expected": { "frameDecision": "none", "resultClass": "protocol-error", "category": "unsupported-contract", "failureDomain": "local-endpoint", "effectCount": 0 }
+    },
+    {
+      "id": "PB-67-PREFLIGHT-REFUSES-UNSELECTED-PROVIDER",
+      "capabilities": ["C2"],
+      "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
+      "classification": "adversarial",
+      "given": ["A resolved requirement naming a required provider, as a provider-specific resolution does"],
+      "when": ["The offered provision names a different provider"],
+      "then": ["The handoff refuses rather than accepting a compatible substitute", "Selecting among compatible providers is resolution work this seam does not perform"],
+      "expected": { "frameDecision": "none", "resultClass": "protocol-error", "category": "unsupported-contract", "failureDomain": "local-endpoint", "effectCount": 0 }
+    },
+    {
+      "id": "PB-68-CARDINALITY-BEYOND-ONE-TO-ONE-REFUSED",
+      "capabilities": ["C2"],
+      "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
+      "classification": "adversarial",
+      "given": ["A resolved requirement declaring a cardinality other than 1..1"],
+      "when": ["The handoff runs preflight"],
+      "then": ["The requirement is refused rather than narrowed to its first member", "A Provider Set needs membership, exposure, and failure semantics this seam does not own"],
+      "expected": { "frameDecision": "none", "resultClass": "protocol-error", "category": "unsupported-contract", "failureDomain": "local-endpoint", "effectCount": 0 }
+    },
+    {
+      "id": "PB-69-MEDIATED-EXPOSURE-REFUSED",
+      "capabilities": ["C2"],
+      "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
+      "classification": "adversarial",
+      "given": ["A resolved requirement declaring mediated exposure"],
+      "when": ["The handoff runs preflight"],
+      "then": ["The requirement is refused rather than erased into a direct binding", "An erased Mediation still carries provenance, deputy, and authority obligations, so erasing one silently would be the defect"],
+      "expected": { "frameDecision": "none", "resultClass": "protocol-error", "category": "unsupported-contract", "failureDomain": "local-endpoint", "effectCount": 0 }
+    },
+    {
+      "id": "PB-70-ENDPOINT-SUBSTITUTES-PROVIDER",
+      "capabilities": ["C2", "C1"],
+      "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
+      "classification": "adversarial",
+      "given": ["A resolution that selected one provider", "An endpoint that offers the required Component contract but answers as a different provider"],
+      "when": ["Interconnection negotiates the contract"],
+      "then": ["The contract negotiation succeeds, because version 0.1 matches the Component and never compares provider identity", "The handoff refuses the substitution, because which provision was selected is a composition fact", "The binding is not released and no ordinary interaction occurs"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-contract", "failureDomain": "local-endpoint", "effectCount": 0 }
+    },
+    {
+      "id": "PB-71-INTERACTION-BEFORE-RELEASE-REFUSED",
+      "capabilities": ["C8", "C2"],
+      "channelVectors": ["CH-21-STATE-VIOLATION"],
+      "classification": "adversarial",
+      "given": ["An established binding whose provider has signalled readiness", "The ordinary-interaction gate has not been released"],
+      "when": ["An ordinary interaction is attempted"],
+      "then": ["The interaction is refused as a state violation", "No frame is emitted and the provider records no effect", "Establishment, readiness, withdrawal, and termination remain permitted, because they are lifecycle traffic rather than ordinary interaction"],
+      "expected": { "frameDecision": "none", "resultClass": "protocol-error", "category": "state-violation", "failureDomain": "local-endpoint", "effectCount": 0 }
+    },
+    {
+      "id": "PB-72-RELEASE-REQUIRES-READY",
+      "capabilities": ["C8"],
+      "channelVectors": ["CH-21-STATE-VIOLATION"],
+      "classification": "adversarial",
+      "given": ["A member whose Interconnection did not complete, so no readiness signal arrived"],
+      "when": ["Release is attempted for that member"],
+      "then": ["Release is refused as a state violation", "The gate stays closed, so no ordinary interaction can follow a release that did not happen"],
+      "expected": { "frameDecision": "none", "resultClass": "protocol-error", "category": "state-violation", "failureDomain": "local-endpoint", "effectCount": 0 }
+    },
+    {
+      "id": "PB-73-RELEASED-BINDING-INTERACTS",
+      "capabilities": ["C8", "C2"],
+      "channelVectors": ["CH-01-CORRELATION-ECHO"],
+      "classification": "valid",
+      "given": ["An established and ready binding in one binding scope"],
+      "when": ["The composition releases it and an ordinary interaction runs"],
+      "then": ["The interaction reaches the provider and produces a successful Outcome", "The observation reports the same plan the handoff froze"],
+      "expected": { "frameDecision": "accept", "resultClass": "outcome-succeeded" }
+    },
+    {
+      "id": "PB-74-WITHDRAWAL-INFORMS-A-REPLACEMENT",
+      "capabilities": ["C8", "C2"],
+      "channelVectors": [],
+      "classification": "valid",
+      "given": ["A released binding in one binding scope"],
+      "when": ["The composition withdraws and terminates it"],
+      "then": ["A replacement record names the scope, the retired plan, the component, the provider that answered, and the terminal state", "The gate is closed again, so no ordinary interaction follows withdrawal", "Re-establishing the same scope produces a new planId, because there is no renegotiation in place", "The record grants nothing: the replacement resolves, preflights, negotiates, and releases from the beginning"],
+      "expected": { "frameDecision": "none", "resultClass": "negotiation", "effectCount": 0 }
+    }
+  ]
+}

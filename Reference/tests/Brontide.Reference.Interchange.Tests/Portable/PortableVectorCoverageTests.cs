@@ -80,7 +80,21 @@ public sealed class PortableVectorCoverageTests
             // implementation-neutral one, so nothing here is deferred.
             ["PB-61-INDEPENDENT-PROVIDER-ACCEPTED-BY-BOTH-HOSTS"] = "PortableNeutralProviderTests",
             ["PB-62-NO-SHARED-SEMANTIC-RUNTIME"] = "PortablePlanObservationAndParityTests",
-            ["PB-63-BOTH-HOST-DIRECTIONS"] = "PortableCrossStackTests"
+            ["PB-63-BOTH-HOST-DIRECTIONS"] = "PortableCrossStackTests",
+
+            // PB7's Composition handoff: the seam from a resolved requirement to a Binding Plan, and
+            // the release barrier that keeps ordinary interaction out until the provider is ready.
+            ["PB-64-HANDOFF-PRODUCES-A-PLAN"] = "PortableCompositionHandoffTests",
+            ["PB-65-PREFLIGHT-FIXES-NO-PLAN-FACT"] = "PortableCompositionHandoffTests",
+            ["PB-66-PREFLIGHT-REFUSES-COMPONENT-MISMATCH"] = "PortableCompositionHandoffTests",
+            ["PB-67-PREFLIGHT-REFUSES-UNSELECTED-PROVIDER"] = "PortableCompositionHandoffTests",
+            ["PB-68-CARDINALITY-BEYOND-ONE-TO-ONE-REFUSED"] = "PortableCompositionHandoffTests",
+            ["PB-69-MEDIATED-EXPOSURE-REFUSED"] = "PortableCompositionHandoffTests",
+            ["PB-70-ENDPOINT-SUBSTITUTES-PROVIDER"] = "PortableCompositionHandoffTests",
+            ["PB-71-INTERACTION-BEFORE-RELEASE-REFUSED"] = "PortableCompositionHandoffTests",
+            ["PB-72-RELEASE-REQUIRES-READY"] = "PortableCompositionHandoffTests",
+            ["PB-73-RELEASED-BINDING-INTERACTS"] = "PortableCompositionHandoffTests",
+            ["PB-74-WITHDRAWAL-INFORMS-A-REPLACEMENT"] = "PortableCompositionHandoffTests"
         }.ToImmutableSortedDictionary(StringComparer.Ordinal);
 
     [Test]

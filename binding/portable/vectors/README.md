@@ -1,7 +1,7 @@
 # `binding/portable/vectors/`
 
 Valid, additive-compatible, and adversarial fixtures with exact expected outcomes, authored in
-**PB1** (plan §5).
+**PB1** (plan §5) and extended once, by **PB7**.
 
 These are data only and validate without loading either stack.
 [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) is the gate.
@@ -16,6 +16,7 @@ These are data only and validate without loading either stack.
 | [`authority-and-resources.json`](authority-and-resources.json) | C3 and C6 — local authority, no-capability-transfer, referenced resources |
 | [`limits-lifecycle-and-channel.json`](limits-lifecycle-and-channel.json) | C8 and C4 — declared limits, lifecycle states, envelopes, correlation, failure taxonomy |
 | [`plan-observation-and-parity.json`](plan-observation-and-parity.json) | C2, C9, C7, C10 — plan facts, observation completeness, realization parity, interoperability |
+| [`composition-handoff.json`](composition-handoff.json) | **PB7** — C2 and C8: the resolved requirement and offered provision that produce a Binding Plan, what preflight refuses, and the release barrier |
 
 ## Vector form
 
@@ -36,6 +37,11 @@ that taxonomy, so a vector cannot invent a category.
 
 Vectors carrying a `phase` (PB4 or PB5) state an obligation a stack harness discharges later. PB1
 fixes what must be equal and what may differ; it does not execute the comparison.
+
+A preflight refusal in `composition-handoff.json` uses `frameDecision: none` with
+`resultClass: protocol-error`. That combination is deliberate and is not the frameless denial of C3:
+the decision is made before any conversation exists, so nothing was emitted or rejected, but it is a
+contract refusal rather than an authority decision.
 
 ## Golden encodings are verified, not asserted
 

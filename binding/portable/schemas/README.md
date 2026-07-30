@@ -1,6 +1,6 @@
 # `binding/portable/schemas/`
 
-Data-only versioned neutral contracts, authored in **PB1** (plan §5).
+Data-only versioned neutral contracts, authored in **PB1** (plan §5) and extended once, by **PB7**.
 
 No generated C#/F# source and no runtime helpers live here. If schemas generate code, generation runs
 separately in each stack and this checked-in neutral source stays authoritative. Every file validates
@@ -9,7 +9,7 @@ is the gate.
 
 ## Contents
 
-| File | Plan §5 PB1 bullet | Capabilities |
+| File | Plan §5 bullet | Capabilities |
 | --- | --- | --- |
 | [`references-and-shape-floor.json`](references-and-shape-floor.json) | canonical references and the supported Shape floor | C1, C5 |
 | [`component-contract.json`](component-contract.json) | Component provisions and requirements; negotiated Operations, input/result/detail Shapes, and required Fragments | C1, C5 |
@@ -19,6 +19,7 @@ is the gate.
 | [`binding-plan.json`](binding-plan.json) | immutable Binding Plan facts | C2 |
 | [`channel-envelope.json`](channel-envelope.json) | Channel envelopes, correlation, protocol errors, and process-failure observations | C4 |
 | [`binding-observation.json`](binding-observation.json) | binding observations required by C9 | C9 |
+| [`composition-handoff.json`](composition-handoff.json) | **PB7** — the resolved requirement and offered provision that produce a Binding Plan at activation preflight, the preflight order, the stage model, the ordinary-interaction gate, and the replacement record | C2, C8 |
 
 ## Decisions these schemas realize
 

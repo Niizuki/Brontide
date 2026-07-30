@@ -1,9 +1,10 @@
 # Portable Component Binding — neutral contract artifacts (`binding/portable/`)
 
 **Status:** PB1 complete, implemented natively in both stacks (PB2 Reference, PB3 Minimal), measured
-for direct-versus-process parity in each (PB4), and paired across the stacks and against an
-[implementation-neutral provider](../neutral-provider/README.md) (PB5) — planned experimental work;
-not ratified; not part of Brontide Base.
+for direct-versus-process parity in each (PB4), paired across the stacks and against an
+[implementation-neutral provider](../neutral-provider/README.md) (PB5), hardened (PB6), and given the
+Composition handoff by which composition machinery reaches the layer (PB7) — planned experimental
+work; not ratified; not part of Brontide Base.
 **Designed for:** Brontide Architecture 0.8 §16 and §18.1 (Complete Draft).
 **Plan:** [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
 
@@ -19,9 +20,9 @@ neutral source and owns its adapters.
 | --- | --- | --- |
 | `contract-matrix.md` | C1–C10 baseline inventory: owner, existing basis, classification, gap-to-close per capability | PB0 |
 | `representation-choice.md` | D3 / §11 chain-conjunction representation choice and revocation ceiling per stack (Portable Binding freeze prerequisite) | PB0 |
-| [`open-decisions.md`](open-decisions.md) | Owner decisions with option sets and recommendations. The two PB0 encoding blockers are recorded; **eight further decisions raised by PB4, PB5, and PB6 are open** and each is running on a provisional implementer choice until ruled on | PB0, extended PB4-PB6 |
-| [`schemas/`](schemas/README.md) | Data-only versioned neutral contracts (references, Shape floor, plans, envelopes) | PB1 |
-| [`vectors/`](vectors/README.md) | Valid, additive-compatible, and adversarial fixtures with expected outcomes | PB1 |
+| [`open-decisions.md`](open-decisions.md) | Owner decisions with option sets and recommendations. The two PB0 encoding blockers are recorded; **nine further decisions raised by PB4, PB5, PB6, and PB7 are open** and each is running on a provisional implementer choice until ruled on | PB0, extended PB4-PB7 |
+| [`schemas/`](schemas/README.md) | Data-only versioned neutral contracts (references, Shape floor, plans, envelopes, and the PB7 Composition handoff) | PB1, extended PB7 |
+| [`vectors/`](vectors/README.md) | Valid, additive-compatible, and adversarial fixtures with expected outcomes | PB1, extended PB7 |
 
 ## PB0 exit checklist (plan §5)
 
@@ -139,6 +140,29 @@ outside the two stacks.
    know, and forcing a future annotation to declare itself.
 
 No schema, vector, or golden encoding changed.
+
+## What PB7 changed here
+
+PB7 added the first new artifacts since PB1: [`schemas/composition-handoff.json`](schemas/composition-handoff.json)
+and [`vectors/composition-handoff.json`](vectors/composition-handoff.json), eleven vectors that take
+the total to 74. `binding-plan.json` already carried a `compositionHandoff` stub naming the phase;
+it now points at the schema that owns the seam.
+
+The seam was declared here **before** either stack implemented it, which is Decision 10's Option C
+applied in the cheapest available form. The declaration fixes what a resolved requirement and an
+offered provision carry, the order preflight checks them in, the named stages and what each fixes,
+the ordinary-interaction gate, and the replacement record — including two things a silent contract
+would have left each stack to invent: that a preflight refusal is `frameDecision: none` with
+`resultClass: protocol-error` (frameless like a denial, but a contract refusal rather than an
+authority decision), and that a gate refusal reports `authorityDecision: unknown` because the gate
+refuses before the authority boundary is reached.
+
+PB7 also found that **negotiation never compares provider identity**, so the Binding Plan's
+`provider` fact reports the required document's value — who the host asked for — rather than who
+answered. Every fixture here derives from one declaration, so the two have always agreed and nothing
+could have observed the difference. Decision 11 in [`open-decisions.md`](open-decisions.md) records
+it with its options; no schema or vector changed for it, because the provisional fix is a check at
+the composition seam rather than a contract change.
 
 ## Boundary
 

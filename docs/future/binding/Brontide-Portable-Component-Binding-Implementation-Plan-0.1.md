@@ -1,7 +1,7 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Partially implemented experimental work — PB0 through PB6 complete; PB7 onward planned
-**Date:** 2026-07-23 (delivery status updated 2026-07-27)
+**Status:** Partially implemented experimental work — PB0 through PB7 complete; PB8 planned
+**Date:** 2026-07-23 (delivery status updated 2026-07-30)
 **Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
 **Design sources:** [Composition and Components](../composition/Brontide-Design-Note-Composition-0.1.md),
@@ -144,7 +144,7 @@ deterministically. The repository-wide gate invokes it.
 
 ## 5. Delivery sequence
 
-### Delivery status (2026-07-27)
+### Delivery status (2026-07-30)
 
 | Phase | State | Evidence |
 | --- | --- | --- |
@@ -155,14 +155,15 @@ deterministically. The repository-wide gate invokes it.
 | PB4 — direct and process realization parity | **Complete** | [`Reference .../Portable/PortableRealizationParityTests.cs`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/PortableRealizationParityTests.cs), [`Minimal .../Portable/PortableRealizationParityTests.fs`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/PortableRealizationParityTests.fs), both `PortableChannelVectorCoverageTests`, both `PortableCrossProcessTests` |
 | PB5 — cross-stack and independent-provider matrix | **Complete** | both stacks' `PortableCrossStackTests` and `PortableNeutralProviderTests`, [`binding/neutral-provider/`](../../../binding/neutral-provider/README.md), [`catalog-fixture-contract.json`](../../../binding/portable/vectors/catalog-fixture-contract.json) |
 | PB6 — resource, lifecycle, and hardening completion | **Complete** | both stacks' `PortableDecoderPropertyTests`, `PortableProcessCategoryTests`, `PortableResourceSeamTests`, `PortableLifecycleSeamTests`, and the `a failure path leaks nothing` cases in `PortableRealizationParityTests` |
-| PB7 — Composition handoff | Planned — next | — |
-| PB8 — evidence, documentation, and review closure | Planned | — |
+| PB7 — Composition handoff | **Complete** | [`schemas/composition-handoff.json`](../../../binding/portable/schemas/composition-handoff.json), [`vectors/composition-handoff.json`](../../../binding/portable/vectors/composition-handoff.json) (11 vectors), [`Reference .../Portable/PortableCompositionHandoff.cs`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCompositionHandoff.cs), [`Minimal .../Portable/PortableCompositionHandoff.fs`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/PortableCompositionHandoff.fs), both `PortableCompositionHandoffTests` |
+| PB8 — evidence, documentation, and review closure | Planned — next | — |
 
-Nothing below PB5 has been implemented. The neutral contract exists and is gated, both stacks
-implement it natively in both realizations, PB4 measured those two realizations against each other
-across the portable observation set, and PB5 has now paired the two stacks and added a provider that
-depends on neither. Every C item has executable evidence in each stack independently and, since PB5,
-paired evidence across them. PB2 discharged the three migration obligations PB1 recorded:
+Only PB8 remains. The neutral contract exists and is gated, both stacks implement it natively in both
+realizations, PB4 measured those two realizations against each other across the portable observation
+set, PB5 paired the two stacks and added a provider that depends on neither, PB6 hardened both, and
+PB7 added the seam by which composition machinery reaches the layer at all. Every C item has
+executable evidence in each stack independently and, since PB5, paired evidence across them. PB2
+discharged the three migration obligations PB1 recorded:
 map keys are sorted on their complete encoding rather than by the Cooling codec's ordinal string
 comparison, portable values are schema-guided and carry no kind discriminator, and local denial is
 frameless, so the Cooling `denial` message kind did not enter the portable envelope set.
@@ -557,6 +558,98 @@ ordinary interaction starts before the plan is established and the provider is r
 **Exit:** one controlled experimental composition in each stack establishes and releases a portable
 binding without moving the binding into Base/Core/Model/Kernel.
 
+**Delivered.** A controlled experimental composition in each stack establishes and releases portable
+bindings, and the binding stays outside Base/Core/Model/Kernel: the seam lives in each stack's
+existing experimental binding project, and the composition that drives it lives in the test estate.
+
+#### Delivered
+
+**The seam is declared before it is implemented**, in
+[`schemas/composition-handoff.json`](../../../binding/portable/schemas/composition-handoff.json). It
+owns the resolved-requirement record, the offered-provision record, the six-step preflight order, the
+stage model, the interaction gate, and the replacement record. Both stacks are measured against that
+one declaration by the eleven vectors in
+[`vectors/composition-handoff.json`](../../../binding/portable/vectors/composition-handoff.json),
+which is the PB5 lesson applied in advance: the two stacks agree where the contract speaks and drift
+where it is silent, so the seam's shape is data before either stack has an opinion about it.
+
+**The handoff consumes a resolution and produces one Binding Plan.** A resolved requirement carries a
+binding scope, the required Component, an optional required provider, a cardinality, an exposure, and
+the host endpoint; an offered provision carries the selected provider and its endpoint. Preflight
+matches them, negotiation establishes the contract, and the plan is frozen with the scope preserved
+alongside it. The scope survives the plan: a replacement re-binds the same scope with a new plan
+identifier, because there is no renegotiation in place.
+
+**Four of the eleven vectors are refusals of work this seam does not do.** A cardinality other than
+`1..1` is refused rather than narrowed to a first member; a mediated exposure is refused rather than
+erased into a direct binding; a provision naming a provider the resolution did not select is refused
+rather than accepted as a compatible substitute; and a requirement, provision, and host declaration
+that disagree about the Component are refused before a conversation exists. Discovery, acquisition,
+selection policy, generations, mediation, and hot swap stay in the Component Management programme,
+and a seam that approximated any of them would be making that programme's decisions here, invisibly.
+
+**Every preflight refusal is frameless by construction rather than by assertion.** Preflight runs
+before a conversation object exists, so there is nothing to emit through: no frame, no provider, no
+effect. That is the same discipline as the frameless local denial C3 requires, with a different
+reason — a contract refusal rather than an authority decision — which is why its result class is
+`protocol-error` rather than `denial`.
+
+**The ordinary-interaction gate is the release barrier.** An interaction attempted before Release is
+refused as a state violation with a complete observation, emits no frame, and reaches no provider
+effect — asserted against the provider's own effect counter, not only against the observation.
+Establishment, readiness, withdrawal, and termination stay permitted, because they are lifecycle
+traffic rather than ordinary interaction. Each stack's activation group holds the other half of the
+contract: it opens no member's gate until every required member is ready, and a member that never
+interconnected keeps the whole group closed.
+
+**Withdrawal and termination produce a replacement record** naming the scope, the retired plan, the
+Component, the provider that answered, the terminal state, and whether replacement is permitted. It
+grants nothing: a replacement generation resolves, preflights, negotiates, and releases from the
+beginning. Replacement is permitted after a clean end and refused after a failure, because a failed
+binding leaves this seam no account of the provider's state.
+
+The two implementations remain independent in their idiom. Reference refuses by raising the portable
+fault its layer already uses and holds the stage as an enumeration beside the binding; Minimal
+refuses by returning a `PortableResult` and makes the stage a union that *carries* the binding, so a
+member outside the released case has no host to interact through rather than a flag saying it must
+not.
+
+#### Findings
+
+**The Binding Plan's provider fact reports who the host asked for, not who answered.** The plan's
+`provider` and `selectedProvider` facts, and the `selectedProvider` field of every observation built
+from them, are read from the *required* contract document. Version 0.1 negotiation compares the
+Component by exact reference equality and never compares provider identity at all, so an endpoint may
+offer the required Component while answering as a different provider, and the established plan will
+report the provider the host wrote in its own declaration. Both stacks do this, identically.
+
+Nothing before PB7 could have found it. The fixtures on both sides are built from one neutral
+declaration, so the required and offered providers agree in every vector, in both cross-stack
+directions, and against the implementation-neutral provider; the fact and the truth coincide
+everywhere the programme looked. PB7 is the first phase in which *which provision was selected*
+exists as a fact separate from the contract, and therefore the first phase that could ask whether the
+plan reports it.
+
+The provisional choice is to check it at the composition seam: the handoff witnesses the offered
+contract during establishment, refuses a substitution as `unsupported-contract`, and abandons the
+binding rather than releasing it. That is defensible on its own terms — which provision was selected
+is a composition fact rather than a contract fact — but it leaves the plan fact itself unchanged, and
+a host using the binding layer without this seam still has no way to learn who answered. Whether
+negotiation should compare provider identity, and whether the plan's provider fact should name the
+answering endpoint, is **Decision 11** for the contract maintainers.
+
+This is the third phase in a row whose finding was invisible to comparing the two stacks against each
+other, and it is the same shape as PB6's first defect: an observation field that describes what was
+asked for while claiming to describe what happened. Decision 10 asks what supplements independent
+implementation; this is another data point for it, and this one was found by asking what a *new*
+consumer of the layer needs to know rather than by testing a property.
+
+**A declared refusal with no reachable path was caught before it was written.** The first draft
+stated the release rule twice — a stage check and a separate readiness check — and the readiness
+branch was unreachable, because version 0.1 completes Interconnection only with a readiness signal.
+Following PB6's discipline, the rule is now stated once: a member that has no readiness signal cannot
+be released, which the Local Initialisation case reaches. The two stacks state it the same way.
+
 ### PB8 — evidence, documentation, and review closure
 
 1. Update both stack READMEs, experimental-project inventories, milestone evidence, public boundary
@@ -618,7 +711,7 @@ promotion, and an Architecture 0.8 implementation claim remain separate decision
 
 ## Open questions (owners needed)
 
-Eight questions were raised by PB4, PB5, and PB6 and are **awaiting an owner ruling**. Each is
+Nine questions were raised by PB4, PB5, PB6, and PB7 and are **awaiting an owner ruling**. Each is
 currently running on a provisional choice made by the implementer so the phase could proceed; a
 provisional choice is not a decision, and overturning one is expected to be cheap because each sits
 behind a named seam.
@@ -639,6 +732,7 @@ self-contained: it needs no other context to answer, including none of this plan
 | Both stack owners with contract maintainers | **Decision 7:** should an allocation failure be caught at the transport boundary and reported as `resource-exhausted`? | Blocks nothing today; the alternative to catching it is a runtime type crossing the seam, which C4 forbids. |
 | Portable Binding contract maintainers | **Decision 8:** is `peer-unavailable` being unreachable in 0.1 acceptable, or should the binding layer own peer startup? | Blocks a complete CH-23 claim if an unreachable declared category counts as a gap. |
 | Contract maintainers with both stack owners | **Decision 9:** premature reuse, release-then-use, and unsupported fallback are unrepresentable in the 0.1 resource floor. Accept, widen the floor, or narrow C6's text? | Blocks a complete C6 claim if those conditions are considered in scope for 0.1. |
+| Portable Binding contract maintainers | **Decision 11:** the plan's `provider` fact names who the host asked for, not who answered, because negotiation never compares provider identity. Should it? | Blocks nothing today, because PB7's handoff checks it; a host using the binding layer without that seam still cannot learn who answered. |
 
 ## Resolved questions
 
