@@ -18,6 +18,7 @@
     <Project Path="tests/Brontide.Minimal.Enrichment.Tests/Brontide.Minimal.Enrichment.Tests.fsproj" />
     <Project Path="tests/Brontide.Minimal.Composition.Tests/Brontide.Minimal.Composition.Tests.fsproj" />
     <Project Path="tests/Brontide.Minimal.ComponentManagement.Tests/Brontide.Minimal.ComponentManagement.Tests.fsproj" />
+    <Project Path="tests/Brontide.Minimal.Host.Tests/Brontide.Minimal.Host.Tests.fsproj" />
     <Project Path="tests/Brontide.Minimal.Kernel.Tests/Brontide.Minimal.Kernel.Tests.fsproj" />
     <Project Path="tests/Brontide.Minimal.Interchange.Tests/Brontide.Minimal.Interchange.Tests.fsproj" />
   </Folder>

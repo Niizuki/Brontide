@@ -62,7 +62,10 @@ The implementation currently provides:
   bounded JSON Lines process seam; the reciprocal Reference-host test exercises this provider. It
   does not load arbitrary code, provide production
   isolation, durable rollback, cryptographic verification, federation, or production authority;
-- a headless host and five F# test assemblies.
+- Minimal Host owns the CBI1 composition-root adapter: a completed direct `1..1` CM2 provider
+  position and explicit identity mapping can enter PB7 preflight, while wider, mediated, missing,
+  indirect, or mismatched positions fail before a provider starts;
+- a headless host and seven F# test assemblies, including the host-owned CBI1 integration suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range
 and CI feature bands are checked by [`sdk-policy.md`](../docs/current/policies/sdk-policy.md). The selected

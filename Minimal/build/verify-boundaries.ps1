@@ -22,6 +22,7 @@ $expectedProjects = @(
     'Brontide.Minimal.Enrichment.Tests',
     'Brontide.Minimal.Composition.Tests',
     'Brontide.Minimal.ComponentManagement.Tests',
+    'Brontide.Minimal.Host.Tests',
     'Brontide.Minimal.Kernel.Tests',
     'Brontide.Minimal.Interchange.Tests'
 )
@@ -49,7 +50,9 @@ foreach ($project in $projects) {
         $failures.Add("$($project.BaseName) references Brontide.Reference; interchange must remain external.")
     }
 
-    if ($project.BaseName -ne 'Brontide.Minimal.Host' -and $content -match 'Brontide.Minimal[.]Host') {
+    # The host owns its verification assembly. No production component or unrelated test suite may
+    # depend on the composition root.
+    if ($project.BaseName -notin @('Brontide.Minimal.Host', 'Brontide.Minimal.Host.Tests') -and $content -match 'Brontide.Minimal[.]Host') {
         $failures.Add("$($project.BaseName) references the host composition root.")
     }
 }

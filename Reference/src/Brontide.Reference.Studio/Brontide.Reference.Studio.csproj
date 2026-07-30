@@ -11,6 +11,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Brontide.Reference.Core\Brontide.Reference.Core.csproj" />
+    <ProjectReference Include="..\Brontide.Reference.Experimental.Binding\Brontide.Reference.Experimental.Binding.csproj" />
+    <ProjectReference Include="..\Brontide.Reference.Experimental.ComponentManagement\Brontide.Reference.Experimental.ComponentManagement.csproj" />
     <ProjectReference Include="..\Brontide.Reference.Experimental.Composition\Brontide.Reference.Experimental.Composition.csproj" />
     <ProjectReference Include="..\Brontide.Reference.Experimental.Enrichment\Brontide.Reference.Experimental.Enrichment.csproj" />
     <ProjectReference Include="..\Brontide.Reference.Extensions.Events\Brontide.Reference.Extensions.Events.csproj" />

@@ -18,6 +18,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Reference.Core\Brontide.Reference.Core.csproj" />
+    <ProjectReference Include="..\..\src\Brontide.Reference.Experimental.Binding\Brontide.Reference.Experimental.Binding.csproj" />
+    <ProjectReference Include="..\..\src\Brontide.Reference.Experimental.ComponentManagement\Brontide.Reference.Experimental.ComponentManagement.csproj" />
     <ProjectReference Include="..\..\src\Brontide.Reference.Experimental.Composition\Brontide.Reference.Experimental.Composition.csproj" />
     <ProjectReference Include="..\..\src\Brontide.Reference.Studio\Brontide.Reference.Studio.csproj" />
   </ItemGroup>

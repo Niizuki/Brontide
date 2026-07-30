@@ -21,3 +21,8 @@ Draft.
 Graduation into the main showcase would require repeatable GPU execution tests, structured
 operational observations, honest fallback behavior, and evidence that the transformation module
 does not need an application-level redesign.
+
+Reference Studio is the composition root for the first CBI1 integration slice. It references the
+independent Component Management and Portable Binding experiments and maps one completed native
+CM2 direct `1..1` position into PB7 preflight. This does not merge the experimental projects,
+support mediation or wider Provider Sets, or establish real Component interchange.

@@ -177,6 +177,21 @@ agreement on eight deterministic fake scenarios only. The completed implementati
 at its stable `future` path because architecture delivery evidence links it transitively; moving it
 requires explicit authorization to repin and independently review that evidence.
 
+## Priority 3 — Component Management / Portable Binding integration
+
+CBI1 is the first implemented integration slice. Reference Studio and Minimal Host independently
+translate one completed native CM2 direct `1..1` provider position, using an explicit typed mapping,
+into PB7 portable preflight. The
+[`CBI1 capability contract`](../../component-management/cbi1-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi1-contract-completeness-review.md)
+define and close the slice. It refuses unresolved, wider-cardinality, mediated, empty or multiple,
+indirect, identity-mismatched, and invalidly addressed positions before a provider or Binding Plan
+exists.
+
+CM4 stage orchestration, CM5 authority admission, shared serialized comparison, mediation, wider
+Provider Sets, and real distribution remain future integration work. PB8's independent reviews and
+Decision 11 owner ruling remain separate governance prerequisites rather than implementation work.
+
 ## Other planned areas
 
 | Area | Planning source | Current implementation state |

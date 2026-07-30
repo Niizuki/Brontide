@@ -64,6 +64,14 @@ phase-boundary absence audit is the
 agreement on the eight deterministic fake scenarios only, not real Component interchange,
 contract completeness, general substitutability, or security.
 
+CBI1 begins integration with Portable Component Binding at the two composition roots. Reference
+Studio and Minimal Host independently accept one completed native CM2 direct `1..1` position plus
+an explicit typed identity mapping and prepare a PB7 composition member without selecting,
+negotiating, or starting a provider. Wider, mediated, absent, indirect, mismatched, or invalidly
+addressed positions fail before a portable member exists. Its behavior and limits are recorded in
+the [CBI1 capability contract](./cbi1-capability-contract.md) and completed
+[contract-completeness review](./cbi1-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
