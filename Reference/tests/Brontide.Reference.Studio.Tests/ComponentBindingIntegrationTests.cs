@@ -1265,6 +1265,201 @@ public sealed class ComponentBindingIntegrationTests
         return (verdict, member, handler);
     }
 
+    [Test]
+    public async Task Shared_cbi11_vectors_narrow_only_when_a_successor_declares_less()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi11-declaration-succession-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, member) = await SuccessionResult(scenario);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    SuccessionToken(result.Kind),
+                    Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Dropped,
+                    Has.Count.EqualTo(vector.GetProperty("expectedDropped").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Vetoed,
+                    Has.Count.EqualTo(vector.GetProperty("expectedVetoed").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Declaration!.Entries,
+                    Has.Count.EqualTo(vector.GetProperty("expectedDeclaredInForce").GetInt32()),
+                    scenario);
+                // CBI11 has no retirement path.
+                Assert.That(
+                    member.Stage,
+                    Is.EqualTo(PortableCompositionStage.Released),
+                    scenario);
+                Assert.That(
+                    vector.GetProperty("expectedReleased").GetBoolean(),
+                    Is.True,
+                    $"{scenario}: every CBI11 outcome leaves the member released.");
+            });
+        }
+    }
+
+    [Test]
+    public async Task A_narrowed_declaration_lets_cbi9_release_the_participant_it_kept()
+    {
+        var (resolution, selection, occurrence) = LifecycleInput(DeclaredAuthority);
+        var participants = ParticipantSet(SupervisorLocalActor);
+        var active = await ComponentParticipantAdmission.ActivateAsync(
+            resolution,
+            selection,
+            participants,
+            RuntimeRequest(Plan(occurrence)),
+            DirectCooling(CoolingPortableFixture.Contract));
+
+        var before = await ComponentParticipantRevision.ReviseAsync(
+            resolution,
+            selection,
+            active,
+            Dependency(selection.Definition),
+            [participants[0].Request],
+            "drop the audit holder before succession");
+
+        var successor = new FakeGenerationResolver().Resolve(
+            Request(Cardinality.Parse("1..1"), ["cooling.control"]));
+        var narrowed = ComponentDeclarationSuccession.Succeed(
+            resolution,
+            successor,
+            selection,
+            active,
+            Dependency(selection.Definition),
+            ControlOnlyDependency(selection.Definition),
+            [new(CoolingPortableFixture.SetEnabled, "cooling.control")],
+            []);
+
+        var after = await ComponentParticipantRevision.ReviseAsync(
+            successor,
+            selection,
+            active,
+            narrowed.Declaration!,
+            [participants[0].Request],
+            "drop the audit holder after succession");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(before.Code, Is.EqualTo("dependency-not-covered"));
+            Assert.That(narrowed.IsNarrowed, Is.True);
+            Assert.That(narrowed.Dropped, Is.EqualTo(new[] { "cooling.audit" }));
+            Assert.That(after.Kind, Is.EqualTo(ComponentParticipantRevisionKind.Revised));
+            Assert.That(after.InForce!.Admissions, Has.Count.EqualTo(1));
+        });
+    }
+
+    private static async Task<(ComponentDeclarationSuccessionResult Result, PortableCompositionMember Member)>
+        SuccessionResult(string scenario)
+    {
+        var (resolution, selection, occurrence) = LifecycleInput(DeclaredAuthority);
+        var handler = new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry());
+        var conversation = new PortableDirectConversation(
+            new PortableProviderEndpoint(
+                CoolingPortableFixture.Contract,
+                handler,
+                PortableRealization.FixedDirectCall));
+        var active = await ComponentParticipantAdmission.ActivateAsync(
+            resolution,
+            selection,
+            ParticipantSet(SupervisorLocalActor),
+            RuntimeRequest(Plan(occurrence)),
+            conversation);
+        var member = active.Lifecycle!.Member!;
+        var interaction = await member.InvokeAsync(
+            CoolingPortableFixture.SetEnabled,
+            CoolingPortableFixture.CommandV1,
+            CoolingPortableFixture.Command("primary", enabled: true),
+            PortableConstraint.Atom(PortableTruth.Satisfied));
+        var observations = new ComponentObservedInteraction[]
+        {
+            new(CoolingPortableFixture.SetEnabled, interaction),
+        };
+
+        var successor = scenario == "cbi11-06-position-mismatch"
+            ? new FakeGenerationResolver().Resolve(
+                Request(Cardinality.Parse("1..1"), ["cooling.control"], BindingScopeId.Create("scope.other")))
+            : scenario == "cbi11-07-successor-declares-nothing"
+                ? new FakeGenerationResolver().Resolve(Request(Cardinality.Parse("1..1"), []))
+                : scenario is "cbi11-03-unchanged" or "cbi11-08-successor-mapping-mismatch"
+                    ? new FakeGenerationResolver().Resolve(
+                        Request(Cardinality.Parse("1..1"), DeclaredAuthority))
+                    : scenario == "cbi11-04-wider"
+                        ? new FakeGenerationResolver().Resolve(
+                            Request(Cardinality.Parse("1..1"), ["cooling.control", "cooling.audit", "cooling.extra"]))
+                        : new FakeGenerationResolver().Resolve(
+                            Request(Cardinality.Parse("1..1"), ["cooling.control"]));
+
+        var successorDeclaration = scenario switch
+        {
+            "cbi11-03-unchanged" => Dependency(selection.Definition),
+            "cbi11-04-wider" => new ComponentGrantDependency(
+                selection.Definition,
+                [
+                    .. Dependency(selection.Definition).Entries,
+                    new("cooling.extra", ReportCapability, Target, ReportOperation, AuthorityScope),
+                ]),
+            "cbi11-05-tuple-changed" => new ComponentGrantDependency(
+                selection.Definition,
+                [new("cooling.control", Capability, Target, Operation, CapabilityScopeId.Create("scope.other"))]),
+            "cbi11-07-successor-declares-nothing" => new ComponentGrantDependency(selection.Definition, []),
+            "cbi11-08-successor-mapping-mismatch" => new ComponentGrantDependency(
+                selection.Definition,
+                [new("cooling.control", Capability, Target, Operation, AuthorityScope)]),
+            _ => ControlOnlyDependency(selection.Definition),
+        };
+
+        IReadOnlyList<ComponentOperationAuthorityMapping> attribution = scenario switch
+        {
+            "cbi11-02-use-vetoed" => [new(CoolingPortableFixture.SetEnabled, "cooling.audit")],
+            "cbi11-09-ambiguous-attribution" =>
+            [
+                new(CoolingPortableFixture.SetEnabled, "cooling.control"),
+                new(CoolingPortableFixture.SetEnabled, "cooling.audit"),
+            ],
+            _ => [new(CoolingPortableFixture.SetEnabled, "cooling.control")],
+        };
+
+        var result = ComponentDeclarationSuccession.Succeed(
+            resolution,
+            successor,
+            selection,
+            active,
+            Dependency(selection.Definition),
+            successorDeclaration,
+            attribution,
+            observations);
+        return (result, member);
+    }
+
+    private static ComponentGrantDependency ControlOnlyDependency(DefinitionId definition) =>
+        new(definition, [new("cooling.control", Capability, Target, Operation, AuthorityScope)]);
+
+    private static string SuccessionToken(ComponentDeclarationSuccessionKind kind) => kind switch
+    {
+        ComponentDeclarationSuccessionKind.Narrowed => "narrowed",
+        ComponentDeclarationSuccessionKind.Declined => "declined",
+        ComponentDeclarationSuccessionKind.ActivationUnavailable => "activation-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
     private static string VerdictToken(ComponentInteractionVerdictKind kind) => kind switch
     {
         ComponentInteractionVerdictKind.Consistent => "consistent",
@@ -2049,13 +2244,19 @@ public sealed class ComponentBindingIntegrationTests
 
     private static ResolutionRequest Request(Cardinality cardinality) => Request(cardinality, []);
 
-    private static ResolutionRequest Request(Cardinality cardinality, IReadOnlyList<string> declaredAuthority)
+    private static ResolutionRequest Request(Cardinality cardinality, IReadOnlyList<string> declaredAuthority) =>
+        Request(cardinality, declaredAuthority, BindingScopeId.Create("scope.cooling"));
+
+    private static ResolutionRequest Request(
+        Cardinality cardinality,
+        IReadOnlyList<string> declaredAuthority,
+        BindingScopeId scope)
     {
         var requirement = new ResolutionRequirement(
             Requirement,
             Contract,
             Version,
-            BindingScopeId.Create("scope.cooling"),
+            scope,
             cardinality,
             false,
             ProviderExposure.Distinct,

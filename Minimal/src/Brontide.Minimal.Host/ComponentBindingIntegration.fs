@@ -1342,7 +1342,7 @@ type ComponentParticipantRevisionResult =
 module ComponentParticipantRevision =
     let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
 
-    let private entryTuple (entry: ComponentGrantDependencyEntry) =
+    let internal entryTuple (entry: ComponentGrantDependencyEntry) =
         sprintf
             "%s|%s|%s|%s"
             (CapabilityId.value entry.Capability)
@@ -1700,6 +1700,22 @@ module ComponentInteractionVerification =
           Code = code
           Reason = reason }
 
+    /// Attributes every delivered interaction to a declared authority, or to none.
+    ///
+    /// No frame, no exercise: a locally denied request reached no provider. Any emitted frame
+    /// counts, because the receiving domain cannot know what a frame the provider already saw
+    /// caused.
+    let internal attribute
+        (attribution: ComponentOperationAuthorityMapping list)
+        (observations: ComponentObservedInteraction list)
+        =
+        observations
+        |> List.filter (fun item -> item.Result.FrameDecision <> FrameDecision.None)
+        |> List.map (fun item ->
+            attribution
+            |> List.tryFind (fun entry -> entry.Operation = item.Operation)
+            |> Option.map _.DeclaredAuthority)
+
     let verify
         (resolution: ResolutionOutcome)
         (selection: ComponentBindingSelection)
@@ -1745,23 +1761,12 @@ module ComponentInteractionVerification =
                                 "plan-unsupported"
                                 "CBI10 projects exercises onto the one protocol-free activation group CBI2 activated."
                     | None, Some group ->
-                        // No frame, no exercise: a locally denied request reached no provider. Any
-                        // emitted frame counts, because the receiving domain cannot know what a
-                        // frame the provider already saw caused.
-                        let delivered =
-                            observations
-                            |> List.filter (fun item -> item.Result.FrameDecision <> FrameDecision.None)
                         let declaredNames =
                             dependency.Entries |> List.map _.DeclaredAuthority |> Set.ofList
                         let uncoveredNames =
                             ComponentParticipantRevision.uncovered dependency active.Grants
                             |> Set.ofList
-                        let attributed =
-                            delivered
-                            |> List.map (fun item ->
-                                attribution
-                                |> List.tryFind (fun entry -> entry.Operation = item.Operation)
-                                |> Option.map _.DeclaredAuthority)
+                        let attributed = attribute attribution observations
                         let admitted name =
                             match name with
                             | Some value ->
@@ -1876,6 +1881,184 @@ module ComponentInteractionVerification =
                         "active-authority-unavailable"
                         "CBI10 requires one released Active CBI6 result with a completely admitted participant set."
         }
+
+[<RequireQualifiedAccess>]
+type ComponentDeclarationSuccessionKind =
+    | Narrowed
+    | Declined
+    | ActivationUnavailable
+
+type ComponentDeclarationSuccessionResult =
+    { Kind: ComponentDeclarationSuccessionKind
+      Declaration: ComponentGrantDependency option
+      Dropped: string list
+      Vetoed: string list
+      Code: string
+      Reason: string }
+
+/// Narrows the declaration in force to a successor resolution of the same position, unless observed
+/// use vetoes it.
+///
+/// Absence of use never justifies removing a dependency, so the permission comes from the
+/// Component's own re-declaration and observation appears only as a veto. Nothing here retires a
+/// member or changes the participant set; narrowing only changes what a later CBI9 revision will
+/// admit.
+[<RequireQualifiedAccess>]
+module ComponentDeclarationSuccession =
+    let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
+
+    let private decline (declaration: ComponentGrantDependency) code reason =
+        { Kind = ComponentDeclarationSuccessionKind.Declined
+          Declaration = Some declaration
+          Dropped = []
+          Vetoed = []
+          Code = code
+          Reason = reason }
+
+    let private samePosition
+        (successor: ResolutionOutcome)
+        (selection: ComponentBindingSelection)
+        (memberValue: CompositionMember)
+        =
+        match successor with
+        | ResolutionOutcome.Resolved(_, generation) ->
+            let matches =
+                generation.ProviderSets
+                |> List.filter (fun item -> item.Requirement = selection.Requirement)
+            match matches with
+            | [ providerSet ] ->
+                if
+                    providerSet.Cardinality.Minimum <> 1
+                    || providerSet.Cardinality.Maximum <> Some 1
+                    || providerSet.Exposure <> ProviderExposure.Distinct
+                    || providerSet.Mediation.IsSome
+                    || providerSet.Members.Length <> 1
+                then
+                    Some
+                        "The successor position is not the direct 1..1 distinct position this member was bound under."
+                else
+                    let successorMember = List.exactlyOne providerSet.Members
+                    if
+                        successorMember.Definition = selection.Definition
+                        && successorMember.Occurrence = selection.Occurrence
+                        && memberValue.TryFact "bindingScope"
+                           = Some(
+                               Brontide.Minimal.Experimental.ComponentManagement.BindingScopeId.value
+                                   providerSet.Scope)
+                    then
+                        None
+                    else
+                        Some
+                            "The successor resolves a different definition, occurrence, or binding scope than the live member."
+            | _ ->
+                Some(
+                    sprintf
+                        "The successor generation contains %d provider positions for the requested requirement."
+                        matches.Length)
+        | _ -> Some "The successor resolution did not complete a generation."
+
+    let succeed
+        (resolution: ResolutionOutcome)
+        (successor: ResolutionOutcome)
+        (selection: ComponentBindingSelection)
+        (active: ComponentParticipantAdmissionResult)
+        (declaration: ComponentGrantDependency)
+        (successorDeclaration: ComponentGrantDependency)
+        (attribution: ComponentOperationAuthorityMapping list)
+        (observations: ComponentObservedInteraction list)
+        =
+        match ComponentParticipantAdmission.isActive active, active.Lifecycle with
+        | true, Some { Member = Some memberValue } ->
+            match
+                ComponentParticipantRevision.declarationShape resolution selection declaration,
+                ComponentParticipantRevision.declarationShape successor selection successorDeclaration
+            with
+            | Error(code, reason), _
+            | Ok(), Error(code, reason) -> decline declaration code reason
+            | Ok(), Ok() ->
+                match samePosition successor selection memberValue with
+                | Some mismatch -> decline declaration "successor-position-mismatch" mismatch
+                | None ->
+                    let names =
+                        declaration.Entries |> List.map _.DeclaredAuthority |> Set.ofList
+                    let successorNames =
+                        successorDeclaration.Entries |> List.map _.DeclaredAuthority |> Set.ofList
+                    if not (Set.isProperSubset successorNames names) then
+                        decline
+                            declaration
+                            "declaration-not-narrower"
+                            "Succession only narrows: the successor must declare strictly fewer authorities, all of them already declared."
+                    else
+                        let tupleOf (entries: ComponentGrantDependencyEntry list) name =
+                            entries
+                            |> List.tryFind (fun entry -> entry.DeclaredAuthority = name)
+                            |> Option.map ComponentParticipantRevision.entryTuple
+                        let repointed =
+                            successorDeclaration.Entries
+                            |> List.filter (fun entry ->
+                                tupleOf declaration.Entries entry.DeclaredAuthority
+                                <> Some(ComponentParticipantRevision.entryTuple entry))
+                            |> List.map _.DeclaredAuthority
+                            |> List.sortWith ordinal
+                        let repeated =
+                            attribution
+                            |> List.map (fun entry -> PortableOperationRef.text entry.Operation)
+                            |> ComponentParticipantAdmission.firstDuplicate
+                        match repointed, repeated with
+                        | (_ :: _), _ ->
+                            decline
+                                declaration
+                                "declaration-tuple-changed"
+                                (sprintf
+                                    "Succession removes dependencies; it does not re-point them. %s would change tuple."
+                                    (String.Join(", ", repointed)))
+                        | [], Some operation ->
+                            decline
+                                declaration
+                                "operation-mapping-not-distinct"
+                                (sprintf
+                                    "Operation '%s' is attributed to more than one declared authority."
+                                    operation)
+                        | [], None ->
+                            let dropped =
+                                Set.difference names successorNames
+                                |> Set.toList
+                                |> List.sortWith ordinal
+                            let exercised =
+                                ComponentInteractionVerification.attribute attribution observations
+                                |> List.choose id
+                                |> Set.ofList
+                            let vetoed =
+                                dropped |> List.filter (fun name -> Set.contains name exercised)
+                            match vetoed with
+                            | (_ :: _) ->
+                                { Kind = ComponentDeclarationSuccessionKind.Declined
+                                  Declaration = Some declaration
+                                  Dropped = []
+                                  Vetoed = vetoed
+                                  Code = "declaration-use-vetoed"
+                                  Reason =
+                                    sprintf
+                                        "The member has already exercised %s, so the successor cannot narrow it away."
+                                        (String.Join(", ", vetoed)) }
+                            | [] ->
+                                { Kind = ComponentDeclarationSuccessionKind.Narrowed
+                                  Declaration = Some successorDeclaration
+                                  Dropped = dropped
+                                  Vetoed = []
+                                  Code = "declaration-narrowed"
+                                  Reason =
+                                    sprintf
+                                        "The declaration in force no longer includes %s."
+                                        (String.Join(", ", dropped)) }
+        | _ ->
+            { Kind = ComponentDeclarationSuccessionKind.ActivationUnavailable
+              Declaration = None
+              Dropped = []
+              Vetoed = []
+              Code = "active-authority-unavailable"
+              Reason =
+                "CBI11 requires one released Active CBI6 result with a completely admitted participant set." }
 
 [<RequireQualifiedAccess>]
 module ComponentAuthorityComparison =

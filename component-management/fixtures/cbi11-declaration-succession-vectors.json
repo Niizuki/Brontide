@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi11-declaration-succession-vectors",
+  "vectors": [
+    {
+      "id": "cbi11-01-narrowed",
+      "expectedKind": "narrowed",
+      "expectedCode": "declaration-narrowed",
+      "expectedDropped": 1,
+      "expectedVetoed": 0,
+      "expectedDeclaredInForce": 1,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi11-02-use-vetoed",
+      "expectedKind": "declined",
+      "expectedCode": "declaration-use-vetoed",
+      "expectedDropped": 0,
+      "expectedVetoed": 1,
+      "expectedDeclaredInForce": 2,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi11-03-unchanged",
+      "expectedKind": "declined",
+      "expectedCode": "declaration-not-narrower",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedDeclaredInForce": 2,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi11-04-wider",
+      "expectedKind": "declined",
+      "expectedCode": "declaration-not-narrower",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedDeclaredInForce": 2,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi11-05-tuple-changed",
+      "expectedKind": "declined",
+      "expectedCode": "declaration-tuple-changed",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedDeclaredInForce": 2,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi11-06-position-mismatch",
+      "expectedKind": "declined",
+      "expectedCode": "successor-position-mismatch",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedDeclaredInForce": 2,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi11-07-successor-declares-nothing",
+      "expectedKind": "declined",
+      "expectedCode": "dependency-declaration-empty",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedDeclaredInForce": 2,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi11-08-successor-mapping-mismatch",
+      "expectedKind": "declined",
+      "expectedCode": "dependency-declaration-mismatch",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedDeclaredInForce": 2,
+      "expectedReleased": true
+    },
+    {
+      "id": "cbi11-09-ambiguous-attribution",
+      "expectedKind": "declined",
+      "expectedCode": "operation-mapping-not-distinct",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedDeclaredInForce": 2,
+      "expectedReleased": true
+    }
+  ]
+}

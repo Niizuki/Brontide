@@ -301,14 +301,31 @@ accepting it. The [`CBI10 capability contract`](../../component-management/cbi10
 and [`contract-completeness review`](../../component-management/cbi10-contract-completeness-review.md)
 bound it to the interactions it is given over one released singleton binding.
 
-The direction CBI10 cannot check is the next implementable item: absence of use is not evidence of
-absence of need, so a declared dependency nothing exercised cannot be shown unnecessary, and an
-over-declared set keeps participants CBI9 will not release. Deciding what evidence could retire an
-unexercised declaration — and what it would take for a Component to narrow its own declaration
-safely — is the open question. Multi-member and relational lifecycles, replacement, child Ports,
-mediation, wider Provider Sets, and real distribution remain future work. PB8's independent reviews
-and Decision 11 owner ruling remain separate governance prerequisites rather than implementation
-work.
+CBI11 answers the question CBI10 left, and the answer is that **no evidence of disuse ever narrows a
+declaration**. A declaration narrows only to a successor CM2 resolution of the same position — same
+requirement, definition, occurrence, cardinality, exposure, and the binding scope the live member
+itself records — that declares strictly fewer authorities, each retained one keeping its exact
+tuple. The Component's own re-declaration is the permission; observation appears only as a veto,
+since authority the member has already exercised cannot be narrowed away. Elapsed time, interaction
+counts, and quiet periods narrow nothing, and the contract says so to keep a later implementer from
+reaching for a threshold. Narrowing permits rather than performs: a later CBI9 revision releases the
+participant the narrowed declaration no longer needs, and each stack proves the difference by running
+the same revision before and after. CBI11 has no retirement path at all, which every vector checks.
+A Component that narrows dishonestly and then exercises what it dropped is caught afterwards by
+CBI10 as undeclared use, so succession cannot launder authority — it can only move the binding to a
+declaration the Component will be held to. The
+[`CBI11 capability contract`](../../component-management/cbi11-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi11-contract-completeness-review.md)
+bound it to one declaration over one released singleton binding.
+
+**Multi-member activation is the next implementable integration item, and it is the constant every
+slice so far has held fixed.** CBI1 through CBI11 all govern one member of one direct `1..1`
+position; the first question a second member raises is the release barrier — whether ordinary
+interaction opens per member or only once every member of an activation group is Ready — and CM3
+already distinguishes protocol-free groups from ones carrying Relational Initialisation, which is
+where the answer has to come from. Replacement, child Ports, mediation, wider Provider Sets, and
+real distribution remain future work behind it. PB8's independent reviews and Decision 11 owner
+ruling remain separate governance prerequisites rather than implementation work.
 
 ## Other planned areas
 

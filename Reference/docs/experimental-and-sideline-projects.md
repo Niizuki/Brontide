@@ -22,7 +22,7 @@ Graduation into the main showcase would require repeatable GPU execution tests, 
 operational observations, honest fallback behavior, and evidence that the transformation module
 does not need an application-level redesign.
 
-Reference Studio is the composition root for the CBI1-CBI10 integration slices. It references the
+Reference Studio is the composition root for the CBI1-CBI11 integration slices. It references the
 independent Component Management and Portable Binding experiments and maps one completed native
 CM2 direct `1..1` position into PB7 preflight, then coordinates one singleton, protocol-free CM4
 plan from PB7 lifecycle evidence and releases the portable gate only after CM4 Active.
@@ -40,6 +40,7 @@ place while the member stays released and declines every change that would shrin
 and substitutes participants under a dependency the resolved definition declares, admitting a
 revision only while every declared dependency stays covered. CBI10 verifies that declaration against
 observed portable interaction through CM4 binding exercises whose authority admission is derived
-rather than claimed. This does not merge the experimental projects,
+rather than claimed. CBI11 narrows a declaration to a successor resolution of the same position,
+with observed use as a veto and no retirement path. This does not merge the experimental projects,
 support multi-member or relational activation, mediation, or wider Provider Sets, or establish
 real Component interchange.

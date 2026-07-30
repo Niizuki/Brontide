@@ -150,6 +150,15 @@ than condemned. Its bounded behavior is recorded in the
 [CBI10 capability contract](./cbi10-capability-contract.md) and completed
 [contract-completeness review](./cbi10-contract-completeness-review.md).
 
+CBI11 answers what CBI10 could not: nothing retires an unexercised declaration except the Component
+saying so. A declaration narrows only to a successor resolution of the same position that declares
+strictly fewer authorities, each retained one keeping its exact tuple, and observed use vetoes its
+own removal. Narrowing permits rather than performs — a later CBI9 revision is what releases the
+participant the narrowed declaration no longer needs — and this slice has no retirement path at all.
+Its bounded behavior is recorded in the
+[CBI11 capability contract](./cbi11-capability-contract.md) and completed
+[contract-completeness review](./cbi11-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -276,6 +285,16 @@ attribution. Each vector pins the verdict kind and code, the number of projected
 unexercised and uncovered declared authorities, whether the CM4 runtime accepted the projection,
 whether the member is still released, and how many provider effects the interactions actually
 caused. The fixture contains no evaluator, runtime, projection rule, or portable implementation.
+
+### `cbi11-declaration-succession-vectors` sections
+
+`vectors` names one applied narrowing and eight refusals — observed use vetoing its own removal, an
+unchanged or wider successor, a re-pointed tuple, a successor position that is not the live one, a
+successor declaring nothing, a successor mapping that does not match its generation, and an
+ambiguous attribution. Each vector pins the outcome kind and code, the dropped and vetoed
+authorities, the size of the declaration still in force, and that the member is still released, so
+"this slice never retires" is a checked answer. The fixture contains no resolver, declaration rule,
+observation, or portable runtime.
 
 ### `cm0-mice-topology` sections
 

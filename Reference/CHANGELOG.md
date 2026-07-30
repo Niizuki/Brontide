@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — CBI11 declaration succession
+
+### Added
+
+- Reference Studio narrowing of the declaration in force to a successor CM2 resolution of the same position,
+  which must declare strictly fewer authorities with every retained one keeping its exact tuple.
+- Observed use as a veto: authority the member has already exercised cannot be narrowed away, while
+  disuse never permits a narrowing.
+- Shared succession vectors pinning outcome kinds and codes, dropped and vetoed authorities, the
+  size of the declaration still in force, and that the member stays released, plus a phase-boundary
+  completeness review.
+
+CBI11 has no retirement path and does not change the participant set; it changes what a later CBI9
+revision will admit. It does not verify that the successor declaration is truthful — a Component
+that narrows dishonestly and then exercises what it dropped is caught by CBI10 as undeclared use.
+
 ## Unreleased — CBI10 observed-interaction verification
 
 ### Added
