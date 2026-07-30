@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased — CBI6 participant-set admission
+
+### Added
+
+- Minimal Host admission of a set of participants over one singleton binding, each with its own CM5
+  request carrying one `ComponentParticipant` relationship and one or more exact narrow grants.
+- Algebraic participant-set results and the cross-request rules the evaluator cannot see: distinct
+  admission, relationship, and authority request identities across the set, and distinct
+  receiving-domain Actors per participant.
+- Shared participant-admission vectors pinning failure kinds, codes, evaluation counts, and
+  aggregate grant counts, plus a phase-boundary completeness review.
+
+CBI6 admits a participant set. It does not revalidate or withdraw one, order participants, exercise
+a granted Operation, or model participants joining or leaving an active binding.
+
 ## Unreleased — CBI5 authority withdrawal
 
 ### Added

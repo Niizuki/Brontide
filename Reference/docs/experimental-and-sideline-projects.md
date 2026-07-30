@@ -22,7 +22,7 @@ Graduation into the main showcase would require repeatable GPU execution tests, 
 operational observations, honest fallback behavior, and evidence that the transformation module
 does not need an application-level redesign.
 
-Reference Studio is the composition root for the CBI1-CBI5 integration slices. It references the
+Reference Studio is the composition root for the CBI1-CBI6 integration slices. It references the
 independent Component Management and Portable Binding experiments and maps one completed native
 CM2 direct `1..1` position into PB7 preflight, then coordinates one singleton, protocol-free CM4
 plan from PB7 lifecycle evidence and releases the portable gate only after CM4 Active.
@@ -31,6 +31,8 @@ relationship and grant before provider contact. That grant is not transported th
 treated as authority for a portable Operation. CBI4 independently serializes five native outcomes
 to shared canonical profile digests; this is data-only parity rather than an integrated process
 seam. CBI5 revalidates that exact local relationship and grant after activation, retiring the PB7
-member before further ordinary interaction when authority is not renewed. This does not merge the experimental projects,
+member before further ordinary interaction when authority is not renewed. CBI6 admits a set of
+participants holding one or more exact narrow grants each over that one member, owning the
+cross-request identity and receiving-domain Actor rules a single CM5 request cannot see. This does not merge the experimental projects,
 support multi-member or relational activation, mediation, or wider Provider Sets, or establish
 real Component interchange.

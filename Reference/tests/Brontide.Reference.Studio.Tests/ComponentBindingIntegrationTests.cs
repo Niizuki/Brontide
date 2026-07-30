@@ -24,6 +24,20 @@ public sealed class ComponentBindingIntegrationTests
     private static readonly CapabilityScopeId AuthorityScope = CapabilityScopeId.Create("scope.cooling-session");
     private static readonly DateTimeOffset EvaluationTime =
         new(2026, 7, 30, 10, 0, 0, TimeSpan.Zero);
+    private static readonly ActorId Supervisor = ActorId.Create("actor.cooling-supervisor");
+    private static readonly EvidenceId SupervisorEvidence = EvidenceId.Create("evidence.cooling-supervisor");
+    private static readonly RelationshipRequestId SupervisorRelationship =
+        RelationshipRequestId.Create("relationship.cooling-supervisor");
+    private static readonly AuthorityRequestId ReportAuthority = AuthorityRequestId.Create("authority.cooling-report");
+    private static readonly AuthorityRequestId AuditAuthority = AuthorityRequestId.Create("authority.cooling-audit");
+    private static readonly CapabilityId ReportCapability = CapabilityId.Create("capability.cooling-report");
+    private static readonly CapabilityId AuditCapability = CapabilityId.Create("capability.cooling-audit");
+    private static readonly OperationId ReportOperation = OperationId.Create("cooling.read-state");
+    private static readonly OperationId AuditOperation = OperationId.Create("cooling.read-log");
+    private static readonly LocalActorReferenceId ProviderLocalActor =
+        LocalActorReferenceId.Create("local.cooling-provider");
+    private static readonly LocalActorReferenceId SupervisorLocalActor =
+        LocalActorReferenceId.Create("local.cooling-supervisor");
 
     [Test]
     public void Completed_direct_one_to_one_resolution_enters_portable_preflight()
@@ -567,6 +581,306 @@ public sealed class ComponentBindingIntegrationTests
             Assert.That(result.Replacement, Is.Null);
         });
     }
+
+    [Test]
+    public async Task Shared_cbi6_vectors_gate_the_participant_set_before_provider_contact()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi6-participant-admission-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, handler) = await ParticipantResult(scenario);
+            var expectedFailure = vector.GetProperty("expectedFailureKind");
+            var expectedCode = vector.GetProperty("expectedCode");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    result.IsActive,
+                    Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()),
+                    scenario);
+                Assert.That(
+                    result.Failure is null ? null : ParticipantFailureToken(result.Failure.Kind),
+                    Is.EqualTo(
+                        expectedFailure.ValueKind == JsonValueKind.Null ? null : expectedFailure.GetString()),
+                    scenario);
+                Assert.That(
+                    result.Failure?.Code,
+                    Is.EqualTo(expectedCode.ValueKind == JsonValueKind.Null ? null : expectedCode.GetString()),
+                    scenario);
+                Assert.That(
+                    result.Admissions,
+                    Has.Count.EqualTo(vector.GetProperty("expectedParticipantsEvaluated").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Grants,
+                    Has.Count.EqualTo(vector.GetProperty("expectedGrants").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Lifecycle,
+                    result.IsActive ? Is.Not.Null : Is.Null,
+                    $"{scenario}: a refused participant set must not reach the provider.");
+                Assert.That(handler.ProviderEffectCount, Is.Zero, scenario);
+            });
+        }
+    }
+
+    [Test]
+    public async Task Admitted_participant_set_holds_distinct_local_actors_and_every_grant()
+    {
+        var (result, _) = await ParticipantResult("cbi6-01-two-participants");
+        var holders = result.Grants.Select(grant => grant.Holder).Distinct().ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsActive, Is.True);
+            Assert.That(result.Admissions.Select(item => item.Participant), Is.EqualTo(new[] { Participant, Supervisor }));
+            Assert.That(
+                result.Grants.Select(grant => grant.Request.Value),
+                Is.EqualTo(new[] { Authority.Value, ReportAuthority.Value, AuditAuthority.Value }.OrderBy(item => item, StringComparer.Ordinal)));
+            Assert.That(holders, Has.Length.EqualTo(2));
+            Assert.That(result.Lifecycle!.Member!.Stage, Is.EqualTo(PortableCompositionStage.Released));
+            Assert.That(result.Lifecycle.Member.Plan!.NoCapabilityTransfer, Is.True);
+        });
+    }
+
+    [Test]
+    public async Task Participant_set_size_cannot_change_any_portable_fact()
+    {
+        var set = ParticipantSet(SupervisorLocalActor);
+        var wide = await Activate(set);
+        var narrow = await Activate([set[0]]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(wide.IsActive, Is.True);
+            Assert.That(narrow.IsActive, Is.True);
+            Assert.That(wide.Grants, Has.Count.EqualTo(3));
+            Assert.That(narrow.Grants, Has.Count.EqualTo(2));
+            Assert.That(PortableFacts(wide), Is.EqualTo(PortableFacts(narrow)));
+        });
+    }
+
+    private static SortedDictionary<string, string> PortableFacts(ComponentParticipantAdmissionResult result)
+    {
+        var member = result.Lifecycle!.Member!;
+        var facts = new SortedDictionary<string, string>(member.ResolutionFacts, StringComparer.Ordinal);
+        foreach (var fact in member.Plan!.Facts.Where(item => item.Key != "planId"))
+        {
+            facts[fact.Key] = fact.Value;
+        }
+
+        return facts;
+    }
+
+    private static async Task<ComponentParticipantAdmissionResult> Activate(
+        IReadOnlyList<ComponentParticipantRequest> participants)
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        return await ComponentParticipantAdmission.ActivateAsync(
+            resolution,
+            selection,
+            participants,
+            RuntimeRequest(Plan(occurrence)),
+            DirectCooling(CoolingPortableFixture.Contract));
+    }
+
+    private static async Task<(ComponentParticipantAdmissionResult Result, CoolingPortableHandler Handler)>
+        ParticipantResult(string scenario)
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var handler = new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry());
+        var conversation = new PortableDirectConversation(
+            new PortableProviderEndpoint(
+                CoolingPortableFixture.Contract,
+                handler,
+                PortableRealization.FixedDirectCall));
+        var supervisorActor = scenario == "cbi6-08-shared-local-actor"
+            ? ProviderLocalActor
+            : SupervisorLocalActor;
+        var participants = ParticipantSet(supervisorActor);
+
+        participants = scenario switch
+        {
+            "cbi6-01-two-participants" or "cbi6-08-shared-local-actor" => participants,
+            "cbi6-02-second-participant-denied" =>
+            [
+                participants[0],
+                Revoked(participants[1]),
+            ],
+            "cbi6-03-repeated-participant" => [participants[0], participants[0]],
+            "cbi6-04-shared-authority-identity" =>
+            [
+                participants[0],
+                WithAuthority(
+                    participants[1],
+                    participants[1].Request.Authority.Single() with { Request = Authority }),
+            ],
+            "cbi6-05-repeated-grant-tuple" =>
+            [
+                WithAuthority(
+                    participants[0],
+                    participants[0].Request.Authority[0],
+                    participants[0].Request.Authority[0] with { Request = AuthorityRequestId.Create("authority.cooling-control-again") }),
+                participants[1],
+            ],
+            "cbi6-06-unlimited-grant" =>
+            [
+                participants[0],
+                WithAuthority(
+                    participants[1],
+                    participants[1].Request.Authority.Single() with { Unlimited = true }),
+            ],
+            "cbi6-07-empty-set" => [],
+            "cbi6-09-foreign-occurrence" =>
+            [
+                participants[0],
+                participants[1] with
+                {
+                    Mapping = participants[1].Mapping with { Occurrence = OccurrenceId.Create("occ.unselected") },
+                },
+            ],
+            _ => throw new ArgumentOutOfRangeException(nameof(scenario), scenario, "unknown CBI6 vector"),
+        };
+
+        var result = await ComponentParticipantAdmission.ActivateAsync(
+            resolution,
+            selection,
+            participants,
+            RuntimeRequest(Plan(occurrence)),
+            conversation);
+        return (result, handler);
+    }
+
+    private static ComponentParticipantRequest Revoked(ComponentParticipantRequest participant) =>
+        participant with
+        {
+            Request = participant.Request with
+            {
+                Evidence = participant.Request.Evidence
+                    .Select(item => item with { State = AdmissionEvidenceState.Revoked })
+                    .ToArray(),
+            },
+        };
+
+    private static ComponentParticipantRequest WithAuthority(
+        ComponentParticipantRequest participant,
+        params AuthorityRequest[] authority) =>
+        participant with { Request = participant.Request with { Authority = authority } };
+
+    private static ComponentParticipantRequest[] ParticipantSet(LocalActorReferenceId supervisorActor)
+    {
+        var policy = SetPolicy(supervisorActor);
+        var (_, _, occurrence) = LifecycleInput();
+        var provider = new AuthorityAdmissionRequest(
+            AdmissionRequestId.Create("admission.set-provider"),
+            Participant,
+            EvaluationTime,
+            [SetEvidence(AuthorityEvidence, Participant)],
+            [new(Relationship, Participant, ActorRelationshipKind.ComponentParticipant, [AuthorityEvidence])],
+            [
+                new(Authority, Relationship, Capability, Target, Operation, AuthorityScope, false),
+                new(ReportAuthority, Relationship, ReportCapability, Target, ReportOperation, AuthorityScope, false),
+            ],
+            policy);
+        var supervisor = new AuthorityAdmissionRequest(
+            AdmissionRequestId.Create("admission.set-supervisor"),
+            Supervisor,
+            EvaluationTime,
+            [SetEvidence(SupervisorEvidence, Supervisor)],
+            [new(SupervisorRelationship, Supervisor, ActorRelationshipKind.ComponentParticipant, [SupervisorEvidence])],
+            [new(AuditAuthority, SupervisorRelationship, AuditCapability, Target, AuditOperation, AuthorityScope, false)],
+            policy);
+        return
+        [
+            new(new(occurrence, Participant), provider),
+            new(new(occurrence, Supervisor), supervisor),
+        ];
+    }
+
+    private static AdmissionEvidence SetEvidence(EvidenceId evidence, ActorId subject) =>
+        new(
+            evidence,
+            AuthorityIssuer,
+            subject,
+            AdmissionEvidenceVerification.Verified,
+            EvaluationTime.AddHours(-1),
+            EvaluationTime.AddHours(1),
+            AdmissionEvidenceState.Current);
+
+    private static LocalAuthorityPolicy SetPolicy(LocalActorReferenceId supervisorActor) =>
+        new(
+            AuthorityPolicyId.Create("policy.integration-set"),
+            [AuthorityIssuer],
+            [
+                new(
+                    PolicyRuleId.Create("rule.component-participant"),
+                    Participant,
+                    ActorRelationshipKind.ComponentParticipant,
+                    PolicyDisposition.Allow,
+                    ProviderLocalActor,
+                    [AuthorityEvidence],
+                    false,
+                    "component participant admitted"),
+                new(
+                    PolicyRuleId.Create("rule.component-supervisor"),
+                    Supervisor,
+                    ActorRelationshipKind.ComponentParticipant,
+                    PolicyDisposition.Allow,
+                    supervisorActor,
+                    [SupervisorEvidence],
+                    false,
+                    "component supervisor admitted"),
+            ],
+            [
+                new(
+                    PolicyRuleId.Create("rule.cooling-control"),
+                    ActorRelationshipKind.ComponentParticipant,
+                    Capability,
+                    Target,
+                    Operation,
+                    AuthorityScope,
+                    PolicyDisposition.Allow,
+                    false,
+                    "narrow cooling control admitted"),
+                new(
+                    PolicyRuleId.Create("rule.cooling-report"),
+                    ActorRelationshipKind.ComponentParticipant,
+                    ReportCapability,
+                    Target,
+                    ReportOperation,
+                    AuthorityScope,
+                    PolicyDisposition.Allow,
+                    false,
+                    "narrow cooling reporting admitted"),
+                new(
+                    PolicyRuleId.Create("rule.cooling-audit"),
+                    ActorRelationshipKind.ComponentParticipant,
+                    AuditCapability,
+                    Target,
+                    AuditOperation,
+                    AuthorityScope,
+                    PolicyDisposition.Allow,
+                    false,
+                    "narrow cooling audit admitted"),
+            ]);
+
+    private static string ParticipantFailureToken(ComponentParticipantAdmissionFailureKind kind) => kind switch
+    {
+        ComponentParticipantAdmissionFailureKind.ParticipantSetInvalid => "participant-set-invalid",
+        ComponentParticipantAdmissionFailureKind.AuthorityShapeUnsupported => "authority-shape-unsupported",
+        ComponentParticipantAdmissionFailureKind.AuthorityRefused => "authority-refused",
+        ComponentParticipantAdmissionFailureKind.LocalIdentityConflict => "local-identity-conflict",
+        ComponentParticipantAdmissionFailureKind.LifecycleRefused => "lifecycle-refused",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
 
     private static async Task<(
         ComponentAuthorityRevalidationResult Result,

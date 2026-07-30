@@ -100,6 +100,11 @@ CBI5 revalidates the exact relationship and grant behind one active CBI3 binding
 expiry, or identity drift retires the portable member and closes ordinary interaction before peer
 cleanup; exact renewal leaves it released. This is bounded post-activation evidence, not
 distributed revocation or cancellation of an in-flight Operation.
+CBI6 widens admission from one participant holding one grant to a set of participants each holding
+several. A CM5 request names one participant, so the questions only a set can raise are answered by
+the composition root and answered fail closed: identities stay distinct across the whole set, two
+participants may not share one receiving-domain Actor, and a set that is not admitted exactly grants
+nothing and reaches no provider. It admits a set; it does not revalidate or withdraw one.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

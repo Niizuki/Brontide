@@ -223,11 +223,26 @@ the gate before peer cleanup, so cleanup failure remains visible without restori
 [`contract-completeness review`](../../component-management/cbi5-contract-completeness-review.md)
 bound this to post-activation admission, not in-flight cancellation or distributed revocation.
 
-Multi-participant and multi-grant admission is the next implementable integration item. CM4
-binding-exercise projection, cross-vocabulary Operation mapping, multi-member and relational
-lifecycles, replacement, child Ports, mediation, wider Provider Sets, and real distribution remain
-future work. PB8's independent reviews and Decision 11 owner ruling remain separate governance
-prerequisites rather than implementation work.
+CBI6 multi-participant and multi-grant admission is also implemented. Each composition root accepts
+a set of participants, each with its own CM5 request carrying one `ComponentParticipant`
+relationship and one or more exact narrow authority requests, and admits the set only when every
+request is admitted exactly as submitted. Because a CM5 request names exactly one participant, the
+questions a set raises belong to the composition root, and all three are answered fail closed:
+admission, relationship, and authority request identities must stay distinct across the whole set;
+two participants may not be mapped onto one receiving-domain Actor; and a set that is not admitted
+exactly carries no aggregate grant, leaves no portable member, and reaches no provider. The shared
+vectors pin how many participants each scenario evaluates, which forces both stacks to answer a
+question the contract could otherwise have left silent. The
+[`CBI6 capability contract`](../../component-management/cbi6-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi6-contract-completeness-review.md)
+bound this to admission of a set, not revalidation or withdrawal of one.
+
+Set revalidation and withdrawal — what should happen to a shared member when one participant of
+several loses authority — is the next implementable integration item. CM4 binding-exercise
+projection, cross-vocabulary Operation mapping, multi-member and relational lifecycles, replacement,
+child Ports, mediation, wider Provider Sets, and real distribution remain future work. PB8's
+independent reviews and Decision 11 owner ruling remain separate governance prerequisites rather
+than implementation work.
 
 ## Other planned areas
 

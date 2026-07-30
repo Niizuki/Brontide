@@ -597,6 +597,285 @@ module ComponentAuthorityRevalidation =
                         "CBI5 requires one released Active CBI3 result with one relationship and grant." }
         }
 
+type ComponentParticipantRequest =
+    { Mapping: ComponentAuthorityMapping
+      Request: AuthorityAdmissionRequest }
+
+[<RequireQualifiedAccess>]
+type ComponentParticipantAdmissionFailureKind =
+    | ParticipantSetInvalid
+    | AuthorityShapeUnsupported
+    | AuthorityRefused
+    | LocalIdentityConflict
+    | LifecycleRefused
+
+type ComponentParticipantAdmissionFailure =
+    { Kind: ComponentParticipantAdmissionFailureKind
+      Code: string
+      Reason: string }
+
+type ComponentParticipantObservation =
+    { Participant: ActorId
+      Authority: AuthorityAdmissionOutcome }
+
+type ComponentParticipantAdmissionResult =
+    { Admissions: ComponentParticipantObservation list
+      Grants: LocalCapabilityGrant list
+      Lifecycle: ComponentBindingLifecycleResult option
+      Failure: ComponentParticipantAdmissionFailure option }
+
+/// Gates one CBI2 activation with a set of participants, each holding one or more exact narrow
+/// CM5 grants.
+///
+/// A CM5 request names exactly one participant, so a participant set is a set of requests. The
+/// evaluator sees each one alone, which leaves the cross-request questions — repeated identities
+/// and two participants sharing one receiving-domain Actor — to this coordinator.
+[<RequireQualifiedAccess>]
+module ComponentParticipantAdmission =
+    let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
+
+    let private firstDuplicate values =
+        values
+        |> List.countBy id
+        |> List.filter (fun (_, count) -> count > 1)
+        |> List.map fst
+        |> List.sortWith ordinal
+        |> List.tryHead
+
+    let private refuse kind code reason admissions lifecycle =
+        { Admissions = admissions
+          Grants = []
+          Lifecycle = lifecycle
+          Failure = Some { Kind = kind; Code = code; Reason = reason } }
+
+    let private lifecycleIsActive (lifecycle: ComponentBindingLifecycleResult) =
+        lifecycle.Failure.IsNone
+        && lifecycle.Runtime
+           |> Option.exists (fun runtime -> runtime.Kind = ActivationRuntimeOutcomeKind.Active)
+        && lifecycle.Member |> Option.exists _.IsReleased
+
+    let isActive (result: ComponentParticipantAdmissionResult) =
+        result.Failure.IsNone
+        && not result.Grants.IsEmpty
+        && result.Lifecycle |> Option.exists lifecycleIsActive
+
+    let private validateSet (selection: ComponentBindingSelection) participants =
+        match participants with
+        | [] ->
+            Error("participant-set-empty", "CBI6 requires at least one participant admission request.")
+        | _ when
+            participants
+            |> List.exists (fun entry ->
+                entry.Mapping.Occurrence <> selection.Occurrence
+                || entry.Mapping.Participant <> entry.Request.Participant)
+            ->
+            Error(
+                "participant-mapping-invalid",
+                "Every participant mapping must name the CBI1-selected occurrence and its own CM5 request participant.")
+        | _ ->
+            let participantActors =
+                participants |> List.map (fun entry -> ActorId.value entry.Mapping.Participant)
+            let admissionRequests =
+                participants
+                |> List.map (fun entry -> AdmissionRequestId.value entry.Request.Request)
+            let relationshipRequests =
+                participants
+                |> List.collect (fun entry ->
+                    entry.Request.Relationships
+                    |> List.map (fun relationship -> RelationshipRequestId.value relationship.Request))
+            let authorityRequests =
+                participants
+                |> List.collect (fun entry ->
+                    entry.Request.Authority
+                    |> List.map (fun authority -> AuthorityRequestId.value authority.Request))
+            match
+                firstDuplicate participantActors,
+                firstDuplicate admissionRequests,
+                firstDuplicate relationshipRequests,
+                firstDuplicate authorityRequests
+            with
+            | Some actor, _, _, _ ->
+                Error(
+                    "participant-not-distinct",
+                    sprintf "Participant '%s' appears in more than one admission request." actor)
+            | _, Some admission, _, _ ->
+                Error(
+                    "admission-identity-not-distinct",
+                    sprintf
+                        "Admission request identity '%s' is used by more than one participant."
+                        admission)
+            | _, _, Some relationship, _ ->
+                Error(
+                    "relationship-identity-not-distinct",
+                    sprintf
+                        "Relationship request identity '%s' is used by more than one participant."
+                        relationship)
+            | _, _, _, Some authority ->
+                Error(
+                    "authority-identity-not-distinct",
+                    sprintf
+                        "Authority request identity '%s' is used by more than one participant, so its grants would share an identity."
+                        authority)
+            | None, None, None, None -> Ok()
+
+    let private supportedShape (request: AuthorityAdmissionRequest) =
+        match request.Relationships, request.Authority with
+        | [ relationship ], (_ :: _ as authority) ->
+            relationship.Kind = ActorRelationshipKind.ComponentParticipant
+            && relationship.ProposedActor = request.Participant
+            && authority
+               |> List.forall (fun item ->
+                   item.Relationship = relationship.Request && not item.Unlimited)
+            && authority
+               |> List.map (fun item ->
+                   sprintf
+                       "%s|%s|%s|%s"
+                       (CapabilityId.value item.Capability)
+                       (ActorId.value item.Target)
+                       (OperationId.value item.Operation)
+                       (CapabilityScopeId.value item.Scope))
+               |> firstDuplicate
+               |> Option.isNone
+        | _ -> false
+
+    /// One grant per submitted request, matched on the complete tuple, so equal counts and a single
+    /// match each make the correspondence a bijection rather than a coincidence.
+    let private isExactAdmission
+        (request: AuthorityAdmissionRequest)
+        (outcome: AuthorityAdmissionOutcome)
+        =
+        match outcome.Kind, outcome.Observation.Relationships, request.Relationships with
+        | AuthorityAdmissionOutcomeKind.Admitted, [ established ], [ submitted ] when
+            established.Request = submitted.Request
+            && established.ProposedActor = submitted.ProposedActor
+            && established.Kind = submitted.Kind
+            && outcome.Observation.Grants.Length = request.Authority.Length
+            ->
+            request.Authority
+            |> List.forall (fun authority ->
+                outcome.Observation.Grants
+                |> List.filter (fun grant ->
+                    grant.Request = authority.Request
+                    && grant.Holder = established.LocalActor
+                    && grant.Capability = authority.Capability
+                    && grant.Target = authority.Target
+                    && grant.Operation = authority.Operation
+                    && grant.Scope = authority.Scope)
+                |> List.length = 1)
+        | _ -> false
+
+    let activate
+        (resolution: ResolutionOutcome)
+        (selection: ComponentBindingSelection)
+        (participants: ComponentParticipantRequest list)
+        (runtimeRequest: ActivationRuntimeRequest)
+        (conversation: IPortableProviderConversation)
+        =
+        task {
+            // Ordering by participant makes evaluation, observation, and grant order independent of
+            // the order the caller happened to build the set in.
+            let ordered =
+                participants
+                |> List.sortWith (fun left right ->
+                    ordinal
+                        (ActorId.value left.Mapping.Participant)
+                        (ActorId.value right.Mapping.Participant))
+            match validateSet selection ordered with
+            | Error(code, reason) ->
+                return
+                    refuse
+                        ComponentParticipantAdmissionFailureKind.ParticipantSetInvalid
+                        code
+                        reason
+                        []
+                        None
+            | Ok() ->
+                if
+                    not runtimeRequest.BindingExercises.IsEmpty
+                    || ordered |> List.exists (fun entry -> not (supportedShape entry.Request))
+                then
+                    return
+                        refuse
+                            ComponentParticipantAdmissionFailureKind.AuthorityShapeUnsupported
+                            "authority-shape-unsupported"
+                            "CBI6 supports one ComponentParticipant relationship per participant, distinct narrow authority tuples dependent on it, and no caller-authored CM4 binding exercises."
+                            []
+                            None
+                else
+                    let admissions =
+                        ordered
+                        |> List.map (fun entry ->
+                            { Participant = entry.Mapping.Participant
+                              Authority = FakeAuthorityAdmission.evaluate entry.Request })
+                    let refusedParticipants =
+                        List.zip ordered admissions
+                        |> List.filter (fun (entry, observation) ->
+                            not (isExactAdmission entry.Request observation.Authority))
+                        |> List.map (fun (entry, _) -> ActorId.value entry.Mapping.Participant)
+                    if not refusedParticipants.IsEmpty then
+                        return
+                            refuse
+                                ComponentParticipantAdmissionFailureKind.AuthorityRefused
+                                "authority-not-admitted"
+                                (sprintf
+                                    "CM5 did not admit the exact submitted authority for %s."
+                                    (String.Join(", ", refusedParticipants)))
+                                admissions
+                                None
+                    else
+                        let holders =
+                            admissions
+                            |> List.map (fun observation ->
+                                observation.Authority.Observation.Relationships
+                                |> List.exactlyOne
+                                |> fun relationship -> LocalActorReferenceId.value relationship.LocalActor)
+                        match firstDuplicate holders with
+                        | Some shared ->
+                            return
+                                refuse
+                                    ComponentParticipantAdmissionFailureKind.LocalIdentityConflict
+                                    "local-actor-conflict"
+                                    (sprintf
+                                        "Two participants were mapped onto the receiving-domain Actor '%s', which would merge their grants into one holder."
+                                        shared)
+                                    admissions
+                                    None
+                        | None ->
+                            let! lifecycle =
+                                ComponentBindingLifecycle.activate
+                                    resolution
+                                    selection
+                                    runtimeRequest
+                                    conversation
+                            if not (lifecycleIsActive lifecycle) then
+                                return
+                                    refuse
+                                        ComponentParticipantAdmissionFailureKind.LifecycleRefused
+                                        (lifecycle.Failure
+                                         |> Option.map _.Code
+                                         |> Option.defaultValue "lifecycle-not-active")
+                                        (lifecycle.Failure
+                                         |> Option.map _.Reason
+                                         |> Option.defaultValue
+                                             "CBI2 did not return a released Active member.")
+                                        admissions
+                                        (Some lifecycle)
+                            else
+                                let grants =
+                                    admissions
+                                    |> List.collect (fun observation ->
+                                        observation.Authority.Observation.Grants)
+                                    |> List.sortWith (fun left right ->
+                                        ordinal
+                                            (CapabilityGrantId.value left.Grant)
+                                            (CapabilityGrantId.value right.Grant))
+                                return
+                                    { Admissions = admissions
+                                      Grants = grants
+                                      Lifecycle = Some lifecycle
+                                      Failure = None }
+        }
+
 [<RequireQualifiedAccess>]
 module ComponentAuthorityComparison =
     let private stringNode (value: string) : JsonNode | null = JsonValue.Create value

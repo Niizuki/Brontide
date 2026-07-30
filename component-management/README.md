@@ -103,6 +103,15 @@ reach the provider. Cleanup failure remains visible while the local gate stays c
 behavior is recorded in the [CBI5 capability contract](./cbi5-capability-contract.md) and completed
 [contract-completeness review](./cbi5-contract-completeness-review.md).
 
+CBI6 widens the authority gate from one participant holding one grant to a set of participants each
+holding one or more exact narrow grants, over the same singleton binding. Because a CM5 request
+names exactly one participant, the cross-request rules belong to the composition root: identities
+stay distinct across the whole set, two participants may not share one receiving-domain Actor, every
+participant is evaluated, and a set that is not admitted exactly grants nothing and reaches no
+provider. Its bounded behavior is recorded in the
+[CBI6 capability contract](./cbi6-capability-contract.md) and completed
+[contract-completeness review](./cbi6-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -180,6 +189,16 @@ authority evaluator, portable runtime, or process protocol.
 cleanup failure with stable outcome codes. Each composition root reconstructs and evaluates its own
 native CM5 request and PB7 member. The fixture contains no evaluator, clock, cleanup mechanism,
 portable authority, or runtime implementation.
+
+### `cbi6-participant-admission-vectors` sections
+
+`vectors` names one admitted two-participant set and eight refusals — a denied second participant,
+a repeated participant, a shared authority request identity, a repeated grant tuple, an unlimited
+grant, an empty set, a shared local Actor, and a foreign occurrence — with stable failure kinds and
+codes. Each vector also pins how many participants were evaluated and how many aggregate grants the
+result carries, so both composition roots must answer the evaluation-count and partial-set questions
+rather than agreeing by silence. The fixture contains no evaluator, policy, identity rule, lifecycle
+coordinator, or portable runtime.
 
 ### `cm0-mice-topology` sections
 

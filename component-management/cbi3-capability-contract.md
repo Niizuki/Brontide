@@ -78,7 +78,8 @@ unchanged.
 
 CBI3 proves only one receiving-domain Component-participant relationship and one exact narrow grant
 gating one singleton, protocol-free activation. CBI5 separately covers exact grant revalidation
-after activation. Multiple participants or grants, CM4 binding-exercise projection, cross-vocabulary Operation-to-invocation
+after activation, and CBI6 separately covers admission of several participants and grants. CM4
+binding-exercise projection, cross-vocabulary Operation-to-invocation
 mapping, multi-member release barriers, Relational Initialisation, replacement, child Ports,
 serialized comparison, mediation, and wider Provider Sets remain future integration work.
 

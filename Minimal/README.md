@@ -71,8 +71,10 @@ The implementation currently provides:
   CBI4 independently serializes five native outcomes into shared canonical profile digests without
   adding an integrated process protocol; CBI5 revalidates the exact admitted relationship and grant,
   preserving Release only for exact renewal and otherwise retiring the member before further
-  ordinary interaction;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI5 integration suite.
+  ordinary interaction; CBI6 admits a set of participants holding one or more exact narrow grants
+  each, refusing repeated identities, a shared receiving-domain Actor, and any partially admitted
+  set before a provider is reached;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI6 integration suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range
 and CI feature bands are checked by [`sdk-policy.md`](../docs/current/policies/sdk-policy.md). The selected
