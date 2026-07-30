@@ -166,3 +166,176 @@ public static class ComponentBindingIntegration
         !string.IsNullOrWhiteSpace(value) &&
         Encoding.UTF8.GetByteCount(value) <= maximumTextBytes;
 }
+
+public enum ComponentBindingLifecycleFailureKind
+{
+    PreparationUnavailable,
+    PlanUnsupported,
+    RuntimeRefusedBeforeStart,
+    PortableInterconnectionRefused,
+    PortableReleaseRefused,
+}
+
+public sealed record ComponentBindingLifecycleFailure(
+    ComponentBindingLifecycleFailureKind Kind,
+    string Code,
+    string Reason);
+
+public sealed record ComponentBindingLifecycleResult(
+    Cm.ActivationRuntimeOutcome? Runtime,
+    Portable.PortableCompositionMember? Member,
+    ComponentBindingLifecycleFailure? Failure)
+{
+    public bool IsActive =>
+        Runtime?.IsActive == true &&
+        Member?.Stage == Portable.PortableCompositionStage.Released &&
+        Failure is null;
+}
+
+/// <summary>Coordinates one CBI1 member with a singleton, protocol-free CM4 activation plan.</summary>
+public static class ComponentBindingLifecycle
+{
+    public static async ValueTask<ComponentBindingLifecycleResult> ActivateAsync(
+        Cm.ResolutionOutcome resolution,
+        ComponentBindingSelection selection,
+        Cm.ActivationRuntimeRequest request,
+        Portable.IPortableProviderConversation conversation,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(conversation);
+
+        var preparation = ComponentBindingIntegration.Prepare(resolution, selection);
+        if (preparation.Member is not { } member)
+        {
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.PreparationUnavailable,
+                "preparation-unavailable",
+                "CBI2 requires a successfully prepared CBI1 member.");
+        }
+
+        if (!TrySupportedGroup(request.Plan, selection.Occurrence, out var group))
+        {
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.PlanUnsupported,
+                "plan-unsupported",
+                "CBI2 supports exactly one protocol-free activation group containing only the selected occurrence.",
+                member: member);
+        }
+
+        var successfulStages = StageOutcomes(group!, selection.Occurrence, failedStage: null);
+        var successfulRequest = request with { StageOutcomes = successfulStages };
+        var preflight = new Cm.FakeActivationRuntime().Activate(successfulRequest);
+        if (!preflight.IsActive)
+        {
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.RuntimeRefusedBeforeStart,
+                "runtime-refused-before-start",
+                $"CM4 refused the derived lifecycle before provider establishment: {preflight.Kind}.",
+                preflight,
+                member);
+        }
+
+        try
+        {
+            await member.InterconnectAsync(conversation, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            var failedRequest = request with
+            {
+                StageOutcomes = StageOutcomes(group!, selection.Occurrence, Cm.ActivationStage.Interconnection),
+            };
+            var failedRuntime = new Cm.FakeActivationRuntime().Activate(failedRequest);
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused,
+                exception is Portable.PortableFaultException fault ? fault.LocalCode : "portable-interconnection-failed",
+                exception.Message,
+                failedRuntime,
+                member);
+        }
+
+        if (!member.IsReady)
+        {
+            var failedRequest = request with
+            {
+                StageOutcomes = StageOutcomes(group!, selection.Occurrence, Cm.ActivationStage.Ready),
+            };
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused,
+                "ready-missing",
+                "Portable Interconnection completed without a Ready lifecycle state.",
+                new Cm.FakeActivationRuntime().Activate(failedRequest),
+                member);
+        }
+
+        var runtime = new Cm.FakeActivationRuntime().Activate(successfulRequest);
+        if (!runtime.IsActive)
+        {
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.RuntimeRefusedBeforeStart,
+                "runtime-state-changed",
+                $"CM4 no longer accepted the lifecycle after portable Ready: {runtime.Kind}.",
+                runtime,
+                member);
+        }
+
+        try
+        {
+            member.Release();
+            return new(runtime, member, null);
+        }
+        catch (Portable.PortableFaultException fault)
+        {
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.PortableReleaseRefused,
+                fault.LocalCode,
+                fault.Message,
+                runtime,
+                member);
+        }
+    }
+
+    private static bool TrySupportedGroup(
+        Cm.ActivationGroupPlan plan,
+        Cm.OccurrenceId selectedOccurrence,
+        out Cm.ActivationGroupObservation? group)
+    {
+        group = plan.Groups.Count == 1 ? plan.Groups[0] : null;
+        return group is not null &&
+            group.Members.Count == 1 &&
+            group.Members[0].Occurrence == selectedOccurrence &&
+            group.Protocols.Count == 0;
+    }
+
+    private static IReadOnlyList<Cm.MemberStageOutcome> StageOutcomes(
+        Cm.ActivationGroupObservation group,
+        Cm.OccurrenceId member,
+        Cm.ActivationStage? failedStage) =>
+        group.Stages.Select(stage => new Cm.MemberStageOutcome(
+            group.Group,
+            member,
+            stage.Stage,
+            failedStage switch
+            {
+                null => true,
+                Cm.ActivationStage.Interconnection => stage.Stage == Cm.ActivationStage.LocalInitialisation,
+                Cm.ActivationStage.Ready => stage.Stage != Cm.ActivationStage.Ready,
+                _ => false,
+            },
+            failedStage == stage.Stage ? "portable stage failed" : "derived from portable member")).ToArray();
+
+    private static ComponentBindingLifecycleResult Refuse(
+        ComponentBindingLifecycleFailureKind kind,
+        string code,
+        string reason,
+        Cm.ActivationRuntimeOutcome? runtime = null,
+        Portable.PortableCompositionMember? member = null) =>
+        new(runtime, member, new(kind, code, reason));
+}

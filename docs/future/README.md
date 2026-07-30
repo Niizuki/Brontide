@@ -188,9 +188,18 @@ define and close the slice. It refuses unresolved, wider-cardinality, mediated, 
 indirect, identity-mismatched, and invalidly addressed positions before a provider or Binding Plan
 exists.
 
-CM4 stage orchestration, CM5 authority admission, shared serialized comparison, mediation, wider
-Provider Sets, and real distribution remain future integration work. PB8's independent reviews and
-Decision 11 owner ruling remain separate governance prerequisites rather than implementation work.
+CBI2 is also implemented. Each composition root now coordinates that prepared member with one
+singleton, protocol-free CM4 plan, derives lifecycle stages from PB7 rather than caller claims,
+validates CM4 before provider contact, projects portable establishment refusal into CM4, and opens
+the portable ordinary-interaction gate only after CM4 reaches Active. The
+[`CBI2 capability contract`](../../component-management/cbi2-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi2-contract-completeness-review.md)
+bound the evidence.
+
+CM5 authority admission is the next implementable integration item. Shared serialized comparison,
+multi-member and relational lifecycles, replacement, child Ports, mediation, wider Provider Sets,
+and real distribution remain future integration work. PB8's independent reviews and Decision 11
+owner ruling remain separate governance prerequisites rather than implementation work.
 
 ## Other planned areas
 

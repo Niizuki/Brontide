@@ -72,6 +72,14 @@ addressed positions fail before a portable member exists. Its behavior and limit
 the [CBI1 capability contract](./cbi1-capability-contract.md) and completed
 [contract-completeness review](./cbi1-contract-completeness-review.md).
 
+CBI2 coordinates that prepared member with a singleton, protocol-free CM4 activation plan.
+Reference Studio and Minimal Host independently derive CM4 stage observations from the actual PB7
+member, validate the pure CM4 lifecycle before provider contact, project portable establishment
+refusal into CM4, and release the portable ordinary-interaction gate only after CM4 reaches Active.
+Caller-supplied stage claims are ignored. Its behavior and limits are recorded in the
+[CBI2 capability contract](./cbi2-capability-contract.md) and completed
+[contract-completeness review](./cbi2-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.

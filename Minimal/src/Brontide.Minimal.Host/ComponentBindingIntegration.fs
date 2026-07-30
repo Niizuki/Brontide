@@ -170,3 +170,163 @@ module ComponentBindingIntegration =
                     (sprintf
                         "The completed generation contains %d provider positions for the requested requirement."
                         matches.Length)
+
+[<RequireQualifiedAccess>]
+type ComponentBindingLifecycleFailureKind =
+    | PreparationUnavailable
+    | PlanUnsupported
+    | RuntimeRefusedBeforeStart
+    | PortableInterconnectionRefused
+    | PortableReleaseRefused
+
+type ComponentBindingLifecycleFailure =
+    { Kind: ComponentBindingLifecycleFailureKind
+      Code: string
+      Reason: string }
+
+type ComponentBindingLifecycleResult =
+    { Runtime: ActivationRuntimeOutcome option
+      Member: CompositionMember option
+      Failure: ComponentBindingLifecycleFailure option }
+
+[<RequireQualifiedAccess>]
+module ComponentBindingLifecycle =
+    let private refuse kind code reason runtime memberValue =
+        { Runtime = runtime
+          Member = memberValue
+          Failure = Some { Kind = kind; Code = code; Reason = reason } }
+
+    let private trySupportedGroup plan selectedOccurrence =
+        match plan.Groups with
+        | [ group ] when
+            group.Members.Length = 1
+            && (List.exactlyOne group.Members).Occurrence = selectedOccurrence
+            && group.Protocols.IsEmpty ->
+            Some group
+        | _ -> None
+
+    let private stageOutcomes group memberValue failedStage =
+        group.Stages
+        |> List.map (fun stage ->
+            { Group = group.Group
+              Member = memberValue
+              Stage = stage.Stage
+              Succeeded =
+                match failedStage with
+                | None -> true
+                | Some ActivationStage.Interconnection ->
+                    stage.Stage = ActivationStage.LocalInitialisation
+                | Some ActivationStage.Ready ->
+                    stage.Stage <> ActivationStage.Ready
+                | Some _ -> false
+              Detail =
+                if Some stage.Stage = failedStage then
+                    "portable stage failed"
+                else
+                    "derived from portable member" })
+
+    let private portableError error =
+        match error with
+        | PortableError.Refused fault -> fault.LocalCode, fault.Message
+        | PortableError.Interrupted failure -> "portable-process-interrupted", failure.Message
+
+    let activate resolution selection request conversation =
+        task {
+            let preparation = ComponentBindingIntegration.prepare resolution selection
+            match preparation with
+            | ComponentBindingIntegrationResult.Refused _ ->
+                return
+                    refuse
+                        ComponentBindingLifecycleFailureKind.PreparationUnavailable
+                        "preparation-unavailable"
+                        "CBI2 requires a successfully prepared CBI1 member."
+                        None
+                        None
+            | ComponentBindingIntegrationResult.Prepared memberValue ->
+                match trySupportedGroup request.Plan selection.Occurrence with
+                | None ->
+                    return
+                        refuse
+                            ComponentBindingLifecycleFailureKind.PlanUnsupported
+                            "plan-unsupported"
+                            "CBI2 supports exactly one protocol-free activation group containing only the selected occurrence."
+                            None
+                            (Some memberValue)
+                | Some group ->
+                    let successfulRequest =
+                        { request with
+                            StageOutcomes = stageOutcomes group selection.Occurrence None }
+                    let preflight = FakeActivationRuntime.activate successfulRequest
+                    if preflight.Kind <> ActivationRuntimeOutcomeKind.Active then
+                        return
+                            refuse
+                                ComponentBindingLifecycleFailureKind.RuntimeRefusedBeforeStart
+                                "runtime-refused-before-start"
+                                (sprintf
+                                    "CM4 refused the derived lifecycle before provider establishment: %A."
+                                    preflight.Kind)
+                                (Some preflight)
+                                (Some memberValue)
+                    else
+                        let! interconnected = memberValue.Interconnect conversation
+                        match interconnected with
+                        | Error error ->
+                            let failedRequest =
+                                { request with
+                                    StageOutcomes =
+                                        stageOutcomes
+                                            group
+                                            selection.Occurrence
+                                            (Some ActivationStage.Interconnection) }
+                            let code, reason = portableError error
+                            return
+                                refuse
+                                    ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused
+                                    code
+                                    reason
+                                    (Some(FakeActivationRuntime.activate failedRequest))
+                                    (Some memberValue)
+                        | Ok() when not memberValue.IsReady ->
+                            let failedRequest =
+                                { request with
+                                    StageOutcomes =
+                                        stageOutcomes
+                                            group
+                                            selection.Occurrence
+                                            (Some ActivationStage.Ready) }
+                            return
+                                refuse
+                                    ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused
+                                    "ready-missing"
+                                    "Portable Interconnection completed without a Ready lifecycle state."
+                                    (Some(FakeActivationRuntime.activate failedRequest))
+                                    (Some memberValue)
+                        | Ok() ->
+                            let runtime = FakeActivationRuntime.activate successfulRequest
+                            if runtime.Kind <> ActivationRuntimeOutcomeKind.Active then
+                                return
+                                    refuse
+                                        ComponentBindingLifecycleFailureKind.RuntimeRefusedBeforeStart
+                                        "runtime-state-changed"
+                                        (sprintf
+                                            "CM4 no longer accepted the lifecycle after portable Ready: %A."
+                                            runtime.Kind)
+                                        (Some runtime)
+                                        (Some memberValue)
+                            else
+                                match memberValue.Release() with
+                                | Ok() ->
+                                    return
+                                        { Runtime = Some runtime
+                                          Member = Some memberValue
+                                          Failure = None }
+                                | Error error ->
+                                    let code, reason = portableError error
+                                    return
+                                        refuse
+                                            ComponentBindingLifecycleFailureKind.PortableReleaseRefused
+                                            code
+                                            reason
+                                            (Some runtime)
+                                            (Some memberValue)
+        }
