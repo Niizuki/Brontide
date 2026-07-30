@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open Brontide.Minimal.Binding
 open Brontide.Minimal.Binding.Portable
+open Brontide.Minimal.Experimental.ComponentManagement
 open Brontide.Minimal.Vocabularies.Cooling
 
 /// Runs the reusable Portable Component Binding over a real duplex process boundary. The verbs
@@ -31,12 +32,23 @@ let private runPortable (arguments: string array) =
     duplex.Close()
     0
 
+let private runComponentManagement () =
+    FakeAuthorityComparison.run
+        Console.In
+        Console.Out
+        "minimal-fsharp"
+        Threading.CancellationToken.None
+    |> fun work -> work.GetAwaiter().GetResult()
+    0
+
 [<EntryPoint>]
 let main arguments =
     let crashAfterActivation = arguments |> Array.contains "--crash-after-activation"
     let rejectProtocol = arguments |> Array.contains "--reject-protocol"
 
-    if arguments |> Array.contains "--portable" then
+    if arguments |> Array.contains "--component-management" then
+        runComponentManagement ()
+    elif arguments |> Array.contains "--portable" then
         runPortable arguments
     elif arguments |> Array.contains "--catalog" then
         let catalog = Dictionary<string, CatalogItem>(StringComparer.Ordinal)

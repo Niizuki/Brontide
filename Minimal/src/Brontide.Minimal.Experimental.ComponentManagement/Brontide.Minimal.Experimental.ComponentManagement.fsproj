@@ -10,5 +10,6 @@
     <Compile Include="ActivationGroups.fs" />
     <Compile Include="ActivationRuntime.fs" />
     <Compile Include="AuthorityAdmission.fs" />
+    <Compile Include="AuthorityComparison.fs" />
   </ItemGroup>
 </Project>

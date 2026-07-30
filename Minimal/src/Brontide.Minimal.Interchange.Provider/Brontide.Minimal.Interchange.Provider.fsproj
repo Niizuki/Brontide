@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Experimental.ComponentManagement\Brontide.Minimal.Experimental.ComponentManagement.fsproj" />
     <ProjectReference Include="..\Brontide.Minimal.Vocabularies.Cooling\Brontide.Minimal.Vocabularies.Cooling.fsproj" />
   </ItemGroup>
   <ItemGroup>

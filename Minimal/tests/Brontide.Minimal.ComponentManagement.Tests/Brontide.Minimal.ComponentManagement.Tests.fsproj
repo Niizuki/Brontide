@@ -24,6 +24,7 @@
     <Compile Include="ActivationGroupTests.fs" />
     <Compile Include="ActivationRuntimeTests.fs" />
     <Compile Include="AuthorityAdmissionTests.fs" />
+    <Compile Include="AuthorityComparisonTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

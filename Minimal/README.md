@@ -48,7 +48,7 @@ The implementation currently provides:
   resources, an explicit lifecycle, the C9 observation set, a fixed direct-call and a negotiated
   process realization, and the Composition handoff that turns a resolved requirement and an offered
   provision into a Binding Plan at activation preflight;
-- the fake Component Management CM0-CM5 phases: strict neutral-fixture loading, deterministic
+- the fake Component Management CM0-CM6 programme: strict neutral-fixture loading, deterministic
   attributable discovery, immutable staged acquisition, evidence-policy observations, and pure
   source-removal transitions, followed by Minimal-native effect-free recursive resolution into
   immutable Proposed Stack and generation values, and deterministic strongly-connected
@@ -57,7 +57,10 @@ The implementation currently provides:
   replacement, child-Port attachment, post-Release binding evidence, and explicit rollback or
   degradation, followed by Minimal-native evidence evaluation, receiving-policy Actor mapping,
   exact narrow Capability admission, withdrawal on revoked or expired evidence, unlimited-authority
-  refusal, and attributable policy mistakes; it does not load arbitrary code, provide production
+  refusal, and attributable policy mistakes, followed by complete scenario reconstruction into
+  Minimal-native types and canonical full-profile comparison with a Reference provider across a
+  bounded JSON Lines process seam; the reciprocal Reference-host test exercises this provider. It
+  does not load arbitrary code, provide production
   isolation, durable rollback, cryptographic verification, federation, or production authority;
 - a headless host and five F# test assemblies.
 

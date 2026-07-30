@@ -62,14 +62,16 @@ The principal planned areas are:
 
 - [`Portable Component Binding`](./future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md);
 - [`Component Management`](./future/component-management/Brontide-Design-Note-Component-Management-0.1.md)
-  and its [`implementation plan`](./future/component-management/Brontide-Component-Management-Implementation-Plan-0.1.md);
+  and its completed, evidence-path-retained
+  [`implementation plan`](./future/component-management/Brontide-Component-Management-Implementation-Plan-0.1.md);
 - [`Channel evidence`](./future/channel/architecture-0.8-channel-requirements-and-risk-ledger.md);
   and
 - [`Composition Without a Kernel`](./future/architecture/Brontide-Architecture-Composition-Without-a-Kernel.md).
 
-Architecture 0.8, the remaining design notes, the Channel contract, both 0.3 stack plans, and the
-Component Management implementation plan are also future work. They now live under
-`docs/future/<area>/` and each stack's `docs/future/`, with their evidence trails repinned.
+Architecture 0.8, the remaining design notes, the Channel contract, and both 0.3 stack plans are
+future work. The Component Management implementation programme is complete, but its plan remains
+under `docs/future/component-management/` because transitive evidence pins make that path stable;
+moving it requires explicit authorization to repin and independently review the affected evidence.
 
 ## Temporary
 

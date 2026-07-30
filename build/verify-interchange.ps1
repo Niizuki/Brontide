@@ -59,6 +59,17 @@ Invoke-Checked { dotnet test $minimalSolution --no-build }
 $env:BRONTIDE_MINIMAL_PROVIDER = Join-Path $repositoryRoot 'Minimal\src\Brontide.Minimal.Interchange.Provider\bin\Debug\net10.0\Brontide.Minimal.Interchange.Provider.exe'
 $env:BRONTIDE_REFERENCE_PROVIDER = Join-Path $repositoryRoot 'Reference\src\Brontide.Reference.Interchange.Provider\bin\Debug\net10.0\Brontide.Reference.Interchange.Provider.exe'
 
+# CM6 lives in the Component Management suites rather than the interchange suites because each
+# host computes its own native CM5 baseline before crossing to the other stack's provider process.
+# The ordinary solution runs above prove the offline surface; these filtered runs make skips
+# impossible in the repository completion gate.
+Invoke-Checked {
+    dotnet test (Join-Path $repositoryRoot 'Reference\tests\Brontide.Reference.ComponentManagement.Tests\Brontide.Reference.ComponentManagement.Tests.csproj') --no-build --filter 'Category=CrossProcess'
+}
+Invoke-Checked {
+    dotnet test (Join-Path $repositoryRoot 'Minimal\tests\Brontide.Minimal.ComponentManagement.Tests\Brontide.Minimal.ComponentManagement.Tests.fsproj') --no-build --filter 'Category=CrossProcess'
+}
+
 # The implementation-neutral provider is outside both solutions on purpose, so the gate builds it
 # explicitly. Without it the PB5 rows that pair each host with a provider depending on neither stack
 # would silently skip rather than fail, which is the one outcome a completeness gate must not allow.

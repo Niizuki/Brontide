@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cm6-authority-comparison-vectors",
+  "scenarios": [
+    {
+      "schemaVersion": 1,
+      "id": "cm6-01-admitted",
+      "expectedOutcome": "admitted",
+      "evaluationTime": "2026-07-30T10:00:00Z",
+      "participant": "actor.device",
+      "evidence": [
+        { "id": "evidence.pairing", "issuer": "issuer.host", "subject": "actor.device", "verification": "verified", "validFrom": "2026-07-30T09:00:00Z", "expiresAt": "2026-07-30T11:00:00Z", "state": "current" }
+      ],
+      "relationships": [
+        { "id": "relationship.pointer", "actor": "actor.device", "kind": "attached-device", "evidence": ["evidence.pairing"] }
+      ],
+      "authority": [
+        { "id": "authority.publish", "relationship": "relationship.pointer", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "unlimited": false }
+      ],
+      "policy": {
+        "id": "policy.host",
+        "trustedIssuers": ["issuer.host"],
+        "relationships": [
+          { "id": "rule.pointer", "actor": "actor.device", "kind": "attached-device", "disposition": "allow", "localActor": "local.pointer", "requiredEvidence": ["evidence.pairing"], "knownMistake": false, "rationale": "paired pointer admitted" }
+        ],
+        "authority": [
+          { "id": "rule.publish", "relationshipKind": "attached-device", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "disposition": "allow", "knownMistake": false, "rationale": "narrow pointer publication admitted" }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "cm6-02-no-mapping",
+      "expectedOutcome": "denied",
+      "evaluationTime": "2026-07-30T10:00:00Z",
+      "participant": "actor.device",
+      "evidence": [
+        { "id": "evidence.pairing", "issuer": "issuer.host", "subject": "actor.device", "verification": "verified", "validFrom": "2026-07-30T09:00:00Z", "expiresAt": "2026-07-30T11:00:00Z", "state": "current" }
+      ],
+      "relationships": [
+        { "id": "relationship.pointer", "actor": "actor.device", "kind": "attached-device", "evidence": ["evidence.pairing"] }
+      ],
+      "authority": [
+        { "id": "authority.publish", "relationship": "relationship.pointer", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "unlimited": false }
+      ],
+      "policy": { "id": "policy.host", "trustedIssuers": ["issuer.host"], "relationships": [], "authority": [] }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "cm6-03-partial",
+      "expectedOutcome": "partially-admitted",
+      "evaluationTime": "2026-07-30T10:00:00Z",
+      "participant": "actor.device",
+      "evidence": [
+        { "id": "evidence.pairing", "issuer": "issuer.host", "subject": "actor.device", "verification": "verified", "validFrom": "2026-07-30T09:00:00Z", "expiresAt": "2026-07-30T11:00:00Z", "state": "current" }
+      ],
+      "relationships": [
+        { "id": "relationship.pointer", "actor": "actor.device", "kind": "attached-device", "evidence": ["evidence.pairing"] }
+      ],
+      "authority": [
+        { "id": "authority.publish", "relationship": "relationship.pointer", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "unlimited": false },
+        { "id": "authority.storage", "relationship": "relationship.pointer", "capability": "capability.storage", "target": "actor.storage", "operation": "storage.write", "scope": "scope.session", "unlimited": false }
+      ],
+      "policy": {
+        "id": "policy.host",
+        "trustedIssuers": ["issuer.host"],
+        "relationships": [
+          { "id": "rule.pointer", "actor": "actor.device", "kind": "attached-device", "disposition": "allow", "localActor": "local.pointer", "requiredEvidence": ["evidence.pairing"], "knownMistake": false, "rationale": "paired pointer admitted" }
+        ],
+        "authority": [
+          { "id": "rule.publish", "relationshipKind": "attached-device", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "disposition": "allow", "knownMistake": false, "rationale": "narrow pointer publication admitted" }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "cm6-04-unlimited",
+      "expectedOutcome": "partially-admitted",
+      "evaluationTime": "2026-07-30T10:00:00Z",
+      "participant": "actor.device",
+      "evidence": [
+        { "id": "evidence.pairing", "issuer": "issuer.host", "subject": "actor.device", "verification": "verified", "validFrom": "2026-07-30T09:00:00Z", "expiresAt": "2026-07-30T11:00:00Z", "state": "current" }
+      ],
+      "relationships": [
+        { "id": "relationship.pointer", "actor": "actor.device", "kind": "attached-device", "evidence": ["evidence.pairing"] }
+      ],
+      "authority": [
+        { "id": "authority.unlimited", "relationship": "relationship.pointer", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "unlimited": true }
+      ],
+      "policy": {
+        "id": "policy.host",
+        "trustedIssuers": ["issuer.host"],
+        "relationships": [
+          { "id": "rule.pointer", "actor": "actor.device", "kind": "attached-device", "disposition": "allow", "localActor": "local.pointer", "requiredEvidence": ["evidence.pairing"], "knownMistake": false, "rationale": "paired pointer admitted" }
+        ],
+        "authority": [
+          { "id": "rule.publish", "relationshipKind": "attached-device", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "disposition": "allow", "knownMistake": false, "rationale": "nominal tuple would otherwise be allowed" }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "cm6-05-revoked",
+      "expectedOutcome": "denied",
+      "evaluationTime": "2026-07-30T10:00:00Z",
+      "participant": "actor.device",
+      "evidence": [
+        { "id": "evidence.pairing", "issuer": "issuer.host", "subject": "actor.device", "verification": "verified", "validFrom": "2026-07-30T09:00:00Z", "expiresAt": "2026-07-30T11:00:00Z", "state": "revoked" }
+      ],
+      "relationships": [
+        { "id": "relationship.pointer", "actor": "actor.device", "kind": "attached-device", "evidence": ["evidence.pairing"] }
+      ],
+      "authority": [
+        { "id": "authority.publish", "relationship": "relationship.pointer", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "unlimited": false }
+      ],
+      "policy": {
+        "id": "policy.host",
+        "trustedIssuers": ["issuer.host"],
+        "relationships": [
+          { "id": "rule.pointer", "actor": "actor.device", "kind": "attached-device", "disposition": "allow", "localActor": "local.pointer", "requiredEvidence": ["evidence.pairing"], "knownMistake": false, "rationale": "paired pointer admitted" }
+        ],
+        "authority": [
+          { "id": "rule.publish", "relationshipKind": "attached-device", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "disposition": "allow", "knownMistake": false, "rationale": "narrow pointer publication admitted" }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "cm6-06-expired",
+      "expectedOutcome": "denied",
+      "evaluationTime": "2026-07-30T12:00:00Z",
+      "participant": "actor.device",
+      "evidence": [
+        { "id": "evidence.pairing", "issuer": "issuer.host", "subject": "actor.device", "verification": "verified", "validFrom": "2026-07-30T09:00:00Z", "expiresAt": "2026-07-30T11:00:00Z", "state": "current" }
+      ],
+      "relationships": [
+        { "id": "relationship.pointer", "actor": "actor.device", "kind": "attached-device", "evidence": ["evidence.pairing"] }
+      ],
+      "authority": [
+        { "id": "authority.publish", "relationship": "relationship.pointer", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "unlimited": false }
+      ],
+      "policy": {
+        "id": "policy.host",
+        "trustedIssuers": ["issuer.host"],
+        "relationships": [
+          { "id": "rule.pointer", "actor": "actor.device", "kind": "attached-device", "disposition": "allow", "localActor": "local.pointer", "requiredEvidence": ["evidence.pairing"], "knownMistake": false, "rationale": "paired pointer admitted" }
+        ],
+        "authority": [
+          { "id": "rule.publish", "relationshipKind": "attached-device", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "disposition": "allow", "knownMistake": false, "rationale": "narrow pointer publication admitted" }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "cm6-07-policy-mistake",
+      "expectedOutcome": "admitted",
+      "evaluationTime": "2026-07-30T10:00:00Z",
+      "participant": "actor.device",
+      "evidence": [
+        { "id": "evidence.pairing", "issuer": "issuer.host", "subject": "actor.device", "verification": "verified", "validFrom": "2026-07-30T09:00:00Z", "expiresAt": "2026-07-30T11:00:00Z", "state": "current" }
+      ],
+      "relationships": [
+        { "id": "relationship.pointer", "actor": "actor.device", "kind": "attached-device", "evidence": ["evidence.pairing"] }
+      ],
+      "authority": [
+        { "id": "authority.publish", "relationship": "relationship.pointer", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "unlimited": false }
+      ],
+      "policy": {
+        "id": "policy.host",
+        "trustedIssuers": ["issuer.host"],
+        "relationships": [
+          { "id": "rule.pointer", "actor": "actor.device", "kind": "attached-device", "disposition": "allow", "localActor": "local.pointer", "requiredEvidence": ["evidence.pairing"], "knownMistake": false, "rationale": "paired pointer admitted" }
+        ],
+        "authority": [
+          { "id": "rule.publish", "relationshipKind": "attached-device", "capability": "capability.publish-pointer", "target": "actor.input", "operation": "input.pointer.publish", "scope": "scope.session", "disposition": "allow", "knownMistake": true, "rationale": "fixture marks this broad local choice as mistaken" }
+        ]
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "cm6-08-invalid-request",
+      "expectedOutcome": "invalid-request",
+      "evaluationTime": "2026-07-30T10:00:00Z",
+      "participant": "actor.device",
+      "evidence": [],
+      "relationships": [
+        { "id": "relationship.pointer", "actor": "actor.device", "kind": "attached-device", "evidence": ["evidence.missing"] }
+      ],
+      "authority": [],
+      "policy": { "id": "policy.host", "trustedIssuers": ["issuer.host"], "relationships": [], "authority": [] }
+    }
+  ]
+}
