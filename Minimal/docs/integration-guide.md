@@ -36,11 +36,15 @@ Ordinary tests skip real Brontide Reference Stack launch when `BRONTIDE_REFERENC
 
 ## Fake Component Management CM1
 
-Use `FakeDiscovery.run` with a `DiscoveryQuery` and a list of `FakeComponentSource` values.
-Candidates are attributable and deterministically ordered; a source endpoint is not a publisher.
+Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each
+`FakeComponentSource` from the catalog, that explicit availability fixture, and its source identity.
+Use `FakeDiscovery.run` with a `DiscoveryQuery` and a list of those source values. Candidates are
+attributable and deterministically ordered; a source endpoint is not a publisher.
 `FakeComponentSource.acquire` returns `Staged` or `Refused`. `FakeComponentSource.remove` returns a
 new unavailable source state, leaving an earlier staged value unchanged.
 
 CM1 is deliberately inert. Do not add resolution, activation, Actor, or authority machinery to this
 path; those belong to later phases. The observable C1-C7 boundary is in
 [`../../component-management/cm1-capability-contract.md`](../../component-management/cm1-capability-contract.md).
+The completed absence audit is
+[`../../component-management/cm1-contract-completeness-review.md`](../../component-management/cm1-contract-completeness-review.md).

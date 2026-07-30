@@ -3,6 +3,7 @@ namespace Brontide.Minimal.Experimental.ComponentManagement
 open System
 open System.Security.Cryptography
 open System.Text
+open System.Text.Json
 
 type DiscoveryQueryId = private DiscoveryQueryId of string
 type TargetEnvironmentId = private TargetEnvironmentId of string
@@ -42,6 +43,14 @@ type LifecycleRole =
     | RelationalInitialisation
 
 type DefinitionConstraint = { Name: string; Value: string }
+
+type SourceEvidenceAvailability =
+    { Source: SourceId
+      Evidence: EvidenceId }
+
+type SourceEvidenceFixture =
+    { Description: string
+      Availability: SourceEvidenceAvailability list }
 
 type DiscoveryQuery =
     { Query: DiscoveryQueryId
@@ -153,9 +162,137 @@ type AcquisitionResult =
     | Staged of StagedArtifact
     | Refused of AcquisitionFailure
 
+type AcquisitionResult with
+    member _.Effects = Cm1EffectObservation.none
+
+/// Strict CM1-only loader. The separate file keeps source provenance explicit without changing the
+/// retained CM0 catalog schema or pretending that every repository serving an artifact supplied
+/// every claim about it.
+[<RequireQualifiedAccess>]
+module Cm1FixtureLoader =
+    let loadSourceEvidence (json: string) (catalog: CatalogFixture) : SourceEvidenceFixture =
+        let failures = ResizeArray<string>()
+
+        let checkObject context (allowed: Set<string>) (element: JsonElement) =
+            if element.ValueKind <> JsonValueKind.Object then
+                failures.Add(sprintf "%s: expected an object." context)
+            else
+                let names = element.EnumerateObject() |> Seq.map (fun property -> property.Name) |> Set.ofSeq
+                for unknown in Set.difference names allowed do
+                    failures.Add(sprintf "%s: unknown property '%s'." context unknown)
+                for missing in Set.difference allowed names do
+                    failures.Add(sprintf "%s: missing property '%s'." context missing)
+
+        let readString (context: string) (property: string) (element: JsonElement) : string option =
+            match element.TryGetProperty property with
+            | true, value when value.ValueKind = JsonValueKind.String ->
+                match value.GetString() with
+                | null ->
+                    failures.Add(sprintf "%s: '%s' must be a non-null string." context property)
+                    None
+                | text -> Some text
+            | _ ->
+                failures.Add(sprintf "%s: '%s' must be a string." context property)
+                None
+
+        let parsed =
+            try
+                Some(JsonDocument.Parse json)
+            with :? JsonException as exceptionValue ->
+                failures.Add(sprintf "source-evidence: invalid JSON: %s" exceptionValue.Message)
+                None
+
+        match parsed with
+        | None -> raise (FixtureFormatException(List.ofSeq failures))
+        | Some document ->
+            use document = document
+            let root = document.RootElement
+            checkObject
+                "source-evidence"
+                (Set.ofList [ "schemaVersion"; "fixture"; "description"; "availability" ])
+                root
+
+            if root.ValueKind <> JsonValueKind.Object then
+                raise (FixtureFormatException(List.ofSeq failures))
+
+            match root.TryGetProperty "schemaVersion" with
+            | true, value when value.ValueKind = JsonValueKind.Number ->
+                match value.TryGetInt32() with
+                | true, 1 -> ()
+                | _ -> failures.Add "source-evidence: schemaVersion must be 1."
+            | _ -> failures.Add "source-evidence: schemaVersion must be 1."
+
+            match readString "source-evidence" "fixture" root with
+            | Some "cm1-source-evidence" -> ()
+            | Some _ -> failures.Add "source-evidence: fixture must be 'cm1-source-evidence'."
+            | None -> ()
+
+            let description = readString "source-evidence" "description" root |> Option.defaultValue ""
+            let availability = ResizeArray<SourceEvidenceAvailability>()
+            match root.TryGetProperty "availability" with
+            | true, entries when entries.ValueKind = JsonValueKind.Array ->
+                entries.EnumerateArray()
+                |> Seq.iteri (fun index entry ->
+                    let context = sprintf "source-evidence.availability[%d]" index
+                    checkObject context (Set.ofList [ "source"; "evidence" ]) entry
+                    match readString context "source" entry, readString context "evidence" entry with
+                    | Some source, Some evidence ->
+                        try
+                            availability.Add
+                                { Source = SourceId.create source
+                                  Evidence = EvidenceId.create evidence }
+                        with :? ArgumentException as exceptionValue ->
+                            failures.Add(sprintf "%s: %s" context exceptionValue.Message)
+                    | _ -> ())
+            | _ -> failures.Add "source-evidence: availability must be an array."
+
+            availability
+            |> Seq.groupBy (fun entry -> entry.Source, entry.Evidence)
+            |> Seq.filter (fun (_, entries) -> Seq.length entries > 1)
+            |> Seq.map fst
+            |> Seq.sortBy (fun (source, evidence) -> SourceId.value source, EvidenceId.value evidence)
+            |> Seq.iter (fun (source, evidence) ->
+                failures.Add(
+                    sprintf
+                        "source-evidence: duplicate availability '%s|%s'."
+                        (SourceId.value source)
+                        (EvidenceId.value evidence)))
+
+            let sourceIds = catalog.Sources |> List.map (fun source -> source.Source) |> Set.ofList
+            let evidenceById = catalog.Evidence |> List.map (fun evidence -> evidence.Evidence, evidence) |> Map.ofList
+            let packagesById = catalog.Packages |> List.map (fun package -> package.Package, package) |> Map.ofList
+            for entry in availability do
+                if not (Set.contains entry.Source sourceIds) then
+                    failures.Add(sprintf "source-evidence: unknown source '%s'." (SourceId.value entry.Source))
+                match Map.tryFind entry.Evidence evidenceById with
+                | None ->
+                    failures.Add(sprintf "source-evidence: unknown evidence '%s'." (EvidenceId.value entry.Evidence))
+                | Some evidence ->
+                    let sourceCarriesSubject =
+                        catalog.Advertisements
+                        |> List.exists (fun advertisement ->
+                            advertisement.Source = entry.Source
+                            && (match Map.tryFind advertisement.Package packagesById with
+                                | Some package -> package.Artifact = evidence.SubjectArtifact
+                                | None -> false))
+                    if not sourceCarriesSubject then
+                        failures.Add(
+                            sprintf
+                                "source-evidence: source '%s' does not advertise a package carrying '%s' for '%s'."
+                                (SourceId.value entry.Source)
+                                (ArtifactId.value evidence.SubjectArtifact)
+                                (EvidenceId.value entry.Evidence))
+
+            if failures.Count > 0 then
+                raise (FixtureFormatException(List.ofSeq failures))
+
+            { Description = description
+              Availability = List.ofSeq availability }
+
 type FakeComponentSource =
     private
         { Fixture: CatalogFixture
+          EvidenceAvailability: SourceEvidenceAvailability list
           Source: SourceEntry
           Advertisements: AdvertisementEntry list
           Available: bool }
@@ -170,13 +307,14 @@ module FakeComponentSource =
     let private advertisements (fixture: CatalogFixture) source =
         fixture.Advertisements |> List.filter (fun candidate -> candidate.Source = source)
 
-    let create (fixture: CatalogFixture) source : FakeComponentSource =
+    let create (fixture: CatalogFixture) (sourceEvidence: SourceEvidenceFixture) source : FakeComponentSource =
         { Fixture = fixture
+          EvidenceAvailability = sourceEvidence.Availability
           Source = sourceEntry fixture source
           Advertisements = advertisements fixture source
           Available = true }
 
-    let createWithAdvertisementOrder (fixture: CatalogFixture) source order : FakeComponentSource =
+    let createWithAdvertisementOrder (fixture: CatalogFixture) (sourceEvidence: SourceEvidenceFixture) source order : FakeComponentSource =
         let declared = advertisements fixture source
         let byPackage = declared |> List.map (fun item -> item.Package, item) |> Map.ofList
         let distinctOrder = order |> List.distinct
@@ -187,6 +325,7 @@ module FakeComponentSource =
                 "order"
                 (sprintf "Advertisement enumeration for '%s' must name every advertised package exactly once." (SourceId.value source))
         { Fixture = fixture
+          EvidenceAvailability = sourceEvidence.Availability
           Source = sourceEntry fixture source
           Advertisements = order |> List.map (fun package -> Map.find package byPackage)
           Available = true }
@@ -206,7 +345,12 @@ module FakeComponentSource =
                       |> List.find (fun candidate -> candidate.Package = advertisement.Package)
                   let evidence =
                       source.Fixture.Evidence
-                      |> List.filter (fun candidate -> candidate.SubjectArtifact = package.Artifact)
+                      |> List.filter (fun candidate ->
+                          candidate.SubjectArtifact = package.Artifact
+                          && (source.EvidenceAvailability
+                              |> List.exists (fun availability ->
+                                  availability.Source = source.Source.Source
+                                  && availability.Evidence = candidate.Evidence)))
                       |> List.map (fun candidate -> candidate.Evidence)
                       |> List.sortBy EvidenceId.value
                   let storefront =
@@ -272,7 +416,12 @@ module FakeComponentSource =
                         |> List.sortBy (fun item -> DefinitionId.value item.Definition)
                     let evidence =
                         source.Fixture.Evidence
-                        |> List.filter (fun item -> item.SubjectArtifact = artifact.Artifact)
+                        |> List.filter (fun item ->
+                            item.SubjectArtifact = artifact.Artifact
+                            && (source.EvidenceAvailability
+                                |> List.exists (fun availability ->
+                                    availability.Source = source.Source.Source
+                                    && availability.Evidence = item.Evidence)))
                         |> List.sortBy (fun item -> EvidenceId.value item.Evidence)
                         |> List.map (fun item -> { SuppliedBy = source.Source.Source; Evidence = item })
                     let decisions =

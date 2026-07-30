@@ -115,6 +115,20 @@
       "alternatives": ["pkg.fabrikam.cooling"]
     },
     {
+      "source": "src.contoso-mirror",
+      "package": "pkg.contoso.cooling",
+      "displayName": "Contoso Cooling",
+      "description": "Deterministic fake cooling component used by the CM0 harness.",
+      "imagery": "img.cooling-box",
+      "categories": ["cooling", "hardware"],
+      "version": "1.4.0",
+      "compatibility": "fake-platform-1",
+      "evidenceStatus": "accepted",
+      "lifecycleState": "released",
+      "dependencySummary": ["brontide.fake.telemetry-sink 2.0"],
+      "alternatives": ["pkg.fabrikam.cooling"]
+    },
+    {
       "source": "src.bazaar",
       "package": "pkg.fabrikam.cooling",
       "displayName": "Fabrikam Cooling",

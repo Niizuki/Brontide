@@ -14,6 +14,12 @@ public enum LifecycleRole
 
 public sealed record DefinitionConstraint(string Name, string Value);
 
+public sealed record SourceEvidenceAvailability(SourceId Source, EvidenceId Evidence);
+
+public sealed record SourceEvidenceFixture(
+    string Description,
+    IReadOnlyList<SourceEvidenceAvailability> Availability);
+
 public sealed record DiscoveryQuery(
     DiscoveryQueryId Query,
     ContractId Contract,
@@ -99,11 +105,14 @@ public sealed record AcquisitionResult
     {
         Staged = staged;
         Failure = failure;
+        Effects = Cm1EffectObservation.None;
     }
 
     public StagedArtifact? Staged { get; }
 
     public AcquisitionFailure? Failure { get; }
+
+    public Cm1EffectObservation Effects { get; }
 
     public bool IsSuccess => Staged is not null;
 
@@ -144,17 +153,24 @@ public sealed class FakeEvidencePolicy
 public sealed class FakeComponentSource
 {
     private readonly CatalogFixture _fixture;
+    private readonly ReadOnlyCollection<SourceEvidenceAvailability> _evidenceAvailability;
     private readonly SourceEntry _source;
     private readonly ReadOnlyCollection<AdvertisementEntry> _advertisements;
     private bool _available = true;
 
     public FakeComponentSource(
         CatalogFixture fixture,
+        SourceEvidenceFixture sourceEvidence,
         SourceId source,
         IReadOnlyList<PackageId>? advertisementEnumeration = null)
     {
         ArgumentNullException.ThrowIfNull(fixture);
+        ArgumentNullException.ThrowIfNull(sourceEvidence);
         _fixture = SnapshotFixture(fixture);
+        _evidenceAvailability = Array.AsReadOnly(
+            sourceEvidence.Availability
+                .Select(availability => availability with { })
+                .ToArray());
         _source = _fixture.Sources.SingleOrDefault(candidate => candidate.Source == source)
             ?? throw new ArgumentException($"Fixture has no source '{source}'.", nameof(source));
 
@@ -197,7 +213,12 @@ public sealed class FakeComponentSource
         {
             var package = _fixture.Packages.Single(candidate => candidate.Package == advertisement.Package);
             var evidence = _fixture.Evidence
-                .Where(candidate => candidate.SubjectArtifact == package.Artifact)
+                .Where(candidate =>
+                    candidate.SubjectArtifact == package.Artifact
+                    && _evidenceAvailability.Any(
+                        availability =>
+                            availability.Source == Identity
+                            && availability.Evidence == candidate.Evidence))
                 .Select(candidate => candidate.Evidence)
                 .OrderBy(candidate => candidate.Value, StringComparer.Ordinal)
                 .ToArray();
@@ -270,7 +291,12 @@ public sealed class FakeComponentSource
             .OrderBy(candidate => candidate.Definition.Value, StringComparer.Ordinal)
             .ToArray();
         var evidence = _fixture.Evidence
-            .Where(candidate => candidate.SubjectArtifact == artifact.Artifact)
+            .Where(candidate =>
+                candidate.SubjectArtifact == artifact.Artifact
+                && _evidenceAvailability.Any(
+                    availability =>
+                        availability.Source == Identity
+                        && availability.Evidence == candidate.Evidence))
             .OrderBy(candidate => candidate.Evidence.Value, StringComparer.Ordinal)
             .Select(candidate => new AttributedEvidence(Identity, candidate))
             .ToArray();
@@ -338,6 +364,7 @@ public static class FakeDiscovery
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(sources);
 
+        var querySnapshot = SnapshotQuery(query);
         var sourceSnapshot = sources.ToArray();
         var consulted = sourceSnapshot
             .Where(source => source.IsAvailable)
@@ -345,16 +372,25 @@ public static class FakeDiscovery
             .OrderBy(source => source.Value, StringComparer.Ordinal)
             .ToArray();
         var candidates = sourceSnapshot
-            .SelectMany(source => source.Discover(query))
+            .SelectMany(source => source.Discover(querySnapshot))
             .OrderBy(candidate => candidate.Source.Value, StringComparer.Ordinal)
             .ThenBy(candidate => candidate.Package.Value, StringComparer.Ordinal)
             .ThenBy(candidate => candidate.Definition.Value, StringComparer.Ordinal)
             .ToArray();
 
         return new DiscoveryOutcome(
-            query,
+            querySnapshot,
             Array.AsReadOnly(consulted),
             Array.AsReadOnly(candidates),
             Cm1EffectObservation.None);
     }
+
+    private static DiscoveryQuery SnapshotQuery(DiscoveryQuery query) =>
+        query with
+        {
+            DefinitionConstraints = Array.AsReadOnly(
+                query.DefinitionConstraints.Select(constraint => constraint with { }).ToArray()),
+            PreferredProviders = Array.AsReadOnly(query.PreferredProviders.ToArray()),
+            TopologyRequirements = Array.AsReadOnly(query.TopologyRequirements.ToArray()),
+        };
 }

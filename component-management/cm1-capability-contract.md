@@ -15,9 +15,16 @@ observations only; each stack owns its discovery, acquisition, evidence-policy, 
 ### C1 — portable discovery query
 
 A query names one canonical contract and exact contract version. Any number of fake sources may be
-consulted, including zero. Every result records the query, source endpoint, publisher, package,
-Component definition, provided contract and version, artifact identity, available evidence
+consulted, including zero. Unavailable sources are omitted from `ConsultedSources` and return no
+candidates. Every result records the query, source endpoint, publisher, package, Component
+definition, provided contract and version, artifact identity, explicitly source-available evidence
 identities, and optional source-neutral storefront projection.
+
+Target environment, lifecycle role, requester and requester publisher, Definition Constraints,
+Preferred Providers, an occupied binding, containing Region and Port, and topology requirements are
+carried unchanged for CM2 explanation and resolution. CM1 assigns them no filtering, ranking,
+selection, compatibility, trust, or authority semantics. Contract and exact provided-contract
+version are CM1's only candidate filters.
 
 Evidence: native tests cover zero, one, and several sources, duplicate claims, and a source serving
 unrelated publishers.
@@ -32,8 +39,8 @@ are ordered by source endpoint, package, and Component definition identity. Mirr
 remain distinct attributable candidates; source endpoint and publisher are never substituted for
 one another.
 
-Evidence: native tests permute source and advertisement order and compare complete candidate
-records.
+Evidence: native tests exhaust every permutation of the three source snapshots and every
+per-source advertisement permutation in the retained fixture, comparing complete outcomes.
 
 Property: equal source snapshots and queries produce equal ordered results under every enumeration
 permutation.
@@ -49,6 +56,10 @@ Evidence: native tests cover success and every declared refusal.
 
 Property: a successful staged artifact's recomputed SHA-256 equals its recorded digest.
 
+The fake policy decides each declared evidence item independently: an `accepted` claim produces an
+accepted fake-policy decision and a `rejected` claim produces a rejected decision, with the policy,
+issuer, source, and reason retained. This mapping is test machinery, not a universal trust policy.
+
 ### C4 — source disappearance does not mutate staging
 
 After acquisition, removing or disabling the source cannot change already staged content,
@@ -63,9 +74,10 @@ Property: staged records depend only on the acquisition-time source snapshot.
 ### C5 — evidence remains attributable and contestable
 
 Each acquired evidence item retains its evidence identity, issuer, kind, verdict, detail, subject
-artifact, and supplying source. Fake local policy records an attributable decision and reason for
-each item independently. Contradictory evidence is preserved; it is never collapsed into a
-`trusted` Boolean.
+artifact, and supplying source. Source availability is declared separately in the neutral
+`cm1-source-evidence` fixture; advertising a package does not imply supplying every claim about its
+artifact. Fake local policy records an attributable decision and reason for each item independently.
+Contradictory evidence is preserved; it is never collapsed into a `trusted` Boolean.
 
 Evidence: native tests acquire the deliberately contested Fabrikam artifact and observe both
 opposed review items and two policy decisions.
@@ -77,8 +89,8 @@ Property: staged evidence and decisions have a one-to-one identity-preserving co
 Local and remote sources expose the same storefront record shape. Discovery carries the projection
 when the source advertises one and does not invent it when none exists.
 
-Evidence: native tests compare local and remote projections through the same public discovery
-surface.
+Evidence: native tests compare the same Contoso projection from a local source and a remote mirror
+through the same public discovery surface.
 
 Property: source kind does not change the projection fields or their meaning.
 
@@ -88,8 +100,8 @@ Discovery and acquisition observations explicitly report zero selection, resolut
 activation, Actor-establishment, and Capability-grant effects. No API in CM1 accepts an activation
 host or authority service.
 
-Evidence: every successful native discovery and acquisition test asserts the zero-effect
-observation.
+Evidence: native tests assert the zero-effect observation for discovery, successful acquisition,
+and every acquisition refusal.
 
 Property: every CM1 result has the all-false lifecycle and authority effect profile.
 
@@ -102,5 +114,5 @@ The CM1 fake source reports exactly one of:
 - `artifact-unavailable`;
 - `artifact-integrity-failed`.
 
-Failures are values in both stacks. They carry source and package attribution and never contain a
-partial staged artifact.
+Failures are values in both stacks. They carry source and package attribution, expose the same
+all-false effect observation as success, and never contain a partial staged artifact.

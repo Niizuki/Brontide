@@ -11,6 +11,9 @@
   structured fail-closed refusal categories, source disappearance, and an explicit observation that
   CM1 performs no selection, resolution, preparation, activation, Actor establishment, or Capability
   grant.
+- A separate neutral source/evidence-availability fixture, exhaustive enumeration-permutation
+  properties, a falsifiable local/remote storefront comparison, and the completed CM1
+  contract-completeness review.
 
 This remains a fake Architecture 0.8 experiment outside Brontide Base. It is not a marketplace,
 package manager, loader, security product, conformance claim, or component-version change.

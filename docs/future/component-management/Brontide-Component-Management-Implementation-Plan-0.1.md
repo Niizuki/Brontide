@@ -149,6 +149,13 @@ effect observation.
 The evidence is local/native in each stack. CM1 introduces no cross-stack protocol and therefore
 makes no interoperability claim.
 
+The required phase-boundary
+[`contract-completeness review`](../../../component-management/cm1-contract-completeness-review.md)
+is complete. It found and closed five classes of silence: undeclared source/evidence provenance,
+unstated treatment of the carried CM2 query context, non-exhaustive permutation evidence, a
+non-falsifiable local/remote storefront property, and failure results without the C7 effect
+observation. The review is an absence audit, not a conformance or independent-review claim.
+
 ### CM2 — recursive generational resolution
 
 Resolve a pending selection into a complete immutable generation:
@@ -375,3 +382,5 @@ than in delivery prose.
 - **2026-07-30 — CM1 delivery:** C1-C7 discovery, immutable staged acquisition, attributable
   evidence-policy decisions, source disappearance, deterministic ordering, structured refusals, and
   the zero-effect boundary are implemented independently in both stacks. CM2–CM6 remain future work.
+- **2026-07-30 — CM1 completeness:** the phase-boundary absence audit is complete with every finding
+  corrected; no unresolved CM1 contract-silence finding remains.

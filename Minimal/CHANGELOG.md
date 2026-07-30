@@ -12,6 +12,9 @@
   decisions; acquisition returns a `Staged`/`Refused` union with four exhaustive refusal cases.
   Source removal is a pure transition and every CM1 result reports no selection, resolution,
   preparation, activation, Actor establishment, or Capability grant.
+- A separate neutral source/evidence-availability fixture, exhaustive enumeration-permutation
+  properties, a falsifiable local/remote storefront comparison, and the completed CM1
+  contract-completeness review.
 
 This remains a fake Architecture 0.8 experiment outside Brontide Minimal Stack Base. It is not a
 marketplace, package manager, loader, security product, conformance claim, or component-version

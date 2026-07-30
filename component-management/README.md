@@ -15,6 +15,8 @@ CM1's observable behaviour is defined by the
 [discovery, acquisition, and evidence capability contract](./cm1-capability-contract.md). That
 contract stops at immutable staging and keeps selection, resolution, preparation, activation, Actor
 establishment, and authority outside the phase.
+Its completed phase-boundary absence audit is the
+[CM1 contract-completeness review](./cm1-contract-completeness-review.md).
 
 ## Format
 
@@ -36,6 +38,13 @@ is two unrelated identities, and native representations must keep them type-dist
 `evidence`, `storefront`, and `expectations`. Artifact digests are the real SHA-256 of the
 `content` string's UTF-8 bytes, uppercase hex. The `storefront` entries are the source-neutral
 presentation projection required by CM0: a future UI seam, not a UI.
+
+### `cm1-source-evidence` sections
+
+`availability` contains explicit source/evidence pairs. Each pair must name a source and evidence
+item from `cm0-catalog`, and the source must advertise a package carrying the evidence subject's
+artifact. Advertising a package does not implicitly supply every claim about it. The file is
+separate so CM1 adds provenance without changing the retained CM0 catalog contract.
 
 ### `cm0-mice-topology` sections
 

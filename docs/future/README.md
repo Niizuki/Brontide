@@ -134,6 +134,9 @@ acquisition, contested evidence with attributable fake-policy decisions, source 
 structured fail-closed acquisition categories, and an explicit zero-effect boundary. Its C1-C7
 behaviour and phase-wide properties live in the data-only
 [`CM1 capability contract`](../../component-management/cm1-capability-contract.md).
+Its required phase-boundary
+[`contract-completeness review`](../../component-management/cm1-contract-completeness-review.md)
+is complete with every finding corrected.
 
 CM2 — recursive generational resolution — is the next implementation phase. CM1 does not select a
 candidate, construct a Proposed Stack, resolve a generation, prepare or activate a Component,
