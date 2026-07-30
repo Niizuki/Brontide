@@ -27,6 +27,15 @@ preparation, activation, Actor, authority, or active-generation effects. Its com
 absence audit is the
 [CM2 contract-completeness review](./cm2-contract-completeness-review.md).
 
+CM3's observable behavior is defined by the
+[cyclic activation-group capability contract](./cm3-capability-contract.md). CM3 partitions a
+complete fake activation graph into deterministic maximal strongly connected groups, validates
+contract/version compatibility, bounded lifecycle protocols, Ready reachability, and declared
+Region crossings, and emits an effect-free closed-gate stage plan. It does not prepare or establish
+Components, execute lifecycle Operations, report runtime Ready, Release ordinary interaction, or
+mutate an active generation. Its completed phase-boundary absence audit is the
+[CM3 contract-completeness review](./cm3-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -60,6 +69,13 @@ separate so CM1 adds provenance without changing the retained CM0 catalog contra
 `vectors` is the shared data-only inventory of CM2 capabilities and expected outcome categories.
 Each native suite constructs equivalent stack-owned inputs and computes its own observations; the
 fixture contains no resolver algorithm, ranking function, lifecycle host, or authority service.
+
+### `cm3-activation-group-vectors` sections
+
+`vectors` is the shared data-only inventory of CM3 group-analysis capabilities and expected
+outcome categories. Each native suite constructs equivalent stack-owned activation graphs and
+computes its own groups, stage plans, decisions, and structured failures; the fixture contains no
+graph algorithm, activation host, lifecycle executor, or runtime effect.
 
 ### `cm0-mice-topology` sections
 

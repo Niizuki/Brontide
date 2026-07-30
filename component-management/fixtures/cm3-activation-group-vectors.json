@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cm3-activation-group-vectors",
+  "description": "Data-only CM3 observable inventory. Each stack constructs and plans the graph natively.",
+  "vectors": [
+    { "id": "cm3-01", "capability": "C1", "observation": "planning snapshots input and reports no effects", "outcome": "planned" },
+    { "id": "cm3-02", "capability": "C2", "observation": "ordinary two-member cycle forms one maximal group", "outcome": "planned" },
+    { "id": "cm3-03", "capability": "C2", "observation": "acyclic groups are dependency-first and permutation invariant", "outcome": "planned" },
+    { "id": "cm3-04", "capability": "C2", "observation": "duplicate member or edge identity fails closed", "outcome": "contradictory-identity" },
+    { "id": "cm3-05", "capability": "C3", "observation": "ordinary interaction cycle has no member startup order", "outcome": "planned" },
+    { "id": "cm3-06", "capability": "C3", "observation": "cyclic descriptor expansion is not finite closure", "outcome": "recursive-descriptor-expansion" },
+    { "id": "cm3-07", "capability": "C4", "observation": "target provides the exact requested contract version", "outcome": "planned" },
+    { "id": "cm3-08", "capability": "C4", "observation": "version conflict identifies the edge and target", "outcome": "contract-version-conflict" },
+    { "id": "cm3-09", "capability": "C5", "observation": "complete bounded cyclic relational protocol is retained", "outcome": "planned" },
+    { "id": "cm3-10", "capability": "C5", "observation": "incomplete or absent cyclic relational protocol fails closed", "outcome": "lifecycle-protocol-incomplete" },
+    { "id": "cm3-11", "capability": "C6", "observation": "missing Ready input is attributable", "outcome": "ready-input-unavailable" },
+    { "id": "cm3-12", "capability": "C6", "observation": "circular Ready waits are rejected independently of ordinary cycles", "outcome": "circular-ready-wait" },
+    { "id": "cm3-13", "capability": "C7", "observation": "ordinary pre-Release traffic never opens the gate", "outcome": "ordinary-pre-release-traffic" },
+    { "id": "cm3-14", "capability": "C7", "observation": "stage plan ends Ready with Release pending", "outcome": "planned" },
+    { "id": "cm3-15", "capability": "C8", "observation": "declared Port imports and exports contain a cross-Region cycle", "outcome": "planned" },
+    { "id": "cm3-16", "capability": "C8", "observation": "widenable undeclared crossing proposes a wider parent", "outcome": "wider-parent-generation-required" },
+    { "id": "cm3-17", "capability": "C8", "observation": "non-widenable undeclared crossing is refused", "outcome": "region-crossing-required" },
+    { "id": "cm3-18", "capability": "C9", "observation": "failure exposes no partial plan and all effects remain false", "outcome": "circular-ready-wait" }
+  ]
+}

@@ -137,6 +137,54 @@ public readonly record struct MediationId(string Value)
     public override string ToString() => Value;
 }
 
+public readonly record struct ActivationGroupRequestId(string Value)
+{
+    public static ActivationGroupRequestId Create(string value) => new(IdentifierSyntax.Require(value, nameof(ActivationGroupRequestId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct ActivationGroupId(string Value)
+{
+    public static ActivationGroupId Create(string value) => new(IdentifierSyntax.Require(value, nameof(ActivationGroupId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct ActivationEdgeId(string Value)
+{
+    public static ActivationEdgeId Create(string value) => new(IdentifierSyntax.Require(value, nameof(ActivationEdgeId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct LifecycleProtocolId(string Value)
+{
+    public static LifecycleProtocolId Create(string value) => new(IdentifierSyntax.Require(value, nameof(LifecycleProtocolId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct LifecycleOperationId(string Value)
+{
+    public static LifecycleOperationId Create(string value) => new(IdentifierSyntax.Require(value, nameof(LifecycleOperationId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct LifecycleInputId(string Value)
+{
+    public static LifecycleInputId Create(string value) => new(IdentifierSyntax.Require(value, nameof(LifecycleInputId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct CapabilityId(string Value)
+{
+    public static CapabilityId Create(string value) => new(IdentifierSyntax.Require(value, nameof(CapabilityId)));
+    public override string ToString() => Value;
+}
+
+public readonly record struct ShapeId(string Value)
+{
+    public static ShapeId Create(string value) => new(IdentifierSyntax.Require(value, nameof(ShapeId)));
+    public override string ToString() => Value;
+}
+
 public readonly record struct GenerationId(string Value)
 {
     public static GenerationId Create(string value) => new(IdentifierSyntax.Require(value, nameof(GenerationId)));
