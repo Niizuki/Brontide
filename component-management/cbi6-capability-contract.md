@@ -112,9 +112,9 @@ behavior unchanged.
 ## C10 — evidence remains bounded
 
 CBI6 proves fail-closed admission of a set of participants and grants gating one singleton,
-protocol-free activation. It does not revalidate or withdraw a set after activation, exercise any
-granted Operation, map grants to CM4 binding exercises or portable Operations, order participants
-by priority, model participants joining or leaving an active binding, or provide production
-identity, policy, distribution, or security.
+protocol-free activation. CBI7 separately covers revalidation and withdrawal of an admitted set.
+CBI6 itself does not exercise any granted Operation, map grants to CM4 binding exercises or portable
+Operations, order participants by priority, model participants joining or leaving an active binding,
+or provide production identity, policy, distribution, or security.
 
 Property: every CBI6 status statement preserves these limits.

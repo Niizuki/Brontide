@@ -46,7 +46,8 @@ from conformance review.
 10. **Withdrawal was left undefined for a set.** Disposition: retained as a stated limit. CBI5
     revalidates one relationship and grant behind one member; what a set should do when one
     participant of several loses authority — retire the shared member, or narrow the set — is a
-    decision this slice does not make and does not approximate.
+    decision this slice does not make and does not approximate. Closed on 2026-07-30 by
+    [CBI7](./cbi7-capability-contract.md), which retires the shared member and refuses narrowing.
 11. **Two implementations can still agree where this contract is silent.** Disposition: retained as
     a structural limitation, and sharper here than in earlier slices because both realizations were
     written by one reader. The vectors force the ordering, evaluation-count, identity-distinctness,

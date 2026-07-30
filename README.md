@@ -104,7 +104,12 @@ CBI6 widens admission from one participant holding one grant to a set of partici
 several. A CM5 request names one participant, so the questions only a set can raise are answered by
 the composition root and answered fail closed: identities stay distinct across the whole set, two
 participants may not share one receiving-domain Actor, and a set that is not admitted exactly grants
-nothing and reaches no provider. It admits a set; it does not revalidate or withdraw one.
+nothing and reaches no provider.
+CBI7 revalidates that set after activation. When one participant of several loses authority the
+shared member is retired rather than the set narrowed: nothing in an admitted set says which
+participants its ordinary interaction depends on, so continuing would decide that invisibly. The
+result names which participants did not renew, and retirement closes the local gate before peer
+cleanup.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

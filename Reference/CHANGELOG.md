@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — CBI7 participant-set withdrawal
+
+### Added
+
+- Reference Studio revalidation of every participant of an admitted CBI6 set from fresh explicit
+  CM5 requests, keeping the shared member released only when the identical set renews identically.
+- Fail-closed retirement for membership change, identity drift, and any participant that does not
+  renew, with the unrenewed participants named in the result.
+- Shared withdrawal vectors pinning outcome kinds, codes, evaluated counts, and unrenewed counts,
+  plus a phase-boundary completeness review.
+
+CBI7 answers the question CBI6 deferred: partial loss retires the shared member rather than
+narrowing the set, because nothing in an admitted set says which participants its ordinary
+interaction depends on. It does not replace a participant in place, order participants, or
+propagate revocation to another domain.
+
 ## Unreleased — CBI6 participant-set admission
 
 ### Added

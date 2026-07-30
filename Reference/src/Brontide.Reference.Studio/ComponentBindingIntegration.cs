@@ -898,6 +898,199 @@ public static class ComponentParticipantAdmission
             new(kind, code, reason));
 }
 
+public enum ComponentParticipantRevalidationKind
+{
+    Continued,
+    Withdrawn,
+    RetirementFailed,
+    ActivationUnavailable,
+}
+
+public sealed record ComponentParticipantRevalidationResult(
+    ComponentParticipantRevalidationKind Kind,
+    IReadOnlyList<ComponentParticipantObservation> CurrentAuthority,
+    IReadOnlyList<Cm.ActorId> Unrenewed,
+    Portable.PortableReplacementRecord? Replacement,
+    string Code,
+    string Reason)
+{
+    public bool IsActive => Kind == ComponentParticipantRevalidationKind.Continued;
+}
+
+/// <summary>
+/// Revalidates the complete CBI6 participant set behind one released member and retires it when the
+/// set does not renew identically.
+/// </summary>
+/// <remarks>
+/// Retiring on partial loss rather than dropping the participant that lost authority is deliberate:
+/// nothing in the admitted set says which participants the member's ordinary interaction depends
+/// on, so continuing would decide that invisibly.
+/// </remarks>
+public static class ComponentParticipantRevalidation
+{
+    public static async ValueTask<ComponentParticipantRevalidationResult> RevalidateAsync(
+        ComponentParticipantAdmissionResult active,
+        IReadOnlyList<Cm.AuthorityAdmissionRequest> requests,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(active);
+        ArgumentNullException.ThrowIfNull(requests);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (!active.IsActive || active.Lifecycle?.Member is not { } member)
+        {
+            return new(
+                ComponentParticipantRevalidationKind.ActivationUnavailable,
+                Array.Empty<ComponentParticipantObservation>(),
+                Array.Empty<Cm.ActorId>(),
+                null,
+                "active-authority-unavailable",
+                "CBI7 requires one released Active CBI6 result with a completely admitted participant set.");
+        }
+
+        var prior = active.Admissions;
+        var ordered = requests
+            .OrderBy(item => item.Participant.Value, StringComparer.Ordinal)
+            .ToArray();
+        if (!ordered.Select(item => item.Participant)
+            .SequenceEqual(prior.Select(item => item.Participant)))
+        {
+            return await RetireAsync(
+                member,
+                retirementReason,
+                "participant-set-changed",
+                "The fresh requests do not name the same participants the admitted set named.",
+                Array.Empty<ComponentParticipantObservation>(),
+                Array.Empty<Cm.ActorId>(),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        if (ordered.Where((item, index) => !MatchesPrior(prior[index], item)).Any())
+        {
+            return await RetireAsync(
+                member,
+                retirementReason,
+                "authority-revalidation-mismatch",
+                "A fresh request does not identify the same relationship and grants that admitted this member.",
+                Array.Empty<ComponentParticipantObservation>(),
+                Array.Empty<Cm.ActorId>(),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        var evaluator = new Cm.FakeAuthorityAdmissionEvaluator();
+        var current = ordered
+            .Select(item => new ComponentParticipantObservation(item.Participant, evaluator.Evaluate(item)))
+            .ToArray();
+        var unrenewed = current
+            .Where((item, index) => !IsSameAdmission(prior[index].Authority, item.Authority))
+            .Select(item => item.Participant)
+            .ToArray();
+        if (unrenewed.Length > 0)
+        {
+            return await RetireAsync(
+                member,
+                retirementReason,
+                "authority-not-renewed",
+                $"The receiving domain no longer admits the identical authority for {string.Join(", ", unrenewed.Select(item => item.Value))}.",
+                current,
+                unrenewed,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        return new(
+            ComponentParticipantRevalidationKind.Continued,
+            current,
+            Array.Empty<Cm.ActorId>(),
+            null,
+            "authority-current",
+            "Every participant still holds the identical receiving-domain relationship and grants.");
+    }
+
+    private static async ValueTask<ComponentParticipantRevalidationResult> RetireAsync(
+        Portable.PortableCompositionMember member,
+        string retirementReason,
+        string code,
+        string reason,
+        IReadOnlyList<ComponentParticipantObservation> current,
+        IReadOnlyList<Cm.ActorId> unrenewed,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var replacement = await member.RetireAsync(retirementReason, cancellationToken)
+                .ConfigureAwait(false);
+            return new(
+                ComponentParticipantRevalidationKind.Withdrawn,
+                current,
+                unrenewed,
+                replacement,
+                code,
+                reason);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception error)
+        {
+            var detail = error is Portable.PortableFaultException fault
+                ? $"{fault.LocalCode}: {fault.Message}"
+                : error.Message;
+            return new(
+                ComponentParticipantRevalidationKind.RetirementFailed,
+                current,
+                unrenewed,
+                null,
+                "authority-retirement-failed",
+                detail);
+        }
+    }
+
+    private static bool MatchesPrior(
+        ComponentParticipantObservation prior,
+        Cm.AuthorityAdmissionRequest request)
+    {
+        var observation = prior.Authority.Observation;
+        if (observation.Relationships.Count != 1 || request.Relationships.Count != 1)
+        {
+            return false;
+        }
+
+        var relationship = observation.Relationships[0];
+        var submitted = request.Relationships[0];
+        return request.Request == observation.Request &&
+            request.Policy.Policy == observation.Policy &&
+            request.Participant == prior.Participant &&
+            submitted.Request == relationship.Request &&
+            submitted.ProposedActor == relationship.ProposedActor &&
+            submitted.Kind == relationship.Kind &&
+            request.Authority.Count == observation.Grants.Count &&
+            observation.Grants.All(grant => request.Authority.Count(authority =>
+                authority.Request == grant.Request &&
+                authority.Relationship == relationship.Request &&
+                authority.Capability == grant.Capability &&
+                authority.Target == grant.Target &&
+                authority.Operation == grant.Operation &&
+                authority.Scope == grant.Scope &&
+                !authority.Unlimited) == 1);
+    }
+
+    private static bool IsSameAdmission(
+        Cm.AuthorityAdmissionOutcome prior,
+        Cm.AuthorityAdmissionOutcome current)
+    {
+        if (current.Kind != Cm.AuthorityAdmissionOutcomeKind.Admitted ||
+            current.Observation.Relationships.Count != 1)
+        {
+            return false;
+        }
+
+        return current.Observation.Relationships[0] == prior.Observation.Relationships[0] &&
+            current.Observation.Grants.SequenceEqual(prior.Observation.Grants);
+    }
+}
+
 /// <summary>
 /// Projects one native CBI3 result into the canonical, data-only CBI4 comparison profile.
 /// </summary>

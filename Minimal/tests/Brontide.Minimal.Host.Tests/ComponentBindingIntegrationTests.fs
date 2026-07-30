@@ -386,6 +386,35 @@ type ComponentBindingIntegrationTests() =
         { entry with
             Request = { entry.Request with Authority = authority } }
 
+    let observer = ActorId.create "actor.cooling-observer"
+
+    let revokedRequest (request: AuthorityAdmissionRequest) =
+        { request with
+            Evidence =
+              request.Evidence
+              |> List.map (fun evidence ->
+                  { evidence with State = AdmissionEvidenceState.Revoked }) }
+
+    let expiredRequest (request: AuthorityAdmissionRequest) =
+        { request with
+            EvaluationTime = request.Evidence |> List.map _.ExpiresAt |> List.max }
+
+    let relabelled (request: AuthorityAdmissionRequest) actor =
+        { request with
+            Request = AdmissionRequestId.create (sprintf "admission.set-%s" (ActorId.value actor))
+            Participant = actor
+            Evidence = request.Evidence |> List.map (fun evidence -> { evidence with Subject = actor })
+            Relationships =
+              request.Relationships
+              |> List.map (fun relationship -> { relationship with ProposedActor = actor }) }
+
+    let setRevalidationToken kind =
+        match kind with
+        | ComponentParticipantRevalidationKind.Continued -> "continued"
+        | ComponentParticipantRevalidationKind.Withdrawn -> "withdrawn"
+        | ComponentParticipantRevalidationKind.RetirementFailed -> "retirement-failed"
+        | ComponentParticipantRevalidationKind.ActivationUnavailable -> "activation-unavailable"
+
     let participantFailureToken kind =
         match kind with
         | ComponentParticipantAdmissionFailureKind.ParticipantSetInvalid -> "participant-set-invalid"
@@ -1213,6 +1242,184 @@ type ComponentBindingIntegrationTests() =
                 Assert.That(
                     portableFacts wide |> Map.toList,
                     Is.EqualTo<string * string>(portableFacts narrow |> Map.toList)))
+        }
+
+    [<Test>]
+    member _.``shared CBI7 vectors revalidate or retire the shared member``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi7-participant-withdrawal-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI7 vector identity must be a string"
+                    | value -> value
+                let resolution, selected, occurrence = prepared ()
+                let handler = CoolingHandler()
+                let baselineConversation =
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(
+                            CoolingFixture.contract,
+                            handler,
+                            Realization.FixedDirectCall))
+                    :> IPortableProviderConversation
+                let conversation =
+                    if scenario = "cbi7-08-retirement-failure" then
+                        FailingRetirementConversation(baselineConversation)
+                        :> IPortableProviderConversation
+                    else
+                        baselineConversation
+                let participants = participantSet occurrence supervisorLocalActor
+                let! active =
+                    ComponentParticipantAdmission.activate
+                        resolution
+                        selected
+                        participants
+                        (runtimeRequest (plan [ occurrence ]))
+                        conversation
+                let memberValue = active.Lifecycle.Value.Member.Value
+                let baseline = participants |> List.map _.Request
+                let providerRequest = List.item 0 baseline
+                let supervisorRequest = List.item 1 baseline
+                let fresh =
+                    match scenario with
+                    | "cbi7-01-current" -> baseline
+                    | "cbi7-02-one-revoked" -> [ providerRequest; revokedRequest supervisorRequest ]
+                    | "cbi7-03-all-expired" -> baseline |> List.map expiredRequest
+                    | "cbi7-04-tuple-mismatch" ->
+                        [ providerRequest
+                          { supervisorRequest with
+                              Authority =
+                                [ { List.exactlyOne supervisorRequest.Authority with
+                                      Capability = CapabilityId.create "capability.other" } ] } ]
+                    | "cbi7-05-grant-dropped" ->
+                        [ { providerRequest with
+                              Authority = [ List.head providerRequest.Authority ] }
+                          supervisorRequest ]
+                    | "cbi7-06-participant-removed" -> [ providerRequest ]
+                    | "cbi7-07-participant-added" ->
+                        baseline @ [ relabelled supervisorRequest observer ]
+                    | "cbi7-08-retirement-failure" -> baseline |> List.map revokedRequest
+                    | other -> invalidArg (nameof scenario) (sprintf "unknown CBI7 vector %s" other)
+                let! result =
+                    ComponentParticipantRevalidation.revalidate
+                        active
+                        fresh
+                        (sprintf "set authority revalidation %s" scenario)
+                let continued = result.Kind = ComponentParticipantRevalidationKind.Continued
+                let! afterWithdrawal =
+                    if continued then
+                        Task.FromResult None
+                    else
+                        task {
+                            let! attempted =
+                                memberValue.Invoke(
+                                    CoolingFixture.setEnabled,
+                                    CoolingFixture.commandV1,
+                                    CoolingFixture.authorizedCommand "primary" true,
+                                    PortableConstraint.AllOf
+                                        [ PortableConstraint.Atom PortableTruth.Satisfied
+                                          PortableConstraint.Atom PortableTruth.Satisfied ])
+                            return
+                                match attempted with
+                                | Ok interaction -> Some interaction
+                                | Error error ->
+                                    failwithf "Expected a shaped gate refusal, got %A." error
+                        }
+                multiple (fun () ->
+                    Assert.That(
+                        setRevalidationToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.CurrentAuthority.Length,
+                        Is.EqualTo(vector.GetProperty("expectedParticipantsEvaluated").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Unrenewed.Length,
+                        Is.EqualTo(vector.GetProperty("expectedUnrenewed").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        CompositionStage.token memberValue.Stage,
+                        Is.EqualTo(if continued then "released" else "retired"),
+                        scenario)
+                    Assert.That(
+                        result.Replacement.IsSome,
+                        Is.EqualTo(result.Kind = ComponentParticipantRevalidationKind.Withdrawn),
+                        scenario)
+                    Assert.That(
+                        afterWithdrawal |> Option.bind _.Category,
+                        Is.EqualTo(
+                            if continued then
+                                None
+                            else
+                                Some ProtocolCategory.StateViolation),
+                        scenario)
+                    Assert.That(handler.ProviderEffectCount, Is.Zero, scenario))
+        }
+
+    [<Test>]
+    member _.``one participant losing authority never narrows the set``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let participants = participantSet occurrence supervisorLocalActor
+            let! active =
+                ComponentParticipantAdmission.activate
+                    resolution
+                    selected
+                    participants
+                    (runtimeRequest (plan [ occurrence ]))
+                    (directCooling CoolingFixture.contract)
+            let memberValue = active.Lifecycle.Value.Member.Value
+            let baseline = participants |> List.map _.Request
+            let! result =
+                ComponentParticipantRevalidation.revalidate
+                    active
+                    [ List.item 0 baseline; revokedRequest (List.item 1 baseline) ]
+                    "one participant lost authority"
+            let unaffected =
+                result.CurrentAuthority
+                |> List.find (fun observation -> observation.Participant = participant)
+            multiple (fun () ->
+                Assert.That(result.Kind, Is.EqualTo ComponentParticipantRevalidationKind.Withdrawn)
+                Assert.That(result.Unrenewed, Is.EqualTo<ActorId> [ supervisor ])
+                // The unaffected participant is still admitted; that is what makes retirement a choice.
+                Assert.That(
+                    unaffected.Authority.Kind,
+                    Is.EqualTo AuthorityAdmissionOutcomeKind.Admitted)
+                Assert.That(CompositionStage.token memberValue.Stage, Is.EqualTo "retired"))
+        }
+
+    [<Test>]
+    member _.``refused CBI6 set cannot be revalidated as active``() =
+        task {
+            let unavailable =
+                { Admissions = []
+                  Grants = []
+                  Lifecycle = None
+                  Failure = None }
+            let _, _, occurrence = prepared ()
+            let! result =
+                ComponentParticipantRevalidation.revalidate
+                    unavailable
+                    (participantSet occurrence supervisorLocalActor |> List.map _.Request)
+                    "set authority unavailable"
+            multiple (fun () ->
+                Assert.That(
+                    result.Kind,
+                    Is.EqualTo ComponentParticipantRevalidationKind.ActivationUnavailable)
+                Assert.That(result.CurrentAuthority, Is.Empty)
+                Assert.That(result.Unrenewed, Is.Empty)
+                Assert.That(result.Replacement, Is.EqualTo None))
         }
 
     [<Test>]

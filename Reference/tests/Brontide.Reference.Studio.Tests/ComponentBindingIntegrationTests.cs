@@ -38,6 +38,7 @@ public sealed class ComponentBindingIntegrationTests
         LocalActorReferenceId.Create("local.cooling-provider");
     private static readonly LocalActorReferenceId SupervisorLocalActor =
         LocalActorReferenceId.Create("local.cooling-supervisor");
+    private static readonly ActorId Observer = ActorId.Create("actor.cooling-observer");
 
     [Test]
     public void Completed_direct_one_to_one_resolution_enters_portable_preflight()
@@ -667,6 +668,206 @@ public sealed class ComponentBindingIntegrationTests
             Assert.That(PortableFacts(wide), Is.EqualTo(PortableFacts(narrow)));
         });
     }
+
+    [Test]
+    public async Task Shared_cbi7_vectors_revalidate_or_retire_the_shared_member()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi7-participant-withdrawal-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, member, handler) = await SetRevalidationResult(scenario);
+            PortableInteractionResult? afterWithdrawal = null;
+            if (!result.IsActive)
+            {
+                afterWithdrawal = await member.InvokeAsync(
+                    CoolingPortableFixture.SetEnabled,
+                    CoolingPortableFixture.CommandV1,
+                    CoolingPortableFixture.Command("primary", enabled: true),
+                    PortableConstraint.AllOf(
+                        PortableConstraint.Atom(PortableTruth.Satisfied),
+                        PortableConstraint.Atom(PortableTruth.Satisfied)));
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    SetRevalidationToken(result.Kind),
+                    Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                    scenario);
+                Assert.That(
+                    result.CurrentAuthority,
+                    Has.Count.EqualTo(vector.GetProperty("expectedParticipantsEvaluated").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Unrenewed,
+                    Has.Count.EqualTo(vector.GetProperty("expectedUnrenewed").GetInt32()),
+                    scenario);
+                Assert.That(
+                    member.Stage,
+                    Is.EqualTo(
+                        result.IsActive
+                            ? PortableCompositionStage.Released
+                            : PortableCompositionStage.Retired),
+                    scenario);
+                Assert.That(
+                    result.Replacement,
+                    result.Kind == ComponentParticipantRevalidationKind.Withdrawn
+                        ? Is.Not.Null
+                        : Is.Null,
+                    scenario);
+                Assert.That(
+                    afterWithdrawal?.Category,
+                    result.IsActive ? Is.Null : Is.EqualTo(PortableProtocolCategory.StateViolation),
+                    scenario);
+                Assert.That(handler.ProviderEffectCount, Is.Zero, scenario);
+            });
+        }
+    }
+
+    [Test]
+    public async Task One_participant_losing_authority_never_narrows_the_set()
+    {
+        var (result, member, _) = await SetRevalidationResult("cbi7-02-one-revoked");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentParticipantRevalidationKind.Withdrawn));
+            Assert.That(result.Unrenewed, Is.EqualTo(new[] { Supervisor }));
+            Assert.That(
+                result.CurrentAuthority.Single(item => item.Participant == Participant).Authority.Kind,
+                Is.EqualTo(AuthorityAdmissionOutcomeKind.Admitted),
+                "The unaffected participant is still admitted; that is what makes the retirement a choice.");
+            Assert.That(member.Stage, Is.EqualTo(PortableCompositionStage.Retired));
+        });
+    }
+
+    [Test]
+    public async Task Refused_cbi6_set_cannot_be_revalidated_as_active()
+    {
+        var unavailable = new ComponentParticipantAdmissionResult(
+            Array.Empty<ComponentParticipantObservation>(),
+            Array.Empty<LocalCapabilityGrant>(),
+            null,
+            null);
+
+        var result = await ComponentParticipantRevalidation.RevalidateAsync(
+            unavailable,
+            ParticipantSet(SupervisorLocalActor).Select(item => item.Request).ToArray(),
+            "set authority unavailable");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentParticipantRevalidationKind.ActivationUnavailable));
+            Assert.That(result.CurrentAuthority, Is.Empty);
+            Assert.That(result.Unrenewed, Is.Empty);
+            Assert.That(result.Replacement, Is.Null);
+        });
+    }
+
+    private static async Task<(
+        ComponentParticipantRevalidationResult Result,
+        PortableCompositionMember Member,
+        CoolingPortableHandler Handler)>
+        SetRevalidationResult(string scenario)
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var handler = new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry());
+        IPortableProviderConversation conversation = new PortableDirectConversation(
+            new PortableProviderEndpoint(
+                CoolingPortableFixture.Contract,
+                handler,
+                PortableRealization.FixedDirectCall));
+        if (scenario == "cbi7-08-retirement-failure")
+        {
+            conversation = new FailingRetirementConversation(conversation);
+        }
+
+        var participants = ParticipantSet(SupervisorLocalActor);
+        var active = await ComponentParticipantAdmission.ActivateAsync(
+            resolution,
+            selection,
+            participants,
+            RuntimeRequest(Plan(occurrence)),
+            conversation);
+        var baseline = participants.Select(item => item.Request).ToArray();
+        var provider = baseline[0];
+        var supervisor = baseline[1];
+
+        AuthorityAdmissionRequest[] fresh = scenario switch
+        {
+            "cbi7-01-current" => baseline,
+            "cbi7-02-one-revoked" => [provider, Revoked(supervisor)],
+            "cbi7-03-all-expired" => baseline.Select(Expired).ToArray(),
+            "cbi7-04-tuple-mismatch" =>
+            [
+                provider,
+                supervisor with
+                {
+                    Authority =
+                    [
+                        supervisor.Authority.Single() with
+                        {
+                            Capability = CapabilityId.Create("capability.other"),
+                        },
+                    ],
+                },
+            ],
+            "cbi7-05-grant-dropped" => [provider with { Authority = [provider.Authority[0]] }, supervisor],
+            "cbi7-06-participant-removed" => [provider],
+            "cbi7-07-participant-added" => [.. baseline, Relabelled(supervisor, Observer)],
+            "cbi7-08-retirement-failure" => [Revoked(provider), Revoked(supervisor)],
+            _ => throw new ArgumentOutOfRangeException(nameof(scenario), scenario, "unknown CBI7 vector"),
+        };
+
+        var result = await ComponentParticipantRevalidation.RevalidateAsync(
+            active,
+            fresh,
+            $"set authority revalidation {scenario}");
+        return (result, active.Lifecycle!.Member!, handler);
+    }
+
+    private static AuthorityAdmissionRequest Revoked(AuthorityAdmissionRequest request) =>
+        request with
+        {
+            Evidence = request.Evidence
+                .Select(item => item with { State = AdmissionEvidenceState.Revoked })
+                .ToArray(),
+        };
+
+    private static AuthorityAdmissionRequest Expired(AuthorityAdmissionRequest request) =>
+        request with { EvaluationTime = request.Evidence.Max(item => item.ExpiresAt) };
+
+    private static AuthorityAdmissionRequest Relabelled(AuthorityAdmissionRequest request, ActorId actor) =>
+        request with
+        {
+            Request = AdmissionRequestId.Create($"admission.set-{actor.Value}"),
+            Participant = actor,
+            Evidence = request.Evidence.Select(item => item with { Subject = actor }).ToArray(),
+            Relationships = request.Relationships
+                .Select(item => item with { ProposedActor = actor })
+                .ToArray(),
+        };
+
+    private static string SetRevalidationToken(ComponentParticipantRevalidationKind kind) => kind switch
+    {
+        ComponentParticipantRevalidationKind.Continued => "continued",
+        ComponentParticipantRevalidationKind.Withdrawn => "withdrawn",
+        ComponentParticipantRevalidationKind.RetirementFailed => "retirement-failed",
+        ComponentParticipantRevalidationKind.ActivationUnavailable => "activation-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
 
     private static SortedDictionary<string, string> PortableFacts(ComponentParticipantAdmissionResult result)
     {

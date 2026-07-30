@@ -877,6 +877,183 @@ module ComponentParticipantAdmission =
         }
 
 [<RequireQualifiedAccess>]
+type ComponentParticipantRevalidationKind =
+    | Continued
+    | Withdrawn
+    | RetirementFailed
+    | ActivationUnavailable
+
+type ComponentParticipantRevalidationResult =
+    { Kind: ComponentParticipantRevalidationKind
+      CurrentAuthority: ComponentParticipantObservation list
+      Unrenewed: ActorId list
+      Replacement: ReplacementRecord option
+      Code: string
+      Reason: string }
+
+/// Revalidates the complete CBI6 participant set behind one released member and retires it when the
+/// set does not renew identically.
+///
+/// Retiring on partial loss rather than dropping the participant that lost authority is deliberate:
+/// nothing in the admitted set says which participants the member's ordinary interaction depends
+/// on, so continuing would decide that invisibly.
+[<RequireQualifiedAccess>]
+module ComponentParticipantRevalidation =
+    let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
+
+    let private matchesPrior
+        (prior: ComponentParticipantObservation)
+        (request: AuthorityAdmissionRequest)
+        =
+        match prior.Authority.Observation.Relationships, request.Relationships with
+        | [ relationship ], [ submitted ] ->
+            let grants = prior.Authority.Observation.Grants
+            request.Request = prior.Authority.Observation.Request
+            && request.Policy.Policy = prior.Authority.Observation.Policy
+            && request.Participant = prior.Participant
+            && submitted.Request = relationship.Request
+            && submitted.ProposedActor = relationship.ProposedActor
+            && submitted.Kind = relationship.Kind
+            && request.Authority.Length = grants.Length
+            && grants
+               |> List.forall (fun grant ->
+                   request.Authority
+                   |> List.filter (fun authority ->
+                       authority.Request = grant.Request
+                       && authority.Relationship = relationship.Request
+                       && authority.Capability = grant.Capability
+                       && authority.Target = grant.Target
+                       && authority.Operation = grant.Operation
+                       && authority.Scope = grant.Scope
+                       && not authority.Unlimited)
+                   |> List.length = 1)
+        | _ -> false
+
+    let private isSameAdmission
+        (prior: AuthorityAdmissionOutcome)
+        (current: AuthorityAdmissionOutcome)
+        =
+        match current.Kind, current.Observation.Relationships with
+        | AuthorityAdmissionOutcomeKind.Admitted, [ _ ] ->
+            current.Observation.Relationships = prior.Observation.Relationships
+            && current.Observation.Grants = prior.Observation.Grants
+        | _ -> false
+
+    let private retire
+        (memberValue: CompositionMember)
+        retirementReason
+        code
+        reason
+        current
+        unrenewed
+        =
+        task {
+            let! retired = memberValue.Retire retirementReason
+            match retired with
+            | Ok replacement ->
+                return
+                    { Kind = ComponentParticipantRevalidationKind.Withdrawn
+                      CurrentAuthority = current
+                      Unrenewed = unrenewed
+                      Replacement = Some replacement
+                      Code = code
+                      Reason = reason }
+            | Error error ->
+                let detail =
+                    match error with
+                    | PortableError.Refused fault -> sprintf "%s: %s" fault.LocalCode fault.Message
+                    | PortableError.Interrupted failure -> failure.Message
+                return
+                    { Kind = ComponentParticipantRevalidationKind.RetirementFailed
+                      CurrentAuthority = current
+                      Unrenewed = unrenewed
+                      Replacement = None
+                      Code = "authority-retirement-failed"
+                      Reason = detail }
+        }
+
+    let revalidate
+        (active: ComponentParticipantAdmissionResult)
+        (requests: AuthorityAdmissionRequest list)
+        retirementReason
+        =
+        task {
+            if String.IsNullOrWhiteSpace retirementReason then
+                invalidArg (nameof retirementReason) "retirement reason is required"
+
+            match ComponentParticipantAdmission.isActive active, active.Lifecycle with
+            | true, Some { Member = Some memberValue } ->
+                let prior = active.Admissions
+                let ordered =
+                    requests
+                    |> List.sortWith (fun left right ->
+                        ordinal (ActorId.value left.Participant) (ActorId.value right.Participant))
+                if
+                    (ordered |> List.map _.Participant) <> (prior |> List.map _.Participant)
+                then
+                    return!
+                        retire
+                            memberValue
+                            retirementReason
+                            "participant-set-changed"
+                            "The fresh requests do not name the same participants the admitted set named."
+                            []
+                            []
+                elif
+                    List.zip prior ordered
+                    |> List.exists (fun (priorItem, request) -> not (matchesPrior priorItem request))
+                then
+                    return!
+                        retire
+                            memberValue
+                            retirementReason
+                            "authority-revalidation-mismatch"
+                            "A fresh request does not identify the same relationship and grants that admitted this member."
+                            []
+                            []
+                else
+                    let current =
+                        ordered
+                        |> List.map (fun request ->
+                            { Participant = request.Participant
+                              Authority = FakeAuthorityAdmission.evaluate request })
+                    let unrenewed =
+                        List.zip prior current
+                        |> List.filter (fun (priorItem, currentItem) ->
+                            not (isSameAdmission priorItem.Authority currentItem.Authority))
+                        |> List.map (fun (_, currentItem) -> currentItem.Participant)
+                    if not unrenewed.IsEmpty then
+                        return!
+                            retire
+                                memberValue
+                                retirementReason
+                                "authority-not-renewed"
+                                (sprintf
+                                    "The receiving domain no longer admits the identical authority for %s."
+                                    (String.Join(", ", unrenewed |> List.map ActorId.value)))
+                                current
+                                unrenewed
+                    else
+                        return
+                            { Kind = ComponentParticipantRevalidationKind.Continued
+                              CurrentAuthority = current
+                              Unrenewed = []
+                              Replacement = None
+                              Code = "authority-current"
+                              Reason =
+                                "Every participant still holds the identical receiving-domain relationship and grants." }
+            | _ ->
+                return
+                    { Kind = ComponentParticipantRevalidationKind.ActivationUnavailable
+                      CurrentAuthority = []
+                      Unrenewed = []
+                      Replacement = None
+                      Code = "active-authority-unavailable"
+                      Reason =
+                        "CBI7 requires one released Active CBI6 result with a completely admitted participant set." }
+        }
+
+[<RequireQualifiedAccess>]
 module ComponentAuthorityComparison =
     let private stringNode (value: string) : JsonNode | null = JsonValue.Create value
     let private boolNode (value: bool) : JsonNode | null = JsonValue.Create value
