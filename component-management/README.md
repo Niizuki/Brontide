@@ -139,6 +139,17 @@ precedence never has to be decided. An empty declaration licenses nothing. Its b
 recorded in the [CBI9 capability contract](./cbi9-capability-contract.md) and completed
 [contract-completeness review](./cbi9-contract-completeness-review.md).
 
+CBI10 checks that declaration against what the member actually did. Each observed portable
+interaction is projected into one CM4 binding exercise whose authority admission is derived from the
+declaration and the grants in force, never claimed by the caller, so CM4's own rule — delivery
+cannot succeed when the external authority check denied it — is what condemns interaction outside
+the declaration. An interaction that emitted no frame exercised nothing; an interaction that cannot
+be attributed to declared authority is undeclared use; and either violation retires the member.
+Declared authority nothing exercised, and declared authority nothing covers, are reported rather
+than condemned. Its bounded behavior is recorded in the
+[CBI10 capability contract](./cbi10-capability-contract.md) and completed
+[contract-completeness review](./cbi10-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -255,6 +266,16 @@ retained identity drift, a denied addition, a shared local Actor, a retained par
 and retirement cleanup failure. Each vector pins the outcome kind, code, evaluated count, in-force
 set size and grant count, and whether the member is still released. The fixture contains no
 evaluator, resolver, policy, coverage rule, or portable runtime.
+
+### `cbi10-observed-interaction-vectors` sections
+
+`vectors` names three consistent verifications — a declared interaction, no interaction at all, and
+one denied before any frame — and six refusals covering undeclared authority, an unmapped Operation,
+ungranted authority, retirement cleanup failure, a declaration mismatch, and an ambiguous
+attribution. Each vector pins the verdict kind and code, the number of projected exercises, the
+unexercised and uncovered declared authorities, whether the CM4 runtime accepted the projection,
+whether the member is still released, and how many provider effects the interactions actually
+caused. The fixture contains no evaluator, runtime, projection rule, or portable implementation.
 
 ### `cm0-mice-topology` sections
 

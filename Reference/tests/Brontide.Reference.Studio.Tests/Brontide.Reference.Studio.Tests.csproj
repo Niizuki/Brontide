@@ -42,5 +42,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi9-dependency-revision-vectors.json"
           Link="component-management\fixtures\cbi9-dependency-revision-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi10-observed-interaction-vectors.json"
+          Link="component-management\fixtures\cbi10-observed-interaction-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

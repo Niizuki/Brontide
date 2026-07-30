@@ -199,7 +199,7 @@ module ComponentBindingLifecycle =
           Member = memberValue
           Failure = Some { Kind = kind; Code = code; Reason = reason } }
 
-    let private trySupportedGroup plan selectedOccurrence =
+    let internal trySupportedGroup plan selectedOccurrence =
         match plan.Groups with
         | [ group ] when
             group.Members.Length = 1
@@ -208,7 +208,7 @@ module ComponentBindingLifecycle =
             Some group
         | _ -> None
 
-    let private stageOutcomes group memberValue failedStage =
+    let internal stageOutcomes group memberValue failedStage =
         group.Stages
         |> List.map (fun stage ->
             { Group = group.Group
@@ -1358,7 +1358,7 @@ module ComponentParticipantRevision =
             (OperationId.value grant.Operation)
             (CapabilityScopeId.value grant.Scope)
 
-    let private uncovered (dependency: ComponentGrantDependency) grants =
+    let internal uncovered (dependency: ComponentGrantDependency) grants =
         let held = grants |> List.map grantTuple |> Set.ofList
         dependency.Entries
         |> List.filter (fun entry -> not (Set.contains (entryTuple entry) held))
@@ -1374,11 +1374,12 @@ module ComponentParticipantRevision =
           Code = code
           Reason = reason }
 
-    let private declaration
+    /// Checks that the declaration is the one the generation records, without asking whether the
+    /// set in force covers it.
+    let internal declarationShape
         (resolution: ResolutionOutcome)
         (selection: ComponentBindingSelection)
         (dependency: ComponentGrantDependency)
-        (active: ComponentParticipantAdmissionResult)
         =
         let declared =
             match resolution with
@@ -1410,14 +1411,25 @@ module ComponentParticipantRevision =
                     "dependency-declaration-mismatch",
                     "The declaration must map exactly the authority the selected definition requests, once each, to distinct tuples.")
             else
-                match uncovered dependency active.Grants with
-                | [] -> Ok()
-                | missing ->
-                    Error(
-                        "dependency-unsatisfied",
-                        sprintf
-                            "The set in force holds no grant satisfying declared authority %s, so it never covered this declaration."
-                            (String.Join(", ", missing)))
+                Ok()
+
+    let private declaration
+        (resolution: ResolutionOutcome)
+        (selection: ComponentBindingSelection)
+        (dependency: ComponentGrantDependency)
+        (active: ComponentParticipantAdmissionResult)
+        =
+        match declarationShape resolution selection dependency with
+        | Error invalid -> Error invalid
+        | Ok() ->
+            match uncovered dependency active.Grants with
+            | [] -> Ok()
+            | missing ->
+                Error(
+                    "dependency-unsatisfied",
+                    sprintf
+                        "The set in force holds no grant satisfying declared authority %s, so it never covered this declaration."
+                        (String.Join(", ", missing)))
 
     let private structure
         (prior: ComponentParticipantObservation list)
@@ -1638,6 +1650,231 @@ module ComponentParticipantRevision =
                       Code = "active-authority-unavailable"
                       Reason =
                         "CBI9 requires one released Active CBI6 result with a completely admitted participant set." }
+        }
+
+type ComponentObservedInteraction =
+    { Operation: PortableOperationRef
+      Result: InteractionResult }
+
+type ComponentOperationAuthorityMapping =
+    { Operation: PortableOperationRef
+      DeclaredAuthority: string }
+
+[<RequireQualifiedAccess>]
+type ComponentInteractionVerdictKind =
+    | Consistent
+    | UndeclaredUse
+    | UngrantedUse
+    | RetirementFailed
+    | Declined
+    | ActivationUnavailable
+
+type ComponentInteractionVerdict =
+    { Kind: ComponentInteractionVerdictKind
+      Runtime: ActivationRuntimeOutcome option
+      Exercises: BindingExerciseDeclaration list
+      Unexercised: string list
+      Uncovered: string list
+      Replacement: ReplacementRecord option
+      Code: string
+      Reason: string }
+
+/// Verifies a CBI9 declaration against what the member actually did, through CM4 binding exercises
+/// projected from observed portable interactions.
+///
+/// The admission fact of each projected exercise is derived from the declaration and the grants in
+/// force, so CM4's own rule — delivery cannot succeed when the external authority check denied it —
+/// is what condemns use outside the declaration. The caller supplies observations and an attribution
+/// mapping, never an admission.
+[<RequireQualifiedAccess>]
+module ComponentInteractionVerification =
+    let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
+
+    let private verdict kind code reason =
+        { Kind = kind
+          Runtime = None
+          Exercises = []
+          Unexercised = []
+          Uncovered = []
+          Replacement = None
+          Code = code
+          Reason = reason }
+
+    let verify
+        (resolution: ResolutionOutcome)
+        (selection: ComponentBindingSelection)
+        (active: ComponentParticipantAdmissionResult)
+        (dependency: ComponentGrantDependency)
+        (attribution: ComponentOperationAuthorityMapping list)
+        (observations: ComponentObservedInteraction list)
+        (runtimeRequest: ActivationRuntimeRequest)
+        retirementReason
+        =
+        task {
+            if String.IsNullOrWhiteSpace retirementReason then
+                invalidArg (nameof retirementReason) "retirement reason is required"
+
+            match ComponentParticipantAdmission.isActive active, active.Lifecycle with
+            | true, Some { Member = Some memberValue } ->
+                match ComponentParticipantRevision.declarationShape resolution selection dependency with
+                | Error(code, reason) ->
+                    return verdict ComponentInteractionVerdictKind.Declined code reason
+                | Ok() ->
+                    let repeated =
+                        attribution
+                        |> List.map (fun entry -> PortableOperationRef.text entry.Operation)
+                        |> ComponentParticipantAdmission.firstDuplicate
+                    match
+                        repeated,
+                        ComponentBindingLifecycle.trySupportedGroup
+                            runtimeRequest.Plan
+                            selection.Occurrence
+                    with
+                    | Some operation, _ ->
+                        return
+                            verdict
+                                ComponentInteractionVerdictKind.Declined
+                                "operation-mapping-not-distinct"
+                                (sprintf
+                                    "Operation '%s' is attributed to more than one declared authority."
+                                    operation)
+                    | None, None ->
+                        return
+                            verdict
+                                ComponentInteractionVerdictKind.Declined
+                                "plan-unsupported"
+                                "CBI10 projects exercises onto the one protocol-free activation group CBI2 activated."
+                    | None, Some group ->
+                        // No frame, no exercise: a locally denied request reached no provider. Any
+                        // emitted frame counts, because the receiving domain cannot know what a
+                        // frame the provider already saw caused.
+                        let delivered =
+                            observations
+                            |> List.filter (fun item -> item.Result.FrameDecision <> FrameDecision.None)
+                        let declaredNames =
+                            dependency.Entries |> List.map _.DeclaredAuthority |> Set.ofList
+                        let uncoveredNames =
+                            ComponentParticipantRevision.uncovered dependency active.Grants
+                            |> Set.ofList
+                        let attributed =
+                            delivered
+                            |> List.map (fun item ->
+                                attribution
+                                |> List.tryFind (fun entry -> entry.Operation = item.Operation)
+                                |> Option.map _.DeclaredAuthority)
+                        let admitted name =
+                            match name with
+                            | Some value ->
+                                Set.contains value declaredNames
+                                && not (Set.contains value uncoveredNames)
+                            | None -> false
+                        let projectExercise index name : BindingExerciseDeclaration =
+                            { Exercise =
+                                BindingExerciseId.create (
+                                    sprintf "exercise.observed-%d" (index + 1))
+                              Binding =
+                                BindingId.create (
+                                    sprintf "binding.%s" (OccurrenceId.value selection.Occurrence))
+                              Consumer = selection.Occurrence
+                              Provider = selection.Occurrence
+                              Source = SourceId.create "source.portable-observation"
+                              Exposure = BindingExposureKind.Distinct
+                              Mediation = None
+                              Routing =
+                                RoutingDecisionId.create (sprintf "routing.observed-%d" (index + 1))
+                              AuthorityAdmitted = admitted name
+                              Delivery = BindingDeliveryResult.Delivered
+                              Failure = None }
+                        let exercises = attributed |> List.mapi projectExercise
+                        let runtime =
+                            FakeActivationRuntime.activate
+                                { runtimeRequest with
+                                    StageOutcomes =
+                                        ComponentBindingLifecycle.stageOutcomes
+                                            group
+                                            selection.Occurrence
+                                            None
+                                    BindingExercises = exercises }
+                        let exercised =
+                            attributed
+                            |> List.choose id
+                            |> List.filter (fun name -> Set.contains name declaredNames)
+                            |> Set.ofList
+                        let unexercised =
+                            dependency.Entries
+                            |> List.map _.DeclaredAuthority
+                            |> List.filter (fun name -> not (Set.contains name exercised))
+                            |> List.sortWith ordinal
+                        let uncoveredList = uncoveredNames |> Set.toList |> List.sortWith ordinal
+                        let undeclared =
+                            attributed
+                            |> List.exists (fun name ->
+                                match name with
+                                | Some value -> not (Set.contains value declaredNames)
+                                | None -> true)
+                        let ungranted =
+                            attributed
+                            |> List.exists (fun name ->
+                                match name with
+                                | Some value -> Set.contains value uncoveredNames
+                                | None -> false)
+                        if undeclared || ungranted then
+                            let! retired =
+                                ComponentParticipantRevalidation.tryRetire
+                                    memberValue
+                                    retirementReason
+                            match retired with
+                            | Ok replacement ->
+                                return
+                                    { Kind =
+                                        if undeclared then
+                                            ComponentInteractionVerdictKind.UndeclaredUse
+                                        else
+                                            ComponentInteractionVerdictKind.UngrantedUse
+                                      Runtime = Some runtime
+                                      Exercises = exercises
+                                      Unexercised = unexercised
+                                      Uncovered = uncoveredList
+                                      Replacement = Some replacement
+                                      Code =
+                                        if undeclared then
+                                            "interaction-undeclared"
+                                        else
+                                            "interaction-ungranted"
+                                      Reason =
+                                        if undeclared then
+                                            "A delivered interaction could not be attributed to any authority the Component declared."
+                                        else
+                                            "A delivered interaction exercised declared authority no participant holds a grant for." }
+                            | Error detail ->
+                                return
+                                    { Kind = ComponentInteractionVerdictKind.RetirementFailed
+                                      Runtime = Some runtime
+                                      Exercises = exercises
+                                      Unexercised = unexercised
+                                      Uncovered = uncoveredList
+                                      Replacement = None
+                                      Code = "authority-retirement-failed"
+                                      Reason = detail }
+                        else
+                            return
+                                { Kind = ComponentInteractionVerdictKind.Consistent
+                                  Runtime = Some runtime
+                                  Exercises = exercises
+                                  Unexercised = unexercised
+                                  Uncovered = uncoveredList
+                                  Replacement = None
+                                  Code = "interaction-consistent"
+                                  Reason =
+                                    sprintf
+                                        "%d delivered interaction(s) stayed inside the declaration."
+                                        exercises.Length }
+            | _ ->
+                return
+                    verdict
+                        ComponentInteractionVerdictKind.ActivationUnavailable
+                        "active-authority-unavailable"
+                        "CBI10 requires one released Active CBI6 result with a completely admitted participant set."
         }
 
 [<RequireQualifiedAccess>]

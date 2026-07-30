@@ -75,6 +75,10 @@ definition and mapped explicitly to CM5 tuples. A revision is admitted while eve
 dependency stays covered, so a substitute may hold what a departing participant held; an uncovered
 dependency, an unsatisfied or empty declaration, and a declaration that does not match the
 generation's record are all declined.
+CBI10 verifies that declaration against observed portable interaction by projecting each one into a
+CM4 binding exercise whose authority admission is derived from the declaration and the grants in
+force. CM4 refuses the projection exactly when the verification does, and undeclared or ungranted
+use retires the member.
 
 ## Build and test
 

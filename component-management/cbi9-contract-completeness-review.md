@@ -28,7 +28,9 @@ separate from conformance review.
    holds nothing in this set, so its current admission state cannot affect the outcome; coverage is
    computed over the intended set only. A dropped participant that had itself lapsed is simply gone.
 6. **Coverage cannot tell whether the declaration is true.** Disposition: recorded as a limit rather
-   than closed. CBI9 verifies that the intended set satisfies what the Component declared; it does
+   than closed. Closed in one direction on 2026-07-30 by
+   [CBI10](./cbi10-capability-contract.md), which detects a declaration contradicted by use;
+   a declaration contradicted by disuse remains undetectable. CBI9 verifies that the intended set satisfies what the Component declared; it does
    not verify that the declaration is truthful or complete, so a Component that under-declares can
    have grants removed that its interaction actually relies on. Naming that boundary is the point of
    this finding.

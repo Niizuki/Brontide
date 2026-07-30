@@ -402,6 +402,15 @@ type ComponentBindingIntegrationTests() =
                 Operation = auditOperation
                 Scope = authorityScope } ] }
 
+    let verdictToken kind =
+        match kind with
+        | ComponentInteractionVerdictKind.Consistent -> "consistent"
+        | ComponentInteractionVerdictKind.UndeclaredUse -> "undeclared-use"
+        | ComponentInteractionVerdictKind.UngrantedUse -> "ungranted-use"
+        | ComponentInteractionVerdictKind.RetirementFailed -> "retirement-failed"
+        | ComponentInteractionVerdictKind.Declined -> "declined"
+        | ComponentInteractionVerdictKind.ActivationUnavailable -> "activation-unavailable"
+
     let revisionToken kind =
         match kind with
         | ComponentParticipantRevisionKind.Revised -> "revised"
@@ -1878,6 +1887,237 @@ type ComponentBindingIntegrationTests() =
                 // A different receiving-domain Actor now satisfies it.
                 Assert.That((List.exactlyOne auditGrants).Holder, Is.EqualTo deputyLocalActor)
                 Assert.That(CompositionStage.token memberValue.Stage, Is.EqualTo "released"))
+        }
+
+    [<Test>]
+    member _.``shared CBI10 vectors verify the declaration against what the member did``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi10-observed-interaction-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI10 vector identity must be a string"
+                    | value -> value
+                let resolution, selected, occurrence = preparedWith declaredAuthority
+                let handler = CoolingHandler()
+                let baselineConversation =
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(
+                            CoolingFixture.contract,
+                            handler,
+                            Realization.FixedDirectCall))
+                    :> IPortableProviderConversation
+                let conversation =
+                    if scenario = "cbi10-07-retirement-failure" then
+                        FailingRetirementConversation(baselineConversation)
+                        :> IPortableProviderConversation
+                    else
+                        baselineConversation
+                let policy = setPolicy supervisorLocalActor
+                let participants =
+                    participantSet occurrence supervisorLocalActor
+                    |> List.map (fun entry ->
+                        { entry with
+                            Request = { entry.Request with Policy = policy } })
+                let runtime = runtimeRequest (plan [ occurrence ])
+                let! active =
+                    ComponentParticipantAdmission.activate
+                        resolution
+                        selected
+                        participants
+                        runtime
+                        conversation
+                let memberValue = active.Lifecycle.Value.Member.Value
+                // The observations are real: the host invokes the released member and records what
+                // came back.
+                let! observations =
+                    if scenario = "cbi10-02-nothing-observed" then
+                        Task.FromResult []
+                    else
+                        task {
+                            let constraintValue =
+                                if scenario = "cbi10-03-denied-before-any-frame" then
+                                    PortableConstraint.Atom PortableTruth.Unsatisfied
+                                else
+                                    PortableConstraint.Atom PortableTruth.Satisfied
+                            let! attempted =
+                                memberValue.Invoke(
+                                    CoolingFixture.setEnabled,
+                                    CoolingFixture.commandV1,
+                                    CoolingFixture.authorizedCommand "primary" true,
+                                    constraintValue)
+                            return
+                                match attempted with
+                                | Ok interaction ->
+                                    [ { Operation = CoolingFixture.setEnabled
+                                        Result = interaction } ]
+                                | Error error ->
+                                    failwithf "Expected an observable interaction, got %A." error
+                        }
+                let declaration =
+                    match scenario with
+                    | "cbi10-06-ungranted-authority" ->
+                        { Definition = selected.Definition
+                          Entries =
+                            [ { DeclaredAuthority = "cooling.control"
+                                Capability = capability
+                                Target = authorityTarget
+                                Operation = operation
+                                Scope = CapabilityScopeId.create "scope.other" }
+                              { DeclaredAuthority = "cooling.audit"
+                                Capability = auditCapability
+                                Target = authorityTarget
+                                Operation = auditOperation
+                                Scope = authorityScope } ] }
+                    | "cbi10-08-declaration-mismatch" ->
+                        { Definition = selected.Definition
+                          Entries =
+                            [ { DeclaredAuthority = "cooling.control"
+                                Capability = capability
+                                Target = authorityTarget
+                                Operation = operation
+                                Scope = authorityScope }
+                              { DeclaredAuthority = "cooling.other"
+                                Capability = auditCapability
+                                Target = authorityTarget
+                                Operation = auditOperation
+                                Scope = authorityScope } ] }
+                    | _ -> dependency selected.Definition
+                let attribution =
+                    match scenario with
+                    | "cbi10-04-undeclared-authority"
+                    | "cbi10-07-retirement-failure" ->
+                        [ { Operation = CoolingFixture.setEnabled
+                            DeclaredAuthority = "cooling.other" } ]
+                    | "cbi10-05-unmapped-operation" -> []
+                    | "cbi10-09-mapping-not-distinct" ->
+                        [ { Operation = CoolingFixture.setEnabled
+                            DeclaredAuthority = "cooling.control" }
+                          { Operation = CoolingFixture.setEnabled
+                            DeclaredAuthority = "cooling.audit" } ]
+                    | _ ->
+                        [ { Operation = CoolingFixture.setEnabled
+                            DeclaredAuthority = "cooling.control" } ]
+                let! verdict =
+                    ComponentInteractionVerification.verify
+                        resolution
+                        selected
+                        active
+                        declaration
+                        attribution
+                        observations
+                        runtime
+                        (sprintf "observed interaction %s" scenario)
+                let released = vector.GetProperty("expectedReleased").GetBoolean()
+                let expectedRuntimeActive =
+                    let value = vector.GetProperty("expectedRuntimeActive")
+                    if value.ValueKind = JsonValueKind.Null then
+                        None
+                    else
+                        Some(value.GetBoolean())
+                let actualRuntimeActive =
+                    verdict.Runtime
+                    |> Option.map (fun outcome ->
+                        outcome.Kind = ActivationRuntimeOutcomeKind.Active)
+                multiple (fun () ->
+                    Assert.That(
+                        verdictToken verdict.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        verdict.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        verdict.Exercises.Length,
+                        Is.EqualTo(vector.GetProperty("expectedExercises").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        verdict.Unexercised.Length,
+                        Is.EqualTo(vector.GetProperty("expectedUnexercised").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        verdict.Uncovered.Length,
+                        Is.EqualTo(vector.GetProperty("expectedUncovered").GetInt32()),
+                        scenario)
+                    Assert.That(actualRuntimeActive, Is.EqualTo expectedRuntimeActive, scenario)
+                    Assert.That(
+                        CompositionStage.token memberValue.Stage,
+                        Is.EqualTo(if released then "released" else "retired"),
+                        scenario)
+                    Assert.That(
+                        handler.ProviderEffectCount,
+                        Is.EqualTo(vector.GetProperty("expectedProviderEffects").GetInt32()),
+                        scenario)
+                    // The runtime accepts the projection exactly when the verification is consistent.
+                    match actualRuntimeActive with
+                    | Some runtimeActive ->
+                        Assert.That(
+                            runtimeActive,
+                            Is.EqualTo(
+                                verdict.Kind = ComponentInteractionVerdictKind.Consistent),
+                            scenario)
+                    | None -> ())
+        }
+
+    [<Test>]
+    member _.``undeclared use is condemned by the runtime rather than by the verifier``() =
+        task {
+            let resolution, selected, occurrence = preparedWith declaredAuthority
+            let policy = setPolicy supervisorLocalActor
+            let participants =
+                participantSet occurrence supervisorLocalActor
+                |> List.map (fun entry ->
+                    { entry with
+                        Request = { entry.Request with Policy = policy } })
+            let runtime = runtimeRequest (plan [ occurrence ])
+            let! active =
+                ComponentParticipantAdmission.activate
+                    resolution
+                    selected
+                    participants
+                    runtime
+                    (directCooling CoolingFixture.contract)
+            let memberValue = active.Lifecycle.Value.Member.Value
+            let! attempted =
+                memberValue.Invoke(
+                    CoolingFixture.setEnabled,
+                    CoolingFixture.commandV1,
+                    CoolingFixture.authorizedCommand "primary" true,
+                    PortableConstraint.Atom PortableTruth.Satisfied)
+            let observation =
+                match attempted with
+                | Ok interaction ->
+                    { Operation = CoolingFixture.setEnabled
+                      Result = interaction }
+                | Error error -> failwithf "Expected an observable interaction, got %A." error
+            let! verdict =
+                ComponentInteractionVerification.verify
+                    resolution
+                    selected
+                    active
+                    (dependency selected.Definition)
+                    [ { Operation = CoolingFixture.setEnabled
+                        DeclaredAuthority = "cooling.other" } ]
+                    [ observation ]
+                    runtime
+                    "undeclared use"
+            let exercise = List.exactlyOne verdict.Exercises
+            multiple (fun () ->
+                Assert.That(verdict.Kind, Is.EqualTo ComponentInteractionVerdictKind.UndeclaredUse)
+                // CM4's own rule refuses a delivered exercise the authority check denied.
+                Assert.That(
+                    verdict.Runtime.Value.Kind,
+                    Is.EqualTo ActivationRuntimeOutcomeKind.BindingObservationConflict)
+                Assert.That(exercise.AuthorityAdmitted, Is.False)
+                Assert.That(exercise.Delivery, Is.EqualTo BindingDeliveryResult.Delivered)
+                Assert.That(verdict.Replacement.IsSome, Is.True))
         }
 
     [<Test>]
