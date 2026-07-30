@@ -79,6 +79,10 @@ CBI10 verifies that declaration against observed portable interaction by project
 CM4 binding exercise whose authority admission is derived from the declaration and the grants in
 force. CM4 refuses the projection exactly when the verification does, and undeclared or ungranted
 use retires the member.
+CBI11 narrows a declaration only to a successor resolution of the same position that declares
+strictly fewer authorities, with each retained one keeping its exact tuple and observed use vetoing
+its own removal. It never retires a member; a later CBI9 revision releases what the narrower
+declaration no longer needs.
 
 ## Build and test
 

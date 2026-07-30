@@ -1727,19 +1727,10 @@ public static class ComponentInteractionVerification
                 "CBI10 projects exercises onto the one protocol-free activation group CBI2 activated.");
         }
 
-        // No frame, no exercise: a locally denied request reached no provider. Any emitted frame
-        // counts, because the receiving domain cannot know what a frame the provider already saw
-        // caused.
-        var delivered = observations
-            .Where(item => item.Result.FrameDecision != Portable.PortableFrameDecision.None)
-            .ToArray();
         var declared = dependency.Entries.ToDictionary(item => item.DeclaredAuthority, StringComparer.Ordinal);
         var uncoveredNames = ComponentParticipantRevision.Uncovered(dependency, active.Grants)
             .ToHashSet(StringComparer.Ordinal);
-        var attributed = delivered
-            .Select(item => attribution
-                .FirstOrDefault(entry => entry.Operation == item.Operation)?.DeclaredAuthority)
-            .ToArray();
+        var attributed = Attribute(attribution, observations);
 
         var exercises = attributed
             .Select((name, index) => new Cm.BindingExerciseDeclaration(
@@ -1809,6 +1800,23 @@ public static class ComponentInteractionVerification
             $"{exercises.Length} delivered interaction(s) stayed inside the declaration.");
     }
 
+    /// <summary>
+    /// Attributes every delivered interaction to a declared authority, or to none.
+    /// </summary>
+    /// <remarks>
+    /// No frame, no exercise: a locally denied request reached no provider. Any emitted frame
+    /// counts, because the receiving domain cannot know what a frame the provider already saw
+    /// caused.
+    /// </remarks>
+    internal static string?[] Attribute(
+        IReadOnlyList<ComponentOperationAuthorityMapping> attribution,
+        IReadOnlyList<ComponentObservedInteraction> observations) =>
+        observations
+            .Where(item => item.Result.FrameDecision != Portable.PortableFrameDecision.None)
+            .Select(item => attribution
+                .FirstOrDefault(entry => entry.Operation == item.Operation)?.DeclaredAuthority)
+            .ToArray();
+
     private static ComponentInteractionVerdict Verdict(
         ComponentInteractionVerdictKind kind,
         string code,
@@ -1820,6 +1828,194 @@ public static class ComponentInteractionVerification
             Array.Empty<string>(),
             Array.Empty<string>(),
             null,
+            code,
+            reason);
+}
+
+public enum ComponentDeclarationSuccessionKind
+{
+    Narrowed,
+    Declined,
+    ActivationUnavailable,
+}
+
+public sealed record ComponentDeclarationSuccessionResult(
+    ComponentDeclarationSuccessionKind Kind,
+    ComponentGrantDependency? Declaration,
+    IReadOnlyList<string> Dropped,
+    IReadOnlyList<string> Vetoed,
+    string Code,
+    string Reason)
+{
+    public bool IsNarrowed => Kind == ComponentDeclarationSuccessionKind.Narrowed;
+}
+
+/// <summary>
+/// Narrows the declaration in force to a successor resolution of the same position, unless observed
+/// use vetoes it.
+/// </summary>
+/// <remarks>
+/// Absence of use never justifies removing a dependency, so the permission comes from the
+/// Component's own re-declaration and observation appears only as a veto. Nothing here retires a
+/// member or changes the participant set; narrowing only changes what a later CBI9 revision will
+/// admit.
+/// </remarks>
+public static class ComponentDeclarationSuccession
+{
+    public static ComponentDeclarationSuccessionResult Succeed(
+        Cm.ResolutionOutcome resolution,
+        Cm.ResolutionOutcome successor,
+        ComponentBindingSelection selection,
+        ComponentParticipantAdmissionResult active,
+        ComponentGrantDependency declaration,
+        ComponentGrantDependency successorDeclaration,
+        IReadOnlyList<ComponentOperationAuthorityMapping> attribution,
+        IReadOnlyList<ComponentObservedInteraction> observations)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(successor);
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(active);
+        ArgumentNullException.ThrowIfNull(declaration);
+        ArgumentNullException.ThrowIfNull(successorDeclaration);
+        ArgumentNullException.ThrowIfNull(attribution);
+        ArgumentNullException.ThrowIfNull(observations);
+
+        if (!active.IsActive || active.Lifecycle?.Member is not { } member)
+        {
+            return new(
+                ComponentDeclarationSuccessionKind.ActivationUnavailable,
+                null,
+                Array.Empty<string>(),
+                Array.Empty<string>(),
+                "active-authority-unavailable",
+                "CBI11 requires one released Active CBI6 result with a completely admitted participant set.");
+        }
+
+        if (ComponentParticipantRevision.DeclarationShape(resolution, selection, declaration) is { } stale)
+        {
+            return Decline(declaration, stale.Code, stale.Reason);
+        }
+
+        if (ComponentParticipantRevision.DeclarationShape(successor, selection, successorDeclaration) is { } invalid)
+        {
+            return Decline(declaration, invalid.Code, invalid.Reason);
+        }
+
+        if (SamePosition(successor, selection, member) is { } mismatch)
+        {
+            return Decline(declaration, "successor-position-mismatch", mismatch);
+        }
+
+        var names = declaration.Entries.Select(item => item.DeclaredAuthority).ToHashSet(StringComparer.Ordinal);
+        var successorNames = successorDeclaration.Entries
+            .Select(item => item.DeclaredAuthority)
+            .ToHashSet(StringComparer.Ordinal);
+        if (!successorNames.IsProperSubsetOf(names))
+        {
+            return Decline(
+                declaration,
+                "declaration-not-narrower",
+                "Succession only narrows: the successor must declare strictly fewer authorities, all of them already declared.");
+        }
+
+        var repointed = successorDeclaration.Entries
+            .Where(entry => declaration.Entries.Any(current =>
+                current.DeclaredAuthority == entry.DeclaredAuthority &&
+                ComponentParticipantRevision.Tuple(current) != ComponentParticipantRevision.Tuple(entry)))
+            .Select(entry => entry.DeclaredAuthority)
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .ToArray();
+        if (repointed.Length > 0)
+        {
+            return Decline(
+                declaration,
+                "declaration-tuple-changed",
+                $"Succession removes dependencies; it does not re-point them. {string.Join(", ", repointed)} would change tuple.");
+        }
+
+        if (ComponentParticipantAdmission.FirstDuplicate(
+                attribution.Select(item => item.Operation.ToString())) is { } repeated)
+        {
+            return Decline(
+                declaration,
+                "operation-mapping-not-distinct",
+                $"Operation '{repeated}' is attributed to more than one declared authority.");
+        }
+
+        var dropped = names.Except(successorNames, StringComparer.Ordinal)
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .ToArray();
+        var exercised = ComponentInteractionVerification.Attribute(attribution, observations)
+            .Where(name => name is not null)
+            .Select(name => name!)
+            .ToHashSet(StringComparer.Ordinal);
+        var vetoed = dropped.Where(exercised.Contains).ToArray();
+        if (vetoed.Length > 0)
+        {
+            return new(
+                ComponentDeclarationSuccessionKind.Declined,
+                declaration,
+                Array.Empty<string>(),
+                vetoed,
+                "declaration-use-vetoed",
+                $"The member has already exercised {string.Join(", ", vetoed)}, so the successor cannot narrow it away.");
+        }
+
+        return new(
+            ComponentDeclarationSuccessionKind.Narrowed,
+            successorDeclaration,
+            dropped,
+            Array.Empty<string>(),
+            "declaration-narrowed",
+            $"The declaration in force no longer includes {string.Join(", ", dropped)}.");
+    }
+
+    private static string? SamePosition(
+        Cm.ResolutionOutcome successor,
+        ComponentBindingSelection selection,
+        Portable.PortableCompositionMember member)
+    {
+        if (successor.Generation is not { } generation)
+        {
+            return "The successor resolution did not complete a generation.";
+        }
+
+        var matches = generation.ProviderSets
+            .Where(item => item.Requirement == selection.Requirement)
+            .ToArray();
+        if (matches.Length != 1)
+        {
+            return $"The successor generation contains {matches.Length} provider positions for requirement '{selection.Requirement}'.";
+        }
+
+        var providerSet = matches[0];
+        if (providerSet.Cardinality.Minimum != 1 ||
+            providerSet.Cardinality.Maximum != 1 ||
+            providerSet.Exposure != Cm.ProviderExposure.Distinct ||
+            providerSet.Mediation is not null ||
+            providerSet.Members.Count != 1)
+        {
+            return "The successor position is not the direct 1..1 distinct position this member was bound under.";
+        }
+
+        var successorMember = providerSet.Members[0];
+        return successorMember.Definition == selection.Definition &&
+            successorMember.Occurrence == selection.Occurrence &&
+            providerSet.Scope.Value == member.Fact("bindingScope")
+            ? null
+            : "The successor resolves a different definition, occurrence, or binding scope than the live member.";
+    }
+
+    private static ComponentDeclarationSuccessionResult Decline(
+        ComponentGrantDependency declaration,
+        string code,
+        string reason) =>
+        new(
+            ComponentDeclarationSuccessionKind.Declined,
+            declaration,
+            Array.Empty<string>(),
+            Array.Empty<string>(),
             code,
             reason);
 }

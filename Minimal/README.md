@@ -79,8 +79,10 @@ The implementation currently provides:
   without disturbing the binding; CBI9 removes and substitutes participants under a dependency the
   resolved definition declares, admitting a revision only while every declared dependency stays
   covered; CBI10 verifies that declaration against observed portable interaction through derived CM4
-  binding exercises, retiring the member on undeclared or ungranted use;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI10 integration
+  binding exercises, retiring the member on undeclared or ungranted use; CBI11 narrows a declaration
+  only to a successor resolution of the same position that declares less, with observed use vetoing
+  its own removal and no retirement path at all;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI11 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

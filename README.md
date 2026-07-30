@@ -126,6 +126,9 @@ becomes a CM4 binding exercise whose authority admission is derived rather than 
 runtime's own rule condemns interaction outside the declaration; an interaction that emitted no
 frame exercised nothing, and undeclared or ungranted use retires the member. It detects a
 declaration contradicted by use, never one contradicted by disuse.
+CBI11 answers what that leaves open: nothing retires an unexercised declaration except the Component
+saying so. A declaration narrows only to a successor resolution of the same position that declares
+less, and observed use vetoes its own removal, so no elapsed time or quiet period narrows anything.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

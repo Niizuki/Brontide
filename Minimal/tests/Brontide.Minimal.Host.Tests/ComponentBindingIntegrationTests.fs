@@ -52,14 +52,12 @@ type ComponentBindingIntegrationTests() =
     let evaluationTime = DateTimeOffset(2026, 7, 30, 10, 0, 0, TimeSpan.Zero)
     let multiple action = Assert.Multiple(Action action)
 
-    let requestWith cardinality declaredAuthority =
+    let requestFor cardinality declaredAuthority scope =
         let requirement =
             { Requirement = requirementId
               Contract = contractId
               Version = version
-              Scope =
-                Brontide.Minimal.Experimental.ComponentManagement.BindingScopeId.create
-                    "scope.cooling"
+              Scope = scope
               Cardinality = cardinality
               AllowSharing = false
               Exposure = ProviderExposure.Distinct
@@ -122,6 +120,12 @@ type ComponentBindingIntegrationTests() =
           PreselectedProviders = []
           Ports = []
           TopologyClaims = [] }
+
+    let requestWith cardinality declaredAuthority =
+        requestFor
+            cardinality
+            declaredAuthority
+            (Brontide.Minimal.Experimental.ComponentManagement.BindingScopeId.create "scope.cooling")
 
     let request cardinality = requestWith cardinality []
 
@@ -401,6 +405,21 @@ type ComponentBindingIntegrationTests() =
                 Target = authorityTarget
                 Operation = auditOperation
                 Scope = authorityScope } ] }
+
+    let controlOnlyDependency definition : ComponentGrantDependency =
+        { Definition = definition
+          Entries =
+            [ { DeclaredAuthority = "cooling.control"
+                Capability = capability
+                Target = authorityTarget
+                Operation = operation
+                Scope = authorityScope } ] }
+
+    let successionToken kind =
+        match kind with
+        | ComponentDeclarationSuccessionKind.Narrowed -> "narrowed"
+        | ComponentDeclarationSuccessionKind.Declined -> "declined"
+        | ComponentDeclarationSuccessionKind.ActivationUnavailable -> "activation-unavailable"
 
     let verdictToken kind =
         match kind with
@@ -2064,6 +2083,193 @@ type ComponentBindingIntegrationTests() =
                                 verdict.Kind = ComponentInteractionVerdictKind.Consistent),
                             scenario)
                     | None -> ())
+        }
+
+    [<Test>]
+    member _.``shared CBI11 vectors narrow only when a successor declares less``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi11-declaration-succession-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI11 vector identity must be a string"
+                    | value -> value
+                let resolution, selected, occurrence = preparedWith declaredAuthority
+                let! active =
+                    ComponentParticipantAdmission.activate
+                        resolution
+                        selected
+                        (participantSet occurrence supervisorLocalActor)
+                        (runtimeRequest (plan [ occurrence ]))
+                        (directCooling CoolingFixture.contract)
+                let memberValue = active.Lifecycle.Value.Member.Value
+                let! attempted =
+                    memberValue.Invoke(
+                        CoolingFixture.setEnabled,
+                        CoolingFixture.commandV1,
+                        CoolingFixture.authorizedCommand "primary" true,
+                        PortableConstraint.Atom PortableTruth.Satisfied)
+                let observations =
+                    match attempted with
+                    | Ok interaction ->
+                        [ { Operation = CoolingFixture.setEnabled
+                            Result = interaction } ]
+                    | Error error -> failwithf "Expected an observable interaction, got %A." error
+                let successor =
+                    match scenario with
+                    | "cbi11-06-position-mismatch" ->
+                        requestFor
+                            (Cardinality.parse "1..1")
+                            [ "cooling.control" ]
+                            (Brontide.Minimal.Experimental.ComponentManagement.BindingScopeId.create
+                                "scope.other")
+                        |> FakeGenerationResolver.resolve
+                    | "cbi11-07-successor-declares-nothing" ->
+                        requestWith (Cardinality.parse "1..1") [] |> FakeGenerationResolver.resolve
+                    | "cbi11-03-unchanged"
+                    | "cbi11-08-successor-mapping-mismatch" ->
+                        requestWith (Cardinality.parse "1..1") declaredAuthority
+                        |> FakeGenerationResolver.resolve
+                    | "cbi11-04-wider" ->
+                        requestWith
+                            (Cardinality.parse "1..1")
+                            [ "cooling.control"; "cooling.audit"; "cooling.extra" ]
+                        |> FakeGenerationResolver.resolve
+                    | _ ->
+                        requestWith (Cardinality.parse "1..1") [ "cooling.control" ]
+                        |> FakeGenerationResolver.resolve
+                let successorDeclaration =
+                    match scenario with
+                    | "cbi11-03-unchanged" -> dependency selected.Definition
+                    | "cbi11-04-wider" ->
+                        { Definition = selected.Definition
+                          Entries =
+                            (dependency selected.Definition).Entries
+                            @ [ { DeclaredAuthority = "cooling.extra"
+                                  Capability = reportCapability
+                                  Target = authorityTarget
+                                  Operation = reportOperation
+                                  Scope = authorityScope } ] }
+                    | "cbi11-05-tuple-changed" ->
+                        { Definition = selected.Definition
+                          Entries =
+                            [ { DeclaredAuthority = "cooling.control"
+                                Capability = capability
+                                Target = authorityTarget
+                                Operation = operation
+                                Scope = CapabilityScopeId.create "scope.other" } ] }
+                    | "cbi11-07-successor-declares-nothing" ->
+                        { Definition = selected.Definition; Entries = [] }
+                    | "cbi11-08-successor-mapping-mismatch" ->
+                        controlOnlyDependency selected.Definition
+                    | _ -> controlOnlyDependency selected.Definition
+                let attribution =
+                    match scenario with
+                    | "cbi11-02-use-vetoed" ->
+                        [ { Operation = CoolingFixture.setEnabled
+                            DeclaredAuthority = "cooling.audit" } ]
+                    | "cbi11-09-ambiguous-attribution" ->
+                        [ { Operation = CoolingFixture.setEnabled
+                            DeclaredAuthority = "cooling.control" }
+                          { Operation = CoolingFixture.setEnabled
+                            DeclaredAuthority = "cooling.audit" } ]
+                    | _ ->
+                        [ { Operation = CoolingFixture.setEnabled
+                            DeclaredAuthority = "cooling.control" } ]
+                let result =
+                    ComponentDeclarationSuccession.succeed
+                        resolution
+                        successor
+                        selected
+                        active
+                        (dependency selected.Definition)
+                        successorDeclaration
+                        attribution
+                        observations
+                multiple (fun () ->
+                    Assert.That(
+                        successionToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Dropped.Length,
+                        Is.EqualTo(vector.GetProperty("expectedDropped").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Vetoed.Length,
+                        Is.EqualTo(vector.GetProperty("expectedVetoed").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Declaration.Value.Entries.Length,
+                        Is.EqualTo(vector.GetProperty("expectedDeclaredInForce").GetInt32()),
+                        scenario)
+                    // CBI11 has no retirement path.
+                    Assert.That(CompositionStage.token memberValue.Stage, Is.EqualTo "released", scenario)
+                    Assert.That(
+                        vector.GetProperty("expectedReleased").GetBoolean(),
+                        Is.True,
+                        scenario))
+        }
+
+    [<Test>]
+    member _.``a narrowed declaration lets CBI9 release the participant it kept``() =
+        task {
+            let resolution, selected, occurrence = preparedWith declaredAuthority
+            let participants = participantSet occurrence supervisorLocalActor
+            let! active =
+                ComponentParticipantAdmission.activate
+                    resolution
+                    selected
+                    participants
+                    (runtimeRequest (plan [ occurrence ]))
+                    (directCooling CoolingFixture.contract)
+            let providerRequest = (List.item 0 participants).Request
+            let! before =
+                ComponentParticipantRevision.revise
+                    resolution
+                    selected
+                    active
+                    (dependency selected.Definition)
+                    [ providerRequest ]
+                    "drop the audit holder before succession"
+            let successor =
+                requestWith (Cardinality.parse "1..1") [ "cooling.control" ]
+                |> FakeGenerationResolver.resolve
+            let narrowed =
+                ComponentDeclarationSuccession.succeed
+                    resolution
+                    successor
+                    selected
+                    active
+                    (dependency selected.Definition)
+                    (controlOnlyDependency selected.Definition)
+                    [ { Operation = CoolingFixture.setEnabled
+                        DeclaredAuthority = "cooling.control" } ]
+                    []
+            let! after =
+                ComponentParticipantRevision.revise
+                    successor
+                    selected
+                    active
+                    narrowed.Declaration.Value
+                    [ providerRequest ]
+                    "drop the audit holder after succession"
+            multiple (fun () ->
+                Assert.That(before.Code, Is.EqualTo "dependency-not-covered")
+                Assert.That(narrowed.Kind, Is.EqualTo ComponentDeclarationSuccessionKind.Narrowed)
+                Assert.That(narrowed.Dropped, Is.EqualTo<string> [ "cooling.audit" ])
+                Assert.That(after.Kind, Is.EqualTo ComponentParticipantRevisionKind.Revised)
+                Assert.That(after.InForce.Value.Admissions.Length, Is.EqualTo 1))
         }
 
     [<Test>]
