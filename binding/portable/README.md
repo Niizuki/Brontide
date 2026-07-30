@@ -3,8 +3,9 @@
 **Status:** PB1 complete, implemented natively in both stacks (PB2 Reference, PB3 Minimal), measured
 for direct-versus-process parity in each (PB4), paired across the stacks and against an
 [implementation-neutral provider](../neutral-provider/README.md) (PB5), hardened (PB6), and given the
-Composition handoff by which composition machinery reaches the layer (PB7) — planned experimental
-work; not ratified; not part of Brontide Base.
+Composition handoff by which composition machinery reaches the layer (PB7). PB8's evidence and
+documentation work is complete; its independent reviews and owner-question closure are outstanding.
+Planned experimental work; not ratified; not part of Brontide Base.
 **Designed for:** Brontide Architecture 0.8 §16 and §18.1 (Complete Draft).
 **Plan:** [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
 
@@ -163,6 +164,23 @@ answered. Every fixture here derives from one declaration, so the two have alway
 could have observed the difference. Decision 11 in [`open-decisions.md`](open-decisions.md) records
 it with its options; no schema or vector changed for it, because the provisional fix is a check at
 the composition seam rather than a contract change.
+
+## What PB8 changed here
+
+Nothing in this directory except [`contract-matrix.md`](contract-matrix.md), which gained an
+executed-evidence table: per capability, which realizations have actually run it — the fixed direct
+call, the negotiated process seam, a provider in its own operating-system process, and the
+cross-stack matrix — and the suite that carries each. Where the PB1 table records what the contract
+*says*, that one records what has been *run*, which is the distinction PB8 exists to make
+discoverable.
+
+PB8's other work lands outside this directory: the Channel ledger, the public boundary document, both
+stacks' changelogs and inventories, and the re-measured source-cost inventory in
+[`interchange/binding-measurements.json`](../../interchange/binding-measurements.json), which now
+separates the retained experiments from this layer and records the representation, framing,
+allocation, copy, and payload-bound facts for both realizations with their provenance. Its two
+remaining steps — fresh independent reviews and owner rulings on the nine open decisions — are not
+the implementer's to close.
 
 ## Boundary
 

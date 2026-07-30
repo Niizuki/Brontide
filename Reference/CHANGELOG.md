@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased — Portable Component Binding 0.1 experimental evidence
+
+### Added
+
+- `Brontide.Reference.Experimental.Binding.Portable`: the Reference realization of the Portable
+  Component Binding contract under [`binding/portable/`](../binding/portable/README.md). It adds a
+  deterministic-CBOR core and length-delimited framing, portable references and the Shape floor,
+  contract negotiation and a frozen, inspectable Binding Plan, local authority under strong Kleene
+  evaluation with frameless denial, referenced resources, an explicit lifecycle with declared
+  limits, the Channel envelopes, the C9 observation set, and a fixed direct-call alongside a
+  negotiated process realization. `PortableCoreAdapter` is the Reference-owned adapter between the
+  stack's `ShapeValue` model and the neutral positions.
+- `PortableCompositionHandoff` and `PortableCompositionMember`: the seam by which a resolved
+  Component requirement and an offered provision produce a Binding Plan during activation preflight,
+  with the ordinary-interaction gate closed until a composition releases the member. Provider Sets,
+  mediated exposure, an unselected provider, and a provider substituted by the answering endpoint are
+  refused rather than approximated.
+
+The retained line-delimited Cooling and Catalog experiments in the same project are unchanged and
+remain diagnostic and legacy. This surface is experimental architecture evidence: it is not part of
+Brontide Base, not an Architecture 0.8 conformance claim, not ratified, and not a component-version
+change. These repository projects are not independently versioned packages, so no version is bumped.
+
 ## Unreleased — Architecture 0.7 Complete Draft evidence
 
 ### Added

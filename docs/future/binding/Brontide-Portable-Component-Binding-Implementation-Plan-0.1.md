@@ -1,6 +1,7 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Partially implemented experimental work — PB0 through PB7 complete; PB8 planned
+**Status:** Partially implemented experimental work — PB0 through PB7 complete; PB8 partly complete
+(evidence and documentation delivered; independent review and owner-question closure outstanding)
 **Date:** 2026-07-23 (delivery status updated 2026-07-30)
 **Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
@@ -156,7 +157,7 @@ deterministically. The repository-wide gate invokes it.
 | PB5 — cross-stack and independent-provider matrix | **Complete** | both stacks' `PortableCrossStackTests` and `PortableNeutralProviderTests`, [`binding/neutral-provider/`](../../../binding/neutral-provider/README.md), [`catalog-fixture-contract.json`](../../../binding/portable/vectors/catalog-fixture-contract.json) |
 | PB6 — resource, lifecycle, and hardening completion | **Complete** | both stacks' `PortableDecoderPropertyTests`, `PortableProcessCategoryTests`, `PortableResourceSeamTests`, `PortableLifecycleSeamTests`, and the `a failure path leaks nothing` cases in `PortableRealizationParityTests` |
 | PB7 — Composition handoff | **Complete** | [`schemas/composition-handoff.json`](../../../binding/portable/schemas/composition-handoff.json), [`vectors/composition-handoff.json`](../../../binding/portable/vectors/composition-handoff.json) (11 vectors), [`Reference .../Portable/PortableCompositionHandoff.cs`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCompositionHandoff.cs), [`Minimal .../Portable/PortableCompositionHandoff.fs`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/PortableCompositionHandoff.fs), both `PortableCompositionHandoffTests` |
-| PB8 — evidence, documentation, and review closure | Planned — next | — |
+| PB8 — evidence, documentation, and review closure | **Partly complete** — steps 1-4 delivered; steps 5 and 6 outstanding | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md) executed-evidence table, [`channel ledger`](../channel/architecture-0.8-channel-requirements-and-risk-ledger.md) §4, [`binding-measurements.json`](../../../interchange/binding-measurements.json) schema 2, [`public-boundaries.md`](../../current/policies/public-boundaries.md) portable seam, both stacks' `CHANGELOG.md` |
 
 Only PB8 remains. The neutral contract exists and is gated, both stacks implement it natively in both
 realizations, PB4 measured those two realizations against each other across the portable observation
@@ -668,6 +669,60 @@ be released, which the Local Initialisation case reaches. The two stacks state i
 
 **Exit:** all C1-C10 evidence is passing and discoverable, limitations are current, the complete
 gate is green, and independent reviews contain no unresolved in-scope findings.
+
+**Partly delivered.** Steps 1 through 4 are complete; steps 5 and 6 are not, and neither can be
+completed by the implementer.
+
+#### Delivered
+
+**Step 1 — implementation documentation.** Both stack READMEs name the portable layer and where it
+sits in the dependency rule; both `experimental-and-sideline-projects.md` inventories carry the
+per-phase state; and both `CHANGELOG.md` files record the added experimental surface under their own
+heading, explicitly as experimental evidence rather than a component-version change. The public
+boundary document gains a portable-seam section stating its declared bounds, timeout and failure
+classification, cleanup ownership, replay and denial-of-service assumptions, and what does not cross.
+The two retained JSON-lines rows and their pinned anchors are untouched, so the existing
+conformance-matrix evidence pins remain valid.
+
+**Step 2 — Channel ledger and contract matrix.** The contract matrix gains an executed-evidence
+table: per capability, which realizations have run it — direct, process, cross-process, cross-stack —
+and the suite that carries it. The Channel ledger records CH-R11 as `realisation-executed` rather
+than awaiting stack harnesses, adds a section on what the realisation evidenced for CH-R2, CH-R6,
+CH-R8, CH-K2, CH-K3, and CH-K4, and marks two of its recorded forward scenarios delivered and one
+partly delivered. Neither document upgrades ratification or architecture-target language, and the
+Decision 10 caveat is carried into the ledger rather than left in the binding programme.
+
+**Step 3 — re-measurement.** [`interchange/binding-measurements.json`](../../../interchange/binding-measurements.json)
+moves to schema 2. Every source file now declares its layer — retained experiment or portable — and
+each stack records per-layer totals; the portable layer measures 7,337 Reference lines against 6,374
+Minimal lines, two independent implementations of one contract within about 13% of each other. The
+file also records the representation, framing, allocation, copy-accounting, and payload-bound facts
+for both realizations, each stating whether it is declared by the contract, asserted by a named
+vector in both stacks, or measured from the artifacts. The gate recomputes every count and every
+layer total, fails on a portable source file that is not measured at all, and rejects a recorded fact
+that names no provenance — checked by deliberately breaking each rule and confirming the failure.
+Runtime cost stays method-recorded rather than threshold-gated, for the reason §3 gives: optimising
+the hot path before contract and observation parity are demonstrated is an explicit non-goal, so what
+is gated is structural cost.
+
+**Step 4 — gates.** `build/verify-portable-binding.ps1` and the complete repository gate
+`build/verify-interchange.ps1` both pass.
+
+#### Outstanding, and why the implementer cannot close them
+
+**Step 5 — fresh independent reviews.** An automated attestation counts as independent only when the
+reviewer has an identity distinct from every implementation actor, starts in a fresh isolated
+context, and has no access to the implementation session's private reasoning. The session that
+implemented PB7 and this documentation is an implementation actor for exactly this evidence, so it
+cannot review it. The existing control plane under `conformance/reviews/` is pinned to the completed
+implementation-correction programme; using it would require a new request rather than an edit to that
+closed record, which is an owner decision about what is being reviewed and by whom.
+
+**Step 6 — question closure.** Nine decisions are open and each is awaiting an *owner* ruling, not an
+implementer's. Moving one to `Resolved questions` without a ruling would convert a provisional choice
+into a decision by writing it down, which is the one thing the open-decisions file exists to prevent.
+
+Both remain open work for PB8; nothing in steps 1 through 4 depends on them.
 
 ## 6. Mandatory evidence matrix
 

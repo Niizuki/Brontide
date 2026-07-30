@@ -43,10 +43,22 @@ for that provider session. [`catalog/vectors`](./catalog/vectors) contains the n
 inputs; both stacks run them through independently implemented parsers and endpoints.
 
 [`binding-measurements.json`](./binding-measurements.json) records physical source lines and the
-generated/manual split. `build/verify-binding-measurements.ps1` recomputes every file count. Both
-implementations currently use zero generated lines; every measured binding line is manual and
-stack-owned. Build timing is intentionally method-recorded rather than CI-gated because SDK startup
-and cache state dominate the incremental observation.
+generated/manual split, now separated into two layers: the retained line-delimited experiments and
+the reusable Portable Component Binding under each stack's `Portable/` directory.
+`build/verify-binding-measurements.ps1` recomputes every file count and every layer total, and fails
+on a portable source file that is not measured at all. Both implementations currently use zero
+generated lines; every measured binding line is manual and stack-owned. Build timing is intentionally
+method-recorded rather than CI-gated because SDK startup and cache state dominate the incremental
+observation, and runtime cost is method-recorded for the same reason: optimising the hot path is an
+explicit version 0.1 non-goal, so what is gated is structural cost — declared bounds, copy
+accounting, and byte-exact golden encodings — rather than a timing threshold nobody has tried to
+move.
+
+The same file records the portable realization facts PB8 asks for — representation, framing,
+allocation, copy accounting, and payload bounds for both the fixed direct-call and the negotiated
+process realization — and each fact states whether it is declared by the contract, asserted by a
+named vector in both stacks, or measured from the artifacts. The gate rejects a fact that names no
+provenance.
 
 Run the complete clean interchange gate from the repository root:
 

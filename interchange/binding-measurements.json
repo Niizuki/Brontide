@@ -1,43 +1,145 @@
 {
-  "schemaVersion": 1,
-  "recordedOn": "2026-07-18",
+  "schemaVersion": 2,
+  "recordedOn": "2026-07-30",
   "method": "Physical UTF-8 source lines as returned by PowerShell Get-Content; blank and comment lines are included.",
   "generatedCodePolicy": "Neither experimental binding uses generated runtime code. Generated source lines are therefore zero; all listed source is independently authored manual code.",
+  "layers": {
+    "retained-experiment": "The line-delimited JSON Cooling and Catalog experiments governed by the archived Interchange Implementation Plan 0.1. Several of their files carry 'Portable' in their names and predate the Portable Component Binding; that protocol is diagnostic and legacy, never the portable wire contract.",
+    "portable": "The reusable Portable Component Binding layer under each stack's 'Portable/' directory, delivered by PB2 (Reference) and PB3 (Minimal) and extended through PB7."
+  },
   "stacks": [
     {
       "name": "Reference",
       "language": "C#",
       "files": [
-        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/CoolingContract.cs", "manualSourceLines": 213 },
-        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/PortableContract.cs", "manualSourceLines": 325 },
-        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/PortableProtocol.cs", "manualSourceLines": 372 },
-        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/ShapeValueCodec.cs", "manualSourceLines": 215 },
-        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/PortableProviderEndpoint.cs", "manualSourceLines": 170 },
-        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/ReferenceCoolingBindingHost.cs", "manualSourceLines": 250 },
-        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/CatalogBinding.cs", "manualSourceLines": 674 }
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/CoolingContract.cs", "layer": "retained-experiment", "manualSourceLines": 213 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/PortableContract.cs", "layer": "retained-experiment", "manualSourceLines": 325 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/PortableProtocol.cs", "layer": "retained-experiment", "manualSourceLines": 372 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/ShapeValueCodec.cs", "layer": "retained-experiment", "manualSourceLines": 215 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/PortableProviderEndpoint.cs", "layer": "retained-experiment", "manualSourceLines": 170 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/ReferenceCoolingBindingHost.cs", "layer": "retained-experiment", "manualSourceLines": 250 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/CatalogBinding.cs", "layer": "retained-experiment", "manualSourceLines": 674 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/CatalogPortableFixture.cs", "layer": "portable", "manualSourceLines": 226 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/CoolingPortableFixture.cs", "layer": "portable", "manualSourceLines": 350 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableAuthority.cs", "layer": "portable", "manualSourceLines": 285 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableBindingHost.cs", "layer": "portable", "manualSourceLines": 325 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableBindingPlan.cs", "layer": "portable", "manualSourceLines": 252 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCbor.cs", "layer": "portable", "manualSourceLines": 555 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCborAccess.cs", "layer": "portable", "manualSourceLines": 90 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCompositionHandoff.cs", "layer": "portable", "manualSourceLines": 587 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableContract.cs", "layer": "portable", "manualSourceLines": 642 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableConversations.cs", "layer": "portable", "manualSourceLines": 457 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCoreAdapter.cs", "layer": "portable", "manualSourceLines": 217 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableEnvelope.cs", "layer": "portable", "manualSourceLines": 387 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableFraming.cs", "layer": "portable", "manualSourceLines": 222 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableLifecycle.cs", "layer": "portable", "manualSourceLines": 137 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableLimits.cs", "layer": "portable", "manualSourceLines": 67 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableNegotiation.cs", "layer": "portable", "manualSourceLines": 316 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableObservation.cs", "layer": "portable", "manualSourceLines": 221 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableProviderEndpoint.cs", "layer": "portable", "manualSourceLines": 261 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableReferences.cs", "layer": "portable", "manualSourceLines": 349 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableResources.cs", "layer": "portable", "manualSourceLines": 284 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableShapeCatalog.cs", "layer": "portable", "manualSourceLines": 213 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableTaxonomy.cs", "layer": "portable", "manualSourceLines": 227 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableValue.cs", "layer": "portable", "manualSourceLines": 142 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableValueCodec.cs", "layer": "portable", "manualSourceLines": 525 }
       ],
-      "manualSourceLines": 2219,
+      "layerSourceLines": { "retained-experiment": 2219, "portable": 7337 },
+      "manualSourceLines": 9556,
       "generatedSourceLines": 0,
-      "totalSourceLines": 2219
+      "totalSourceLines": 9556
     },
     {
       "name": "Minimal",
       "language": "F#",
       "files": [
-        { "path": "Minimal/src/Brontide.Minimal.Binding/Binding.fs", "manualSourceLines": 327 },
-        { "path": "Minimal/src/Brontide.Minimal.Binding/PortableBinding.fs", "manualSourceLines": 1092 },
-        { "path": "Minimal/src/Brontide.Minimal.Binding/CoolingBindingHost.fs", "manualSourceLines": 406 },
-        { "path": "Minimal/src/Brontide.Minimal.Binding/CatalogBinding.fs", "manualSourceLines": 673 }
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Binding.fs", "layer": "retained-experiment", "manualSourceLines": 327 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/PortableBinding.fs", "layer": "retained-experiment", "manualSourceLines": 1092 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/CoolingBindingHost.fs", "layer": "retained-experiment", "manualSourceLines": 406 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/CatalogBinding.fs", "layer": "retained-experiment", "manualSourceLines": 673 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableAuthority.fs", "layer": "portable", "manualSourceLines": 185 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableBindingHost.fs", "layer": "portable", "manualSourceLines": 357 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableBindingPlan.fs", "layer": "portable", "manualSourceLines": 214 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableCbor.fs", "layer": "portable", "manualSourceLines": 447 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableCompositionHandoff.fs", "layer": "portable", "manualSourceLines": 474 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableContract.fs", "layer": "portable", "manualSourceLines": 737 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableConversation.fs", "layer": "portable", "manualSourceLines": 370 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableEnvelope.fs", "layer": "portable", "manualSourceLines": 347 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableFixtures.fs", "layer": "portable", "manualSourceLines": 461 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableFraming.fs", "layer": "portable", "manualSourceLines": 161 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableLifecycle.fs", "layer": "portable", "manualSourceLines": 165 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableLimits.fs", "layer": "portable", "manualSourceLines": 72 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableModelAdapter.fs", "layer": "portable", "manualSourceLines": 132 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableNegotiation.fs", "layer": "portable", "manualSourceLines": 230 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableObservation.fs", "layer": "portable", "manualSourceLines": 192 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableProviderEndpoint.fs", "layer": "portable", "manualSourceLines": 232 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableReferences.fs", "layer": "portable", "manualSourceLines": 306 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableResources.fs", "layer": "portable", "manualSourceLines": 242 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableShapeCatalog.fs", "layer": "portable", "manualSourceLines": 187 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableTaxonomy.fs", "layer": "portable", "manualSourceLines": 329 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableValue.fs", "layer": "portable", "manualSourceLines": 130 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableValueCodec.fs", "layer": "portable", "manualSourceLines": 404 }
       ],
-      "manualSourceLines": 2498,
+      "layerSourceLines": { "retained-experiment": 2498, "portable": 6374 },
+      "manualSourceLines": 8872,
       "generatedSourceLines": 0,
-      "totalSourceLines": 2498
+      "totalSourceLines": 8872
     }
   ],
+  "sourceCostComparison": {
+    "note": "The two portable layers differ by about 13% in source lines while sharing no code. That is a cost comparison between two independent implementations of one contract, not a quality measure. Fixtures are inside both counts, because each stack carries Cooling and Catalog as declaration data plus a handler.",
+    "referencePortableLines": 7337,
+    "minimalPortableLines": 6374
+  },
+  "portableRealizationFacts": {
+    "note": "Representation, allocation, copy, and payload-bound facts for both realizations, as plan section 5 PB8 requires. Each fact states how it is known: 'declared' is fixed by the neutral contract, 'asserted' is checked by a named vector in both stacks, and 'measured' is counted from the artifacts.",
+    "realizations": [
+      {
+        "id": "fixed-direct-call",
+        "representation": { "value": "direct-call", "how": "declared", "source": "binding/portable/schemas/binding-plan.json framing enumeration; it is the plan's framing fact for this realization" },
+        "encoding": { "value": "none", "how": "asserted", "source": "The conversation carries shaped values rather than bytes, so no deterministic-CBOR encode or decode runs on this path. PB-58 compares the resulting observations against the process realization's." },
+        "allocation": { "value": "no frame buffer and no CBOR item tree", "how": "asserted", "source": "The direct conversation hands the provider endpoint the value the host already holds; PB-62 checks that no shared semantic runtime sits between them." },
+        "copyAccounting": { "value": 0, "how": "asserted", "source": "PB-60 in both stacks: a copied-immutable-blob resource is zero copies in the direct call." },
+        "payloadBound": { "value": "the declared limits still govern the value, but no frame exists to exceed maxFrameBytes", "how": "declared", "source": "binding/portable/schemas/limits-and-lifecycle.json" }
+      },
+      {
+        "id": "negotiated-process",
+        "representation": { "value": "portable-cbor-core-0.1", "how": "declared", "source": "binding/portable/schemas/payload-representation.json; RFC 8949 section 4.2.1 core-deterministic encoding, schema-guided and carrying no kind discriminator" },
+        "framing": { "value": "4-byte big-endian length prefix, one message per frame", "how": "measured", "source": "binding/portable/vectors/golden-encodings.json framedExample F1-FRAMED-MINIMAL-COMMAND: 25 body bytes behind the prefix 00000019, re-derived by build/verify-portable-binding.ps1 rather than trusted" },
+        "allocation": { "value": "one CBOR item tree and one length-prefixed byte frame per envelope on each side", "how": "asserted", "source": "The process conversation encodes each request and decodes each Outcome; the provider loop does the converse. PB-33, PB-34, and the decoder property tests bound what either side will allocate for a hostile frame." },
+        "copyAccounting": { "value": 1, "how": "asserted", "source": "PB-60 in both stacks: a copied-immutable-blob resource is one copy across the seam. An inline payload is the message rather than a copy of a resource, which is what makes that count exact." },
+        "payloadBound": { "value": 65536, "how": "declared", "source": "maxFrameBytes in binding/portable/schemas/limits-and-lifecycle.json, enforced before uncontrolled work; PB-33 asserts the refusal and PB-34 the nesting bound" }
+      }
+    ],
+    "declaredLimits": {
+      "how": "declared",
+      "source": "binding/portable/schemas/limits-and-lifecycle.json, and each stack's declared PortableLimits value",
+      "maxFrameBytes": 65536,
+      "maxNestingDepth": 32,
+      "maxRecordFields": 256,
+      "maxFragmentsPerRecord": 16,
+      "maxSequenceItems": 4096,
+      "maxTextBytes": 16384,
+      "maxByteStringBytes": 32768,
+      "maxResourceBytes": 32768,
+      "ioTimeoutMilliseconds": 10000,
+      "maxConcurrentRequests": 1
+    },
+    "parityBoundary": {
+      "how": "asserted",
+      "source": "Both stacks' PortableRealizationParityTests, thirteen scenarios stated once as data and executed unchanged in both realizations",
+      "rule": "The two realizations agree on every field of the parity profile. Representation, framing, crossed boundaries, copy accounting, correlation identities, timing, and local codes are excluded, because the realization is exactly what differs there."
+    }
+  },
   "buildContribution": {
     "status": "method-recorded-not-gated",
     "rationale": "An incremental project build is dominated by SDK startup, dependency state, and machine cache. A timing threshold would not be portable enough for CI; source cost is the stable comparison.",
     "referenceCommand": "Measure-Command { dotnet build .\\Reference\\src\\Brontide.Reference.Experimental.Binding\\Brontide.Reference.Experimental.Binding.csproj --no-restore -nologo }",
     "minimalCommand": "Measure-Command { dotnet build .\\Minimal\\src\\Brontide.Minimal.Binding\\Brontide.Minimal.Binding.fsproj --no-restore -nologo }"
+  },
+  "runtimeCost": {
+    "status": "method-recorded-not-gated",
+    "rationale": "Version 0.1 deliberately does not optimize the hot path before the contract and observation parity are demonstrated (plan section 3 non-goals). A throughput or latency threshold recorded now would pin a number nobody has tried to move, and would vary with machine and process-start cost. What is gated instead is structural cost: the declared bounds above, the copy accounting each realization reports, and the byte-exact golden encodings.",
+    "comparisonCommand": "dotnet test .\\Reference\\tests\\Brontide.Reference.Interchange.Tests\\Brontide.Reference.Interchange.Tests.csproj --no-build --filter 'FullyQualifiedName~PortableRealizationParityTests'"
   }
 }

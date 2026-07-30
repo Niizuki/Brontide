@@ -42,6 +42,12 @@ The implementation currently provides:
 - a tagged JSON ShapeValue codec and versioned external manifest negotiation;
 - independently implemented Cooling v2 and Catalog v1 process-binding experiments, host clients,
   provider endpoints, adversarial vectors, and structured operational observations;
+- a native realization of the experimental [Portable Component Binding](../binding/portable/README.md)
+  under `Brontide.Minimal.Binding/Portable/`: deterministic-CBOR encoding over a bounded
+  length-delimited wire, negotiation and a frozen Binding Plan, frameless local denial, referenced
+  resources, an explicit lifecycle, the C9 observation set, a fixed direct-call and a negotiated
+  process realization, and the Composition handoff that turns a resolved requirement and an offered
+  provision into a Binding Plan at activation preflight;
 - a headless host and five F# test assemblies.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

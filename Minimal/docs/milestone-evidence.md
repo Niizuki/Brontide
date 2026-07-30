@@ -64,7 +64,9 @@ The correction breadth proof adds independently implemented Catalog batch upsert
 provider session. It retains nested/repeated tags, returns explicit missing-item failures, refuses
 an out-of-scope provider resource before mutation, rejects malformed/unknown/version-skew/replay
 vectors, and caps each line at 65,536 UTF-8 bytes. `interchange/binding-measurements.json` records the
-manual/generated source split and is recomputed by the full gate.
+manual/generated source split and is recomputed by the full gate; it now separates those retained
+experiments from the later Portable Component Binding layer and records that layer's representation,
+framing, allocation, copy, and payload-bound facts with their provenance.
 
 The next planned cross-stack gate is Event/Flow evidence, followed by Macro Operation exchange and
 the mixed image workspace. Machine boundaries, authority federation, hot-swap, and a ratified

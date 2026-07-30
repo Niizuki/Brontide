@@ -93,5 +93,9 @@ Brontide Reference Stack Studio opens on the virtual-device board. Its actions e
 `Brontide.Reference.Core` has no project dependency. Extensions, vocabularies, and experimental projects
 reference only Core. Studio composes all projects and is referenced only by its test project. The
 experimental provider endpoint composes vocabulary and binding projects without becoming Studio.
+`Brontide.Reference.Experimental.Binding/Portable/` — the Reference realization of the experimental
+[Portable Component Binding](../binding/portable/README.md), including the Composition handoff that
+produces a Binding Plan at activation preflight — obeys the same rule: it depends only on Core, and
+the composition that drives it lives in the test estate rather than in Core.
 The dependency verifier also rejects Brontide Minimal Stack project references and foreign Brontide Minimal Stack assemblies in
 Brontide Reference Stack outputs.

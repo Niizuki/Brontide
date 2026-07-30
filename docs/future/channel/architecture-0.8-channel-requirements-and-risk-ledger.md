@@ -37,7 +37,9 @@ Each requirement is what the `Channel` extension must eventually settle. Disposi
 `open`, `decided-in-note` (the design note records the semantic answer; the portable form remains
 open), `decided-in-draft` (the draft contract records a reviewable semantic answer without
 ratification), `vectors-authored` (shared data-only vectors exist but stack harnesses remain
-evidence-gated), or `evidence-gated` (answerable only against a running conformance realisation).
+evidence-gated), `realisation-executed` (a conforming realisation executes the vectors in both
+stacks; the semantics are evidenced but not ratified), or `evidence-gated` (answerable only against
+a running conformance realisation).
 
 | ID | Requirement | Source | Disposition |
 | --- | --- | --- | --- |
@@ -51,7 +53,7 @@ evidence-gated), or `evidence-gated` (answerable only against a running conforma
 | CH-R8 | Transport and framing: framed, self-delimited messages over a duplex transport, one message per frame, diagnostic side band carrying no semantic result; a realisation declares framing and any frame-size bound. | note §"framed messages"; Cooling/Catalog stdio JSON-lines | decided-in-note; transport left open |
 | CH-R9 | Declared hardening dimensions: replay window, payload bound, field strictness, parse bounds — each stated explicitly, including stating that none is provided. | note §"boundary hardening"; Catalog vectors | decided-in-note; declaration form open |
 | CH-R10 | Non-promises: no delivery, ordering, or retry guarantee; interruption, retry, and fallback recorded as facts, success never fabricated. | note §"non-promises"; Plan §4 | decided-in-note |
-| CH-R11 | Conformance vectors: a vector set expressing one Channel contract runnable against both stacks, so the C7/C8 constraint-evaluation rules and the failure taxonomy are checked identically. | §29.2 discipline; adversarial-vector precedent | vectors-authored; 24 shared vectors recorded, independent stack harnesses evidence-gated |
+| CH-R11 | Conformance vectors: a vector set expressing one Channel contract runnable against both stacks, so the C7/C8 constraint-evaluation rules and the failure taxonomy are checked identically. | §29.2 discipline; adversarial-vector precedent | realisation-executed; all 24 shared vectors have executed evidence in each stack independently, derived from the Portable Binding's neutral declarations rather than restated (see §4) |
 
 ## 3. Risk register
 
@@ -79,35 +81,77 @@ What the Cooling and Catalog proofs already establish for Channel, versus what r
 - **Decided in the non-ratified draft.** The category-level error taxonomy (CH-R2); logical
   correlation and envelope Shapes (CH-R1, CH-R3); relative failure domains (CH-R6); and the
   per-position covariant/contravariant classification including the C8 polarity flip (CH-R7).
-- **Authored, execution open.** Twenty-four shared data-only vectors cover CH-R11, including C7/C8,
+- **Authored and now executed.** Twenty-four shared data-only vectors cover CH-R11, including C7/C8,
   category mapping, frame/no-frame failure separation, and failure attribution. Independent stack
-  adapters and accepted runtime evidence remain pending.
+  adapters now exist: the Portable Component Binding executes every one of them in each stack.
 - **Open for the next realization.** The exact intra-domain authority-presentation representation
   is the Portable Binding's subject (CH-R5), as are concrete encoding, descriptor, and harness APIs.
 
 The proofs are test instruments, not a specification: passing them ratifies neither Channel nor a
 Portable Binding.
 
+### What the Portable Binding realisation has since evidenced
+
+The Portable Component Binding is Channel's first conforming realisation (§1). PB2 through PB7 have
+executed it, and what that adds to the register above is recorded here rather than in the
+dispositions, because evidence is not ratification and the ledger's semantic answers are unchanged.
+
+- **CH-R11 is executed rather than pending.** Each stack runs every Channel vector, and the
+  accounting is derived rather than asserted: each stack reads
+  [`conformance/channel-0.1-vectors.json`](../../../conformance/channel-0.1-vectors.json) together
+  with the neutral vectors' own `channelVectors` declarations, and counts a Channel vector as
+  executed only when a portable vector the neutral layer says preserves it is executed by that
+  stack. Removing a test, deferring a vector, or renaming a Channel vector fails the build.
+- **CH-R2 categories survived contact with two implementations.** The taxonomy is reproduced exactly
+  — no category added, none removed — and PB6 made process-category classification total, so a
+  foreign runtime failure cannot escape as itself. Two categories that had been declared without a
+  reachable path (`resource-exhausted`, `unknown`) now have behavioural evidence;
+  `peer-unavailable` remains unreachable by design, because the binding layer never starts a peer.
+- **CH-R6's three-way separation holds under adversarial pressure.** Denial is frameless, a semantic
+  failure is a shaped Outcome, and a protocol rejection and a process loss stay distinct — proved
+  across a real seam rather than through a codec called directly, and with failure paths shown to
+  leak no provider effect, value, runtime type, resource, or false success.
+- **CH-R8's framing question has one worked answer.** The portable wire is length-delimited with a
+  4-byte big-endian prefix bounded at 65 536 bytes, and a retained line-delimited JSON message is
+  refused on its length prefix alone. Channel still leaves transport open; this is one realisation's
+  declaration, not a narrowing of the requirement.
+- **CH-K2 (error-taxonomy divergence) is the risk the evidence most directly reduces.** The two
+  stacks now report the same category for the same condition in both realisations and in both
+  cross-stack directions, and an implementation-neutral endpoint that imports neither stack agrees.
+- **CH-K3 and CH-K4 have executed negative evidence.** No Capability crosses a trust boundary — the
+  host refuses to emit authority-bearing content before anything leaves it — and Channel correlation
+  identities are asserted never to equal the host-native Execution identity.
+
+One caution belongs with this: every defect the hardening phase found was present *identically* in
+both stacks, so agreement between two independent implementations is evidence about the contract's
+ambiguity and not about its silence. That is recorded as Decision 10 in
+[`binding/portable/open-decisions.md`](../../../binding/portable/open-decisions.md) and is a
+Channel-relevant caveat, not only a binding-programme one.
+
 ## 5. Recorded test scenarios (forward)
 
 These are recorded targets for the eventual Channel realisation and its conformance work; none is
 implemented here.
 
-- **Cross-stack conformance vectors (CH-R11).** The shared vector file now records request/Outcome
-  correlation, category mapping, unrecognised versions, frame/no-frame failure separation, C7
-  strong-Kleene outcomes, and the C8 authority-position value that must not project. The next gate
-  is two independent stack adapters asserting identical category-level observations.
-- **Channel-provider Component required by another Component.** A composition test in which one
-  Component *provides* a Channel-conformant contract and a second Component *requires* it, resolved
-  through the Composition Provider-Set machinery (§18.1) and exercised over the Channel frame. This
-  is an excellent end-to-end vector because it jointly exercises the Channel frame, the Composition
-  resolver's required-to-provided binding, and the §13.6 invocation principle across the resulting
-  seam. It is a natural future integration between this direction and the Component-management
-  harness (a required contract in the CM fixture model), and belongs to that experimental track, not
-  to Base.
-- **Portable Binding as first realisation.** The Portable Component Binding (§18.1) realising this
-  frame against the §6.16 presentation contract, compared with direct-call and process-isolated
-  paths so protocol cost is distinguished from implementation cost.
+- **Cross-stack conformance vectors (CH-R11).** *Delivered.* The shared vector file records
+  request/Outcome correlation, category mapping, unrecognised versions, frame/no-frame failure
+  separation, C7 strong-Kleene outcomes, and the C8 authority-position value that must not project.
+  Two independent stack adapters now assert identical category-level observations, in both host
+  directions and against an endpoint that imports neither stack.
+- **Channel-provider Component required by another Component.** *Partly delivered.* A resolved
+  Component requirement and an offered provision now produce a Binding Plan at activation preflight,
+  and a controlled composition in each stack establishes and releases the resulting binding over the
+  Channel frame, with ordinary interaction gated until the provider is ready. What remains is the
+  half this ledger names: the Composition **Provider-Set machinery** — cardinality beyond `1..1`,
+  mediated exposure, and the resolver that produces the resolution. The handoff refuses each of them
+  rather than approximating one, so the boundary is enforced rather than described. That remainder
+  belongs to the Component-management experimental track, not to Base.
+- **Portable Binding as first realisation.** *Delivered.* The Portable Component Binding (§18.1)
+  realises this frame against the §6.16 presentation contract, with a fixed direct-call and a
+  negotiated process realisation compared scenario by scenario, so protocol cost is distinguished
+  from implementation cost. Structural cost is recorded in
+  [`interchange/binding-measurements.json`](../../../interchange/binding-measurements.json);
+  optimising the hot path remains an explicit 0.1 non-goal.
 
 ## 6. Sequencing and non-goals
 

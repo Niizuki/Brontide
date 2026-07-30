@@ -87,10 +87,18 @@ table indexes them with their owners. Decision 10 is the one to read first: it a
 independent implementation, given that every PB6 defect was present identically in both stacks — and
 PB7's finding is another instance of the same gap.
 
-**PB8 is the next and last item**: evidence, documentation, and review closure — the stack READMEs,
-milestone evidence, Channel ledger, and contract matrix; a re-measurement of representation,
-allocation, and copy costs; the complete repository gate from a clean worktree; and fresh independent
-reviews of Reference, Minimal, and the neutral contract.
+**PB8 is partly complete.** Its evidence and documentation work is done: the contract matrix now
+carries an executed-evidence table naming which realizations have run each capability; the Channel
+ledger records CH-R11 as executed by a conforming realisation rather than awaiting stack harnesses;
+the public boundary document gains a portable-seam section; both stacks' changelogs record the added
+experimental surface; and the source-cost inventory has been re-measured, separated into retained and
+portable layers, and extended with the representation, framing, allocation, copy, and payload-bound
+facts for both realizations, each stating how it is known. The complete repository gate is green.
+
+Two PB8 steps remain, and neither is the implementer's to close: **fresh independent reviews** of
+Reference, Minimal, and the neutral contract, which require a reviewer identity distinct from every
+implementation actor in a fresh context; and **question closure**, which requires owner rulings on the
+nine open decisions rather than an implementer writing a provisional choice down as a decision.
 
 The former Priority 0 documentation relocation is complete; its archived plan is the
 [Pinned Documentation Relocation Plan 0.1](../archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).
