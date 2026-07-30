@@ -468,6 +468,136 @@ module ComponentAuthorityIntegration =
         }
 
 [<RequireQualifiedAccess>]
+type ComponentAuthorityRevalidationKind =
+    | Continued
+    | Withdrawn
+    | RetirementFailed
+    | ActivationUnavailable
+
+type ComponentAuthorityRevalidationResult =
+    { Kind: ComponentAuthorityRevalidationKind
+      CurrentAuthority: AuthorityAdmissionOutcome option
+      Replacement: ReplacementRecord option
+      Code: string
+      Reason: string }
+
+[<RequireQualifiedAccess>]
+module ComponentAuthorityRevalidation =
+    let private matchesPreviousRequest
+        (previous: AuthorityAdmissionOutcome)
+        (request: AuthorityAdmissionRequest)
+        =
+        match
+            previous.Observation.Relationships,
+            previous.Observation.Grants,
+            request.Relationships,
+            request.Authority
+        with
+        | [ oldRelationship ], [ oldGrant ], [ relationship ], [ authority ] ->
+            request.Request = previous.Observation.Request
+            && request.Policy.Policy = previous.Observation.Policy
+            && request.Participant = oldRelationship.ProposedActor
+            && relationship.Request = oldRelationship.Request
+            && relationship.ProposedActor = oldRelationship.ProposedActor
+            && relationship.Kind = oldRelationship.Kind
+            && authority.Request = oldGrant.Request
+            && authority.Relationship = oldRelationship.Request
+            && authority.Capability = oldGrant.Capability
+            && authority.Target = oldGrant.Target
+            && authority.Operation = oldGrant.Operation
+            && authority.Scope = oldGrant.Scope
+            && not authority.Unlimited
+        | _ -> false
+
+    let private isSameAdmission
+        (previous: AuthorityAdmissionOutcome)
+        (current: AuthorityAdmissionOutcome)
+        =
+        match
+            current.Kind,
+            previous.Observation.Relationships,
+            current.Observation.Relationships,
+            previous.Observation.Grants,
+            current.Observation.Grants
+        with
+        | AuthorityAdmissionOutcomeKind.Admitted,
+          [ oldRelationship ],
+          [ newRelationship ],
+          [ oldGrant ],
+          [ newGrant ] ->
+            newRelationship = oldRelationship && newGrant = oldGrant
+        | _ -> false
+
+    let revalidate
+        (active: ComponentAuthorityIntegrationResult)
+        (request: AuthorityAdmissionRequest)
+        retirementReason
+        =
+        task {
+            if String.IsNullOrWhiteSpace retirementReason then
+                invalidArg (nameof retirementReason) "retirement reason is required"
+
+            match active.Authority, active.Lifecycle, active.Failure with
+            | Some previous, Some lifecycle, None when
+                previous.Kind = AuthorityAdmissionOutcomeKind.Admitted
+                && previous.Observation.Relationships.Length = 1
+                && previous.Observation.Grants.Length = 1
+                && lifecycle.Failure.IsNone
+                && lifecycle.Runtime
+                   |> Option.exists (fun runtime ->
+                       runtime.Kind = ActivationRuntimeOutcomeKind.Active)
+                && lifecycle.Member |> Option.exists _.IsReleased ->
+                let memberValue = lifecycle.Member.Value
+                let current, code =
+                    if matchesPreviousRequest previous request then
+                        let evaluated = FakeAuthorityAdmission.evaluate request
+                        Some evaluated, "authority-not-renewed"
+                    else
+                        None, "authority-revalidation-mismatch"
+
+                match current with
+                | Some evaluated when isSameAdmission previous evaluated ->
+                    return
+                        { Kind = ComponentAuthorityRevalidationKind.Continued
+                          CurrentAuthority = current
+                          Replacement = None
+                          Code = "authority-current"
+                          Reason =
+                            "The exact receiving-domain relationship and grant remain admitted." }
+                | _ ->
+                    let! retired = memberValue.Retire retirementReason
+                    match retired with
+                    | Ok replacement ->
+                        return
+                            { Kind = ComponentAuthorityRevalidationKind.Withdrawn
+                              CurrentAuthority = current
+                              Replacement = Some replacement
+                              Code = code
+                              Reason =
+                                "The prior authority is no longer current, so the portable member was retired." }
+                    | Error error ->
+                        let detail =
+                            match error with
+                            | PortableError.Refused fault ->
+                                sprintf "%s: %s" fault.LocalCode fault.Message
+                            | PortableError.Interrupted failure -> failure.Message
+                        return
+                            { Kind = ComponentAuthorityRevalidationKind.RetirementFailed
+                              CurrentAuthority = current
+                              Replacement = None
+                              Code = "authority-retirement-failed"
+                              Reason = detail }
+            | _ ->
+                return
+                    { Kind = ComponentAuthorityRevalidationKind.ActivationUnavailable
+                      CurrentAuthority = None
+                      Replacement = None
+                      Code = "active-authority-unavailable"
+                      Reason =
+                        "CBI5 requires one released Active CBI3 result with one relationship and grant." }
+        }
+
+[<RequireQualifiedAccess>]
 module ComponentAuthorityComparison =
     let private stringNode (value: string) : JsonNode | null = JsonValue.Create value
     let private boolNode (value: bool) : JsonNode | null = JsonValue.Create value

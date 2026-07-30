@@ -214,11 +214,20 @@ The [`CBI4 capability contract`](../../component-management/cbi4-capability-cont
 [`contract-completeness review`](../../component-management/cbi4-contract-completeness-review.md)
 bound this to deterministic data comparison, not an integrated process seam.
 
-Grant withdrawal is the next implementable integration item. Multi-participant and multi-grant
-admission, CM4 binding-exercise projection, cross-vocabulary Operation mapping, multi-member and
-relational lifecycles, replacement, child Ports, mediation, wider Provider Sets, and real
-distribution remain future work. PB8's independent reviews and Decision 11 owner ruling remain
-separate governance prerequisites rather than implementation work.
+CBI5 grant withdrawal is also implemented. Each composition root revalidates the exact native CM5
+relationship and grant that admitted one active CBI3 binding using fresh explicit time, evidence,
+and policy. Exact renewal keeps the portable member released; revocation, expiry, request mismatch,
+or non-identical local admission retires it before further ordinary interaction. Retirement closes
+the gate before peer cleanup, so cleanup failure remains visible without restoring activity. The
+[`CBI5 capability contract`](../../component-management/cbi5-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi5-contract-completeness-review.md)
+bound this to post-activation admission, not in-flight cancellation or distributed revocation.
+
+Multi-participant and multi-grant admission is the next implementable integration item. CM4
+binding-exercise projection, cross-vocabulary Operation mapping, multi-member and relational
+lifecycles, replacement, child Ports, mediation, wider Provider Sets, and real distribution remain
+future work. PB8's independent reviews and Decision 11 owner ruling remain separate governance
+prerequisites rather than implementation work.
 
 ## Other planned areas
 
