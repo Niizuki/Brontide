@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased — CBI12 multi-member activation
+
+### Added
+
+- Reference Studio activation of several independent members under one CM4 activation, each with its own
+  resolved position, portable contract, and conversation.
+- The release barrier at the activation rather than the member: no member's ordinary-interaction
+  gate opens until every member is Ready and CM4 accepts the activation.
+- Retirement of every established member when any member fails, so none is left holding an open
+  channel, with the failing occurrence named as the cause.
+- Shared group-activation vectors pinning failure kinds and codes, member, released, and retired
+  counts, and the runtime verdict, plus a phase-boundary completeness review.
+
+CBI12 refuses a cyclic group: a multi-member group is a strongly connected component, which is what
+Relational Initialisation exists for. Authority still governs one member — CBI3 and CBI6 through
+CBI11 are unchanged — so a multi-member activation has no multi-member authority story yet.
+
 ## Unreleased — CBI11 declaration succession
 
 ### Added

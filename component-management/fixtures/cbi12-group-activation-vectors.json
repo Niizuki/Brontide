@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi12-group-activation-vectors",
+  "vectors": [
+    {
+      "id": "cbi12-01-two-members-active",
+      "expectedActive": true,
+      "expectedFailureKind": null,
+      "expectedCode": null,
+      "expectedMembers": 2,
+      "expectedReleased": 2,
+      "expectedRetired": 0,
+      "expectedRuntimeActive": true
+    },
+    {
+      "id": "cbi12-02-second-member-refused",
+      "expectedActive": false,
+      "expectedFailureKind": "member-establishment-refused",
+      "expectedCode": "provider-substituted",
+      "expectedMembers": 2,
+      "expectedReleased": 0,
+      "expectedRetired": 1,
+      "expectedRuntimeActive": false
+    },
+    {
+      "id": "cbi12-03-preparation-refused",
+      "expectedActive": false,
+      "expectedFailureKind": "preparation-unavailable",
+      "expectedCode": "requirement-not-resolved",
+      "expectedMembers": 0,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedRuntimeActive": null
+    },
+    {
+      "id": "cbi12-04-unselected-member",
+      "expectedActive": false,
+      "expectedFailureKind": "plan-unsupported",
+      "expectedCode": "plan-unsupported",
+      "expectedMembers": 0,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedRuntimeActive": null
+    },
+    {
+      "id": "cbi12-05-protocol-group",
+      "expectedActive": false,
+      "expectedFailureKind": "plan-unsupported",
+      "expectedCode": "plan-unsupported",
+      "expectedMembers": 0,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedRuntimeActive": null
+    },
+    {
+      "id": "cbi12-06-runtime-refused",
+      "expectedActive": false,
+      "expectedFailureKind": "runtime-refused-before-start",
+      "expectedCode": "runtime-refused-before-start",
+      "expectedMembers": 2,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedRuntimeActive": false
+    }
+  ]
+}

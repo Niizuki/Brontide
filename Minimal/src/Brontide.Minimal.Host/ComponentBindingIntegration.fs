@@ -2060,6 +2060,271 @@ module ComponentDeclarationSuccession =
               Reason =
                 "CBI11 requires one released Active CBI6 result with a completely admitted participant set." }
 
+type ComponentGroupMember =
+    { Selection: ComponentBindingSelection
+      Conversation: IPortableProviderConversation }
+
+[<RequireQualifiedAccess>]
+type ComponentGroupActivationFailureKind =
+    | PlanUnsupported
+    | PreparationUnavailable
+    | RuntimeRefusedBeforeStart
+    | MemberEstablishmentRefused
+    | MemberReleaseRefused
+
+type ComponentGroupActivationFailure =
+    { Kind: ComponentGroupActivationFailureKind
+      Code: string
+      Reason: string
+      Member: OccurrenceId option }
+
+type ComponentGroupMemberOutcome =
+    { Occurrence: OccurrenceId
+      Member: CompositionMember }
+
+type ComponentGroupActivationResult =
+    { Runtime: ActivationRuntimeOutcome option
+      Members: ComponentGroupMemberOutcome list
+      Failure: ComponentGroupActivationFailure option }
+
+/// Activates several independent members under one CM4 activation, with the release barrier at the
+/// activation rather than at any one member.
+///
+/// CM4 models one logical Release for an activation attempt, so ordinary interaction opens for every
+/// member at once or for none; the answer comes from the runtime's shape rather than from a choice
+/// made here. Cyclic groups are refused: a multi-member group is a strongly connected component,
+/// which is what Relational Initialisation exists for.
+[<RequireQualifiedAccess>]
+module ComponentGroupLifecycle =
+    let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
+
+    let private refuse kind code reason memberValue =
+        { Runtime = None
+          Members = []
+          Failure =
+            Some
+                { Kind = kind
+                  Code = code
+                  Reason = reason
+                  Member = memberValue } }
+
+    let private portableError error =
+        match error with
+        | PortableError.Refused fault -> fault.LocalCode, fault.Message
+        | PortableError.Interrupted failure -> "portable-process-interrupted", failure.Message
+
+    let isActive (result: ComponentGroupActivationResult) =
+        result.Failure.IsNone
+        && result.Runtime
+           |> Option.exists (fun runtime -> runtime.Kind = ActivationRuntimeOutcomeKind.Active)
+        && not result.Members.IsEmpty
+        && result.Members |> List.forall _.Member.IsReleased
+
+    let private supportedPlan (plan: ActivationGroupPlan) (members: ComponentGroupMember list) =
+        let selected = members |> List.map _.Selection.Occurrence |> Set.ofList
+        selected.Count = members.Length
+        && plan.Groups.Length = members.Length
+        && plan.Groups
+           |> List.forall (fun group ->
+               group.Members.Length = 1
+               && group.Protocols.IsEmpty
+               && Set.contains (List.exactlyOne group.Members).Occurrence selected)
+
+    let private groupStageOutcomes (plan: ActivationGroupPlan) failedMember failedStage =
+        plan.Groups
+        |> List.collect (fun group ->
+            group.Members
+            |> List.collect (fun groupMember ->
+                ComponentBindingLifecycle.stageOutcomes
+                    group
+                    groupMember.Occurrence
+                    (if Some groupMember.Occurrence = failedMember then failedStage else None)))
+
+    let rec private establish
+        (remaining: (ComponentGroupMember * ComponentGroupMemberOutcome) list)
+        =
+        task {
+            match remaining with
+            | [] -> return None
+            | (entry, outcome) :: rest ->
+                let! interconnected = outcome.Member.Interconnect entry.Conversation
+                match interconnected with
+                | Error error ->
+                    let code, reason = portableError error
+                    return Some(outcome.Occurrence, ActivationStage.Interconnection, code, reason)
+                | Ok() when not outcome.Member.IsReady ->
+                    return
+                        Some(
+                            outcome.Occurrence,
+                            ActivationStage.Ready,
+                            "ready-missing",
+                            "Portable Interconnection completed without a Ready lifecycle state.")
+                | Ok() -> return! establish rest
+        }
+
+    let activate
+        (resolution: ResolutionOutcome)
+        (members: ComponentGroupMember list)
+        (runtimeRequest: ActivationRuntimeRequest)
+        =
+        task {
+            let ordered =
+                members
+                |> List.sortWith (fun left right ->
+                    ordinal
+                        (OccurrenceId.value left.Selection.Occurrence)
+                        (OccurrenceId.value right.Selection.Occurrence))
+            if not (supportedPlan runtimeRequest.Plan ordered) then
+                return
+                    refuse
+                        ComponentGroupActivationFailureKind.PlanUnsupported
+                        "plan-unsupported"
+                        "CBI12 activates one protocol-free single-member group per selected occurrence, and no others."
+                        None
+            else
+                let prepared =
+                    ordered
+                    |> List.map (fun entry ->
+                        entry, ComponentBindingIntegration.prepare resolution entry.Selection)
+                let refusedPreparation =
+                    prepared
+                    |> List.tryPick (fun (entry, preparation) ->
+                        match preparation with
+                        | ComponentBindingIntegrationResult.Refused failure ->
+                            Some(entry.Selection.Occurrence, failure)
+                        | _ -> None)
+                match refusedPreparation with
+                | Some(occurrence, failure) ->
+                    return
+                        refuse
+                            ComponentGroupActivationFailureKind.PreparationUnavailable
+                            failure.Code
+                            failure.Reason
+                            (Some occurrence)
+                | None ->
+                    let established =
+                        prepared
+                        |> List.map (fun (entry, preparation) ->
+                            match preparation with
+                            | ComponentBindingIntegrationResult.Prepared portable ->
+                                entry,
+                                { Occurrence = entry.Selection.Occurrence
+                                  Member = portable }
+                            | ComponentBindingIntegrationResult.Refused _ ->
+                                failwith "preparation was already checked")
+                    let outcomes = established |> List.map snd
+                    let successful =
+                        { runtimeRequest with
+                            StageOutcomes = groupStageOutcomes runtimeRequest.Plan None None }
+                    let preflight = FakeActivationRuntime.activate successful
+                    if preflight.Kind <> ActivationRuntimeOutcomeKind.Active then
+                        return
+                            { Runtime = Some preflight
+                              Members = outcomes
+                              Failure =
+                                Some
+                                    { Kind =
+                                        ComponentGroupActivationFailureKind.RuntimeRefusedBeforeStart
+                                      Code = "runtime-refused-before-start"
+                                      Reason =
+                                        sprintf
+                                            "CM4 refused the derived activation before provider establishment: %A."
+                                            preflight.Kind
+                                      Member = None } }
+                    else
+                        let! establishment = establish established
+                        match establishment with
+                        | Some(failedOccurrence, stage, code, reason) ->
+                            let cleanup = ResizeArray<string>()
+                            for outcome in outcomes do
+                                let stageToken = CompositionStage.token outcome.Member.Stage
+                                if stageToken <> "local-initialisation" && stageToken <> "retired" then
+                                    let! retired =
+                                        ComponentParticipantRevalidation.tryRetire
+                                            outcome.Member
+                                            (sprintf
+                                                "activation failed at %s"
+                                                (OccurrenceId.value failedOccurrence))
+                                    match retired with
+                                    | Ok _ -> ()
+                                    | Error detail ->
+                                        cleanup.Add(
+                                            sprintf
+                                                "%s: %s"
+                                                (OccurrenceId.value outcome.Occurrence)
+                                                detail)
+                            let runtime =
+                                FakeActivationRuntime.activate
+                                    { runtimeRequest with
+                                        StageOutcomes =
+                                            groupStageOutcomes
+                                                runtimeRequest.Plan
+                                                (Some failedOccurrence)
+                                                (Some stage) }
+                            return
+                                { Runtime = Some runtime
+                                  Members = outcomes
+                                  Failure =
+                                    Some
+                                        { Kind =
+                                            ComponentGroupActivationFailureKind.MemberEstablishmentRefused
+                                          Code = code
+                                          Reason =
+                                            if cleanup.Count = 0 then
+                                                reason
+                                            else
+                                                sprintf
+                                                    "%s Cleanup also failed for %s."
+                                                    reason
+                                                    (String.Join("; ", cleanup))
+                                          Member = Some failedOccurrence } }
+                        | None ->
+                            let runtime = FakeActivationRuntime.activate successful
+                            if runtime.Kind <> ActivationRuntimeOutcomeKind.Active then
+                                return
+                                    { Runtime = Some runtime
+                                      Members = outcomes
+                                      Failure =
+                                        Some
+                                            { Kind =
+                                                ComponentGroupActivationFailureKind.RuntimeRefusedBeforeStart
+                                              Code = "runtime-state-changed"
+                                              Reason =
+                                                sprintf
+                                                    "CM4 no longer accepted the activation after every member reported Ready: %A."
+                                                    runtime.Kind
+                                              Member = None } }
+                            else
+                                // The barrier: every member reached Ready and CM4 accepted the
+                                // activation, so ordinary interaction opens for all of them
+                                // together.
+                                let released =
+                                    outcomes
+                                    |> List.tryPick (fun outcome ->
+                                        match outcome.Member.Release() with
+                                        | Ok() -> None
+                                        | Error error ->
+                                            let code, reason = portableError error
+                                            Some(outcome.Occurrence, code, reason))
+                                match released with
+                                | Some(occurrence, code, reason) ->
+                                    return
+                                        { Runtime = Some runtime
+                                          Members = outcomes
+                                          Failure =
+                                            Some
+                                                { Kind =
+                                                    ComponentGroupActivationFailureKind.MemberReleaseRefused
+                                                  Code = code
+                                                  Reason = reason
+                                                  Member = Some occurrence } }
+                                | None ->
+                                    return
+                                        { Runtime = Some runtime
+                                          Members = outcomes
+                                          Failure = None }
+        }
+
 [<RequireQualifiedAccess>]
 module ComponentAuthorityComparison =
     let private stringNode (value: string) : JsonNode | null = JsonValue.Create value

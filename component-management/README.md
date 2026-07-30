@@ -159,6 +159,15 @@ Its bounded behavior is recorded in the
 [CBI11 capability contract](./cbi11-capability-contract.md) and completed
 [contract-completeness review](./cbi11-contract-completeness-review.md).
 
+CBI12 relaxes the one constant every earlier slice held fixed and activates several members
+together. **The release barrier is the activation, not the member**: CM4 models one logical Release
+for an attempt, so ordinary interaction opens for every member at once or for none, and a member
+that reached Ready while another failed is retired rather than released. Cyclic groups are refused,
+because a multi-member group is a strongly connected component and that is what Relational
+Initialisation exists for. Its bounded behavior is recorded in the
+[CBI12 capability contract](./cbi12-capability-contract.md) and completed
+[contract-completeness review](./cbi12-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -295,6 +304,15 @@ ambiguous attribution. Each vector pins the outcome kind and code, the dropped a
 authorities, the size of the declaration still in force, and that the member is still released, so
 "this slice never retires" is a checked answer. The fixture contains no resolver, declaration rule,
 observation, or portable runtime.
+
+### `cbi12-group-activation-vectors` sections
+
+`vectors` names one two-member activation and five refusals — a second member whose provider is
+substituted, a preparation that cannot resolve, a plan carrying an unselected member, a genuinely
+cyclic group with Relational Initialisation protocols, and a CM4 refusal before establishment. Each
+vector pins the failure kind and code, the number of members, how many are released, how many are
+retired, and the runtime's verdict, so the release barrier is a checked answer in both directions.
+The fixture contains no planner, runtime, portable implementation, or cleanup mechanism.
 
 ### `cm0-mice-topology` sections
 

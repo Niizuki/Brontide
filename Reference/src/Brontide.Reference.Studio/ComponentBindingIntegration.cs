@@ -2020,6 +2020,257 @@ public static class ComponentDeclarationSuccession
             reason);
 }
 
+public sealed record ComponentGroupMember(
+    ComponentBindingSelection Selection,
+    Portable.IPortableProviderConversation Conversation);
+
+public enum ComponentGroupActivationFailureKind
+{
+    PlanUnsupported,
+    PreparationUnavailable,
+    RuntimeRefusedBeforeStart,
+    MemberEstablishmentRefused,
+    MemberReleaseRefused,
+}
+
+public sealed record ComponentGroupActivationFailure(
+    ComponentGroupActivationFailureKind Kind,
+    string Code,
+    string Reason,
+    Cm.OccurrenceId? Member);
+
+public sealed record ComponentGroupMemberOutcome(
+    Cm.OccurrenceId Occurrence,
+    Portable.PortableCompositionMember Member);
+
+public sealed record ComponentGroupActivationResult(
+    Cm.ActivationRuntimeOutcome? Runtime,
+    IReadOnlyList<ComponentGroupMemberOutcome> Members,
+    ComponentGroupActivationFailure? Failure)
+{
+    public bool IsActive =>
+        Failure is null &&
+        Runtime?.IsActive == true &&
+        Members.Count > 0 &&
+        Members.All(item => item.Member.IsReleased);
+}
+
+/// <summary>
+/// Activates several independent members under one CM4 activation, with the release barrier at the
+/// activation rather than at any one member.
+/// </summary>
+/// <remarks>
+/// CM4 models one logical Release for an activation attempt, so ordinary interaction opens for every
+/// member at once or for none; the answer comes from the runtime's shape rather than from a choice
+/// made here. Cyclic groups are refused: a multi-member group is a strongly connected component,
+/// which is what Relational Initialisation exists for.
+/// </remarks>
+public static class ComponentGroupLifecycle
+{
+    public static async ValueTask<ComponentGroupActivationResult> ActivateAsync(
+        Cm.ResolutionOutcome resolution,
+        IReadOnlyList<ComponentGroupMember> members,
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(members);
+        ArgumentNullException.ThrowIfNull(runtimeRequest);
+
+        var ordered = members
+            .OrderBy(item => item.Selection.Occurrence.Value, StringComparer.Ordinal)
+            .ToArray();
+        if (!SupportedPlan(runtimeRequest.Plan, ordered))
+        {
+            return Refuse(
+                ComponentGroupActivationFailureKind.PlanUnsupported,
+                "plan-unsupported",
+                "CBI12 activates one protocol-free single-member group per selected occurrence, and no others.");
+        }
+
+        var prepared = new List<ComponentGroupMemberOutcome>();
+        foreach (var member in ordered)
+        {
+            var preparation = ComponentBindingIntegration.Prepare(resolution, member.Selection);
+            if (preparation.Member is not { } portable)
+            {
+                return Refuse(
+                    ComponentGroupActivationFailureKind.PreparationUnavailable,
+                    preparation.Failure!.Code,
+                    preparation.Failure.Reason,
+                    member.Selection.Occurrence);
+            }
+
+            prepared.Add(new(member.Selection.Occurrence, portable));
+        }
+
+        var successful = runtimeRequest with
+        {
+            StageOutcomes = GroupStageOutcomes(runtimeRequest.Plan, null, null),
+        };
+        var preflight = new Cm.FakeActivationRuntime().Activate(successful);
+        if (!preflight.IsActive)
+        {
+            return new(
+                preflight,
+                prepared,
+                new(
+                    ComponentGroupActivationFailureKind.RuntimeRefusedBeforeStart,
+                    "runtime-refused-before-start",
+                    $"CM4 refused the derived activation before provider establishment: {preflight.Kind}.",
+                    null));
+        }
+
+        for (var index = 0; index < ordered.Length; index++)
+        {
+            var member = ordered[index];
+            var portable = prepared[index].Member;
+            try
+            {
+                await portable.InterconnectAsync(member.Conversation, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                return await FailAsync(
+                    runtimeRequest,
+                    prepared,
+                    member.Selection.Occurrence,
+                    Cm.ActivationStage.Interconnection,
+                    exception is Portable.PortableFaultException fault
+                        ? fault.LocalCode
+                        : "portable-interconnection-failed",
+                    exception.Message,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            if (!portable.IsReady)
+            {
+                return await FailAsync(
+                    runtimeRequest,
+                    prepared,
+                    member.Selection.Occurrence,
+                    Cm.ActivationStage.Ready,
+                    "ready-missing",
+                    "Portable Interconnection completed without a Ready lifecycle state.",
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        var runtime = new Cm.FakeActivationRuntime().Activate(successful);
+        if (!runtime.IsActive)
+        {
+            return new(
+                runtime,
+                prepared,
+                new(
+                    ComponentGroupActivationFailureKind.RuntimeRefusedBeforeStart,
+                    "runtime-state-changed",
+                    $"CM4 no longer accepted the activation after every member reported Ready: {runtime.Kind}.",
+                    null));
+        }
+
+        // The barrier: every member reached Ready and CM4 accepted the activation, so ordinary
+        // interaction opens for all of them together.
+        foreach (var outcome in prepared)
+        {
+            try
+            {
+                outcome.Member.Release();
+            }
+            catch (Portable.PortableFaultException fault)
+            {
+                return new(
+                    runtime,
+                    prepared,
+                    new(
+                        ComponentGroupActivationFailureKind.MemberReleaseRefused,
+                        fault.LocalCode,
+                        fault.Message,
+                        outcome.Occurrence));
+            }
+        }
+
+        return new(runtime, prepared, null);
+    }
+
+    private static async ValueTask<ComponentGroupActivationResult> FailAsync(
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        IReadOnlyList<ComponentGroupMemberOutcome> prepared,
+        Cm.OccurrenceId failed,
+        Cm.ActivationStage stage,
+        string code,
+        string reason,
+        CancellationToken cancellationToken)
+    {
+        var cleanup = new List<string>();
+        foreach (var outcome in prepared)
+        {
+            if (outcome.Member.Stage == Portable.PortableCompositionStage.LocalInitialisation ||
+                outcome.Member.Stage == Portable.PortableCompositionStage.Retired)
+            {
+                continue;
+            }
+
+            var (_, failure) = await ComponentParticipantRevalidation
+                .TryRetireAsync(outcome.Member, $"activation failed at {failed}", cancellationToken)
+                .ConfigureAwait(false);
+            if (failure is not null)
+            {
+                cleanup.Add($"{outcome.Occurrence}: {failure}");
+            }
+        }
+
+        var runtime = new Cm.FakeActivationRuntime().Activate(runtimeRequest with
+        {
+            StageOutcomes = GroupStageOutcomes(runtimeRequest.Plan, failed, stage),
+        });
+        return new(
+            runtime,
+            prepared,
+            new(
+                ComponentGroupActivationFailureKind.MemberEstablishmentRefused,
+                code,
+                cleanup.Count == 0 ? reason : $"{reason} Cleanup also failed for {string.Join("; ", cleanup)}.",
+                failed));
+    }
+
+    private static bool SupportedPlan(
+        Cm.ActivationGroupPlan plan,
+        IReadOnlyList<ComponentGroupMember> members)
+    {
+        var selected = members.Select(item => item.Selection.Occurrence).ToHashSet();
+        return selected.Count == members.Count &&
+            plan.Groups.Count == members.Count &&
+            plan.Groups.All(group =>
+                group.Members.Count == 1 &&
+                group.Protocols.Count == 0 &&
+                selected.Contains(group.Members[0].Occurrence));
+    }
+
+    private static IReadOnlyList<Cm.MemberStageOutcome> GroupStageOutcomes(
+        Cm.ActivationGroupPlan plan,
+        Cm.OccurrenceId? failedMember,
+        Cm.ActivationStage? failedStage) =>
+        plan.Groups
+            .SelectMany(group => group.Members.SelectMany(member =>
+                ComponentBindingLifecycle.StageOutcomes(
+                    group,
+                    member.Occurrence,
+                    member.Occurrence == failedMember ? failedStage : null)))
+            .ToArray();
+
+    private static ComponentGroupActivationResult Refuse(
+        ComponentGroupActivationFailureKind kind,
+        string code,
+        string reason,
+        Cm.OccurrenceId? member = null) =>
+        new(null, Array.Empty<ComponentGroupMemberOutcome>(), new(kind, code, reason, member));
+}
+
 /// <summary>
 /// Projects one native CBI3 result into the canonical, data-only CBI4 comparison profile.
 /// </summary>

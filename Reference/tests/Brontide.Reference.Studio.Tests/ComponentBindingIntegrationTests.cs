@@ -57,6 +57,9 @@ public sealed class ComponentBindingIntegrationTests
     private static readonly LocalActorReferenceId DeputyLocalActor =
         LocalActorReferenceId.Create("local.cooling-deputy");
     private static readonly string[] DeclaredAuthority = ["cooling.control", "cooling.audit"];
+    private static readonly RequirementId SecondaryRequirement = RequirementId.Create("req.cooling-secondary");
+    private static readonly DefinitionId SecondaryProvider = DefinitionId.Create("def.test.cooling-secondary");
+    private static readonly ContractId SecondaryContract = ContractId.Create("brontide.fake.cooling-secondary");
 
     [Test]
     public void Completed_direct_one_to_one_resolution_enters_portable_preflight()
@@ -2134,6 +2137,82 @@ public sealed class ComponentBindingIntegrationTests
         return (resolution, Selection(member), member.Occurrence);
     }
 
+    /// <summary>A genuinely cyclic group: one strongly connected component carrying a protocol.</summary>
+    private static ActivationGroupPlan ProtocolPlan(IReadOnlyList<OccurrenceId> occurrences)
+    {
+        var members = occurrences.Select(occurrence => new ActivationGroupMember(
+            occurrence,
+            DefinitionId.Create($"def.{occurrence.Value}"),
+            RegionId.Create("region.integration"),
+            new[] { new ProvidedContract(Contract, Version) },
+            Array.Empty<LifecycleInputId>(),
+            Array.Empty<LifecycleInputId>(),
+            Array.Empty<OccurrenceId>())).ToArray();
+        var protocol = LifecycleProtocolId.Create("protocol.forward");
+        var reverse = LifecycleProtocolId.Create("protocol.backward");
+        var forward = ActivationEdgeId.Create("edge.forward");
+        var backward = ActivationEdgeId.Create("edge.backward");
+        LifecycleProtocolDeclaration Declare(
+            LifecycleProtocolId identity,
+            ActivationEdgeId edge,
+            OccurrenceId from,
+            OccurrenceId to) =>
+            new(
+                identity,
+                edge,
+                from,
+                to,
+                LifecycleOperationId.Create("lifecycle.handshake"),
+                [CapabilityId.Create("capability.lifecycle-handshake")],
+                ShapeId.Create("shape.handshake-in"),
+                ShapeId.Create("shape.handshake-out"),
+                "ordered",
+                1000,
+                0,
+                true,
+                "acknowledged",
+                "abort",
+                "release");
+        var outcome = new FakeActivationGroupPlanner().Plan(new(
+            ActivationGroupRequestId.Create("group.integration"),
+            GenerationId.Create("gen.lifecycle"),
+            RestartScopeId.Create("restart.lifecycle"),
+            members,
+            new[]
+            {
+                new ActivationDependency(
+                    forward,
+                    occurrences[0],
+                    occurrences[1],
+                    ActivationDependencyKind.RelationalInitialisation,
+                    Contract,
+                    Version,
+                    true,
+                    protocol,
+                    null,
+                    false),
+                new ActivationDependency(
+                    backward,
+                    occurrences[1],
+                    occurrences[0],
+                    ActivationDependencyKind.RelationalInitialisation,
+                    Contract,
+                    Version,
+                    true,
+                    reverse,
+                    null,
+                    false),
+            },
+            new[]
+            {
+                Declare(protocol, forward, occurrences[0], occurrences[1]),
+                Declare(reverse, backward, occurrences[1], occurrences[0]),
+            },
+            Array.Empty<RegionCrossingDeclaration>()));
+        return outcome.Plan ?? throw new InvalidOperationException(
+            $"CM3 refused the cyclic plan: {outcome.Failure?.Kind} {outcome.Failure?.Reason}");
+    }
+
     private static ActivationGroupPlan Plan(params OccurrenceId[] occurrences)
     {
         var members = occurrences.Select(occurrence => new ActivationGroupMember(
@@ -2242,6 +2321,170 @@ public sealed class ComponentBindingIntegrationTests
                 }));
     }
 
+    [Test]
+    public async Task Shared_cbi12_vectors_open_ordinary_interaction_for_every_member_or_none()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi12-group-activation-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, handlers) = await GroupActivationResult(scenario);
+            var expectedFailure = vector.GetProperty("expectedFailureKind");
+            var expectedCode = vector.GetProperty("expectedCode");
+            var expectedRuntime = vector.GetProperty("expectedRuntimeActive");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    result.IsActive,
+                    Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()),
+                    scenario);
+                Assert.That(
+                    result.Failure is null ? null : GroupFailureToken(result.Failure.Kind),
+                    Is.EqualTo(
+                        expectedFailure.ValueKind == JsonValueKind.Null ? null : expectedFailure.GetString()),
+                    scenario);
+                Assert.That(
+                    result.Failure?.Code,
+                    Is.EqualTo(expectedCode.ValueKind == JsonValueKind.Null ? null : expectedCode.GetString()),
+                    scenario);
+                Assert.That(
+                    result.Members,
+                    Has.Count.EqualTo(vector.GetProperty("expectedMembers").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Members.Count(item => item.Member.IsReleased),
+                    Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Members.Count(item => item.Member.Stage == PortableCompositionStage.Retired),
+                    Is.EqualTo(vector.GetProperty("expectedRetired").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Runtime is null ? (bool?)null : result.Runtime.IsActive,
+                    Is.EqualTo(
+                        expectedRuntime.ValueKind == JsonValueKind.Null
+                            ? (bool?)null
+                            : expectedRuntime.GetBoolean()),
+                    scenario);
+
+                // Either every member is released or none is.
+                Assert.That(
+                    result.Members.All(item => item.Member.IsReleased) ||
+                        result.Members.All(item => !item.Member.IsReleased),
+                    Is.True,
+                    $"{scenario}: the release barrier is the activation, not the member.");
+                Assert.That(handlers.Sum(handler => handler.ProviderEffectCount), Is.Zero, scenario);
+            });
+        }
+    }
+
+    [Test]
+    public async Task A_failed_member_leaves_no_other_member_reachable()
+    {
+        var (result, _) = await GroupActivationResult("cbi12-02-second-member-refused");
+        var survivor = result.Members[0].Member;
+
+        var attempted = await survivor.InvokeAsync(
+            CoolingPortableFixture.SetEnabled,
+            CoolingPortableFixture.CommandV1,
+            CoolingPortableFixture.Command("primary", enabled: true),
+            PortableConstraint.Atom(PortableTruth.Satisfied));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsActive, Is.False);
+            Assert.That(result.Failure!.Member, Is.EqualTo(result.Members[1].Occurrence));
+            Assert.That(survivor.Stage, Is.EqualTo(PortableCompositionStage.Retired));
+            Assert.That(attempted.Category, Is.EqualTo(PortableProtocolCategory.StateViolation));
+        });
+    }
+
+    private static async Task<(ComponentGroupActivationResult Result, CoolingPortableHandler[] Handlers)>
+        GroupActivationResult(string scenario)
+    {
+        var resolution = new FakeGenerationResolver().Resolve(PairRequest());
+        var first = resolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var second = resolution.Generation.ProviderSets.Single(item => item.Requirement == SecondaryRequirement);
+        var handlers = new[]
+        {
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+        };
+        var substituted = CoolingPortableFixture.Contract with
+        {
+            Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
+        };
+        var secondContract = scenario == "cbi12-02-second-member-refused"
+            ? substituted
+            : CoolingPortableFixture.Contract;
+        var members = new ComponentGroupMember[]
+        {
+            new(
+                Selection(first.Members[0]) with { HostEndpoint = "group-host-primary" },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    CoolingPortableFixture.Contract,
+                    handlers[0],
+                    PortableRealization.FixedDirectCall))),
+            new(
+                Selection(second.Members[0]) with
+                {
+                    Requirement = SecondaryRequirement,
+                    HostEndpoint = "group-host-secondary",
+                },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    secondContract,
+                    handlers[1],
+                    PortableRealization.FixedDirectCall))),
+        };
+        if (scenario == "cbi12-03-preparation-refused")
+        {
+            members[1] = members[1] with
+            {
+                Selection = members[1].Selection with
+                {
+                    Requirement = RequirementId.Create("req.absent"),
+                },
+            };
+        }
+
+        var occurrences = members.Select(item => item.Selection.Occurrence).ToArray();
+        var plan = scenario switch
+        {
+            "cbi12-04-unselected-member" => Plan([.. occurrences, OccurrenceId.Create("occ.extra")]),
+            "cbi12-05-protocol-group" => ProtocolPlan(occurrences),
+            _ => Plan(occurrences),
+        };
+        var runtimeRequest = RuntimeRequest(plan);
+        if (scenario == "cbi12-06-runtime-refused")
+        {
+            runtimeRequest = runtimeRequest with
+            {
+                Release = new(ReleaseId.Create("release.integration"), ReleaseFailureMoment.BeforeCutover),
+            };
+        }
+
+        var result = await ComponentGroupLifecycle.ActivateAsync(resolution, members, runtimeRequest);
+        return (result, handlers);
+    }
+
+    private static string GroupFailureToken(ComponentGroupActivationFailureKind kind) => kind switch
+    {
+        ComponentGroupActivationFailureKind.PlanUnsupported => "plan-unsupported",
+        ComponentGroupActivationFailureKind.PreparationUnavailable => "preparation-unavailable",
+        ComponentGroupActivationFailureKind.RuntimeRefusedBeforeStart => "runtime-refused-before-start",
+        ComponentGroupActivationFailureKind.MemberEstablishmentRefused => "member-establishment-refused",
+        ComponentGroupActivationFailureKind.MemberReleaseRefused => "member-release-refused",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
     private static ResolutionRequest Request(Cardinality cardinality) => Request(cardinality, []);
 
     private static ResolutionRequest Request(Cardinality cardinality, IReadOnlyList<string> declaredAuthority) =>
@@ -2320,6 +2563,43 @@ public sealed class ComponentBindingIntegrationTests
             Array.Empty<ProviderPreselection>(),
             Array.Empty<PortEnvelope>(),
             Array.Empty<TopologyPolicyInput>());
+    }
+
+    /// <summary>Two independent requirements, so the generation resolves two distinct occurrences.</summary>
+    private static ResolutionRequest PairRequest()
+    {
+        var single = Request(Cardinality.Parse("1..1"));
+        var secondaryRequirement = single.Definitions
+            .Single(item => item.Definition == Consumer).Requirements.Single() with
+        {
+            Requirement = SecondaryRequirement,
+            Contract = SecondaryContract,
+        };
+        var consumer = single.Definitions.Single(item => item.Definition == Consumer);
+        var provider = single.Definitions.Single(item => item.Definition == Provider);
+        var candidate = single.Candidates.Single();
+        return single with
+        {
+            Definitions =
+            [
+                consumer with { Requirements = [consumer.Requirements.Single(), secondaryRequirement] },
+                provider,
+                provider with
+                {
+                    Definition = SecondaryProvider,
+                    Provides = [new ProvidedContract(SecondaryContract, Version)],
+                },
+            ],
+            Candidates =
+            [
+                candidate,
+                candidate with
+                {
+                    Definition = SecondaryProvider,
+                    Provides = [new ProvidedContract(SecondaryContract, Version)],
+                },
+            ],
+        };
     }
 
     private static ComponentBindingSelection Selection(ProviderSetMember member) =>

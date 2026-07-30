@@ -129,6 +129,10 @@ declaration contradicted by use, never one contradicted by disuse.
 CBI11 answers what that leaves open: nothing retires an unexercised declaration except the Component
 saying so. A declaration narrows only to a successor resolution of the same position that declares
 less, and observed use vetoes its own removal, so no elapsed time or quiet period narrows anything.
+CBI12 finally relaxes the single member. Several members activate under one CM4 activation, and the
+release barrier is the activation rather than the member: ordinary interaction opens for all of them
+or for none, and a member that reached Ready while another failed is retired rather than left
+holding a channel. Cyclic groups are refused, because that is what Relational Initialisation is for.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

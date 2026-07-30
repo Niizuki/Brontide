@@ -48,5 +48,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi11-declaration-succession-vectors.json"
           Link="component-management\fixtures\cbi11-declaration-succession-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi12-group-activation-vectors.json"
+          Link="component-management\fixtures\cbi12-group-activation-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -81,8 +81,10 @@ The implementation currently provides:
   covered; CBI10 verifies that declaration against observed portable interaction through derived CM4
   binding exercises, retiring the member on undeclared or ungranted use; CBI11 narrows a declaration
   only to a successor resolution of the same position that declares less, with observed use vetoing
-  its own removal and no retirement path at all;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI11 integration
+  its own removal and no retirement path at all; CBI12 activates several independent members under
+  one CM4 activation, with the release barrier at the activation and a failed member retiring the
+  ones that succeeded;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI12 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range
