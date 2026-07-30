@@ -48,6 +48,9 @@ missing, indirect, or mismatched positions fail before a provider starts.
 Its CBI2 coordinator aligns that member with one singleton, protocol-free CM4 lifecycle, deriving
 stage evidence from PB7 and releasing the portable gate only after CM4 reaches Active. It does not
 perform CM5 authority admission or support multi-member or relational activation.
+CBI3 adds one explicit occurrence-to-Actor mapping and one exact native CM5 relationship and grant
+as a precondition for that lifecycle. Denial stops before provider contact; the admitted grant
+remains receiving-domain evidence and is never inserted into a portable contract or payload.
 
 ## Build and test
 

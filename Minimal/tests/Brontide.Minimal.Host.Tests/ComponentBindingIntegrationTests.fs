@@ -13,6 +13,16 @@ type ComponentBindingIntegrationTests() =
     let requirementId = RequirementId.create "req.cooling"
     let contractId = ContractId.create "brontide.fake.cooling"
     let version = VersionLiteral.create "1.0"
+    let participant = ActorId.create "actor.cooling-provider"
+    let authorityTarget = ActorId.create "actor.cooling-target"
+    let authorityEvidence = EvidenceId.create "evidence.cooling-provider"
+    let authorityIssuer = IssuerId.create "issuer.integration-host"
+    let relationshipId = RelationshipRequestId.create "relationship.cooling-provider"
+    let authorityId = AuthorityRequestId.create "authority.cooling-control"
+    let capability = CapabilityId.create "capability.cooling-control"
+    let operation = OperationId.create "cooling.set-enabled"
+    let authorityScope = CapabilityScopeId.create "scope.cooling-session"
+    let evaluationTime = DateTimeOffset(2026, 7, 30, 10, 0, 0, TimeSpan.Zero)
     let multiple action = Assert.Multiple(Action action)
 
     let request cardinality =
@@ -161,6 +171,56 @@ type ComponentBindingIntegrationTests() =
         match PortableProviderRef.tryCreate name 1 with
         | Ok value -> value
         | Error error -> failwithf "Expected provider reference, got %A." error
+
+    let admission () : AuthorityAdmissionRequest =
+        let relationship =
+            { Request = relationshipId
+              ProposedActor = participant
+              Kind = ActorRelationshipKind.ComponentParticipant
+              Evidence = [ authorityEvidence ] }
+        let authority =
+            { Request = authorityId
+              Relationship = relationshipId
+              Capability = capability
+              Target = authorityTarget
+              Operation = operation
+              Scope = authorityScope
+              Unlimited = false }
+        { Request = AdmissionRequestId.create "admission.integration"
+          Participant = participant
+          EvaluationTime = evaluationTime
+          Evidence =
+            [ { Evidence = authorityEvidence
+                Issuer = authorityIssuer
+                Subject = participant
+                Verification = AdmissionEvidenceVerification.Verified
+                ValidFrom = evaluationTime.AddHours(-1.0)
+                ExpiresAt = evaluationTime.AddHours(1.0)
+                State = AdmissionEvidenceState.Current } ]
+          Relationships = [ relationship ]
+          Authority = [ authority ]
+          Policy =
+            { Policy = AuthorityPolicyId.create "policy.integration"
+              TrustedIssuers = [ authorityIssuer ]
+              RelationshipRules =
+                [ { Rule = PolicyRuleId.create "rule.component-participant"
+                    ProposedActor = participant
+                    Kind = ActorRelationshipKind.ComponentParticipant
+                    Disposition = PolicyDisposition.Allow
+                    LocalActor = Some(LocalActorReferenceId.create "local.cooling-provider")
+                    RequiredEvidence = [ authorityEvidence ]
+                    KnownMistake = false
+                    Rationale = "component participant admitted" } ]
+              AuthorityRules =
+                [ { Rule = PolicyRuleId.create "rule.cooling-control"
+                    RelationshipKind = ActorRelationshipKind.ComponentParticipant
+                    Capability = capability
+                    Target = authorityTarget
+                    Operation = operation
+                    Scope = authorityScope
+                    Disposition = PolicyDisposition.Allow
+                    KnownMistake = false
+                    Rationale = "narrow cooling control admitted" } ] } }
 
     [<Test>]
     member _.``completed direct one to one resolution enters portable preflight``() =
@@ -386,4 +446,200 @@ type ComponentBindingIntegrationTests() =
                         CompositionStage.token memberValue.Stage,
                         Is.Not.EqualTo "released"))
             | state -> Assert.Fail(sprintf "Expected establishment refusal, got %A." state)
+        }
+
+    [<Test>]
+    member _.``exact CM5 admission gates one released Active member``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let! result =
+                ComponentAuthorityIntegration.activate
+                    resolution
+                    selected
+                    { Occurrence = occurrence; Participant = participant }
+                    (runtimeRequest (plan [ occurrence ]))
+                    (admission ())
+                    (directCooling CoolingFixture.contract)
+
+            match result.Authority, result.Lifecycle, result.Failure with
+            | Some authority, Some lifecycle, None ->
+                let memberValue = lifecycle.Member |> Option.get
+                let bindingPlan = memberValue.TryPlan |> Option.get
+                multiple (fun () ->
+                    Assert.That(authority.Kind, Is.EqualTo AuthorityAdmissionOutcomeKind.Admitted)
+                    Assert.That(authority.Observation.Relationships, Has.Length.EqualTo 1)
+                    Assert.That(authority.Observation.Grants, Has.Length.EqualTo 1)
+                    Assert.That(CompositionStage.token memberValue.Stage, Is.EqualTo "released")
+                    Assert.That((BindingPlan.authority bindingPlan).NoCapabilityTransfer, Is.True))
+            | state -> Assert.Fail(sprintf "Expected authority-gated activation, got %A." state)
+        }
+
+    [<Test>]
+    member _.``authority mapping mismatch stops before CM5 and portable preflight``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let! result =
+                ComponentAuthorityIntegration.activate
+                    resolution
+                    selected
+                    { Occurrence = occurrence
+                      Participant = ActorId.create "actor.other" }
+                    (runtimeRequest (plan [ occurrence ]))
+                    (admission ())
+                    (directCooling CoolingFixture.contract)
+
+            multiple (fun () ->
+                Assert.That(
+                    result.Failure.Value.Kind,
+                    Is.EqualTo ComponentAuthorityIntegrationFailureKind.MappingInvalid)
+                Assert.That(result.Authority, Is.EqualTo None)
+                Assert.That(result.Lifecycle, Is.EqualTo None))
+        }
+
+    [<Test>]
+    member _.``revoked CM5 evidence prevents provider contact``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let denied =
+                { admission () with
+                    Evidence =
+                        (admission ()).Evidence
+                        |> List.map (fun evidence ->
+                            { evidence with State = AdmissionEvidenceState.Revoked }) }
+            let! result =
+                ComponentAuthorityIntegration.activate
+                    resolution
+                    selected
+                    { Occurrence = occurrence; Participant = participant }
+                    (runtimeRequest (plan [ occurrence ]))
+                    denied
+                    (directCooling CoolingFixture.contract)
+
+            multiple (fun () ->
+                Assert.That(
+                    result.Failure.Value.Kind,
+                    Is.EqualTo ComponentAuthorityIntegrationFailureKind.AuthorityRefused)
+                Assert.That(
+                    result.Authority.Value.Kind,
+                    Is.EqualTo AuthorityAdmissionOutcomeKind.Denied)
+                Assert.That(result.Authority.Value.Observation.Grants, Is.Empty)
+                Assert.That(result.Lifecycle, Is.EqualTo None))
+        }
+
+    [<Test>]
+    member _.``additional authority request is refused before CM5 evaluation``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let baseline = admission ()
+            let additional =
+                { List.exactlyOne baseline.Authority with
+                    Request = AuthorityRequestId.create "authority.additional" }
+            let wider = { baseline with Authority = baseline.Authority @ [ additional ] }
+            let! result =
+                ComponentAuthorityIntegration.activate
+                    resolution
+                    selected
+                    { Occurrence = occurrence; Participant = participant }
+                    (runtimeRequest (plan [ occurrence ]))
+                    wider
+                    (directCooling CoolingFixture.contract)
+
+            multiple (fun () ->
+                Assert.That(
+                    result.Failure.Value.Kind,
+                    Is.EqualTo ComponentAuthorityIntegrationFailureKind.AuthorityShapeUnsupported)
+                Assert.That(result.Authority, Is.EqualTo None)
+                Assert.That(result.Lifecycle, Is.EqualTo None))
+        }
+
+    [<Test>]
+    member _.``caller authored CM4 binding authority is refused before CM5 evaluation``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let runtime =
+                { runtimeRequest (plan [ occurrence ]) with
+                    BindingExercises =
+                        [ { Exercise = BindingExerciseId.create "exercise.caller"
+                            Binding = BindingId.create "binding.caller"
+                            Consumer = occurrence
+                            Provider = occurrence
+                            Source = SourceId.create "source.caller"
+                            Exposure = BindingExposureKind.Distinct
+                            Mediation = None
+                            Routing = RoutingDecisionId.create "routing.caller"
+                            AuthorityAdmitted = true
+                            Delivery = BindingDeliveryResult.Delivered
+                            Failure = None } ] }
+            let! result =
+                ComponentAuthorityIntegration.activate
+                    resolution
+                    selected
+                    { Occurrence = occurrence; Participant = participant }
+                    runtime
+                    (admission ())
+                    (directCooling CoolingFixture.contract)
+
+            multiple (fun () ->
+                Assert.That(
+                    result.Failure.Value.Kind,
+                    Is.EqualTo ComponentAuthorityIntegrationFailureKind.AuthorityShapeUnsupported)
+                Assert.That(result.Authority, Is.EqualTo None)
+                Assert.That(result.Lifecycle, Is.EqualTo None))
+        }
+
+    [<Test>]
+    member _.``structurally invalid CM5 request prevents provider contact``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let baseline = admission ()
+            let invalid =
+                { baseline with
+                    Evidence =
+                        [ List.exactlyOne baseline.Evidence
+                          List.exactlyOne baseline.Evidence ] }
+            let! result =
+                ComponentAuthorityIntegration.activate
+                    resolution
+                    selected
+                    { Occurrence = occurrence; Participant = participant }
+                    (runtimeRequest (plan [ occurrence ]))
+                    invalid
+                    (directCooling CoolingFixture.contract)
+
+            multiple (fun () ->
+                Assert.That(
+                    result.Failure.Value.Kind,
+                    Is.EqualTo ComponentAuthorityIntegrationFailureKind.AuthorityRefused)
+                Assert.That(
+                    result.Authority.Value.Kind,
+                    Is.EqualTo AuthorityAdmissionOutcomeKind.InvalidRequest)
+                Assert.That(result.Lifecycle, Is.EqualTo None))
+        }
+
+    [<Test>]
+    member _.``portable failure remains inactive after CM5 admission``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let substituted =
+                { CoolingFixture.contract with
+                    Provider = expectProvider "brontide.fake.substituted" }
+            let! result =
+                ComponentAuthorityIntegration.activate
+                    resolution
+                    selected
+                    { Occurrence = occurrence; Participant = participant }
+                    (runtimeRequest (plan [ occurrence ]))
+                    (admission ())
+                    (directCooling substituted)
+
+            multiple (fun () ->
+                Assert.That(
+                    result.Authority.Value.Kind,
+                    Is.EqualTo AuthorityAdmissionOutcomeKind.Admitted)
+                Assert.That(
+                    result.Failure.Value.Kind,
+                    Is.EqualTo ComponentAuthorityIntegrationFailureKind.LifecycleRefused)
+                Assert.That(
+                    CompositionStage.token result.Lifecycle.Value.Member.Value.Stage,
+                    Is.Not.EqualTo "released"))
         }

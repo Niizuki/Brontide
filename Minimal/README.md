@@ -66,7 +66,9 @@ The implementation currently provides:
   position and explicit identity mapping can enter PB7 preflight, while wider, mediated, missing,
   indirect, or mismatched positions fail before a provider starts; one singleton, protocol-free
   CM4 plan can then derive stages from PB7 and release the portable gate only after CM4 Active;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI2 integration suite.
+  CBI3 additionally requires one explicit occurrence-to-Actor mapping and one exact native CM5
+  relationship and grant before provider contact, without transporting that grant through PB7;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI3 integration suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range
 and CI feature bands are checked by [`sdk-policy.md`](../docs/current/policies/sdk-policy.md). The selected

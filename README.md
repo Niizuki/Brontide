@@ -89,6 +89,9 @@ without reselecting the provider or inventing a Binding Plan.
 CBI2 then coordinates that member with one singleton, protocol-free CM4 plan: CM4 is validated
 before provider contact, lifecycle observations come from PB7 state rather than caller claims, and
 the portable gate opens only after CM4 reaches Active. CM5 authority remains outside this slice.
+CBI3 adds the first CM5 integration: one explicit occurrence-to-Actor mapping and one exact narrow
+receiving-domain grant must be admitted before provider contact. That local grant gates activation
+but never crosses the portable trust boundary or authorizes a portable Operation by name.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary
