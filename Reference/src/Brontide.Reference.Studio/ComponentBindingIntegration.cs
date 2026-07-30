@@ -634,6 +634,270 @@ public static class ComponentAuthorityRevalidation
     }
 }
 
+public sealed record ComponentParticipantRequest(
+    ComponentAuthorityMapping Mapping,
+    Cm.AuthorityAdmissionRequest Request);
+
+public enum ComponentParticipantAdmissionFailureKind
+{
+    ParticipantSetInvalid,
+    AuthorityShapeUnsupported,
+    AuthorityRefused,
+    LocalIdentityConflict,
+    LifecycleRefused,
+}
+
+public sealed record ComponentParticipantAdmissionFailure(
+    ComponentParticipantAdmissionFailureKind Kind,
+    string Code,
+    string Reason);
+
+public sealed record ComponentParticipantObservation(
+    Cm.ActorId Participant,
+    Cm.AuthorityAdmissionOutcome Authority);
+
+public sealed record ComponentParticipantAdmissionResult(
+    IReadOnlyList<ComponentParticipantObservation> Admissions,
+    IReadOnlyList<Cm.LocalCapabilityGrant> Grants,
+    ComponentBindingLifecycleResult? Lifecycle,
+    ComponentParticipantAdmissionFailure? Failure)
+{
+    public bool IsActive => Failure is null && Grants.Count > 0 && Lifecycle?.IsActive == true;
+}
+
+/// <summary>
+/// Gates one CBI2 activation with a set of participants, each holding one or more exact narrow
+/// CM5 grants.
+/// </summary>
+/// <remarks>
+/// A CM5 request names exactly one participant, so a participant set is a set of requests. The
+/// evaluator sees each one alone, which leaves the cross-request questions — repeated identities
+/// and two participants sharing one receiving-domain Actor — to this coordinator.
+/// </remarks>
+public static class ComponentParticipantAdmission
+{
+    public static async ValueTask<ComponentParticipantAdmissionResult> ActivateAsync(
+        Cm.ResolutionOutcome resolution,
+        ComponentBindingSelection selection,
+        IReadOnlyList<ComponentParticipantRequest> participants,
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        Portable.IPortableProviderConversation conversation,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(participants);
+        ArgumentNullException.ThrowIfNull(runtimeRequest);
+        ArgumentNullException.ThrowIfNull(conversation);
+
+        // Ordering by participant makes evaluation, observation, and grant order independent of
+        // the order the caller happened to build the set in.
+        var ordered = participants
+            .OrderBy(item => item.Mapping.Participant.Value, StringComparer.Ordinal)
+            .ToArray();
+        if (ValidateSet(ordered, selection) is { } invalid)
+        {
+            return Refuse(
+                ComponentParticipantAdmissionFailureKind.ParticipantSetInvalid,
+                invalid.Code,
+                invalid.Reason);
+        }
+
+        if (runtimeRequest.BindingExercises.Count > 0 ||
+            ordered.Any(item => !SupportedShape(item.Request)))
+        {
+            return Refuse(
+                ComponentParticipantAdmissionFailureKind.AuthorityShapeUnsupported,
+                "authority-shape-unsupported",
+                "CBI6 supports one ComponentParticipant relationship per participant, distinct narrow authority tuples dependent on it, and no caller-authored CM4 binding exercises.");
+        }
+
+        var evaluator = new Cm.FakeAuthorityAdmissionEvaluator();
+        var admissions = ordered
+            .Select(item => new ComponentParticipantObservation(
+                item.Mapping.Participant,
+                evaluator.Evaluate(item.Request)))
+            .ToArray();
+        var refused = ordered
+            .Where((item, index) => !IsExactAdmission(admissions[index].Authority, item.Request))
+            .Select(item => item.Mapping.Participant.Value)
+            .ToArray();
+        if (refused.Length > 0)
+        {
+            return Refuse(
+                ComponentParticipantAdmissionFailureKind.AuthorityRefused,
+                "authority-not-admitted",
+                $"CM5 did not admit the exact submitted authority for {string.Join(", ", refused)}.",
+                admissions);
+        }
+
+        var holders = admissions
+            .Select(item => item.Authority.Observation.Relationships[0].LocalActor.Value)
+            .ToArray();
+        if (FirstDuplicate(holders) is { } sharedHolder)
+        {
+            return Refuse(
+                ComponentParticipantAdmissionFailureKind.LocalIdentityConflict,
+                "local-actor-conflict",
+                $"Two participants were mapped onto the receiving-domain Actor '{sharedHolder}', which would merge their grants into one holder.",
+                admissions);
+        }
+
+        var lifecycle = await ComponentBindingLifecycle.ActivateAsync(
+            resolution,
+            selection,
+            runtimeRequest,
+            conversation,
+            cancellationToken).ConfigureAwait(false);
+        if (!lifecycle.IsActive)
+        {
+            return Refuse(
+                ComponentParticipantAdmissionFailureKind.LifecycleRefused,
+                lifecycle.Failure?.Code ?? "lifecycle-not-active",
+                lifecycle.Failure?.Reason ?? "CBI2 did not return a released Active member.",
+                admissions,
+                lifecycle);
+        }
+
+        var grants = admissions
+            .SelectMany(item => item.Authority.Observation.Grants)
+            .OrderBy(item => item.Grant.Value, StringComparer.Ordinal)
+            .ToArray();
+        return new(admissions, grants, lifecycle, null);
+    }
+
+    private static (string Code, string Reason)? ValidateSet(
+        IReadOnlyList<ComponentParticipantRequest> participants,
+        ComponentBindingSelection selection)
+    {
+        if (participants.Count == 0)
+        {
+            return ("participant-set-empty", "CBI6 requires at least one participant admission request.");
+        }
+
+        foreach (var participant in participants)
+        {
+            if (participant.Mapping.Occurrence != selection.Occurrence ||
+                participant.Mapping.Participant != participant.Request.Participant)
+            {
+                return (
+                    "participant-mapping-invalid",
+                    "Every participant mapping must name the CBI1-selected occurrence and its own CM5 request participant.");
+            }
+        }
+
+        if (FirstDuplicate(participants.Select(item => item.Mapping.Participant.Value)) is { } participantActor)
+        {
+            return (
+                "participant-not-distinct",
+                $"Participant '{participantActor}' appears in more than one admission request.");
+        }
+
+        if (FirstDuplicate(participants.Select(item => item.Request.Request.Value)) is { } admission)
+        {
+            return (
+                "admission-identity-not-distinct",
+                $"Admission request identity '{admission}' is used by more than one participant.");
+        }
+
+        var relationships = participants
+            .SelectMany(item => item.Request.Relationships)
+            .Select(item => item.Request.Value);
+        if (FirstDuplicate(relationships) is { } relationship)
+        {
+            return (
+                "relationship-identity-not-distinct",
+                $"Relationship request identity '{relationship}' is used by more than one participant.");
+        }
+
+        var authority = participants
+            .SelectMany(item => item.Request.Authority)
+            .Select(item => item.Request.Value);
+        if (FirstDuplicate(authority) is { } authorityRequest)
+        {
+            return (
+                "authority-identity-not-distinct",
+                $"Authority request identity '{authorityRequest}' is used by more than one participant, so its grants would share an identity.");
+        }
+
+        return null;
+    }
+
+    private static bool SupportedShape(Cm.AuthorityAdmissionRequest request)
+    {
+        if (request.Relationships.Count != 1 || request.Authority.Count == 0)
+        {
+            return false;
+        }
+
+        var relationship = request.Relationships[0];
+        if (relationship.Kind != Cm.ActorRelationshipKind.ComponentParticipant ||
+            relationship.ProposedActor != request.Participant)
+        {
+            return false;
+        }
+
+        if (request.Authority.Any(item => item.Relationship != relationship.Request || item.Unlimited))
+        {
+            return false;
+        }
+
+        return FirstDuplicate(request.Authority.Select(item =>
+            $"{item.Capability.Value}|{item.Target.Value}|{item.Operation.Value}|{item.Scope.Value}")) is null;
+    }
+
+    private static bool IsExactAdmission(
+        Cm.AuthorityAdmissionOutcome outcome,
+        Cm.AuthorityAdmissionRequest request)
+    {
+        if (outcome.Kind != Cm.AuthorityAdmissionOutcomeKind.Admitted ||
+            outcome.Observation.Relationships.Count != 1 ||
+            outcome.Observation.Grants.Count != request.Authority.Count)
+        {
+            return false;
+        }
+
+        var established = outcome.Observation.Relationships[0];
+        var submitted = request.Relationships[0];
+        if (established.Request != submitted.Request ||
+            established.ProposedActor != submitted.ProposedActor ||
+            established.Kind != submitted.Kind)
+        {
+            return false;
+        }
+
+        // One grant per submitted request, matched on the complete tuple, so equal counts and a
+        // single match each make the correspondence a bijection rather than a coincidence.
+        return request.Authority.All(authority =>
+            outcome.Observation.Grants.Count(grant =>
+                grant.Request == authority.Request &&
+                grant.Holder == established.LocalActor &&
+                grant.Capability == authority.Capability &&
+                grant.Target == authority.Target &&
+                grant.Operation == authority.Operation &&
+                grant.Scope == authority.Scope) == 1);
+    }
+
+    private static string? FirstDuplicate(IEnumerable<string> values) =>
+        values.GroupBy(item => item, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .FirstOrDefault();
+
+    private static ComponentParticipantAdmissionResult Refuse(
+        ComponentParticipantAdmissionFailureKind kind,
+        string code,
+        string reason,
+        IReadOnlyList<ComponentParticipantObservation>? admissions = null,
+        ComponentBindingLifecycleResult? lifecycle = null) =>
+        new(
+            admissions ?? Array.Empty<ComponentParticipantObservation>(),
+            Array.Empty<Cm.LocalCapabilityGrant>(),
+            lifecycle,
+            new(kind, code, reason));
+}
+
 /// <summary>
 /// Projects one native CBI3 result into the canonical, data-only CBI4 comparison profile.
 /// </summary>

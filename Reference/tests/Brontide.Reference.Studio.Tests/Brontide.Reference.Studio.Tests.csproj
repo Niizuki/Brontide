@@ -30,5 +30,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi5-authority-withdrawal-vectors.json"
           Link="component-management\fixtures\cbi5-authority-withdrawal-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi6-participant-admission-vectors.json"
+          Link="component-management\fixtures\cbi6-participant-admission-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

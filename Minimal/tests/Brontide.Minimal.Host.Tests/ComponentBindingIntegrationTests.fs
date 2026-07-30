@@ -249,6 +249,166 @@ type ComponentBindingIntegrationTests() =
                     KnownMistake = false
                     Rationale = "narrow cooling control admitted" } ] } }
 
+    let supervisor = ActorId.create "actor.cooling-supervisor"
+    let supervisorEvidence = EvidenceId.create "evidence.cooling-supervisor"
+    let supervisorRelationshipId = RelationshipRequestId.create "relationship.cooling-supervisor"
+    let reportAuthorityId = AuthorityRequestId.create "authority.cooling-report"
+    let auditAuthorityId = AuthorityRequestId.create "authority.cooling-audit"
+    let reportCapability = CapabilityId.create "capability.cooling-report"
+    let auditCapability = CapabilityId.create "capability.cooling-audit"
+    let reportOperation = OperationId.create "cooling.read-state"
+    let auditOperation = OperationId.create "cooling.read-log"
+    let providerLocalActor = LocalActorReferenceId.create "local.cooling-provider"
+    let supervisorLocalActor = LocalActorReferenceId.create "local.cooling-supervisor"
+
+    let setEvidence evidence subject : AdmissionEvidence =
+        { Evidence = evidence
+          Issuer = authorityIssuer
+          Subject = subject
+          Verification = AdmissionEvidenceVerification.Verified
+          ValidFrom = evaluationTime.AddHours(-1.0)
+          ExpiresAt = evaluationTime.AddHours(1.0)
+          State = AdmissionEvidenceState.Current }
+
+    let setPolicy supervisorActor : LocalAuthorityPolicy =
+        { Policy = AuthorityPolicyId.create "policy.integration-set"
+          TrustedIssuers = [ authorityIssuer ]
+          RelationshipRules =
+            [ { Rule = PolicyRuleId.create "rule.component-participant"
+                ProposedActor = participant
+                Kind = ActorRelationshipKind.ComponentParticipant
+                Disposition = PolicyDisposition.Allow
+                LocalActor = Some providerLocalActor
+                RequiredEvidence = [ authorityEvidence ]
+                KnownMistake = false
+                Rationale = "component participant admitted" }
+              { Rule = PolicyRuleId.create "rule.component-supervisor"
+                ProposedActor = supervisor
+                Kind = ActorRelationshipKind.ComponentParticipant
+                Disposition = PolicyDisposition.Allow
+                LocalActor = Some supervisorActor
+                RequiredEvidence = [ supervisorEvidence ]
+                KnownMistake = false
+                Rationale = "component supervisor admitted" } ]
+          AuthorityRules =
+            [ { Rule = PolicyRuleId.create "rule.cooling-control"
+                RelationshipKind = ActorRelationshipKind.ComponentParticipant
+                Capability = capability
+                Target = authorityTarget
+                Operation = operation
+                Scope = authorityScope
+                Disposition = PolicyDisposition.Allow
+                KnownMistake = false
+                Rationale = "narrow cooling control admitted" }
+              { Rule = PolicyRuleId.create "rule.cooling-report"
+                RelationshipKind = ActorRelationshipKind.ComponentParticipant
+                Capability = reportCapability
+                Target = authorityTarget
+                Operation = reportOperation
+                Scope = authorityScope
+                Disposition = PolicyDisposition.Allow
+                KnownMistake = false
+                Rationale = "narrow cooling reporting admitted" }
+              { Rule = PolicyRuleId.create "rule.cooling-audit"
+                RelationshipKind = ActorRelationshipKind.ComponentParticipant
+                Capability = auditCapability
+                Target = authorityTarget
+                Operation = auditOperation
+                Scope = authorityScope
+                Disposition = PolicyDisposition.Allow
+                KnownMistake = false
+                Rationale = "narrow cooling audit admitted" } ] }
+
+    let participantSet occurrence supervisorActor : ComponentParticipantRequest list =
+        let policy = setPolicy supervisorActor
+        [ { Mapping =
+              { Occurrence = occurrence
+                Participant = participant }
+            Request =
+              { Request = AdmissionRequestId.create "admission.set-provider"
+                Participant = participant
+                EvaluationTime = evaluationTime
+                Evidence = [ setEvidence authorityEvidence participant ]
+                Relationships =
+                  [ { Request = relationshipId
+                      ProposedActor = participant
+                      Kind = ActorRelationshipKind.ComponentParticipant
+                      Evidence = [ authorityEvidence ] } ]
+                Authority =
+                  [ { Request = authorityId
+                      Relationship = relationshipId
+                      Capability = capability
+                      Target = authorityTarget
+                      Operation = operation
+                      Scope = authorityScope
+                      Unlimited = false }
+                    { Request = reportAuthorityId
+                      Relationship = relationshipId
+                      Capability = reportCapability
+                      Target = authorityTarget
+                      Operation = reportOperation
+                      Scope = authorityScope
+                      Unlimited = false } ]
+                Policy = policy } }
+          { Mapping =
+              { Occurrence = occurrence
+                Participant = supervisor }
+            Request =
+              { Request = AdmissionRequestId.create "admission.set-supervisor"
+                Participant = supervisor
+                EvaluationTime = evaluationTime
+                Evidence = [ setEvidence supervisorEvidence supervisor ]
+                Relationships =
+                  [ { Request = supervisorRelationshipId
+                      ProposedActor = supervisor
+                      Kind = ActorRelationshipKind.ComponentParticipant
+                      Evidence = [ supervisorEvidence ] } ]
+                Authority =
+                  [ { Request = auditAuthorityId
+                      Relationship = supervisorRelationshipId
+                      Capability = auditCapability
+                      Target = authorityTarget
+                      Operation = auditOperation
+                      Scope = authorityScope
+                      Unlimited = false } ]
+                Policy = policy } } ]
+
+    let revoked (entry: ComponentParticipantRequest) =
+        { entry with
+            Request =
+              { entry.Request with
+                  Evidence =
+                    entry.Request.Evidence
+                    |> List.map (fun evidence ->
+                        { evidence with State = AdmissionEvidenceState.Revoked }) } }
+
+    let withAuthority (entry: ComponentParticipantRequest) authority =
+        { entry with
+            Request = { entry.Request with Authority = authority } }
+
+    let participantFailureToken kind =
+        match kind with
+        | ComponentParticipantAdmissionFailureKind.ParticipantSetInvalid -> "participant-set-invalid"
+        | ComponentParticipantAdmissionFailureKind.AuthorityShapeUnsupported ->
+            "authority-shape-unsupported"
+        | ComponentParticipantAdmissionFailureKind.AuthorityRefused -> "authority-refused"
+        | ComponentParticipantAdmissionFailureKind.LocalIdentityConflict -> "local-identity-conflict"
+        | ComponentParticipantAdmissionFailureKind.LifecycleRefused -> "lifecycle-refused"
+
+    let portableFacts (result: ComponentParticipantAdmissionResult) =
+        let memberValue = result.Lifecycle.Value.Member.Value
+        let planFacts =
+            memberValue.TryPlan
+            |> Option.map (fun plan ->
+                BindingPlan.factNames plan
+                |> List.choose (fun name ->
+                    BindingPlan.tryFact name plan |> Option.map (fun value -> name, value))
+                |> Map.ofList)
+            |> Option.defaultValue Map.empty
+            |> Map.remove "planId"
+        (memberValue.ResolutionFacts, planFacts)
+        ||> Map.fold (fun state key value -> Map.add key value state)
+
     [<Test>]
     member _.``completed direct one to one resolution enters portable preflight``() =
         let resolution = resolve (Cardinality.parse "1..1")
@@ -883,6 +1043,176 @@ type ComponentBindingIntegrationTests() =
                                 Some ProtocolCategory.StateViolation),
                         scenario)
                     Assert.That(handler.ProviderEffectCount, Is.Zero, scenario))
+        }
+
+    [<Test>]
+    member _.``shared CBI6 vectors gate the participant set before provider contact``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi6-participant-admission-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI6 vector identity must be a string"
+                    | value -> value
+                let resolution, selected, occurrence = prepared ()
+                let handler = CoolingHandler()
+                let conversation =
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(
+                            CoolingFixture.contract,
+                            handler,
+                            Realization.FixedDirectCall))
+                    :> IPortableProviderConversation
+                let supervisorActor =
+                    if scenario = "cbi6-08-shared-local-actor" then
+                        providerLocalActor
+                    else
+                        supervisorLocalActor
+                let baseline = participantSet occurrence supervisorActor
+                let first = List.item 0 baseline
+                let second = List.item 1 baseline
+                let participants =
+                    match scenario with
+                    | "cbi6-01-two-participants"
+                    | "cbi6-08-shared-local-actor" -> baseline
+                    | "cbi6-02-second-participant-denied" -> [ first; revoked second ]
+                    | "cbi6-03-repeated-participant" -> [ first; first ]
+                    | "cbi6-04-shared-authority-identity" ->
+                        [ first
+                          withAuthority
+                              second
+                              [ { List.exactlyOne second.Request.Authority with
+                                    Request = authorityId } ] ]
+                    | "cbi6-05-repeated-grant-tuple" ->
+                        let control = List.head first.Request.Authority
+                        [ withAuthority
+                              first
+                              [ control
+                                { control with
+                                    Request =
+                                        AuthorityRequestId.create "authority.cooling-control-again" } ]
+                          second ]
+                    | "cbi6-06-unlimited-grant" ->
+                        [ first
+                          withAuthority
+                              second
+                              [ { List.exactlyOne second.Request.Authority with Unlimited = true } ] ]
+                    | "cbi6-07-empty-set" -> []
+                    | "cbi6-09-foreign-occurrence" ->
+                        [ first
+                          { second with
+                              Mapping =
+                                { second.Mapping with
+                                    Occurrence = OccurrenceId.create "occ.unselected" } } ]
+                    | other -> invalidArg (nameof scenario) (sprintf "unknown CBI6 vector %s" other)
+                let! result =
+                    ComponentParticipantAdmission.activate
+                        resolution
+                        selected
+                        participants
+                        (runtimeRequest (plan [ occurrence ]))
+                        conversation
+                let expectedFailure: string | null =
+                    let value = vector.GetProperty("expectedFailureKind")
+                    if value.ValueKind = JsonValueKind.Null then null else value.GetString()
+                let expectedCode: string | null =
+                    let value = vector.GetProperty("expectedCode")
+                    if value.ValueKind = JsonValueKind.Null then null else value.GetString()
+                let actualFailure: string | null =
+                    match result.Failure with
+                    | None -> null
+                    | Some failure -> participantFailureToken failure.Kind
+                let actualCode: string | null =
+                    match result.Failure with
+                    | None -> null
+                    | Some failure -> failure.Code
+                multiple (fun () ->
+                    Assert.That(
+                        ComponentParticipantAdmission.isActive result,
+                        Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()),
+                        scenario)
+                    Assert.That(actualFailure, Is.EqualTo expectedFailure, scenario)
+                    Assert.That(actualCode, Is.EqualTo expectedCode, scenario)
+                    Assert.That(
+                        result.Admissions.Length,
+                        Is.EqualTo(vector.GetProperty("expectedParticipantsEvaluated").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Grants.Length,
+                        Is.EqualTo(vector.GetProperty("expectedGrants").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Lifecycle.IsSome,
+                        Is.EqualTo(ComponentParticipantAdmission.isActive result),
+                        sprintf "%s: a refused participant set must not reach the provider." scenario)
+                    Assert.That(handler.ProviderEffectCount, Is.Zero, scenario))
+        }
+
+    [<Test>]
+    member _.``admitted participant set holds distinct local Actors and every grant``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let! result =
+                ComponentParticipantAdmission.activate
+                    resolution
+                    selected
+                    (participantSet occurrence supervisorLocalActor)
+                    (runtimeRequest (plan [ occurrence ]))
+                    (directCooling CoolingFixture.contract)
+            let holders = result.Grants |> List.map _.Holder |> List.distinct
+            let memberValue = result.Lifecycle.Value.Member.Value
+            multiple (fun () ->
+                Assert.That(ComponentParticipantAdmission.isActive result, Is.True)
+                Assert.That(
+                    result.Admissions |> List.map _.Participant,
+                    Is.EqualTo<ActorId> [ participant; supervisor ])
+                Assert.That(
+                    result.Grants |> List.map (fun grant -> AuthorityRequestId.value grant.Request),
+                    Is.EqualTo<string>(
+                        [ authorityId; reportAuthorityId; auditAuthorityId ]
+                        |> List.map AuthorityRequestId.value
+                        |> List.sortWith (fun left right -> String.CompareOrdinal(left, right))))
+                Assert.That(holders.Length, Is.EqualTo 2)
+                Assert.That(CompositionStage.token memberValue.Stage, Is.EqualTo "released")
+                Assert.That(
+                    (BindingPlan.authority (memberValue.TryPlan |> Option.get)).NoCapabilityTransfer,
+                    Is.True))
+        }
+
+    [<Test>]
+    member _.``participant set size cannot change any portable fact``() =
+        task {
+            let resolution, selected, occurrence = prepared ()
+            let set = participantSet occurrence supervisorLocalActor
+            let! wide =
+                ComponentParticipantAdmission.activate
+                    resolution
+                    selected
+                    set
+                    (runtimeRequest (plan [ occurrence ]))
+                    (directCooling CoolingFixture.contract)
+            let resolution, selected, occurrence = prepared ()
+            let! narrow =
+                ComponentParticipantAdmission.activate
+                    resolution
+                    selected
+                    [ List.head set ]
+                    (runtimeRequest (plan [ occurrence ]))
+                    (directCooling CoolingFixture.contract)
+            multiple (fun () ->
+                Assert.That(ComponentParticipantAdmission.isActive wide, Is.True)
+                Assert.That(ComponentParticipantAdmission.isActive narrow, Is.True)
+                Assert.That(wide.Grants.Length, Is.EqualTo 3)
+                Assert.That(narrow.Grants.Length, Is.EqualTo 2)
+                Assert.That(
+                    portableFacts wide |> Map.toList,
+                    Is.EqualTo<string * string>(portableFacts narrow |> Map.toList)))
         }
 
     [<Test>]

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi6-participant-admission-vectors",
+  "vectors": [
+    {
+      "id": "cbi6-01-two-participants",
+      "expectedActive": true,
+      "expectedFailureKind": null,
+      "expectedCode": null,
+      "expectedParticipantsEvaluated": 2,
+      "expectedGrants": 3
+    },
+    {
+      "id": "cbi6-02-second-participant-denied",
+      "expectedActive": false,
+      "expectedFailureKind": "authority-refused",
+      "expectedCode": "authority-not-admitted",
+      "expectedParticipantsEvaluated": 2,
+      "expectedGrants": 0
+    },
+    {
+      "id": "cbi6-03-repeated-participant",
+      "expectedActive": false,
+      "expectedFailureKind": "participant-set-invalid",
+      "expectedCode": "participant-not-distinct",
+      "expectedParticipantsEvaluated": 0,
+      "expectedGrants": 0
+    },
+    {
+      "id": "cbi6-04-shared-authority-identity",
+      "expectedActive": false,
+      "expectedFailureKind": "participant-set-invalid",
+      "expectedCode": "authority-identity-not-distinct",
+      "expectedParticipantsEvaluated": 0,
+      "expectedGrants": 0
+    },
+    {
+      "id": "cbi6-05-repeated-grant-tuple",
+      "expectedActive": false,
+      "expectedFailureKind": "authority-shape-unsupported",
+      "expectedCode": "authority-shape-unsupported",
+      "expectedParticipantsEvaluated": 0,
+      "expectedGrants": 0
+    },
+    {
+      "id": "cbi6-06-unlimited-grant",
+      "expectedActive": false,
+      "expectedFailureKind": "authority-shape-unsupported",
+      "expectedCode": "authority-shape-unsupported",
+      "expectedParticipantsEvaluated": 0,
+      "expectedGrants": 0
+    },
+    {
+      "id": "cbi6-07-empty-set",
+      "expectedActive": false,
+      "expectedFailureKind": "participant-set-invalid",
+      "expectedCode": "participant-set-empty",
+      "expectedParticipantsEvaluated": 0,
+      "expectedGrants": 0
+    },
+    {
+      "id": "cbi6-08-shared-local-actor",
+      "expectedActive": false,
+      "expectedFailureKind": "local-identity-conflict",
+      "expectedCode": "local-actor-conflict",
+      "expectedParticipantsEvaluated": 2,
+      "expectedGrants": 0
+    },
+    {
+      "id": "cbi6-09-foreign-occurrence",
+      "expectedActive": false,
+      "expectedFailureKind": "participant-set-invalid",
+      "expectedCode": "participant-mapping-invalid",
+      "expectedParticipantsEvaluated": 0,
+      "expectedGrants": 0
+    }
+  ]
+}
