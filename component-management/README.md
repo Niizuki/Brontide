@@ -112,6 +112,15 @@ provider. Its bounded behavior is recorded in the
 [CBI6 capability contract](./cbi6-capability-contract.md) and completed
 [contract-completeness review](./cbi6-contract-completeness-review.md).
 
+CBI7 revalidates that whole set after activation and answers the question CBI6 left undecided: when
+one participant of several loses authority, the shared member is retired rather than the set being
+narrowed, because nothing in an admitted set says which participants the member's ordinary
+interaction depends on. Continuation requires the identical participant set to renew identically;
+membership change or identity drift retires the member before any request is evaluated, and
+retirement closes the ordinary-interaction gate before peer cleanup. Its bounded behavior is
+recorded in the [CBI7 capability contract](./cbi7-capability-contract.md) and completed
+[contract-completeness review](./cbi7-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -199,6 +208,15 @@ codes. Each vector also pins how many participants were evaluated and how many a
 result carries, so both composition roots must answer the evaluation-count and partial-set questions
 rather than agreeing by silence. The fixture contains no evaluator, policy, identity rule, lifecycle
 coordinator, or portable runtime.
+
+### `cbi7-participant-withdrawal-vectors` sections
+
+`vectors` names exact set renewal, one participant revoked, every participant expired, tuple drift,
+a dropped grant, a removed participant, an added participant, and retirement cleanup failure, with
+stable outcome kinds and codes. Each vector also pins how many participants were evaluated and how
+many did not renew, so the all-or-none evaluation rule and the attribution of a partial loss are
+forced answers rather than silences. The fixture contains no evaluator, clock, cleanup mechanism,
+portable authority, or runtime implementation.
 
 ### `cm0-mice-topology` sections
 

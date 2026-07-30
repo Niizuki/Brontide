@@ -73,8 +73,9 @@ The implementation currently provides:
   preserving Release only for exact renewal and otherwise retiring the member before further
   ordinary interaction; CBI6 admits a set of participants holding one or more exact narrow grants
   each, refusing repeated identities, a shared receiving-domain Actor, and any partially admitted
-  set before a provider is reached;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI6 integration suite.
+  set before a provider is reached; CBI7 revalidates that set and retires the shared member, naming
+  which participants did not renew, rather than narrowing the set when one of them loses authority;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI7 integration suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range
 and CI feature bands are checked by [`sdk-policy.md`](../docs/current/policies/sdk-policy.md). The selected

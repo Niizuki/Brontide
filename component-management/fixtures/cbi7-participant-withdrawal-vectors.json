@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi7-participant-withdrawal-vectors",
+  "vectors": [
+    {
+      "id": "cbi7-01-current",
+      "expectedKind": "continued",
+      "expectedCode": "authority-current",
+      "expectedParticipantsEvaluated": 2,
+      "expectedUnrenewed": 0
+    },
+    {
+      "id": "cbi7-02-one-revoked",
+      "expectedKind": "withdrawn",
+      "expectedCode": "authority-not-renewed",
+      "expectedParticipantsEvaluated": 2,
+      "expectedUnrenewed": 1
+    },
+    {
+      "id": "cbi7-03-all-expired",
+      "expectedKind": "withdrawn",
+      "expectedCode": "authority-not-renewed",
+      "expectedParticipantsEvaluated": 2,
+      "expectedUnrenewed": 2
+    },
+    {
+      "id": "cbi7-04-tuple-mismatch",
+      "expectedKind": "withdrawn",
+      "expectedCode": "authority-revalidation-mismatch",
+      "expectedParticipantsEvaluated": 0,
+      "expectedUnrenewed": 0
+    },
+    {
+      "id": "cbi7-05-grant-dropped",
+      "expectedKind": "withdrawn",
+      "expectedCode": "authority-revalidation-mismatch",
+      "expectedParticipantsEvaluated": 0,
+      "expectedUnrenewed": 0
+    },
+    {
+      "id": "cbi7-06-participant-removed",
+      "expectedKind": "withdrawn",
+      "expectedCode": "participant-set-changed",
+      "expectedParticipantsEvaluated": 0,
+      "expectedUnrenewed": 0
+    },
+    {
+      "id": "cbi7-07-participant-added",
+      "expectedKind": "withdrawn",
+      "expectedCode": "participant-set-changed",
+      "expectedParticipantsEvaluated": 0,
+      "expectedUnrenewed": 0
+    },
+    {
+      "id": "cbi7-08-retirement-failure",
+      "expectedKind": "retirement-failed",
+      "expectedCode": "authority-retirement-failed",
+      "expectedParticipantsEvaluated": 2,
+      "expectedUnrenewed": 2
+    }
+  ]
+}

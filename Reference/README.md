@@ -62,6 +62,10 @@ CBI6 admits a set of participants, each holding one or more exact narrow grants,
 singleton binding. Repeated identities across requests, two participants mapped onto one
 receiving-domain Actor, an unlimited or repeated authority tuple, and any participant the evaluator
 does not admit exactly all refuse the set before a provider is reached.
+CBI7 revalidates that set from fresh explicit CM5 requests. The identical set renewing identically
+keeps the member released; a changed membership, identity drift, or any participant that does not
+renew retires it before further ordinary interaction, and the result names which participants did
+not renew rather than narrowing the set.
 
 ## Build and test
 

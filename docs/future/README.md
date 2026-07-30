@@ -237,12 +237,26 @@ question the contract could otherwise have left silent. The
 [`contract-completeness review`](../../component-management/cbi6-contract-completeness-review.md)
 bound this to admission of a set, not revalidation or withdrawal of one.
 
-Set revalidation and withdrawal — what should happen to a shared member when one participant of
-several loses authority — is the next implementable integration item. CM4 binding-exercise
-projection, cross-vocabulary Operation mapping, multi-member and relational lifecycles, replacement,
-child Ports, mediation, wider Provider Sets, and real distribution remain future work. PB8's
-independent reviews and Decision 11 owner ruling remain separate governance prerequisites rather
-than implementation work.
+CBI7 participant-set revalidation and withdrawal is also implemented, and it closes the question
+CBI6 deferred. Each composition root revalidates every participant of an admitted set from a fresh
+explicit CM5 request; the shared member stays released only when the identical set renews
+identically. **When one participant of several loses authority the member is retired, not narrowed**,
+because nothing in an admitted set says which participants its ordinary interaction depends on — the
+set is unordered, none is marked required, and the member declares no dependency on particular
+grants — so continuing would make that Component Management decision invisibly. Membership change or
+identity drift retires the member before any request is evaluated; retirement closes the
+ordinary-interaction gate before peer cleanup; and the result names exactly which participants did
+not renew, so a still-admitted participant stays visible next to the retirement it did not cause.
+The [`CBI7 capability contract`](../../component-management/cbi7-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi7-contract-completeness-review.md)
+bound this to one participant set over one released singleton binding.
+
+Participant replacement in place — adding or substituting a participant without retiring the member
+— is the next implementable integration item, and precedence between participants is the question it
+must answer first. CM4 binding-exercise projection, cross-vocabulary Operation mapping, multi-member
+and relational lifecycles, replacement, child Ports, mediation, wider Provider Sets, and real
+distribution remain future work. PB8's independent reviews and Decision 11 owner ruling remain
+separate governance prerequisites rather than implementation work.
 
 ## Other planned areas
 
