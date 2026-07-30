@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased — Component Management CM4 experimental evidence
+
+### Added
+
+- A deterministic fake activation Host over successful CM3 plans, with optional effect-free
+  preparation, complete member-stage evidence, lifecycle and ordinary gate enforcement, one logical
+  Release, and explicit cutover events.
+- Exact scoped replacement with unrelated-scope preservation, retained-generation disposition,
+  pre- and post-cutover failure, rollback restoration, rollback-unavailable degradation, and
+  retained-generation corruption.
+- Post-Release distinct and mediated binding observations with typed identity, provenance, routing,
+  authority-check, delivery, and failure evidence, plus runtime-open child-Port and host-assisted
+  activation ordering.
+- The neutral CM4 vector inventory, phase-wide permutation and failure-silence properties, and the
+  completed CM4 contract-completeness review.
+
+CM4 remains a fake Architecture 0.8 experiment. It is not a package loader, production activation
+host, process-isolation boundary, durable rollback system, or authority policy; CM5 owns authority
+and admission.
+
 ## Unreleased — Component Management CM3 experimental evidence
 
 ### Added

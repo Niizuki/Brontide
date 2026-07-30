@@ -36,6 +36,15 @@ Components, execute lifecycle Operations, report runtime Ready, Release ordinary
 mutate an active generation. Its completed phase-boundary absence audit is the
 [CM3 contract-completeness review](./cm3-contract-completeness-review.md).
 
+CM4's observable behavior is defined by the
+[preparation, activation, scoped-restart, and rollback capability contract](./cm4-capability-contract.md).
+CM4 consumes a successful CM3 plan and explicit fake Host observations, then models optional
+effect-free preparation, named establishment stages, exact lifecycle and ordinary gates, one
+logical Release, post-Release binding exercises, scoped replacement, child-Port attachment, and
+explicit recovery or degradation. It does not discover, resolve, load arbitrary code, or decide
+authority policy. Its completed phase-boundary absence audit is the
+[CM4 contract-completeness review](./cm4-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -76,6 +85,14 @@ fixture contains no resolver algorithm, ranking function, lifecycle host, or aut
 outcome categories. Each native suite constructs equivalent stack-owned activation graphs and
 computes its own groups, stage plans, decisions, and structured failures; the fixture contains no
 graph algorithm, activation host, lifecycle executor, or runtime effect.
+
+### `cm4-activation-runtime-vectors` sections
+
+`vectors` is the shared data-only inventory of CM4 fake-Host capabilities and expected outcome
+categories. Each native suite constructs equivalent stack-owned runtime inputs and independently
+computes stage, gate, Release, cutover, binding, scope, child-attachment, and rollback observations;
+the fixture contains no activation algorithm, executable Component, authority policy, or rollback
+mechanism.
 
 ### `cm0-mice-topology` sections
 

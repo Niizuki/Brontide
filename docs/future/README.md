@@ -128,7 +128,7 @@ No documentation prerequisite now precedes planned implementation work.
 
 [Component Management Implementation Plan 0.1](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md)
 is the next implementable programme while Portable Binding awaits reviewer and owner actions. CM0
-through CM3 are complete independently in both stacks. CM1 adds standardised contract/version
+through CM4 are complete independently in both stacks. CM1 adds standardised contract/version
 discovery across zero or more fake sources, deterministic attributable candidates, immutable staged
 acquisition, contested evidence with attributable fake-policy decisions, source disappearance, four
 structured fail-closed acquisition categories, and an explicit zero-effect boundary. Its C1-C7
@@ -153,8 +153,16 @@ are complete. CM3 is effect-free planning: it does not prepare or establish Comp
 lifecycle Operations, accept runtime Ready reports, Release ordinary interaction, establish Actors
 or authority, or mutate an active generation.
 
-CM4 — preparation, activation barrier, scoped restart, and rollback — is the next implementation
-phase.
+CM4 adds a deterministic fake Host over successful CM3 plans: optional effect-free preparation,
+complete named establishment, exact lifecycle and ordinary gates, one logical Release,
+post-Release binding evidence, scoped replacement, retained-generation disposition, child-Port and
+host-assisted activation, and explicit rollback, rollback-impossibility, or corruption outcomes.
+Its
+[`C1-C10 capability contract`](../../component-management/cm4-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cm4-contract-completeness-review.md)
+are complete. It is fake runtime evidence, not a production activation or rollback system.
+
+CM5 — authority and admission — is the next implementation phase.
 
 ## Other planned areas
 
@@ -162,7 +170,7 @@ phase.
 | --- | --- | --- |
 | Architecture 0.8 | [`Brontide-Architecture-0.8.md`](./architecture/Brontide-Architecture-0.8.md) | Complete draft; implementation evidence pending; not ratified. |
 | Channel | [`Channel Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Cooling/Catalog evidence exists; reusable Channel realization remains planned. |
-| Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM3 are implemented independently in both stacks; CM4-CM6 remain planned. |
+| Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM4 are implemented independently in both stacks; CM5-CM6 remain planned. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |
 | Persistent Information | [`Persistent Information Design Note`](./persistent-information/Brontide-Design-Note-Persistent-Information-0.1.md) | Design direction only. |
