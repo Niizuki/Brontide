@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi4-integrated-comparison-vectors",
+  "vectors": [
+    {
+      "id": "cbi4-01-active",
+      "expectedActive": true,
+      "expectedIntegrationFailure": null,
+      "expectedProfileSha256": "d355290cf098203c4c24fa07608a8ad9f04695d76bc316d8ad68fb2649a4dc65"
+    },
+    {
+      "id": "cbi4-02-authority-denied",
+      "expectedActive": false,
+      "expectedIntegrationFailure": "authority-refused",
+      "expectedProfileSha256": "a9867e474b42c43b774a74ca95e61174be4eae180f8dac7ef3284ac1a6c79a79"
+    },
+    {
+      "id": "cbi4-03-authority-shape",
+      "expectedActive": false,
+      "expectedIntegrationFailure": "authority-shape-unsupported",
+      "expectedProfileSha256": "7535a15a27e5f9a0fd21f6b7529a61356e9ccb2a67a7adde6249a7d427c1048b"
+    },
+    {
+      "id": "cbi4-04-mapping",
+      "expectedActive": false,
+      "expectedIntegrationFailure": "mapping-invalid",
+      "expectedProfileSha256": "61778452202df7211f97b4d5928f45f4b6c1eadc801a018426eaaef2c1e9de8e"
+    },
+    {
+      "id": "cbi4-05-lifecycle",
+      "expectedActive": false,
+      "expectedIntegrationFailure": "lifecycle-refused",
+      "expectedProfileSha256": "2b4f4ca84b033bf6dea7fe059ff3d758db6a8afcbc2f075a1d5ab2c8d9be61ba"
+    }
+  ]
+}

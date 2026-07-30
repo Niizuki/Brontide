@@ -1,6 +1,9 @@
 namespace Brontide.Minimal.Host
 
+open System
+open System.Security.Cryptography
 open System.Text
+open System.Text.Json.Nodes
 open Brontide.Minimal.Binding.Portable
 open Brontide.Minimal.Experimental.ComponentManagement
 
@@ -463,3 +466,196 @@ module ComponentAuthorityIntegration =
                                     (Some admission)
                                     (Some lifecycle)
         }
+
+[<RequireQualifiedAccess>]
+module ComponentAuthorityComparison =
+    let private stringNode (value: string) : JsonNode | null = JsonValue.Create value
+    let private boolNode (value: bool) : JsonNode | null = JsonValue.Create value
+    let private intNode (value: int) : JsonNode | null = JsonValue.Create value
+
+    let private setString (node: JsonObject) (name: string) (value: string) =
+        node[name] <- stringNode value
+
+    let private setBoolean (node: JsonObject) (name: string) (value: bool) =
+        node[name] <- boolNode value
+
+    let private digestText (value: string) =
+        value
+        |> Encoding.UTF8.GetBytes
+        |> SHA256.HashData
+        |> Convert.ToHexStringLower
+
+    let private authorityOutcomeToken kind =
+        match kind with
+        | AuthorityAdmissionOutcomeKind.Admitted -> "admitted"
+        | AuthorityAdmissionOutcomeKind.PartiallyAdmitted -> "partially-admitted"
+        | AuthorityAdmissionOutcomeKind.Denied -> "denied"
+        | AuthorityAdmissionOutcomeKind.InvalidRequest -> "invalid-request"
+
+    let private runtimeOutcomeToken kind =
+        match kind with
+        | ActivationRuntimeOutcomeKind.Active -> "active"
+        | ActivationRuntimeOutcomeKind.RolledBack -> "rolled-back"
+        | ActivationRuntimeOutcomeKind.PreparationFailed -> "preparation-failed"
+        | ActivationRuntimeOutcomeKind.EstablishmentFailed -> "establishment-failed"
+        | ActivationRuntimeOutcomeKind.ReleaseFailedBeforeCutover -> "release-failed-before-cutover"
+        | ActivationRuntimeOutcomeKind.RollbackUnavailable -> "rollback-unavailable"
+        | ActivationRuntimeOutcomeKind.RetainedGenerationCorrupted -> "retained-generation-corrupted"
+        | ActivationRuntimeOutcomeKind.InvalidCm3Plan -> "invalid-cm3-plan"
+        | ActivationRuntimeOutcomeKind.RestartScopeConflict -> "restart-scope-conflict"
+        | ActivationRuntimeOutcomeKind.StageObservationConflict -> "stage-observation-conflict"
+        | ActivationRuntimeOutcomeKind.InteractionRefused -> "interaction-refused"
+        | ActivationRuntimeOutcomeKind.BindingObservationConflict -> "binding-observation-conflict"
+        | ActivationRuntimeOutcomeKind.ChildPortClosed -> "child-port-closed"
+        | ActivationRuntimeOutcomeKind.ReplacementLifecycleRequired -> "replacement-lifecycle-required"
+        | ActivationRuntimeOutcomeKind.HostAssistedOrderConflict -> "host-assisted-order-conflict"
+
+    let private integrationFailureNode
+        (failure: ComponentAuthorityIntegrationFailure option)
+        : JsonNode | null =
+        match failure with
+        | None -> null
+        | Some failure ->
+            let kind =
+                match failure.Kind with
+                | ComponentAuthorityIntegrationFailureKind.MappingInvalid -> "mapping-invalid"
+                | ComponentAuthorityIntegrationFailureKind.AuthorityShapeUnsupported ->
+                    "authority-shape-unsupported"
+                | ComponentAuthorityIntegrationFailureKind.AuthorityRefused -> "authority-refused"
+                | ComponentAuthorityIntegrationFailureKind.LifecycleRefused -> "lifecycle-refused"
+            let node = JsonObject()
+            setString node "kind" kind
+            setString node "code" failure.Code
+            node
+
+    let private authorityNode
+        (authority: AuthorityAdmissionOutcome option)
+        : JsonNode | null =
+        match authority with
+        | None -> null
+        | Some authority ->
+            let node = JsonObject()
+            setString node "outcome" (authorityOutcomeToken authority.Kind)
+            setString
+                node
+                "profileSha256"
+                (FakeAuthorityComparison.canonicalProfile authority |> digestText)
+            node
+
+    let private effectsNode (effects: ActivationRuntimeEffects) =
+        let node = JsonObject()
+        setBoolean node "prepared" effects.Prepared
+        setBoolean node "establishmentStarted" effects.EstablishmentStarted
+        setBoolean node "actorEndpointEstablished" effects.ActorEndpointEstablished
+        setBoolean node "lifecycleOperationExecuted" effects.LifecycleOperationExecuted
+        setBoolean node "memberReportedReady" effects.MemberReportedReady
+        setBoolean node "released" effects.Released
+        setBoolean node "ordinaryInteractionAdmitted" effects.OrdinaryInteractionAdmitted
+        setBoolean node "activeGenerationMutated" effects.ActiveGenerationMutated
+        setBoolean node "retainedGenerationRetired" effects.RetainedGenerationRetired
+        setBoolean node "rollbackAttempted" effects.RollbackAttempted
+        setBoolean node "capabilityGranted" effects.CapabilityGranted
+        node
+
+    let private runtimeNode
+        (runtime: ActivationRuntimeOutcome option)
+        : JsonNode | null =
+        match runtime with
+        | None -> null
+        | Some runtime ->
+            let node = JsonObject()
+            setString node "kind" (runtimeOutcomeToken runtime.Kind)
+            match runtime.Failure with
+            | Some failure -> setString node "failureKind" (runtimeOutcomeToken failure.Kind)
+            | None -> node["failureKind"] <- null
+            node["effects"] <- effectsNode runtime.Observation.Effects
+            node
+
+    let private memberNode
+        (memberValue: CompositionMember option)
+        : JsonNode | null =
+        match memberValue with
+        | None -> null
+        | Some memberValue ->
+            let planFacts =
+                memberValue.TryPlan
+                |> Option.map (fun plan ->
+                    BindingPlan.factNames plan
+                    |> List.choose (fun name ->
+                        BindingPlan.tryFact name plan |> Option.map (fun value -> name, value))
+                    |> Map.ofList)
+                |> Option.defaultValue Map.empty
+                |> Map.remove "planId"
+            let facts =
+                (memberValue.ResolutionFacts, planFacts)
+                ||> Map.fold (fun state key value -> Map.add key value state)
+            let factNode = JsonObject()
+            facts |> Map.iter (fun key value -> setString factNode key value)
+            let node = JsonObject()
+            setString node "stage" (CompositionStage.token memberValue.Stage)
+            setBoolean node "ready" memberValue.IsReady
+            setBoolean node "released" memberValue.IsReleased
+            node["facts"] <- factNode
+            node
+
+    let private lifecycleFailureNode
+        (failure: ComponentBindingLifecycleFailure option)
+        : JsonNode | null =
+        match failure with
+        | None -> null
+        | Some failure ->
+            let kind =
+                match failure.Kind with
+                | ComponentBindingLifecycleFailureKind.PreparationUnavailable ->
+                    "preparation-unavailable"
+                | ComponentBindingLifecycleFailureKind.PlanUnsupported -> "plan-unsupported"
+                | ComponentBindingLifecycleFailureKind.RuntimeRefusedBeforeStart ->
+                    "runtime-refused-before-start"
+                | ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused ->
+                    "portable-interconnection-refused"
+                | ComponentBindingLifecycleFailureKind.PortableReleaseRefused ->
+                    "portable-release-refused"
+            let node = JsonObject()
+            setString node "kind" kind
+            setString node "code" failure.Code
+            node
+
+    let private lifecycleNode
+        (lifecycle: ComponentBindingLifecycleResult option)
+        : JsonNode | null =
+        match lifecycle with
+        | None -> null
+        | Some lifecycle ->
+            let node = JsonObject()
+            node["runtime"] <- runtimeNode lifecycle.Runtime
+            node["member"] <- memberNode lifecycle.Member
+            node["failure"] <- lifecycleFailureNode lifecycle.Failure
+            node
+
+    let private isActive (result: ComponentAuthorityIntegrationResult) =
+        match result.Authority, result.Lifecycle, result.Failure with
+        | Some authority, Some lifecycle, None ->
+            authority.Kind = AuthorityAdmissionOutcomeKind.Admitted
+            && authority.Observation.Grants.Length = 1
+            && lifecycle.Failure.IsNone
+            && lifecycle.Runtime
+               |> Option.exists (fun runtime ->
+                   runtime.Kind = ActivationRuntimeOutcomeKind.Active)
+            && lifecycle.Member |> Option.exists _.IsReleased
+        | _ -> false
+
+    let profile scenario (result: ComponentAuthorityIntegrationResult) =
+        if String.IsNullOrWhiteSpace scenario then
+            invalidArg (nameof scenario) "scenario identity is required"
+        let node = JsonObject()
+        node["schemaVersion"] <- intNode 1
+        setString node "scenario" scenario
+        setBoolean node "active" (isActive result)
+        node["integrationFailure"] <- integrationFailureNode result.Failure
+        node["authority"] <- authorityNode result.Authority
+        node["lifecycle"] <- lifecycleNode result.Lifecycle
+        node.ToJsonString()
+
+    let digest (profile: string) =
+        ArgumentNullException.ThrowIfNull profile
+        digestText profile

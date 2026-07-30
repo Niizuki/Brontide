@@ -10,6 +10,11 @@
     <PackageReference Include="NUnit3TestAdapter" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\component-management\fixtures\cbi4-integrated-comparison-vectors.json"
+          Link="component-management\fixtures\cbi4-integrated-comparison-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
     <ProjectReference Include="..\..\src\Brontide.Minimal.Experimental.ComponentManagement\Brontide.Minimal.Experimental.ComponentManagement.fsproj" />
     <ProjectReference Include="..\..\src\Brontide.Minimal.Host\Brontide.Minimal.Host.fsproj" />

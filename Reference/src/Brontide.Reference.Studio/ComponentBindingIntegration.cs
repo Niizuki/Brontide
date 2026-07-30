@@ -1,6 +1,8 @@
 using Cm = Brontide.Reference.Experimental.ComponentManagement;
 using Portable = Brontide.Reference.Experimental.Binding.Portable;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json.Nodes;
 
 namespace Brontide.Reference.Studio;
 
@@ -482,4 +484,179 @@ public static class ComponentAuthorityIntegration
         Cm.AuthorityAdmissionOutcome? authority = null,
         ComponentBindingLifecycleResult? lifecycle = null) =>
         new(authority, lifecycle, new(kind, code, reason));
+}
+
+/// <summary>
+/// Projects one native CBI3 result into the canonical, data-only CBI4 comparison profile.
+/// </summary>
+public static class ComponentAuthorityComparison
+{
+    public static string Profile(string scenario, ComponentAuthorityIntegrationResult result)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(scenario);
+        ArgumentNullException.ThrowIfNull(result);
+
+        var root = new JsonObject
+        {
+            ["schemaVersion"] = 1,
+            ["scenario"] = scenario,
+            ["active"] = result.IsActive,
+            ["integrationFailure"] = IntegrationFailure(result.Failure),
+            ["authority"] = Authority(result.Authority),
+            ["lifecycle"] = Lifecycle(result.Lifecycle),
+        };
+        return root.ToJsonString();
+    }
+
+    public static string Digest(string profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(profile)));
+    }
+
+    private static JsonNode? IntegrationFailure(ComponentAuthorityIntegrationFailure? failure) =>
+        failure is null
+            ? null
+            : new JsonObject
+            {
+                ["kind"] = failure.Kind switch
+                {
+                    ComponentAuthorityIntegrationFailureKind.MappingInvalid => "mapping-invalid",
+                    ComponentAuthorityIntegrationFailureKind.AuthorityShapeUnsupported => "authority-shape-unsupported",
+                    ComponentAuthorityIntegrationFailureKind.AuthorityRefused => "authority-refused",
+                    ComponentAuthorityIntegrationFailureKind.LifecycleRefused => "lifecycle-refused",
+                    _ => throw new ArgumentOutOfRangeException(nameof(failure)),
+                },
+                ["code"] = failure.Code,
+            };
+
+    private static JsonNode? Authority(Cm.AuthorityAdmissionOutcome? authority) =>
+        authority is null
+            ? null
+            : new JsonObject
+            {
+                ["outcome"] = AuthorityOutcomeToken(authority.Kind),
+                ["profileSha256"] = Digest(Cm.FakeAuthorityComparisonEndpoint.CanonicalProfile(authority)),
+            };
+
+    private static JsonNode? Lifecycle(ComponentBindingLifecycleResult? lifecycle)
+    {
+        if (lifecycle is null)
+        {
+            return null;
+        }
+
+        return new JsonObject
+        {
+            ["runtime"] = Runtime(lifecycle.Runtime),
+            ["member"] = Member(lifecycle.Member),
+            ["failure"] = LifecycleFailure(lifecycle.Failure),
+        };
+    }
+
+    private static JsonNode? Runtime(Cm.ActivationRuntimeOutcome? runtime)
+    {
+        if (runtime is null)
+        {
+            return null;
+        }
+
+        var effects = runtime.Observation.Effects;
+        return new JsonObject
+        {
+            ["kind"] = RuntimeOutcomeToken(runtime.Kind),
+            ["failureKind"] = runtime.Failure is null ? null : RuntimeOutcomeToken(runtime.Failure.Kind),
+            ["effects"] = new JsonObject
+            {
+                ["prepared"] = effects.Prepared,
+                ["establishmentStarted"] = effects.EstablishmentStarted,
+                ["actorEndpointEstablished"] = effects.ActorEndpointEstablished,
+                ["lifecycleOperationExecuted"] = effects.LifecycleOperationExecuted,
+                ["memberReportedReady"] = effects.MemberReportedReady,
+                ["released"] = effects.Released,
+                ["ordinaryInteractionAdmitted"] = effects.OrdinaryInteractionAdmitted,
+                ["activeGenerationMutated"] = effects.ActiveGenerationMutated,
+                ["retainedGenerationRetired"] = effects.RetainedGenerationRetired,
+                ["rollbackAttempted"] = effects.RollbackAttempted,
+                ["capabilityGranted"] = effects.CapabilityGranted,
+            },
+        };
+    }
+
+    private static JsonNode? Member(Portable.PortableCompositionMember? member)
+    {
+        if (member is null)
+        {
+            return null;
+        }
+
+        var facts = new SortedDictionary<string, string>(member.ResolutionFacts, StringComparer.Ordinal);
+        if (member.Plan is { } plan)
+        {
+            foreach (var fact in plan.Facts.Where(item => item.Key != "planId"))
+            {
+                facts[fact.Key] = fact.Value;
+            }
+        }
+
+        var factObject = new JsonObject();
+        foreach (var fact in facts)
+        {
+            factObject[fact.Key] = fact.Value;
+        }
+
+        return new JsonObject
+        {
+            ["stage"] = Portable.PortableCompositionVocabulary.Token(member.Stage),
+            ["ready"] = member.IsReady,
+            ["released"] = member.IsReleased,
+            ["facts"] = factObject,
+        };
+    }
+
+    private static JsonNode? LifecycleFailure(ComponentBindingLifecycleFailure? failure) =>
+        failure is null
+            ? null
+            : new JsonObject
+            {
+                ["kind"] = failure.Kind switch
+                {
+                    ComponentBindingLifecycleFailureKind.PreparationUnavailable => "preparation-unavailable",
+                    ComponentBindingLifecycleFailureKind.PlanUnsupported => "plan-unsupported",
+                    ComponentBindingLifecycleFailureKind.RuntimeRefusedBeforeStart => "runtime-refused-before-start",
+                    ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused => "portable-interconnection-refused",
+                    ComponentBindingLifecycleFailureKind.PortableReleaseRefused => "portable-release-refused",
+                    _ => throw new ArgumentOutOfRangeException(nameof(failure)),
+                },
+                ["code"] = failure.Code,
+            };
+
+    private static string AuthorityOutcomeToken(Cm.AuthorityAdmissionOutcomeKind kind) => kind switch
+    {
+        Cm.AuthorityAdmissionOutcomeKind.Admitted => "admitted",
+        Cm.AuthorityAdmissionOutcomeKind.PartiallyAdmitted => "partially-admitted",
+        Cm.AuthorityAdmissionOutcomeKind.Denied => "denied",
+        Cm.AuthorityAdmissionOutcomeKind.InvalidRequest => "invalid-request",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
+    private static string RuntimeOutcomeToken(Cm.ActivationRuntimeOutcomeKind kind) => kind switch
+    {
+        Cm.ActivationRuntimeOutcomeKind.Active => "active",
+        Cm.ActivationRuntimeOutcomeKind.RolledBack => "rolled-back",
+        Cm.ActivationRuntimeOutcomeKind.PreparationFailed => "preparation-failed",
+        Cm.ActivationRuntimeOutcomeKind.EstablishmentFailed => "establishment-failed",
+        Cm.ActivationRuntimeOutcomeKind.ReleaseFailedBeforeCutover => "release-failed-before-cutover",
+        Cm.ActivationRuntimeOutcomeKind.RollbackUnavailable => "rollback-unavailable",
+        Cm.ActivationRuntimeOutcomeKind.RetainedGenerationCorrupted => "retained-generation-corrupted",
+        Cm.ActivationRuntimeOutcomeKind.InvalidCm3Plan => "invalid-cm3-plan",
+        Cm.ActivationRuntimeOutcomeKind.RestartScopeConflict => "restart-scope-conflict",
+        Cm.ActivationRuntimeOutcomeKind.StageObservationConflict => "stage-observation-conflict",
+        Cm.ActivationRuntimeOutcomeKind.InteractionRefused => "interaction-refused",
+        Cm.ActivationRuntimeOutcomeKind.BindingObservationConflict => "binding-observation-conflict",
+        Cm.ActivationRuntimeOutcomeKind.ChildPortClosed => "child-port-closed",
+        Cm.ActivationRuntimeOutcomeKind.ReplacementLifecycleRequired => "replacement-lifecycle-required",
+        Cm.ActivationRuntimeOutcomeKind.HostAssistedOrderConflict => "host-assisted-order-conflict",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
 }

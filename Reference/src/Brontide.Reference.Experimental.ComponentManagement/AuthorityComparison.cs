@@ -100,6 +100,12 @@ public static class FakeAuthorityComparisonEndpoint
         }
     }
 
+    public static string CanonicalProfile(AuthorityAdmissionOutcome outcome)
+    {
+        ArgumentNullException.ThrowIfNull(outcome);
+        return Write(writer => WriteProfile(writer, outcome));
+    }
+
     public static async Task RunAsync(
         TextReader input,
         TextWriter output,

@@ -24,8 +24,9 @@ Designed for: Brontide Architecture 0.8 §18.1, §20.1, and §24, Complete Draft
 
 ## Result
 
-No unresolved CBI3 contract-silence finding remains. Shared serialized comparison is the next
-implementable integration item. Grant withdrawal after activation, cross-vocabulary
+No unresolved CBI3 contract-silence finding remains. This review designated shared serialized
+comparison as the next integration item; CBI4 subsequently completed it. Grant withdrawal after
+activation, cross-vocabulary
 Operation-to-invocation mapping, multiple participants or grants, CM4 binding-exercise projection,
 multi-member and relational activation, replacement, child Ports, mediation, wider Provider Sets,
 real distribution, and general substitutability remain outside CBI3.
