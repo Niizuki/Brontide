@@ -1,7 +1,8 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Partially implemented experimental work — PB0 through PB6 complete; PB7 onward planned
-**Date:** 2026-07-23 (delivery status updated 2026-07-27)
+**Status:** Partially implemented experimental work — PB0 through PB7 complete; PB8 partly complete
+(evidence and documentation delivered; independent review and owner-question closure outstanding)
+**Date:** 2026-07-23 (delivery status updated 2026-07-30)
 **Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
 **Design sources:** [Composition and Components](../composition/Brontide-Design-Note-Composition-0.1.md),
@@ -144,25 +145,26 @@ deterministically. The repository-wide gate invokes it.
 
 ## 5. Delivery sequence
 
-### Delivery status (2026-07-27)
+### Delivery status (2026-07-30)
 
 | Phase | State | Evidence |
 | --- | --- | --- |
 | PB0 — baseline and contract freeze | **Complete** | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md), [`representation-choice.md`](../../../binding/portable/representation-choice.md), [`open-decisions.md`](../../../binding/portable/open-decisions.md) |
-| PB1 — neutral manifests, plans, and vectors | **Complete** | [`schemas/`](../../../binding/portable/schemas/README.md) (8 files), [`vectors/`](../../../binding/portable/vectors/README.md) (63 vectors at PB1; 71 since the Catalog group Decision 5 added, plus 6 golden encodings), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
+| PB1 — neutral manifests, plans, and vectors | **Complete** | [`schemas/`](../../../binding/portable/schemas/README.md) (8 files at PB1; 9 since PB7), [`vectors/`](../../../binding/portable/vectors/README.md) (63 vectors at PB1; 82 since the Catalog group Decision 5 added and PB7's Composition handoff, plus 6 golden encodings), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB2 — Reference native implementation | **Complete** | [`Reference/src/Brontide.Reference.Experimental.Binding/Portable/`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/), [`Reference/tests/Brontide.Reference.Interchange.Tests/Portable/`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB3 — Minimal native implementation | **Complete** | [`Minimal/src/Brontide.Minimal.Binding/Portable/`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/), [`Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB4 — direct and process realization parity | **Complete** | [`Reference .../Portable/PortableRealizationParityTests.cs`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/PortableRealizationParityTests.cs), [`Minimal .../Portable/PortableRealizationParityTests.fs`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/PortableRealizationParityTests.fs), both `PortableChannelVectorCoverageTests`, both `PortableCrossProcessTests` |
 | PB5 — cross-stack and independent-provider matrix | **Complete** | both stacks' `PortableCrossStackTests` and `PortableNeutralProviderTests`, [`binding/neutral-provider/`](../../../binding/neutral-provider/README.md), [`catalog-fixture-contract.json`](../../../binding/portable/vectors/catalog-fixture-contract.json) |
 | PB6 — resource, lifecycle, and hardening completion | **Complete** | both stacks' `PortableDecoderPropertyTests`, `PortableProcessCategoryTests`, `PortableResourceSeamTests`, `PortableLifecycleSeamTests`, and the `a failure path leaks nothing` cases in `PortableRealizationParityTests` |
-| PB7 — Composition handoff | Planned — next | — |
-| PB8 — evidence, documentation, and review closure | Planned | — |
+| PB7 — Composition handoff | **Complete** | [`schemas/composition-handoff.json`](../../../binding/portable/schemas/composition-handoff.json), [`vectors/composition-handoff.json`](../../../binding/portable/vectors/composition-handoff.json) (PB-72 - PB-82, plus three group properties), [`Reference .../Portable/PortableCompositionHandoff.cs`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCompositionHandoff.cs), [`Minimal .../Portable/PortableCompositionHandoff.fs`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/PortableCompositionHandoff.fs), both `PortableCompositionHandoffTests` |
+| PB8 — evidence, documentation, and review closure | **Partly complete** — steps 1-4 delivered; steps 5 and 6 outstanding | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md) executed-evidence table, [`channel ledger`](../channel/architecture-0.8-channel-requirements-and-risk-ledger.md) §4, [`binding-measurements.json`](../../../interchange/binding-measurements.json) schema 2, [`public-boundaries.md`](../../current/policies/public-boundaries.md) portable seam, both stacks' `CHANGELOG.md` |
 
-Nothing below PB5 has been implemented. The neutral contract exists and is gated, both stacks
-implement it natively in both realizations, PB4 measured those two realizations against each other
-across the portable observation set, and PB5 has now paired the two stacks and added a provider that
-depends on neither. Every C item has executable evidence in each stack independently and, since PB5,
-paired evidence across them. PB2 discharged the three migration obligations PB1 recorded:
+Only PB8 remains. The neutral contract exists and is gated, both stacks implement it natively in both
+realizations, PB4 measured those two realizations against each other across the portable observation
+set, PB5 paired the two stacks and added a provider that depends on neither, PB6 hardened both, and
+PB7 added the seam by which composition machinery reaches the layer at all. Every C item has
+executable evidence in each stack independently and, since PB5, paired evidence across them. PB2
+discharged the three migration obligations PB1 recorded:
 map keys are sorted on their complete encoding rather than by the Cooling codec's ordinal string
 comparison, portable values are schema-guided and carry no kind discriminator, and local denial is
 frameless, so the Cooling `denial` message kind did not enter the portable envelope set.
@@ -557,6 +559,111 @@ ordinary interaction starts before the plan is established and the provider is r
 **Exit:** one controlled experimental composition in each stack establishes and releases a portable
 binding without moving the binding into Base/Core/Model/Kernel.
 
+**Delivered.** A controlled experimental composition in each stack establishes and releases portable
+bindings, and the binding stays outside Base/Core/Model/Kernel: the seam lives in each stack's
+existing experimental binding project, and the composition that drives it lives in the test estate.
+
+#### Delivered
+
+**The seam is declared before it is implemented**, in
+[`schemas/composition-handoff.json`](../../../binding/portable/schemas/composition-handoff.json). It
+owns the resolved-requirement record, the offered-provision record, the six-step preflight order, the
+stage model, the interaction gate, and the replacement record. Both stacks are measured against that
+one declaration by the eleven vectors in
+[`vectors/composition-handoff.json`](../../../binding/portable/vectors/composition-handoff.json),
+which is the PB5 lesson applied in advance: the two stacks agree where the contract speaks and drift
+where it is silent, so the seam's shape is data before either stack has an opinion about it.
+
+**The handoff consumes a resolution and produces one Binding Plan.** A resolved requirement carries a
+binding scope, the required Component, an optional required provider, a cardinality, an exposure, and
+the host endpoint; an offered provision carries the selected provider and its endpoint. Preflight
+matches them, negotiation establishes the contract, and the plan is frozen with the scope preserved
+alongside it. The scope survives the plan: a replacement re-binds the same scope with a new plan
+identifier, because there is no renegotiation in place.
+
+**Four of the eleven vectors are refusals of work this seam does not do.** A cardinality other than
+`1..1` is refused rather than narrowed to a first member; a mediated exposure is refused rather than
+erased into a direct binding; a provision naming a provider the resolution did not select is refused
+rather than accepted as a compatible substitute; and a requirement, provision, and host declaration
+that disagree about the Component are refused before a conversation exists. Discovery, acquisition,
+selection policy, generations, mediation, and hot swap stay in the Component Management programme,
+and a seam that approximated any of them would be making that programme's decisions here, invisibly.
+
+**Every preflight refusal is frameless by construction rather than by assertion.** Preflight runs
+before a conversation object exists, so there is nothing to emit through: no frame, no provider, no
+effect. That is the same discipline as the frameless local denial C3 requires, with a different
+reason — a contract refusal rather than an authority decision — which is why its result class is
+`protocol-error` rather than `denial`.
+
+**The ordinary-interaction gate is the release barrier.** An interaction attempted before Release is
+refused as a state violation with a complete observation, emits no frame, and reaches no provider
+effect — asserted against the provider's own effect counter, not only against the observation.
+Establishment, readiness, withdrawal, and termination stay permitted, because they are lifecycle
+traffic rather than ordinary interaction. Each stack's activation group holds the other half of the
+contract: it opens no member's gate until every required member is ready, and a member that never
+interconnected keeps the whole group closed.
+
+**Withdrawal and termination produce a replacement record** naming the scope, the retired plan, the
+Component, the provider that answered, the terminal state, and whether replacement is permitted. It
+grants nothing: a replacement generation resolves, preflights, negotiates, and releases from the
+beginning. Replacement is permitted after a clean end and refused after a failure, because a failed
+binding leaves this seam no account of the provider's state.
+
+The two implementations remain independent in their idiom. Reference refuses by raising the portable
+fault its layer already uses and holds the stage as an enumeration beside the binding; Minimal
+refuses by returning a `PortableResult` and makes the stage a union that *carries* the binding, so a
+member outside the released case has no host to interact through rather than a flag saying it must
+not.
+
+**Both Decision 10 practices ran on this phase.** The group states three properties over all eleven
+vectors — a plan exists exactly when Interconnection completed and always names the provider that
+answered; the provider records an effect only while a member is released, counted at the provider
+rather than read from the observation; and the resolution facts answer identically at every stage,
+which is what makes "the scope outlives its plan" a checked claim. The phase-boundary completeness
+review is recorded in [`completeness-reviews.md`](../../../binding/portable/completeness-reviews.md).
+It found five questions the contract had not answered, four of them things both stacks already did
+the same way — agreement that proved one reader had made one choice twice, not that the contract had
+made it. Three are now declared in the schema; two are named as the Component Management programme's
+to answer.
+
+#### Findings
+
+**The Binding Plan's provider fact reports who the host asked for, not who answered.** The plan's
+`provider` and `selectedProvider` facts, and the `selectedProvider` field of every observation built
+from them, are read from the *required* contract document. Version 0.1 negotiation compares the
+Component by exact reference equality and never compares provider identity at all, so an endpoint may
+offer the required Component while answering as a different provider, and the established plan will
+report the provider the host wrote in its own declaration. Both stacks do this, identically.
+
+Nothing before PB7 could have found it. The fixtures on both sides are built from one neutral
+declaration, so the required and offered providers agree in every vector, in both cross-stack
+directions, and against the implementation-neutral provider; the fact and the truth coincide
+everywhere the programme looked. PB7 is the first phase in which *which provision was selected*
+exists as a fact separate from the contract, and therefore the first phase that could ask whether the
+plan reports it.
+
+The provisional choice is to check it at the composition seam: the handoff witnesses the offered
+contract during establishment, refuses a substitution as `unsupported-contract`, and abandons the
+binding rather than releasing it. That is defensible on its own terms — which provision was selected
+is a composition fact rather than a contract fact — but it leaves the plan fact itself unchanged, and
+a host using the binding layer without this seam still has no way to learn who answered. Whether
+negotiation should compare provider identity, and whether the plan's provider fact should name the
+answering endpoint, is **Decision 11** for the contract maintainers.
+
+This is the third phase in a row whose finding was invisible to comparing the two stacks against each
+other, and it is the same shape as PB6's first defect: an observation field that describes what was
+asked for while claiming to describe what happened. Decision 10 had already ruled on what supplements
+independent implementation — a property per capability, and a contract-completeness review at each
+phase boundary — and this finding is a data point for that ruling rather than against it: it was
+found by asking what a *new* consumer of the layer needs to know, which is the completeness question
+in its most useful form.
+
+**A declared refusal with no reachable path was caught before it was written.** The first draft
+stated the release rule twice — a stage check and a separate readiness check — and the readiness
+branch was unreachable, because version 0.1 completes Interconnection only with a readiness signal.
+Following PB6's discipline, the rule is now stated once: a member that has no readiness signal cannot
+be released, which the Local Initialisation case reaches. The two stacks state it the same way.
+
 ### PB8 — evidence, documentation, and review closure
 
 1. Update both stack READMEs, experimental-project inventories, milestone evidence, public boundary
@@ -575,6 +682,62 @@ binding without moving the binding into Base/Core/Model/Kernel.
 
 **Exit:** all C1-C10 evidence is passing and discoverable, limitations are current, the complete
 gate is green, and independent reviews contain no unresolved in-scope findings.
+
+**Partly delivered.** Steps 1 through 4 are complete; steps 5 and 6 are not, and neither can be
+completed by the implementer.
+
+#### Delivered
+
+**Step 1 — implementation documentation.** Both stack READMEs name the portable layer and where it
+sits in the dependency rule; both `experimental-and-sideline-projects.md` inventories carry the
+per-phase state; and both `CHANGELOG.md` files record the added experimental surface under their own
+heading, explicitly as experimental evidence rather than a component-version change. The public
+boundary document gains a portable-seam section stating its declared bounds, timeout and failure
+classification, cleanup ownership, replay and denial-of-service assumptions, and what does not cross.
+The two retained JSON-lines rows and their pinned anchors are untouched, so the existing
+conformance-matrix evidence pins remain valid.
+
+**Step 2 — Channel ledger and contract matrix.** The contract matrix gains an executed-evidence
+table: per capability, which realizations have run it — direct, process, cross-process, cross-stack —
+and the suite that carries it. The Channel ledger records CH-R11 as `realisation-executed` rather
+than awaiting stack harnesses, adds a section on what the realisation evidenced for CH-R2, CH-R6,
+CH-R8, CH-K2, CH-K3, and CH-K4, and marks two of its recorded forward scenarios delivered and one
+partly delivered. Neither document upgrades ratification or architecture-target language, and the
+Decision 10 caveat is carried into the ledger rather than left in the binding programme.
+
+**Step 3 — re-measurement.** [`interchange/binding-measurements.json`](../../../interchange/binding-measurements.json)
+moves to schema 2. Every source file now declares its layer — retained experiment or portable — and
+each stack records per-layer totals; the portable layer measures 7,337 Reference lines against 6,392
+Minimal lines, two independent implementations of one contract within about 13% of each other. The
+file also records the representation, framing, allocation, copy-accounting, and payload-bound facts
+for both realizations, each stating whether it is declared by the contract, asserted by a named
+vector in both stacks, or measured from the artifacts. The gate recomputes every count and every
+layer total, fails on a portable source file that is not measured at all, and rejects a recorded fact
+that names no provenance — checked by deliberately breaking each rule and confirming the failure.
+Runtime cost stays method-recorded rather than threshold-gated, for the reason §3 gives: optimising
+the hot path before contract and observation parity are demonstrated is an explicit non-goal, so what
+is gated is structural cost.
+
+**Step 4 — gates.** `build/verify-portable-binding.ps1` and the complete repository gate
+`build/verify-interchange.ps1` both pass.
+
+#### Outstanding, and why the implementer cannot close them
+
+**Step 5 — fresh independent reviews.** An automated attestation counts as independent only when the
+reviewer has an identity distinct from every implementation actor, starts in a fresh isolated
+context, and has no access to the implementation session's private reasoning. The session that
+implemented PB7 and this documentation is an implementation actor for exactly this evidence, so it
+cannot review it. The existing control plane under `conformance/reviews/` is pinned to the completed
+implementation-correction programme; using it would require a new request rather than an edit to that
+closed record, which is an owner decision about what is being reviewed and by whom.
+
+**Step 6 — question closure.** Two questions are open — the Channel naming question and Decision 11 —
+and both await an *owner* ruling rather than an implementer's. Moving either to `Resolved questions`
+without a ruling would convert a provisional choice into a decision by writing it down, which is the
+one thing the open-decisions file exists to prevent. The eight decisions raised by PB4 through PB6
+were ruled on separately and are already recorded there.
+
+Both remain open work for PB8; nothing in steps 1 through 4 depends on them.
 
 ## 6. Mandatory evidence matrix
 
@@ -618,14 +781,16 @@ promotion, and an Architecture 0.8 implementation claim remain separate decision
 
 ## Open questions (owners needed)
 
-One question remains open. The eight raised by PB4, PB5, and PB6 were all recorded on 2026-07-28 and
+Two questions are open. The eight raised by PB4, PB5, and PB6 were all recorded on 2026-07-28 and
 have moved to [Resolved questions](#resolved-questions); each remains written up in full — what was
 observed, what was running and why, the alternatives with their trade-offs, and what the ruling
 changed — in [`binding/portable/open-decisions.md`](../../../binding/portable/open-decisions.md).
+PB7 raised the second open question after those rulings, and it is written up there in the same form.
 
 | Owner | Question | Blocking point |
 | --- | --- | --- |
 | Brontide architecture maintainers | Ratify the provisional Channel Shape/category names or publish an explicitly migrated revision? | Blocks a stable public Portable Binding version; experimental PB0-PB6 may proceed against a versioned draft. |
+| Portable Binding contract maintainers | **Decision 11:** the plan's `provider` fact names who the host asked for, not who answered, because negotiation never compares provider identity. Should it? | Blocks nothing today, because PB7's handoff checks it; a host using the binding layer without that seam still cannot learn who answered. |
 
 ## Resolved questions
 

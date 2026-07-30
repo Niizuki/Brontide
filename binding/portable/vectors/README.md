@@ -1,7 +1,7 @@
 # `binding/portable/vectors/`
 
 Valid, additive-compatible, and adversarial fixtures with exact expected outcomes, authored in
-**PB1** (plan §5).
+**PB1** (plan §5) and extended once, by **PB7**.
 
 These are data only and validate without loading either stack.
 [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) is the gate.
@@ -18,6 +18,7 @@ These are data only and validate without loading either stack.
 | [`plan-observation-and-parity.json`](plan-observation-and-parity.json) | C2, C9, C7, C10 — plan facts, observation completeness, realization parity, interoperability |
 | [`catalog-fixture-contract.json`](catalog-fixture-contract.json) | The second subject contract: the Catalog experiment restated in the neutral form |
 | [`catalog-vectors.json`](catalog-vectors.json) | PB-64 – PB-71 over the Catalog fixture — a negotiated Operation set, nested repeated containers, a declared detail Shape, the addressing-only handle, and two fixture-domain rules |
+| [`composition-handoff.json`](composition-handoff.json) | **PB7** — PB-72 – PB-82, C2 and C8: the resolved requirement and offered provision that produce a Binding Plan, what preflight refuses, and the release barrier |
 
 ## Vector form
 
@@ -40,7 +41,13 @@ Vectors carrying a `phase` (PB4 or PB5) state an obligation a stack harness disc
 fixes what must be equal and what may differ; it does not execute the comparison.
 
 Vector ids are two-digit by the gate's pattern, so the space is `PB-01` through `PB-99`; `PB-01`
-through `PB-63` are PB1's and `PB-64` through `PB-71` are the Catalog group's.
+through `PB-63` are PB1's, `PB-64` through `PB-71` are the Catalog group's, and `PB-72` through
+`PB-82` are the Composition handoff's.
+
+A preflight refusal in `composition-handoff.json` uses `frameDecision: none` with
+`resultClass: protocol-error`. That combination is deliberate and is not the frameless denial of C3:
+the decision is made before any conversation exists, so nothing was emitted or rejected, but it is a
+contract refusal rather than an authority decision.
 
 ## Golden encodings are verified, not asserted
 

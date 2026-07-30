@@ -44,8 +44,18 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   an endpoint across a real seam rather than by a codec or a lifecycle value called directly. All
   three defects appeared identically in the Reference stack too, which is why they matter:
   independent implementation catches divergence between the two and cannot catch a blind spot they
-  share. PB7-PB8 remain planned. Nothing here is an Architecture 0.8 conformance claim or part of Brontide
-  Minimal Stack Base.
+  share. PB7 added the Composition handoff in `Portable/PortableCompositionHandoff.fs`: a resolved
+  Component requirement and an offered provision produce a Binding Plan at activation preflight, with
+  the stage modelled as a union that carries the established binding, so a member outside the released
+  case has no host to interact through. A Provider Set, a mediated exposure, an unselected provider,
+  and a provider substituted by the answering endpoint are refused rather than approximated. PB7 also
+  found that negotiation never compares provider identity, so the plan's provider fact names who this
+  host asked for rather than who answered — identically in the Reference stack, and recorded as
+  Decision 11. PB8 has since recorded this layer's executed evidence, re-measured its source cost
+  (6,392 portable lines against Reference's 7,337, two independent implementations of one contract),
+  and documented the portable seam's operational assumptions; its fresh independent reviews and owner
+  ruling on Decision 11 remain outstanding. Nothing here is an Architecture 0.8
+  conformance claim or part of Brontide Minimal Stack Base.
 - Reference/Minimal entanglement is a future cross-process experiment. Neither implementation is allowed
   to become the other's in-process compatibility layer.
 

@@ -278,6 +278,7 @@ $requiredPaths = @(
     (Join-Path $schemaRoot 'binding-plan.json'),
     (Join-Path $schemaRoot 'channel-envelope.json'),
     (Join-Path $schemaRoot 'binding-observation.json'),
+    (Join-Path $schemaRoot 'composition-handoff.json'),
     (Join-Path $vectorRoot 'fixture-contract.json'),
     (Join-Path $vectorRoot 'catalog-fixture-contract.json'),
     (Join-Path $vectorRoot 'golden-encodings.json'),
@@ -285,6 +286,7 @@ $requiredPaths = @(
     (Join-Path $vectorRoot 'authority-and-resources.json'),
     (Join-Path $vectorRoot 'limits-lifecycle-and-channel.json'),
     (Join-Path $vectorRoot 'plan-observation-and-parity.json'),
+    (Join-Path $vectorRoot 'composition-handoff.json'),
     $channelVectorPath,
     $adversarialPath
 )

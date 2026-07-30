@@ -1,8 +1,10 @@
 # Portable Binding — implementation-neutral contract matrix (C1–C10)
 
 **Status:** PB0 baseline inventory complete for the C1–C10 mapping; PB1 neutral schemas and vectors
-authored (see [PB1 evidence paths](#pb1-evidence-paths)). Capability text summarises plan §2 and is
-subordinate to the plan.
+authored (see [PB1 evidence paths](#pb1-evidence-paths)); PB2–PB7 executed against them in both
+stacks (see [executed evidence](#executed-evidence-pb2pb7)). Capability text summarises plan §2 and
+is subordinate to the plan. Nothing here ratifies anything or changes either stack's Architecture
+0.7 implementation target.
 
 **Owner legend:** CM = Portable Binding contract maintainers · Ref = Reference stack owner ·
 Min = Minimal stack owner · Both = CM + both stack owners.
@@ -39,7 +41,7 @@ category, process-failure category, or failure domain loses its coverage.
 | C4 | [`channel-envelope.json`](schemas/channel-envelope.json) | PB-42 – PB-52, PB-16, PB-17 | Closed. Both experiments' message kinds map to neutral envelope kinds; the taxonomy is reproduced exactly. |
 | C5 | [`references-and-shape-floor.json`](schemas/references-and-shape-floor.json) | PB-10 – PB-17, PB-57 | Closed. One reference encoding; Constraint values exempt from additive projection. |
 | C6 | [`payload-representation.json`](schemas/payload-representation.json) | PB-25 – PB-32, PB-60 | Closed for the declared floor: copied immutable blob plus the retained addressing-only handle. Borrow and transfer stay 0.1 non-goals, and four of C6's named concerns are declared-but-unexercised at this floor — see [C6 at the 0.1 floor](#c6-at-the-01-floor). |
-| C7 | [`binding-observation.json`](schemas/binding-observation.json) parity profile, [`binding-plan.json`](schemas/binding-plan.json) parity rule | PB-58 – PB-60, PB-62 | Closed for one stack at a time. PB4 executed the comparison in each stack over every result class a host can reach, including across a real process boundary, and closed the four divergences it found. Pairing the two stacks remains PB5. |
+| C7 | [`binding-observation.json`](schemas/binding-observation.json) parity profile, [`binding-plan.json`](schemas/binding-plan.json) parity rule | PB-58 – PB-60, PB-62 | Closed. PB4 executed the comparison in each stack over every result class a host can reach, including across a real process boundary, and closed the four divergences it found; PB5 then paired the two stacks, so parity is no longer measured only within one. |
 | C8 | [`limits-and-lifecycle.json`](schemas/limits-and-lifecycle.json) | PB-09, PB-31 – PB-41 | Closed. One limit set (tighter bound wins) and an explicit state machine. |
 | C9 | [`binding-observation.json`](schemas/binding-observation.json) | PB-55 – PB-57 | Closed. The unified observation set is defined, with normative and non-normative fields separated. |
 | C10 | [`fixture-contract.json`](vectors/fixture-contract.json), [`catalog-fixture-contract.json`](vectors/catalog-fixture-contract.json) | PB-61 – PB-63 | Closed. PB5 executed all six combinations: both host directions over the negotiated process realization, both hosts against the [implementation-neutral provider](../neutral-provider/README.md), and both fixed direct calls. Building the neutral provider found that the fixture declaration was not encodable as published; the fixtures now separate annotation from contract data. |
@@ -80,6 +82,35 @@ endpoint unable to know whether the peer already performed the effect. C4 requir
 never fabricated; asserting a zero effect count in those cases would fabricate the converse. Every
 pre-provider rejection still asserts `effectCount: 0`, and the gate rejects an adversarial vector that
 neither states a count nor explains why it is unobservable.
+
+## Executed evidence (PB2–PB7)
+
+Where the table above records what the neutral contract *says*, this records what has been *run*, and
+by which realization. Both stacks execute every vector; a vector is claimed here only when both do.
+The realization column reads: **direct** = the fixed direct-call realization, **process** = the
+negotiated process realization over a real duplex seam, **cross-process** = the same contract against
+a provider in its own operating-system process, **cross-stack** = each stack's host against the
+other's provider and against the [implementation-neutral provider](../neutral-provider/README.md).
+
+| Capability | Realizations executed | Evidence |
+| --- | --- | --- |
+| C1 | direct, process, cross-process, cross-stack | `PortableEstablishmentTests` in both stacks; negotiation runs before any provider effect, and PB6's seam tests prove an establishment that fails negotiation signals no readiness and starts no provider |
+| C2 | direct, process, cross-process, cross-stack | `PortablePlanObservationAndParityTests` (plan frozen and inspectable by name); PB7's `PortableCompositionHandoffTests` establish the plan from a resolved requirement and an offered provision at activation preflight |
+| C3 | direct, process, cross-process, cross-stack | `PortableAuthorityAndResourceTests`; local denial is frameless in both realizations, and PB4 moved the no-capability-transfer scan to the host so both name the authority rule |
+| C4 | direct, process, cross-process, cross-stack | `PortableLifecycleAndChannelTests` plus `PortableChannelVectorCoverageTests`, which derives Channel coverage from the neutral `channelVectors` declarations rather than restating it; PB6 made process-category classification total |
+| C5 | direct, process, cross-process, cross-stack | `PortableEncodingTests` (golden bytes reproduced from the neutral artifacts) and `PortableEstablishmentTests` (Shape floor, projection, forbidden content) |
+| C6 | direct, process, cross-process, cross-stack | `PortableAuthorityAndResourceTests` and PB6's `PortableResourceSeamTests`, where each resource refusal is decided by a conforming endpoint across the seam rather than by a codec called directly; the copied blob, integrity mismatch, addressing-only handle, and scope refusal are also among the scenarios each stack runs against the other's provider and against the neutral one |
+| C7 | direct vs process in each stack, then cross-stack | `PortableRealizationParityTests` — thirteen scenarios stated once as data and executed unchanged in both realizations — reproduced across a real process boundary by `PortableCrossProcessTests` |
+| C8 | direct, process, cross-process | `PortableLifecycleAndChannelTests`, PB6's `PortableLifecycleSeamTests` (deliberate illegal sequences decided by an endpoint), `PortableDecoderPropertyTests` (bounded property tests), and PB7's release barrier |
+| C9 | direct, process, cross-process, cross-stack | `PortablePlanObservationAndParityTests`; PB6 corrected resource observations that claimed an acceptance and an integrity check that never happened |
+| C10 | cross-stack, both directions, plus the neutral provider | `PortableCrossStackTests` and `PortableNeutralProviderTests`; the gate reads the neutral provider's resolved `.deps.json` and fails if it names any Brontide assembly |
+
+Two limits belong beside that table. Cross-process and cross-stack rows are gated tests: they run
+under [`build/verify-portable-binding.ps1`](../../build/verify-portable-binding.ps1) and the
+repository gate, which build the provider endpoints first, and they skip themselves when those
+executables are absent. And PB7's handoff is exercised at `1..1` with distinct exposure only —
+Provider Sets, mediated exposure, and the resolver that would produce a resolution remain Component
+Management work, refused here rather than approximated.
 
 ## Baseline inventory: existing neutral surface
 

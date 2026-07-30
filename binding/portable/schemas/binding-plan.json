@@ -119,6 +119,7 @@
     "phase": "PB7",
     "rule": "A resolved Component requirement and an offered provision produce a Binding Plan during activation preflight. The plan is established and the provider is ready before any ordinary interaction starts.",
     "outOfScope": ["discovery", "acquisition", "provider selection policy", "generations", "mediation", "hot swap"],
-    "note": "PB1 fixes only which facts the handoff must produce. The adapter itself is PB7 work."
+    "note": "PB1 fixed only which facts the handoff must produce. PB7 declared the seam itself in composition-handoff.json, which owns the resolution record, the preflight order, the stage model, the interaction gate, and the replacement record.",
+    "schema": "composition-handoff.json"
   }
 }

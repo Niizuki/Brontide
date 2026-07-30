@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased — Portable Component Binding 0.1 experimental evidence
+
+### Added
+
+- `Brontide.Minimal.Binding.Portable`: the Minimal realization of the Portable Component Binding
+  contract under [`binding/portable/`](../binding/portable/README.md), implemented natively rather
+  than as a translation of the Reference surface. Every refusal is an explicit `PortableResult`
+  value carrying its portable category, so a denial that never leaves the endpoint is a returned
+  value rather than a raised failure; the Shape body is an algebraic union; the lifecycle is an
+  immutable record whose illegal transition leaves the previous state intact; and the two resource
+  flavors are separate union cases, so a forbidden implicit copy is unrepresentable in memory as
+  well as refused on the wire. `PortableModelAdapter` is the Minimal-owned adapter between the
+  stack's `ShapeValue` model and the neutral positions.
+- `PortableCompositionHandoff` and `CompositionMember`: the seam by which a resolved Component
+  requirement and an offered provision produce a Binding Plan during activation preflight. The stage
+  is a union that carries the established binding, so a member outside the released case has no host
+  to interact through. Provider Sets, mediated exposure, an unselected provider, and a provider
+  substituted by the answering endpoint are refused rather than approximated.
+
+The retained line-delimited Cooling and Catalog experiments in the same project are unchanged and
+remain diagnostic and legacy. This surface is experimental architecture evidence: it is not part of
+Brontide Minimal Stack Base, not an Architecture 0.8 conformance claim, not ratified, and not a
+component-version change.
+
 ## Unreleased — Architecture 0.7 Complete Draft evidence
 
 ### Added

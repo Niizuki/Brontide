@@ -51,6 +51,7 @@
     <Compile Include="Portable\PortableProcessCategoryTests.fs" />
     <Compile Include="Portable\PortableResourceSeamTests.fs" />
     <Compile Include="Portable\PortableLifecycleSeamTests.fs" />
+    <Compile Include="Portable\PortableCompositionHandoffTests.fs" />
     <Compile Include="Portable\PortableCrossProcessTests.fs" />
     <Compile Include="Portable\PortableCrossStackTests.fs" />
     <Compile Include="Portable\PortableNeutralProviderTests.fs" />

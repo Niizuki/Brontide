@@ -92,7 +92,22 @@ module PortableVectorCoverage =
               // Two fixture-domain rules the contract had left unstated, and which the three
               // implementations answered differently until the vectors settled them.
               "PB-70-CATALOG-PARTIAL-MATCH-FAILS-WHOLE", "PortableCatalogTests"
-              "PB-71-CATALOG-UPSERT-COUNT-IS-THIS-REQUEST", "PortableCatalogTests" ]
+              "PB-71-CATALOG-UPSERT-COUNT-IS-THIS-REQUEST", "PortableCatalogTests"
+
+              // PB7's Composition handoff: the seam from a resolved requirement to a Binding Plan,
+              // and the release barrier that keeps ordinary interaction out until the provider is
+              // ready.
+              "PB-72-HANDOFF-PRODUCES-A-PLAN", "PortableCompositionHandoffTests"
+              "PB-73-PREFLIGHT-FIXES-NO-PLAN-FACT", "PortableCompositionHandoffTests"
+              "PB-74-PREFLIGHT-REFUSES-COMPONENT-MISMATCH", "PortableCompositionHandoffTests"
+              "PB-75-PREFLIGHT-REFUSES-UNSELECTED-PROVIDER", "PortableCompositionHandoffTests"
+              "PB-76-CARDINALITY-BEYOND-ONE-TO-ONE-REFUSED", "PortableCompositionHandoffTests"
+              "PB-77-MEDIATED-EXPOSURE-REFUSED", "PortableCompositionHandoffTests"
+              "PB-78-ENDPOINT-SUBSTITUTES-PROVIDER", "PortableCompositionHandoffTests"
+              "PB-79-INTERACTION-BEFORE-RELEASE-REFUSED", "PortableCompositionHandoffTests"
+              "PB-80-RELEASE-REQUIRES-READY", "PortableCompositionHandoffTests"
+              "PB-81-RELEASED-BINDING-INTERACTS", "PortableCompositionHandoffTests"
+              "PB-82-WITHDRAWAL-INFORMS-A-REPLACEMENT", "PortableCompositionHandoffTests" ]
 
     /// A portable vector counts as executed when this stack runs it rather than defers it.
     let executed vector =

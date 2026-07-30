@@ -38,3 +38,29 @@ These bindings are local-process experiments, not hardened network services. The
 operating-system account and process launcher already trusted by the host. They do not claim
 multi-tenant isolation, distributed replay protection, back-pressure across unbounded sessions,
 cryptographic peer identity, or protection from a malicious executable selected by the host.
+
+## Experimental portable binding
+
+The two rows above describe the retained line-delimited JSON experiments. The Portable Component
+Binding is a separate, later seam with its own declarations; the JSON-lines protocol is diagnostic
+and legacy and is never the portable wire contract. This section records the portable seam's
+operational assumptions. It is experimental evidence, not a ratified extension, and it changes
+neither stack's Architecture 0.7 implementation target.
+
+| Boundary | Payload/depth | Time and cancellation | Cleanup | Replay and denial-of-service assumptions |
+| --- | --- | --- | --- | --- |
+| Portable Component Binding 0.1 (length-delimited deterministic CBOR) | 65,536 bytes per frame behind a 4-byte big-endian length prefix; nesting depth 32; at most 256 record fields, 16 Fragments per record, 4,096 sequence items, 16,384 text bytes, 32,768 byte-string bytes, and 32,768 resource bytes. Every bound is declared in the Binding Plan and enforced before uncontrolled work. Unknown fields, unknown enumeration values, and undeclared control content are refused. | Declared I/O timeout of 10 seconds. A cancellation past the declared bound is classified `timeout`; an allocation failure is `resource-exhausted`; a disposed stream or I/O failure is `transport-unavailable`; anything else is `unknown` carrying why narrower attribution was impossible. | Withdrawal and termination are explicit lifecycle frames, and the states are checked at the endpoint rather than inferred from arrival order. The binding layer never starts a peer — it is handed an already-connected duplex — so process lifetime, launch, and kill remain the host harness's concern. | At most one concurrent request per binding scope. Replay protection is declared per scope and enforced on request identity inside the declared window. Decoders are property-tested within deterministic bounds against arbitrary bytes, single-byte mutations, truncations, nesting past the declared depth, and hostile length prefixes. Ordering, retry, cancellation, streaming, and exactly-once execution are explicit non-promises. |
+
+No Capability crosses a trust boundary on this seam: the host refuses to emit authority-bearing
+content before anything leaves it, and the provider's own domain performs its own admission. A local
+authority denial is frameless — it starts no provider and emits nothing — so a denial is never
+observable to the peer as a message. No private exception, stack trace, runtime type name, or
+authority object is transported; a semantic failure crosses as a shaped Outcome instead.
+
+Referenced resources are limited to a copied immutable blob verified by SHA-256 content hash and a
+retained addressing-only handle that confers no access. Borrowed regions, transferred ownership, and
+fallback policies are version 0.1 non-goals that fail negotiation closed rather than degrading.
+
+This seam makes the same trust assumptions as the experiments above: a locally selected executable,
+an already-trusted account and launcher, no cryptographic peer identity, and no claim of
+multi-tenant isolation or protection against a hostile provider chosen by the host.

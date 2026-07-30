@@ -1,9 +1,11 @@
 # Portable Component Binding — neutral contract artifacts (`binding/portable/`)
 
 **Status:** PB1 complete, implemented natively in both stacks (PB2 Reference, PB3 Minimal), measured
-for direct-versus-process parity in each (PB4), and paired across the stacks and against an
-[implementation-neutral provider](../neutral-provider/README.md) (PB5) — planned experimental work;
-not ratified; not part of Brontide Base.
+for direct-versus-process parity in each (PB4), paired across the stacks and against an
+[implementation-neutral provider](../neutral-provider/README.md) (PB5), hardened (PB6), and given the
+Composition handoff by which composition machinery reaches the layer (PB7). PB8's evidence and
+documentation work is complete; its independent reviews and owner-question closure are outstanding.
+Planned experimental work; not ratified; not part of Brontide Base.
 **Designed for:** Brontide Architecture 0.8 §16 and §18.1 (Complete Draft).
 **Plan:** [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
 
@@ -19,9 +21,10 @@ neutral source and owns its adapters.
 | --- | --- | --- |
 | `contract-matrix.md` | C1–C10 baseline inventory: owner, existing basis, classification, gap-to-close per capability | PB0 |
 | `representation-choice.md` | D3 / §11 chain-conjunction representation choice and revocation ceiling per stack (Portable Binding freeze prerequisite) | PB0 |
-| [`open-decisions.md`](open-decisions.md) | Owner decisions with option sets, recommendations, and rulings. **All ten are recorded**: the two PB0 encoding blockers on 2026-07-24, and the eight raised by PB4, PB5, and PB6 on 2026-07-28 | PB0, extended PB4-PB6, recorded 2026-07-28 |
-| [`schemas/`](schemas/README.md) | Data-only versioned neutral contracts (references, Shape floor, plans, envelopes) | PB1 |
-| [`vectors/`](vectors/README.md) | Valid, additive-compatible, and adversarial fixtures with expected outcomes | PB1, Catalog group added 2026-07-28 |
+| [`open-decisions.md`](open-decisions.md) | Owner decisions with option sets, recommendations, and rulings. **Ten are recorded**: the two PB0 encoding blockers on 2026-07-24, and the eight raised by PB4, PB5, and PB6 on 2026-07-28. **Decision 11, raised by PB7, is open** and running on a provisional implementer choice | PB0, extended PB4-PB7 |
+| [`completeness-reviews.md`](completeness-reviews.md) | The Decision 10 phase-boundary reviews: what the contract does *not* say, per capability, with each silence declared, owned elsewhere, or accepted | PB7 |
+| [`schemas/`](schemas/README.md) | Data-only versioned neutral contracts (references, Shape floor, plans, envelopes, and the PB7 Composition handoff) | PB1, extended PB7 |
+| [`vectors/`](vectors/README.md) | Valid, additive-compatible, and adversarial fixtures with expected outcomes | PB1, Catalog group added 2026-07-28, Composition handoff added by PB7 |
 
 ## PB0 exit checklist (plan §5)
 
@@ -170,6 +173,46 @@ changed something here:
    [`AGENTS.md`](../../AGENTS.md). The Catalog group is the first to carry them, and one failed
    immediately on a claim that was not true — which is the practice working rather than a defect in
    it.
+
+## What PB7 changed here
+
+PB7 added [`schemas/composition-handoff.json`](schemas/composition-handoff.json) and
+[`vectors/composition-handoff.json`](vectors/composition-handoff.json) — eleven vectors, PB-72
+through PB-82, taking the total to 82. `binding-plan.json` already carried a `compositionHandoff`
+stub naming the phase; it now points at the schema that owns the seam.
+
+The seam was declared here **before** either stack implemented it. That is the
+contract-completeness practice Decision 10 adopted, applied at the front of a phase rather than at
+its boundary: the declaration fixes what a resolved requirement and an offered provision carry, the
+order preflight checks them in, the named stages and what each fixes, the ordinary-interaction gate,
+and the replacement record — including two things a silent contract would have left each stack to
+invent. A preflight refusal is `frameDecision: none` with `resultClass: protocol-error`, frameless
+like a denial but a contract refusal rather than an authority decision; and a gate refusal reports
+`authorityDecision: unknown`, because the gate refuses before the authority boundary is reached.
+
+PB7 also found that **negotiation never compares provider identity**, so the Binding Plan's
+`provider` fact reports the required document's value — who the host asked for — rather than who
+answered. Every fixture here derives from one declaration, so the two have always agreed and nothing
+could have observed the difference. Decision 11 in [`open-decisions.md`](open-decisions.md) records
+it with its options; no schema or vector changed for it, because the provisional fix is a check at
+the composition seam rather than a contract change.
+
+## What PB8 changed here
+
+Nothing in this directory except [`contract-matrix.md`](contract-matrix.md), which gained an
+executed-evidence table: per capability, which realizations have actually run it — the fixed direct
+call, the negotiated process seam, a provider in its own operating-system process, and the
+cross-stack matrix — and the suite that carries each. Where the PB1 table records what the contract
+*says*, that one records what has been *run*, which is the distinction PB8 exists to make
+discoverable.
+
+PB8's other work lands outside this directory: the Channel ledger, the public boundary document, both
+stacks' changelogs and inventories, and the re-measured source-cost inventory in
+[`interchange/binding-measurements.json`](../../interchange/binding-measurements.json), which now
+separates the retained experiments from this layer and records the representation, framing,
+allocation, copy, and payload-bound facts for both realizations with their provenance. Its two
+remaining steps — fresh independent reviews, and an owner ruling on Decision 11 — are not the
+implementer's to close.
 
 ## Boundary
 
