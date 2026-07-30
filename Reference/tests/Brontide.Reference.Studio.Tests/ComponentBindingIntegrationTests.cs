@@ -39,6 +39,15 @@ public sealed class ComponentBindingIntegrationTests
     private static readonly LocalActorReferenceId SupervisorLocalActor =
         LocalActorReferenceId.Create("local.cooling-supervisor");
     private static readonly ActorId Observer = ActorId.Create("actor.cooling-observer");
+    private static readonly EvidenceId ObserverEvidence = EvidenceId.Create("evidence.cooling-observer");
+    private static readonly RelationshipRequestId ObserverRelationship =
+        RelationshipRequestId.Create("relationship.cooling-observer");
+    private static readonly AuthorityRequestId ObserveAuthority =
+        AuthorityRequestId.Create("authority.cooling-observe");
+    private static readonly CapabilityId ObserveCapability = CapabilityId.Create("capability.cooling-observe");
+    private static readonly OperationId ObserveOperation = OperationId.Create("cooling.observe");
+    private static readonly LocalActorReferenceId ObserverLocalActor =
+        LocalActorReferenceId.Create("local.cooling-observer");
 
     [Test]
     public void Completed_direct_one_to_one_resolution_enters_portable_preflight()
@@ -776,6 +785,210 @@ public sealed class ComponentBindingIntegrationTests
         });
     }
 
+    [Test]
+    public async Task Shared_cbi8_vectors_extend_or_decline_without_disturbing_the_member()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi8-participant-extension-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, member, handler) = await ExtensionResult(scenario);
+            var released = vector.GetProperty("expectedReleased").GetBoolean();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    ExtensionToken(result.Kind),
+                    Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                    scenario);
+                Assert.That(
+                    result.CurrentAuthority,
+                    Has.Count.EqualTo(vector.GetProperty("expectedParticipantsEvaluated").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.InForce?.Admissions.Count ?? 0,
+                    Is.EqualTo(vector.GetProperty("expectedInForceParticipants").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.InForce?.Grants.Count ?? 0,
+                    Is.EqualTo(vector.GetProperty("expectedInForceGrants").GetInt32()),
+                    scenario);
+                Assert.That(
+                    member.Stage,
+                    Is.EqualTo(
+                        released ? PortableCompositionStage.Released : PortableCompositionStage.Retired),
+                    scenario);
+                Assert.That(
+                    result.InForce,
+                    released ? Is.Not.Null : Is.Null,
+                    $"{scenario}: a set is in force exactly while the member is released.");
+                Assert.That(handler.ProviderEffectCount, Is.Zero, scenario);
+            });
+        }
+    }
+
+    [Test]
+    public async Task An_extended_set_is_revalidated_as_one_set()
+    {
+        var (extension, member, _) = await ExtensionResult("cbi8-01-added");
+        var extended = extension.InForce!;
+        var requests = extended.Admissions
+            .Select(item => ParticipantRequestFor(item.Participant))
+            .ToArray();
+
+        var revalidated = await ComponentParticipantRevalidation.RevalidateAsync(
+            extended,
+            requests,
+            "extended set revalidation");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(extension.IsExtended, Is.True);
+            Assert.That(revalidated.Kind, Is.EqualTo(ComponentParticipantRevalidationKind.Continued));
+            Assert.That(revalidated.CurrentAuthority, Has.Count.EqualTo(3));
+            Assert.That(member.Stage, Is.EqualTo(PortableCompositionStage.Released));
+        });
+    }
+
+    [Test]
+    public async Task Refused_cbi6_set_cannot_be_extended()
+    {
+        var unavailable = new ComponentParticipantAdmissionResult(
+            Array.Empty<ComponentParticipantObservation>(),
+            Array.Empty<LocalCapabilityGrant>(),
+            null,
+            null);
+
+        var result = await ComponentParticipantExtension.ExtendAsync(
+            unavailable,
+            ParticipantSet(SupervisorLocalActor).Select(item => item.Request).ToArray(),
+            "set extension unavailable");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentParticipantExtensionKind.ActivationUnavailable));
+            Assert.That(result.InForce, Is.Null);
+            Assert.That(result.CurrentAuthority, Is.Empty);
+        });
+    }
+
+    private static AuthorityAdmissionRequest ParticipantRequestFor(ActorId participant)
+    {
+        var policy = SetPolicy(SupervisorLocalActor, ObserverLocalActor);
+        if (participant == Observer)
+        {
+            return ObserverRequest(policy);
+        }
+
+        return ParticipantSet(SupervisorLocalActor)
+            .Select(item => item.Request)
+            .Single(item => item.Participant == participant);
+    }
+
+    private static async Task<(
+        ComponentParticipantExtensionResult Result,
+        PortableCompositionMember Member,
+        CoolingPortableHandler Handler)>
+        ExtensionResult(string scenario)
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var handler = new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry());
+        IPortableProviderConversation conversation = new PortableDirectConversation(
+            new PortableProviderEndpoint(
+                CoolingPortableFixture.Contract,
+                handler,
+                PortableRealization.FixedDirectCall));
+        if (scenario == "cbi8-11-retirement-failure")
+        {
+            conversation = new FailingRetirementConversation(conversation);
+        }
+
+        var observerActor = scenario == "cbi8-09-added-shared-local-actor"
+            ? SupervisorLocalActor
+            : ObserverLocalActor;
+        var participants = ParticipantSet(SupervisorLocalActor, observerActor);
+        var active = await ComponentParticipantAdmission.ActivateAsync(
+            resolution,
+            selection,
+            participants,
+            RuntimeRequest(Plan(occurrence)),
+            conversation);
+        var baseline = participants.Select(item => item.Request).ToArray();
+        var provider = baseline[0];
+        var supervisor = baseline[1];
+        var observer = ObserverRequest(SetPolicy(SupervisorLocalActor, observerActor));
+
+        AuthorityAdmissionRequest[] intended = scenario switch
+        {
+            "cbi8-01-added" or "cbi8-09-added-shared-local-actor" => [.. baseline, observer],
+            "cbi8-02-participant-removed" => [provider],
+            "cbi8-03-participant-substituted" => [provider, observer],
+            "cbi8-04-unchanged" => baseline,
+            "cbi8-05-added-identity-collision" =>
+            [
+                .. baseline,
+                observer with
+                {
+                    Authority = [observer.Authority.Single() with { Request = Authority }],
+                },
+            ],
+            "cbi8-06-added-unlimited-grant" =>
+            [
+                .. baseline,
+                observer with
+                {
+                    Authority = [observer.Authority.Single() with { Unlimited = true }],
+                },
+            ],
+            "cbi8-07-retained-identity-drift" =>
+            [
+                provider,
+                supervisor with
+                {
+                    Authority =
+                    [
+                        supervisor.Authority.Single() with
+                        {
+                            Capability = CapabilityId.Create("capability.other"),
+                        },
+                    ],
+                },
+                observer,
+            ],
+            "cbi8-08-added-participant-denied" => [.. baseline, Revoked(observer)],
+            "cbi8-10-retained-participant-revoked" or "cbi8-11-retirement-failure" =>
+                [provider, Revoked(supervisor), observer],
+            _ => throw new ArgumentOutOfRangeException(nameof(scenario), scenario, "unknown CBI8 vector"),
+        };
+
+        var result = await ComponentParticipantExtension.ExtendAsync(
+            active,
+            intended,
+            $"set extension {scenario}");
+        return (result, active.Lifecycle!.Member!, handler);
+    }
+
+    private static string ExtensionToken(ComponentParticipantExtensionKind kind) => kind switch
+    {
+        ComponentParticipantExtensionKind.Extended => "extended",
+        ComponentParticipantExtensionKind.Declined => "declined",
+        ComponentParticipantExtensionKind.Withdrawn => "withdrawn",
+        ComponentParticipantExtensionKind.RetirementFailed => "retirement-failed",
+        ComponentParticipantExtensionKind.ActivationUnavailable => "activation-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
     private static async Task<(
         ComponentParticipantRevalidationResult Result,
         PortableCompositionMember Member,
@@ -976,9 +1189,14 @@ public sealed class ComponentBindingIntegrationTests
         params AuthorityRequest[] authority) =>
         participant with { Request = participant.Request with { Authority = authority } };
 
-    private static ComponentParticipantRequest[] ParticipantSet(LocalActorReferenceId supervisorActor)
+    private static ComponentParticipantRequest[] ParticipantSet(LocalActorReferenceId supervisorActor) =>
+        ParticipantSet(supervisorActor, ObserverLocalActor);
+
+    private static ComponentParticipantRequest[] ParticipantSet(
+        LocalActorReferenceId supervisorActor,
+        LocalActorReferenceId observerActor)
     {
-        var policy = SetPolicy(supervisorActor);
+        var policy = SetPolicy(supervisorActor, observerActor);
         var (_, _, occurrence) = LifecycleInput();
         var provider = new AuthorityAdmissionRequest(
             AdmissionRequestId.Create("admission.set-provider"),
@@ -1016,7 +1234,19 @@ public sealed class ComponentBindingIntegrationTests
             EvaluationTime.AddHours(1),
             AdmissionEvidenceState.Current);
 
-    private static LocalAuthorityPolicy SetPolicy(LocalActorReferenceId supervisorActor) =>
+    private static AuthorityAdmissionRequest ObserverRequest(LocalAuthorityPolicy policy) =>
+        new(
+            AdmissionRequestId.Create("admission.set-observer"),
+            Observer,
+            EvaluationTime,
+            [SetEvidence(ObserverEvidence, Observer)],
+            [new(ObserverRelationship, Observer, ActorRelationshipKind.ComponentParticipant, [ObserverEvidence])],
+            [new(ObserveAuthority, ObserverRelationship, ObserveCapability, Target, ObserveOperation, AuthorityScope, false)],
+            policy);
+
+    private static LocalAuthorityPolicy SetPolicy(
+        LocalActorReferenceId supervisorActor,
+        LocalActorReferenceId observerActor) =>
         new(
             AuthorityPolicyId.Create("policy.integration-set"),
             [AuthorityIssuer],
@@ -1039,6 +1269,15 @@ public sealed class ComponentBindingIntegrationTests
                     [SupervisorEvidence],
                     false,
                     "component supervisor admitted"),
+                new(
+                    PolicyRuleId.Create("rule.component-observer"),
+                    Observer,
+                    ActorRelationshipKind.ComponentParticipant,
+                    PolicyDisposition.Allow,
+                    observerActor,
+                    [ObserverEvidence],
+                    false,
+                    "component observer admitted"),
             ],
             [
                 new(
@@ -1071,6 +1310,16 @@ public sealed class ComponentBindingIntegrationTests
                     PolicyDisposition.Allow,
                     false,
                     "narrow cooling audit admitted"),
+                new(
+                    PolicyRuleId.Create("rule.cooling-observe"),
+                    ActorRelationshipKind.ComponentParticipant,
+                    ObserveCapability,
+                    Target,
+                    ObserveOperation,
+                    AuthorityScope,
+                    PolicyDisposition.Allow,
+                    false,
+                    "narrow cooling observation admitted"),
             ]);
 
     private static string ParticipantFailureToken(ComponentParticipantAdmissionFailureKind kind) => kind switch

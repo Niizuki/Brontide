@@ -110,9 +110,9 @@ behavior unchanged.
 ## C10 — evidence remains bounded
 
 CBI7 proves fail-closed revalidation and withdrawal of one participant set over one released
-singleton binding. It does not authorize a portable invocation, withdraw an already running
-execution, add or replace a participant in place, preserve state across retirement, order
-participants by priority, propagate revocation to any other domain, or provide production identity,
-policy, distribution, or security.
+singleton binding. CBI8 separately covers adding a participant in place. CBI7 itself does not
+authorize a portable invocation, withdraw an already running execution, remove or replace a
+participant in place, preserve state across retirement, order participants by priority, propagate
+revocation to any other domain, or provide production identity, policy, distribution, or security.
 
 Property: every CBI7 status statement preserves these limits.

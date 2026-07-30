@@ -793,15 +793,24 @@ public static class ComponentParticipantAdmission
                 $"Participant '{participantActor}' appears in more than one admission request.");
         }
 
-        if (FirstDuplicate(participants.Select(item => item.Request.Request.Value)) is { } admission)
+        return DistinctIdentities(participants.Select(item => item.Request).ToArray());
+    }
+
+    /// <summary>
+    /// Checks the identity rules that only span requests, which no single CM5 evaluation can see.
+    /// </summary>
+    internal static (string Code, string Reason)? DistinctIdentities(
+        IReadOnlyList<Cm.AuthorityAdmissionRequest> requests)
+    {
+        if (FirstDuplicate(requests.Select(item => item.Request.Value)) is { } admission)
         {
             return (
                 "admission-identity-not-distinct",
                 $"Admission request identity '{admission}' is used by more than one participant.");
         }
 
-        var relationships = participants
-            .SelectMany(item => item.Request.Relationships)
+        var relationships = requests
+            .SelectMany(item => item.Relationships)
             .Select(item => item.Request.Value);
         if (FirstDuplicate(relationships) is { } relationship)
         {
@@ -810,8 +819,8 @@ public static class ComponentParticipantAdmission
                 $"Relationship request identity '{relationship}' is used by more than one participant.");
         }
 
-        var authority = participants
-            .SelectMany(item => item.Request.Authority)
+        var authority = requests
+            .SelectMany(item => item.Authority)
             .Select(item => item.Request.Value);
         if (FirstDuplicate(authority) is { } authorityRequest)
         {
@@ -823,7 +832,7 @@ public static class ComponentParticipantAdmission
         return null;
     }
 
-    private static bool SupportedShape(Cm.AuthorityAdmissionRequest request)
+    internal static bool SupportedShape(Cm.AuthorityAdmissionRequest request)
     {
         if (request.Relationships.Count != 1 || request.Authority.Count == 0)
         {
@@ -846,7 +855,7 @@ public static class ComponentParticipantAdmission
             $"{item.Capability.Value}|{item.Target.Value}|{item.Operation.Value}|{item.Scope.Value}")) is null;
     }
 
-    private static bool IsExactAdmission(
+    internal static bool IsExactAdmission(
         Cm.AuthorityAdmissionOutcome outcome,
         Cm.AuthorityAdmissionRequest request)
     {
@@ -878,7 +887,7 @@ public static class ComponentParticipantAdmission
                 grant.Scope == authority.Scope) == 1);
     }
 
-    private static string? FirstDuplicate(IEnumerable<string> values) =>
+    internal static string? FirstDuplicate(IEnumerable<string> values) =>
         values.GroupBy(item => item, StringComparer.Ordinal)
             .Where(group => group.Count() > 1)
             .Select(group => group.Key)
@@ -1016,17 +1025,38 @@ public static class ComponentParticipantRevalidation
         IReadOnlyList<Cm.ActorId> unrenewed,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var replacement = await member.RetireAsync(retirementReason, cancellationToken)
-                .ConfigureAwait(false);
-            return new(
+        var (replacement, failure) = await TryRetireAsync(member, retirementReason, cancellationToken)
+            .ConfigureAwait(false);
+        return failure is null
+            ? new(
                 ComponentParticipantRevalidationKind.Withdrawn,
                 current,
                 unrenewed,
                 replacement,
                 code,
-                reason);
+                reason)
+            : new(
+                ComponentParticipantRevalidationKind.RetirementFailed,
+                current,
+                unrenewed,
+                null,
+                "authority-retirement-failed",
+                failure);
+    }
+
+    /// <summary>
+    /// Retires the member and classifies the peer outcome, without deciding what the caller's
+    /// result looks like.
+    /// </summary>
+    internal static async ValueTask<(Portable.PortableReplacementRecord? Replacement, string? Failure)>
+        TryRetireAsync(
+            Portable.PortableCompositionMember member,
+            string retirementReason,
+            CancellationToken cancellationToken)
+    {
+        try
+        {
+            return (await member.RetireAsync(retirementReason, cancellationToken).ConfigureAwait(false), null);
         }
         catch (OperationCanceledException)
         {
@@ -1034,20 +1064,15 @@ public static class ComponentParticipantRevalidation
         }
         catch (Exception error)
         {
-            var detail = error is Portable.PortableFaultException fault
-                ? $"{fault.LocalCode}: {fault.Message}"
-                : error.Message;
-            return new(
-                ComponentParticipantRevalidationKind.RetirementFailed,
-                current,
-                unrenewed,
+            return (
                 null,
-                "authority-retirement-failed",
-                detail);
+                error is Portable.PortableFaultException fault
+                    ? $"{fault.LocalCode}: {fault.Message}"
+                    : error.Message);
         }
     }
 
-    private static bool MatchesPrior(
+    internal static bool MatchesPrior(
         ComponentParticipantObservation prior,
         Cm.AuthorityAdmissionRequest request)
     {
@@ -1076,7 +1101,7 @@ public static class ComponentParticipantRevalidation
                 !authority.Unlimited) == 1);
     }
 
-    private static bool IsSameAdmission(
+    internal static bool IsSameAdmission(
         Cm.AuthorityAdmissionOutcome prior,
         Cm.AuthorityAdmissionOutcome current)
     {
@@ -1089,6 +1114,215 @@ public static class ComponentParticipantRevalidation
         return current.Observation.Relationships[0] == prior.Observation.Relationships[0] &&
             current.Observation.Grants.SequenceEqual(prior.Observation.Grants);
     }
+}
+
+public enum ComponentParticipantExtensionKind
+{
+    Extended,
+    Declined,
+    Withdrawn,
+    RetirementFailed,
+    ActivationUnavailable,
+}
+
+public sealed record ComponentParticipantExtensionResult(
+    ComponentParticipantExtensionKind Kind,
+    ComponentParticipantAdmissionResult? InForce,
+    IReadOnlyList<ComponentParticipantObservation> CurrentAuthority,
+    IReadOnlyList<Cm.ActorId> Unrenewed,
+    Portable.PortableReplacementRecord? Replacement,
+    string Code,
+    string Reason)
+{
+    public bool IsExtended => Kind == ComponentParticipantExtensionKind.Extended;
+}
+
+/// <summary>
+/// Adds participants to an admitted CBI6 set while its member stays released.
+/// </summary>
+/// <remarks>
+/// Only growth is admitted. Removing or substituting a participant would withdraw authority the
+/// member may rely on, and nothing in the set says whether it does; a substitute holding the same
+/// tuple is a different grant because the holder is part of the grant. A declined extension is not
+/// a failure of the binding and leaves it exactly as it was.
+/// </remarks>
+public static class ComponentParticipantExtension
+{
+    public static async ValueTask<ComponentParticipantExtensionResult> ExtendAsync(
+        ComponentParticipantAdmissionResult active,
+        IReadOnlyList<Cm.AuthorityAdmissionRequest> requests,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(active);
+        ArgumentNullException.ThrowIfNull(requests);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (!active.IsActive || active.Lifecycle?.Member is not { } member)
+        {
+            return new(
+                ComponentParticipantExtensionKind.ActivationUnavailable,
+                null,
+                Array.Empty<ComponentParticipantObservation>(),
+                Array.Empty<Cm.ActorId>(),
+                null,
+                "active-authority-unavailable",
+                "CBI8 requires one released Active CBI6 result with a completely admitted participant set.");
+        }
+
+        var prior = active.Admissions;
+        var ordered = requests
+            .OrderBy(item => item.Participant.Value, StringComparer.Ordinal)
+            .ToArray();
+        if (Structure(prior, ordered) is { } declined)
+        {
+            return Decline(active, declined.Code, declined.Reason);
+        }
+
+        var retained = ordered
+            .Where(item => prior.Any(existing => existing.Participant == item.Participant))
+            .ToArray();
+        if (retained.Where((item, index) => !ComponentParticipantRevalidation.MatchesPrior(prior[index], item)).Any())
+        {
+            // Nothing was evaluated, so nothing was learned: this is a malformed request, not
+            // evidence that the retained authority is gone.
+            return Decline(
+                active,
+                "authority-revalidation-mismatch",
+                "A retained request does not identify the same relationship and grants that admitted this member.");
+        }
+
+        var evaluator = new Cm.FakeAuthorityAdmissionEvaluator();
+        var current = ordered
+            .Select(item => new ComponentParticipantObservation(item.Participant, evaluator.Evaluate(item)))
+            .ToArray();
+        var currentRetained = current
+            .Where(item => prior.Any(existing => existing.Participant == item.Participant))
+            .ToArray();
+        var unrenewed = currentRetained
+            .Where((item, index) => !ComponentParticipantRevalidation.IsSameAdmission(
+                prior[index].Authority,
+                item.Authority))
+            .Select(item => item.Participant)
+            .ToArray();
+        if (unrenewed.Length > 0)
+        {
+            // A lapse outranks any problem with the addition: the member's existing authority is
+            // gone, whatever the caller was trying to add.
+            var (replacement, failure) = await ComponentParticipantRevalidation
+                .TryRetireAsync(member, retirementReason, cancellationToken)
+                .ConfigureAwait(false);
+            return new(
+                failure is null
+                    ? ComponentParticipantExtensionKind.Withdrawn
+                    : ComponentParticipantExtensionKind.RetirementFailed,
+                null,
+                current,
+                unrenewed,
+                replacement,
+                failure is null ? "authority-not-renewed" : "authority-retirement-failed",
+                failure ?? $"The receiving domain no longer admits the identical authority for {string.Join(", ", unrenewed.Select(item => item.Value))}.");
+        }
+
+        var refusedAdditions = ordered
+            .Where((item, index) =>
+                !prior.Any(existing => existing.Participant == item.Participant) &&
+                !ComponentParticipantAdmission.IsExactAdmission(current[index].Authority, item))
+            .Select(item => item.Participant.Value)
+            .ToArray();
+        if (refusedAdditions.Length > 0)
+        {
+            return Decline(
+                active,
+                "authority-not-admitted",
+                $"CM5 did not admit the exact submitted authority for {string.Join(", ", refusedAdditions)}.",
+                current);
+        }
+
+        var holders = current
+            .Select(item => item.Authority.Observation.Relationships[0].LocalActor.Value)
+            .ToArray();
+        if (ComponentParticipantAdmission.FirstDuplicate(holders) is { } sharedHolder)
+        {
+            return Decline(
+                active,
+                "local-actor-conflict",
+                $"The extended set would map two participants onto the receiving-domain Actor '{sharedHolder}'.",
+                current);
+        }
+
+        var grants = current
+            .SelectMany(item => item.Authority.Observation.Grants)
+            .OrderBy(item => item.Grant.Value, StringComparer.Ordinal)
+            .ToArray();
+        return new(
+            ComponentParticipantExtensionKind.Extended,
+            new(current, grants, active.Lifecycle, null),
+            current,
+            Array.Empty<Cm.ActorId>(),
+            null,
+            "participant-set-extended",
+            $"The participant set now holds {current.Length} participants and {grants.Length} grants.");
+    }
+
+    private static (string Code, string Reason)? Structure(
+        IReadOnlyList<ComponentParticipantObservation> prior,
+        IReadOnlyList<Cm.AuthorityAdmissionRequest> intended)
+    {
+        if (ComponentParticipantAdmission.FirstDuplicate(
+                intended.Select(item => item.Participant.Value)) is { } repeated)
+        {
+            return (
+                "participant-not-distinct",
+                $"Participant '{repeated}' appears in more than one request.");
+        }
+
+        var missing = prior
+            .Where(existing => !intended.Any(item => item.Participant == existing.Participant))
+            .Select(existing => existing.Participant.Value)
+            .ToArray();
+        if (missing.Length > 0)
+        {
+            return (
+                "participant-not-retained",
+                $"CBI8 only grows a set. Removing or substituting {string.Join(", ", missing)} requires CBI7 retirement and a fresh CBI6 admission.");
+        }
+
+        if (intended.Count == prior.Count)
+        {
+            return (
+                "participant-set-unchanged",
+                "The intended set adds no participant; revalidating the current set is CBI7.");
+        }
+
+        if (ComponentParticipantAdmission.DistinctIdentities(intended) is { } collision)
+        {
+            return collision;
+        }
+
+        var added = intended
+            .Where(item => !prior.Any(existing => existing.Participant == item.Participant))
+            .ToArray();
+        return added.All(ComponentParticipantAdmission.SupportedShape)
+            ? null
+            : (
+                "authority-shape-unsupported",
+                "CBI8 supports one ComponentParticipant relationship per added participant and distinct narrow authority tuples dependent on it.");
+    }
+
+    private static ComponentParticipantExtensionResult Decline(
+        ComponentParticipantAdmissionResult active,
+        string code,
+        string reason,
+        IReadOnlyList<ComponentParticipantObservation>? current = null) =>
+        new(
+            ComponentParticipantExtensionKind.Declined,
+            active,
+            current ?? Array.Empty<ComponentParticipantObservation>(),
+            Array.Empty<Cm.ActorId>(),
+            null,
+            code,
+            reason);
 }
 
 /// <summary>

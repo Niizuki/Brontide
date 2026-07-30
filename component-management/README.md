@@ -121,6 +121,14 @@ retirement closes the ordinary-interaction gate before peer cleanup. Its bounded
 recorded in the [CBI7 capability contract](./cbi7-capability-contract.md) and completed
 [contract-completeness review](./cbi7-contract-completeness-review.md).
 
+CBI8 changes an admitted set while its member stays released, and only by growing it. Removal and
+substitution in place are refused for the same reason CBI7 refuses narrowing, so participant
+precedence never has to be decided; they go through CBI7 retirement and a fresh CBI6 admission. A
+declined extension leaves the binding exactly as it was, while an evaluated lapse in a retained
+participant retires it — a malformed request decides nothing, evaluated loss decides everything. Its
+bounded behavior is recorded in the [CBI8 capability contract](./cbi8-capability-contract.md) and
+completed [contract-completeness review](./cbi8-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -217,6 +225,16 @@ stable outcome kinds and codes. Each vector also pins how many participants were
 many did not renew, so the all-or-none evaluation rule and the attribution of a partial loss are
 forced answers rather than silences. The fixture contains no evaluator, clock, cleanup mechanism,
 portable authority, or runtime implementation.
+
+### `cbi8-participant-extension-vectors` sections
+
+`vectors` names one admitted extension and ten refusals — removal, substitution, an unchanged set,
+an added identity collision, an added unlimited grant, retained identity drift, a denied addition, a
+shared local Actor, a retained participant revoked, and retirement cleanup failure — with stable
+outcome kinds and codes. Each vector also pins how many participants were evaluated, how large the
+set still in force is, and whether the member is still released, so "nothing changed" is a checked
+answer rather than an assumption. The fixture contains no evaluator, policy, identity rule, cleanup
+mechanism, or portable runtime.
 
 ### `cm0-mice-topology` sections
 

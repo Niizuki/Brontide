@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased — CBI8 in-place participant extension
+
+### Added
+
+- Reference Studio growth of an admitted CBI6 participant set while its member stays released, with
+  retained participants revalidated in the same all-or-none evaluation as the additions.
+- Whole-set identity and receiving-domain Actor checks against participants that are already live,
+  and a declined outcome that leaves the binding exactly as it was.
+- Shared extension vectors pinning outcome kinds, codes, evaluated counts, the size of the set still
+  in force, and whether the member is still released, plus a phase-boundary completeness review.
+
+### Changed
+
+- The cross-request identity check, admission shape check, exactness check, and member retirement
+  are now shared between the CBI6, CBI7, and CBI8 coordinators within the stack instead of being
+  restated per slice.
+
+CBI8 only grows a set. Removal and substitution in place are declined and route through CBI7
+retirement and a fresh CBI6 admission, which is also why participant precedence does not have to be
+decided here.
+
 ## Unreleased — CBI7 participant-set withdrawal
 
 ### Added

@@ -251,12 +251,29 @@ The [`CBI7 capability contract`](../../component-management/cbi7-capability-cont
 [`contract-completeness review`](../../component-management/cbi7-contract-completeness-review.md)
 bound this to one participant set over one released singleton binding.
 
-Participant replacement in place — adding or substituting a participant without retiring the member
-— is the next implementable integration item, and precedence between participants is the question it
-must answer first. CM4 binding-exercise projection, cross-vocabulary Operation mapping, multi-member
-and relational lifecycles, replacement, child Ports, mediation, wider Provider Sets, and real
-distribution remain future work. PB8's independent reviews and Decision 11 owner ruling remain
-separate governance prerequisites rather than implementation work.
+CBI8 delivers the addition half of in-place participant replacement, and refuses the other half on
+purpose. Each composition root grows an admitted set while its member stays released: the intended
+set must retain every current participant and add at least one, retained participants are
+revalidated in the same all-or-none evaluation as the additions, and the whole-set identity and
+receiving-domain Actor rules are checked against the participants already live. **Removal and
+substitution in place are declined**, for the reason CBI7 refuses narrowing — a substitute holding
+the identical Capability, target Actor, Operation, and scope is still a different grant, because the
+holder is part of the grant — and they route through CBI7 retirement and a fresh CBI6 admission
+instead. That also disposes of participant precedence: it would only be needed to decide which
+participant may be dropped from a live set, so refusing every drop removes the question rather than
+answering it badly. A declined extension leaves the binding exactly as it was; an evaluated lapse in
+a retained participant retires it. The
+[`CBI8 capability contract`](../../component-management/cbi8-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi8-contract-completeness-review.md)
+bound this to growth of one set over one released singleton binding.
+
+Participant removal and substitution in place is the next implementable integration item, and its
+prerequisite is now explicit: a member must be able to declare which grants its ordinary interaction
+depends on before any participant can be dropped from a live set, and participant precedence follows
+from that declaration rather than preceding it. CM4 binding-exercise projection, cross-vocabulary
+Operation mapping, multi-member and relational lifecycles, replacement, child Ports, mediation,
+wider Provider Sets, and real distribution remain future work. PB8's independent reviews and
+Decision 11 owner ruling remain separate governance prerequisites rather than implementation work.
 
 ## Other planned areas
 
