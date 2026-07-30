@@ -107,6 +107,10 @@ public sealed record ResolutionRequirement(
     RegionId? ContainingRegion,
     PortId? ContainingPort,
     bool RuntimeAttachment,
+    IReadOnlyList<string> RequiredImports,
+    IReadOnlyList<string> RequiredExports,
+    string? RequiredFailurePolicy,
+    string? RequiredRollbackBoundary,
     IReadOnlyList<string> RequestedAuthority,
     IReadOnlyList<TopologyRelation> TopologyRequirements);
 
@@ -528,16 +532,16 @@ public sealed class FakeGenerationResolver
                         item.Contract == requirement.Contract && item.Version == requirement.Version) == true;
                     if (compatible)
                     {
-                        var existingOccurrence = snapshot.ExistingOccurrences.SingleOrDefault(item =>
+                        var existingOccurrences = snapshot.ExistingOccurrences.Where(item =>
                             item.Occurrence == occupied.OccupantOccurrence
-                            && item.Definition == occupied.OccupantDefinition);
-                        if (existingOccurrence is null)
+                            && item.Definition == occupied.OccupantDefinition).ToArray();
+                        if (existingOccurrences.Length != 1)
                         {
                             return Refuse(
                                 ResolutionFailureKind.ContradictoryIdentity,
                                 occupied.OccupantDefinition,
                                 requirement.Requirement,
-                                $"occupied binding '{occupied.Binding}' has no matching retained occurrence");
+                                $"occupied binding '{occupied.Binding}' has no matching retained occurrence or has contradictory duplicates");
                         }
 
                         members.Add(
@@ -566,15 +570,7 @@ public sealed class FakeGenerationResolver
                     .Where(candidate => candidate.Provides.Any(provided =>
                         provided.Contract == requirement.Contract && provided.Version == requirement.Version))
                     .ToArray();
-                var compatibleCandidates = allCompatibleCandidates
-                    .GroupBy(candidate => candidate.Definition)
-                    .Select(group => group
-                        .OrderBy(candidate => candidate.Source.Value, StringComparer.Ordinal)
-                        .ThenBy(candidate => candidate.Package.Value, StringComparer.Ordinal)
-                        .First())
-                    .ToArray();
-
-                foreach (var candidate in compatibleCandidates)
+                foreach (var candidate in allCompatibleCandidates)
                 {
                     foreach (var rejected in candidate.Policy.Where(item => !item.Accepted))
                     {
@@ -590,12 +586,25 @@ public sealed class FakeGenerationResolver
                                 requirement.Requirement,
                                 candidate.Definition,
                                 "candidate-excluded",
-                                $"{rejected.Domain}: {rejected.Reason}"));
+                                $"{candidate.Source} {rejected.Domain}: {rejected.Reason}"));
                     }
                 }
 
-                var admissible = compatibleCandidates
+                // Source mirrors are alternatives for one definition position. Choose the best
+                // admissible observation rather than letting an earlier rejected mirror hide an
+                // accepted one, while retaining every mirror in the explanation below.
+                var compatibleCandidates = allCompatibleCandidates
                     .Where(candidate => candidate.Policy.All(item => item.Accepted))
+                    .GroupBy(candidate => candidate.Definition)
+                    .Select(group => group
+                        .OrderBy(candidate => Rank(snapshot, definition, requirement, candidate))
+                        .ThenBy(candidate => candidate.Publisher.Value, StringComparer.Ordinal)
+                        .ThenBy(candidate => candidate.Package.Value, StringComparer.Ordinal)
+                        .ThenBy(candidate => candidate.Source.Value, StringComparer.Ordinal)
+                        .First())
+                    .ToArray();
+
+                var admissible = compatibleCandidates
                     .OrderBy(candidate => Rank(snapshot, definition, requirement, candidate))
                     .ThenBy(candidate => candidate.Definition.Value, StringComparer.Ordinal)
                     .ThenBy(candidate => candidate.Publisher.Value, StringComparer.Ordinal)
@@ -863,6 +872,14 @@ public sealed class FakeGenerationResolver
         var ports = snapshot.Ports
             .OrderBy(item => item.Region.Value, StringComparer.Ordinal)
             .ThenBy(item => item.Port.Value, StringComparer.Ordinal)
+            .Select(port => port with
+            {
+                Contracts = Array.AsReadOnly(port.Contracts.ToArray()),
+                Imports = Array.AsReadOnly(port.Imports.ToArray()),
+                Exports = Array.AsReadOnly(port.Exports.ToArray()),
+                AuthorityCeiling = Array.AsReadOnly(port.AuthorityCeiling.ToArray()),
+                TopologyRequirements = Array.AsReadOnly(port.TopologyRequirements.ToArray()),
+            })
             .ToArray();
         var proposed = new ProposedStack(
             snapshot.Generation,
@@ -923,8 +940,20 @@ public sealed class FakeGenerationResolver
                 requirement.ContainingPort);
         }
 
-        var port = request.Ports.SingleOrDefault(item =>
-            item.Region == requirement.ContainingRegion && item.Port == requirement.ContainingPort);
+        var matchingPorts = request.Ports.Where(item =>
+            item.Region == requirement.ContainingRegion && item.Port == requirement.ContainingPort).ToArray();
+        if (matchingPorts.Length > 1)
+        {
+            return Refuse(
+                ResolutionFailureKind.ContradictoryIdentity,
+                definition,
+                requirement.Requirement,
+                $"Port '{requirement.ContainingPort}' has contradictory duplicate envelopes",
+                requirement.ContainingRegion,
+                requirement.ContainingPort);
+        }
+
+        var port = matchingPorts.SingleOrDefault();
         if (port is null
             || port.Lifecycle == PortLifecycleMode.Sealed
             || (requirement.RuntimeAttachment && port.Lifecycle != PortLifecycleMode.RuntimeOpen))
@@ -940,12 +969,25 @@ public sealed class FakeGenerationResolver
 
         var compatible = port.Contracts.Any(item =>
             item.Contract == requirement.Contract && item.Version == requirement.Version);
+        var importsAllowed = requirement.RequiredImports.All(port.Imports.Contains);
+        var exportsAllowed = requirement.RequiredExports.All(port.Exports.Contains);
+        var failurePolicyAllowed = requirement.RequiredFailurePolicy is null
+            || requirement.RequiredFailurePolicy == port.FailurePolicy;
+        var rollbackBoundaryAllowed = requirement.RequiredRollbackBoundary is null
+            || requirement.RequiredRollbackBoundary == port.RollbackBoundary;
         var authorityAllowed = requirement.RequestedAuthority.All(port.AuthorityCeiling.Contains);
         var topologyAllowed = requirement.TopologyRequirements.All(port.TopologyRequirements.Contains);
         var cardinalityAllowed = requirement.Cardinality.Minimum >= port.Cardinality.Minimum
             && (port.Cardinality.Maximum is null
                 || requirement.Cardinality.Maximum is int maximum && maximum <= port.Cardinality.Maximum);
-        if (compatible && authorityAllowed && topologyAllowed && cardinalityAllowed)
+        if (compatible
+            && importsAllowed
+            && exportsAllowed
+            && failurePolicyAllowed
+            && rollbackBoundaryAllowed
+            && authorityAllowed
+            && topologyAllowed
+            && cardinalityAllowed)
         {
             return null;
         }
@@ -1145,6 +1187,8 @@ public sealed class FakeGenerationResolver
                 Requirements = definition.Requirements.Select(requirement => requirement with
                 {
                     Constraints = requirement.Constraints.ToArray(),
+                    RequiredImports = requirement.RequiredImports.ToArray(),
+                    RequiredExports = requirement.RequiredExports.ToArray(),
                     RequestedAuthority = requirement.RequestedAuthority.ToArray(),
                     TopologyRequirements = requirement.TopologyRequirements.ToArray(),
                 }).ToArray(),

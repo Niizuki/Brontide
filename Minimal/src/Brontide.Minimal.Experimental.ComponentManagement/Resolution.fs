@@ -103,6 +103,10 @@ type ResolutionRequirement =
       ContainingRegion: RegionId option
       ContainingPort: PortId option
       RuntimeAttachment: bool
+      RequiredImports: string list
+      RequiredExports: string list
+      RequiredFailurePolicy: string option
+      RequiredRollbackBoundary: string option
       RequestedAuthority: string list
       TopologyRequirements: TopologyRelation list }
 
@@ -432,18 +436,41 @@ module FakeGenerationResolver =
         match requirement.ContainingRegion, requirement.ContainingPort with
         | None, None -> None
         | Some region, Some port ->
-            match request.Ports |> List.tryFind (fun item -> item.Region = region && item.Port = port) with
-            | None ->
-                Some(refusal PortUnavailable (Some definition) (Some requirement.Requirement) (sprintf "Port '%s' is unavailable." (PortId.value port)) (Some region) (Some port) None)
-            | Some envelope
+            let matchingPorts =
+                request.Ports
+                |> List.filter (fun item -> item.Region = region && item.Port = port)
+            match matchingPorts with
+            | _ :: _ :: _ ->
+                Some(
+                    refusal
+                        ContradictoryIdentity
+                        (Some definition)
+                        (Some requirement.Requirement)
+                        (sprintf "Port '%s' has contradictory duplicate envelopes" (PortId.value port))
+                        (Some region)
+                        (Some port)
+                        None)
+            | [ envelope ]
                 when envelope.Lifecycle = Sealed
                      || (requirement.RuntimeAttachment && envelope.Lifecycle <> RuntimeOpen) ->
                 Some(refusal PortUnavailable (Some definition) (Some requirement.Requirement) (sprintf "Port '%s' is unavailable for the requested lifecycle." (PortId.value port)) (Some region) (Some port) None)
-            | Some envelope ->
+            | [ envelope ] ->
                 let compatible =
                     envelope.Contracts
                     |> List.exists (fun provided ->
                         provided.Contract = requirement.Contract && provided.Version = requirement.Version)
+                let importsAllowed =
+                    requirement.RequiredImports
+                    |> List.forall (fun requiredImport -> List.contains requiredImport envelope.Imports)
+                let exportsAllowed =
+                    requirement.RequiredExports
+                    |> List.forall (fun requiredExport -> List.contains requiredExport envelope.Exports)
+                let failurePolicyAllowed =
+                    requirement.RequiredFailurePolicy
+                    |> Option.forall (fun required -> required = envelope.FailurePolicy)
+                let rollbackBoundaryAllowed =
+                    requirement.RequiredRollbackBoundary
+                    |> Option.forall (fun required -> required = envelope.RollbackBoundary)
                 let authorityAllowed =
                     requirement.RequestedAuthority
                     |> List.forall (fun authority -> List.contains authority envelope.AuthorityCeiling)
@@ -456,7 +483,16 @@ module FakeGenerationResolver =
                         | None, _ -> true
                         | Some _, None -> false
                         | Some ceiling, Some maximum -> maximum <= ceiling)
-                if compatible && authorityAllowed && topologyAllowed && cardinalityAllowed then
+                if
+                    compatible
+                    && importsAllowed
+                    && exportsAllowed
+                    && failurePolicyAllowed
+                    && rollbackBoundaryAllowed
+                    && authorityAllowed
+                    && topologyAllowed
+                    && cardinalityAllowed
+                then
                     None
                 elif envelope.AllowWiderGenerationProposal then
                     Some(
@@ -467,6 +503,8 @@ module FakeGenerationResolver =
                               Reason = "child requirement exceeds the declared Port envelope" })
                 else
                     Some(refusal PortEnvelopeExceeded (Some definition) (Some requirement.Requirement) "child requirement exceeds the declared Port envelope" (Some region) (Some port) None)
+            | [] ->
+                Some(refusal PortUnavailable (Some definition) (Some requirement.Requirement) (sprintf "Port '%s' is unavailable." (PortId.value port)) (Some region) (Some port) None)
         | region, port ->
             Some(refusal PortUnavailable (Some definition) (Some requirement.Requirement) "a child requirement must name both Region and Port" region port None)
 
@@ -628,14 +666,21 @@ module FakeGenerationResolver =
                                                      |> List.exists (fun provided ->
                                                          provided.Contract = requirement.Contract
                                                          && provided.Version = requirement.Version) ->
-                                                let occurrenceExists =
+                                                let matchingOccurrences =
                                                     request.ExistingOccurrences
-                                                    |> List.exists (fun occurrence ->
+                                                    |> List.filter (fun occurrence ->
                                                         occurrence.Occurrence = binding.OccupantOccurrence
                                                         && occurrence.Definition = binding.OccupantDefinition)
-                                                if not occurrenceExists then
+                                                if List.length matchingOccurrences <> 1 then
                                                     terminal <-
-                                                        Some(simpleRefusal ContradictoryIdentity (Some binding.OccupantDefinition) (Some requirement.Requirement) (sprintf "occupied binding '%s' has no matching retained occurrence" (BindingId.value binding.Binding)))
+                                                        Some(
+                                                            simpleRefusal
+                                                                ContradictoryIdentity
+                                                                (Some binding.OccupantDefinition)
+                                                                (Some requirement.Requirement)
+                                                                (sprintf
+                                                                    "occupied binding '%s' has no matching retained occurrence or has contradictory duplicates"
+                                                                    (BindingId.value binding.Binding)))
                                                 else
                                                     members.Add
                                                         { Definition = binding.OccupantDefinition
@@ -668,15 +713,8 @@ module FakeGenerationResolver =
                                                 |> List.exists (fun provided ->
                                                     provided.Contract = requirement.Contract
                                                     && provided.Version = requirement.Version))
-                                        let compatibleCandidates =
-                                            allCompatibleCandidates
-                                            |> List.groupBy (fun candidate -> candidate.Definition)
-                                            |> List.map (fun (_, mirrors) ->
-                                                mirrors
-                                                |> List.sortBy (fun candidate -> SourceId.value candidate.Source, PackageId.value candidate.Package)
-                                                |> List.head)
 
-                                        for candidate in compatibleCandidates do
+                                        for candidate in allCompatibleCandidates do
                                             for rejected in candidate.Policy |> List.filter (fun observation -> not observation.Accepted) do
                                                 accumulator.Exclusions.Add
                                                     { Requirement = requirement.Requirement
@@ -688,11 +726,33 @@ module FakeGenerationResolver =
                                                     { Requirement = Some requirement.Requirement
                                                       Definition = Some candidate.Definition
                                                       Kind = "candidate-excluded"
-                                                      Reason = sprintf "%A: %s" rejected.Domain rejected.Reason }
+                                                      Reason =
+                                                        sprintf
+                                                            "%s %A: %s"
+                                                            (SourceId.value candidate.Source)
+                                                            rejected.Domain
+                                                            rejected.Reason }
+
+                                        // Source mirrors remain alternatives for one definition
+                                        // position. A rejected earlier mirror must not hide an
+                                        // accepted observation from another source.
+                                        let compatibleCandidates =
+                                            allCompatibleCandidates
+                                            |> List.filter (fun candidate ->
+                                                candidate.Policy
+                                                |> List.forall (fun observation -> observation.Accepted))
+                                            |> List.groupBy (fun candidate -> candidate.Definition)
+                                            |> List.map (fun (_, mirrors) ->
+                                                mirrors
+                                                |> List.sortBy (fun candidate ->
+                                                    rank request definition requirement candidate,
+                                                    PublisherId.value candidate.Publisher,
+                                                    PackageId.value candidate.Package,
+                                                    SourceId.value candidate.Source)
+                                                |> List.head)
 
                                         let admissible =
                                             compatibleCandidates
-                                            |> List.filter (fun candidate -> candidate.Policy |> List.forall (fun observation -> observation.Accepted))
                                             |> List.sortBy (fun candidate ->
                                                 rank request definition requirement candidate,
                                                 DefinitionId.value candidate.Definition,

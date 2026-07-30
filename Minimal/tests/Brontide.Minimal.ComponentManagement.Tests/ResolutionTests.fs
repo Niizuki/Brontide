@@ -39,6 +39,10 @@ type ResolutionTests() =
           ContainingRegion = region
           ContainingPort = port
           RuntimeAttachment = runtime
+          RequiredImports = []
+          RequiredExports = []
+          RequiredFailurePolicy = None
+          RequiredRollbackBoundary = None
           RequestedAuthority = authority
           TopologyRequirements = topology }
 
@@ -334,15 +338,24 @@ type ResolutionTests() =
         let provider =
             definition generic [] [] [] [ { Contract = telemetry; Version = version } ] (PublisherId.create "pub.contoso")
         let first = candidate generic (PublisherId.create "pub.contoso") true
+        let rejected =
+            { first with
+                Policy =
+                    [ { Domain = LocalPolicy
+                        Accepted = false
+                        Reason = "primary source unavailable" } ] }
+        let mirror = { first with Source = SourceId.create "src.mirror" }
         let request =
             { emptyRequest [ root; provider ] with
-                Candidates = [ first; { first with Source = SourceId.create "src.mirror" } ] }
+                Candidates = [ rejected; mirror ] }
         match FakeGenerationResolver.resolve request with
-        | Resolved(_, generation) ->
+        | Resolved(proposed, generation) ->
             let set = List.exactlyOne generation.ProviderSets
             multiple (fun () ->
                 Assert.That(set.Members, Has.Length.EqualTo(1))
+                Assert.That((List.exactlyOne set.Members).Source, Is.EqualTo(Some(SourceId.create "src.mirror")))
                 Assert.That(set.Alternatives, Has.Length.EqualTo(2))
+                Assert.That((List.exactlyOne proposed.Exclusions).Source, Is.Not.EqualTo(SourceId.create "src.mirror"))
                 let sources = set.Alternatives |> List.map (fun alternative -> alternative.Source)
                 Assert.That((sources = (sources |> List.sortBy SourceId.value)), Is.True))
         | outcome -> Assert.Fail(sprintf "Expected mirrored resolution, got %A" outcome)
@@ -358,6 +371,16 @@ type ResolutionTests() =
                 Assert.That(failure.Kind, Is.EqualTo(ContradictoryIdentity))
                 Assert.That(failure.Reason, Does.Contain("no matching retained occurrence")))
         | outcome -> Assert.Fail(sprintf "Expected retained occurrence refusal, got %A" outcome)
+        let duplicateRequest = baseRequest (ordinaryRequirement "req.telemetry" (Cardinality.parse "1..1"))
+        match
+            FakeGenerationResolver.resolve
+                { duplicateRequest with
+                    ExistingOccurrences =
+                        duplicateRequest.ExistingOccurrences @ duplicateRequest.ExistingOccurrences }
+        with
+        | ResolutionOutcome.Refused failure ->
+            Assert.That(failure.Kind, Is.EqualTo(ContradictoryIdentity))
+        | outcome -> Assert.Fail(sprintf "Expected duplicate retained occurrence refusal, got %A" outcome)
 
     [<Test>]
     member _.``Mediated endpoint requires declaration and dedicated policy Component``() =
@@ -423,6 +446,12 @@ type ResolutionTests() =
                 true
                 [ "authority.read" ]
                 [ AttachedThrough ]
+            |> fun value ->
+                { value with
+                    RequiredImports = [ "import.clock" ]
+                    RequiredExports = [ "export.telemetry" ]
+                    RequiredFailurePolicy = Some "contain"
+                    RequiredRollbackBoundary = Some "child" }
         let envelope =
             { Region = region
               Port = port
@@ -450,6 +479,21 @@ type ResolutionTests() =
                 Assert.That((List.exactlyOne generation.ProviderSets).ContainingRegion, Is.EqualTo(Some region))
                 Assert.That((List.exactlyOne generation.ProviderSets).ContainingPort, Is.EqualTo(Some port)))
         | outcome -> Assert.Fail(sprintf "Expected child resolution, got %A" outcome)
+        match FakeGenerationResolver.resolve { request with Ports = [ envelope; envelope ] } with
+        | ResolutionOutcome.Refused failure ->
+            Assert.That(failure.Kind, Is.EqualTo(ContradictoryIdentity))
+        | outcome -> Assert.Fail(sprintf "Expected duplicate Port refusal, got %A" outcome)
+
+        let envelopeExcesses =
+            [ { requirementValue with RequiredImports = [ "import.network" ] }
+              { requirementValue with RequiredExports = [ "export.control" ] }
+              { requirementValue with RequiredFailurePolicy = Some "propagate" }
+              { requirementValue with RequiredRollbackBoundary = Some "parent" } ]
+        for excessRequirement in envelopeExcesses do
+            match FakeGenerationResolver.resolve (request |> replaceRequirement excessRequirement) with
+            | ResolutionOutcome.Refused failure ->
+                Assert.That(failure.Kind, Is.EqualTo(PortEnvelopeExceeded))
+            | outcome -> Assert.Fail(sprintf "Expected Port envelope refusal, got %A" outcome)
 
         let excess = request |> replaceRequirement { requirementValue with RequestedAuthority = [ "authority.write" ] }
         match FakeGenerationResolver.resolve excess with

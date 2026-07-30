@@ -217,7 +217,16 @@ public sealed class ResolutionTests
         {
             Candidates = new[]
             {
-                Candidate(Generic, PublisherId.Create("pub.contoso"), true),
+                Candidate(Generic, PublisherId.Create("pub.contoso"), true) with
+                {
+                    Policy = new[]
+                    {
+                        new CandidatePolicyObservation(
+                            CandidatePolicyDomain.LocalPolicy,
+                            false,
+                            "primary source unavailable"),
+                    },
+                },
                 Candidate(Generic, PublisherId.Create("pub.contoso"), true) with
                 {
                     Source = SourceId.Create("src.mirror"),
@@ -231,7 +240,9 @@ public sealed class ResolutionTests
         {
             var set = outcome.Generation!.ProviderSets.Single();
             Assert.That(set.Members, Has.Count.EqualTo(1));
+            Assert.That(set.Members.Single().Source, Is.EqualTo(SourceId.Create("src.mirror")));
             Assert.That(set.Alternatives, Has.Count.EqualTo(2));
+            Assert.That(outcome.Proposed!.Exclusions.Single().Source, Is.Not.EqualTo(SourceId.Create("src.mirror")));
             Assert.That(set.Alternatives.Select(item => item.Source), Is.EqualTo(set.Alternatives.Select(item => item.Source).OrderBy(item => item.Value)));
         });
     }
@@ -242,12 +253,21 @@ public sealed class ResolutionTests
         var request = BaseRequest() with { ExistingOccurrences = Array.Empty<ActivatedOccurrenceEntry>() };
 
         var outcome = new FakeGenerationResolver().Resolve(request);
+        var duplicateRequest = BaseRequest();
+        var duplicate = new FakeGenerationResolver().Resolve(
+            duplicateRequest with
+            {
+                ExistingOccurrences = duplicateRequest.ExistingOccurrences
+                    .Concat(duplicateRequest.ExistingOccurrences)
+                    .ToArray(),
+            });
 
         Assert.Multiple(() =>
         {
             Assert.That(outcome.Failure!.Kind, Is.EqualTo(ResolutionFailureKind.ContradictoryIdentity));
             Assert.That(outcome.Failure.Reason, Does.Contain("no matching retained occurrence"));
             Assert.That(outcome.Generation, Is.Null);
+            Assert.That(duplicate.Failure!.Kind, Is.EqualTo(ResolutionFailureKind.ContradictoryIdentity));
         });
     }
 
@@ -323,6 +343,10 @@ public sealed class ResolutionTests
             region: region,
             port: port,
             runtime: true,
+            imports: new[] { "import.clock" },
+            exports: new[] { "export.telemetry" },
+            failurePolicy: "contain",
+            rollbackBoundary: "child",
             authority: new[] { "authority.read" },
             topology: new[] { TopologyRelation.AttachedThrough });
         var envelope = new PortEnvelope(
@@ -347,6 +371,32 @@ public sealed class ResolutionTests
         };
 
         Assert.That(new FakeGenerationResolver().Resolve(request).IsResolved, Is.True);
+        Assert.That(
+            new FakeGenerationResolver().Resolve(request with { Ports = new[] { envelope, envelope } }).Failure!.Kind,
+            Is.EqualTo(ResolutionFailureKind.ContradictoryIdentity));
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                new FakeGenerationResolver().Resolve(
+                    ReplaceRequirement(request, requirement with { RequiredImports = new[] { "import.network" } }))
+                    .Failure!.Kind,
+                Is.EqualTo(ResolutionFailureKind.PortEnvelopeExceeded));
+            Assert.That(
+                new FakeGenerationResolver().Resolve(
+                    ReplaceRequirement(request, requirement with { RequiredExports = new[] { "export.control" } }))
+                    .Failure!.Kind,
+                Is.EqualTo(ResolutionFailureKind.PortEnvelopeExceeded));
+            Assert.That(
+                new FakeGenerationResolver().Resolve(
+                    ReplaceRequirement(request, requirement with { RequiredFailurePolicy = "propagate" }))
+                    .Failure!.Kind,
+                Is.EqualTo(ResolutionFailureKind.PortEnvelopeExceeded));
+            Assert.That(
+                new FakeGenerationResolver().Resolve(
+                    ReplaceRequirement(request, requirement with { RequiredRollbackBoundary = "parent" }))
+                    .Failure!.Kind,
+                Is.EqualTo(ResolutionFailureKind.PortEnvelopeExceeded));
+        });
 
         var excess = ReplaceRequirement(
             request,
@@ -369,6 +419,9 @@ public sealed class ResolutionTests
             Assert.That(resolved.Generation!.Ports.Single().Region, Is.EqualTo(envelope.Region));
             Assert.That(resolved.Generation.Ports.Single().Port, Is.EqualTo(envelope.Port));
             Assert.That(resolved.Generation.Ports.Single().Lifecycle, Is.EqualTo(envelope.Lifecycle));
+            Assert.That(
+                () => ((IList<string>)resolved.Generation.Ports.Single().Imports)[0] = "mutated",
+                Throws.TypeOf<NotSupportedException>());
             Assert.That(resolved.Generation.ProviderSets.Single().ContainingRegion, Is.EqualTo(region));
             Assert.That(resolved.Generation.ProviderSets.Single().ContainingPort, Is.EqualTo(port));
         });
@@ -585,6 +638,10 @@ public sealed class ResolutionTests
         RegionId? region = null,
         PortId? port = null,
         bool runtime = false,
+        IReadOnlyList<string>? imports = null,
+        IReadOnlyList<string>? exports = null,
+        string? failurePolicy = null,
+        string? rollbackBoundary = null,
         IReadOnlyList<string>? authority = null,
         IReadOnlyList<TopologyRelation>? topology = null) =>
         new(
@@ -600,6 +657,10 @@ public sealed class ResolutionTests
             region,
             port,
             runtime,
+            imports ?? Array.Empty<string>(),
+            exports ?? Array.Empty<string>(),
+            failurePolicy,
+            rollbackBoundary,
             authority ?? Array.Empty<string>(),
             topology ?? Array.Empty<TopologyRelation>());
 

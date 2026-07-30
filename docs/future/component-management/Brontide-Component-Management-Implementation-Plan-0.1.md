@@ -413,3 +413,11 @@ than in delivery prose.
   the zero-effect boundary are implemented independently in both stacks. CM2–CM6 remain future work.
 - **2026-07-30 — CM1 completeness:** the phase-boundary absence audit is complete with every finding
   corrected; no unresolved CM1 contract-silence finding remains.
+- **2026-07-30 — CM2 delivery:** C1-C10 recursive acyclic closure, occupied-binding stability,
+  Provider Set selection, occurrence and sharing rules, exposure and Mediation, child-Region and
+  Port proposals, topology policy, post-closure Parameters, requested authority, deterministic
+  explanations, and structured failure outcomes are implemented independently in both stacks.
+  CM3-CM6 remain future work.
+- **2026-07-30 — CM2 completeness:** the phase-boundary absence audit is complete with every finding
+  corrected; cyclic strongly connected component acceptance and activation remain explicitly owned
+  by CM3.

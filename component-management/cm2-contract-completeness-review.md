@@ -20,7 +20,9 @@ retain caller-owned nested collections.
 
 Disposition: the contract now fixes the snapshot point at `Resolve` invocation. Reference copies
 every nested collection into resolver-owned arrays and read-only output collections; Minimal uses
-persistent lists and returns new values. Every outcome exposes the all-false CM2 effect observation.
+persistent lists and returns new values. The merge-readiness audit also made every collection nested
+inside a returned Reference Port envelope read-only rather than merely resolver-owned. Every outcome
+exposes the all-false CM2 effect observation.
 
 ## C2 — recursive closure
 
@@ -48,7 +50,10 @@ fill two positions.
 
 Disposition: selection deduplicates by definition, while alternatives retain every source,
 publisher, package, rank, admissibility decision, and exclusion reason. Candidate exclusion and
-selection decisions are explicit. Optional capacity fills only through an admissible preselection.
+selection decisions are explicit. The merge-readiness audit additionally found that deduplicating
+before policy filtering let a rejected earlier source hide an admissible mirror. Both resolvers now
+record every rejected source and choose the best admissible observation per definition. Optional
+capacity fills only through an admissible preselection.
 
 ## C5 — occurrence sharing
 
@@ -76,7 +81,11 @@ the envelope that justified admission.
 
 Disposition: Provider Sets now retain their Region and Port, while Proposed Stack and generation
 records retain the ordered Port envelopes including lifecycle, contracts, cardinality, imports,
-exports, authority, topology, failure, rollback, and widening policy.
+exports, authority, topology, failure, rollback, and widening policy. The merge-readiness audit
+found that requirements could not yet express import, export, failure-policy, or rollback-boundary
+demands. Those fields are now explicit in both native request models and are checked alongside every
+other envelope dimension. Duplicate Port envelopes and duplicate retained occurrence proofs return
+`contradictory-identity` rather than throwing or choosing one by enumeration.
 
 ## C8 — topology policy
 
