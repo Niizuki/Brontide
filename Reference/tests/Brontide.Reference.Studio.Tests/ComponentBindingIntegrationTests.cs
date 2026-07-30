@@ -1,6 +1,7 @@
 using Brontide.Reference.Experimental.Binding.Portable;
 using Brontide.Reference.Experimental.ComponentManagement;
 using NUnit.Framework;
+using System.Text.Json;
 
 namespace Brontide.Reference.Studio.Tests;
 
@@ -443,6 +444,107 @@ public sealed class ComponentBindingIntegrationTests
             Assert.That(result.Failure!.Kind, Is.EqualTo(ComponentAuthorityIntegrationFailureKind.LifecycleRefused));
             Assert.That(result.Lifecycle!.Member!.Stage, Is.Not.EqualTo(PortableCompositionStage.Released));
         });
+    }
+
+    [Test]
+    public async Task Shared_cbi4_vectors_pin_the_complete_native_profiles()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi4-integrated-comparison-vectors.json")));
+        var actual = new Dictionary<string, (string Profile, string Digest)>(StringComparer.Ordinal);
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var id = vector.GetProperty("id").GetString()!;
+            var result = await ComparisonResult(id);
+            var profile = ComponentAuthorityComparison.Profile(id, result);
+            actual.Add(id, (profile, ComponentAuthorityComparison.Digest(profile)));
+        }
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var id = vector.GetProperty("id").GetString()!;
+            var expected = vector.GetProperty("expectedProfileSha256").GetString();
+            using var profile = JsonDocument.Parse(actual[id].Profile);
+            Assert.Multiple(() =>
+            {
+                Assert.That(actual[id].Digest, Is.EqualTo(expected), id);
+                Assert.That(
+                    profile.RootElement.GetProperty("active").GetBoolean(),
+                    Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()),
+                    id);
+                var expectedFailure = vector.GetProperty("expectedIntegrationFailure");
+                var actualFailure = profile.RootElement.GetProperty("integrationFailure");
+                Assert.That(
+                    actualFailure.ValueKind == JsonValueKind.Null
+                        ? null
+                        : actualFailure.GetProperty("kind").GetString(),
+                    Is.EqualTo(
+                        expectedFailure.ValueKind == JsonValueKind.Null
+                            ? null
+                            : expectedFailure.GetString()),
+                    id);
+            });
+        }
+    }
+
+    private static async Task<ComponentAuthorityIntegrationResult> ComparisonResult(string scenario)
+    {
+        var (resolution, originalSelection, occurrence) = LifecycleInput();
+        var selection = originalSelection with { HostEndpoint = "component-comparison-host" };
+        var mapping = new ComponentAuthorityMapping(occurrence, Participant);
+        var authority = Admission();
+        var document = CoolingPortableFixture.Contract;
+
+        switch (scenario)
+        {
+            case "cbi4-02-authority-denied":
+                authority = authority with
+                {
+                    Evidence = authority.Evidence
+                        .Select(item => item with { State = AdmissionEvidenceState.Revoked })
+                        .ToArray(),
+                };
+                break;
+            case "cbi4-03-authority-shape":
+                authority = authority with
+                {
+                    Authority =
+                    [
+                        .. authority.Authority,
+                        authority.Authority.Single() with
+                        {
+                            Request = AuthorityRequestId.Create("authority.additional"),
+                        },
+                    ],
+                };
+                break;
+            case "cbi4-04-mapping":
+                mapping = mapping with { Participant = ActorId.Create("actor.other") };
+                break;
+            case "cbi4-05-lifecycle":
+                document = document with
+                {
+                    Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
+                };
+                break;
+            case "cbi4-01-active":
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(scenario), scenario, "unknown CBI4 vector");
+        }
+
+        return await ComponentAuthorityIntegration.ActivateAsync(
+            resolution,
+            selection,
+            mapping,
+            RuntimeRequest(Plan(occurrence)),
+            authority,
+            DirectCooling(document));
     }
 
     private static ResolutionOutcome Resolve(Cardinality cardinality) =>

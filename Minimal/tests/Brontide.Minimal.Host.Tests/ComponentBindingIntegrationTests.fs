@@ -1,6 +1,8 @@
 namespace Brontide.Minimal.Host.Tests
 
 open System
+open System.IO
+open System.Text.Json
 open NUnit.Framework
 open Brontide.Minimal.Binding.Portable
 open Brontide.Minimal.Experimental.ComponentManagement
@@ -642,4 +644,87 @@ type ComponentBindingIntegrationTests() =
                 Assert.That(
                     CompositionStage.token result.Lifecycle.Value.Member.Value.Stage,
                     Is.Not.EqualTo "released"))
+        }
+
+    [<Test>]
+    member _.``shared CBI4 vectors pin the complete native profiles``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi4-integrated-comparison-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI4 vector identity must be a string"
+                    | value -> value
+                let resolution, originalSelection, occurrence = prepared ()
+                let selected =
+                    { originalSelection with
+                        HostEndpoint = "component-comparison-host" }
+                let mutable mapping =
+                    { Occurrence = occurrence
+                      Participant = participant }
+                let mutable authority = admission ()
+                let mutable document = CoolingFixture.contract
+                match scenario with
+                | "cbi4-01-active" -> ()
+                | "cbi4-02-authority-denied" ->
+                    authority <-
+                        { authority with
+                            Evidence =
+                                authority.Evidence
+                                |> List.map (fun evidence ->
+                                    { evidence with
+                                        State = AdmissionEvidenceState.Revoked }) }
+                | "cbi4-03-authority-shape" ->
+                    authority <-
+                        { authority with
+                            Authority =
+                                authority.Authority
+                                @ [ { List.exactlyOne authority.Authority with
+                                        Request =
+                                            AuthorityRequestId.create "authority.additional" } ] }
+                | "cbi4-04-mapping" ->
+                    mapping <-
+                        { mapping with
+                            Participant = ActorId.create "actor.other" }
+                | "cbi4-05-lifecycle" ->
+                    document <-
+                        { document with
+                            Provider = expectProvider "brontide.fake.substituted" }
+                | other -> invalidArg (nameof scenario) (sprintf "unknown CBI4 vector %s" other)
+                let! result =
+                    ComponentAuthorityIntegration.activate
+                        resolution
+                        selected
+                        mapping
+                        (runtimeRequest (plan [ occurrence ]))
+                        authority
+                        (directCooling document)
+                let profile = ComponentAuthorityComparison.profile scenario result
+                let digest = ComponentAuthorityComparison.digest profile
+                use parsedProfile = JsonDocument.Parse profile
+                multiple (fun () ->
+                    Assert.That(
+                        digest,
+                        Is.EqualTo(vector.GetProperty("expectedProfileSha256").GetString()),
+                        scenario)
+                    Assert.That(
+                        parsedProfile.RootElement.GetProperty("active").GetBoolean(),
+                        Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()),
+                        scenario)
+                    let expectedFailure =
+                        let value = vector.GetProperty("expectedIntegrationFailure")
+                        if value.ValueKind = JsonValueKind.Null then null else value.GetString()
+                    let actualFailure =
+                        let value = parsedProfile.RootElement.GetProperty("integrationFailure")
+                        if value.ValueKind = JsonValueKind.Null then
+                            null
+                        else
+                            value.GetProperty("kind").GetString()
+                    Assert.That(actualFailure, Is.EqualTo(expectedFailure), scenario))
         }

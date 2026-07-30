@@ -51,6 +51,9 @@ perform CM5 authority admission or support multi-member or relational activation
 CBI3 adds one explicit occurrence-to-Actor mapping and one exact native CM5 relationship and grant
 as a precondition for that lifecycle. Denial stops before provider contact; the admitted grant
 remains receiving-domain evidence and is never inserted into a portable contract or payload.
+CBI4 independently serializes five native integrated outcomes into a canonical profile pinned by
+the shared fixture, covering complete CM5 parity, CM4 effects, portable lifecycle, and stable
+resolution and Binding Plan facts. It adds no integrated process protocol.
 
 ## Build and test
 

@@ -202,7 +202,8 @@ public sealed record PortableBindingPlan
         builder["fragments"] = Join(Fragments.Select(fragment => fragment.ToString()));
         builder["satisfiedRequirements"] = Join(SatisfiedRequirements.Select(requirement => requirement.ToString()));
         builder["compactIdentifierAssignments"] = Join(CompactIdentifierAssignments
-            .Select(assignment => $"{assignment.Space}:{assignment.Reference}={assignment.CompactId}"));
+            .Select(assignment =>
+                $"{IdentitySpaceToken(assignment.Space)}:{assignment.Reference}={assignment.CompactId}"));
         builder["hostEndpoint"] = HostEndpoint;
         builder["providerEndpoint"] = ProviderEndpoint;
         builder["selectedProvider"] = SelectedProvider.ToString();
@@ -245,6 +246,14 @@ public sealed record PortableBindingPlan
         builder["exceptionTransportPermitted"] = Render(ExceptionTransportPermitted);
         return builder.ToImmutable();
     }
+
+    private static string IdentitySpaceToken(PortableIdentitySpace space) => space switch
+    {
+        PortableIdentitySpace.Operation => "operation",
+        PortableIdentitySpace.Shape => "shape",
+        PortableIdentitySpace.Fragment => "fragment",
+        _ => throw new ArgumentOutOfRangeException(nameof(space)),
+    };
 
     private static string Join(IEnumerable<string> values) => string.Join(", ", values);
 

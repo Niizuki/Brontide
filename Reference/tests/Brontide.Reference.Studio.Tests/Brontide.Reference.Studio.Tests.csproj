@@ -23,4 +23,9 @@
     <ProjectReference Include="..\..\src\Brontide.Reference.Experimental.Composition\Brontide.Reference.Experimental.Composition.csproj" />
     <ProjectReference Include="..\..\src\Brontide.Reference.Studio\Brontide.Reference.Studio.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\component-management\fixtures\cbi4-integrated-comparison-vectors.json"
+          Link="component-management\fixtures\cbi4-integrated-comparison-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

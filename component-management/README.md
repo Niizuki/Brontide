@@ -88,6 +88,14 @@ Capability crosses the portable trust boundary. Its behavior and limits are reco
 [CBI3 capability contract](./cbi3-capability-contract.md) and completed
 [contract-completeness review](./cbi3-contract-completeness-review.md).
 
+CBI4 projects five equivalent native CBI3 executions into a canonical integrated profile in each
+composition root. The profile covers the complete CM5 observation by digest, the CBI3 decision,
+every CM4 effect and stable failure, portable lifecycle state, and every stable resolution and
+Binding Plan fact except the locally generated `planId`. Shared expected digests force both stacks
+to answer the same questions without sharing runtime code. Its bounded claim is recorded in the
+[CBI4 capability contract](./cbi4-capability-contract.md) and completed
+[contract-completeness review](./cbi4-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -151,6 +159,13 @@ evaluation-time, and expected-outcome data. Each stack strictly reconstructs its
 and emits a canonical complete profile through a bounded JSON Lines endpoint. The fixture contains
 no defaults, patch language, evaluator algorithm, native type names, or executable comparison
 behavior.
+
+### `cbi4-integrated-comparison-vectors` sections
+
+`vectors` names five integration scenarios with expected Active state, stable CBI3 failure kind,
+and SHA-256 of the exact canonical integrated profile. Each composition root constructs and
+executes its own native CBI3 scenario. The fixture contains no serializer, lifecycle coordinator,
+authority evaluator, portable runtime, or process protocol.
 
 ### `cm0-mice-topology` sections
 

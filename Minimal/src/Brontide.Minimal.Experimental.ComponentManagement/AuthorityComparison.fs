@@ -449,6 +449,9 @@ module FakeAuthorityComparison =
             arrayOf observation.DecisionLog stringNode
         profile
 
+    let canonicalProfile (outcome: AuthorityAdmissionOutcome) =
+        (writeProfile outcome).ToJsonString()
+
     let private profileResponse implementation scenario outcome =
         let response = JsonObject()
         setInteger response "schemaVersion" schemaVersion

@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — CBI4 integrated profile comparison
+
+### Added
+
+- An independent Reference Studio canonical profile for five CBI3 integration outcomes, covering
+  complete CM5 parity, CM4 effects and failures, portable lifecycle, and stable plan facts.
+- Shared exact profile digests plus the CBI4 capability contract and completeness review.
+
+### Fixed
+
+- Portable Binding Plan compact-identifier facts now use the lowercase portable identity-space
+  tokens instead of CLR enum casing, matching the Minimal realization and wire vocabulary.
+
+CBI4 is data-only comparison evidence, not integrated cross-process execution or general
+substitutability.
+
 ## Unreleased — CBI3 authority-gated portable activation
 
 ### Added

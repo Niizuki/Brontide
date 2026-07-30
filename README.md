@@ -92,6 +92,10 @@ the portable gate opens only after CM4 reaches Active. CM5 authority remains out
 CBI3 adds the first CM5 integration: one explicit occurrence-to-Actor mapping and one exact narrow
 receiving-domain grant must be admitted before provider contact. That local grant gates activation
 but never crosses the portable trust boundary or authorizes a portable Operation by name.
+CBI4 now compares five equivalent integrated executions through independently produced canonical
+profiles. Equality covers the complete CM5 profile digest, CBI3 decision, CM4 effects, portable
+lifecycle, and stable plan facts; it remains data-only evidence, not integrated cross-process
+execution or general substitutability.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

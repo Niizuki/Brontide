@@ -23,7 +23,7 @@
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/CoolingPortableFixture.cs", "layer": "portable", "manualSourceLines": 350 },
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableAuthority.cs", "layer": "portable", "manualSourceLines": 285 },
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableBindingHost.cs", "layer": "portable", "manualSourceLines": 325 },
-        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableBindingPlan.cs", "layer": "portable", "manualSourceLines": 252 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableBindingPlan.cs", "layer": "portable", "manualSourceLines": 261 },
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCbor.cs", "layer": "portable", "manualSourceLines": 555 },
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCborAccess.cs", "layer": "portable", "manualSourceLines": 90 },
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCompositionHandoff.cs", "layer": "portable", "manualSourceLines": 587 },
@@ -44,10 +44,10 @@
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableValue.cs", "layer": "portable", "manualSourceLines": 142 },
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableValueCodec.cs", "layer": "portable", "manualSourceLines": 525 }
       ],
-      "layerSourceLines": { "retained-experiment": 2219, "portable": 7337 },
-      "manualSourceLines": 9556,
+      "layerSourceLines": { "retained-experiment": 2219, "portable": 7346 },
+      "manualSourceLines": 9565,
       "generatedSourceLines": 0,
-      "totalSourceLines": 9556
+      "totalSourceLines": 9565
     },
     {
       "name": "Minimal",
