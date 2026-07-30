@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased — Component Management CM3 experimental evidence
+
+### Added
+
+- A deterministic, effect-free activation-group planner that partitions complete activation graphs
+  into maximal strongly connected groups and orders the condensation graph dependency-first without
+  inventing member startup order.
+- Exact contract/version checks, finite lifecycle-protocol validation, Ready reachability and wait
+  analysis, Region/Port containment, structured wider-parent and refusal outcomes, and explicit
+  closed-gate Local Initialisation, Interconnection, Relational Initialisation, and Ready stages.
+- The neutral CM3 vector inventory, phase-wide permutation and failure-silence properties, and the
+  completed CM3 contract-completeness review.
+
+CM3 remains fake Architecture 0.8 experimental evidence. Planning performs no preparation,
+establishment, lifecycle execution, Ready reporting, Release, Actor or authority establishment, or
+active-generation mutation; those runtime transitions begin in CM4.
+
 ## Unreleased — Component Management CM2 experimental evidence
 
 ### Added

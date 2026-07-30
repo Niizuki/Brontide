@@ -1,7 +1,7 @@
 # Brontide Component Management Implementation Plan 0.1
 
 Status: Partially implemented experimental work
-Implementation state: CM0-CM2 are implemented and tested independently in both stacks; CM3-CM6
+Implementation state: CM0-CM3 are implemented and tested independently in both stacks; CM4-CM6
 remain planned.
 Designed for: [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §18.1, §19,
 §20.1, §24, and §33, Complete Draft, not ratified
@@ -101,12 +101,12 @@ the future `Topology` extension direction recorded in the
 
 ## 4. Delivery sequence
 
-Delivery status: CM0-CM2 are implemented in both stacks
+Delivery status: CM0-CM3 are implemented in both stacks
 (`Reference/src/Brontide.Reference.Experimental.ComponentManagement` with tests in
 `Reference/tests/Brontide.Reference.ComponentManagement.Tests`, and
 `Minimal/src/Brontide.Minimal.Experimental.ComponentManagement` with tests in
 `Minimal/tests/Brontide.Minimal.ComponentManagement.Tests`), sharing the data-only fixtures under
-the root `component-management/` tree. CM3-CM6 remain planned.
+the root `component-management/` tree. CM4-CM6 remain planned.
 
 ### CM0 — vocabulary and fixtures
 
@@ -240,6 +240,26 @@ explanation naming the group and edges.
 Apply the same group analysis across Region boundaries. A cycle contained by declared Port imports
 and exports may resolve as one bounded activation group; a cycle requiring undeclared parent access
 is rejected or reported as requiring a wider parent generation.
+
+Implementation record (2026-07-30): the
+[`CM3 capability contract`](../../../component-management/cm3-capability-contract.md) defines C1-C9
+and their phase-wide properties. Both stacks independently implement immutable, effect-free group
+planning over complete fake activation graphs: maximal strongly connected partitioning,
+dependency-first condensation ordering, exact contract/version checks, bounded lifecycle protocols,
+Ready-input and wait analysis, closed-gate lifecycle stages through Ready, Region/Port containment,
+and deterministic structured decisions, refusals, or wider-parent proposals. The shared
+[`CM3 vector inventory`](../../../component-management/fixtures/cm3-activation-group-vectors.json)
+is data only.
+
+The required phase-boundary
+[`contract-completeness review`](../../../component-management/cm3-contract-completeness-review.md)
+is complete. It found and closed silence around the CM3/CM4 effect boundary, isolated and
+self-cyclic groups, duplicate identities, descriptor expansion versus ordinary cycles, exact
+single-provision matching, lifecycle protocol ownership and cross-group relational traffic, typed
+Ready dependencies, explicit gate state, Region-crossing direction and declarations, complete
+explanation, and immutable observations. Preparation, runtime establishment, lifecycle execution,
+Ready reporting, Release, scoped restart, rollback, and active-generation mutation remain owned by
+CM4.
 
 ### CM4 — preparation, activation barrier, scoped restart, and rollback
 
@@ -421,3 +441,10 @@ than in delivery prose.
 - **2026-07-30 — CM2 completeness:** the phase-boundary absence audit is complete with every finding
   corrected; cyclic strongly connected component acceptance and activation remain explicitly owned
   by CM3.
+- **2026-07-30 — CM3 delivery:** C1-C9 maximal strongly connected group planning,
+  dependency-first condensation ordering, exact contract/version validation, bounded lifecycle
+  protocols, Ready analysis, closed-gate stage plans, Region/Port containment, and deterministic
+  structured outcomes are implemented independently in both stacks. CM4-CM6 remain future work.
+- **2026-07-30 — CM3 completeness:** the phase-boundary absence audit is complete with every finding
+  corrected; preparation, runtime establishment, lifecycle execution, Ready reporting, Release,
+  scoped restart, rollback, and active-generation mutation remain explicitly owned by CM4.

@@ -41,6 +41,14 @@ type ResolutionRequestId = private ResolutionRequestId of string
 type RequirementId = private RequirementId of string
 type ParameterId = private ParameterId of string
 type MediationId = private MediationId of string
+type ActivationGroupRequestId = private ActivationGroupRequestId of string
+type ActivationGroupId = private ActivationGroupId of string
+type ActivationEdgeId = private ActivationEdgeId of string
+type LifecycleProtocolId = private LifecycleProtocolId of string
+type LifecycleOperationId = private LifecycleOperationId of string
+type LifecycleInputId = private LifecycleInputId of string
+type CapabilityId = private CapabilityId of string
+type ShapeId = private ShapeId of string
 type GenerationId = private GenerationId of string
 type RestartScopeId = private RestartScopeId of string
 type TopologyNodeId = private TopologyNodeId of string
@@ -137,6 +145,46 @@ module ParameterId =
 module MediationId =
     let create v = MediationId(IdentifierSyntax.require "MediationId" v)
     let value (MediationId v) = v
+
+[<RequireQualifiedAccess>]
+module ActivationGroupRequestId =
+    let create v = ActivationGroupRequestId(IdentifierSyntax.require "ActivationGroupRequestId" v)
+    let value (ActivationGroupRequestId v) = v
+
+[<RequireQualifiedAccess>]
+module ActivationGroupId =
+    let create v = ActivationGroupId(IdentifierSyntax.require "ActivationGroupId" v)
+    let value (ActivationGroupId v) = v
+
+[<RequireQualifiedAccess>]
+module ActivationEdgeId =
+    let create v = ActivationEdgeId(IdentifierSyntax.require "ActivationEdgeId" v)
+    let value (ActivationEdgeId v) = v
+
+[<RequireQualifiedAccess>]
+module LifecycleProtocolId =
+    let create v = LifecycleProtocolId(IdentifierSyntax.require "LifecycleProtocolId" v)
+    let value (LifecycleProtocolId v) = v
+
+[<RequireQualifiedAccess>]
+module LifecycleOperationId =
+    let create v = LifecycleOperationId(IdentifierSyntax.require "LifecycleOperationId" v)
+    let value (LifecycleOperationId v) = v
+
+[<RequireQualifiedAccess>]
+module LifecycleInputId =
+    let create v = LifecycleInputId(IdentifierSyntax.require "LifecycleInputId" v)
+    let value (LifecycleInputId v) = v
+
+[<RequireQualifiedAccess>]
+module CapabilityId =
+    let create v = CapabilityId(IdentifierSyntax.require "CapabilityId" v)
+    let value (CapabilityId v) = v
+
+[<RequireQualifiedAccess>]
+module ShapeId =
+    let create v = ShapeId(IdentifierSyntax.require "ShapeId" v)
+    let value (ShapeId v) = v
 
 [<RequireQualifiedAccess>]
 module GenerationId =

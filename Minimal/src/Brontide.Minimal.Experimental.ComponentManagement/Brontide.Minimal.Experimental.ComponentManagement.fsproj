@@ -7,5 +7,6 @@
     <Compile Include="ComponentManagement.fs" />
     <Compile Include="Discovery.fs" />
     <Compile Include="Resolution.fs" />
+    <Compile Include="ActivationGroups.fs" />
   </ItemGroup>
 </Project>

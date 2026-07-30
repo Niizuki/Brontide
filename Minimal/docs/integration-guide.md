@@ -63,3 +63,20 @@ activation, Actor, authority, or active-generation API. Dependency cycles return
 [`../../component-management/cm2-capability-contract.md`](../../component-management/cm2-capability-contract.md)
 and
 [`../../component-management/cm2-contract-completeness-review.md`](../../component-management/cm2-contract-completeness-review.md).
+
+## Fake Component Management CM3
+
+Create a complete immutable `ActivationGroupRequest` from resolved occurrences, dependency edges,
+lifecycle-protocol declarations, and Region-crossing declarations, then call
+`FakeActivationGroupPlanner.plan`. `Planned` carries maximal strongly connected groups, a
+dependency-first condensation order, explicit closed-gate lifecycle stages through Ready, retained
+Region crossings, and deterministic decisions. A Region escape that policy may widen returns
+`WiderParentGenerationRequired`; every other invalid graph returns `ActivationGroupRefused`.
+
+CM3 is analysis only. It neither prepares nor establishes Components, invokes lifecycle Operations,
+accepts runtime Ready reports, releases ordinary interaction, nor mutates active generations.
+Relational Initialisation is group-internal; cross-group relational traffic is refused. The C1-C9
+boundary and completed absence audit are
+[`../../component-management/cm3-capability-contract.md`](../../component-management/cm3-capability-contract.md)
+and
+[`../../component-management/cm3-contract-completeness-review.md`](../../component-management/cm3-contract-completeness-review.md).

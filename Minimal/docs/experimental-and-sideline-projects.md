@@ -25,9 +25,12 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   effect-free recursive acyclic closure into algebraic Proposed Stack and immutable generation
   values, preserving occupied bindings, ranking and alternatives, Provider Sets, occurrences,
   Mediation, Ports, topology, Parameters, requested authority, and structured refusal or
-  wider-parent outcomes. It is not a real marketplace, package manager, loader, resolver policy
-  product, or security product, and is not an Architecture 0.8 conformance claim; CM3-CM6 remain
-  planned.
+  wider-parent outcomes. CM3 adds Minimal-native, effect-free maximal strongly connected
+  activation-group planning, exact contract/version and bounded lifecycle checks, Ready analysis,
+  declared Region containment, closed-gate stage plans, and structured wider-parent or refusal
+  outcomes. It is not a real marketplace, package manager, loader, resolver policy product,
+  activation host, or security product, and is not an Architecture 0.8 conformance claim; CM4-CM6
+  remain planned.
 - `Brontide.Minimal.Binding` (`Portable/`) is the Minimal native realization of the
   [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md),
   built against the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).
