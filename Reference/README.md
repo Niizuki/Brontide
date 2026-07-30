@@ -30,9 +30,11 @@ realisations therefore live in `Brontide.Reference.Experimental.Composition`, no
 conformance.
 
 `Brontide.Reference.Experimental.ComponentManagement` now implements the fake Component Management
-CM0 and CM1 phases: strict neutral-fixture loading, deterministic attributable discovery, immutable
-staged acquisition, evidence-policy observations, and source disappearance. It stops before
-selection, resolution, preparation, activation, Actor establishment, or authority.
+CM0-CM2 phases: strict neutral-fixture loading, deterministic attributable discovery, immutable
+staged acquisition, evidence-policy observations, source disappearance, and effect-free recursive
+resolution into an inspectable Proposed Stack and immutable generation. It stops before cyclic-group
+acceptance, preparation, activation, Actor establishment, authority grants, or active-generation
+mutation.
 
 ## Build and test
 

@@ -1,7 +1,7 @@
 # Brontide Component Management Implementation Plan 0.1
 
 Status: Partially implemented experimental work
-Implementation state: CM0 and CM1 are implemented and tested independently in both stacks; CM2–CM6
+Implementation state: CM0-CM2 are implemented and tested independently in both stacks; CM3-CM6
 remain planned.
 Designed for: [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §18.1, §19,
 §20.1, §24, and §33, Complete Draft, not ratified
@@ -101,12 +101,12 @@ the future `Topology` extension direction recorded in the
 
 ## 4. Delivery sequence
 
-Delivery status: CM0 and CM1 are implemented in both stacks
+Delivery status: CM0-CM2 are implemented in both stacks
 (`Reference/src/Brontide.Reference.Experimental.ComponentManagement` with tests in
 `Reference/tests/Brontide.Reference.ComponentManagement.Tests`, and
 `Minimal/src/Brontide.Minimal.Experimental.ComponentManagement` with tests in
 `Minimal/tests/Brontide.Minimal.ComponentManagement.Tests`), sharing the data-only fixtures under
-the root `component-management/` tree. CM2-CM6 remain planned.
+the root `component-management/` tree. CM3-CM6 remain planned.
 
 ### CM0 — vocabulary and fixtures
 
@@ -196,6 +196,35 @@ Resolve a pending selection into a complete immutable generation:
 - reject missing, ambiguous, incompatible, unbounded, or traversal-order-dependent closure.
 
 Resolution occurs while a prior generation may remain active and has no effect on it.
+
+**Implemented 2026-07-30.** The data-only
+[`CM2 capability contract`](../../../component-management/cm2-capability-contract.md) defines
+C1-C10 and their phase-wide properties before either public surface. Reference implements a
+detached request snapshot and read-only Proposed Stack/generation graph; Minimal implements the
+same observations with native records, lists, and an algebraic `Resolved` /
+`WiderGenerationRequired` / `Refused` outcome.
+
+Both resolvers close finite acyclic Composition Parameter and requirement structure, retain
+compatible occupied `1..1` bindings, rank admissible candidates by explicit preference,
+publisher affinity, generic declaration, then other compatibility, fill lower bounds without
+inventing optional membership, preserve mirrored alternatives and exclusions, construct
+deterministic occurrence identities under explicit sharing rules, require visible Mediation,
+enforce child Port envelopes, retain attributable topology decisions, and bind Activation
+Parameters only after closure. Proposed Stack and generation observations retain sources,
+publishers, evidence identities, requested authority, restart scope, Ports, and decision
+provenance. Every outcome is effect-free.
+
+CM2 detects dependency and Composition Parameter cycles but does not decide them acceptable:
+`cycle-requires-cm3` hands that analysis to CM3. The shared
+[`cm2-resolution-vectors`](../../../component-management/fixtures/cm2-resolution-vectors.json)
+file is a data-only observable inventory; each native suite owns its input construction and
+semantic implementation.
+
+The required phase-boundary
+[`contract-completeness review`](../../../component-management/cm2-contract-completeness-review.md)
+is complete. It found and closed silence around the CM2/CM3 cycle boundary, retained-occurrence
+proof, mirrored alternatives, per-occurrence topology identity, Port provenance, unused Activation
+Parameters, and requested authority for non-provider definitions.
 
 ### CM3 — cyclic groups and activation phases
 

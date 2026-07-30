@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — Component Management CM2 experimental evidence
+
+### Added
+
+- A deterministic, effect-free recursive resolver that closes finite acyclic selections into an
+  inspectable Proposed Stack and immutable generation.
+- Occupied-binding stability, preference/publisher/generic/other ranking, policy exclusions,
+  lower-bound Provider Sets, explicit optional preselection, occurrence sharing, direct and mediated
+  Binding Plans, child Port envelopes, topology decisions, post-closure Activation Parameters, and
+  structured refusals.
+- The neutral CM2 vector inventory, complete permutation properties, and the completed CM2
+  contract-completeness review.
+
+CM2 remains fake Architecture 0.8 experimental evidence. It does not prepare, activate, establish an
+Actor, grant authority, mutate an active generation, accept cyclic groups, or claim conformance.
+
 ## Unreleased — Component Management CM1 experimental evidence
 
 ### Added

@@ -128,7 +128,7 @@ No documentation prerequisite now precedes planned implementation work.
 
 [Component Management Implementation Plan 0.1](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md)
 is the next implementable programme while Portable Binding awaits reviewer and owner actions. CM0
-and CM1 are complete independently in both stacks. CM1 adds standardised contract/version
+through CM2 are complete independently in both stacks. CM1 adds standardised contract/version
 discovery across zero or more fake sources, deterministic attributable candidates, immutable staged
 acquisition, contested evidence with attributable fake-policy decisions, source disappearance, four
 structured fail-closed acquisition categories, and an explicit zero-effect boundary. Its C1-C7
@@ -136,11 +136,17 @@ behaviour and phase-wide properties live in the data-only
 [`CM1 capability contract`](../../component-management/cm1-capability-contract.md).
 Its required phase-boundary
 [`contract-completeness review`](../../component-management/cm1-contract-completeness-review.md)
-is complete with every finding corrected.
+is complete with every finding corrected. CM2 adds deterministic, effect-free recursive acyclic
+closure into an inspectable Proposed Stack and immutable generation, including occupied-binding
+stability, explainable ranking and exclusions, Provider Sets, occurrence sharing, Mediation, child
+Port envelopes, topology decisions, and post-closure Activation Parameters. Its
+[`C1-C10 capability contract`](../../component-management/cm2-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cm2-contract-completeness-review.md)
+are complete.
 
-CM2 — recursive generational resolution — is the next implementation phase. CM1 does not select a
-candidate, construct a Proposed Stack, resolve a generation, prepare or activate a Component,
-establish an Actor, or grant authority.
+CM3 — cyclic groups and activation phases — is the next implementation phase. CM2 detects cycles
+and returns `cycle-requires-cm3`; it does not accept a strongly connected group, prepare or activate
+a Component, establish an Actor, or grant authority.
 
 ## Other planned areas
 
@@ -148,7 +154,7 @@ establish an Actor, or grant authority.
 | --- | --- | --- |
 | Architecture 0.8 | [`Brontide-Architecture-0.8.md`](./architecture/Brontide-Architecture-0.8.md) | Complete draft; implementation evidence pending; not ratified. |
 | Channel | [`Channel Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Cooling/Catalog evidence exists; reusable Channel realization remains planned. |
-| Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0–CM1 are implemented independently in both stacks; CM2–CM6 remain planned. |
+| Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM2 are implemented independently in both stacks; CM3-CM6 remain planned. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |
 | Persistent Information | [`Persistent Information Design Note`](./persistent-information/Brontide-Design-Note-Persistent-Information-0.1.md) | Design direction only. |

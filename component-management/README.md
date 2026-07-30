@@ -18,6 +18,15 @@ establishment, and authority outside the phase.
 Its completed phase-boundary absence audit is the
 [CM1 contract-completeness review](./cm1-contract-completeness-review.md).
 
+CM2's observable behavior is defined by the
+[recursive generational resolution capability contract](./cm2-capability-contract.md). CM2 closes
+finite acyclic structure into an inspectable Proposed Stack and immutable generation while retaining
+occupied bindings, alternatives, policy exclusions, Provider Sets, occurrence identity, Mediation,
+Ports, topology decisions, Parameters, requested authority, and decision provenance. It produces no
+preparation, activation, Actor, authority, or active-generation effects. Its completed phase-boundary
+absence audit is the
+[CM2 contract-completeness review](./cm2-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -45,6 +54,12 @@ presentation projection required by CM0: a future UI seam, not a UI.
 item from `cm0-catalog`, and the source must advertise a package carrying the evidence subject's
 artifact. Advertising a package does not implicitly supply every claim about it. The file is
 separate so CM1 adds provenance without changing the retained CM0 catalog contract.
+
+### `cm2-resolution-vectors` sections
+
+`vectors` is the shared data-only inventory of CM2 capabilities and expected outcome categories.
+Each native suite constructs equivalent stack-owned inputs and computes its own observations; the
+fixture contains no resolver algorithm, ranking function, lifecycle host, or authority service.
 
 ### `cm0-mice-topology` sections
 

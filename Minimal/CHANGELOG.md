@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased — Component Management CM2 experimental evidence
+
+### Added
+
+- A Minimal-native algebraic resolver that closes finite acyclic selections into immutable Proposed
+  Stack and resolved-generation values with structured refusal and wider-parent outcomes.
+- Occupied-binding stability, deterministic preference and affinity ranking, policy exclusions,
+  lower-bound Provider Sets, explicit optional preselection, occurrence sharing, visible Mediation,
+  child Port envelopes, topology decisions, and post-closure Activation Parameters.
+- The neutral CM2 vector inventory, complete permutation properties, and the completed CM2
+  contract-completeness review.
+
+CM2 remains fake Architecture 0.8 experimental evidence. It does not prepare, activate, establish an
+Actor, grant authority, mutate an active generation, accept cyclic groups, or claim conformance.
+
 ## Unreleased — Component Management CM1 experimental evidence
 
 ### Added
