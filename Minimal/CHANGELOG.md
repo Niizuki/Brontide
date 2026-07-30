@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased — CBI3 authority-gated portable activation
+
+### Added
+
+- A Minimal Host coordinator that requires one explicit occurrence-to-Actor mapping and one exact
+  CM5 `ComponentParticipant` relationship and narrow grant before CBI2 activation.
+- Algebraic fail-closed shape, mapping, admission, and lifecycle outcomes that stop denial before
+  provider contact and preserve later portable failure.
+- Native authority-integration tests plus the CBI3 capability contract and completeness review.
+
+CBI3 does not transport a Capability through Portable Binding or map a CM5 Operation to a portable
+invocation. Withdrawal, multiple participants or grants, CM4 binding projection, relational or
+multi-member activation, and general interoperability remain outside this slice.
+
 ## Unreleased — CBI2 portable lifecycle orchestration
 
 ### Added

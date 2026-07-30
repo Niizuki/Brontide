@@ -330,3 +330,136 @@ module ComponentBindingLifecycle =
                                             (Some runtime)
                                             (Some memberValue)
         }
+
+type ComponentAuthorityMapping =
+    { Occurrence: OccurrenceId
+      Participant: ActorId }
+
+[<RequireQualifiedAccess>]
+type ComponentAuthorityIntegrationFailureKind =
+    | MappingInvalid
+    | AuthorityShapeUnsupported
+    | AuthorityRefused
+    | LifecycleRefused
+
+type ComponentAuthorityIntegrationFailure =
+    { Kind: ComponentAuthorityIntegrationFailureKind
+      Code: string
+      Reason: string }
+
+type ComponentAuthorityIntegrationResult =
+    { Authority: AuthorityAdmissionOutcome option
+      Lifecycle: ComponentBindingLifecycleResult option
+      Failure: ComponentAuthorityIntegrationFailure option }
+
+[<RequireQualifiedAccess>]
+module ComponentAuthorityIntegration =
+    let private refuse kind code reason authority lifecycle =
+        { Authority = authority
+          Lifecycle = lifecycle
+          Failure = Some { Kind = kind; Code = code; Reason = reason } }
+
+    let private trySupportedAuthorityShape
+        (request: AuthorityAdmissionRequest)
+        (runtime: ActivationRuntimeRequest)
+        =
+        match request.Relationships, request.Authority with
+        | [ relationship ], [ authority ] when
+            relationship.Kind = ActorRelationshipKind.ComponentParticipant
+            && relationship.ProposedActor = request.Participant
+            && authority.Relationship = relationship.Request
+            && not authority.Unlimited
+            && runtime.BindingExercises.IsEmpty ->
+            Some(relationship, authority)
+        | _ -> None
+
+    let private isExactAdmission
+        (outcome: AuthorityAdmissionOutcome)
+        (requestedRelationship: ActorRelationshipRequest)
+        (requestedAuthority: AuthorityRequest)
+        =
+        match outcome.Kind, outcome.Observation.Relationships, outcome.Observation.Grants with
+        | AuthorityAdmissionOutcomeKind.Admitted, [ relationship ], [ grant ] ->
+            relationship.Request = requestedRelationship.Request
+            && relationship.ProposedActor = requestedRelationship.ProposedActor
+            && grant.Request = requestedAuthority.Request
+            && grant.Holder = relationship.LocalActor
+            && grant.Capability = requestedAuthority.Capability
+            && grant.Target = requestedAuthority.Target
+            && grant.Operation = requestedAuthority.Operation
+            && grant.Scope = requestedAuthority.Scope
+        | _ -> false
+
+    let activate
+        (resolution: ResolutionOutcome)
+        (selection: ComponentBindingSelection)
+        (mapping: ComponentAuthorityMapping)
+        (runtimeRequest: ActivationRuntimeRequest)
+        (authorityRequest: AuthorityAdmissionRequest)
+        (conversation: IPortableProviderConversation)
+        =
+        task {
+            if
+                mapping.Occurrence <> selection.Occurrence
+                || mapping.Participant <> authorityRequest.Participant
+            then
+                return
+                    refuse
+                        ComponentAuthorityIntegrationFailureKind.MappingInvalid
+                        "authority-mapping-invalid"
+                        "CBI3 requires the explicit occurrence and participant mapping to match the CBI1 selection and CM5 request."
+                        None
+                        None
+            else
+                match trySupportedAuthorityShape authorityRequest runtimeRequest with
+                | None ->
+                    return
+                        refuse
+                            ComponentAuthorityIntegrationFailureKind.AuthorityShapeUnsupported
+                            "authority-shape-unsupported"
+                            "CBI3 supports one ComponentParticipant relationship, one dependent narrow authority request, and no caller-authored CM4 binding exercises."
+                            None
+                            None
+                | Some(requestedRelationship, requestedAuthority) ->
+                    let admission = FakeAuthorityAdmission.evaluate authorityRequest
+                    if not (isExactAdmission admission requestedRelationship requestedAuthority) then
+                        return
+                            refuse
+                                ComponentAuthorityIntegrationFailureKind.AuthorityRefused
+                                "authority-not-admitted"
+                                (sprintf
+                                    "CM5 did not admit exactly one attributable relationship and grant: %A."
+                                    admission.Kind)
+                                (Some admission)
+                                None
+                    else
+                        let! lifecycle =
+                            ComponentBindingLifecycle.activate
+                                resolution
+                                selection
+                                runtimeRequest
+                                conversation
+                        match lifecycle.Failure with
+                        | None when
+                            lifecycle.Runtime
+                            |> Option.exists (fun runtime ->
+                                runtime.Kind = ActivationRuntimeOutcomeKind.Active)
+                            && lifecycle.Member |> Option.exists _.IsReleased ->
+                            return
+                                { Authority = Some admission
+                                  Lifecycle = Some lifecycle
+                                  Failure = None }
+                        | _ ->
+                            return
+                                refuse
+                                    ComponentAuthorityIntegrationFailureKind.LifecycleRefused
+                                    (lifecycle.Failure
+                                     |> Option.map _.Code
+                                     |> Option.defaultValue "lifecycle-not-active")
+                                    (lifecycle.Failure
+                                     |> Option.map _.Reason
+                                     |> Option.defaultValue
+                                         "CBI2 did not return a released Active member.")
+                                    (Some admission)
+                                    (Some lifecycle)
+        }

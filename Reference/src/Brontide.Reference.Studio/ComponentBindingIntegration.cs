@@ -339,3 +339,147 @@ public static class ComponentBindingLifecycle
         Portable.PortableCompositionMember? member = null) =>
         new(runtime, member, new(kind, code, reason));
 }
+
+public sealed record ComponentAuthorityMapping(
+    Cm.OccurrenceId Occurrence,
+    Cm.ActorId Participant);
+
+public enum ComponentAuthorityIntegrationFailureKind
+{
+    MappingInvalid,
+    AuthorityShapeUnsupported,
+    AuthorityRefused,
+    LifecycleRefused,
+}
+
+public sealed record ComponentAuthorityIntegrationFailure(
+    ComponentAuthorityIntegrationFailureKind Kind,
+    string Code,
+    string Reason);
+
+public sealed record ComponentAuthorityIntegrationResult(
+    Cm.AuthorityAdmissionOutcome? Authority,
+    ComponentBindingLifecycleResult? Lifecycle,
+    ComponentAuthorityIntegrationFailure? Failure)
+{
+    public bool IsActive =>
+        Authority?.Kind == Cm.AuthorityAdmissionOutcomeKind.Admitted &&
+        Authority.Observation.Grants.Count == 1 &&
+        Lifecycle?.IsActive == true &&
+        Failure is null;
+}
+
+/// <summary>Gates one CBI2 activation with one exact native CM5 admission.</summary>
+public static class ComponentAuthorityIntegration
+{
+    public static async ValueTask<ComponentAuthorityIntegrationResult> ActivateAsync(
+        Cm.ResolutionOutcome resolution,
+        ComponentBindingSelection selection,
+        ComponentAuthorityMapping mapping,
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        Cm.AuthorityAdmissionRequest authorityRequest,
+        Portable.IPortableProviderConversation conversation,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(mapping);
+        ArgumentNullException.ThrowIfNull(runtimeRequest);
+        ArgumentNullException.ThrowIfNull(authorityRequest);
+        ArgumentNullException.ThrowIfNull(conversation);
+
+        if (mapping.Occurrence != selection.Occurrence ||
+            mapping.Participant != authorityRequest.Participant)
+        {
+            return Refuse(
+                ComponentAuthorityIntegrationFailureKind.MappingInvalid,
+                "authority-mapping-invalid",
+                "CBI3 requires the explicit occurrence and participant mapping to match the CBI1 selection and CM5 request.");
+        }
+
+        if (!TrySupportedAuthorityShape(authorityRequest, runtimeRequest, out var relationship, out var authority))
+        {
+            return Refuse(
+                ComponentAuthorityIntegrationFailureKind.AuthorityShapeUnsupported,
+                "authority-shape-unsupported",
+                "CBI3 supports one ComponentParticipant relationship, one dependent narrow authority request, and no caller-authored CM4 binding exercises.");
+        }
+
+        var admission = new Cm.FakeAuthorityAdmissionEvaluator().Evaluate(authorityRequest);
+        if (!IsExactAdmission(admission, relationship!, authority!))
+        {
+            return Refuse(
+                ComponentAuthorityIntegrationFailureKind.AuthorityRefused,
+                "authority-not-admitted",
+                $"CM5 did not admit exactly one attributable relationship and grant: {admission.Kind}.",
+                admission);
+        }
+
+        var lifecycle = await ComponentBindingLifecycle.ActivateAsync(
+            resolution,
+            selection,
+            runtimeRequest,
+            conversation,
+            cancellationToken).ConfigureAwait(false);
+        if (!lifecycle.IsActive)
+        {
+            return Refuse(
+                ComponentAuthorityIntegrationFailureKind.LifecycleRefused,
+                lifecycle.Failure?.Code ?? "lifecycle-not-active",
+                lifecycle.Failure?.Reason ?? "CBI2 did not return a released Active member.",
+                admission,
+                lifecycle);
+        }
+
+        return new(admission, lifecycle, null);
+    }
+
+    private static bool TrySupportedAuthorityShape(
+        Cm.AuthorityAdmissionRequest request,
+        Cm.ActivationRuntimeRequest runtime,
+        out Cm.ActorRelationshipRequest? relationship,
+        out Cm.AuthorityRequest? authority)
+    {
+        relationship = request.Relationships.Count == 1 ? request.Relationships[0] : null;
+        authority = request.Authority.Count == 1 ? request.Authority[0] : null;
+        return relationship is not null &&
+            authority is not null &&
+            relationship.Kind == Cm.ActorRelationshipKind.ComponentParticipant &&
+            relationship.ProposedActor == request.Participant &&
+            authority.Relationship == relationship.Request &&
+            !authority.Unlimited &&
+            runtime.BindingExercises.Count == 0;
+    }
+
+    private static bool IsExactAdmission(
+        Cm.AuthorityAdmissionOutcome outcome,
+        Cm.ActorRelationshipRequest requestedRelationship,
+        Cm.AuthorityRequest requestedAuthority)
+    {
+        if (outcome.Kind != Cm.AuthorityAdmissionOutcomeKind.Admitted ||
+            outcome.Observation.Relationships.Count != 1 ||
+            outcome.Observation.Grants.Count != 1)
+        {
+            return false;
+        }
+
+        var relationship = outcome.Observation.Relationships[0];
+        var grant = outcome.Observation.Grants[0];
+        return relationship.Request == requestedRelationship.Request &&
+            relationship.ProposedActor == requestedRelationship.ProposedActor &&
+            grant.Request == requestedAuthority.Request &&
+            grant.Holder == relationship.LocalActor &&
+            grant.Capability == requestedAuthority.Capability &&
+            grant.Target == requestedAuthority.Target &&
+            grant.Operation == requestedAuthority.Operation &&
+            grant.Scope == requestedAuthority.Scope;
+    }
+
+    private static ComponentAuthorityIntegrationResult Refuse(
+        ComponentAuthorityIntegrationFailureKind kind,
+        string code,
+        string reason,
+        Cm.AuthorityAdmissionOutcome? authority = null,
+        ComponentBindingLifecycleResult? lifecycle = null) =>
+        new(authority, lifecycle, new(kind, code, reason));
+}

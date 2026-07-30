@@ -80,6 +80,14 @@ Caller-supplied stage claims are ignored. Its behavior and limits are recorded i
 [CBI2 capability contract](./cbi2-capability-contract.md) and completed
 [contract-completeness review](./cbi2-contract-completeness-review.md).
 
+CBI3 gates that lifecycle with one receiving-domain CM5 admission. Each composition root requires
+an explicit occurrence-to-Actor mapping, one `ComponentParticipant` relationship, and one exact
+narrow authority request; denial stops before provider contact, while exactly one attributable
+relationship and grant permit CBI2 to continue. The grant remains a local CM5 observation and no
+Capability crosses the portable trust boundary. Its behavior and limits are recorded in the
+[CBI3 capability contract](./cbi3-capability-contract.md) and completed
+[contract-completeness review](./cbi3-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.

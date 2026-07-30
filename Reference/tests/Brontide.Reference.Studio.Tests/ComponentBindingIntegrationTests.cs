@@ -12,6 +12,17 @@ public sealed class ComponentBindingIntegrationTests
     private static readonly RequirementId Requirement = RequirementId.Create("req.cooling");
     private static readonly ContractId Contract = ContractId.Create("brontide.fake.cooling");
     private static readonly VersionLiteral Version = VersionLiteral.Create("1.0");
+    private static readonly ActorId Participant = ActorId.Create("actor.cooling-provider");
+    private static readonly ActorId Target = ActorId.Create("actor.cooling-target");
+    private static readonly EvidenceId AuthorityEvidence = EvidenceId.Create("evidence.cooling-provider");
+    private static readonly IssuerId AuthorityIssuer = IssuerId.Create("issuer.integration-host");
+    private static readonly RelationshipRequestId Relationship = RelationshipRequestId.Create("relationship.cooling-provider");
+    private static readonly AuthorityRequestId Authority = AuthorityRequestId.Create("authority.cooling-control");
+    private static readonly CapabilityId Capability = CapabilityId.Create("capability.cooling-control");
+    private static readonly OperationId Operation = OperationId.Create("cooling.set-enabled");
+    private static readonly CapabilityScopeId AuthorityScope = CapabilityScopeId.Create("scope.cooling-session");
+    private static readonly DateTimeOffset EvaluationTime =
+        new(2026, 7, 30, 10, 0, 0, TimeSpan.Zero);
 
     [Test]
     public void Completed_direct_one_to_one_resolution_enters_portable_preflight()
@@ -236,6 +247,204 @@ public sealed class ComponentBindingIntegrationTests
         });
     }
 
+    [Test]
+    public async Task Exact_cm5_admission_gates_one_released_active_member()
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+
+        var result = await ComponentAuthorityIntegration.ActivateAsync(
+            resolution,
+            selection,
+            new(occurrence, Participant),
+            RuntimeRequest(Plan(occurrence)),
+            Admission(),
+            DirectCooling(CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsActive, Is.True);
+            Assert.That(result.Authority!.Kind, Is.EqualTo(AuthorityAdmissionOutcomeKind.Admitted));
+            Assert.That(result.Authority.Observation.Relationships, Has.Count.EqualTo(1));
+            Assert.That(result.Authority.Observation.Grants, Has.Count.EqualTo(1));
+            Assert.That(result.Lifecycle!.Member!.Stage, Is.EqualTo(PortableCompositionStage.Released));
+            Assert.That(result.Lifecycle.Member.Plan!.NoCapabilityTransfer, Is.True);
+        });
+    }
+
+    [Test]
+    public async Task Authority_mapping_mismatch_stops_before_cm5_and_portable_preflight()
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+
+        var result = await ComponentAuthorityIntegration.ActivateAsync(
+            resolution,
+            selection,
+            new(occurrence, ActorId.Create("actor.other")),
+            RuntimeRequest(Plan(occurrence)),
+            Admission(),
+            DirectCooling(CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Failure!.Kind, Is.EqualTo(ComponentAuthorityIntegrationFailureKind.MappingInvalid));
+            Assert.That(result.Authority, Is.Null);
+            Assert.That(result.Lifecycle, Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task Revoked_cm5_evidence_prevents_provider_contact()
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var denied = Admission() with
+        {
+            Evidence =
+            [
+                Admission().Evidence.Single() with { State = AdmissionEvidenceState.Revoked },
+            ],
+        };
+
+        var result = await ComponentAuthorityIntegration.ActivateAsync(
+            resolution,
+            selection,
+            new(occurrence, Participant),
+            RuntimeRequest(Plan(occurrence)),
+            denied,
+            DirectCooling(CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Failure!.Kind, Is.EqualTo(ComponentAuthorityIntegrationFailureKind.AuthorityRefused));
+            Assert.That(result.Authority!.Kind, Is.EqualTo(AuthorityAdmissionOutcomeKind.Denied));
+            Assert.That(result.Authority.Observation.Grants, Is.Empty);
+            Assert.That(result.Lifecycle, Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task Additional_authority_request_is_refused_before_cm5_evaluation()
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var admission = Admission();
+        var wider = admission with
+        {
+            Authority =
+            [
+                admission.Authority.Single(),
+                admission.Authority.Single() with
+                {
+                    Request = AuthorityRequestId.Create("authority.additional"),
+                },
+            ],
+        };
+
+        var result = await ComponentAuthorityIntegration.ActivateAsync(
+            resolution,
+            selection,
+            new(occurrence, Participant),
+            RuntimeRequest(Plan(occurrence)),
+            wider,
+            DirectCooling(CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Failure!.Kind, Is.EqualTo(ComponentAuthorityIntegrationFailureKind.AuthorityShapeUnsupported));
+            Assert.That(result.Authority, Is.Null);
+            Assert.That(result.Lifecycle, Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task Caller_authored_cm4_binding_authority_is_refused_before_cm5_evaluation()
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var runtime = RuntimeRequest(Plan(occurrence)) with
+        {
+            BindingExercises =
+            [
+                new(
+                    BindingExerciseId.Create("exercise.caller"),
+                    BindingId.Create("binding.caller"),
+                    occurrence,
+                    occurrence,
+                    SourceId.Create("source.caller"),
+                    BindingExposureKind.Distinct,
+                    null,
+                    RoutingDecisionId.Create("routing.caller"),
+                    true,
+                    BindingDeliveryResult.Delivered,
+                    null),
+            ],
+        };
+
+        var result = await ComponentAuthorityIntegration.ActivateAsync(
+            resolution,
+            selection,
+            new(occurrence, Participant),
+            runtime,
+            Admission(),
+            DirectCooling(CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Failure!.Kind, Is.EqualTo(ComponentAuthorityIntegrationFailureKind.AuthorityShapeUnsupported));
+            Assert.That(result.Authority, Is.Null);
+            Assert.That(result.Lifecycle, Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task Structurally_invalid_cm5_request_prevents_provider_contact()
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var baseline = Admission();
+        var invalid = baseline with
+        {
+            Evidence = [baseline.Evidence.Single(), baseline.Evidence.Single()],
+        };
+
+        var result = await ComponentAuthorityIntegration.ActivateAsync(
+            resolution,
+            selection,
+            new(occurrence, Participant),
+            RuntimeRequest(Plan(occurrence)),
+            invalid,
+            DirectCooling(CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Failure!.Kind, Is.EqualTo(ComponentAuthorityIntegrationFailureKind.AuthorityRefused));
+            Assert.That(result.Authority!.Kind, Is.EqualTo(AuthorityAdmissionOutcomeKind.InvalidRequest));
+            Assert.That(result.Lifecycle, Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task Portable_failure_remains_inactive_after_cm5_admission()
+    {
+        var (resolution, selection, occurrence) = LifecycleInput();
+        var substituted = CoolingPortableFixture.Contract with
+        {
+            Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
+        };
+
+        var result = await ComponentAuthorityIntegration.ActivateAsync(
+            resolution,
+            selection,
+            new(occurrence, Participant),
+            RuntimeRequest(Plan(occurrence)),
+            Admission(),
+            DirectCooling(substituted));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsActive, Is.False);
+            Assert.That(result.Authority!.Kind, Is.EqualTo(AuthorityAdmissionOutcomeKind.Admitted));
+            Assert.That(result.Failure!.Kind, Is.EqualTo(ComponentAuthorityIntegrationFailureKind.LifecycleRefused));
+            Assert.That(result.Lifecycle!.Member!.Stage, Is.Not.EqualTo(PortableCompositionStage.Released));
+        });
+    }
+
     private static ResolutionOutcome Resolve(Cardinality cardinality) =>
         new FakeGenerationResolver().Resolve(Request(cardinality));
 
@@ -291,6 +500,68 @@ public sealed class ComponentBindingIntegrationTests
             document,
             new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
             PortableRealization.FixedDirectCall));
+
+    private static AuthorityAdmissionRequest Admission()
+    {
+        var relationship = new ActorRelationshipRequest(
+            Relationship,
+            Participant,
+            ActorRelationshipKind.ComponentParticipant,
+            new[] { AuthorityEvidence });
+        var authority = new AuthorityRequest(
+            Authority,
+            Relationship,
+            Capability,
+            Target,
+            Operation,
+            AuthorityScope,
+            false);
+        return new(
+            AdmissionRequestId.Create("admission.integration"),
+            Participant,
+            EvaluationTime,
+            new[]
+            {
+                new AdmissionEvidence(
+                    AuthorityEvidence,
+                    AuthorityIssuer,
+                    Participant,
+                    AdmissionEvidenceVerification.Verified,
+                    EvaluationTime.AddHours(-1),
+                    EvaluationTime.AddHours(1),
+                    AdmissionEvidenceState.Current),
+            },
+            new[] { relationship },
+            new[] { authority },
+            new LocalAuthorityPolicy(
+                AuthorityPolicyId.Create("policy.integration"),
+                new[] { AuthorityIssuer },
+                new[]
+                {
+                    new RelationshipPolicyRule(
+                        PolicyRuleId.Create("rule.component-participant"),
+                        Participant,
+                        ActorRelationshipKind.ComponentParticipant,
+                        PolicyDisposition.Allow,
+                        LocalActorReferenceId.Create("local.cooling-provider"),
+                        new[] { AuthorityEvidence },
+                        false,
+                        "component participant admitted"),
+                },
+                new[]
+                {
+                    new AuthorityPolicyRule(
+                        PolicyRuleId.Create("rule.cooling-control"),
+                        ActorRelationshipKind.ComponentParticipant,
+                        Capability,
+                        Target,
+                        Operation,
+                        AuthorityScope,
+                        PolicyDisposition.Allow,
+                        false,
+                        "narrow cooling control admitted"),
+                }));
+    }
 
     private static ResolutionRequest Request(Cardinality cardinality)
     {

@@ -196,10 +196,20 @@ the portable ordinary-interaction gate only after CM4 reaches Active. The
 [`contract-completeness review`](../../component-management/cbi2-contract-completeness-review.md)
 bound the evidence.
 
-CM5 authority admission is the next implementable integration item. Shared serialized comparison,
-multi-member and relational lifecycles, replacement, child Ports, mediation, wider Provider Sets,
-and real distribution remain future integration work. PB8's independent reviews and Decision 11
-owner ruling remain separate governance prerequisites rather than implementation work.
+CBI3 is also implemented. Each composition root now requires an explicit selected-occurrence to
+participant-Actor mapping, one `ComponentParticipant` relationship, and one exact narrow CM5
+authority request. CM5 denial stops before provider contact; exactly one attributable relationship
+and local grant permit CBI2 activation. The grant is not transported through Portable Binding and
+does not authorize any portable Operation by name. The
+[`CBI3 capability contract`](../../component-management/cbi3-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi3-contract-completeness-review.md)
+bound the evidence.
+
+Shared serialized comparison is the next implementable integration item. Grant withdrawal,
+multi-participant and multi-grant admission, CM4 binding-exercise projection, cross-vocabulary
+Operation mapping, multi-member and relational lifecycles, replacement, child Ports, mediation,
+wider Provider Sets, and real distribution remain future work. PB8's independent reviews and
+Decision 11 owner ruling remain separate governance prerequisites rather than implementation work.
 
 ## Other planned areas
 
