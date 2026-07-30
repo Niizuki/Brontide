@@ -428,9 +428,12 @@ type CatalogHandler() =
 
                     effects <- effects + 1L
 
+                    // 'stored' acknowledges this request, not the session. It answers how many of
+                    // the command's items were stored, so the result stays a function of the
+                    // request rather than of binding history (PB-71).
                     Ok(
                         EffectSucceeded(
-                            PortableRecord.ofFields [ "stored", PortableInteger(int64 (Map.count stored)) ],
+                            PortableRecord.ofFields [ "stored", PortableInteger(int64 (List.length items)) ],
                             effects
                         )
                     )
@@ -438,24 +441,39 @@ type CatalogHandler() =
             else
                 match Map.tryFind "ids" fields with
                 | Some(PortableSequence ids) ->
-                    let found =
+                    let requested =
                         ids
                         |> List.choose (fun id ->
                             match id with
-                            | PortableText id -> Map.tryFind id stored
+                            | PortableText value -> Some value
                             | _ -> None)
 
-                    if List.isEmpty found then
-                        // A domain refusal is a shaped failed Outcome, never a protocol rejection.
-                        Ok(
-                            EffectFailed(
-                                PortableRecord.ofFields
-                                    [ "code", PortableText "not-found"
-                                      "message", PortableText "No requested item is present in this session." ],
-                                0L
-                            )
-                        )
+                    if List.length requested <> List.length ids then
+                        invalidPayload "catalog-ids" "A find command carries a sequence of identifiers."
                     else
-                        effects <- effects + 1L
-                        Ok(EffectSucceeded(PortableRecord.ofFields [ "items", PortableSequence found ], effects))
+                        let missing = requested |> List.filter (fun id -> not (Map.containsKey id stored))
+
+                        if not (List.isEmpty missing) then
+                            // A lookup answers for every identifier or for none. The result Shape is
+                            // a sequence of items with no companion field for the ones that missed,
+                            // so a partial answer would drop which identifiers were absent with no
+                            // way for the caller to recover it. The detail Shape is where that is
+                            // reported (PB-70).
+                            //
+                            // A domain refusal is a shaped failed Outcome, never a protocol rejection.
+                            let absent = String.concat ", " missing
+
+                            Ok(
+                                EffectFailed(
+                                    PortableRecord.ofFields
+                                        [ "code", PortableText "not-found"
+                                          "message", PortableText $"No item is stored for {absent}." ],
+                                    0L
+                                )
+                            )
+                        else
+                            effects <- effects + 1L
+
+                            let found = requested |> List.map (fun id -> Map.find id stored)
+                            Ok(EffectSucceeded(PortableRecord.ofFields [ "items", PortableSequence found ], effects))
                 | _ -> invalidPayload "catalog-ids" "A find command carries a sequence of identifiers."

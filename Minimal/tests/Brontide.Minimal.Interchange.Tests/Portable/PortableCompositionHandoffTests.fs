@@ -415,6 +415,111 @@ type PortableCompositionHandoffTests() =
         coolingMember.Close()
         catalogMember.Close()
 
+    // -- Properties over the whole group ---------------------------------------------------------
+
+    /// Runs every stage this group reaches, on one member, and reports what was observed at each.
+    ///
+    /// The properties below quantify over this sequence rather than over one case, which is the
+    /// Decision 10 practice: a property is a claim about every path, so it can fail where no single
+    /// vector was written.
+    member private _.EveryStage() =
+        let handler = CoolingHandler()
+        let composed = prepareCooling ()
+        let facts = ResizeArray [ "local-initialisation", composed.ResolutionFacts ]
+        let interactions = ResizeArray()
+
+        interconnect composed (directConversation CoolingFixture.contract handler)
+        facts.Add("interconnected", composed.ResolutionFacts)
+        interactions.Add("interconnected", expectOk (setEnabled composed))
+
+        expectOk (composed.Release())
+        facts.Add("released", composed.ResolutionFacts)
+        interactions.Add("released", expectOk (setEnabled composed))
+
+        expectOk (composed.Retire "the property harness retires the member").Result
+        |> ignore
+
+        facts.Add("retired", composed.ResolutionFacts)
+        interactions.Add("retired", expectOk (setEnabled composed))
+
+        composed, handler, List.ofSeq interactions, List.ofSeq facts
+
+    /// HANDOFF-P1: a plan exists exactly when Interconnection completed.
+    [<Test>]
+    member this.``Property a plan exists exactly when interconnection completed``() =
+        let substituting =
+            PortableProviderEndpoint(
+                { CoolingFixture.contract with
+                    Provider = expectOk (PortableProviderRef.tryCreate "interchange.tests.substitute-provider" 1) },
+                CoolingHandler(),
+                Realization.FixedDirectCall
+            )
+
+        let refused = prepareCooling ()
+
+        (refused.Interconnect(PortableDirectConversation substituting)).Result
+        |> expectCategory ProtocolCategory.UnsupportedContract
+        |> ignore
+
+        let composed, _, _, _ = this.EveryStage()
+
+        assertAll (fun () ->
+            // A refusal that established a binding before refusing it leaves no plan behind.
+            refused.TryPlan |> shouldEqual None
+            refused.AnsweringProvider |> shouldEqual None
+
+            // A completed handoff always has its plan, answered by the selected provision.
+            (Option.isSome composed.TryPlan) |> shouldEqual true
+            composed.AnsweringProvider |> shouldEqual (Some composed.Provision.Provider))
+
+        composed.Close()
+        refused.Close()
+
+    /// HANDOFF-P2: the provider records an effect only while the member is released.
+    [<Test>]
+    member this.``Property only a released member reaches a provider effect``() =
+        let composed, handler, interactions, _ = this.EveryStage()
+        let released = interactions |> List.filter (fun (stage, _) -> stage = "released")
+
+        assertAll (fun () ->
+            List.length interactions |> shouldEqual 3
+
+            for stage, result in interactions |> List.filter (fun (stage, _) -> stage <> "released") do
+                Assert.That(
+                    ResultClass.token result.ResultClass,
+                    Is.EqualTo(ResultClass.token ResultClass.ProtocolError),
+                    $"An interaction in stage '{stage}' is refused rather than admitted."
+                )
+
+                result.Observation.ProviderEffectCount |> shouldEqual 0L
+
+            // Counted at the provider, not read from the observation: the observation is what the
+            // binding says happened, and the counter is what did.
+            handler.ProviderEffectCount |> shouldEqual (int64 (List.length released)))
+
+        composed.Close()
+
+    /// HANDOFF-P3: the resolution facts never change, at any stage.
+    [<Test>]
+    member this.``Property the resolution facts outlive the plan``() =
+        let composed, _, _, facts = this.EveryStage()
+        let _, first = List.head facts
+
+        assertAll (fun () ->
+            List.length facts |> shouldEqual 4
+
+            for stage, sample in facts do
+                Assert.That(
+                    (sample = first),
+                    Is.True,
+                    $"The resolution facts changed at stage '{stage}'; the scope outlives the plan."
+                )
+
+            Map.tryFind "bindingScope" first
+            |> shouldEqual (Some(BindingScopeId.value composed.Scope)))
+
+        composed.Close()
+
     /// A member that never interconnected keeps the whole group closed, rather than releasing the
     /// members that did establish.
     [<Test>]

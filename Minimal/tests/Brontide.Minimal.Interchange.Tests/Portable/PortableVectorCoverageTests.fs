@@ -80,20 +80,34 @@ module PortableVectorCoverage =
               "PB-62-NO-SHARED-SEMANTIC-RUNTIME", "PortablePlanObservationAndParityTests"
               "PB-63-BOTH-HOST-DIRECTIONS", "PortableCrossStackTests"
 
+              // Decision 5 gave the Catalog fixture the vectors it had never had: the neutral layer
+              // declared what Catalog is without stating what it must do.
+              "PB-64-CATALOG-MULTIPLE-OPERATIONS-NEGOTIATED", "PortableCatalogTests"
+              "PB-65-CATALOG-REQUEST-SELECTS-ITS-OPERATION", "PortableCatalogTests"
+              "PB-66-CATALOG-SEQUENCE-OF-RECORDS-CARRYING-SEQUENCES", "PortableCatalogTests"
+              "PB-67-CATALOG-FAILED-OUTCOME-USES-THE-DECLARED-DETAIL-SHAPE", "PortableCatalogTests"
+              "PB-68-CATALOG-HANDLE-IS-NOT-AN-ADMISSION-DECISION", "PortableCatalogTests"
+              "PB-69-CATALOG-UNNEGOTIATED-FLAVOR-IN-REQUEST", "PortableCatalogTests"
+
+              // Two fixture-domain rules the contract had left unstated, and which the three
+              // implementations answered differently until the vectors settled them.
+              "PB-70-CATALOG-PARTIAL-MATCH-FAILS-WHOLE", "PortableCatalogTests"
+              "PB-71-CATALOG-UPSERT-COUNT-IS-THIS-REQUEST", "PortableCatalogTests"
+
               // PB7's Composition handoff: the seam from a resolved requirement to a Binding Plan,
               // and the release barrier that keeps ordinary interaction out until the provider is
               // ready.
-              "PB-64-HANDOFF-PRODUCES-A-PLAN", "PortableCompositionHandoffTests"
-              "PB-65-PREFLIGHT-FIXES-NO-PLAN-FACT", "PortableCompositionHandoffTests"
-              "PB-66-PREFLIGHT-REFUSES-COMPONENT-MISMATCH", "PortableCompositionHandoffTests"
-              "PB-67-PREFLIGHT-REFUSES-UNSELECTED-PROVIDER", "PortableCompositionHandoffTests"
-              "PB-68-CARDINALITY-BEYOND-ONE-TO-ONE-REFUSED", "PortableCompositionHandoffTests"
-              "PB-69-MEDIATED-EXPOSURE-REFUSED", "PortableCompositionHandoffTests"
-              "PB-70-ENDPOINT-SUBSTITUTES-PROVIDER", "PortableCompositionHandoffTests"
-              "PB-71-INTERACTION-BEFORE-RELEASE-REFUSED", "PortableCompositionHandoffTests"
-              "PB-72-RELEASE-REQUIRES-READY", "PortableCompositionHandoffTests"
-              "PB-73-RELEASED-BINDING-INTERACTS", "PortableCompositionHandoffTests"
-              "PB-74-WITHDRAWAL-INFORMS-A-REPLACEMENT", "PortableCompositionHandoffTests" ]
+              "PB-72-HANDOFF-PRODUCES-A-PLAN", "PortableCompositionHandoffTests"
+              "PB-73-PREFLIGHT-FIXES-NO-PLAN-FACT", "PortableCompositionHandoffTests"
+              "PB-74-PREFLIGHT-REFUSES-COMPONENT-MISMATCH", "PortableCompositionHandoffTests"
+              "PB-75-PREFLIGHT-REFUSES-UNSELECTED-PROVIDER", "PortableCompositionHandoffTests"
+              "PB-76-CARDINALITY-BEYOND-ONE-TO-ONE-REFUSED", "PortableCompositionHandoffTests"
+              "PB-77-MEDIATED-EXPOSURE-REFUSED", "PortableCompositionHandoffTests"
+              "PB-78-ENDPOINT-SUBSTITUTES-PROVIDER", "PortableCompositionHandoffTests"
+              "PB-79-INTERACTION-BEFORE-RELEASE-REFUSED", "PortableCompositionHandoffTests"
+              "PB-80-RELEASE-REQUIRES-READY", "PortableCompositionHandoffTests"
+              "PB-81-RELEASED-BINDING-INTERACTS", "PortableCompositionHandoffTests"
+              "PB-82-WITHDRAWAL-INFORMS-A-REPLACEMENT", "PortableCompositionHandoffTests" ]
 
     /// A portable vector counts as executed when this stack runs it rather than defers it.
     let executed vector =

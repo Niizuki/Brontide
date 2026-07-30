@@ -33,6 +33,16 @@ is the gate.
 - **Chain-conjunction ceiling** — [`representation-choice.md`](../representation-choice.md) is the
   operative D3 record; `authority-presentation.json` carries its portable consequence (carried-tier
   by default) without capping either stack.
+- **Annotation is separated from contract data by a declared mechanism**, recorded 2026-07-28
+  (Decision 6). `component-contract.json` sets `unknownFieldPolicy: reject` over an exhaustive field
+  list, so a fixture carrying documentation beside its contract would not transcode. Its
+  `contractDocument.annotation` block now declares how that is resolved: a document lists its own
+  documentation field names in `annotationFields`, a consumer drops those names at any depth plus four
+  artifact-envelope names at the root, and anything undeclared stays contract data and so fails as
+  `malformed-message` rather than passing silently. The rule is stated here because PB5 found it the
+  hard way — both stacks hand-wrote their contracts from the fixtures and dropped the annotations by
+  eye, so the first consumer actually to read a published fixture was the first to discover it could
+  not.
 
 ## Normalizations applied
 

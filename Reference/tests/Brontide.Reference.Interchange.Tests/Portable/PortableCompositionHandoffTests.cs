@@ -536,6 +536,133 @@ public sealed class PortableCompositionHandoffTests
         });
     }
 
+    // -- Properties over the whole group ---------------------------------------------------------
+
+    /// <summary>
+    /// Runs every stage this group reaches, on one member, and reports what was observed at each.
+    /// </summary>
+    /// <remarks>
+    /// The properties below quantify over this sequence rather than over one case, which is the
+    /// Decision 10 practice: a property is a claim about every path, so it can fail where no single
+    /// vector was written.
+    /// </remarks>
+    private static async Task<(PortableCompositionMember Member, CoolingPortableHandler Handler,
+        ImmutableArray<(string Stage, PortableInteractionResult Result)> Interactions,
+        ImmutableArray<(string Stage, ImmutableSortedDictionary<string, string> Facts)> Facts)> EveryStageAsync()
+    {
+        var handler = new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry());
+        var interactions = ImmutableArray.CreateBuilder<(string, PortableInteractionResult)>();
+        var facts = ImmutableArray.CreateBuilder<(string, ImmutableSortedDictionary<string, string>)>();
+        var member = PrepareCooling();
+
+        facts.Add(("local-initialisation", member.ResolutionFacts));
+        await member.InterconnectAsync(DirectCooling(handler));
+        facts.Add(("interconnected", member.ResolutionFacts));
+        interactions.Add(("interconnected", await SetEnabledAsync(member)));
+
+        member.Release();
+        facts.Add(("released", member.ResolutionFacts));
+        interactions.Add(("released", await SetEnabledAsync(member)));
+
+        await member.RetireAsync("the property harness retires the member");
+        facts.Add(("retired", member.ResolutionFacts));
+        interactions.Add(("retired", await SetEnabledAsync(member)));
+
+        return (member, handler, interactions.ToImmutable(), facts.ToImmutable());
+    }
+
+    /// <summary>HANDOFF-P1: a plan exists exactly when Interconnection completed.</summary>
+    [Test]
+    public async Task Property_a_plan_exists_exactly_when_interconnection_completed()
+    {
+        var refused = PrepareCooling();
+        var substituting = new PortableProviderEndpoint(
+            CoolingPortableFixture.Contract with
+            {
+                Provider = PortableProviderReference.Parse("interchange.tests.substitute-provider", 1)
+            },
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            PortableRealization.FixedDirectCall);
+        Assert.ThrowsAsync<PortableFaultException>(async () =>
+            await refused.InterconnectAsync(new PortableDirectConversation(substituting)));
+
+        var (member, _, _, _) = await EveryStageAsync();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                refused.Plan,
+                Is.Null,
+                "A refusal that established a binding before refusing it leaves no plan behind.");
+            Assert.That(refused.AnsweringProvider, Is.Null);
+            Assert.That(member.Plan, Is.Not.Null, "A completed handoff always has its plan.");
+            Assert.That(
+                member.AnsweringProvider,
+                Is.EqualTo(member.Provision.Provider),
+                "Wherever a plan exists, the provider that answered is the one the resolution selected.");
+        });
+
+        await member.DisposeAsync();
+        await refused.DisposeAsync();
+    }
+
+    /// <summary>HANDOFF-P2: the provider records an effect only while the member is released.</summary>
+    [Test]
+    public async Task Property_only_a_released_member_reaches_a_provider_effect()
+    {
+        var (member, handler, interactions, _) = await EveryStageAsync();
+        var released = interactions.Where(entry => entry.Stage == "released").ToImmutableArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(interactions.Length, Is.EqualTo(3), "Every stage after Interconnection is exercised.");
+            foreach (var (stage, result) in interactions.Where(entry => entry.Stage != "released"))
+            {
+                Assert.That(
+                    result.ResultClass,
+                    Is.EqualTo(PortableResultClass.ProtocolError),
+                    $"An interaction in stage '{stage}' is refused rather than admitted.");
+                Assert.That(result.Observation.ProviderEffectCount, Is.Zero);
+            }
+
+            // Counted at the provider, not read from the observation: the observation is what the
+            // binding says happened, and the counter is what did.
+            Assert.That(
+                handler.ProviderEffectCount,
+                Is.EqualTo(released.Length),
+                "Exactly the post-Release interactions contributed a provider effect.");
+        });
+
+        await member.DisposeAsync();
+    }
+
+    /// <summary>HANDOFF-P3: the resolution facts never change, at any stage.</summary>
+    [Test]
+    public async Task Property_the_resolution_facts_outlive_the_plan()
+    {
+        var (member, _, _, facts) = await EveryStageAsync();
+        var first = facts[0].Facts;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(facts.Length, Is.EqualTo(4), "Every stage is sampled, including after retirement.");
+            foreach (var (stage, sample) in facts)
+            {
+                Assert.That(
+                    sample,
+                    Is.EqualTo(first).AsCollection,
+                    $"The resolution facts changed at stage '{stage}'; the scope outlives the plan.");
+            }
+
+            Assert.That(
+                first["bindingScope"],
+                Is.EqualTo(member.Scope.Value),
+                "The scope the member reports is the one the resolution fixed.");
+        });
+
+        await member.DisposeAsync();
+    }
+
     /// <summary>
     /// A member that never interconnected keeps the whole group closed, rather than releasing the
     /// members that did establish.

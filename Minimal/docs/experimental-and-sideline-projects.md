@@ -52,9 +52,9 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   found that negotiation never compares provider identity, so the plan's provider fact names who this
   host asked for rather than who answered — identically in the Reference stack, and recorded as
   Decision 11. PB8 has since recorded this layer's executed evidence, re-measured its source cost
-  (6,374 portable lines against Reference's 7,337, two independent implementations of one contract),
+  (6,392 portable lines against Reference's 7,337, two independent implementations of one contract),
   and documented the portable seam's operational assumptions; its fresh independent reviews and owner
-  rulings on the nine open decisions remain outstanding. Nothing here is an Architecture 0.8
+  ruling on Decision 11 remain outstanding. Nothing here is an Architecture 0.8
   conformance claim or part of Brontide Minimal Stack Base.
 - Reference/Minimal entanglement is a future cross-process experiment. Neither implementation is allowed
   to become the other's in-process compatibility layer.

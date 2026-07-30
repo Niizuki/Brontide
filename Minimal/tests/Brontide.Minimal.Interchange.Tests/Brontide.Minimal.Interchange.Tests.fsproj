@@ -42,6 +42,7 @@
     <Compile Include="Portable\PortableAuthorityAndResourceTests.fs" />
     <Compile Include="Portable\PortableLifecycleAndChannelTests.fs" />
     <Compile Include="Portable\PortablePlanObservationAndParityTests.fs" />
+    <Compile Include="Portable\PortableCatalogTests.fs" />
     <Compile Include="Portable\PortableFixtureAlignmentTests.fs" />
     <Compile Include="Portable\PortableVectorCoverageTests.fs" />
     <Compile Include="Portable\PortableRealizationParityTests.fs" />

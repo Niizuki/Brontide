@@ -8,9 +8,29 @@
     "schemas": ["schemas/composition-handoff.json", "schemas/binding-plan.json"],
     "note": "The handoff consumes a resolution rather than producing one. Four of these vectors are refusals of things the seam deliberately does not implement; refusing them is what keeps discovery, selection, Provider Sets, and mediation outside version 0.1."
   },
+  "properties": [
+    {
+      "id": "HANDOFF-P1",
+      "capabilities": ["C2"],
+      "statement": "Over every vector in this group, a Binding Plan exists exactly when Interconnection completed — a preflight refusal leaves none behind, and a completed handoff always has one — and wherever a plan exists, the provider that answered is the provision the resolution selected.",
+      "why": "The seam's product is a plan, so 'a plan exists' has to be an invariant over every path rather than an expectation on the successful one. The substitution vector is where a per-vector expectation would not reach: it establishes a real binding and then refuses it, which is exactly the shape that could leave a half-established member behind."
+    },
+    {
+      "id": "HANDOFF-P2",
+      "capabilities": ["C8"],
+      "statement": "Over every vector in this group, the provider records an effect only for an interaction attempted while the member is released. Summed across the group, the provider's effect count equals the number of post-Release interactions and nothing else contributes to it.",
+      "why": "The gate is a claim about every stage, not only the one before Release. Retirement closes it again, so a per-vector expectation written against the pre-Release case would not catch a member that reopened after withdrawal. Counting at the provider rather than reading the observation is deliberate: the observation is what the binding says happened, and the effect counter is what did."
+    },
+    {
+      "id": "HANDOFF-P3",
+      "capabilities": ["C2", "C8"],
+      "statement": "Over every vector in this group, the resolution facts — bindingScope, resolvedComponent, requiredProvider, cardinality, exposure, hostEndpoint — answer identically at every stage: before Interconnection, after it, after Release, and after retirement. They are never re-derived from the plan once one exists.",
+      "why": "The binding scope is the composition's identity for one requirement position and must outlive the plan; a per-vector check reads it at a single moment and cannot see it change. Stating it over the whole lifecycle is what makes 'the scope survives its plan' a checked claim rather than a description."
+    }
+  ],
   "vectors": [
     {
-      "id": "PB-64-HANDOFF-PRODUCES-A-PLAN",
+      "id": "PB-72-HANDOFF-PRODUCES-A-PLAN",
       "capabilities": ["C2"],
       "channelVectors": [],
       "classification": "valid",
@@ -20,7 +40,7 @@
       "expected": { "frameDecision": "accept", "resultClass": "negotiation", "effectCount": 0 }
     },
     {
-      "id": "PB-65-PREFLIGHT-FIXES-NO-PLAN-FACT",
+      "id": "PB-73-PREFLIGHT-FIXES-NO-PLAN-FACT",
       "capabilities": ["C2"],
       "channelVectors": [],
       "classification": "valid",
@@ -30,7 +50,7 @@
       "expected": { "frameDecision": "none", "resultClass": "negotiation", "effectCount": 0 }
     },
     {
-      "id": "PB-66-PREFLIGHT-REFUSES-COMPONENT-MISMATCH",
+      "id": "PB-74-PREFLIGHT-REFUSES-COMPONENT-MISMATCH",
       "capabilities": ["C2", "C1"],
       "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
       "classification": "adversarial",
@@ -40,7 +60,7 @@
       "expected": { "frameDecision": "none", "resultClass": "protocol-error", "category": "unsupported-contract", "failureDomain": "local-endpoint", "effectCount": 0 }
     },
     {
-      "id": "PB-67-PREFLIGHT-REFUSES-UNSELECTED-PROVIDER",
+      "id": "PB-75-PREFLIGHT-REFUSES-UNSELECTED-PROVIDER",
       "capabilities": ["C2"],
       "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
       "classification": "adversarial",
@@ -50,7 +70,7 @@
       "expected": { "frameDecision": "none", "resultClass": "protocol-error", "category": "unsupported-contract", "failureDomain": "local-endpoint", "effectCount": 0 }
     },
     {
-      "id": "PB-68-CARDINALITY-BEYOND-ONE-TO-ONE-REFUSED",
+      "id": "PB-76-CARDINALITY-BEYOND-ONE-TO-ONE-REFUSED",
       "capabilities": ["C2"],
       "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
       "classification": "adversarial",
@@ -60,7 +80,7 @@
       "expected": { "frameDecision": "none", "resultClass": "protocol-error", "category": "unsupported-contract", "failureDomain": "local-endpoint", "effectCount": 0 }
     },
     {
-      "id": "PB-69-MEDIATED-EXPOSURE-REFUSED",
+      "id": "PB-77-MEDIATED-EXPOSURE-REFUSED",
       "capabilities": ["C2"],
       "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
       "classification": "adversarial",
@@ -70,7 +90,7 @@
       "expected": { "frameDecision": "none", "resultClass": "protocol-error", "category": "unsupported-contract", "failureDomain": "local-endpoint", "effectCount": 0 }
     },
     {
-      "id": "PB-70-ENDPOINT-SUBSTITUTES-PROVIDER",
+      "id": "PB-78-ENDPOINT-SUBSTITUTES-PROVIDER",
       "capabilities": ["C2", "C1"],
       "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
       "classification": "adversarial",
@@ -80,7 +100,7 @@
       "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-contract", "failureDomain": "local-endpoint", "effectCount": 0 }
     },
     {
-      "id": "PB-71-INTERACTION-BEFORE-RELEASE-REFUSED",
+      "id": "PB-79-INTERACTION-BEFORE-RELEASE-REFUSED",
       "capabilities": ["C8", "C2"],
       "channelVectors": ["CH-21-STATE-VIOLATION"],
       "classification": "adversarial",
@@ -90,7 +110,7 @@
       "expected": { "frameDecision": "none", "resultClass": "protocol-error", "category": "state-violation", "failureDomain": "local-endpoint", "effectCount": 0 }
     },
     {
-      "id": "PB-72-RELEASE-REQUIRES-READY",
+      "id": "PB-80-RELEASE-REQUIRES-READY",
       "capabilities": ["C8"],
       "channelVectors": ["CH-21-STATE-VIOLATION"],
       "classification": "adversarial",
@@ -100,7 +120,7 @@
       "expected": { "frameDecision": "none", "resultClass": "protocol-error", "category": "state-violation", "failureDomain": "local-endpoint", "effectCount": 0 }
     },
     {
-      "id": "PB-73-RELEASED-BINDING-INTERACTS",
+      "id": "PB-81-RELEASED-BINDING-INTERACTS",
       "capabilities": ["C8", "C2"],
       "channelVectors": ["CH-01-CORRELATION-ECHO"],
       "classification": "valid",
@@ -110,7 +130,7 @@
       "expected": { "frameDecision": "accept", "resultClass": "outcome-succeeded" }
     },
     {
-      "id": "PB-74-WITHDRAWAL-INFORMS-A-REPLACEMENT",
+      "id": "PB-82-WITHDRAWAL-INFORMS-A-REPLACEMENT",
       "capabilities": ["C8", "C2"],
       "channelVectors": [],
       "classification": "valid",

@@ -21,7 +21,7 @@ the C-item but absent · **blocked** = gated on an open owner decision (see `ope
 | C3 — authority stays local; no Capability crosses | Both | `no-capability-transfer` limitation; `authority.hostDecisionRequired`,`constraintPolicy:fail-closed`; host `denial` emitted **before** provider activation; "No Capability is serialized" | **reusable** | Generalise the cross-trust `no-capability-transfer` declaration into the neutral contract → PB1 |
 | C4 — Channel 0.1 envelopes, correlation, error categories, process-failure | CM | Message kinds `activate`/`invoke`/`denial`/`protocol-error`/`shutdown`; correlation `requestId`/`executionId`/`occurrenceId`; error codes `unsupported-protocol`,`replay`,malformed/unknown-field/unknown-variant; failed Outcome distinct from protocol-error distinct from process exit | **fixture-specific** (two divergent JSON-lines protocols) | Map both onto `conformance/channel-0.1-vectors.json`; length-delimited bounded wire (JSON-lines → diagnostic only) → PB1/PB4 (wire resolved: deterministic CBOR core) |
 | C5 — portable Shape floor | CM | Record Shapes (open/closed fragment policy), scalars `Text`/`Boolean`/`Integer.Signed64`, nested records, sequences (`items[]`,`tags[]`), required fields, declared Fragment (`host-context`), additive projection (optional `failureMode`) | **reusable + normalize** | Cooling uses `{name,version}` refs, Catalog uses `name@version` strings — unify; add Constraint-value **exemption** from additive projection (D2/C8) → PB1 |
-| C6 — inline + referenced payloads | Both | Inline = `inline-tagged-json`; Catalog provider-scoped resource handle (`{provider,id}`, accepts `catalog-sandbox/shared`, else `resource-refused`, addressing-only); Cooling `no-referenced-resources` | **fixture-specific** | Define the referenced-shaped-resource v0.1 floor (representation/scope/access/ownership/lifetime/release/integrity/fallback) → PB1/PB6 (floor resolved: copied immutable blob) |
+| C6 — inline + referenced payloads | Both | Inline = `inline-tagged-json`; Catalog provider-scoped resource handle (`{provider,id}`, accepts `catalog-sandbox/shared`, else `resource-refused`, addressing-only); Cooling `no-referenced-resources` | **fixture-specific** | Define the referenced-shaped-resource v0.1 floor (representation/scope/access/ownership/lifetime/release/integrity/fallback) → PB1/PB6. Floor resolved: copied immutable blob. **Version 0.1 exercises representation, scope, access, ownership, and integrity only; borrow interval, lifetime, release signal, and fallback policy are declared but unexercised** — see [C6 at the 0.1 floor](#c6-at-the-01-floor) |
 | C7 — independent impls; direct/process parity | Ref, Min | Both stacks parse the same fixtures into independent types; zero shared runtime; boundary/assembly guards; process realization proven (`crossedBoundaries:["process"]`) | reusable + **missing** | Add an explicit **direct-call** realization and a category-level direct-vs-process parity check → PB2/PB3, executed in PB4 |
 | C8 — bounded lifecycle + declared limits | CM | Limits: Cooling depth 64 + 10 s I/O timeout (no byte/replay); Catalog 65 536 bytes + depth 32 + per-session replay window. Lifecycle: activate→invoke→(denial\|result\|failure)→shutdown; `single-invocation` | **normalize** (limits inconsistent; lifecycle states implicit) | Unify the declared limit set; enumerate explicit establishment/readiness/invocation/withdrawal/termination states → PB1/PB6 |
 | C9 — attributable observations | CM | `providerEffectCount` (result field), `crossedBoundaries`, `executionId`/`occurrenceId`, host-enrichment/boundary provenance, failure-domain distinction | **fixture-specific** ("universal form of binding observations… not ratified") | Define the unified C9 observation set (selected provider, representation, copies, authority point, retry, terminal status, timing…) → PB1 |
@@ -40,7 +40,7 @@ category, process-failure category, or failure domain loses its coverage.
 | C3 | [`authority-presentation.json`](schemas/authority-presentation.json) | PB-18 – PB-24, PB-56, PB-59 | Closed. `no-capability-transfer` generalised; local denial is frameless. |
 | C4 | [`channel-envelope.json`](schemas/channel-envelope.json) | PB-42 – PB-52, PB-16, PB-17 | Closed. Both experiments' message kinds map to neutral envelope kinds; the taxonomy is reproduced exactly. |
 | C5 | [`references-and-shape-floor.json`](schemas/references-and-shape-floor.json) | PB-10 – PB-17, PB-57 | Closed. One reference encoding; Constraint values exempt from additive projection. |
-| C6 | [`payload-representation.json`](schemas/payload-representation.json) | PB-25 – PB-32, PB-60 | Closed for the declared floor: copied immutable blob plus the retained addressing-only handle. Borrow and transfer stay 0.1 non-goals. |
+| C6 | [`payload-representation.json`](schemas/payload-representation.json) | PB-25 – PB-32, PB-60 | Closed for the declared floor: copied immutable blob plus the retained addressing-only handle. Borrow and transfer stay 0.1 non-goals, and four of C6's named concerns are declared-but-unexercised at this floor — see [C6 at the 0.1 floor](#c6-at-the-01-floor). |
 | C7 | [`binding-observation.json`](schemas/binding-observation.json) parity profile, [`binding-plan.json`](schemas/binding-plan.json) parity rule | PB-58 – PB-60, PB-62 | Closed. PB4 executed the comparison in each stack over every result class a host can reach, including across a real process boundary, and closed the four divergences it found; PB5 then paired the two stacks, so parity is no longer measured only within one. |
 | C8 | [`limits-and-lifecycle.json`](schemas/limits-and-lifecycle.json) | PB-09, PB-31 – PB-41 | Closed. One limit set (tighter bound wins) and an explicit state machine. |
 | C9 | [`binding-observation.json`](schemas/binding-observation.json) | PB-55 – PB-57 | Closed. The unified observation set is defined, with normative and non-normative fields separated. |
@@ -49,6 +49,39 @@ category, process-failure category, or failure domain loses its coverage.
 Deterministic byte evidence lives in [`vectors/golden-encodings.json`](vectors/golden-encodings.json)
 and is re-derived by [`build/verify-portable-binding.ps1`](../../build/verify-portable-binding.ps1)
 rather than trusted as checked-in text.
+
+### C6 at the 0.1 floor
+
+C6 names eight concerns: representation, scope, access, ownership, borrow interval, lifetime,
+release/completion signal, integrity, and fallback policy. Version 0.1's declared floor
+(copied immutable blob, plus the retained addressing-only handle) exercises **representation, scope,
+access, ownership, and integrity**. The remaining four — **borrow interval, lifetime, release signal,
+and fallback policy** — are declared but unexercised, and this section states that so the capability
+does not read broader than its evidence. Recorded 2026-07-28 as Decision 9 in
+[`open-decisions.md`](open-decisions.md).
+
+The reason is structural rather than an omission. A copied immutable blob is transferred whole and
+declares no release signal; an addressing-only handle carries no octets, so there is nothing to
+release. No frame can therefore express "use this resource after its interval has ended", and 0.1
+declares no fallback policy, so a request cannot name one and have it refused. The three adversarial
+conditions PB6 looked for — premature reuse, release-then-use, and unsupported fallback — are
+**unrepresentable rather than merely refused**, which is why no vector presents them: there is no
+malformed message to present.
+
+This is a consequence of the recorded resource floor (Decision 2), not a defect, and it is deliberately
+not papered over with a manufactured path. Both stacks assert the declared flavor set, so adding a
+borrowed or transferred flavor later fails the build and returns this reasoning for review. Widening
+the floor to a lifetime-bearing flavor is a 0.2 conversation.
+
+### Where a PB1 vector deliberately asserts less than PB0 expected
+
+Six process-failure and correlation vectors declare `effectCountNotAsserted` with a reason instead of
+claiming zero provider effects. A timeout, a peer termination, an interrupted frame, a correlation
+mismatch, an unknown envelope kind, and an internal protocol failure each leave the observing
+endpoint unable to know whether the peer already performed the effect. C4 requires that success is
+never fabricated; asserting a zero effect count in those cases would fabricate the converse. Every
+pre-provider rejection still asserts `effectCount: 0`, and the gate rejects an adversarial vector that
+neither states a count nor explains why it is unobservable.
 
 ## Executed evidence (PB2–PB7)
 
@@ -78,16 +111,6 @@ repository gate, which build the provider endpoints first, and they skip themsel
 executables are absent. And PB7's handoff is exercised at `1..1` with distinct exposure only —
 Provider Sets, mediated exposure, and the resolver that would produce a resolution remain Component
 Management work, refused here rather than approximated.
-
-### Where a PB1 vector deliberately asserts less than PB0 expected
-
-Six process-failure and correlation vectors declare `effectCountNotAsserted` with a reason instead of
-claiming zero provider effects. A timeout, a peer termination, an interrupted frame, a correlation
-mismatch, an unknown envelope kind, and an internal protocol failure each leave the observing
-endpoint unable to know whether the peer already performed the effect. C4 requires that success is
-never fabricated; asserting a zero effect count in those cases would fabricate the converse. Every
-pre-provider rejection still asserts `effectCount: 0`, and the gate rejects an adversarial vector that
-neither states a count nor explains why it is unobservable.
 
 ## Baseline inventory: existing neutral surface
 

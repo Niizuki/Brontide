@@ -341,6 +341,60 @@ foreach ($file in $schemaFiles) {
 }
 
 # ---------------------------------------------------------------------------
+# Annotation is separated from contract data by a declared mechanism
+# ---------------------------------------------------------------------------
+#
+# component-contract.json declares an exhaustive contract-document field list and rejects unknown
+# fields, so a fixture carrying documentation beside its contract transcodes only because the
+# annotation mechanism says which names to drop. PB5 found that the mechanism did not exist and the
+# fixtures were therefore not encodable as published; Decision 6 moved it into the schema. This
+# checks it rather than trusting it: drop each fixture's declared annotation names and the root
+# artifact envelope, and what remains must be exactly the contract document.
+
+$contractSchema = Read-JsonFile (Join-Path $schemaRoot 'component-contract.json')
+if ($null -ne $contractSchema) {
+    $annotationRule = $contractSchema.contractDocument.annotation
+    if ($null -eq $annotationRule) {
+        $failures.Add('component-contract.json does not declare the contractDocument.annotation mechanism.')
+    }
+    else {
+        $declaredContractFields = @($contractSchema.contractDocument.fields | ForEach-Object { [string]$_.name })
+        $envelopeNames = @($annotationRule.artifactEnvelope.names | ForEach-Object { [string]$_ })
+
+        foreach ($fixtureName in @('fixture-contract.json', 'catalog-fixture-contract.json')) {
+            $fixture = Read-JsonFile (Join-Path $vectorRoot $fixtureName)
+            if ($null -eq $fixture) { continue }
+
+            $annotationProperty = $fixture.PSObject.Properties['annotationFields']
+            if ($null -eq $annotationProperty) {
+                $failures.Add("'$fixtureName' does not declare 'annotationFields'. An empty list positively states that the document carries no annotation; omitting it states nothing.")
+                continue
+            }
+
+            $annotationNames = @($annotationProperty.Value | ForEach-Object { [string]$_ })
+            foreach ($name in $annotationNames) {
+                if ($declaredContractFields -contains $name) {
+                    $failures.Add("'$fixtureName' declares '$name' as annotation, but component-contract.json declares it as contract data. Annotation may not shadow contract data.")
+                }
+            }
+
+            $transcoded = @(
+                $fixture.PSObject.Properties |
+                    ForEach-Object { $_.Name } |
+                    Where-Object { $envelopeNames -notcontains $_ -and $annotationNames -notcontains $_ }
+            )
+
+            foreach ($name in @($declaredContractFields | Where-Object { $transcoded -notcontains $_ })) {
+                $failures.Add("'$fixtureName' transcodes to a contract document missing required field '$name'.")
+            }
+            foreach ($name in @($transcoded | Where-Object { $declaredContractFields -notcontains $_ })) {
+                $failures.Add("'$fixtureName' transcodes to a contract document carrying undeclared field '$name', which is 'malformed-message'. Add it to 'annotationFields' if it is documentation.")
+            }
+        }
+    }
+}
+
+# ---------------------------------------------------------------------------
 # The Channel taxonomy is reproduced exactly, never extended
 # ---------------------------------------------------------------------------
 

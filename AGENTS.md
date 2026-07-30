@@ -77,6 +77,29 @@ experimental projects and do not present it as Brontide Base conformance.
 - **Tests accompany behaviour.** Add or update the nearest native test suite for semantic changes.
   Keep normative conformance evidence separate from Enrichment, Composition, GPU, and other
   explicitly experimental evidence.
+- **Test the contract's silence, not only its cases.** Two implementations written from one contract
+  by one reader diverge where that contract is *ambiguous* and agree wherever it is *silent*.
+  Independent implementation therefore detects ambiguity and is structurally blind to silence: a
+  defect the contract never spoke to appears identically on both sides, and every cross-stack
+  comparison passes. It detects even that ambiguity only where a **shared vector forces both
+  implementations to answer the same question** — the Catalog fixture's provider domain diverged
+  across three implementations for four phases because no vector ever asked it anything. Two
+  practices supplement this, and both are standing requirements rather than one-off responses.
+  - **A property per capability.** Every behavioural contract (`C1` through `Cn`) states at least one
+    property that must hold over *all* of its vectors — "what must be true of every failure path" —
+    not only per-vector expectations. A property is a claim about every path, so it can fail where no
+    single case was written. A property that cannot fail is a review finding against the property,
+    not a reason to drop the practice.
+  - **A contract-completeness review at each phase boundary.** A pass that asks what the contract
+    does *not* say, per capability, kept separate from conformance review — which by construction can
+    only check what was written down. It works from absence, which is a hard brief, and is the point.
+
+  Recorded 2026-07-28 as Decision 10 in
+  [`binding/portable/open-decisions.md`](binding/portable/open-decisions.md), after all three defects
+  found by PB6 turned out to be present identically in both stacks, in fields the parity profile
+  compares. Writing an implementation-neutral endpoint from the published artifacts before either
+  stack implements a phase was considered and not adopted: it is the strongest safeguard and the most
+  expensive, and the completeness review is expected to reach most of it at a fraction of the cost.
 - **Automated attestations are valid independent review.** An automated reviewer counts as
   independent when it has a reviewer identity distinct from every implementation actor, runs in a
   fresh isolated context, has no access to the implementation session's private reasoning, and

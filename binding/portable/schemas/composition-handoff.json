@@ -128,6 +128,36 @@
       { "name": "replacementPermitted", "shape": "Boolean", "required": true, "rule": "Whether the scope may be re-bound. Version 0.1 permits replacement after a clean withdrawal or termination and refuses it after a failure, because a failed binding's provider state is unknown to this seam." }
     ]
   },
+  "declaredSilences": {
+    "note": "Recorded by the PB7 contract-completeness review (Decision 10 practice B): questions this contract had left unanswered, each now given an answer or an explicit owner. A silence named here is one two independent implementations can no longer answer differently by accident.",
+    "entries": [
+      {
+        "id": "scope-uniqueness",
+        "question": "May two members in one composition carry the same bindingScope?",
+        "answer": "The scope is the composition's identity space, and uniqueness within a composition is the composition's responsibility. This seam binds one position and does not know the others, so it neither enforces uniqueness nor assumes it. A composition that reuses a scope has two members claiming one position, which its own resolver is the place to reject."
+      },
+      {
+        "id": "retirement-before-release",
+        "question": "May a member be retired from Interconnected, without ever being released?",
+        "answer": "Yes. A group whose barrier never opens — because a required peer never reached Ready — must be able to end the bindings that did establish. Retirement is therefore legal from Interconnected and from Released, and its replacement record reports the terminal state either way."
+      },
+      {
+        "id": "lifecycle-call-concurrency",
+        "question": "May Interconnect, Release, or Retire be called concurrently for one member?",
+        "answer": "No. Version 0.1 declares maxConcurrentRequests 1 for ordinary interaction and makes the same assumption for lifecycle calls: one member is driven by one caller at a time. The stage transitions are checked, not atomic, so a composition that drives one member from two threads is outside what this version declares."
+      },
+      {
+        "id": "failure-after-release",
+        "question": "What becomes of a released member whose binding later fails — a lost peer, an interrupted frame?",
+        "answer": "The gate stays open and the failure is reported per interaction, as the Channel taxonomy requires; the member does not silently close. Ending such a member is retirement like any other, and its replacement record reports terminal state 'failed' with replacementPermitted false, because a failed binding leaves this seam no account of the provider's state."
+      },
+      {
+        "id": "provision-sharing",
+        "question": "May one offered provision back two binding scopes at once?",
+        "answer": "Nothing here forbids it, and nothing here establishes it. Whether one activated occurrence may satisfy several requirements is a sharing, isolation, and authority question the Component Management programme owns; this seam sees one position at a time and would bind each independently."
+      }
+    ]
+  },
   "notPromised": [
     "That a replacement preserves Actor identity, in-progress work, or state. Those are Slot and Hot-swap Class contracts, and version 0.1 declares none.",
     "That several members release atomically. The gate is per binding; a group barrier is composition machinery above this seam.",
