@@ -29,6 +29,11 @@ explanation, or optimisation-property vocabularies. Their Brontide Reference Sta
 realisations therefore live in `Brontide.Reference.Experimental.Composition`, not `Brontide.Reference.Core` or normative
 conformance.
 
+`Brontide.Reference.Experimental.ComponentManagement` now implements the fake Component Management
+CM0 and CM1 phases: strict neutral-fixture loading, deterministic attributable discovery, immutable
+staged acquisition, evidence-policy observations, and source disappearance. It stops before
+selection, resolution, preparation, activation, Actor establishment, or authority.
+
 ## Build and test
 
 The repository deliberately has no `global.json`; [`sdk-policy.md`](../docs/current/policies/sdk-policy.md)

@@ -34,3 +34,14 @@ cleanup, replay, redaction, and threat assumptions.
 
 Ordinary tests skip real Brontide Minimal Stack launch when `BRONTIDE_MINIMAL_PROVIDER` is absent. Use the root
 `build/verify-interchange.ps1` command for the required two-way process evidence.
+
+## Fake Component Management CM1
+
+Use `FakeDiscovery.Run` with a `DiscoveryQuery` and any number of `FakeComponentSource` instances.
+Candidates are attributable and deterministically ordered; a source endpoint is not a publisher.
+Call `FakeComponentSource.Acquire` with a `FakeEvidencePolicy` to obtain either a detached
+`StagedArtifact` or one structured refusal. Removing the source affects later calls only.
+
+CM1 is deliberately inert. Do not add a resolver, activation host, Actor service, or authority
+service to this path; those belong to later phases. The observable C1-C7 boundary is in
+[`../../component-management/cm1-capability-contract.md`](../../component-management/cm1-capability-contract.md).

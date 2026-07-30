@@ -19,6 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FixtureTests.fs" />
+    <Compile Include="DiscoveryTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

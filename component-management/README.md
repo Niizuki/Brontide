@@ -11,6 +11,11 @@ Nothing in this tree is an Architecture 0.8 conformance claim. Sources, artifact
 evidence, and trust verdicts are deterministic test data for a fake manager; they prove nothing
 about real distribution, packaging, or security.
 
+CM1's observable behaviour is defined by the
+[discovery, acquisition, and evidence capability contract](./cm1-capability-contract.md). That
+contract stops at immutable staging and keeps selection, resolution, preparation, activation, Actor
+establishment, and authority outside the phase.
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.

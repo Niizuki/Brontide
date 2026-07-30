@@ -1,8 +1,8 @@
 # Brontide Component Management Implementation Plan 0.1
 
 Status: Partially implemented experimental work
-Implementation state: CM0 is implemented and tested independently in both stacks; CM1–CM6 remain
-planned.
+Implementation state: CM0 and CM1 are implemented and tested independently in both stacks; CM2–CM6
+remain planned.
 Designed for: [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §18.1, §19,
 §20.1, §24, and §33, Complete Draft, not ratified
 Design source:
@@ -101,12 +101,12 @@ the future `Topology` extension direction recorded in the
 
 ## 4. Delivery sequence
 
-Delivery status: CM0 is implemented in both stacks
+Delivery status: CM0 and CM1 are implemented in both stacks
 (`Reference/src/Brontide.Reference.Experimental.ComponentManagement` with tests in
 `Reference/tests/Brontide.Reference.ComponentManagement.Tests`, and
 `Minimal/src/Brontide.Minimal.Experimental.ComponentManagement` with tests in
 `Minimal/tests/Brontide.Minimal.ComponentManagement.Tests`), sharing the data-only fixtures under
-the root `component-management/` tree. CM1-CM6 remain planned.
+the root `component-management/` tree. CM2-CM6 remain planned.
 
 ### CM0 — vocabulary and fixtures
 
@@ -134,6 +134,20 @@ fake sources. Keep source endpoint and publisher identity distinct. Record which
 each descriptor, artifact, and evidence item. A source may disappear after acquisition without
 changing immutable staged content. Successful discovery or acquisition must not select, resolve,
 prepare, or activate the Component.
+
+**Implemented 2026-07-30.** The data-only
+[`CM1 capability contract`](../../../component-management/cm1-capability-contract.md) defines C1-C7,
+their phase-wide properties, and the four exhaustive fake acquisition refusals before either public
+surface. Reference implements controlled source availability and detached staged snapshots; Minimal
+implements source removal as a pure state transition and returns acquisition results as an
+algebraic union. Both preserve duplicate source claims, source endpoint versus publisher identity,
+the advertised package version, attributable contested evidence, local policy reasons, and the same
+source-neutral storefront record. Both sort complete discovery results independently of source and
+advertisement enumeration and report the all-false CM1 selection, lifecycle, Actor, and authority
+effect observation.
+
+The evidence is local/native in each stack. CM1 introduces no cross-stack protocol and therefore
+makes no interoperability claim.
 
 ### CM2 — recursive generational resolution
 
@@ -358,3 +372,6 @@ than in delivery prose.
   production package managers, marketplaces, loaders, or Architecture 0.8 conformance evidence.
 - **2026-07-23 — Delivery state:** CM0 fixtures and strict loaders are implemented in both stacks;
   CM1–CM6 remain future work.
+- **2026-07-30 — CM1 delivery:** C1-C7 discovery, immutable staged acquisition, attributable
+  evidence-policy decisions, source disappearance, deterministic ordering, structured refusals, and
+  the zero-effect boundary are implemented independently in both stacks. CM2–CM6 remain future work.

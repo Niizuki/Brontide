@@ -33,3 +33,14 @@ cleanup, replay, redaction, and threat assumptions.
 
 Ordinary tests skip real Brontide Reference Stack launch when `BRONTIDE_REFERENCE_PROVIDER` is absent. Use the root
 `build/verify-interchange.ps1` command for the required two-way process evidence.
+
+## Fake Component Management CM1
+
+Use `FakeDiscovery.run` with a `DiscoveryQuery` and a list of `FakeComponentSource` values.
+Candidates are attributable and deterministically ordered; a source endpoint is not a publisher.
+`FakeComponentSource.acquire` returns `Staged` or `Refused`. `FakeComponentSource.remove` returns a
+new unavailable source state, leaving an earlier staged value unchanged.
+
+CM1 is deliberately inert. Do not add resolution, activation, Actor, or authority machinery to this
+path; those belong to later phases. The observable C1-C7 boundary is in
+[`../../component-management/cm1-capability-contract.md`](../../component-management/cm1-capability-contract.md).
