@@ -1,8 +1,7 @@
 # Brontide Component Management Implementation Plan 0.1
 
-Status: Partially implemented experimental work
-Implementation state: CM0-CM5 are implemented and tested independently in both stacks; CM6 remains
-planned.
+Status: Complete experimental programme retained at its evidence-pinned path
+Implementation state: CM0-CM6 are implemented and tested independently in both stacks.
 Designed for: [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §18.1, §19,
 §20.1, §24, and §33, Complete Draft, not ratified
 Design source:
@@ -101,12 +100,15 @@ the future `Topology` extension direction recorded in the
 
 ## 4. Delivery sequence
 
-Delivery status: CM0-CM5 are implemented in both stacks
+Delivery status: CM0-CM6 are implemented in both stacks
 (`Reference/src/Brontide.Reference.Experimental.ComponentManagement` with tests in
 `Reference/tests/Brontide.Reference.ComponentManagement.Tests`, and
 `Minimal/src/Brontide.Minimal.Experimental.ComponentManagement` with tests in
 `Minimal/tests/Brontide.Minimal.ComponentManagement.Tests`), sharing the data-only fixtures under
-the root `component-management/` tree. CM6 remains planned.
+the root `component-management/` tree. CM6 adds bounded JSON Lines provider endpoints and compares
+complete canonical CM5 observations across real processes in both host directions. This completed
+plan remains at its existing path because architecture delivery evidence links it transitively;
+archiving it requires explicit authorization to repin and independently review that evidence.
 
 ### CM0 — vocabulary and fixtures
 
@@ -337,6 +339,26 @@ Outcome categories across a process or serialized-data boundary. Equal fixture r
 agreement on the tested fake model only; they are not real Component interchange or security
 evidence.
 
+Implemented record: the
+[`C1-C10 capability contract`](../../../component-management/cm6-capability-contract.md) defines
+complete data-only scenarios, stack-native reconstruction, canonical full-profile comparison,
+bounded JSON Lines behavior, separate protocol failures, both process directions, mandatory
+scenario breadth, and the evidence claim boundary. Eight scenarios cover admitted, denied,
+partially admitted, and invalid requests, including missing local mapping, unlimited authority,
+revocation, expiry, and an attributable policy mistake. Each native endpoint emits every CM5
+decision, effect, policy finding, and deterministic explanation in one canonical profile; provider
+identity remains visible outside the parity fields. The repository gate builds both providers and
+executes Reference-to-Minimal and Minimal-to-Reference comparisons for every scenario.
+
+The required phase-boundary
+[`contract-completeness review`](../../../component-management/cm6-contract-completeness-review.md)
+is complete. It closed silence around outcome-only comparison, canonicalization, provider
+identity, per-message versions, duplicate scenario identities, expected-outcome tokens, input
+bounds, protocol-versus-semantic failure, stream state, both process directions, skipped foreign
+providers, enumeration order, shared runtime behavior, and evidence overstatement. Real Component
+interchange, general substitutability, contract completeness, architecture conformance,
+cryptographic trust, federation, and production security remain outside the programme.
+
 ## 5. Mandatory automated vectors
 
 At minimum, both stacks test:
@@ -503,3 +525,14 @@ than in delivery prose.
 - **2026-07-30 — CM5 completeness:** the phase-boundary absence audit is complete with every finding
   corrected; serialized or process-boundary comparison of the independent implementations remains
   explicitly owned by CM6.
+- **2026-07-30 — CM6 delivery:** C1-C10 complete-scenario parsing, native typed reconstruction,
+  canonical full-profile projection, bounded JSON Lines endpoints, protocol-error separation,
+  deterministic ordering, and both-direction process comparison are implemented independently in
+  both stacks. The CM0-CM6 experimental programme is complete.
+- **2026-07-30 — CM6 completeness:** the phase-boundary absence audit is complete with every finding
+  corrected. Equal profiles remain bounded evidence for eight deterministic fake scenarios, not
+  proof of real Component interchange, contract completeness, conformance, general
+  substitutability, or security.
+- **2026-07-30 — Documentation disposition:** the completed plan remains at this stable future path
+  because it is linked by transitive evidence pins. Moving it to archive requires explicit
+  authorization to repin the affected evidence and obtain fresh independent review.

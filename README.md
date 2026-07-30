@@ -79,9 +79,10 @@ scoped restart, and dependency-cycle policy are recorded in
 [Component Management and Distribution Design Note 0.1](./docs/future/component-management/Brontide-Design-Note-Component-Management-0.1.md).
 The corresponding
 [Component Management Implementation Plan 0.1](./docs/future/component-management/Brontide-Component-Management-Implementation-Plan-0.1.md)
-calls for independent, entirely fake managers in both stacks so these mechanisms can be tested
-without implying a real online marketplace, production package manager, or Architecture 0.8
-conformance claim.
+records the completed CM0-CM6 independent fake managers in both stacks, including full CM5-profile
+comparison across real processes in both host directions. This remains bounded experimental
+evidence and does not imply a real online marketplace, production package manager, general
+substitutability, security, or Architecture 0.8 conformance.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

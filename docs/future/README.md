@@ -171,7 +171,11 @@ local trusted-computing-base choices. Its
 [`contract-completeness review`](../../component-management/cm5-contract-completeness-review.md)
 are complete. It is not cryptographic, federated, or production authority evidence.
 
-CM6 — independent serialized comparison — is the next implementation phase.
+CM6 completes the experimental programme with bounded JSON Lines endpoints and complete canonical
+CM5 profile comparison across real processes in both host directions. Equal profiles establish
+agreement on eight deterministic fake scenarios only. The completed implementation plan remains
+at its stable `future` path because architecture delivery evidence links it transitively; moving it
+requires explicit authorization to repin and independently review that evidence.
 
 ## Other planned areas
 
@@ -179,7 +183,7 @@ CM6 — independent serialized comparison — is the next implementation phase.
 | --- | --- | --- |
 | Architecture 0.8 | [`Brontide-Architecture-0.8.md`](./architecture/Brontide-Architecture-0.8.md) | Complete draft; implementation evidence pending; not ratified. |
 | Channel | [`Channel Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Cooling/Catalog evidence exists; reusable Channel realization remains planned. |
-| Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM5 are implemented independently in both stacks; CM6 remains planned. |
+| Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |
 | Persistent Information | [`Persistent Information Design Note`](./persistent-information/Brontide-Design-Note-Persistent-Information-0.1.md) | Design direction only. |

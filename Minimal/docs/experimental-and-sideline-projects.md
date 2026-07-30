@@ -32,8 +32,11 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   establishment, exact gates, logical Release, post-Release binding evidence, scoped replacement,
   child-Port activation, and explicit rollback or degradation. It is not a real marketplace,
   package manager, loader, resolver policy product, production activation host, durable rollback
-  system, or security product, and is not an Architecture 0.8 conformance claim; CM5-CM6 remain
-  planned.
+  system, or security product, and is not an Architecture 0.8 conformance claim. CM5 adds native
+  attributable authority admission, revocation and expiry refusal, unlimited-authority denial, and
+  policy-mistake recording. CM6 adds complete canonical CM5-profile comparison with the Reference
+  implementation through bounded JSON Lines provider processes in both host directions. Agreement
+  is limited to eight deterministic fake scenarios; CM0-CM6 are complete.
 - `Brontide.Minimal.Binding` (`Portable/`) is the Minimal native realization of the
   [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md),
   built against the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).

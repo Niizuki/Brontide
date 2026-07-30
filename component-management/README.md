@@ -54,6 +54,16 @@ not cryptographic, federated, or production security evidence. Its completed pha
 audit is the
 [CM5 contract-completeness review](./cm5-contract-completeness-review.md).
 
+CM6 adds a versioned JSON Lines endpoint to each provider and runs every complete authority
+scenario through both native CM5 implementations in both process directions. Comparison covers the
+complete canonical CM5 profile rather than only its outcome; provider identity remains visible
+outside the parity profile. Its observable behavior and claim boundary are defined by the
+[independent-comparison capability contract](./cm6-capability-contract.md), and its completed
+phase-boundary absence audit is the
+[CM6 contract-completeness review](./cm6-contract-completeness-review.md). Equal profiles prove
+agreement on the eight deterministic fake scenarios only, not real Component interchange,
+contract completeness, general substitutability, or security.
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -109,6 +119,14 @@ mechanism.
 grant capabilities and expected outcome categories. Each native suite constructs its own typed
 requests and independently computes every decision and effect; the fixture contains no verifier,
 policy evaluator, Actor mapper, Capability implementation, or security mechanism.
+
+### `cm6-authority-comparison-vectors` sections
+
+`scenarios` contains complete versioned CM5 request, evidence, relationship, authority, policy,
+evaluation-time, and expected-outcome data. Each stack strictly reconstructs its own typed model
+and emits a canonical complete profile through a bounded JSON Lines endpoint. The fixture contains
+no defaults, patch language, evaluator algorithm, native type names, or executable comparison
+behavior.
 
 ### `cm0-mice-topology` sections
 

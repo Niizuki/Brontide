@@ -1,6 +1,17 @@
 using Brontide.Reference.Experimental.Binding;
 using Brontide.Reference.Experimental.Binding.Portable;
+using Brontide.Reference.Experimental.ComponentManagement;
 using Brontide.Reference.Vocabularies.Cooling;
+
+if (args.Contains("--component-management", StringComparer.Ordinal))
+{
+    await FakeAuthorityComparisonEndpoint.RunAsync(
+        Console.In,
+        Console.Out,
+        "reference-csharp",
+        CancellationToken.None);
+    return 0;
+}
 
 // The portable verbs run the reusable Portable Component Binding over a real duplex process
 // boundary. The verbs below them remain the retained line-delimited experiments, which stay the

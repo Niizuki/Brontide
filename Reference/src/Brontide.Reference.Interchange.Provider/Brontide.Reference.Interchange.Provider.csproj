@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Brontide.Reference.Experimental.Binding\Brontide.Reference.Experimental.Binding.csproj" />
+    <ProjectReference Include="..\Brontide.Reference.Experimental.ComponentManagement\Brontide.Reference.Experimental.ComponentManagement.csproj" />
     <ProjectReference Include="..\Brontide.Reference.Vocabularies.Cooling\Brontide.Reference.Vocabularies.Cooling.csproj" />
   </ItemGroup>
 </Project>
