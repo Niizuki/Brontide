@@ -77,6 +77,69 @@ experimental projects and do not present it as Brontide Base conformance.
 - **Tests accompany behaviour.** Add or update the nearest native test suite for semantic changes.
   Keep normative conformance evidence separate from Enrichment, Composition, GPU, and other
   explicitly experimental evidence.
+- **Pin a found defect with a failing test before fixing it, and read the failure.** Whenever a
+  defect is identified — a review finding, a failing gate, something noticed in passing — write the
+  test first, run it, and confirm it fails *for the reason you claimed*. Only then fix. This is one
+  half of the discipline; the other half, the same rule applied while implementing and before there
+  is a defect to find, is the bullet below. Two things the order buys, and the first is what
+  justifies it.
+  - **It checks the diagnosis, not only the fix.** A reasoned-about defect is a hypothesis, and an
+    executable assertion is the cheapest way to discover the reasoning was wrong: the failure
+    message says whether the mechanism is the one you named. It also routinely finds the fault is
+    *wider* than the report: PB6's resource observations turned out to claim both an acceptance and
+    an integrity check that never happened, in the same fields the parity profile compares, so a fix
+    aimed at whichever was noticed first would have left the other behind and looked complete. The
+    opposite outcome is worth as much — a test that passes before the fix means the defect is not
+    where you think, which is far better learned before editing semantic code than after.
+  - **It is the regression guard, already written.** The test outlives the fix and is what stops the
+    defect returning under a later refactor. A fix verified only by inspection leaves nothing behind.
+
+  Where the defect is a *class* rather than one instance, pin the class: a guard that fails when the
+  next member is added and left out beats three assertions naming today's three. Where a test
+  genuinely cannot reach the defect — a compile-time surface, a declared category with no reachable
+  path — say so and pin the nearest observable thing rather than manufacturing a path, as PB6 did
+  for `peer-unavailable`.
+- **Pin what you claim, as you write it: tests are part of the implementation, not a step after
+  it.** The rule above catches a defect once someone has found it, and most of what it catches was
+  already thought about while the code was written and simply never asserted. So the same discipline
+  runs forward: as each piece of behaviour is written, its assertions are written *with* it and run.
+  Not "implement, then cover" — that ordering is where the value leaks away, for two reasons. A test
+  written against a finished implementation is written *from* it: it asserts what the code does
+  rather than what it should do, which is how a suite ends up green over the wrong behaviour. And by
+  the time the implementation is finished, the list of scenarios you considered along the way is
+  gone — the retirement racing the gate, the sibling member exposing an Operation of the same name,
+  the successor that resolves only part of an activation — and those are exactly the cases worth
+  having. Three triggers, each a specific thing to write a test *for* rather than an exhortation to
+  test more:
+  - **A comment claiming behaviour under a named scenario is a test case.** If a remark says what
+    happens when X, something should assert X; the thinking was already done and only the assertion
+    is missing. This one is mechanically checkable at review time — read the comments and ask which
+    are asserted.
+  - **A load-bearing assertion is a test case** — a claim some *other* decision rests on, so that if
+    it is false something else in the design is wrong rather than merely undocumented. This
+    explicitly includes a claim about a dependency's behaviour, which is the class you cannot reason
+    your way to certainty about and where a probe is cheap. Decision 11 is the worked example: the
+    Binding Plan's provider fact was taken to name the provider that answered, six phases of work
+    rested on it, and it actually named the one the host asked for — both stacks identically, and
+    every fixture derived from one declaration, so nothing ever asked the question.
+  - **Each capability-contract item (`C1` through `Cn`) gets a named test in the same change**,
+    naming the item, alongside the property that item states. The contract is already the spec, so
+    this makes "the contract is satisfied" something the suite answers rather than something the
+    author believes.
+
+  Two boundaries, because this rule fails worse than its absence does.
+  - **A nameable trigger, or it is not a test.** Write it when you can state the concrete input,
+    state, or sequence that provokes the case. If you cannot name one, it is a hypothetical: leave it
+    as a comment or leave it out. Speculative tests over unspecified behaviour freeze whatever the
+    code happens to do into a contract, and a later *correct* change then reads as a regression —
+    which is the silence problem below arriving from the other side.
+  - **You must have seen each test fail once.** Write it before the code path it covers, or break
+    the implementation deliberately and watch it go red. A test that has only ever been green may be
+    asserting nothing: CBI17's first draft asserted that the admissions and grants in force were
+    unchanged across a succession, which no implementation could have failed, because both stacks
+    hold them in immutable values. It was replaced by the provider effect count across the call,
+    which a wrong implementation can move. A test that cannot fail is a finding against the test, the
+    same way a property that cannot fail is a finding against the property.
 - **Test the contract's silence, not only its cases.** Two implementations written from one contract
   by one reader diverge where that contract is *ambiguous* and agree wherever it is *silent*.
   Independent implementation therefore detects ambiguity and is structurally blind to silence: a
@@ -133,6 +196,27 @@ experimental projects and do not present it as Brontide Base conformance.
 - **Write comments for intent.** Code comments explain invariants, surprising tradeoffs, and why a
   design is safe. Do not narrate a port, duplicate commit history, or embed tracker references in
   source comments; keep provenance in changelogs, plans, and commit history.
+- **Report friction with these rules as evidence, not verdicts.** Every rule in this file was paid
+  for by something breaking, which means a rule that is merely *ambiguous at the point of use*, or
+  expensive relative to what it buys here, never gets revisited: it produces no defect, so nothing
+  triggers a rewrite. An agent applying these rules across a session is the only party that sees that
+  friction, and this is the only channel back.
+
+  **"This rule is good" is worth nothing.** A model is biased toward agreeing with the repository it
+  is working in, and it never sees the counterfactual — a defect a rule prevented is invisible by
+  construction. So an entry describes a *situation*, never an opinion, and only when one of five
+  triggers has fired: a rule you **could not apply without guessing** what it meant; two rules that
+  **pointed different ways**; a rule that **cost real work for no benefit visible here**; a rule that
+  **caught something you can name**; or an **approach that worked, is not in this file, and would
+  generalise**. Nothing else — no end-of-task summaries, no "the instructions were clear".
+
+  State the conclusion so that a reader who knows nothing about the change can use it, and name the
+  concrete case as evidence, which is how the rest of these documents argue. Append to
+  [`docs/current/ai-feedback/`](docs/current/ai-feedback/README.md) and **do not read the other
+  entries first**: repetition across independent sessions is the signal the folder exists to
+  produce, and an agent that had read an earlier entry would either skip its own or restate someone
+  else's framing. That README carries the file convention, the sweep that records what was done
+  about each entry, and where a swept month goes afterwards.
 
 ## Implementation-specific conventions
 
@@ -185,6 +269,10 @@ experimental projects and do not present it as Brontide Base conformance.
 - A partially implemented plan remains under `future` and states both the implemented subset and
   what remains. When all planned work is complete, move the plan to `archive` and move lasting
   operational guidance or evidence to `current` or the owning implementation.
+- Agent-feedback entries follow the same lifecycle rather than forming a fifth classification. The
+  convention and the open months live under `docs/current/ai-feedback/`, because the convention is
+  operational policy and an unswept month is live; a month whose report records what was done about
+  each entry moves to `docs/archive/ai-feedback/` with the report beside it.
 - Keep the repository root limited to standard project-control files, `README.md`, `AGENTS.md`, and
   `Brontide-Architecture-Status.json`. Repository-wide Markdown belongs under `docs/`;
   implementation-owned documentation belongs under `Reference/` or `Minimal/`.
