@@ -13,7 +13,11 @@ designed against Architecture 0.8 without changing the stack-wide target.
 
 Architecture 0.7 R1-R2 now have Reference-native Complete Draft evidence for recursive three-state
 Constraint expressions, fail-closed authority evaluation, experimental Composition selection, and
-distinct typed-member canonical names with an open provisional member-kind token.
+distinct typed-member canonical names with an open provisional member-kind token. R3's static
+Attribute-constrained binding (`BR-07-BINDING-001`) is implemented and tested, but the matrix still
+records it as `planned`: changing that status changes a hash the closed independent-review request
+pins, which needs that review retargeted and freshly attested by a reviewer who is not an
+implementation actor.
 The retained [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json) matrix is
 detailed test evidence, not the source of the implementation target and not a claim that the
 remaining Architecture 0.7 work is implemented.
@@ -27,7 +31,10 @@ Brontide Reference Stack project references Brontide Minimal Stack assemblies or
 Architecture 0.7 does not ratify Component descriptors, system service discovery, execution
 explanation, or optimisation-property vocabularies. Their Brontide Reference Stack
 realisations therefore live in `Brontide.Reference.Experimental.Composition`, not `Brontide.Reference.Core` or normative
-conformance.
+conformance. That project also carries Architecture 0.7 §18.1's static Attribute-constrained
+binding: a binding resolves exactly once against the Attribute values read at that moment, records
+the effective values and the per-candidate provenance that decided it, and holds no source — so a
+later Attribute or candidate change cannot rebind it, and restoration consults nothing.
 
 `Brontide.Reference.Experimental.ComponentManagement` now implements the fake Component Management
 CM0-CM6 programme: strict neutral-fixture loading, deterministic attributable discovery, immutable

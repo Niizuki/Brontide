@@ -9,8 +9,13 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
 - `Brontide.Minimal.Experimental.Enrichment` explores targeted, explicit derivation outside Model and Kernel.
 - `Brontide.Minimal.Experimental.Composition` explores Brontide Architecture 0.5 component selection, dependency
   gravity, boxed applications, support/opposition, explanations, and optimisation eligibility. Its
-  Architecture 0.7 C1 composite-Constraint selection is tested; static Attribute-constrained
-  binding remains planned. Neither changes the project's experimental classification.
+  Architecture 0.7 C1 composite-Constraint selection is tested, and its C3 static
+  Attribute-constrained binding is implemented and tested in `AttributeBinding.fs` against its
+  [behavioural contract](../../conformance/br-07-binding-001-contract.md): the binding resolves once
+  and records effective values and provenance, holds no source so a later Attribute or candidate
+  change cannot rebind it, and restores without consulting anything. The 0.7 matrix still records
+  that requirement as `planned`, because moving it changes a hash the closed independent-review
+  request pins. Neither changes the project's experimental classification.
 - `Brontide.Minimal.Experimental.PersistentInformation` is planned, not created. Its first scope is
   the C4/C5 Opaque Corpus/Dataset/Store-role evidence in Plan 0.3; it does not imply a complete
   persistence system, deep Router policy, or ratified persistent-information extension.
@@ -69,8 +74,8 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   growth removes nobody and so cannot uncover a declared dependency. CBI19 replaces the generation in
   the restart scope with a successor, re-establishing authority per occurrence and retiring the
   retained members only after cutover.
-  It does not merge the projects, support relational activation, member addition or removal, scoped
-  replacement, mediation, or wider Provider Sets, or establish real Component interchange.
+  It does not merge the projects, support relational activation, member addition or removal,
+  mediation, or wider Provider Sets, or establish real Component interchange.
 - `Brontide.Minimal.Binding` (`Portable/`) is the Minimal native realization of the
   [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md),
   built against the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).

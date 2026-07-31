@@ -9,5 +9,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Composition.fs" />
+    <Compile Include="AttributeBinding.fs" />
   </ItemGroup>
 </Project>

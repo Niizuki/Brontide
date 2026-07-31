@@ -17,6 +17,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompositionTests.fs" />
+    <Compile Include="AttributeBindingTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

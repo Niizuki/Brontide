@@ -42,6 +42,9 @@ with its classification and repinned every dependent evidence path.
   rename of "Stack" to "Graph" and why its execution is deferred and opportunistic.
 - [`public-boundaries.md`](./current/policies/public-boundaries.md) is maintained boundary policy,
   now under `docs/current/policies/` with its conformance-matrix evidence repinned.
+- [`br-07-binding-001-contract.md`](../conformance/br-07-binding-001-contract.md) is the shared
+  behavioural contract behind Architecture 0.7 change C3, read by both stacks' native
+  Attribute-constrained binding evidence.
 - [`ai-feedback/`](./current/ai-feedback/README.md) carries the agent-feedback convention and the
   open months' entries — friction with the rules in `AGENTS.md`, reported as evidence rather than
   opinion. It is not a fifth classification: the convention is operational policy and an unswept
