@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi19-scoped-replacement-vectors",
+  "vectors": [
+    {
+      "id": "cbi19-01-surviving-occurrences-replaced",
+      "expectedKind": "replaced",
+      "expectedCode": "activation-replaced",
+      "expectedCutover": true,
+      "expectedSuccessorReleased": 2,
+      "expectedRetainedReleased": 0,
+      "expectedRetainedRetired": 2,
+      "expectedAdmitted": 2
+    },
+    {
+      "id": "cbi19-02-scope-mismatch",
+      "expectedKind": "declined",
+      "expectedCode": "restart-scope-mismatch",
+      "expectedCutover": false,
+      "expectedSuccessorReleased": 0,
+      "expectedRetainedReleased": 2,
+      "expectedRetainedRetired": 0,
+      "expectedAdmitted": 0
+    },
+    {
+      "id": "cbi19-03-generation-not-successor",
+      "expectedKind": "declined",
+      "expectedCode": "generation-not-successor",
+      "expectedCutover": false,
+      "expectedSuccessorReleased": 0,
+      "expectedRetainedReleased": 2,
+      "expectedRetainedRetired": 0,
+      "expectedAdmitted": 0
+    },
+    {
+      "id": "cbi19-04-retained-generation-mismatch",
+      "expectedKind": "declined",
+      "expectedCode": "retained-generation-mismatch",
+      "expectedCutover": false,
+      "expectedSuccessorReleased": 0,
+      "expectedRetainedReleased": 2,
+      "expectedRetainedRetired": 0,
+      "expectedAdmitted": 0
+    },
+    {
+      "id": "cbi19-05-surviving-occurrence-authority-changed",
+      "expectedKind": "declined",
+      "expectedCode": "authority-revalidation-mismatch",
+      "expectedCutover": false,
+      "expectedSuccessorReleased": 0,
+      "expectedRetainedReleased": 2,
+      "expectedRetainedRetired": 0,
+      "expectedAdmitted": 0
+    },
+    {
+      "id": "cbi19-06-successor-authority-denied",
+      "expectedKind": "declined",
+      "expectedCode": "authority-not-admitted",
+      "expectedCutover": false,
+      "expectedSuccessorReleased": 0,
+      "expectedRetainedReleased": 2,
+      "expectedRetainedRetired": 0,
+      "expectedAdmitted": 1
+    },
+    {
+      "id": "cbi19-07-successor-member-never-ready",
+      "expectedKind": "declined",
+      "expectedCode": "successor-establishment-refused",
+      "expectedCutover": false,
+      "expectedSuccessorReleased": 0,
+      "expectedRetainedReleased": 2,
+      "expectedRetainedRetired": 0,
+      "expectedAdmitted": 2
+    },
+    {
+      "id": "cbi19-08-release-fails-before-cutover",
+      "expectedKind": "declined",
+      "expectedCode": "release-failed-before-cutover",
+      "expectedCutover": false,
+      "expectedSuccessorReleased": 0,
+      "expectedRetainedReleased": 2,
+      "expectedRetainedRetired": 0,
+      "expectedAdmitted": 2
+    },
+    {
+      "id": "cbi19-09-retained-cleanup-fails-after-cutover",
+      "expectedKind": "cleanup-failed",
+      "expectedCode": "retained-retirement-failed",
+      "expectedCutover": true,
+      "expectedSuccessorReleased": 2,
+      "expectedRetainedReleased": 0,
+      "expectedRetainedRetired": 2,
+      "expectedAdmitted": 2
+    }
+  ]
+}

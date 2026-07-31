@@ -236,6 +236,20 @@ retained participant still retires everything, and a declined extension still ch
 bounded behavior is recorded in the [CBI18 capability contract](./cbi18-capability-contract.md) and
 completed [contract-completeness review](./cbi18-contract-completeness-review.md).
 
+CBI19 replaces the generation occupying one restart scope with a successor generation, and the first
+thing it establishes is that three earlier slices deferred to something CM4 does not have. **Scoped
+replacement swaps a whole generation, not a member**: CM4 targets one scope holding one retained
+generation, and a successful Release makes the successor active there atomically. Nothing in CM4
+retires one member while its scope keeps running, so CBI14, CBI15, and CBI18's "retire the whole
+activation" was never a placeholder awaiting this slice - it was already correct. **Authority follows
+the occurrence, not the activation attempt**, which is CBI13's own justification finally exercised: a
+surviving occurrence must be re-admitted with the authority that admitted it, a new occurrence is
+admitted afresh, and nothing is inherited either way. The release barrier re-arms for the whole
+successor activation, and the retained members are retired only **after** cutover, because a
+pre-cutover failure must leave them serving. Its bounded behavior is recorded in the
+[CBI19 capability contract](./cbi19-capability-contract.md) and completed
+[contract-completeness review](./cbi19-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -445,6 +459,17 @@ how many members grew, how many the in-force activation holds, how many members 
 stayed released, so growth-only, the shared-party answer in both directions, and decline-versus-retire
 are all checked answers. The fixture contains no evaluator, policy, identity rule, or portable
 runtime.
+
+### `cbi19-scoped-replacement-vectors` sections
+
+`vectors` names two cutovers - a clean replacement and one whose retained cleanup fails afterwards -
+and seven refusals covering a moved restart scope, a generation that succeeds nothing, a retained
+generation the scope does not hold, a surviving occurrence re-admitted for different authority, a
+denied successor admission, a successor member that never reports Ready, and a Release that fails
+before cutover. Each pins whether the scope cut over, how many successor members are released, how
+many retained members are still released and how many are retired, and how many members the successor
+admitted, so the cutover boundary is a checked answer in both directions. The fixture contains no
+runtime, evaluator, planner, or portable implementation.
 
 ### `cm0-mice-topology` sections
 

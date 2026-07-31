@@ -2213,7 +2213,19 @@ public sealed class ComponentBindingIntegrationTests
             $"CM3 refused the cyclic plan: {outcome.Failure?.Kind} {outcome.Failure?.Reason}");
     }
 
-    private static ActivationGroupPlan Plan(params OccurrenceId[] occurrences)
+    private static ActivationGroupPlan Plan(params OccurrenceId[] occurrences) =>
+        PlanFor(
+            GenerationId.Create("gen.lifecycle"),
+            RestartScopeId.Create("restart.lifecycle"),
+            occurrences);
+
+    private static ActivationRuntimeRequest RuntimeRequest(ActivationGroupPlan plan) =>
+        RuntimeRequestFor(plan, GenerationId.Create("gen.retained"));
+
+    private static ActivationGroupPlan PlanFor(
+        GenerationId generation,
+        RestartScopeId restartScope,
+        params OccurrenceId[] occurrences)
     {
         var members = occurrences.Select(occurrence => new ActivationGroupMember(
             occurrence,
@@ -2225,8 +2237,8 @@ public sealed class ComponentBindingIntegrationTests
             Array.Empty<OccurrenceId>())).ToArray();
         var outcome = new FakeActivationGroupPlanner().Plan(new(
             ActivationGroupRequestId.Create("group.integration"),
-            GenerationId.Create("gen.lifecycle"),
-            RestartScopeId.Create("restart.lifecycle"),
+            generation,
+            restartScope,
             members,
             Array.Empty<ActivationDependency>(),
             Array.Empty<LifecycleProtocolDeclaration>(),
@@ -2234,9 +2246,10 @@ public sealed class ComponentBindingIntegrationTests
         return outcome.Plan!;
     }
 
-    private static ActivationRuntimeRequest RuntimeRequest(ActivationGroupPlan plan)
+    private static ActivationRuntimeRequest RuntimeRequestFor(
+        ActivationGroupPlan plan,
+        GenerationId retained)
     {
-        var retained = GenerationId.Create("gen.retained");
         return new(
             ActivationAttemptId.Create("activation.integration"),
             plan,
@@ -3712,6 +3725,472 @@ public sealed class ComponentBindingIntegrationTests
 
         return observations;
     }
+
+    [Test]
+    public async Task Shared_cbi19_vectors_replace_the_generation_in_one_scope()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi19-scoped-replacement-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, retained) = await ReplacementResult(scenario);
+            var retainedMembers = retained.Lifecycle!.Members;
+            var successorReleased = result.Successor?.Lifecycle?.Members
+                .Count(item => item.Member.IsReleased) ?? 0;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    ReplacementToken(result.Kind),
+                    Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                    scenario);
+                Assert.That(
+                    result.CutOver,
+                    Is.EqualTo(vector.GetProperty("expectedCutover").GetBoolean()),
+                    scenario);
+                Assert.That(
+                    successorReleased,
+                    Is.EqualTo(vector.GetProperty("expectedSuccessorReleased").GetInt32()),
+                    scenario);
+                Assert.That(
+                    retainedMembers.Count(item => item.Member.IsReleased),
+                    Is.EqualTo(vector.GetProperty("expectedRetainedReleased").GetInt32()),
+                    scenario);
+                Assert.That(
+                    retainedMembers.Count(item => item.Member.Stage == PortableCompositionStage.Retired),
+                    Is.EqualTo(vector.GetProperty("expectedRetainedRetired").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Successor?.Admissions.Count ?? 0,
+                    Is.EqualTo(vector.GetProperty("expectedAdmitted").GetInt32()),
+                    scenario);
+
+                // Cutover is the boundary in both directions.
+                Assert.That(
+                    result.Retired.Count > 0,
+                    Is.EqualTo(result.CutOver),
+                    $"{scenario}: retained members are retired exactly when the scope cut over.");
+                Assert.That(
+                    successorReleased == (result.Successor?.Lifecycle?.Members.Count ?? 0) ||
+                        successorReleased == 0,
+                    Is.True,
+                    $"{scenario}: the release barrier arms for the whole successor activation.");
+                Assert.That(
+                    result.CutOver || retainedMembers.All(item => item.Member.IsReleased),
+                    Is.True,
+                    $"{scenario}: before cutover the retained activation is untouched.");
+            });
+        }
+    }
+
+    [Test]
+    public async Task C1_replacement_needs_a_released_activation_and_a_successor_for_the_same_scope()
+    {
+        var unavailable = await ComponentGroupReplacement.ReplaceAsync(
+            new FakeGenerationResolver().Resolve(PairRequest()),
+            new(
+                Array.Empty<ComponentGroupMemberAdmission>(),
+                Array.Empty<LocalCapabilityGrant>(),
+                null,
+                null),
+            Array.Empty<ComponentGroupParticipant>(),
+            RuntimeRequest(Plan()),
+            "replacement unavailable");
+        var (scope, _) = await ReplacementResult("cbi19-02-scope-mismatch");
+        var (sameGeneration, _) = await ReplacementResult("cbi19-03-generation-not-successor");
+        var (retainedMismatch, _) = await ReplacementResult("cbi19-04-retained-generation-mismatch");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(unavailable.Kind, Is.EqualTo(ComponentGroupReplacementKind.ActivationUnavailable));
+            Assert.That(scope.Code, Is.EqualTo("restart-scope-mismatch"));
+            Assert.That(sameGeneration.Code, Is.EqualTo("generation-not-successor"));
+            Assert.That(retainedMismatch.Code, Is.EqualTo("retained-generation-mismatch"));
+            Assert.That(
+                new[] { unavailable, scope, sameGeneration, retainedMismatch }.All(item =>
+                    item.Successor is null && !item.CutOver && item.Retired.Count == 0),
+                Is.True,
+                "Every refusal before establishment creates no successor and cuts nothing over.");
+        });
+    }
+
+    [Test]
+    public async Task C2_authority_is_re_established_and_follows_the_occurrence()
+    {
+        var (changed, changedRetained) = await ReplacementResult("cbi19-05-surviving-occurrence-authority-changed");
+        var (replaced, retained) = await ReplacementResult("cbi19-01-surviving-occurrences-replaced");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                changed.Code,
+                Is.EqualTo("authority-revalidation-mismatch"),
+                "A surviving occurrence may not be re-admitted for different authority.");
+            Assert.That(changed.Successor, Is.Null);
+            Assert.That(
+                changedRetained.Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True);
+
+            // Re-established, not inherited: the successor carries its own admissions from this
+            // attempt, over the same durable occurrences.
+            Assert.That(replaced.Successor!.Admissions.Select(item => item.Occurrence),
+                Is.EqualTo(retained.Admissions.Select(item => item.Occurrence)));
+            Assert.That(
+                replaced.Successor.Admissions.SelectMany(item => item.Participants).Count(),
+                Is.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public async Task C3_the_successor_stands_up_under_cbi13_barriers()
+    {
+        var (denied, retained) = await ReplacementResult("cbi19-06-successor-authority-denied");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(denied.Code, Is.EqualTo("authority-not-admitted"));
+            Assert.That(
+                denied.Successor!.Lifecycle,
+                Is.Null,
+                "An admission refusal contacts no successor provider at all.");
+            Assert.That(
+                retained.Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True,
+                "And it leaves the retained activation released.");
+        });
+    }
+
+    [Test]
+    public async Task C4_the_release_barrier_re_arms_for_the_whole_successor_activation()
+    {
+        var (refused, _) = await ReplacementResult("cbi19-07-successor-member-never-ready");
+        var (replaced, _) = await ReplacementResult("cbi19-01-surviving-occurrences-replaced");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                refused.Successor!.Lifecycle!.Members.Count(item => item.Member.IsReleased),
+                Is.Zero,
+                "One member that never reports Ready releases none of them.");
+            Assert.That(
+                replaced.Successor!.Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True);
+            Assert.That(replaced.Successor.Lifecycle.Members, Has.Count.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public async Task C5_before_cutover_the_retained_activation_is_untouched()
+    {
+        var (refused, retained) = await ReplacementResult("cbi19-08-release-fails-before-cutover");
+        var survivor = retained.Lifecycle!.Members[0].Member;
+        var attempted = await survivor.InvokeAsync(
+            CoolingPortableFixture.SetEnabled,
+            CoolingPortableFixture.CommandV1,
+            CoolingPortableFixture.Command("primary", enabled: true),
+            PortableConstraint.Atom(PortableTruth.Satisfied));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(refused.Code, Is.EqualTo("release-failed-before-cutover"));
+            Assert.That(refused.CutOver, Is.False);
+            Assert.That(
+                retained.Lifecycle.Members.All(item => item.Member.IsReleased),
+                Is.True,
+                "The retained activation was never stood down, so it does not need restoring.");
+            Assert.That(
+                attempted.FrameDecision,
+                Is.Not.EqualTo(PortableFrameDecision.None),
+                "It is still serving ordinary interaction.");
+        });
+    }
+
+    [Test]
+    public async Task C6_the_retained_members_are_retired_after_cutover_and_never_before()
+    {
+        var (replaced, retained) = await ReplacementResult("cbi19-01-surviving-occurrences-replaced");
+        var (refused, untouched) = await ReplacementResult("cbi19-07-successor-member-never-ready");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(replaced.CutOver, Is.True);
+            Assert.That(
+                retained.Lifecycle!.Members.All(item => item.Member.Stage == PortableCompositionStage.Retired),
+                Is.True,
+                "Every retained member is retired once the scope cut over.");
+            Assert.That(replaced.Retired, Has.Count.EqualTo(2));
+
+            Assert.That(refused.CutOver, Is.False);
+            Assert.That(
+                untouched.Lifecycle!.Members.Any(item => item.Member.Stage == PortableCompositionStage.Retired),
+                Is.False,
+                "And none is retired when cutover did not happen.");
+            Assert.That(refused.Retired, Is.Empty);
+        });
+    }
+
+    [Test]
+    public async Task C7_a_cleanup_failure_after_cutover_stays_visible_and_does_not_undo_it()
+    {
+        var (result, _) = await ReplacementResult("cbi19-09-retained-cleanup-fails-after-cutover");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentGroupReplacementKind.CleanupFailed));
+            Assert.That(result.Code, Is.EqualTo("retained-retirement-failed"));
+            Assert.That(result.CutOver, Is.True);
+            Assert.That(
+                result.Successor!.Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True,
+                "The scope has already cut over, so the successor stays released.");
+            Assert.That(result.Reason, Does.Contain("withdraw-refused"));
+        });
+    }
+
+    [Test]
+    public async Task C8_a_replacement_produces_an_activation_the_other_slices_accept()
+    {
+        var (result, _) = await ReplacementResult("cbi19-01-surviving-occurrences-replaced");
+        var continued = await ComponentGroupRevalidation.RevalidateAsync(
+            result.Successor!,
+            SuccessorRequests(result.Successor!),
+            "revalidate the successor activation");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsReplaced, Is.True);
+            Assert.That(
+                continued.Kind,
+                Is.EqualTo(ComponentGroupRevalidationKind.Continued),
+                "CBI14 accepts the activation a replacement produced.");
+        });
+    }
+
+    [Test]
+    public async Task C9_the_replacer_adds_no_grant_and_widens_no_scope()
+    {
+        var (result, retained) = await ReplacementResult("cbi19-01-surviving-occurrences-replaced");
+        var observation = result.Successor!.Lifecycle!.Runtime!.Observation;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                observation.RestartScope,
+                Is.EqualTo(retained.Lifecycle!.Runtime!.Observation.RestartScope),
+                "The successor occupies the scope the retained activation held; nothing widens.");
+            Assert.That(
+                observation.RetainedGeneration,
+                Is.EqualTo(retained.Lifecycle.Runtime.Observation.TargetGeneration),
+                "And it names the generation it replaced.");
+            Assert.That(
+                result.Successor.Grants.Count,
+                Is.EqualTo(retained.Grants.Count),
+                "Replacement grants no authority of its own.");
+        });
+    }
+
+    [Test]
+    public async Task C10_a_replacement_migrates_no_state_and_replaces_no_single_member()
+    {
+        var (result, retained) = await ReplacementResult("cbi19-01-surviving-occurrences-replaced");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                retained.Lifecycle!.Members.Count,
+                Is.EqualTo(result.Successor!.Lifecycle!.Members.Count),
+                "The successor resolves the same positions; none is added or removed.");
+            Assert.That(
+                retained.Lifecycle.Members.Select(item => item.Member)
+                    .Intersect(result.Successor.Lifecycle.Members.Select(item => item.Member))
+                    .Any(),
+                Is.False,
+                "No portable member is carried across; the successor's are its own.");
+            Assert.That(
+                result.Retired,
+                Has.Count.EqualTo(retained.Lifecycle.Members.Count),
+                "The whole retained generation goes, never one member of it.");
+        });
+    }
+
+    private static ComponentGroupMemberRequests[] SuccessorRequests(ComponentGroupAuthorityResult active) =>
+        active.Admissions
+            .Select(item => new ComponentGroupMemberRequests(
+                item.Occurrence,
+                item.Occurrence == active.Admissions[0].Occurrence
+                    ? [ProviderAuthority(GroupPolicy(ProviderLocalActor), Authority)]
+                    : [SupervisorAuthority(GroupPolicy(ProviderLocalActor), AuditAuthority, revoked: false)]))
+            .ToArray();
+
+    private static async Task<(
+        ComponentGroupReplacementResult Result,
+        ComponentGroupAuthorityResult Retained)>
+        ReplacementResult(string scenario)
+    {
+        var (retained, retainedHandlers) = await ReplacementRetained(
+            scenario == "cbi19-09-retained-cleanup-fails-after-cutover");
+        _ = retainedHandlers;
+
+        var successorResolution = new FakeGenerationResolver().Resolve(PairRequest());
+        var first = successorResolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var second = successorResolution.Generation.ProviderSets.Single(item => item.Requirement == SecondaryRequirement);
+        var handlers = new[]
+        {
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+        };
+
+        // A provider the required contract does not match never reports Ready.
+        var secondDocument = scenario == "cbi19-07-successor-member-never-ready"
+            ? CoolingPortableFixture.Contract with
+            {
+                Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
+            }
+            : CoolingPortableFixture.Contract;
+        var successorMembers = new[]
+        {
+            new ComponentGroupMember(
+                Selection(first.Members[0]) with { HostEndpoint = "replacement-host-primary" },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    CoolingPortableFixture.Contract, handlers[0], PortableRealization.FixedDirectCall))),
+            new ComponentGroupMember(
+                Selection(second.Members[0]) with
+                {
+                    Requirement = SecondaryRequirement,
+                    HostEndpoint = "replacement-host-secondary",
+                },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    secondDocument, handlers[1], PortableRealization.FixedDirectCall))),
+        };
+
+        var policy = GroupPolicy(ProviderLocalActor);
+        var providerRequest = scenario == "cbi19-05-surviving-occurrence-authority-changed"
+            ? ProviderAuthority(policy, Authority) with
+            {
+                Authority =
+                [
+                    ProviderAuthority(policy, Authority).Authority.Single() with
+                    {
+                        Capability = CapabilityId.Create("capability.other"),
+                    },
+                ],
+            }
+            : ProviderAuthority(policy, Authority);
+        var supervisorRequest = SupervisorAuthority(
+            policy,
+            AuditAuthority,
+            revoked: scenario == "cbi19-06-successor-authority-denied");
+
+        var occurrences = successorMembers.Select(item => item.Selection.Occurrence).ToArray();
+        var plan = scenario switch
+        {
+            "cbi19-02-scope-mismatch" => PlanFor(
+                GenerationId.Create("gen.successor"),
+                RestartScopeId.Create("restart.other"),
+                occurrences),
+            "cbi19-03-generation-not-successor" => PlanFor(
+                GenerationId.Create("gen.lifecycle"),
+                RestartScopeId.Create("restart.lifecycle"),
+                occurrences),
+            _ => PlanFor(
+                GenerationId.Create("gen.successor"),
+                RestartScopeId.Create("restart.lifecycle"),
+                occurrences),
+        };
+        var runtimeRequest = RuntimeRequestFor(
+            plan,
+            scenario == "cbi19-04-retained-generation-mismatch"
+                ? GenerationId.Create("gen.retained")
+                : GenerationId.Create("gen.lifecycle"));
+        if (scenario == "cbi19-08-release-fails-before-cutover")
+        {
+            runtimeRequest = runtimeRequest with
+            {
+                Release = runtimeRequest.Release with
+                {
+                    FailureMoment = ReleaseFailureMoment.BeforeCutover,
+                },
+            };
+        }
+
+        var result = await ComponentGroupReplacement.ReplaceAsync(
+            successorResolution,
+            retained,
+            [
+                new(successorMembers[0], [new(new(occurrences[0], Participant), providerRequest)]),
+                new(successorMembers[1], [new(new(occurrences[1], Supervisor), supervisorRequest)]),
+            ],
+            runtimeRequest,
+            $"scoped replacement {scenario}");
+        return (result, retained);
+    }
+
+    /// <summary>The activation being replaced: released, and expected to stay so until cutover.</summary>
+    private static async Task<(ComponentGroupAuthorityResult Retained, CoolingPortableHandler[] Handlers)>
+        ReplacementRetained(bool failCleanup)
+    {
+        var resolution = new FakeGenerationResolver().Resolve(PairRequest());
+        var first = resolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var second = resolution.Generation.ProviderSets.Single(item => item.Requirement == SecondaryRequirement);
+        var handlers = new[]
+        {
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+        };
+        IPortableProviderConversation Conversation(int index)
+        {
+            var conversation = new PortableDirectConversation(new PortableProviderEndpoint(
+                CoolingPortableFixture.Contract, handlers[index], PortableRealization.FixedDirectCall));
+            return failCleanup ? new FailingRetirementConversation(conversation) : conversation;
+        }
+
+        var groupMembers = new[]
+        {
+            new ComponentGroupMember(
+                Selection(first.Members[0]) with { HostEndpoint = "retained-host-primary" },
+                Conversation(0)),
+            new ComponentGroupMember(
+                Selection(second.Members[0]) with
+                {
+                    Requirement = SecondaryRequirement,
+                    HostEndpoint = "retained-host-secondary",
+                },
+                Conversation(1)),
+        };
+        var policy = GroupPolicy(ProviderLocalActor);
+        var retained = await ComponentGroupAuthority.ActivateAsync(
+            resolution,
+            [
+                new(
+                    groupMembers[0],
+                    [new(new(groupMembers[0].Selection.Occurrence, Participant), ProviderAuthority(policy, Authority))]),
+                new(
+                    groupMembers[1],
+                    [new(new(groupMembers[1].Selection.Occurrence, Supervisor), SupervisorAuthority(policy, AuditAuthority, revoked: false))]),
+            ],
+            RuntimeRequest(Plan(groupMembers.Select(item => item.Selection.Occurrence).ToArray())));
+        return (retained, handlers);
+    }
+
+    private static string ReplacementToken(ComponentGroupReplacementKind kind) => kind switch
+    {
+        ComponentGroupReplacementKind.Replaced => "replaced",
+        ComponentGroupReplacementKind.CleanupFailed => "cleanup-failed",
+        ComponentGroupReplacementKind.Declined => "declined",
+        ComponentGroupReplacementKind.ActivationUnavailable => "activation-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
 
     [Test]
     public async Task Shared_cbi18_vectors_grow_every_member_set_or_none()

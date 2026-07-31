@@ -106,7 +106,11 @@ successor does not resolve blocks every other member, a veto anywhere refuses ev
 member the successor leaves alone is untouched rather than refusing. Nothing here retires a member or
 reaches a provider.
 CBI18 grows those participant sets without consulting any declaration, because growth removes nobody
-and so cannot uncover a declared dependency. A party already participating in one member may be added
+and so cannot uncover a declared dependency.
+CBI19 replaces the generation in the restart scope with a successor generation. CM4 swaps a whole
+generation atomically, so nothing retires one member while its scope keeps running; authority follows
+the occurrence and is re-established rather than inherited; and the retained members are retired only
+after cutover, because a failure before it must leave them serving. A party already participating in one member may be added
 to another, under the local Actor it already holds; removal and substitution stay CBI15's, and a
 lapse in any retained participant retires the whole activation.
 
