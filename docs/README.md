@@ -42,6 +42,11 @@ with its classification and repinned every dependent evidence path.
   rename of "Stack" to "Graph" and why its execution is deferred and opportunistic.
 - [`public-boundaries.md`](./current/policies/public-boundaries.md) is maintained boundary policy,
   now under `docs/current/policies/` with its conformance-matrix evidence repinned.
+- [`ai-feedback/`](./current/ai-feedback/README.md) carries the agent-feedback convention and the
+  open months' entries — friction with the rules in `AGENTS.md`, reported as evidence rather than
+  opinion. It is not a fifth classification: the convention is operational policy and an unswept
+  month is live, so both sit under `current`, and a month whose report records the disposition of
+  each entry moves to `docs/archive/ai-feedback/`.
 - Stack-specific current documentation is indexed by
   [`Reference/README.md`](../Reference/README.md) and [`Minimal/README.md`](../Minimal/README.md).
 

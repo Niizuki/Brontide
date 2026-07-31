@@ -13,6 +13,9 @@ operational repository policy. It does not contain planned implementation work.
 - [.NET SDK support policy](./policies/sdk-policy.md) records the selected-SDK policy.
 - [ADR — "Stack" becomes "Graph"](./policies/ADR-stack-becomes-graph.md) records the accepted
   terminology direction and the opportunistic execution policy that goes with it.
+- [Agent feedback](./ai-feedback/README.md) is the channel for reporting friction with the rules in
+  `AGENTS.md` as evidence rather than opinion, plus the open months' entries; swept months move to
+  `docs/archive/ai-feedback/`.
 
 The following current documents now live within this directory tree; the stack READMEs remain with
 their implementations:
