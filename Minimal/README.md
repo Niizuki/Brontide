@@ -88,8 +88,10 @@ The implementation currently provides:
   function and injective across it; CBI14 revalidates every member and retires the whole activation
   when any member's authority lapses, naming the lapsed members and the participants within them;
   CBI15 revises those sets per member under per-member declarations, checking the result against the
-  whole activation and declining rather than retiring when the request itself is wrong;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI12 integration
+  whole activation and declining rather than retiring when the request itself is wrong; CBI16
+  verifies every member's declaration against what that member did, through one CM4 request whose
+  single verdict makes one member's undeclared use condemn the whole activation;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI16 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

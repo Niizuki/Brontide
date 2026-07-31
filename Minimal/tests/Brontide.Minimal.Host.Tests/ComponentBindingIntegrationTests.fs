@@ -613,6 +613,178 @@ type ComponentBindingIntegrationTests() =
         | ComponentInteractionVerdictKind.Declined -> "declined"
         | ComponentInteractionVerdictKind.ActivationUnavailable -> "activation-unavailable"
 
+    let groupVerificationToken kind =
+        match kind with
+        | ComponentGroupVerificationKind.Consistent -> "consistent"
+        | ComponentGroupVerificationKind.UndeclaredUse -> "undeclared-use"
+        | ComponentGroupVerificationKind.UngrantedUse -> "ungranted-use"
+        | ComponentGroupVerificationKind.RetirementFailed -> "retirement-failed"
+        | ComponentGroupVerificationKind.Declined -> "declined"
+        | ComponentGroupVerificationKind.ActivationUnavailable -> "activation-unavailable"
+
+    let groupVerificationResult scenario =
+        task {
+            let resolution =
+                pairRequestFor [ "cooling.control" ] [ "cooling.audit" ]
+                |> FakeGenerationResolver.resolve
+            let providerSets =
+                match resolution with
+                | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            let positionFor requirement =
+                providerSets
+                |> List.find (fun item -> item.Requirement = requirement)
+                |> fun item -> List.exactlyOne item.Members
+            let handlers = [ CoolingHandler(); CoolingHandler() ]
+            let conversationFor handler =
+                PortableDirectConversation(
+                    PortableProviderEndpoint(
+                        CoolingFixture.contract,
+                        handler,
+                        Realization.FixedDirectCall))
+                :> IPortableProviderConversation
+            let firstMember =
+                { Selection =
+                    { selection (positionFor requirementId) with
+                        HostEndpoint = "verification-host-primary" }
+                  Conversation = conversationFor (List.item 0 handlers) }
+            let secondMember =
+                { Selection =
+                    { selection (positionFor secondaryRequirementId) with
+                        Requirement = secondaryRequirementId
+                        HostEndpoint = "verification-host-secondary" }
+                  Conversation =
+                    let inner = conversationFor (List.item 1 handlers)
+                    if scenario = "cbi16-08-retirement-failure" then
+                        FailingRetirementConversation inner :> IPortableProviderConversation
+                    else
+                        inner }
+            let runtime =
+                runtimeRequest (
+                    plan [ firstMember.Selection.Occurrence; secondMember.Selection.Occurrence ])
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let! active =
+                ComponentGroupAuthority.activate
+                    resolution
+                    [ { Member = firstMember
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = firstMember.Selection.Occurrence
+                                  Participant = participant }
+                              Request = providerAuthority policy authorityId } ] }
+                      { Member = secondMember
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = secondMember.Selection.Occurrence
+                                  Participant = supervisor }
+                              Request = supervisorAuthority policy auditAuthorityId false } ] } ]
+                    runtime
+            // The observations are real: the host invokes each released member and records what
+            // came back.
+            let silent =
+                scenario = "cbi16-01-one-member-interacted"
+                || scenario = "cbi16-03-nothing-observed"
+                || scenario = "cbi16-04-denied-before-any-frame"
+            let observe index =
+                task {
+                    if scenario = "cbi16-03-nothing-observed" || (index = 1 && silent) then
+                        return []
+                    else
+                        let memberValue = (List.item index active.Lifecycle.Value.Members).Member
+                        let constraintValue =
+                            if scenario = "cbi16-04-denied-before-any-frame" then
+                                PortableConstraint.Atom PortableTruth.Unsatisfied
+                            else
+                                PortableConstraint.Atom PortableTruth.Satisfied
+                        let! attempted =
+                            memberValue.Invoke(
+                                CoolingFixture.setEnabled,
+                                CoolingFixture.commandV1,
+                                CoolingFixture.authorizedCommand "primary" true,
+                                constraintValue)
+                        return
+                            match attempted with
+                            | Ok interaction ->
+                                [ { Operation = CoolingFixture.setEnabled
+                                    Result = interaction } ]
+                            | Error error ->
+                                failwithf "Expected an observable interaction, got %A." error
+                }
+            let! firstObservations = observe 0
+            let! secondObservations = observe 1
+            let auditScope =
+                if
+                    scenario = "cbi16-06-one-member-ungranted"
+                    || scenario = "cbi16-07-undeclared-outranks-ungranted"
+                then
+                    CapabilityScopeId.create "scope.other"
+                else
+                    authorityScope
+            let firstAttribution =
+                match scenario with
+                | "cbi16-07-undeclared-outranks-ungranted" ->
+                    [ { Operation = CoolingFixture.setEnabled
+                        DeclaredAuthority = "cooling.other" } ]
+                | "cbi16-10-mapping-not-distinct" ->
+                    [ { Operation = CoolingFixture.setEnabled
+                        DeclaredAuthority = "cooling.control" }
+                      { Operation = CoolingFixture.setEnabled
+                        DeclaredAuthority = "cooling.other" } ]
+                | _ ->
+                    [ { Operation = CoolingFixture.setEnabled
+                        DeclaredAuthority = "cooling.control" } ]
+            let secondAttribution =
+                match scenario with
+                | "cbi16-05-one-member-undeclared"
+                | "cbi16-08-retirement-failure" ->
+                    [ { Operation = CoolingFixture.setEnabled
+                        DeclaredAuthority = "cooling.other" } ]
+                | _ ->
+                    [ { Operation = CoolingFixture.setEnabled
+                        DeclaredAuthority = "cooling.audit" } ]
+            let interactions =
+                let first =
+                    { Selection = firstMember.Selection
+                      Dependency =
+                        { Definition = firstMember.Selection.Definition
+                          Entries =
+                            [ { DeclaredAuthority = "cooling.control"
+                                Capability = capability
+                                Target = authorityTarget
+                                Operation = operation
+                                Scope = authorityScope } ] }
+                      Attribution = firstAttribution
+                      Observations = firstObservations }
+                let second =
+                    { Selection = secondMember.Selection
+                      Dependency =
+                        { Definition = secondMember.Selection.Definition
+                          Entries =
+                            [ { DeclaredAuthority =
+                                  if scenario = "cbi16-11-declaration-mismatch" then
+                                      "cooling.other"
+                                  else
+                                      "cooling.audit"
+                                Capability = auditCapability
+                                Target = authorityTarget
+                                Operation = auditOperation
+                                Scope = auditScope } ] }
+                      Attribution = secondAttribution
+                      Observations = secondObservations }
+                if scenario = "cbi16-09-member-set-changed" then
+                    [ first ]
+                else
+                    [ first; second ]
+            let! verdict =
+                ComponentGroupVerification.verify
+                    resolution
+                    active
+                    interactions
+                    runtime
+                    (sprintf "group verification %s" scenario)
+            return verdict, active, handlers
+        }
+
     let revisionToken kind =
         match kind with
         | ComponentParticipantRevisionKind.Revised -> "revised"
@@ -2503,6 +2675,152 @@ type ComponentBindingIntegrationTests() =
                         released = lifecycle.Members.Length || released = 0,
                         Is.True,
                         scenario))
+        }
+
+    [<Test>]
+    member _.``shared CBI16 vectors verify every member against its own declaration``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi16-group-verification-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI16 vector identity must be a string"
+                    | value -> value
+                let! result, active, handlers = groupVerificationResult scenario
+                let lifecycle = active.Lifecycle.Value
+                let released = lifecycle.Members |> List.filter _.Member.IsReleased |> List.length
+                let expectedRuntimeActive =
+                    let value = vector.GetProperty("expectedRuntimeActive")
+                    if value.ValueKind = JsonValueKind.Null then
+                        None
+                    else
+                        Some(value.GetBoolean())
+                let actualRuntimeActive =
+                    result.Runtime
+                    |> Option.map (fun outcome ->
+                        outcome.Kind = ActivationRuntimeOutcomeKind.Active)
+                multiple (fun () ->
+                    Assert.That(
+                        groupVerificationToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        (ComponentGroupVerification.exercises result).Length,
+                        Is.EqualTo(vector.GetProperty("expectedExercises").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Violating.Length,
+                        Is.EqualTo(vector.GetProperty("expectedViolating").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Members |> List.sumBy (fun item -> item.Unexercised.Length),
+                        Is.EqualTo(vector.GetProperty("expectedUnexercised").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Members |> List.sumBy (fun item -> item.Uncovered.Length),
+                        Is.EqualTo(vector.GetProperty("expectedUncovered").GetInt32()),
+                        scenario)
+                    Assert.That(actualRuntimeActive, Is.EqualTo expectedRuntimeActive, scenario)
+                    Assert.That(
+                        released,
+                        Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        handlers |> List.sumBy _.ProviderEffectCount,
+                        Is.EqualTo(int64 (vector.GetProperty("expectedProviderEffects").GetInt32())),
+                        scenario)
+                    // The runtime accepts the one projection exactly when every member is
+                    // consistent.
+                    match actualRuntimeActive with
+                    | Some runtimeActive ->
+                        Assert.That(
+                            runtimeActive,
+                            Is.EqualTo(ComponentGroupVerification.isConsistent result),
+                            scenario)
+                    | None -> ()
+                    // A structural refusal evaluates nothing; a violation retires the whole
+                    // activation.
+                    Assert.That(
+                        released = lifecycle.Members.Length || released = 0,
+                        Is.True,
+                        scenario)
+                    Assert.That(
+                        result.Violating.IsEmpty || released = 0,
+                        Is.True,
+                        sprintf "%s: a violation in any member closes every member's gate." scenario)
+                    Assert.That(
+                        result.Members
+                        |> List.forall (fun item ->
+                            let named = List.contains item.Occurrence result.Violating
+                            ComponentGroupVerification.isViolating item = named),
+                        Is.True,
+                        sprintf
+                            "%s: only members with a failed attribution are named as violating."
+                            scenario))
+        }
+
+    [<Test>]
+    member _.``one member's undeclared use is condemned by the runtime for the whole activation``() =
+        task {
+            let! result, active, _ = groupVerificationResult "cbi16-05-one-member-undeclared"
+            let lifecycle = active.Lifecycle.Value
+            let survivor = (List.item 0 lifecycle.Members).Member
+            let! attempted =
+                survivor.Invoke(
+                    CoolingFixture.setEnabled,
+                    CoolingFixture.commandV1,
+                    CoolingFixture.authorizedCommand "primary" true,
+                    PortableConstraint.Atom PortableTruth.Satisfied)
+            let interaction =
+                match attempted with
+                | Ok value -> value
+                | Error error -> failwithf "Expected a shaped gate refusal, got %A." error
+            multiple (fun () ->
+                Assert.That(result.Kind, Is.EqualTo ComponentGroupVerificationKind.UndeclaredUse)
+                Assert.That(
+                    result.Runtime.Value.Kind,
+                    Is.EqualTo ActivationRuntimeOutcomeKind.BindingObservationConflict,
+                    "One request carries every member's exercises, so CM4's own rule refuses all of them.")
+                Assert.That(
+                    OccurrenceId.value (List.exactlyOne result.Violating),
+                    Is.EqualTo(OccurrenceId.value (List.item 1 active.Admissions).Occurrence),
+                    "The member that stayed inside its declaration is retired without being named as the cause.")
+                Assert.That(
+                    ComponentGroupVerification.isViolating (List.item 0 result.Members),
+                    Is.False)
+                Assert.That(result.Replacements.Length, Is.EqualTo lifecycle.Members.Length)
+                Assert.That(CompositionStage.token survivor.Stage, Is.EqualTo "retired")
+                Assert.That(interaction.Category, Is.EqualTo(Some ProtocolCategory.StateViolation)))
+        }
+
+    [<Test>]
+    member _.``the same operation is attributed separately in each member``() =
+        task {
+            let! result, _, _ = groupVerificationResult "cbi16-02-same-operation-in-both-members"
+            let exercises = ComponentGroupVerification.exercises result
+            multiple (fun () ->
+                Assert.That(ComponentGroupVerification.isConsistent result, Is.True)
+                Assert.That(
+                    exercises
+                    |> List.map (fun item -> BindingExerciseId.value item.Exercise)
+                    |> List.distinct
+                    |> List.length,
+                    Is.EqualTo 2,
+                    "One CM4 request refuses a repeated binding-exercise identity.")
+                Assert.That(
+                    exercises |> List.forall _.AuthorityAdmitted,
+                    Is.True,
+                    "Each member's admission is derived from its own declaration and its own grants."))
         }
 
     [<Test>]

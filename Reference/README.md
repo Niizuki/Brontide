@@ -97,6 +97,10 @@ CBI15 revises those participant sets under per-member declarations. A change is 
 and checked against the activation; a declined revision leaves everything as it was, while a lapse
 found while evaluating retires the activation even when it is in a member that was not being
 revised.
+CBI16 verifies every member's declaration against what that member actually did. The activation's
+projected binding exercises go to CM4 as one request, so one member's undeclared or ungranted use
+condemns all of them; attribution stays per member, so the same Operation in two members is two
+independent attributions.
 
 ## Build and test
 

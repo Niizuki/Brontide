@@ -2280,18 +2280,23 @@ public static class ComponentGroupLifecycle
 
     private static bool SupportedPlan(
         Cm.ActivationGroupPlan plan,
-        IReadOnlyList<ComponentGroupMember> members)
+        IReadOnlyList<ComponentGroupMember> members) =>
+        SupportedPlan(plan, members.Select(item => item.Selection.Occurrence).ToArray());
+
+    internal static bool SupportedPlan(
+        Cm.ActivationGroupPlan plan,
+        IReadOnlyList<Cm.OccurrenceId> occurrences)
     {
-        var selected = members.Select(item => item.Selection.Occurrence).ToHashSet();
-        return selected.Count == members.Count &&
-            plan.Groups.Count == members.Count &&
+        var selected = occurrences.ToHashSet();
+        return selected.Count == occurrences.Count &&
+            plan.Groups.Count == occurrences.Count &&
             plan.Groups.All(group =>
                 group.Members.Count == 1 &&
                 group.Protocols.Count == 0 &&
                 selected.Contains(group.Members[0].Occurrence));
     }
 
-    private static IReadOnlyList<Cm.MemberStageOutcome> GroupStageOutcomes(
+    internal static IReadOnlyList<Cm.MemberStageOutcome> GroupStageOutcomes(
         Cm.ActivationGroupPlan plan,
         Cm.OccurrenceId? failedMember,
         Cm.ActivationStage? failedStage) =>
@@ -2948,6 +2953,265 @@ public static class ComponentGroupRevision
             active,
             current ?? Array.Empty<ComponentParticipantObservation>(),
             Array.Empty<Cm.OccurrenceId>(),
+            code,
+            reason);
+}
+
+public sealed record ComponentGroupMemberInteractions(
+    ComponentBindingSelection Selection,
+    ComponentGrantDependency Dependency,
+    IReadOnlyList<ComponentOperationAuthorityMapping> Attribution,
+    IReadOnlyList<ComponentObservedInteraction> Observations);
+
+public enum ComponentGroupVerificationKind
+{
+    Consistent,
+    UndeclaredUse,
+    UngrantedUse,
+    RetirementFailed,
+    Declined,
+    ActivationUnavailable,
+}
+
+public sealed record ComponentGroupMemberVerification(
+    Cm.OccurrenceId Occurrence,
+    IReadOnlyList<Cm.BindingExerciseDeclaration> Exercises,
+    IReadOnlyList<string> Unexercised,
+    IReadOnlyList<string> Uncovered,
+    bool UndeclaredUse,
+    bool UngrantedUse)
+{
+    public bool IsViolating => UndeclaredUse || UngrantedUse;
+}
+
+public sealed record ComponentGroupVerificationResult(
+    ComponentGroupVerificationKind Kind,
+    Cm.ActivationRuntimeOutcome? Runtime,
+    IReadOnlyList<ComponentGroupMemberVerification> Members,
+    IReadOnlyList<Cm.OccurrenceId> Violating,
+    IReadOnlyList<Portable.PortableReplacementRecord> Replacements,
+    string Code,
+    string Reason)
+{
+    public bool IsConsistent => Kind == ComponentGroupVerificationKind.Consistent;
+
+    public IReadOnlyList<Cm.BindingExerciseDeclaration> Exercises =>
+        Members.SelectMany(item => item.Exercises).ToArray();
+}
+
+/// <summary>
+/// Verifies every member's declaration against what that member actually did, through one CM4
+/// request carrying the whole activation's projected binding exercises.
+/// </summary>
+/// <remarks>
+/// A CBI12 activation is one CM4 request, so one member's undeclared use condemns all of them: CM4
+/// refuses the request on the first offending exercise rather than excusing the members that
+/// behaved. The answer comes from the runtime's shape, as CBI12's release barrier did, and agrees
+/// with CBI14's separate reason that the activation shares a restart scope. Attribution stays per
+/// member, because the declaration is per member.
+/// </remarks>
+public static class ComponentGroupVerification
+{
+    public static async ValueTask<ComponentGroupVerificationResult> VerifyAsync(
+        Cm.ResolutionOutcome resolution,
+        ComponentGroupAuthorityResult active,
+        IReadOnlyList<ComponentGroupMemberInteractions> members,
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(active);
+        ArgumentNullException.ThrowIfNull(members);
+        ArgumentNullException.ThrowIfNull(runtimeRequest);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (!active.IsActive || active.Lifecycle is not { } lifecycle)
+        {
+            return Decline(
+                ComponentGroupVerificationKind.ActivationUnavailable,
+                "active-authority-unavailable",
+                "CBI16 requires one released CBI13 activation with every member admitted.");
+        }
+
+        var prior = active.Admissions;
+        var ordered = members
+            .OrderBy(item => item.Selection.Occurrence.Value, StringComparer.Ordinal)
+            .ToArray();
+        if (!ordered.Select(item => item.Selection.Occurrence)
+            .SequenceEqual(prior.Select(item => item.Occurrence)))
+        {
+            return Decline(
+                ComponentGroupVerificationKind.Declined,
+                "member-set-changed",
+                "The verification does not name the members this activation admitted.");
+        }
+
+        foreach (var member in ordered)
+        {
+            if (ComponentParticipantRevision.DeclarationShape(
+                    resolution,
+                    member.Selection,
+                    member.Dependency) is { } invalid)
+            {
+                return Decline(ComponentGroupVerificationKind.Declined, invalid.Code, invalid.Reason);
+            }
+
+            // Distinct within a member only: two Components may both expose an Operation of the
+            // same name, and each attributes it against its own declaration.
+            if (ComponentParticipantAdmission.FirstDuplicate(
+                    member.Attribution.Select(item => item.Operation.ToString())) is { } repeated)
+            {
+                return Decline(
+                    ComponentGroupVerificationKind.Declined,
+                    "operation-mapping-not-distinct",
+                    $"Member {member.Selection.Occurrence} attributes Operation '{repeated}' to more than one declared authority.");
+            }
+        }
+
+        if (!ComponentGroupLifecycle.SupportedPlan(
+                runtimeRequest.Plan,
+                prior.Select(item => item.Occurrence).ToArray()))
+        {
+            return Decline(
+                ComponentGroupVerificationKind.Declined,
+                "plan-unsupported",
+                "CBI16 projects exercises onto the protocol-free activation groups CBI12 activated.");
+        }
+
+        var verified = ordered
+            .Select((member, index) => Project(member, prior[index].Grants))
+            .ToArray();
+
+        // One request, one verdict: every member's exercises are judged together.
+        var runtime = new Cm.FakeActivationRuntime().Activate(runtimeRequest with
+        {
+            StageOutcomes = ComponentGroupLifecycle.GroupStageOutcomes(runtimeRequest.Plan, null, null),
+            BindingExercises = verified.SelectMany(item => item.Exercises).ToArray(),
+        });
+
+        var violating = verified
+            .Where(item => item.IsViolating)
+            .Select(item => item.Occurrence)
+            .ToArray();
+        if (violating.Length == 0)
+        {
+            return new(
+                ComponentGroupVerificationKind.Consistent,
+                runtime,
+                verified,
+                violating,
+                Array.Empty<Portable.PortableReplacementRecord>(),
+                "interaction-consistent",
+                $"{verified.Sum(item => item.Exercises.Count)} delivered interaction(s) across {verified.Length} members stayed inside their declarations.");
+        }
+
+        var undeclared = verified.Any(item => item.UndeclaredUse);
+        var replacements = new List<Portable.PortableReplacementRecord>();
+        var cleanup = new List<string>();
+        foreach (var outcome in lifecycle.Members)
+        {
+            var (replacement, failure) = await ComponentParticipantRevalidation
+                .TryRetireAsync(outcome.Member, retirementReason, cancellationToken)
+                .ConfigureAwait(false);
+            if (replacement is not null)
+            {
+                replacements.Add(replacement);
+            }
+
+            if (failure is not null)
+            {
+                cleanup.Add($"{outcome.Occurrence}: {failure}");
+            }
+        }
+
+        return cleanup.Count == 0
+            ? new(
+                undeclared
+                    ? ComponentGroupVerificationKind.UndeclaredUse
+                    : ComponentGroupVerificationKind.UngrantedUse,
+                runtime,
+                verified,
+                violating,
+                replacements,
+                undeclared ? "interaction-undeclared" : "interaction-ungranted",
+                undeclared
+                    ? $"A delivered interaction of {string.Join(", ", violating.Select(item => item.Value))} could not be attributed to any authority that member declared."
+                    : $"A delivered interaction of {string.Join(", ", violating.Select(item => item.Value))} exercised declared authority no participant of that member holds a grant for.")
+            : new(
+                ComponentGroupVerificationKind.RetirementFailed,
+                runtime,
+                verified,
+                violating,
+                replacements,
+                "authority-retirement-failed",
+                string.Join("; ", cleanup));
+    }
+
+    /// <summary>
+    /// Projects one member's observations, deriving each exercise's admission from that member's own
+    /// declaration and its own grants.
+    /// </summary>
+    /// <remarks>
+    /// Exercise identity carries the occurrence because CM4 refuses a request with a repeated
+    /// binding-exercise identity, and the whole activation now shares one request.
+    /// </remarks>
+    private static ComponentGroupMemberVerification Project(
+        ComponentGroupMemberInteractions member,
+        IReadOnlyList<Cm.LocalCapabilityGrant> grants)
+    {
+        var occurrence = member.Selection.Occurrence;
+        var declared = member.Dependency.Entries
+            .Select(item => item.DeclaredAuthority)
+            .ToHashSet(StringComparer.Ordinal);
+        var uncoveredNames = ComponentParticipantRevision.Uncovered(member.Dependency, grants)
+            .ToHashSet(StringComparer.Ordinal);
+        var attributed = ComponentInteractionVerification.Attribute(
+            member.Attribution,
+            member.Observations);
+
+        var exercises = attributed
+            .Select((name, index) => new Cm.BindingExerciseDeclaration(
+                Cm.BindingExerciseId.Create($"exercise.observed.{occurrence.Value}.{index + 1}"),
+                Cm.BindingId.Create($"binding.{occurrence.Value}"),
+                occurrence,
+                occurrence,
+                Cm.SourceId.Create("source.portable-observation"),
+                Cm.BindingExposureKind.Distinct,
+                null,
+                Cm.RoutingDecisionId.Create($"routing.observed.{occurrence.Value}.{index + 1}"),
+                name is not null && declared.Contains(name) && !uncoveredNames.Contains(name),
+                Cm.BindingDeliveryResult.Delivered,
+                null))
+            .ToArray();
+
+        var exercised = attributed
+            .Where(name => name is not null && declared.Contains(name))
+            .Select(name => name!)
+            .ToHashSet(StringComparer.Ordinal);
+        return new(
+            occurrence,
+            exercises,
+            member.Dependency.Entries
+                .Select(item => item.DeclaredAuthority)
+                .Where(name => !exercised.Contains(name))
+                .OrderBy(item => item, StringComparer.Ordinal)
+                .ToArray(),
+            uncoveredNames.OrderBy(item => item, StringComparer.Ordinal).ToArray(),
+            attributed.Any(name => name is null || !declared.Contains(name)),
+            attributed.Any(name => name is not null && uncoveredNames.Contains(name)));
+    }
+
+    private static ComponentGroupVerificationResult Decline(
+        ComponentGroupVerificationKind kind,
+        string code,
+        string reason) =>
+        new(
+            kind,
+            null,
+            Array.Empty<ComponentGroupMemberVerification>(),
+            Array.Empty<Cm.OccurrenceId>(),
+            Array.Empty<Portable.PortableReplacementRecord>(),
             code,
             reason);
 }

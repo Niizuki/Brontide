@@ -379,13 +379,30 @@ demonstrate. The
 [`contract-completeness review`](../../component-management/cbi15-contract-completeness-review.md)
 bound it to revision under per-member declarations.
 
-**Lifting the three remaining single-member slices is the next implementable integration item.**
-CBI8's declaration-free extension, CBI10's observed-interaction verification, and CBI11's succession
-still govern one member. CBI10 is the interesting one: it projects observed interaction into CM4
-binding exercises, and a multi-member activation has one CM4 request, so the projection would have to
-carry every member's interactions into a single runtime judgement — which raises whether one member's
-undeclared use should condemn the activation the way a lapse now does. Relational Initialisation,
-scoped replacement, member addition or removal, child Ports, mediation, wider Provider Sets, and real
+CBI16 lifts CBI10's verification and answers the question that lift raised: **one member's undeclared
+use condemns the whole activation.** The answer comes from the runtime rather than from a preference,
+as CBI12's release barrier did — a CBI12 activation is one CM4 request, so every member's projected
+exercises are judged together and CM4's rule that delivery cannot succeed when the external authority
+check denied it refuses the request on the first offending exercise rather than excusing the members
+that behaved. That CBI14's independent reason, one restart scope and one fate, reaches the same
+answer is recorded rather than relied on: two arguments converging would have had to be weighed
+against each other had they disagreed. Lifting it also poses two questions a single member could not.
+**Attribution is per member**, so two Components that both expose an Operation of the same name are
+two independent attributions — a shared vector attributes the same Operation reference in both
+members and is admitted — while a repeat inside one member is still refused. And **no member's grants
+admit another member's use**, because CBI13 admits authority per member. A structural refusal
+evaluates nothing and changes nothing, which is CBI15's decline-versus-retire distinction under a
+different input. The [`CBI16 capability contract`](../../component-management/cbi16-capability-contract.md)
+and [`contract-completeness review`](../../component-management/cbi16-contract-completeness-review.md)
+bound it to the interactions it is given over one protocol-free multi-member activation.
+
+**Lifting the two remaining single-member slices is the next implementable integration item.** CBI8's
+declaration-free extension and CBI11's succession still govern one member. CBI11 is the harder one:
+succession replaces a declaration with a narrower one drawn from a successor CM2 resolution of the
+same position, and an activation holds one declaration per member, so it has to decide whether a
+successor narrows one member's declaration or the activation's set of them at once — and whether a
+member whose position has no successor blocks the others. Relational Initialisation, scoped
+replacement, member addition or removal, child Ports, mediation, wider Provider Sets, and real
 distribution remain future work behind it. PB8's independent reviews remain a separate governance
 prerequisite rather than implementation work; Decision 11 was ruled on and delivered on 2026-07-30.
 
