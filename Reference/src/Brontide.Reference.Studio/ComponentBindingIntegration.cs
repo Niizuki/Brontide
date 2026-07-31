@@ -3275,6 +3275,44 @@ public static class ComponentGroupReplacement
             return Decline(ComponentGroupReplacementKind.Declined, invalid.Code, invalid.Reason);
         }
 
+        // Both limits this slice declares, checked rather than assumed: the members are the
+        // generation's positions, and they are the ones the retained activation already holds.
+        if (Membership(successor, members) is { } disagreement)
+        {
+            return Decline(
+                ComponentGroupReplacementKind.Declined,
+                disagreement.Code,
+                disagreement.Reason);
+        }
+
+        if (Changed(retained, members) is { } changed)
+        {
+            return Decline(ComponentGroupReplacementKind.Declined, changed.Code, changed.Reason);
+        }
+
+        return await ReplaceCoreAsync(
+            successor,
+            retained,
+            lifecycle,
+            members,
+            runtimeRequest,
+            retirementReason,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Replaces the generation without deciding whether the membership may differ, so a membership
+    /// replacement reaches the same cutover rather than restating it.
+    /// </summary>
+    internal static async ValueTask<ComponentGroupReplacementResult> ReplaceCoreAsync(
+        Cm.ResolutionOutcome successor,
+        ComponentGroupAuthorityResult retained,
+        ComponentGroupActivationResult lifecycle,
+        IReadOnlyList<ComponentGroupParticipant> members,
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        string retirementReason,
+        CancellationToken cancellationToken)
+    {
         // A surviving occurrence keeps whatever it was admitted for: the replacement may not change
         // it quietly. Authority is still re-established, never inherited.
         var admitted = retained.Admissions.ToDictionary(item => item.Occurrence);
@@ -3357,11 +3395,89 @@ public static class ComponentGroupReplacement
                 string.Join("; ", cleanup));
     }
 
+    /// <summary>Every position the completed successor generation resolves, in a stable order.</summary>
+    internal static IReadOnlyList<(Cm.RequirementId Requirement, Cm.OccurrenceId Occurrence)> Positions(
+        Cm.ResolutionOutcome successor) =>
+        successor.Generation is not { } generation
+            ? Array.Empty<(Cm.RequirementId, Cm.OccurrenceId)>()
+            : generation.ProviderSets
+                .SelectMany(set => set.Members.Select(member => (set.Requirement, member.Occurrence)))
+                .OrderBy(item => item.Requirement.Value, StringComparer.Ordinal)
+                .ThenBy(item => item.Occurrence.Value, StringComparer.Ordinal)
+                .ToArray();
+
+    /// <summary>
+    /// Checks that the supplied members are exactly the positions the successor generation resolves.
+    /// </summary>
+    /// <remarks>
+    /// The membership is the generation's statement, not the caller's. Without this a caller could
+    /// omit a position the successor still resolves and cut a scope over to a generation whose plan
+    /// covers fewer members than CM2 resolved, with the omitted Component retired and no refusal
+    /// anywhere.
+    /// </remarks>
+    internal static (string Code, string Reason)? Membership(
+        Cm.ResolutionOutcome successor,
+        IReadOnlyList<ComponentGroupParticipant> members)
+    {
+        if (successor.Generation is null)
+        {
+            return (
+                "resolution-not-complete",
+                "Replacing a generation requires a completed CM2 successor generation.");
+        }
+
+        var resolved = Positions(successor);
+        var supplied = members
+            .Select(item => (item.Member.Selection.Requirement, item.Member.Selection.Occurrence))
+            .ToHashSet();
+        foreach (var position in resolved)
+        {
+            if (!supplied.Contains(position))
+            {
+                return (
+                    "position-not-supplied",
+                    $"The successor generation resolves requirement '{position.Requirement}' at occurrence '{position.Occurrence}', which no supplied member names.");
+            }
+        }
+
+        var known = resolved.ToHashSet();
+        foreach (var member in members
+            .OrderBy(item => item.Member.Selection.Occurrence.Value, StringComparer.Ordinal))
+        {
+            var selection = member.Member.Selection;
+            if (!known.Contains((selection.Requirement, selection.Occurrence)))
+            {
+                return (
+                    "member-not-resolved",
+                    $"Member '{selection.Occurrence}' names requirement '{selection.Requirement}', which the successor generation does not resolve at that occurrence.");
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Checks the limit this slice declares: the successor resolves the positions the retained
+    /// activation already holds.
+    /// </summary>
+    internal static (string Code, string Reason)? Changed(
+        ComponentGroupAuthorityResult retained,
+        IReadOnlyList<ComponentGroupParticipant> members)
+    {
+        var held = retained.Admissions.Select(item => item.Occurrence).ToHashSet();
+        var intended = members.Select(item => item.Member.Selection.Occurrence).ToHashSet();
+        return held.SetEquals(intended)
+            ? null
+            : (
+                "membership-changed",
+                "CBI19 replaces a generation resolving the same positions; adding or dropping one is a membership replacement.");
+    }
+
     /// <summary>
     /// Checks that the request replaces the generation this activation made active, in the scope it
     /// occupies.
     /// </summary>
-    private static (string Code, string Reason)? Scope(
+    internal static (string Code, string Reason)? Scope(
         ComponentGroupAuthorityResult retained,
         Cm.ActivationRuntimeRequest runtimeRequest)
     {
@@ -3405,6 +3521,139 @@ public static class ComponentGroupReplacement
         string code,
         string reason) =>
         new(kind, null, false, Array.Empty<Cm.OccurrenceId>(), code, reason);
+}
+
+public enum ComponentGroupMembershipKind
+{
+    Replaced,
+    CleanupFailed,
+    Declined,
+    ActivationUnavailable,
+}
+
+public sealed record ComponentGroupMembershipResult(
+    ComponentGroupMembershipKind Kind,
+    ComponentGroupAuthorityResult? Successor,
+    bool CutOver,
+    IReadOnlyList<Cm.OccurrenceId> Added,
+    IReadOnlyList<Cm.OccurrenceId> Dropped,
+    IReadOnlyList<Cm.OccurrenceId> Surviving,
+    IReadOnlyList<Cm.OccurrenceId> Retired,
+    string Code,
+    string Reason)
+{
+    public bool IsReplaced => Kind == ComponentGroupMembershipKind.Replaced;
+}
+
+/// <summary>
+/// Replaces the generation occupying one restart scope with a successor generation that resolves a
+/// different set of positions, adding and dropping members across the cutover.
+/// </summary>
+/// <remarks>
+/// The lift needs no new authority rule, because CBI19 decided authority per occurrence: a surviving
+/// occurrence is re-admitted with what admitted it, a new one is admitted afresh, and a dropped one
+/// has nothing to follow it to. What it needs is the membership to be the successor generation's
+/// statement rather than the caller's, which is where a silent drop would otherwise enter, and for
+/// the change to be reported so a member retired because its position is gone is distinguishable
+/// from one retired because its generation was replaced. An addition joins only across the cutover:
+/// a CM2 generation is one immutable object and a CM4 attempt covers its whole plan, so neither can
+/// represent a member arriving into a generation already serving.
+/// </remarks>
+public static class ComponentGroupMembership
+{
+    public static async ValueTask<ComponentGroupMembershipResult> ReplaceAsync(
+        Cm.ResolutionOutcome successor,
+        ComponentGroupAuthorityResult retained,
+        IReadOnlyList<ComponentGroupParticipant> members,
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(successor);
+        ArgumentNullException.ThrowIfNull(retained);
+        ArgumentNullException.ThrowIfNull(members);
+        ArgumentNullException.ThrowIfNull(runtimeRequest);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (!retained.IsActive || retained.Lifecycle is not { } lifecycle)
+        {
+            return Decline(
+                ComponentGroupMembershipKind.ActivationUnavailable,
+                "active-authority-unavailable",
+                "CBI20 requires one released CBI13 activation to replace.");
+        }
+
+        if (ComponentGroupReplacement.Scope(retained, runtimeRequest) is { } invalid)
+        {
+            return Decline(ComponentGroupMembershipKind.Declined, invalid.Code, invalid.Reason);
+        }
+
+        if (ComponentGroupReplacement.Membership(successor, members) is { } disagreement)
+        {
+            return Decline(
+                ComponentGroupMembershipKind.Declined,
+                disagreement.Code,
+                disagreement.Reason);
+        }
+
+        // Emptying an activation is CBI14's withdrawal: a scope cannot cut over to a generation with
+        // no member to release, and the release barrier is a barrier over a membership.
+        if (ComponentGroupReplacement.Positions(successor).Count == 0)
+        {
+            return Decline(
+                ComponentGroupMembershipKind.Declined,
+                "membership-empty",
+                "The successor generation resolves no position; standing the activation down is a withdrawal, not a replacement.");
+        }
+
+        var held = retained.Admissions.Select(item => item.Occurrence).ToArray();
+        var intended = members.Select(item => item.Member.Selection.Occurrence).ToArray();
+        var replacement = await ComponentGroupReplacement.ReplaceCoreAsync(
+            successor,
+            retained,
+            lifecycle,
+            members,
+            runtimeRequest,
+            retirementReason,
+            cancellationToken).ConfigureAwait(false);
+        return new(
+            Kind(replacement.Kind),
+            replacement.Successor,
+            replacement.CutOver,
+            Ordered(intended.Where(item => !held.Contains(item))),
+            Ordered(held.Where(item => !intended.Contains(item))),
+            Ordered(held.Where(intended.Contains)),
+            replacement.Retired,
+            replacement.Code,
+            replacement.Reason);
+    }
+
+    private static ComponentGroupMembershipKind Kind(ComponentGroupReplacementKind kind) => kind switch
+    {
+        ComponentGroupReplacementKind.Replaced => ComponentGroupMembershipKind.Replaced,
+        ComponentGroupReplacementKind.CleanupFailed => ComponentGroupMembershipKind.CleanupFailed,
+        ComponentGroupReplacementKind.ActivationUnavailable =>
+            ComponentGroupMembershipKind.ActivationUnavailable,
+        _ => ComponentGroupMembershipKind.Declined,
+    };
+
+    private static IReadOnlyList<Cm.OccurrenceId> Ordered(IEnumerable<Cm.OccurrenceId> occurrences) =>
+        occurrences.OrderBy(item => item.Value, StringComparer.Ordinal).ToArray();
+
+    private static ComponentGroupMembershipResult Decline(
+        ComponentGroupMembershipKind kind,
+        string code,
+        string reason) =>
+        new(
+            kind,
+            null,
+            false,
+            Array.Empty<Cm.OccurrenceId>(),
+            Array.Empty<Cm.OccurrenceId>(),
+            Array.Empty<Cm.OccurrenceId>(),
+            Array.Empty<Cm.OccurrenceId>(),
+            code,
+            reason);
 }
 
 public enum ComponentGroupExtensionKind

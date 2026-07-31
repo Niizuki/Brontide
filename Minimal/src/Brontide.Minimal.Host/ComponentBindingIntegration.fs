@@ -3396,9 +3396,92 @@ module ComponentGroupReplacement =
           Code = code
           Reason = reason }
 
+    /// Every position the completed successor generation resolves, in a stable order.
+    let internal positions (successor: ResolutionOutcome) =
+        match successor with
+        | ResolutionOutcome.Resolved(_, generation) ->
+            generation.ProviderSets
+            |> List.collect (fun set ->
+                set.Members
+                |> List.map (fun memberValue -> set.Requirement, memberValue.Occurrence))
+            |> List.sortWith (fun (leftRequirement, leftOccurrence) (rightRequirement, rightOccurrence) ->
+                match
+                    ordinal
+                        (RequirementId.value leftRequirement)
+                        (RequirementId.value rightRequirement)
+                with
+                | 0 -> ordinal (OccurrenceId.value leftOccurrence) (OccurrenceId.value rightOccurrence)
+                | order -> order)
+        | _ -> []
+
+    /// Checks that the supplied members are exactly the positions the successor generation resolves.
+    ///
+    /// The membership is the generation's statement, not the caller's. Without this a caller could
+    /// omit a position the successor still resolves and cut a scope over to a generation whose plan
+    /// covers fewer members than CM2 resolved, with the omitted Component retired and no refusal
+    /// anywhere.
+    let internal membership
+        (successor: ResolutionOutcome)
+        (members: ComponentGroupParticipant list)
+        =
+        match successor with
+        | ResolutionOutcome.Resolved _ ->
+            let resolved = positions successor
+            let supplied =
+                members
+                |> List.map (fun item ->
+                    item.Member.Selection.Requirement, item.Member.Selection.Occurrence)
+            match resolved |> List.tryFind (fun position -> not (List.contains position supplied)) with
+            | Some(requirement, occurrence) ->
+                Some(
+                    "position-not-supplied",
+                    sprintf
+                        "The successor generation resolves requirement '%s' at occurrence '%s', which no supplied member names."
+                        (RequirementId.value requirement)
+                        (OccurrenceId.value occurrence))
+            | None ->
+                members
+                |> List.sortWith (fun left right ->
+                    ordinal
+                        (OccurrenceId.value left.Member.Selection.Occurrence)
+                        (OccurrenceId.value right.Member.Selection.Occurrence))
+                |> List.tryPick (fun item ->
+                    let selection = item.Member.Selection
+                    if List.contains (selection.Requirement, selection.Occurrence) resolved then
+                        None
+                    else
+                        Some(
+                            "member-not-resolved",
+                            sprintf
+                                "Member '%s' names requirement '%s', which the successor generation does not resolve at that occurrence."
+                                (OccurrenceId.value selection.Occurrence)
+                                (RequirementId.value selection.Requirement)))
+        | _ ->
+            Some(
+                "resolution-not-complete",
+                "Replacing a generation requires a completed CM2 successor generation.")
+
+    /// Checks the limit this slice declares: the successor resolves the positions the retained
+    /// activation already holds.
+    let internal changed
+        (retained: ComponentGroupAuthorityResult)
+        (members: ComponentGroupParticipant list)
+        =
+        let held = retained.Admissions |> List.map _.Occurrence
+        let intended = members |> List.map _.Member.Selection.Occurrence
+        if
+            held.Length = intended.Length
+            && held |> List.forall (fun item -> List.contains item intended)
+        then
+            None
+        else
+            Some(
+                "membership-changed",
+                "CBI19 replaces a generation resolving the same positions; adding or dropping one is a membership replacement.")
+
     /// Checks that the request replaces the generation this activation made active, in the scope it
     /// occupies. The facts come from CM4's own observation, not the caller's plan.
-    let private scope
+    let internal scope
         (retained: ComponentGroupAuthorityResult)
         (runtimeRequest: ActivationRuntimeRequest)
         =
@@ -3482,6 +3565,83 @@ module ComponentGroupReplacement =
             "release-failed-before-cutover"
         | _ -> "successor-establishment-refused"
 
+    /// Replaces the generation without deciding whether the membership may differ, so a membership
+    /// replacement reaches the same cutover rather than restating it.
+    let internal replaceCore
+        (successor: ResolutionOutcome)
+        (retained: ComponentGroupAuthorityResult)
+        (lifecycle: ComponentGroupActivationResult)
+        (members: ComponentGroupParticipant list)
+        (runtimeRequest: ActivationRuntimeRequest)
+        retirementReason
+        =
+        task {
+            match survivingAuthority retained members with
+            | Some(code, reason) -> return decline ComponentGroupReplacementKind.Declined code reason
+            | None ->
+                // The successor stands up under CBI13's barriers: every set admitted before any
+                // successor provider is contacted, then one Release once every member is Ready.
+                let! activation = ComponentGroupAuthority.activate successor members runtimeRequest
+                if not (ComponentGroupAuthority.isActive activation) then
+                    // Before cutover the retained activation was never stood down; it is still
+                    // serving.
+                    let code =
+                        match activation.Failure with
+                        | Some failure when
+                            failure.Kind = ComponentGroupAuthorityFailureKind.ActivationRefused
+                            ->
+                            successorFailureCode activation
+                        | Some failure -> failure.Code
+                        | None -> "successor-activation-refused"
+                    let reason =
+                        activation.Failure
+                        |> Option.map _.Reason
+                        |> Option.defaultValue
+                            "The successor activation did not release every member."
+                    return
+                        { Kind = ComponentGroupReplacementKind.Declined
+                          Successor = Some activation
+                          CutOver = false
+                          Retired = []
+                          Code = code
+                          Reason = reason }
+                else
+                    // Cutover happened. Only now may the retained members be stood down.
+                    let cleanup = ResizeArray<string>()
+                    let retiredMembers = ResizeArray<OccurrenceId>()
+                    for outcome in lifecycle.Members do
+                        let! result =
+                            ComponentParticipantRevalidation.tryRetire outcome.Member retirementReason
+                        retiredMembers.Add outcome.Occurrence
+                        match result with
+                        | Ok _ -> ()
+                        | Error detail ->
+                            cleanup.Add(
+                                sprintf "%s: %s" (OccurrenceId.value outcome.Occurrence) detail)
+                    if cleanup.Count = 0 then
+                        return
+                            { Kind = ComponentGroupReplacementKind.Replaced
+                              Successor = Some activation
+                              CutOver = true
+                              Retired = List.ofSeq retiredMembers
+                              Code = "activation-replaced"
+                              Reason =
+                                sprintf
+                                    "The scope cut over to %s; %d retained members were retired."
+                                    (GenerationId.value runtimeRequest.Plan.Generation)
+                                    retiredMembers.Count }
+                    else
+                        // The scope has already cut over, so the successor stays released and the
+                        // cleanup failure is named rather than swallowed.
+                        return
+                            { Kind = ComponentGroupReplacementKind.CleanupFailed
+                              Successor = Some activation
+                              CutOver = true
+                              Retired = List.ofSeq retiredMembers
+                              Code = "retained-retirement-failed"
+                              Reason = String.Join("; ", cleanup) }
+        }
+
     let replace
         (successor: ResolutionOutcome)
         (retained: ComponentGroupAuthorityResult)
@@ -3499,85 +3659,159 @@ module ComponentGroupReplacement =
                 | Some(code, reason) ->
                     return decline ComponentGroupReplacementKind.Declined code reason
                 | None ->
-                    match survivingAuthority retained members with
+                    // Both limits this slice declares, checked rather than assumed: the members are
+                    // the generation's positions, and they are the ones the retained activation
+                    // already holds.
+                    match membership successor members with
                     | Some(code, reason) ->
                         return decline ComponentGroupReplacementKind.Declined code reason
                     | None ->
-                        // The successor stands up under CBI13's barriers: every set admitted before
-                        // any successor provider is contacted, then one Release once every member
-                        // is Ready.
-                        let! activation =
-                            ComponentGroupAuthority.activate successor members runtimeRequest
-                        if not (ComponentGroupAuthority.isActive activation) then
-                            // Before cutover the retained activation was never stood down; it is
-                            // still serving.
-                            let code =
-                                match activation.Failure with
-                                | Some failure when
-                                    failure.Kind
-                                    = ComponentGroupAuthorityFailureKind.ActivationRefused
-                                    ->
-                                    successorFailureCode activation
-                                | Some failure -> failure.Code
-                                | None -> "successor-activation-refused"
-                            let reason =
-                                activation.Failure
-                                |> Option.map _.Reason
-                                |> Option.defaultValue
-                                    "The successor activation did not release every member."
-                            return
-                                { Kind = ComponentGroupReplacementKind.Declined
-                                  Successor = Some activation
-                                  CutOver = false
-                                  Retired = []
-                                  Code = code
-                                  Reason = reason }
-                        else
-                            // Cutover happened. Only now may the retained members be stood down.
-                            let cleanup = ResizeArray<string>()
-                            let retiredMembers = ResizeArray<OccurrenceId>()
-                            for outcome in lifecycle.Members do
-                                let! result =
-                                    ComponentParticipantRevalidation.tryRetire
-                                        outcome.Member
-                                        retirementReason
-                                retiredMembers.Add outcome.Occurrence
-                                match result with
-                                | Ok _ -> ()
-                                | Error detail ->
-                                    cleanup.Add(
-                                        sprintf
-                                            "%s: %s"
-                                            (OccurrenceId.value outcome.Occurrence)
-                                            detail)
-                            if cleanup.Count = 0 then
-                                return
-                                    { Kind = ComponentGroupReplacementKind.Replaced
-                                      Successor = Some activation
-                                      CutOver = true
-                                      Retired = List.ofSeq retiredMembers
-                                      Code = "activation-replaced"
-                                      Reason =
-                                        sprintf
-                                            "The scope cut over to %s; %d retained members were retired."
-                                            (GenerationId.value runtimeRequest.Plan.Generation)
-                                            retiredMembers.Count }
-                            else
-                                // The scope has already cut over, so the successor stays released
-                                // and the cleanup failure is named rather than swallowed.
-                                return
-                                    { Kind = ComponentGroupReplacementKind.CleanupFailed
-                                      Successor = Some activation
-                                      CutOver = true
-                                      Retired = List.ofSeq retiredMembers
-                                      Code = "retained-retirement-failed"
-                                      Reason = String.Join("; ", cleanup) }
+                        match changed retained members with
+                        | Some(code, reason) ->
+                            return decline ComponentGroupReplacementKind.Declined code reason
+                        | None ->
+                            return!
+                                replaceCore
+                                    successor
+                                    retained
+                                    lifecycle
+                                    members
+                                    runtimeRequest
+                                    retirementReason
             | _ ->
                 return
                     decline
                         ComponentGroupReplacementKind.ActivationUnavailable
                         "active-authority-unavailable"
                         "CBI19 requires one released CBI13 activation to replace."
+        }
+
+[<RequireQualifiedAccess>]
+type ComponentGroupMembershipKind =
+    | Replaced
+    | CleanupFailed
+    | Declined
+    | ActivationUnavailable
+
+type ComponentGroupMembershipResult =
+    { Kind: ComponentGroupMembershipKind
+      Successor: ComponentGroupAuthorityResult option
+      CutOver: bool
+      Added: OccurrenceId list
+      Dropped: OccurrenceId list
+      Surviving: OccurrenceId list
+      Retired: OccurrenceId list
+      Code: string
+      Reason: string }
+
+/// Replaces the generation occupying one restart scope with a successor generation that resolves a
+/// different set of positions, adding and dropping members across the cutover.
+///
+/// The lift needs no new authority rule, because CBI19 decided authority per occurrence: a surviving
+/// occurrence is re-admitted with what admitted it, a new one is admitted afresh, and a dropped one
+/// has nothing to follow it to. What it needs is the membership to be the successor generation's
+/// statement rather than the caller's, which is where a silent drop would otherwise enter, and for
+/// the change to be reported so a member retired because its position is gone is distinguishable
+/// from one retired because its generation was replaced. An addition joins only across the cutover:
+/// a CM2 generation is one immutable object and a CM4 attempt covers its whole plan, so neither can
+/// represent a member arriving into a generation already serving.
+[<RequireQualifiedAccess>]
+module ComponentGroupMembership =
+    let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
+
+    let isReplaced (result: ComponentGroupMembershipResult) =
+        result.Kind = ComponentGroupMembershipKind.Replaced
+
+    let private decline kind code reason =
+        { Kind = kind
+          Successor = None
+          CutOver = false
+          Added = []
+          Dropped = []
+          Surviving = []
+          Retired = []
+          Code = code
+          Reason = reason }
+
+    let private ordered occurrences =
+        occurrences
+        |> List.sortWith (fun left right ->
+            ordinal (OccurrenceId.value left) (OccurrenceId.value right))
+
+    let private membershipKind kind =
+        match kind with
+        | ComponentGroupReplacementKind.Replaced -> ComponentGroupMembershipKind.Replaced
+        | ComponentGroupReplacementKind.CleanupFailed -> ComponentGroupMembershipKind.CleanupFailed
+        | ComponentGroupReplacementKind.ActivationUnavailable ->
+            ComponentGroupMembershipKind.ActivationUnavailable
+        | ComponentGroupReplacementKind.Declined -> ComponentGroupMembershipKind.Declined
+
+    let replace
+        (successor: ResolutionOutcome)
+        (retained: ComponentGroupAuthorityResult)
+        (members: ComponentGroupParticipant list)
+        (runtimeRequest: ActivationRuntimeRequest)
+        retirementReason
+        =
+        task {
+            if String.IsNullOrWhiteSpace retirementReason then
+                invalidArg (nameof retirementReason) "retirement reason is required"
+
+            match ComponentGroupAuthority.isActive retained, retained.Lifecycle with
+            | true, Some lifecycle ->
+                match ComponentGroupReplacement.scope retained runtimeRequest with
+                | Some(code, reason) ->
+                    return decline ComponentGroupMembershipKind.Declined code reason
+                | None ->
+                    match ComponentGroupReplacement.membership successor members with
+                    | Some(code, reason) ->
+                        return decline ComponentGroupMembershipKind.Declined code reason
+                    | None ->
+                        // Emptying an activation is CBI14's withdrawal: a scope cannot cut over to a
+                        // generation with no member to release, and the release barrier is a barrier
+                        // over a membership.
+                        if (ComponentGroupReplacement.positions successor).IsEmpty then
+                            return
+                                decline
+                                    ComponentGroupMembershipKind.Declined
+                                    "membership-empty"
+                                    "The successor generation resolves no position; standing the activation down is a withdrawal, not a replacement."
+                        else
+                            let held = retained.Admissions |> List.map _.Occurrence
+                            let intended = members |> List.map _.Member.Selection.Occurrence
+                            let! replacement =
+                                ComponentGroupReplacement.replaceCore
+                                    successor
+                                    retained
+                                    lifecycle
+                                    members
+                                    runtimeRequest
+                                    retirementReason
+                            return
+                                { Kind = membershipKind replacement.Kind
+                                  Successor = replacement.Successor
+                                  CutOver = replacement.CutOver
+                                  Added =
+                                    intended
+                                    |> List.filter (fun item -> not (List.contains item held))
+                                    |> ordered
+                                  Dropped =
+                                    held
+                                    |> List.filter (fun item -> not (List.contains item intended))
+                                    |> ordered
+                                  Surviving =
+                                    held
+                                    |> List.filter (fun item -> List.contains item intended)
+                                    |> ordered
+                                  Retired = replacement.Retired
+                                  Code = replacement.Code
+                                  Reason = replacement.Reason }
+            | _ ->
+                return
+                    decline
+                        ComponentGroupMembershipKind.ActivationUnavailable
+                        "active-authority-unavailable"
+                        "CBI20 requires one released CBI13 activation to replace."
         }
 
 [<RequireQualifiedAccess>]
