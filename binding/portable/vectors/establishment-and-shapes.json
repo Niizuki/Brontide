@@ -178,6 +178,16 @@
       "when": ["It carries a field named 'exception' or 'innerException'"],
       "then": ["The frame is rejected before semantic use", "The category follows the field position"],
       "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "malformed-message", "effectCount": 0 }
+    },
+    {
+      "id": "PB-83-PROVIDER-SUBSTITUTED",
+      "capabilities": ["C1"],
+      "channelVectors": ["CH-04-UNSUPPORTED-CONTRACT"],
+      "classification": "adversarial",
+      "given": ["The host requires the fixture contract, naming its provider", "Every other declaration in the two documents is equal"],
+      "when": ["The peer answers as a different provider"],
+      "then": ["Negotiation fails closed before any provider activation", "No Binding Plan is frozen, so no plan reports a provider that did not answer"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-contract", "effectCount": 0 }
     }
   ]
 }

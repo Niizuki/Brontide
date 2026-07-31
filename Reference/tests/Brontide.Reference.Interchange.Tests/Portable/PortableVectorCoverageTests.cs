@@ -16,6 +16,7 @@ public sealed class PortableVectorCoverageTests
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["PB-01-EXACT-ESTABLISHMENT"] = "PortableEstablishmentTests",
+            ["PB-83-PROVIDER-SUBSTITUTED"] = "PortableEstablishmentTests",
             ["PB-02-CONTRACT-VERSION-SKEW"] = "PortableEstablishmentTests",
             ["PB-03-REQUIRED-REQUIREMENT-UNMET"] = "PortableEstablishmentTests",
             ["PB-04-OPPOSED-REQUIREMENT-OFFERED"] = "PortableEstablishmentTests",

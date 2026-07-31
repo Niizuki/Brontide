@@ -1,12 +1,12 @@
 # Portable Binding — open owner decisions
 
-**Status:** All ten decisions are **recorded**. Decisions 1 and 2 (the PB0 exit blockers) were
+**Status:** All eleven decisions are **recorded**. Decisions 1 and 2 (the PB0 exit blockers) were
 recorded 2026-07-24. Decisions 3 through 10 were raised by evidence in PB4, PB5, or PB6, ran on a
 provisional implementer choice while each phase proceeded, and were recorded 2026-07-28. Four of
 those eight confirm the provisional choice unchanged; four confirm it and create follow-on work,
 tracked under [Work the rulings create](#work-the-rulings-create).
-**Decision 11 was raised later, by PB7, and is open**: it is running on a provisional implementer
-choice and awaits an owner ruling. Non-pinned.
+**Decision 11 was raised later, by PB7, and was recorded on 2026-07-30**: negotiation now compares
+provider identity and the Binding Plan reports the provider that answered. Non-pinned.
 
 **How to read this file.** Every decision below is written to be answerable without any other
 context: it states what was observed, what was running when the question was raised and why, what the
@@ -29,7 +29,7 @@ reader can see what was rejected and on what grounds.
 | 8 | `peer-unavailable` is unreachable in version 0.1 | PB6 | **Recorded** 2026-07-28 — by design for 0.1 |
 | 9 | The resource floor leaves three C6 conditions unrepresentable | PB6 | **Recorded** 2026-07-28 — accepted; C6's text narrowed |
 | 10 | What supplements independent implementation as a safeguard | PB6 | **Recorded** 2026-07-28 — property tests and completeness review |
-| 11 | The plan's provider fact names who was asked, not who answered | PB7 | **Open** — running provisionally |
+| 11 | The plan's provider fact names who was asked, not who answered | PB7 | **Recorded** 2026-07-30 — negotiation compares the provider; the plan reports who answered |
 
 ---
 
@@ -560,4 +560,41 @@ the mismatch ever being refused. Option A stays valuable either way, because a c
 to check that the endpoint it reached is the provision its resolution selected — but it should not be
 the only place the question is asked.
 
-**Decision (open).**
+**Decision (recorded):** **Option B, then C. Option A retained.** Recorded 2026-07-30 by
+user:JakHoh.
+
+Negotiation compares the provider by exact reference equality and refuses a mismatch as
+`unsupported-contract`; the Binding Plan's `provider` and `selectedProvider` facts, and the C9
+`selectedProvider` observation, are read from the **offered** document. PB7's composition-seam check
+stays, because it asks a different question — whether the endpoint reached is the provision the
+resolution selected — which is a Component Management question that happens to coincide with this
+one today.
+
+Rationale beyond the recommendation above, as ruled:
+
+- By the time negotiation runs in this programme the provider is not an open question. CM2
+  resolution selects it and CBI1 carries that completed decision into preflight, so making a named
+  provider binding matches how the layer is actually used. Every fixture, the neutral provider, and
+  every CBI slice names a specific provider; the "any provider of this Component" host is
+  hypothetical.
+- B does not foreclose that host, it defers it. An absent or wildcard provider in the required
+  document is an additive change if the need appears, whereas a permissive default could not be
+  tightened later without breaking every existing host. **The wildcard is deliberately not defined
+  now.**
+- C is not cosmetic, and this is the part that decided the pairing. Under B the two are equal, so C
+  changes no value — but it changes the fact from *true by invariant* to *true by construction*. If
+  B is ever relaxed to admit the wildcard above, a plan reading from the required document silently
+  becomes a claim about the host's own input again, which is PB6's first defect returning through
+  B's own escape hatch. Reading from the offered document degrades gracefully to "who answered",
+  which stays the honest reading of a field with that name.
+- Ordering matters and is part of the ruling: **B lands first**, which makes C nearly free because
+  the values do not change and the PB2/PB3 plan-fact vectors and PB4 parity evidence re-derive
+  identically. C alone would have been both the expensive option and the incoherent one.
+
+**Consequence for evidence.** After B, the required and offered providers are equal whenever a plan
+exists, so **no black-box vector can distinguish C from reading the required document**. C is
+observable only in the source and in what this record says the fact means. The vectors therefore pin
+B — a substituted provider is refused — and C is carried by this decision and the schema text rather
+than by a discriminating vector. That limit is stated here rather than left for a later reader to
+notice, because it is exactly the shape Decision 10 warns about: the fixtures agree everywhere, so
+the contract has to speak where the vectors cannot.

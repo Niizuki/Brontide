@@ -1,5 +1,30 @@
 # Changelog
 
+## Unreleased — Decision 11: negotiation compares provider identity
+
+### Changed
+
+- **BREAKING.** Portable negotiation now compares the provider by exact reference equality and
+  refuses a mismatch as `unsupported-contract` with local code `provider-mismatch`. A required
+  contract document naming a provider is binding rather than expectational.
+- **BREAKING.** The Binding Plan's `provider` and `selectedProvider` facts, and the C9
+  `selectedProvider` observation, are read from the **offered** document, so they name the provider
+  that answered rather than the one the host asked for. Negotiation refuses a mismatch, so the value
+  is unchanged wherever a plan exists.
+
+### Added
+
+- Neutral vector `PB-83-PROVIDER-SUBSTITUTED`, executed in Reference, pinning the refusal.
+
+The composition-seam check is retained for the case negotiation cannot see: a required contract
+naming a provider the resolution did not select, reachable only when the requirement names no
+provider. Its refusal code stays `provider-substituted`.
+
+BREAKING CHANGE: an endpoint answering as a provider the host did not require is now refused at
+negotiation instead of establishing. A host that relied on the permissive behaviour must either name
+the provider the peer will answer as, or reach the peer through a resolution that does. Version 0.1
+defines no way to say "any provider of this Component"; that would be an additive change.
+
 ## Unreleased — CBI12 multi-member activation
 
 ### Added

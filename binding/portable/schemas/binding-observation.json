@@ -14,7 +14,7 @@
     "consequence": "A parity check compares the normative fields below. Non-normative fields may differ between realizations without failing parity."
   },
   "normativeFields": [
-    { "id": "selectedProvider", "shape": "canonicalReference", "required": true },
+    { "id": "selectedProvider", "shape": "canonicalReference", "required": true, "detail": "The provider that answered, carried from the Binding Plan." },
     { "id": "selectionReason", "shape": "Text", "required": true },
     { "id": "negotiatedOperations", "shape": "sequence<canonicalReference>", "required": true },
     { "id": "negotiatedContractVersion", "shape": "Integer.Signed64", "required": true },

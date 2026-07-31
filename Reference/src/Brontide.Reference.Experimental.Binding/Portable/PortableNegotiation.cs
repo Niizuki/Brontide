@@ -35,6 +35,7 @@ public static class PortableNegotiation
         ArgumentNullException.ThrowIfNull(offered);
 
         RequireContractVersion(required, offered);
+        RequireProvider(required, offered);
         RequireComponent(required, offered);
         var satisfied = MatchRequirements(required, offered);
         MatchOperations(required, offered);
@@ -50,6 +51,7 @@ public static class PortableNegotiation
         return new PortableBindingPlan(
             PortablePlanId.New(),
             required,
+            offered.Provider,
             operations,
             shapes,
             fragments,
@@ -70,6 +72,25 @@ public static class PortableNegotiation
                 PortableProtocolCategory.UnsupportedVersion,
                 "contract-version",
                 "The declared contract versions are not both the recognized version.");
+        }
+    }
+
+    /// <summary>
+    /// A required document naming a provider is binding, not expectational.
+    /// </summary>
+    /// <remarks>
+    /// Version 0.1 defines no way to say "any provider of this Component", so the peer must answer as
+    /// the provider the host named. Refusing the mismatch here is what lets the plan's provider facts
+    /// be read from the offered document and still equal the requirement. Decision 11.
+    /// </remarks>
+    private static void RequireProvider(PortableContractDocument required, PortableContractDocument offered)
+    {
+        if (required.Provider != offered.Provider)
+        {
+            throw new PortableFaultException(
+                PortableProtocolCategory.UnsupportedContract,
+                "provider-mismatch",
+                $"Required provider {required.Provider} answered as {offered.Provider}.");
         }
     }
 

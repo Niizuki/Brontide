@@ -198,27 +198,39 @@ type PortableCompositionHandoffTests() =
 
     /// PB-70: negotiation accepts an endpoint that answers as another provider; the handoff does not.
     ///
-    /// Version 0.1 negotiation matches the Component by exact reference equality and never compares
-    /// provider identity, so the establishment below succeeds on both sides. Which provision was
-    /// selected is a composition fact, and this is the one place that holds it.
+    /// Negotiation now refuses an endpoint that answers as a provider the host did not require
+    /// (Decision 11), so the composition seam is left with the case negotiation cannot see: a host
+    /// whose required contract names a provider its own resolution did not select. It is reachable
+    /// only when the requirement names no provider, because preflight otherwise settles it before
+    /// any contact.
     [<Test>]
-    member _.``An endpoint that answers as another provider is refused``() =
+    member _.``An endpoint that is not the selected provision is refused``() =
         let handler = CoolingHandler()
+        let endpoint = PortableProviderEndpoint(CoolingFixture.contract, handler, Realization.FixedDirectCall)
 
-        let substituted =
-            { CoolingFixture.contract with
-                Provider = expectOk (PortableProviderRef.tryCreate "interchange.tests.substitute-provider" 1) }
+        let unselected =
+            expectOk (PortableProviderRef.tryCreate "interchange.tests.substitute-provider" 1)
 
-        let endpoint = PortableProviderEndpoint(substituted, handler, Realization.FixedDirectCall)
-        let composed = prepareCooling ()
+        // The requirement names no provider, so the resolution's provision is free of preflight and
+        // reaches step 6; the contract the host requires is still the one the endpoint offers.
+        let composed =
+            expectOk (
+                PortableCompositionHandoff.prepare
+                    (ResolvedRequirement.oneToOneContract
+                        (scope "workspace.cooling")
+                        CoolingFixture.component'
+                        hostEndpoint)
+                    { Component = CoolingFixture.component'
+                      Provider = unselected
+                      ProviderEndpoint = "cooling-endpoint" }
+                    CoolingFixture.contract)
 
         let fault =
             (composed.Interconnect(PortableDirectConversation endpoint)).Result
             |> expectCategory ProtocolCategory.UnsupportedContract
 
         assertAll (fun () ->
-            // The contract negotiated on the provider side, which is what makes the substitution
-            // invisible to negotiation.
+            // Negotiation passed: the endpoint answered as exactly the provider the host required.
             Assert.That(endpoint.Plan, Is.Not.Null)
             fault.LocalCode |> shouldEqual "provider-substituted"
             composed.TryPlan |> shouldEqual None

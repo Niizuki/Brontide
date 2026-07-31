@@ -25,6 +25,17 @@ module PortableNegotiation =
                     "contract-version"
                     "The declared contract versions are not both the recognized version.")
 
+    /// A required document naming a provider is binding, not expectational.
+    ///
+    /// Version 0.1 defines no way to say "any provider of this Component", so the peer must answer as
+    /// the provider the host named. Refusing the mismatch here is what lets the plan's provider facts
+    /// be read from the offered document and still equal the requirement. Decision 11.
+    let private requireProvider (required: ContractDocument) (offered: ContractDocument) =
+        ensure (required.Provider = offered.Provider) (fun () ->
+            unsupportedContract
+                "provider-mismatch"
+                $"Required provider {PortableProviderRef.text required.Provider} answered as {PortableProviderRef.text offered.Provider}.")
+
     let private requireComponent (required: ContractDocument) (offered: ContractDocument) =
         ensure (required.Component = offered.Component) (fun () ->
             unsupportedContract
@@ -200,6 +211,7 @@ module PortableNegotiation =
         : PortableResult<BindingPlan> =
         portable {
             do! requireContractVersion required offered
+            do! requireProvider required offered
             do! requireComponent required offered
             let! satisfied = matchRequirements required offered
             do! matchOperations required offered
@@ -217,6 +229,7 @@ module PortableNegotiation =
                 BindingPlan.freeze
                     (PlanId.next ())
                     required
+                    offered.Provider
                     catalog
                     operations
                     shapes

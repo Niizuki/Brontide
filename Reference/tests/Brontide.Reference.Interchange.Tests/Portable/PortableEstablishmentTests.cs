@@ -44,6 +44,38 @@ public sealed class PortableEstablishmentTests
         });
     }
 
+    // PB-83-PROVIDER-SUBSTITUTED
+    [Test]
+    public void An_endpoint_answering_as_another_provider_fails_closed()
+    {
+        var substituted = CoolingPortableFixture.Contract with
+        {
+            Provider = PortableProviderReference.Parse("interchange.tests.substitute-provider", 1),
+        };
+
+        var fault = Assert.Throws<PortableFaultException>(() => Negotiate(offered: substituted));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(fault!.Category, Is.EqualTo(PortableProtocolCategory.UnsupportedContract));
+            Assert.That(fault.LocalCode, Is.EqualTo("provider-mismatch"));
+        });
+    }
+
+    // PB-83-PROVIDER-SUBSTITUTED: the fact the refusal protects.
+    [Test]
+    public void A_frozen_plan_names_the_provider_that_answered()
+    {
+        var plan = Negotiate();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(plan.SelectedProvider, Is.EqualTo(CoolingPortableFixture.Contract.Provider));
+            Assert.That(plan.Fact("selectedProvider"), Is.EqualTo(plan.AnsweringProvider.ToString()));
+            Assert.That(plan.Fact("provider"), Is.EqualTo(plan.AnsweringProvider.ToString()));
+        });
+    }
+
     // PB-02-CONTRACT-VERSION-SKEW
     [Test]
     public void A_contract_version_the_endpoint_does_not_recognize_fails_closed()

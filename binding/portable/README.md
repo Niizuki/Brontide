@@ -4,7 +4,9 @@
 for direct-versus-process parity in each (PB4), paired across the stacks and against an
 [implementation-neutral provider](../neutral-provider/README.md) (PB5), hardened (PB6), and given the
 Composition handoff by which composition machinery reaches the layer (PB7). PB8's evidence and
-documentation work is complete; its independent reviews and owner-question closure are outstanding.
+documentation work is complete, and Decision 11 was ruled on 2026-07-30: negotiation compares
+provider identity and the Binding Plan reports the provider that answered. Its independent reviews
+remain outstanding.
 Planned experimental work; not ratified; not part of Brontide Base.
 **Designed for:** Brontide Architecture 0.8 §16 and §18.1 (Complete Draft).
 **Plan:** [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
@@ -210,9 +212,8 @@ PB8's other work lands outside this directory: the Channel ledger, the public bo
 stacks' changelogs and inventories, and the re-measured source-cost inventory in
 [`interchange/binding-measurements.json`](../../interchange/binding-measurements.json), which now
 separates the retained experiments from this layer and records the representation, framing,
-allocation, copy, and payload-bound facts for both realizations with their provenance. Its two
-remaining steps — fresh independent reviews, and an owner ruling on Decision 11 — are not the
-implementer's to close.
+allocation, copy, and payload-bound facts for both realizations with their provenance. Decision 11 has since been ruled on, leaving one
+remaining step — fresh independent reviews — which is not the implementer's to close.
 
 ## Boundary
 

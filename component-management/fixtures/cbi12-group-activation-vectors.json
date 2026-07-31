@@ -16,7 +16,7 @@
       "id": "cbi12-02-second-member-refused",
       "expectedActive": false,
       "expectedFailureKind": "member-establishment-refused",
-      "expectedCode": "provider-substituted",
+      "expectedCode": "provider-mismatch",
       "expectedMembers": 2,
       "expectedReleased": 0,
       "expectedRetired": 1,

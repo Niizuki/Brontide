@@ -318,9 +318,10 @@ public sealed class PortableCompositionMember : IAsyncDisposable
                 "Establishment reported success without an offered contract, so no provider identity could be checked.");
         }
 
-        // Negotiation matched the Component exactly and never compared provider identity, because
-        // which provision was selected is a composition fact rather than a contract fact. This is
-        // the only point at which a substituted provider is visible.
+        // Negotiation refuses an endpoint answering as a provider the host did not require, so what
+        // is left here is the case it cannot see: a required contract naming a provider this
+        // resolution did not select. Reachable only when the requirement named no provider, since
+        // preflight otherwise settles it before contact.
         var answered = offered.Provider;
         if (answered != Provision.Provider)
         {
