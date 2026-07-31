@@ -2487,6 +2487,187 @@ public static class ComponentGroupAuthority
             new(kind, code, reason, null));
 }
 
+public sealed record ComponentGroupMemberRequests(
+    Cm.OccurrenceId Occurrence,
+    IReadOnlyList<Cm.AuthorityAdmissionRequest> Requests);
+
+public enum ComponentGroupRevalidationKind
+{
+    Continued,
+    Withdrawn,
+    RetirementFailed,
+    ActivationUnavailable,
+}
+
+public sealed record ComponentGroupMemberRevalidation(
+    Cm.OccurrenceId Occurrence,
+    IReadOnlyList<ComponentParticipantObservation> CurrentAuthority,
+    IReadOnlyList<Cm.ActorId> Unrenewed);
+
+public sealed record ComponentGroupRevalidationResult(
+    ComponentGroupRevalidationKind Kind,
+    IReadOnlyList<ComponentGroupMemberRevalidation> Members,
+    IReadOnlyList<Cm.OccurrenceId> Lapsed,
+    IReadOnlyList<Portable.PortableReplacementRecord> Replacements,
+    string Code,
+    string Reason)
+{
+    public bool IsActive => Kind == ComponentGroupRevalidationKind.Continued;
+}
+
+/// <summary>
+/// Revalidates every member's authority and retires the whole activation when any of it lapses.
+/// </summary>
+/// <remarks>
+/// A CM4 activation has one restart scope and every member is inside it, and CM4 models no way to
+/// retire one member while its scope keeps running — that is a scoped replacement, a different
+/// operation. The members came up together inside one scope, so they go down together. Their being
+/// otherwise independent is about what they need from each other, not about what scope they share.
+/// </remarks>
+public static class ComponentGroupRevalidation
+{
+    public static async ValueTask<ComponentGroupRevalidationResult> RevalidateAsync(
+        ComponentGroupAuthorityResult active,
+        IReadOnlyList<ComponentGroupMemberRequests> requests,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(active);
+        ArgumentNullException.ThrowIfNull(requests);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (!active.IsActive || active.Lifecycle is not { } lifecycle)
+        {
+            return new(
+                ComponentGroupRevalidationKind.ActivationUnavailable,
+                Array.Empty<ComponentGroupMemberRevalidation>(),
+                Array.Empty<Cm.OccurrenceId>(),
+                Array.Empty<Portable.PortableReplacementRecord>(),
+                "active-authority-unavailable",
+                "CBI14 requires one released CBI13 activation with every member admitted.");
+        }
+
+        var prior = active.Admissions;
+        var ordered = requests
+            .OrderBy(item => item.Occurrence.Value, StringComparer.Ordinal)
+            .ToArray();
+        if (!ordered.Select(item => item.Occurrence).SequenceEqual(prior.Select(item => item.Occurrence)))
+        {
+            return await RetireAllAsync(
+                lifecycle,
+                retirementReason,
+                "member-set-changed",
+                "The fresh requests do not name the same members the activation admitted.",
+                Array.Empty<ComponentGroupMemberRevalidation>(),
+                Array.Empty<Cm.OccurrenceId>(),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        for (var index = 0; index < ordered.Length; index++)
+        {
+            var member = ordered[index];
+            var admitted = prior[index].Participants;
+            if (member.Requests.Count != admitted.Count ||
+                member.Requests
+                    .OrderBy(item => item.Participant.Value, StringComparer.Ordinal)
+                    .Where((item, position) => !ComponentParticipantRevalidation.MatchesPrior(
+                        admitted[position],
+                        item))
+                    .Any())
+            {
+                return await RetireAllAsync(
+                    lifecycle,
+                    retirementReason,
+                    "authority-revalidation-mismatch",
+                    $"A fresh request for member {member.Occurrence} does not identify the authority that admitted it.",
+                    Array.Empty<ComponentGroupMemberRevalidation>(),
+                    Array.Empty<Cm.OccurrenceId>(),
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        var evaluator = new Cm.FakeAuthorityAdmissionEvaluator();
+        var members = ordered
+            .Select((member, index) =>
+            {
+                var admitted = prior[index].Participants;
+                var current = member.Requests
+                    .OrderBy(item => item.Participant.Value, StringComparer.Ordinal)
+                    .Select(item => new ComponentParticipantObservation(item.Participant, evaluator.Evaluate(item)))
+                    .ToArray();
+                var unrenewed = current
+                    .Where((item, position) => !ComponentParticipantRevalidation.IsSameAdmission(
+                        admitted[position].Authority,
+                        item.Authority))
+                    .Select(item => item.Participant)
+                    .ToArray();
+                return new ComponentGroupMemberRevalidation(member.Occurrence, current, unrenewed);
+            })
+            .ToArray();
+        var lapsed = members
+            .Where(item => item.Unrenewed.Count > 0)
+            .Select(item => item.Occurrence)
+            .ToArray();
+        if (lapsed.Length > 0)
+        {
+            return await RetireAllAsync(
+                lifecycle,
+                retirementReason,
+                "authority-not-renewed",
+                $"The receiving domain no longer admits the identical authority for {string.Join(", ", lapsed.Select(item => item.Value))}.",
+                members,
+                lapsed,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        return new(
+            ComponentGroupRevalidationKind.Continued,
+            members,
+            Array.Empty<Cm.OccurrenceId>(),
+            Array.Empty<Portable.PortableReplacementRecord>(),
+            "authority-current",
+            "Every member still holds the identical receiving-domain authority the activation admitted.");
+    }
+
+    private static async ValueTask<ComponentGroupRevalidationResult> RetireAllAsync(
+        ComponentGroupActivationResult lifecycle,
+        string retirementReason,
+        string code,
+        string reason,
+        IReadOnlyList<ComponentGroupMemberRevalidation> members,
+        IReadOnlyList<Cm.OccurrenceId> lapsed,
+        CancellationToken cancellationToken)
+    {
+        var replacements = new List<Portable.PortableReplacementRecord>();
+        var cleanup = new List<string>();
+        foreach (var outcome in lifecycle.Members)
+        {
+            var (replacement, failure) = await ComponentParticipantRevalidation
+                .TryRetireAsync(outcome.Member, retirementReason, cancellationToken)
+                .ConfigureAwait(false);
+            if (replacement is not null)
+            {
+                replacements.Add(replacement);
+            }
+
+            if (failure is not null)
+            {
+                cleanup.Add($"{outcome.Occurrence}: {failure}");
+            }
+        }
+
+        return cleanup.Count == 0
+            ? new(ComponentGroupRevalidationKind.Withdrawn, members, lapsed, replacements, code, reason)
+            : new(
+                ComponentGroupRevalidationKind.RetirementFailed,
+                members,
+                lapsed,
+                replacements,
+                "authority-retirement-failed",
+                string.Join("; ", cleanup));
+    }
+}
+
 /// <summary>
 /// Projects one native CBI3 result into the canonical, data-only CBI4 comparison profile.
 /// </summary>

@@ -2692,6 +2692,205 @@ public sealed class ComponentBindingIntegrationTests
             policy);
     }
 
+    [Test]
+    public async Task Shared_cbi14_vectors_retire_every_member_or_none()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi14-group-withdrawal-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, active, handlers) = await GroupRevalidationResult(scenario);
+            var released = active.Lifecycle!.Members.Count(item => item.Member.IsReleased);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    GroupRevalidationToken(result.Kind),
+                    Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Members,
+                    Has.Count.EqualTo(vector.GetProperty("expectedMembersEvaluated").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Lapsed,
+                    Has.Count.EqualTo(vector.GetProperty("expectedLapsed").GetInt32()),
+                    scenario);
+                Assert.That(
+                    released,
+                    Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Replacements,
+                    Has.Count.EqualTo(vector.GetProperty("expectedReplacements").GetInt32()),
+                    scenario);
+
+                // The activation shares a restart scope, so it shares a fate.
+                Assert.That(
+                    released == active.Lifecycle.Members.Count || released == 0,
+                    Is.True,
+                    $"{scenario}: every member is released or none is.");
+                Assert.That(handlers.Sum(handler => handler.ProviderEffectCount), Is.Zero, scenario);
+            });
+        }
+    }
+
+    [Test]
+    public async Task One_member_losing_authority_retires_the_member_that_kept_it()
+    {
+        var (result, active, _) = await GroupRevalidationResult("cbi14-02-one-member-lapsed");
+        var survivor = active.Lifecycle!.Members[0].Member;
+
+        var attempted = await survivor.InvokeAsync(
+            CoolingPortableFixture.SetEnabled,
+            CoolingPortableFixture.CommandV1,
+            CoolingPortableFixture.Command("primary", enabled: true),
+            PortableConstraint.Atom(PortableTruth.Satisfied));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentGroupRevalidationKind.Withdrawn));
+            Assert.That(result.Lapsed, Is.EqualTo(new[] { active.Lifecycle.Members[1].Occurrence }));
+            Assert.That(
+                result.Members[0].Unrenewed,
+                Is.Empty,
+                "The member that kept its authority is retired without being named as the cause.");
+            Assert.That(survivor.Stage, Is.EqualTo(PortableCompositionStage.Retired));
+            Assert.That(attempted.Category, Is.EqualTo(PortableProtocolCategory.StateViolation));
+        });
+    }
+
+    private static async Task<(
+        ComponentGroupRevalidationResult Result,
+        ComponentGroupAuthorityResult Active,
+        CoolingPortableHandler[] Handlers)>
+        GroupRevalidationResult(string scenario)
+    {
+        var failCleanup = scenario == "cbi14-06-retirement-failure";
+        var (active, handlers, participants) = await AdmittedGroup(failCleanup);
+        var first = active.Admissions[0].Occurrence;
+        var second = active.Admissions[1].Occurrence;
+        var lapse = scenario is "cbi14-02-one-member-lapsed" or "cbi14-06-retirement-failure"
+            or "cbi14-03-both-members-lapsed";
+
+        var requests = new List<ComponentGroupMemberRequests>
+        {
+            new(
+                first,
+                [
+                    scenario == "cbi14-03-both-members-lapsed"
+                        ? Revoked(participants[0])
+                        : participants[0],
+                ]),
+            new(second, [lapse ? Revoked(participants[1]) : participants[1]]),
+        };
+
+        switch (scenario)
+        {
+            case "cbi14-04-member-set-changed":
+                requests.RemoveAt(1);
+                break;
+            case "cbi14-05-participant-drift":
+                requests[1] = new(
+                    second,
+                    [
+                        participants[1] with
+                        {
+                            Authority =
+                            [
+                                participants[1].Authority.Single() with
+                                {
+                                    Capability = CapabilityId.Create("capability.other"),
+                                },
+                            ],
+                        },
+                    ]);
+                break;
+            default:
+                break;
+        }
+
+        var result = await ComponentGroupRevalidation.RevalidateAsync(
+            active,
+            requests,
+            $"group revalidation {scenario}");
+        return (result, active, handlers);
+    }
+
+    private static async Task<(
+        ComponentGroupAuthorityResult Active,
+        CoolingPortableHandler[] Handlers,
+        AuthorityAdmissionRequest[] Participants)>
+        AdmittedGroup(bool failCleanup)
+    {
+        var resolution = new FakeGenerationResolver().Resolve(PairRequest());
+        var first = resolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var second = resolution.Generation.ProviderSets.Single(item => item.Requirement == SecondaryRequirement);
+        var handlers = new[]
+        {
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+        };
+        IPortableProviderConversation SecondConversation()
+        {
+            var conversation = new PortableDirectConversation(new PortableProviderEndpoint(
+                CoolingPortableFixture.Contract,
+                handlers[1],
+                PortableRealization.FixedDirectCall));
+            return failCleanup ? new FailingRetirementConversation(conversation) : conversation;
+        }
+
+        var groupMembers = new[]
+        {
+            new ComponentGroupMember(
+                Selection(first.Members[0]) with { HostEndpoint = "withdrawal-host-primary" },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    CoolingPortableFixture.Contract,
+                    handlers[0],
+                    PortableRealization.FixedDirectCall))),
+            new ComponentGroupMember(
+                Selection(second.Members[0]) with
+                {
+                    Requirement = SecondaryRequirement,
+                    HostEndpoint = "withdrawal-host-secondary",
+                },
+                SecondConversation()),
+        };
+        var participants = new[]
+        {
+            ProviderAuthority(GroupPolicy(ProviderLocalActor), Authority),
+            SupervisorAuthority(GroupPolicy(ProviderLocalActor), ReportAuthority, revoked: false),
+        };
+        var active = await ComponentGroupAuthority.ActivateAsync(
+            resolution,
+            [
+                new(groupMembers[0], [new(new(groupMembers[0].Selection.Occurrence, Participant), participants[0])]),
+                new(groupMembers[1], [new(new(groupMembers[1].Selection.Occurrence, Supervisor), participants[1])]),
+            ],
+            RuntimeRequest(Plan(groupMembers.Select(item => item.Selection.Occurrence).ToArray())));
+        return (active, handlers, participants);
+    }
+
+    private static string GroupRevalidationToken(ComponentGroupRevalidationKind kind) => kind switch
+    {
+        ComponentGroupRevalidationKind.Continued => "continued",
+        ComponentGroupRevalidationKind.Withdrawn => "withdrawn",
+        ComponentGroupRevalidationKind.RetirementFailed => "retirement-failed",
+        ComponentGroupRevalidationKind.ActivationUnavailable => "activation-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
     private static string GroupAuthorityToken(ComponentGroupAuthorityFailureKind kind) => kind switch
     {
         ComponentGroupAuthorityFailureKind.IdentityNotDistinct => "identity-not-distinct",

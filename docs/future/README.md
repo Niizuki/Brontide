@@ -349,17 +349,28 @@ conflation rule one level out. The
 [`contract-completeness review`](../../component-management/cbi13-contract-completeness-review.md)
 bound it to per-member admission over one protocol-free multi-member activation.
 
-**Post-activation authority for a multi-member activation is the next implementable integration
-item.** CBI7 through CBI11 — revalidation, withdrawal, extension, revision, verification, and
-succession — all still govern one member, so the programme again has a lifecycle that spans an
-activation and a post-activation authority story that does not. The first question is what one
-member's lapsed authority should do to the others: CBI12's release barrier makes members share a
-fate on the way up, but nothing yet says whether they share one on the way down, and CBI7's answer
-for a single member's participant set — retire rather than narrow — does not settle it, because a
-member is not a participant. Relational Initialisation, replacement, child Ports, mediation, wider
-Provider Sets, and real distribution remain future work behind it. PB8's independent reviews remain a
-separate governance prerequisite rather than implementation work; Decision 11 was ruled on and
-delivered on 2026-07-30.
+CBI14 lifts the first of those slices — revalidation and withdrawal — to the activation, and answers
+the question above. **When one member's authority lapses, the whole activation retires.** The answer
+comes from CM4 rather than from preference, as CBI12's release barrier did: a CM4 activation has
+exactly one restart scope, every member of a CBI12 activation is inside it, and CM4 models no way to
+retire one member while its scope keeps running — that is a scoped replacement, an operation it
+declares separately. The members came up together inside one scope and they go down together. That
+CBI12's members are otherwise independent looked like an argument for retiring only the lapsed one,
+and the review records why it is not: independence is about what members need from each other, not
+about what scope they share. The result names which members lapsed and which participants within
+them, so a member retired because a sibling lapsed is never reported as the cause. The
+[`CBI14 capability contract`](../../component-management/cbi14-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi14-contract-completeness-review.md)
+bound it to revalidation and withdrawal of one protocol-free multi-member activation.
+
+**Lifting the four remaining single-member slices is the next implementable integration item.**
+CBI8 through CBI11 — extension, revision, verification, and succession — still govern one member.
+Extension and revision raise the same shared-fate question CBI14 just settled for withdrawal, but in
+the other direction: whether a set changed for one member has to be admitted against the activation
+or only against that member, given that CBI13 admits per member while CBI14 retires per activation.
+Relational Initialisation, scoped replacement, child Ports, mediation, wider Provider Sets, and real
+distribution remain future work behind it. PB8's independent reviews remain a separate governance
+prerequisite rather than implementation work; Decision 11 was ruled on and delivered on 2026-07-30.
 
 ## Other planned areas
 

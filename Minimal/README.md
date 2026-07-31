@@ -85,7 +85,8 @@ The implementation currently provides:
   one CM4 activation, with the release barrier at the activation and a failed member retiring the
   ones that succeeded; CBI13 admits a participant set per member before any provider is contacted,
   with identities distinct across the whole activation and the receiving-domain Actor mapping a
-  function and injective across it;
+  function and injective across it; CBI14 revalidates every member and retires the whole activation
+  when any member's authority lapses, naming the lapsed members and the participants within them;
 - a headless host and seven F# test assemblies, including the host-owned CBI1-CBI12 integration
   suite.
 

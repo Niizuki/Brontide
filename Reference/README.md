@@ -90,6 +90,9 @@ without it.
 CBI13 admits a participant set per member before any provider is contacted, keeps admission,
 relationship, and authority identities distinct across the whole activation, and requires the
 receiving-domain Actor mapping to be a function and injective across it.
+CBI14 revalidates every member's authority from fresh explicit CM5 requests and retires the whole
+activation when any member's lapses, naming which members lapsed and which participants within them
+so a member retired because a sibling lapsed is not reported as the cause.
 
 ## Build and test
 

@@ -138,6 +138,10 @@ against the occurrence rather than the attempt, and every set is admitted before
 contacted — so the authority barrier turns out to be earlier than the release barrier rather than the
 same one. One party may participate in two members, but two parties may not arrive at one
 receiving-domain Actor.
+CBI14 revalidates that authority afterwards, and answers what a lapse does to the rest: the whole
+activation retires. CM4 gives an activation one restart scope and no way to retire one member while
+it runs, so members that came up together go down together — their independence is about what they
+need from each other, not about what scope they share.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary
