@@ -2543,6 +2543,183 @@ module ComponentGroupAuthority =
                                             lifecycle.Failure |> Option.bind _.Member } }
         }
 
+type ComponentGroupMemberRequests =
+    { Occurrence: OccurrenceId
+      Requests: AuthorityAdmissionRequest list }
+
+[<RequireQualifiedAccess>]
+type ComponentGroupRevalidationKind =
+    | Continued
+    | Withdrawn
+    | RetirementFailed
+    | ActivationUnavailable
+
+type ComponentGroupMemberRevalidation =
+    { Occurrence: OccurrenceId
+      CurrentAuthority: ComponentParticipantObservation list
+      Unrenewed: ActorId list }
+
+type ComponentGroupRevalidationResult =
+    { Kind: ComponentGroupRevalidationKind
+      Members: ComponentGroupMemberRevalidation list
+      Lapsed: OccurrenceId list
+      Replacements: ReplacementRecord list
+      Code: string
+      Reason: string }
+
+/// Revalidates every member's authority and retires the whole activation when any of it lapses.
+///
+/// A CM4 activation has one restart scope and every member is inside it, and CM4 models no way to
+/// retire one member while its scope keeps running — that is a scoped replacement, a different
+/// operation. The members came up together inside one scope, so they go down together. Their being
+/// otherwise independent is about what they need from each other, not about what scope they share.
+[<RequireQualifiedAccess>]
+module ComponentGroupRevalidation =
+    let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
+
+    let private byParticipant (requests: AuthorityAdmissionRequest list) =
+        requests
+        |> List.sortWith (fun left right ->
+            ordinal (ActorId.value left.Participant) (ActorId.value right.Participant))
+
+    let private retireAll
+        (lifecycle: ComponentGroupActivationResult)
+        retirementReason
+        code
+        reason
+        members
+        lapsed
+        =
+        task {
+            let replacements = ResizeArray<ReplacementRecord>()
+            let cleanup = ResizeArray<string>()
+            for outcome in lifecycle.Members do
+                let! retired =
+                    ComponentParticipantRevalidation.tryRetire outcome.Member retirementReason
+                match retired with
+                | Ok replacement -> replacements.Add replacement
+                | Error detail ->
+                    cleanup.Add(
+                        sprintf "%s: %s" (OccurrenceId.value outcome.Occurrence) detail)
+            if cleanup.Count = 0 then
+                return
+                    { Kind = ComponentGroupRevalidationKind.Withdrawn
+                      Members = members
+                      Lapsed = lapsed
+                      Replacements = List.ofSeq replacements
+                      Code = code
+                      Reason = reason }
+            else
+                return
+                    { Kind = ComponentGroupRevalidationKind.RetirementFailed
+                      Members = members
+                      Lapsed = lapsed
+                      Replacements = List.ofSeq replacements
+                      Code = "authority-retirement-failed"
+                      Reason = String.Join("; ", cleanup) }
+        }
+
+    let revalidate
+        (active: ComponentGroupAuthorityResult)
+        (requests: ComponentGroupMemberRequests list)
+        retirementReason
+        =
+        task {
+            if String.IsNullOrWhiteSpace retirementReason then
+                invalidArg (nameof retirementReason) "retirement reason is required"
+
+            match ComponentGroupAuthority.isActive active, active.Lifecycle with
+            | true, Some lifecycle ->
+                let prior = active.Admissions
+                let ordered =
+                    requests
+                    |> List.sortWith (fun left right ->
+                        ordinal (OccurrenceId.value left.Occurrence) (OccurrenceId.value right.Occurrence))
+                if (ordered |> List.map _.Occurrence) <> (prior |> List.map _.Occurrence) then
+                    return!
+                        retireAll
+                            lifecycle
+                            retirementReason
+                            "member-set-changed"
+                            "The fresh requests do not name the same members the activation admitted."
+                            []
+                            []
+                else
+                    let paired = List.zip prior ordered
+                    let mismatched =
+                        paired
+                        |> List.tryFind (fun (priorMember, member') ->
+                            member'.Requests.Length <> priorMember.Participants.Length
+                            || List.zip priorMember.Participants (byParticipant member'.Requests)
+                               |> List.exists (fun (admitted, request) ->
+                                   not (
+                                       ComponentParticipantRevalidation.matchesPrior admitted request)))
+                    match mismatched with
+                    | Some(_, member') ->
+                        return!
+                            retireAll
+                                lifecycle
+                                retirementReason
+                                "authority-revalidation-mismatch"
+                                (sprintf
+                                    "A fresh request for member %s does not identify the authority that admitted it."
+                                    (OccurrenceId.value member'.Occurrence))
+                                []
+                                []
+                    | None ->
+                        let members =
+                            paired
+                            |> List.map (fun (priorMember, member') ->
+                                let current =
+                                    byParticipant member'.Requests
+                                    |> List.map (fun request ->
+                                        { Participant = request.Participant
+                                          Authority = FakeAuthorityAdmission.evaluate request })
+                                let unrenewed =
+                                    List.zip priorMember.Participants current
+                                    |> List.filter (fun (admitted, observation) ->
+                                        not (
+                                            ComponentParticipantRevalidation.isSameAdmission
+                                                admitted.Authority
+                                                observation.Authority))
+                                    |> List.map (fun (_, observation) -> observation.Participant)
+                                { Occurrence = member'.Occurrence
+                                  CurrentAuthority = current
+                                  Unrenewed = unrenewed })
+                        let lapsed =
+                            members
+                            |> List.filter (fun member' -> not member'.Unrenewed.IsEmpty)
+                            |> List.map _.Occurrence
+                        if not lapsed.IsEmpty then
+                            return!
+                                retireAll
+                                    lifecycle
+                                    retirementReason
+                                    "authority-not-renewed"
+                                    (sprintf
+                                        "The receiving domain no longer admits the identical authority for %s."
+                                        (String.Join(", ", lapsed |> List.map OccurrenceId.value)))
+                                    members
+                                    lapsed
+                        else
+                            return
+                                { Kind = ComponentGroupRevalidationKind.Continued
+                                  Members = members
+                                  Lapsed = []
+                                  Replacements = []
+                                  Code = "authority-current"
+                                  Reason =
+                                    "Every member still holds the identical receiving-domain authority the activation admitted." }
+            | _ ->
+                return
+                    { Kind = ComponentGroupRevalidationKind.ActivationUnavailable
+                      Members = []
+                      Lapsed = []
+                      Replacements = []
+                      Code = "active-authority-unavailable"
+                      Reason = "CBI14 requires one released CBI13 activation with every member admitted." }
+        }
+
 [<RequireQualifiedAccess>]
 module ComponentAuthorityComparison =
     let private stringNode (value: string) : JsonNode | null = JsonValue.Create value

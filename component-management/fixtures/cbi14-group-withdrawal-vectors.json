@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi14-group-withdrawal-vectors",
+  "vectors": [
+    {
+      "id": "cbi14-01-current",
+      "expectedKind": "continued",
+      "expectedCode": "authority-current",
+      "expectedMembersEvaluated": 2,
+      "expectedLapsed": 0,
+      "expectedReleased": 2,
+      "expectedReplacements": 0
+    },
+    {
+      "id": "cbi14-02-one-member-lapsed",
+      "expectedKind": "withdrawn",
+      "expectedCode": "authority-not-renewed",
+      "expectedMembersEvaluated": 2,
+      "expectedLapsed": 1,
+      "expectedReleased": 0,
+      "expectedReplacements": 2
+    },
+    {
+      "id": "cbi14-03-both-members-lapsed",
+      "expectedKind": "withdrawn",
+      "expectedCode": "authority-not-renewed",
+      "expectedMembersEvaluated": 2,
+      "expectedLapsed": 2,
+      "expectedReleased": 0,
+      "expectedReplacements": 2
+    },
+    {
+      "id": "cbi14-04-member-set-changed",
+      "expectedKind": "withdrawn",
+      "expectedCode": "member-set-changed",
+      "expectedMembersEvaluated": 0,
+      "expectedLapsed": 0,
+      "expectedReleased": 0,
+      "expectedReplacements": 2
+    },
+    {
+      "id": "cbi14-05-participant-drift",
+      "expectedKind": "withdrawn",
+      "expectedCode": "authority-revalidation-mismatch",
+      "expectedMembersEvaluated": 0,
+      "expectedLapsed": 0,
+      "expectedReleased": 0,
+      "expectedReplacements": 2
+    },
+    {
+      "id": "cbi14-06-retirement-failure",
+      "expectedKind": "retirement-failed",
+      "expectedCode": "authority-retirement-failed",
+      "expectedMembersEvaluated": 2,
+      "expectedLapsed": 1,
+      "expectedReleased": 0,
+      "expectedReplacements": 1
+    }
+  ]
+}

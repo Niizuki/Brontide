@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased — CBI14 multi-member revalidation and withdrawal
+
+### Added
+
+- Reference Studio revalidation of every member's authority in a multi-member activation from fresh explicit
+  CM5 requests, evaluated all-or-none across the activation.
+- Whole-activation retirement when any member's authority lapses, with the lapsed members and the
+  participants within them named so the cause stays distinguishable from the consequence.
+- Shared withdrawal vectors pinning evaluated members, lapsed members, released members, and
+  replacement records, plus a phase-boundary completeness review.
+
+CBI14 answers what CBI13 left open: a CM4 activation has exactly one restart scope and no way to
+retire one member while it runs, so members that came up together go down together. CBI8 through
+CBI11 still govern one member.
+
 ## Unreleased — CBI13 multi-member authority
 
 ### Added

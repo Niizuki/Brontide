@@ -178,6 +178,16 @@ participate in two members but two parties may not arrive at one local Actor. It
 recorded in the [CBI13 capability contract](./cbi13-capability-contract.md) and completed
 [contract-completeness review](./cbi13-contract-completeness-review.md).
 
+CBI14 lifts revalidation and withdrawal to the activation and answers what CBI13 left open: **when
+one member's authority lapses, the whole activation retires.** The answer comes from CM4, as CBI12's
+release barrier did — an activation has exactly one restart scope, every member is inside it, and
+CM4 models no way to retire one member while its scope keeps running, because that is a scoped
+replacement. Members being otherwise independent is about what they need from each other, not about
+what scope they share. The result names which members lapsed and which participants within them, so
+the cause stays distinguishable from the consequence. Its bounded behavior is recorded in the
+[CBI14 capability contract](./cbi14-capability-contract.md) and completed
+[contract-completeness review](./cbi14-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -333,6 +343,14 @@ an activation refused after every member was admitted. Each vector pins how many
 admitted, how many aggregate grants exist, how many members were released, and how many provider
 effects occurred, so the ordering of the two barriers is a checked answer. The fixture contains no
 evaluator, policy, planner, or portable runtime.
+
+### `cbi14-group-withdrawal-vectors` sections
+
+`vectors` names exact renewal of a whole activation and five withdrawals — one member lapsed, both
+lapsed, a changed member set, participant identity drift, and retirement cleanup failure. Each pins
+how many members were evaluated, how many lapsed, how many stayed released, and how many replacement
+records exist, so shared fate and the cause-versus-consequence distinction are both checked answers.
+The fixture contains no evaluator, clock, cleanup mechanism, or portable runtime.
 
 ### `cm0-mice-topology` sections
 

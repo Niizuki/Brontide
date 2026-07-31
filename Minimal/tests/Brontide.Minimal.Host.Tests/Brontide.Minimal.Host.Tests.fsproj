@@ -40,6 +40,9 @@
     <None Include="..\..\..\component-management\fixtures\cbi13-group-authority-vectors.json"
           Link="component-management\fixtures\cbi13-group-authority-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi14-group-withdrawal-vectors.json"
+          Link="component-management\fixtures\cbi14-group-withdrawal-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
