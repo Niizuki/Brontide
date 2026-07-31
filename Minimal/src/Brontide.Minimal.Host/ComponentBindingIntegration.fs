@@ -1929,7 +1929,7 @@ module ComponentDeclarationSuccession =
           Code = code
           Reason = reason }
 
-    let private samePosition
+    let internal samePosition
         (successor: ResolutionOutcome)
         (selection: ComponentBindingSelection)
         (memberValue: CompositionMember)
@@ -3357,6 +3357,271 @@ module ComponentGroupVerification =
                         "active-authority-unavailable"
                         "CBI16 requires one released CBI13 activation with every member admitted."
         }
+
+type ComponentGroupMemberSuccession =
+    { Selection: ComponentBindingSelection
+      Declaration: ComponentGrantDependency
+      SuccessorDeclaration: ComponentGrantDependency
+      Attribution: ComponentOperationAuthorityMapping list
+      Observations: ComponentObservedInteraction list }
+
+[<RequireQualifiedAccess>]
+type ComponentGroupSuccessionKind =
+    | Narrowed
+    | Declined
+    | ActivationUnavailable
+
+type ComponentGroupMemberDeclaration =
+    { Occurrence: OccurrenceId
+      Declaration: ComponentGrantDependency
+      Dropped: string list
+      Vetoed: string list }
+
+type ComponentGroupSuccessionResult =
+    { Kind: ComponentGroupSuccessionKind
+      Members: ComponentGroupMemberDeclaration list
+      Narrowed: OccurrenceId list
+      Vetoing: OccurrenceId list
+      Code: string
+      Reason: string }
+
+/// Narrows every member's declaration to one successor generation, unless any member's observed use
+/// vetoes it.
+///
+/// The permission is a generation, and a CM2 generation is one immutable object resolving every
+/// position at once, so a succession is one transaction: applying the members it narrows while
+/// refusing the rest would leave the activation holding declarations from two generations. A member
+/// the successor does not narrow is untouched rather than refused, which is the case CBI11's single
+/// rule could not distinguish. Nothing here retires a member or touches a participant set, which is
+/// why it returns without a task.
+[<RequireQualifiedAccess>]
+module ComponentGroupSuccession =
+    let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
+
+    let isNarrowed (result: ComponentGroupSuccessionResult) =
+        result.Kind = ComponentGroupSuccessionKind.Narrowed
+
+    let private names (declaration: ComponentGrantDependency) =
+        declaration.Entries |> List.map _.DeclaredAuthority |> Set.ofList
+
+    let private decline (members: ComponentGroupMemberSuccession list) code reason =
+        { Kind = ComponentGroupSuccessionKind.Declined
+          Members =
+            members
+            |> List.map (fun memberValue ->
+                { Occurrence = memberValue.Selection.Occurrence
+                  Declaration = memberValue.Declaration
+                  Dropped = []
+                  Vetoed = [] })
+          Narrowed = []
+          Vetoing = []
+          Code = code
+          Reason = reason }
+
+    /// Checks one member's pair of declarations and its successor position, without asking what the
+    /// member has exercised.
+    let private structure
+        (resolution: ResolutionOutcome)
+        (successor: ResolutionOutcome)
+        (memberValue: ComponentGroupMemberSuccession)
+        (portable: CompositionMember)
+        =
+        match
+            ComponentParticipantRevision.declarationShape
+                resolution
+                memberValue.Selection
+                memberValue.Declaration,
+            ComponentParticipantRevision.declarationShape
+                successor
+                memberValue.Selection
+                memberValue.SuccessorDeclaration
+        with
+        | Error(code, reason), _
+        | Ok(), Error(code, reason) -> Some(code, reason)
+        | Ok(), Ok() ->
+            // A generation that fails this for any member is not a successor of this activation.
+            match
+                ComponentDeclarationSuccession.samePosition successor memberValue.Selection portable
+            with
+            | Some mismatch ->
+                Some(
+                    "successor-position-mismatch",
+                    sprintf
+                        "%s: %s"
+                        (OccurrenceId.value memberValue.Selection.Occurrence)
+                        mismatch)
+            | None ->
+                if
+                    not (
+                        Set.isSubset
+                            (names memberValue.SuccessorDeclaration)
+                            (names memberValue.Declaration)
+                    )
+                then
+                    Some(
+                        "declaration-not-narrower",
+                        sprintf
+                            "Member %s would gain declared authority; succession only removes it."
+                            (OccurrenceId.value memberValue.Selection.Occurrence))
+                else
+                    let tupleOf (entries: ComponentGrantDependencyEntry list) name =
+                        entries
+                        |> List.tryFind (fun entry -> entry.DeclaredAuthority = name)
+                        |> Option.map ComponentParticipantRevision.entryTuple
+                    let repointed =
+                        memberValue.SuccessorDeclaration.Entries
+                        |> List.filter (fun entry ->
+                            tupleOf memberValue.Declaration.Entries entry.DeclaredAuthority
+                            <> Some(ComponentParticipantRevision.entryTuple entry))
+                        |> List.map _.DeclaredAuthority
+                        |> List.sortWith ordinal
+                    let repeated =
+                        memberValue.Attribution
+                        |> List.map (fun entry -> PortableOperationRef.text entry.Operation)
+                        |> ComponentParticipantAdmission.firstDuplicate
+                    match repointed, repeated with
+                    | (_ :: _), _ ->
+                        Some(
+                            "declaration-tuple-changed",
+                            sprintf
+                                "Succession removes dependencies; it does not re-point them. %s: %s would change tuple."
+                                (OccurrenceId.value memberValue.Selection.Occurrence)
+                                (String.Join(", ", repointed)))
+                    | [], Some operation ->
+                        Some(
+                            "operation-mapping-not-distinct",
+                            sprintf
+                                "Member %s attributes Operation '%s' to more than one declared authority."
+                                (OccurrenceId.value memberValue.Selection.Occurrence)
+                                operation)
+                    | [], None -> None
+
+    /// Computes what one member would drop, and what its own observed use vetoes.
+    ///
+    /// Exercised authority is per member, as CBI16 attributes it: one member's interaction cannot
+    /// veto another member's narrowing.
+    let private evaluate (memberValue: ComponentGroupMemberSuccession) =
+        let dropped =
+            Set.difference (names memberValue.Declaration) (names memberValue.SuccessorDeclaration)
+            |> Set.toList
+            |> List.sortWith ordinal
+        let exercised =
+            ComponentInteractionVerification.attribute
+                memberValue.Attribution
+                memberValue.Observations
+            |> List.choose id
+            |> Set.ofList
+        memberValue.Selection.Occurrence,
+        dropped,
+        dropped |> List.filter (fun name -> Set.contains name exercised)
+
+    let succeed
+        (resolution: ResolutionOutcome)
+        (successor: ResolutionOutcome)
+        (active: ComponentGroupAuthorityResult)
+        (members: ComponentGroupMemberSuccession list)
+        =
+        match ComponentGroupAuthority.isActive active, active.Lifecycle with
+        | true, Some lifecycle ->
+            let ordered =
+                members
+                |> List.sortWith (fun left right ->
+                    ordinal
+                        (OccurrenceId.value left.Selection.Occurrence)
+                        (OccurrenceId.value right.Selection.Occurrence))
+            if
+                (ordered |> List.map _.Selection.Occurrence)
+                <> (active.Admissions |> List.map _.Occurrence)
+            then
+                { Kind = ComponentGroupSuccessionKind.Declined
+                  Members = []
+                  Narrowed = []
+                  Vetoing = []
+                  Code = "member-set-changed"
+                  Reason = "The succession does not name the members this activation admitted." }
+            else
+                let portableOf occurrence =
+                    lifecycle.Members
+                    |> List.find (fun outcome -> outcome.Occurrence = occurrence)
+                    |> _.Member
+                let structural =
+                    ordered
+                    |> List.tryPick (fun memberValue ->
+                        structure
+                            resolution
+                            successor
+                            memberValue
+                            (portableOf memberValue.Selection.Occurrence))
+                match structural with
+                | Some(code, reason) -> decline ordered code reason
+                | None ->
+                    // Restating what is in force succeeds nothing; a member that restates its own is
+                    // untouched. The subset check has already run, so a member whose names differ at
+                    // all is one that narrows.
+                    let changes =
+                        ordered
+                        |> List.exists (fun memberValue ->
+                            names memberValue.SuccessorDeclaration <> names memberValue.Declaration)
+                    if not changes then
+                        decline
+                            ordered
+                            "activation-unchanged"
+                            "No member's successor declares fewer authorities, so there is nothing to succeed."
+                    else
+                        let evaluated = ordered |> List.map evaluate
+                        let vetoing =
+                            evaluated
+                            |> List.filter (fun (_, _, vetoed) -> not vetoed.IsEmpty)
+                            |> List.map (fun (occurrence, _, _) -> occurrence)
+                        if not vetoing.IsEmpty then
+                            // One transaction, so a veto anywhere refuses every member's narrowing.
+                            { Kind = ComponentGroupSuccessionKind.Declined
+                              Members =
+                                List.zip ordered evaluated
+                                |> List.map (fun (memberValue, (_, _, vetoed)) ->
+                                    { Occurrence = memberValue.Selection.Occurrence
+                                      Declaration = memberValue.Declaration
+                                      Dropped = []
+                                      Vetoed = vetoed })
+                              Narrowed = []
+                              Vetoing = vetoing
+                              Code = "declaration-use-vetoed"
+                              Reason =
+                                sprintf
+                                    "%s has already exercised authority the successor would narrow away."
+                                    (String.Join(
+                                        ", ",
+                                        vetoing |> List.map OccurrenceId.value)) }
+                        else
+                            let narrowed =
+                                evaluated
+                                |> List.filter (fun (_, dropped, _) -> not dropped.IsEmpty)
+                                |> List.map (fun (occurrence, _, _) -> occurrence)
+                            { Kind = ComponentGroupSuccessionKind.Narrowed
+                              Members =
+                                List.zip ordered evaluated
+                                |> List.map (fun (memberValue, (_, dropped, _)) ->
+                                    { Occurrence = memberValue.Selection.Occurrence
+                                      Declaration = memberValue.SuccessorDeclaration
+                                      Dropped = dropped
+                                      Vetoed = [] })
+                              Narrowed = narrowed
+                              Vetoing = []
+                              Code = "declaration-narrowed"
+                              Reason =
+                                sprintf
+                                    "%d of %d members narrowed, dropping %d declared authorities."
+                                    narrowed.Length
+                                    ordered.Length
+                                    (evaluated
+                                     |> List.sumBy (fun (_, dropped, _) -> dropped.Length)) }
+        | _ ->
+            { Kind = ComponentGroupSuccessionKind.ActivationUnavailable
+              Members = []
+              Narrowed = []
+              Vetoing = []
+              Code = "active-authority-unavailable"
+              Reason = "CBI17 requires one released CBI13 activation with every member admitted." }
 
 [<RequireQualifiedAccess>]
 module ComponentAuthorityComparison =

@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi17-group-succession-vectors",
+  "vectors": [
+    {
+      "id": "cbi17-01-both-members-narrowed",
+      "expectedKind": "narrowed",
+      "expectedCode": "declaration-narrowed",
+      "expectedDropped": 2,
+      "expectedVetoed": 0,
+      "expectedNarrowedMembers": 2,
+      "expectedDeclaredInForce": 2,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi17-02-one-member-unchanged",
+      "expectedKind": "narrowed",
+      "expectedCode": "declaration-narrowed",
+      "expectedDropped": 1,
+      "expectedVetoed": 0,
+      "expectedNarrowedMembers": 1,
+      "expectedDeclaredInForce": 3,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi17-03-use-vetoed-in-other-member",
+      "expectedKind": "declined",
+      "expectedCode": "declaration-use-vetoed",
+      "expectedDropped": 0,
+      "expectedVetoed": 1,
+      "expectedNarrowedMembers": 0,
+      "expectedDeclaredInForce": 4,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi17-04-activation-unchanged",
+      "expectedKind": "declined",
+      "expectedCode": "activation-unchanged",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedNarrowedMembers": 0,
+      "expectedDeclaredInForce": 4,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi17-05-wider-in-one-member",
+      "expectedKind": "declined",
+      "expectedCode": "declaration-not-narrower",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedNarrowedMembers": 0,
+      "expectedDeclaredInForce": 4,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi17-06-tuple-changed",
+      "expectedKind": "declined",
+      "expectedCode": "declaration-tuple-changed",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedNarrowedMembers": 0,
+      "expectedDeclaredInForce": 4,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi17-07-member-position-absent",
+      "expectedKind": "declined",
+      "expectedCode": "successor-position-mismatch",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedNarrowedMembers": 0,
+      "expectedDeclaredInForce": 4,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi17-08-successor-declares-nothing",
+      "expectedKind": "declined",
+      "expectedCode": "dependency-declaration-empty",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedNarrowedMembers": 0,
+      "expectedDeclaredInForce": 4,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi17-09-member-set-changed",
+      "expectedKind": "declined",
+      "expectedCode": "member-set-changed",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedNarrowedMembers": 0,
+      "expectedDeclaredInForce": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi17-10-ambiguous-attribution",
+      "expectedKind": "declined",
+      "expectedCode": "operation-mapping-not-distinct",
+      "expectedDropped": 0,
+      "expectedVetoed": 0,
+      "expectedNarrowedMembers": 0,
+      "expectedDeclaredInForce": 4,
+      "expectedReleased": 2
+    }
+  ]
+}

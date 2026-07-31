@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased — CBI17 multi-member declaration succession
+
+### Added
+
+- Reference Studio narrowing of every member's declaration to one successor generation, applied as
+  one transaction over the activation and refused entirely when any member's observed use vetoes it.
+- Per-member position, subset, tuple-stability, and attribution checks against that one successor,
+  with a member the successor does not narrow treated as untouched rather than refusing.
+- Shared succession vectors pinning dropped and vetoed authorities, narrowed members, the
+  declarations in force afterwards, and released members, plus a phase-boundary completeness review.
+
+CBI17 answers both questions lifting CBI11 raised: a succession is one transaction, because a CM2
+generation is one immutable object resolving every position at once, and a member the successor does
+not resolve blocks every other member. It also separates two rules CBI11 stated as one — *nothing to
+succeed* stays an activation-level refusal while *this member is untouched* becomes an ordinary
+per-member outcome. Nothing here retires a member or reaches a provider, and the operation is
+synchronous for that reason. CBI8 is the last single-member slice.
+
 ## Unreleased — CBI16 multi-member observed-interaction verification
 
 ### Added

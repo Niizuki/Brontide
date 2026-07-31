@@ -210,6 +210,19 @@ nothing. Its bounded behavior is recorded in the
 [CBI16 capability contract](./cbi16-capability-contract.md) and completed
 [contract-completeness review](./cbi16-contract-completeness-review.md).
 
+CBI17 lifts CBI11's succession to the activation and answers the two questions that lift raises.
+**A succession is one transaction**: the permission is a generation, and a CM2 generation is one
+immutable object resolving every position at once, so narrowing the members it describes while
+refusing the rest would leave the activation holding declarations from two generations. **A member
+the successor does not resolve blocks every other member**, for the same reason — a generation that
+does not describe the whole activation is not a successor of it. Lifting also separates something
+CBI11 stated as one rule: *nothing to succeed* stays an activation-level refusal, while *this member
+is untouched* becomes an ordinary per-member outcome, because a successor that narrows one Component
+and leaves another alone is the common case. A veto anywhere refuses everything, and nothing here
+retires a member or reaches a provider. Its bounded behavior is recorded in the
+[CBI17 capability contract](./cbi17-capability-contract.md) and completed
+[contract-completeness review](./cbi17-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -394,6 +407,18 @@ Each pins the projected exercises, the violating members, the unexercised and un
 authorities, the runtime's verdict, how many members stayed released, and how many provider effects
 the interactions caused, so per-member attribution and whole-activation condemnation are both checked
 answers. The fixture contains no evaluator, runtime, projection rule, or portable implementation.
+
+### `cbi17-group-succession-vectors` sections
+
+`vectors` names two applied successions — both members narrowing, and one narrowing while the other
+restates its declaration unchanged — and eight refusals covering a veto raised in the member that was
+not narrowed first, an activation that narrows nothing, a member that would widen, a re-pointed
+tuple, a member the successor does not resolve, a successor declaring nothing for one member, a
+member set the activation did not admit, and an Operation repeated inside one member. Each pins the
+dropped and vetoed authorities, how many members narrowed, the declared authorities in force
+afterwards, and how many members stayed released, so the one-transaction scope and the
+unchanged-versus-refused distinction are both checked answers. The fixture contains no resolver,
+declaration rule, observation, or portable runtime.
 
 ### `cm0-mice-topology` sections
 

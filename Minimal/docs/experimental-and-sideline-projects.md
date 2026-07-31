@@ -38,7 +38,7 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   implementation through bounded JSON Lines provider processes in both host directions. Agreement
   is limited to eight deterministic fake scenarios; CM0-CM6 are complete.
 - `Brontide.Minimal.Host` composes the independent Component Management and Portable Binding
-  experiments for CBI1-CBI16. It maps one completed native CM2 direct `1..1` position into PB7
+  experiments for CBI1-CBI17. It maps one completed native CM2 direct `1..1` position into PB7
   preflight through explicit typed identities, then coordinates one singleton, protocol-free CM4
   plan from PB7 lifecycle evidence and releases the portable gate only after CM4 Active.
   CBI3 additionally requires one explicit occurrence-to-Actor mapping and one exact local CM5
@@ -63,7 +63,9 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   retires the whole activation when any member’s authority lapses, because a CM4 activation has one
   restart scope. CBI15 revises those sets per member and checks the result against the activation.
   CBI16 verifies every member's declaration against that member's observed interaction through one
-  CM4 request, so one member's undeclared use condemns the activation.
+  CM4 request, so one member's undeclared use condemns the activation. CBI17 narrows those
+  declarations to one successor generation as a single transaction, so a member the successor does
+  not resolve blocks the others.
   It does not merge the projects, support relational activation, member addition or removal, scoped
   replacement, mediation, or wider Provider Sets, or establish real Component interchange.
 - `Brontide.Minimal.Binding` (`Portable/`) is the Minimal native realization of the

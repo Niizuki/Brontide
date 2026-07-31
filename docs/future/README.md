@@ -396,15 +396,35 @@ different input. The [`CBI16 capability contract`](../../component-management/cb
 and [`contract-completeness review`](../../component-management/cbi16-contract-completeness-review.md)
 bound it to the interactions it is given over one protocol-free multi-member activation.
 
-**Lifting the two remaining single-member slices is the next implementable integration item.** CBI8's
-declaration-free extension and CBI11's succession still govern one member. CBI11 is the harder one:
-succession replaces a declaration with a narrower one drawn from a successor CM2 resolution of the
-same position, and an activation holds one declaration per member, so it has to decide whether a
-successor narrows one member's declaration or the activation's set of them at once — and whether a
-member whose position has no successor blocks the others. Relational Initialisation, scoped
-replacement, member addition or removal, child Ports, mediation, wider Provider Sets, and real
-distribution remain future work behind it. PB8's independent reviews remain a separate governance
-prerequisite rather than implementation work; Decision 11 was ruled on and delivered on 2026-07-30.
+CBI17 lifts CBI11's succession and answers both questions that lift raised. **A succession is one
+transaction over the activation**, because the permission is a generation and a CM2 generation is one
+immutable object that resolves every position at once; narrowing the members it describes while
+refusing the rest would leave the activation holding declarations drawn from two generations, which
+is a state no generation records. **A member whose position the successor does not resolve blocks
+every other member**, for the same reason: a generation that does not describe the whole activation
+is not a successor of it, and the declaration is exactly what CBI16 holds a member to afterwards.
+
+It also found something the item did not anticipate. CBI11 refuses an unchanged declaration because
+a single-member succession that changes nothing has nothing to succeed — and that turns out to be
+**two rules only a second member can separate**. *Nothing to succeed* stays an activation-level
+refusal; *this member is untouched* becomes an ordinary per-member outcome, because a successor that
+narrows one Component and leaves another alone is the common case rather than an error. A veto is
+computed from each member's own observations, as CBI16 attributes them, and refuses the whole
+transaction including narrowings that had no veto. This slice still has no retirement path at all,
+which every vector checks, and it is synchronous in both stacks because it has no peer traffic to
+perform. The [`CBI17 capability contract`](../../component-management/cbi17-capability-contract.md)
+and [`contract-completeness review`](../../component-management/cbi17-contract-completeness-review.md)
+bound it to one successor generation over one protocol-free multi-member activation.
+
+**Lifting CBI8's declaration-free extension is the last single-member slice, and is the next
+implementable integration item.** It grows an admitted set without any declaration, refusing removal
+and substitution in place. Lifting it has to decide whether an activation may hold declarations for
+some members and none for others — CBI15 requires one per member, CBI8 requires none — and whether
+growth of one member is checked against the activation the way CBI15's revision is. Relational
+Initialisation, scoped replacement, member addition or removal, child Ports, mediation, wider Provider
+Sets, and real distribution remain future work behind it. PB8's independent reviews remain a separate
+governance prerequisite rather than implementation work; Decision 11 was ruled on and delivered on
+2026-07-30.
 
 ## Other planned areas
 

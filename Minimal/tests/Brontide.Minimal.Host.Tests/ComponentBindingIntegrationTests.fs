@@ -813,6 +813,251 @@ type ComponentBindingIntegrationTests() =
                 Unlimited = false } ]
           Policy = policy }
 
+    let groupSuccessionToken kind =
+        match kind with
+        | ComponentGroupSuccessionKind.Narrowed -> "narrowed"
+        | ComponentGroupSuccessionKind.Declined -> "declined"
+        | ComponentGroupSuccessionKind.ActivationUnavailable -> "activation-unavailable"
+
+    /// Two released members, the first covering its two declared authorities with two participants
+    /// so a later CBI15 revision has one to release.
+    let successionActivation () =
+        task {
+            let resolution =
+                pairRequestFor
+                    [ "cooling.control"; "cooling.audit" ]
+                    [ "cooling.observe"; "cooling.report" ]
+                |> FakeGenerationResolver.resolve
+            let providerSets =
+                match resolution with
+                | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            let positionFor requirement =
+                providerSets
+                |> List.find (fun item -> item.Requirement = requirement)
+                |> fun item -> List.exactlyOne item.Members
+            let handlers = [ CoolingHandler(); CoolingHandler() ]
+            let conversationFor handler =
+                PortableDirectConversation(
+                    PortableProviderEndpoint(
+                        CoolingFixture.contract,
+                        handler,
+                        Realization.FixedDirectCall))
+                :> IPortableProviderConversation
+            let firstSelection =
+                { selection (positionFor requirementId) with
+                    HostEndpoint = "succession-host-primary" }
+            let secondSelection =
+                { selection (positionFor secondaryRequirementId) with
+                    Requirement = secondaryRequirementId
+                    HostEndpoint = "succession-host-secondary" }
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let observerRequest' =
+                { observerRequest policy with
+                    Authority =
+                      [ { Request = observeAuthorityId
+                          Relationship = observerRelationshipId
+                          Capability = observeCapability
+                          Target = authorityTarget
+                          Operation = observeOperation
+                          Scope = authorityScope
+                          Unlimited = false }
+                        { Request = reportAuthorityId
+                          Relationship = observerRelationshipId
+                          Capability = reportCapability
+                          Target = authorityTarget
+                          Operation = reportOperation
+                          Scope = authorityScope
+                          Unlimited = false } ] }
+            let firstParticipants =
+                [ providerAuthority policy authorityId
+                  supervisorAuthority policy auditAuthorityId false ]
+            let secondDeclaration: ComponentGrantDependency =
+                { Definition = secondSelection.Definition
+                  Entries =
+                    [ { DeclaredAuthority = "cooling.observe"
+                        Capability = observeCapability
+                        Target = authorityTarget
+                        Operation = observeOperation
+                        Scope = authorityScope }
+                      { DeclaredAuthority = "cooling.report"
+                        Capability = reportCapability
+                        Target = authorityTarget
+                        Operation = reportOperation
+                        Scope = authorityScope } ] }
+            let! active =
+                ComponentGroupAuthority.activate
+                    resolution
+                    [ { Member =
+                          { Selection = firstSelection
+                            Conversation = conversationFor (List.item 0 handlers) }
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = firstSelection.Occurrence
+                                  Participant = participant }
+                              Request = List.item 0 firstParticipants }
+                            { Mapping =
+                                { Occurrence = firstSelection.Occurrence
+                                  Participant = supervisor }
+                              Request = List.item 1 firstParticipants } ] }
+                      { Member =
+                          { Selection = secondSelection
+                            Conversation = conversationFor (List.item 1 handlers) }
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = secondSelection.Occurrence
+                                  Participant = observer }
+                              Request = observerRequest' } ] } ]
+                    (runtimeRequest (plan [ firstSelection.Occurrence; secondSelection.Occurrence ]))
+            // Each member interacts once, so each has an exercised authority of its own.
+            let observeMember index =
+                task {
+                    let memberValue = (List.item index active.Lifecycle.Value.Members).Member
+                    let! attempted =
+                        memberValue.Invoke(
+                            CoolingFixture.setEnabled,
+                            CoolingFixture.commandV1,
+                            CoolingFixture.authorizedCommand "primary" true,
+                            PortableConstraint.Atom PortableTruth.Satisfied)
+                    return
+                        match attempted with
+                        | Ok interaction ->
+                            [ { Operation = CoolingFixture.setEnabled
+                                Result = interaction } ]
+                        | Error error ->
+                            failwithf "Expected an observable interaction, got %A." error
+                }
+            let! firstObservations = observeMember 0
+            let! secondObservations = observeMember 1
+            let declarations =
+                [ dependency firstSelection.Definition; secondDeclaration ]
+            let attributions =
+                [ [ { Operation = CoolingFixture.setEnabled
+                      DeclaredAuthority = "cooling.control" } ]
+                  [ { Operation = CoolingFixture.setEnabled
+                      DeclaredAuthority = "cooling.observe" } ] ]
+            return
+                resolution,
+                active,
+                [ firstSelection; secondSelection ],
+                declarations,
+                attributions,
+                [ firstObservations; secondObservations ],
+                [ firstParticipants; [ observerRequest' ] ],
+                handlers
+        }
+
+    /// The declaration a member narrows to, in the shape its successor generation records.
+    let narrowedDeclaration
+        (declaration: ComponentGrantDependency)
+        index
+        scenario
+        : ComponentGrantDependency =
+        let kept =
+            if index = 0 then "cooling.control"
+            elif scenario = "cbi17-03-use-vetoed-in-other-member" then "cooling.report"
+            else "cooling.observe"
+        if scenario = "cbi17-02-one-member-unchanged" && index = 1 then
+            declaration
+        else
+            { declaration with
+                Entries =
+                    declaration.Entries
+                    |> List.filter (fun entry -> entry.DeclaredAuthority = kept) }
+
+    /// A successor that resolves the secondary position under a different binding scope.
+    let rescopedSecondary () =
+        let request = pairRequestFor [ "cooling.control" ] [ "cooling.observe" ]
+        { request with
+            Definitions =
+                request.Definitions
+                |> List.map (fun definition ->
+                    if definition.Definition = consumer then
+                        { definition with
+                            Requirements =
+                                definition.Requirements
+                                |> List.map (fun requirement ->
+                                    if requirement.Requirement = secondaryRequirementId then
+                                        { requirement with
+                                            Scope =
+                                                Brontide.Minimal.Experimental.ComponentManagement.BindingScopeId.create
+                                                    "scope.cooling-successor" }
+                                    else
+                                        requirement) }
+                    else
+                        definition) }
+
+    let groupSuccessionResult scenario =
+        task {
+            let! resolution, active, selections, declarations, attributions, observations, _, handlers =
+                successionActivation ()
+            let before = handlers |> List.sumBy _.ProviderEffectCount
+            let successorRequest =
+                match scenario with
+                | "cbi17-02-one-member-unchanged" ->
+                    pairRequestFor [ "cooling.control" ] [ "cooling.observe"; "cooling.report" ]
+                | "cbi17-03-use-vetoed-in-other-member" ->
+                    pairRequestFor [ "cooling.control" ] [ "cooling.report" ]
+                | "cbi17-04-activation-unchanged" ->
+                    pairRequestFor
+                        [ "cooling.control"; "cooling.audit" ]
+                        [ "cooling.observe"; "cooling.report" ]
+                | "cbi17-05-wider-in-one-member" ->
+                    pairRequestFor
+                        [ "cooling.control"; "cooling.audit"; "cooling.observe" ]
+                        [ "cooling.observe" ]
+                | "cbi17-07-member-position-absent" -> rescopedSecondary ()
+                | "cbi17-08-successor-declares-nothing" ->
+                    pairRequestFor [ "cooling.control" ] []
+                | _ -> pairRequestFor [ "cooling.control" ] [ "cooling.observe" ]
+            let successor = successorRequest |> FakeGenerationResolver.resolve
+            let successorDeclaration index (declaration: ComponentGrantDependency) =
+                match scenario, index with
+                | "cbi17-04-activation-unchanged", _ -> declaration
+                | "cbi17-05-wider-in-one-member", 0 ->
+                    { declaration with
+                        Entries =
+                            declaration.Entries
+                            @ [ { DeclaredAuthority = "cooling.observe"
+                                  Capability = observeCapability
+                                  Target = authorityTarget
+                                  Operation = observeOperation
+                                  Scope = authorityScope } ] }
+                | "cbi17-06-tuple-changed", 0 ->
+                    { declaration with
+                        Entries =
+                            [ { DeclaredAuthority = "cooling.control"
+                                Capability = capability
+                                Target = authorityTarget
+                                Operation = operation
+                                Scope = CapabilityScopeId.create "scope.other" } ] }
+                | "cbi17-08-successor-declares-nothing", 1 ->
+                    { declaration with Entries = [] }
+                | _ -> narrowedDeclaration declaration index scenario
+            let successions =
+                selections
+                |> List.mapi (fun index selection ->
+                    { Selection = selection
+                      Declaration = List.item index declarations
+                      SuccessorDeclaration =
+                        successorDeclaration index (List.item index declarations)
+                      Attribution =
+                        if scenario = "cbi17-10-ambiguous-attribution" && index = 0 then
+                            List.item index attributions
+                            @ [ { Operation = CoolingFixture.setEnabled
+                                  DeclaredAuthority = "cooling.audit" } ]
+                        else
+                            List.item index attributions
+                      Observations = List.item index observations })
+            let intended =
+                if scenario = "cbi17-09-member-set-changed" then
+                    [ List.item 0 successions ]
+                else
+                    successions
+            let result = ComponentGroupSuccession.succeed resolution successor active intended
+            return result, active, before, (handlers |> List.sumBy _.ProviderEffectCount)
+        }
+
     let participantSetWith occurrence supervisorActor observerActor : ComponentParticipantRequest list =
         let policy = setPolicyWith supervisorActor observerActor
         [ { Mapping =
@@ -2675,6 +2920,182 @@ type ComponentBindingIntegrationTests() =
                         released = lifecycle.Members.Length || released = 0,
                         Is.True,
                         scenario))
+        }
+
+    [<Test>]
+    member _.``shared CBI17 vectors narrow every member or none``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi17-group-succession-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI17 vector identity must be a string"
+                    | value -> value
+                let! result, active, effectsBefore, effectsAfter = groupSuccessionResult scenario
+                let lifecycle = active.Lifecycle.Value
+                let released = lifecycle.Members |> List.filter _.Member.IsReleased |> List.length
+                multiple (fun () ->
+                    Assert.That(
+                        groupSuccessionToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Members |> List.sumBy (fun item -> item.Dropped.Length),
+                        Is.EqualTo(vector.GetProperty("expectedDropped").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Members |> List.sumBy (fun item -> item.Vetoed.Length),
+                        Is.EqualTo(vector.GetProperty("expectedVetoed").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Narrowed.Length,
+                        Is.EqualTo(vector.GetProperty("expectedNarrowedMembers").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Members
+                        |> List.sumBy (fun item -> item.Declaration.Entries.Length),
+                        Is.EqualTo(vector.GetProperty("expectedDeclaredInForce").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        released,
+                        Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                        scenario)
+                    // This slice has no retirement path and reaches no provider.
+                    Assert.That(released, Is.EqualTo lifecycle.Members.Length, scenario)
+                    Assert.That(
+                        effectsAfter,
+                        Is.EqualTo effectsBefore,
+                        sprintf
+                            "%s: succession performs nothing, so no member's provider is reached."
+                            scenario)
+                    // A veto anywhere refuses every member's narrowing, and vice versa.
+                    Assert.That(
+                        not result.Vetoing.IsEmpty,
+                        Is.EqualTo(
+                            result.Members |> List.exists (fun item -> not item.Vetoed.IsEmpty)),
+                        scenario)
+                    Assert.That(
+                        not result.Narrowed.IsEmpty,
+                        Is.EqualTo(ComponentGroupSuccession.isNarrowed result),
+                        sprintf
+                            "%s: an applied succession narrows at least one member, and a refused one narrows none."
+                            scenario))
+        }
+
+    [<Test>]
+    member _.``a successor that narrows one member leaves the other untouched``() =
+        task {
+            let! result, active, _, _ = groupSuccessionResult "cbi17-02-one-member-unchanged"
+            multiple (fun () ->
+                Assert.That(ComponentGroupSuccession.isNarrowed result, Is.True)
+                Assert.That(
+                    OccurrenceId.value (List.exactlyOne result.Narrowed),
+                    Is.EqualTo(OccurrenceId.value (List.item 0 active.Admissions).Occurrence),
+                    "A member the successor does not narrow is untouched rather than refusing the succession.")
+                Assert.That((List.item 1 result.Members).Dropped, Is.Empty)
+                Assert.That((List.item 1 result.Members).Declaration.Entries.Length, Is.EqualTo 2))
+        }
+
+    [<Test>]
+    member _.``a member the successor does not resolve blocks every other member``() =
+        task {
+            let! result, _, _, _ = groupSuccessionResult "cbi17-07-member-position-absent"
+            multiple (fun () ->
+                Assert.That(result.Kind, Is.EqualTo ComponentGroupSuccessionKind.Declined)
+                Assert.That(result.Code, Is.EqualTo "successor-position-mismatch")
+                Assert.That(
+                    result.Members |> List.forall (fun item -> item.Dropped.IsEmpty),
+                    Is.True,
+                    "A generation that does not resolve one member's position narrows none of them."))
+        }
+
+    [<Test>]
+    member _.``a veto in one member refuses the narrowing the other had earned``() =
+        task {
+            let! result, active, _, _ = groupSuccessionResult "cbi17-03-use-vetoed-in-other-member"
+            multiple (fun () ->
+                Assert.That(result.Kind, Is.EqualTo ComponentGroupSuccessionKind.Declined)
+                Assert.That(
+                    OccurrenceId.value (List.exactlyOne result.Vetoing),
+                    Is.EqualTo(OccurrenceId.value (List.item 1 active.Admissions).Occurrence),
+                    "The member that vetoed is named; the one whose narrowing it refused is not.")
+                Assert.That((List.item 0 result.Members).Vetoed, Is.Empty)
+                Assert.That(
+                    (List.item 0 result.Members).Dropped,
+                    Is.Empty,
+                    "One transaction: the member with no veto drops nothing either.")
+                Assert.That(
+                    List.exactlyOne (List.item 1 result.Members).Vetoed,
+                    Is.EqualTo "cooling.observe"))
+        }
+
+    [<Test>]
+    member _.``a narrowed activation lets CBI15 release the participant it kept``() =
+        task {
+            let! resolution, active, selections, declarations, attributions, observations, participants, _ =
+                successionActivation ()
+            let revision index (declaration: ComponentGrantDependency) : ComponentGroupMemberRevision =
+                { Occurrence = (List.item index selections).Occurrence
+                  Selection = List.item index selections
+                  Dependency = declaration
+                  Requests =
+                    if index = 0 then
+                        [ List.item 0 (List.item 0 participants) ]
+                    else
+                        List.item 1 participants }
+            // Dropping the supervisor is refused while the declaration in force still needs its
+            // grant.
+            let! before =
+                ComponentGroupRevision.revise
+                    resolution
+                    active
+                    [ revision 0 (List.item 0 declarations); revision 1 (List.item 1 declarations) ]
+                    "drop the supervisor before succession"
+            let successor =
+                pairRequestFor [ "cooling.control" ] [ "cooling.observe" ]
+                |> FakeGenerationResolver.resolve
+            let narrowed =
+                ComponentGroupSuccession.succeed
+                    resolution
+                    successor
+                    active
+                    (List.mapi
+                        (fun index selection ->
+                            { Selection = selection
+                              Declaration = List.item index declarations
+                              SuccessorDeclaration =
+                                narrowedDeclaration (List.item index declarations) index ""
+                              Attribution = List.item index attributions
+                              Observations = List.item index observations })
+                        selections)
+            let! after =
+                ComponentGroupRevision.revise
+                    successor
+                    active
+                    [ revision 0 (List.item 0 narrowed.Members).Declaration
+                      revision 1 (List.item 1 narrowed.Members).Declaration ]
+                    "drop the supervisor after succession"
+            multiple (fun () ->
+                Assert.That(before.Code, Is.EqualTo "dependency-not-covered")
+                Assert.That(ComponentGroupSuccession.isNarrowed narrowed, Is.True)
+                Assert.That(
+                    List.exactlyOne (List.item 0 narrowed.Members).Dropped,
+                    Is.EqualTo "cooling.audit")
+                Assert.That(after.Kind, Is.EqualTo ComponentGroupRevisionKind.Revised)
+                Assert.That(
+                    (List.item 0 after.InForce.Value.Admissions).Participants.Length,
+                    Is.EqualTo 1,
+                    "Narrowing permits the revision; it does not perform it."))
         }
 
     [<Test>]

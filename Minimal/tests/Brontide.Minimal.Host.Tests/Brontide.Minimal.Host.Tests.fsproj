@@ -49,6 +49,9 @@
     <None Include="..\..\..\component-management\fixtures\cbi16-group-verification-vectors.json"
           Link="component-management\fixtures\cbi16-group-verification-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi17-group-succession-vectors.json"
+          Link="component-management\fixtures\cbi17-group-succession-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
