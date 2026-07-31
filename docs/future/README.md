@@ -334,16 +334,32 @@ each with its own complete protocol — rather than a hand-made shape. The
 [`contract-completeness review`](../../component-management/cbi12-contract-completeness-review.md)
 bound it to independent, protocol-free members within one activation.
 
-**Authority for a multi-member activation is the next implementable integration item.** CBI12 moved
-the lifecycle to several members while CBI3 and CBI6 through CBI11 still govern one, so the
-programme now has a lifecycle that spans an activation and an authority story that does not. The
-first questions are whether a participant set is admitted per member or per activation, and whether
-the release barrier and the authority barrier are the same barrier — CBI12's answer for Release
-suggests they should be, but the receiving domain admits participants against a Component, not
-against an attempt, so it has to be decided rather than assumed. Relational Initialisation,
-replacement, child Ports, mediation, wider Provider Sets, and real distribution remain future work
-behind it. PB8's independent reviews remain a separate governance prerequisite rather than
-implementation work; Decision 11 was ruled on and delivered on 2026-07-30.
+CBI13 closes that gap and answers both questions the item raised. **Authority is admitted per
+member**, because CM5 admits against an occurrence and CBI3 ties admission to one: an occurrence is
+durable where an activation attempt is not, so admitting against an attempt would force authority to
+be re-decided on every restart. **The authority barrier and the release barrier are two barriers, and
+the authority one is strictly earlier** — which corrects the guess this item recorded. Authority is a
+precondition evaluated before any provider is contacted; Release is reached after every member
+reports Ready. What they share is being all-or-none over the activation, and both stacks check the
+separation directly: every authority refusal leaves no lifecycle at all. Across the activation the
+receiving-domain Actor mapping must be a function and injective, so one party may participate in two
+members and must map consistently, while two parties may not arrive at one local Actor — CBI6's
+conflation rule one level out. The
+[`CBI13 capability contract`](../../component-management/cbi13-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi13-contract-completeness-review.md)
+bound it to per-member admission over one protocol-free multi-member activation.
+
+**Post-activation authority for a multi-member activation is the next implementable integration
+item.** CBI7 through CBI11 — revalidation, withdrawal, extension, revision, verification, and
+succession — all still govern one member, so the programme again has a lifecycle that spans an
+activation and a post-activation authority story that does not. The first question is what one
+member's lapsed authority should do to the others: CBI12's release barrier makes members share a
+fate on the way up, but nothing yet says whether they share one on the way down, and CBI7's answer
+for a single member's participant set — retire rather than narrow — does not settle it, because a
+member is not a participant. Relational Initialisation, replacement, child Ports, mediation, wider
+Provider Sets, and real distribution remain future work behind it. PB8's independent reviews remain a
+separate governance prerequisite rather than implementation work; Decision 11 was ruled on and
+delivered on 2026-07-30.
 
 ## Other planned areas
 

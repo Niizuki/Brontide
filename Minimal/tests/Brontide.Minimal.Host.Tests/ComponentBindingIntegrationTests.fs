@@ -486,6 +486,79 @@ type ComponentBindingIntegrationTests() =
         | Planned value -> value
         | outcome -> failwithf "Expected a cyclic CM3 plan, got %A." outcome
 
+    /// The receiving-domain policy, with the participant's own local Actor overridable.
+    let groupPolicy participantActor supervisorActor : LocalAuthorityPolicy =
+        let policy = setPolicyWith supervisorActor observerLocalActor
+        { policy with
+            RelationshipRules =
+                policy.RelationshipRules
+                |> List.map (fun rule ->
+                    if rule.ProposedActor = participant then
+                        { rule with LocalActor = Some participantActor }
+                    else
+                        rule) }
+
+    let providerAuthority policy authority : AuthorityAdmissionRequest =
+        { Request = AdmissionRequestId.create "admission.group-provider"
+          Participant = participant
+          EvaluationTime = evaluationTime
+          Evidence = [ setEvidence authorityEvidence participant ]
+          Relationships =
+            [ { Request = relationshipId
+                ProposedActor = participant
+                Kind = ActorRelationshipKind.ComponentParticipant
+                Evidence = [ authorityEvidence ] } ]
+          Authority =
+            [ if authority = authorityId then
+                  { Request = authorityId
+                    Relationship = relationshipId
+                    Capability = capability
+                    Target = authorityTarget
+                    Operation = operation
+                    Scope = authorityScope
+                    Unlimited = false }
+              else
+                  { Request = authority
+                    Relationship = relationshipId
+                    Capability = reportCapability
+                    Target = authorityTarget
+                    Operation = reportOperation
+                    Scope = authorityScope
+                    Unlimited = false } ]
+          Policy = policy }
+
+    let supervisorAuthority policy authority revoked : AuthorityAdmissionRequest =
+        let evidence = setEvidence supervisorEvidence supervisor
+        { Request = AdmissionRequestId.create "admission.group-supervisor"
+          Participant = supervisor
+          EvaluationTime = evaluationTime
+          Evidence =
+            [ if revoked then
+                  { evidence with State = AdmissionEvidenceState.Revoked }
+              else
+                  evidence ]
+          Relationships =
+            [ { Request = supervisorRelationshipId
+                ProposedActor = supervisor
+                Kind = ActorRelationshipKind.ComponentParticipant
+                Evidence = [ supervisorEvidence ] } ]
+          Authority =
+            [ { Request = authority
+                Relationship = supervisorRelationshipId
+                Capability = auditCapability
+                Target = authorityTarget
+                Operation = auditOperation
+                Scope = authorityScope
+                Unlimited = false } ]
+          Policy = policy }
+
+    let groupAuthorityToken kind =
+        match kind with
+        | ComponentGroupAuthorityFailureKind.IdentityNotDistinct -> "identity-not-distinct"
+        | ComponentGroupAuthorityFailureKind.MemberAuthorityRefused -> "member-authority-refused"
+        | ComponentGroupAuthorityFailureKind.ActorMappingInconsistent -> "actor-mapping-inconsistent"
+        | ComponentGroupAuthorityFailureKind.ActivationRefused -> "activation-refused"
+
     let groupFailureToken kind =
         match kind with
         | ComponentGroupActivationFailureKind.PlanUnsupported -> "plan-unsupported"
@@ -2083,6 +2156,159 @@ type ComponentBindingIntegrationTests() =
         }
 
     [<Test>]
+    member _.``shared CBI13 vectors admit every member before any provider is reached``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi13-group-authority-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI13 vector identity must be a string"
+                    | value -> value
+                let resolution = pairRequest () |> FakeGenerationResolver.resolve
+                let providerSets =
+                    match resolution with
+                    | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                    | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+                let positionFor requirement =
+                    providerSets
+                    |> List.find (fun item -> item.Requirement = requirement)
+                    |> fun item -> List.exactlyOne item.Members
+                let handlers = [ CoolingHandler(); CoolingHandler() ]
+                let conversationFor document handler =
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(document, handler, Realization.FixedDirectCall))
+                    :> IPortableProviderConversation
+                let secondContract =
+                    if scenario = "cbi13-07-activation-refused-after-admission" then
+                        { CoolingFixture.contract with
+                            Provider = expectProvider "brontide.fake.substituted" }
+                    else
+                        CoolingFixture.contract
+                let firstMember =
+                    { Selection =
+                        { selection (positionFor requirementId) with
+                            HostEndpoint = "authority-host-primary" }
+                      Conversation =
+                        conversationFor CoolingFixture.contract (List.item 0 handlers) }
+                let secondMember =
+                    { Selection =
+                        { selection (positionFor secondaryRequirementId) with
+                            Requirement = secondaryRequirementId
+                            HostEndpoint = "authority-host-secondary" }
+                      Conversation = conversationFor secondContract (List.item 1 handlers) }
+                // The second member's participant differs by default, so each member admits its own
+                // party.
+                let sharesParticipant =
+                    scenario = "cbi13-02-shared-participant-consistent"
+                    || scenario = "cbi13-05-participant-two-local-actors"
+                let secondaryActor = if sharesParticipant then participant else supervisor
+                let secondaryLocalActor =
+                    match scenario with
+                    | "cbi13-05-participant-two-local-actors" -> supervisorLocalActor
+                    | "cbi13-06-participants-one-local-actor" -> providerLocalActor
+                    | _ -> if sharesParticipant then providerLocalActor else supervisorLocalActor
+                // Only the second member's policy varies, so the activation-level mapping rules are
+                // what the vectors exercise rather than any one member's admission.
+                let policy =
+                    if scenario = "cbi13-05-participant-two-local-actors" then
+                        groupPolicy supervisorLocalActor supervisorLocalActor
+                    else
+                        groupPolicy providerLocalActor secondaryLocalActor
+                let secondaryAuthorityId =
+                    if scenario = "cbi13-04-authority-identity-shared" then
+                        authorityId
+                    else
+                        reportAuthorityId
+                let firstParticipant =
+                    { Mapping =
+                        { Occurrence = firstMember.Selection.Occurrence
+                          Participant = participant }
+                      Request = providerAuthority (groupPolicy providerLocalActor supervisorLocalActor) authorityId }
+                let secondRequest =
+                    if secondaryActor = participant then
+                        let relationship = RelationshipRequestId.create "relationship.group-secondary"
+                        { providerAuthority policy secondaryAuthorityId with
+                            Request = AdmissionRequestId.create "admission.group-secondary"
+                            Relationships =
+                                [ { Request = relationship
+                                    ProposedActor = participant
+                                    Kind = ActorRelationshipKind.ComponentParticipant
+                                    Evidence = [ authorityEvidence ] } ]
+                            Authority =
+                                [ { Request = secondaryAuthorityId
+                                    Relationship = relationship
+                                    Capability = reportCapability
+                                    Target = authorityTarget
+                                    Operation = reportOperation
+                                    Scope = authorityScope
+                                    Unlimited = false } ] }
+                    else
+                        supervisorAuthority
+                            policy
+                            secondaryAuthorityId
+                            (scenario = "cbi13-03-second-member-denied")
+                let secondParticipant =
+                    { Mapping =
+                        { Occurrence = secondMember.Selection.Occurrence
+                          Participant = secondaryActor }
+                      Request = secondRequest }
+                let occurrences =
+                    [ firstMember.Selection.Occurrence; secondMember.Selection.Occurrence ]
+                let! result =
+                    ComponentGroupAuthority.activate
+                        resolution
+                        [ { Member = firstMember; Participants = [ firstParticipant ] }
+                          { Member = secondMember; Participants = [ secondParticipant ] } ]
+                        (runtimeRequest (plan occurrences))
+                let expectedFailure =
+                    let value = vector.GetProperty("expectedFailureKind")
+                    if value.ValueKind = JsonValueKind.Null then None else Some(value.GetString())
+                let actualFailure =
+                    result.Failure |> Option.map (fun failure -> groupAuthorityToken failure.Kind)
+                let released =
+                    result.Lifecycle
+                    |> Option.map (fun lifecycle ->
+                        lifecycle.Members |> List.filter _.Member.IsReleased |> List.length)
+                    |> Option.defaultValue 0
+                multiple (fun () ->
+                    Assert.That(
+                        ComponentGroupAuthority.isActive result,
+                        Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()),
+                        scenario)
+                    Assert.That(actualFailure, Is.EqualTo expectedFailure, scenario)
+                    Assert.That(
+                        result.Admissions.Length,
+                        Is.EqualTo(vector.GetProperty("expectedMembersAdmitted").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Grants.Length,
+                        Is.EqualTo(vector.GetProperty("expectedGrants").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        released,
+                        Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        handlers |> List.sumBy _.ProviderEffectCount,
+                        Is.EqualTo(int64 (vector.GetProperty("expectedProviderEffects").GetInt32())),
+                        scenario)
+                    // The authority barrier is earlier than the release barrier: an authority
+                    // refusal never reaches a provider at all.
+                    match result.Failure with
+                    | Some failure when
+                        failure.Kind <> ComponentGroupAuthorityFailureKind.ActivationRefused
+                        ->
+                        Assert.That(result.Lifecycle, Is.EqualTo None, scenario)
+                    | _ -> ())
+        }
+
+    [<Test>]
     member _.``a failed member leaves no other member reachable``() =
         task {
             let resolution = pairRequest () |> FakeGenerationResolver.resolve
@@ -2601,7 +2827,7 @@ type ComponentBindingIntegrationTests() =
     member _.``refused CBI6 set cannot be revised``() =
         task {
             let resolution, selected, _ = preparedWith declaredAuthority
-            let unavailable =
+            let unavailable: ComponentParticipantAdmissionResult =
                 { Admissions = []
                   Grants = []
                   Lifecycle = None
@@ -2625,7 +2851,7 @@ type ComponentBindingIntegrationTests() =
     [<Test>]
     member _.``refused CBI6 set cannot be extended``() =
         task {
-            let unavailable =
+            let unavailable: ComponentParticipantAdmissionResult =
                 { Admissions = []
                   Grants = []
                   Lifecycle = None
@@ -2647,7 +2873,7 @@ type ComponentBindingIntegrationTests() =
     [<Test>]
     member _.``refused CBI6 set cannot be revalidated as active``() =
         task {
-            let unavailable =
+            let unavailable: ComponentParticipantAdmissionResult =
                 { Admissions = []
                   Grants = []
                   Lifecycle = None

@@ -2475,6 +2475,232 @@ public sealed class ComponentBindingIntegrationTests
         return (result, handlers);
     }
 
+    [Test]
+    public async Task Shared_cbi13_vectors_admit_every_member_before_any_provider_is_reached()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi13-group-authority-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, handlers) = await GroupAuthorityResult(scenario);
+            var expectedFailure = vector.GetProperty("expectedFailureKind");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    result.IsActive,
+                    Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()),
+                    scenario);
+                Assert.That(
+                    result.Failure is null ? null : GroupAuthorityToken(result.Failure.Kind),
+                    Is.EqualTo(
+                        expectedFailure.ValueKind == JsonValueKind.Null ? null : expectedFailure.GetString()),
+                    scenario);
+                Assert.That(
+                    result.Admissions,
+                    Has.Count.EqualTo(vector.GetProperty("expectedMembersAdmitted").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Grants,
+                    Has.Count.EqualTo(vector.GetProperty("expectedGrants").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Lifecycle?.Members.Count(item => item.Member.IsReleased) ?? 0,
+                    Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                    scenario);
+                Assert.That(
+                    handlers.Sum(handler => handler.ProviderEffectCount),
+                    Is.EqualTo(vector.GetProperty("expectedProviderEffects").GetInt32()),
+                    scenario);
+
+                // The authority barrier is earlier than the release barrier: an authority refusal
+                // never reaches a provider at all.
+                if (result.Failure is { Kind: not ComponentGroupAuthorityFailureKind.ActivationRefused })
+                {
+                    Assert.That(result.Lifecycle, Is.Null, scenario);
+                }
+            });
+        }
+    }
+
+    [Test]
+    public async Task One_party_may_participate_in_two_members_through_one_local_actor()
+    {
+        var (result, _) = await GroupAuthorityResult("cbi13-02-shared-participant-consistent");
+        var holders = result.Grants.Select(grant => grant.Holder).Distinct().ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsActive, Is.True);
+            Assert.That(
+                result.Admissions.SelectMany(item => item.Participants).Select(item => item.Participant).Distinct(),
+                Has.Exactly(1).Items,
+                "One party participates in both members.");
+            Assert.That(holders, Has.Length.EqualTo(1), "It maps onto exactly one receiving-domain Actor.");
+            Assert.That(result.Grants, Has.Count.EqualTo(2), "It holds one grant per member.");
+        });
+    }
+
+    private static async Task<(ComponentGroupAuthorityResult Result, CoolingPortableHandler[] Handlers)>
+        GroupAuthorityResult(string scenario)
+    {
+        var resolution = new FakeGenerationResolver().Resolve(PairRequest());
+        var first = resolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var second = resolution.Generation.ProviderSets.Single(item => item.Requirement == SecondaryRequirement);
+        var handlers = new[]
+        {
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+        };
+        var secondContract = scenario == "cbi13-07-activation-refused-after-admission"
+            ? CoolingPortableFixture.Contract with
+            {
+                Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
+            }
+            : CoolingPortableFixture.Contract;
+        var groupMembers = new[]
+        {
+            new ComponentGroupMember(
+                Selection(first.Members[0]) with { HostEndpoint = "authority-host-primary" },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    CoolingPortableFixture.Contract,
+                    handlers[0],
+                    PortableRealization.FixedDirectCall))),
+            new ComponentGroupMember(
+                Selection(second.Members[0]) with
+                {
+                    Requirement = SecondaryRequirement,
+                    HostEndpoint = "authority-host-secondary",
+                },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    secondContract,
+                    handlers[1],
+                    PortableRealization.FixedDirectCall))),
+        };
+
+        // The second member's participant differs by default, so each member admits its own party.
+        var sharesParticipant = scenario is "cbi13-02-shared-participant-consistent"
+            or "cbi13-05-participant-two-local-actors";
+        var secondaryActor = sharesParticipant ? Participant : Supervisor;
+        var secondaryLocalActor = scenario switch
+        {
+            "cbi13-05-participant-two-local-actors" => SupervisorLocalActor,
+            "cbi13-06-participants-one-local-actor" => ProviderLocalActor,
+            _ => sharesParticipant ? ProviderLocalActor : SupervisorLocalActor,
+        };
+        // Only the second member's policy varies, so the activation-level mapping rules are what the
+        // vectors exercise rather than any one member's admission.
+        var policy = scenario == "cbi13-05-participant-two-local-actors"
+            ? GroupPolicy(SupervisorLocalActor)
+            : GroupPolicy(ProviderLocalActor, secondaryLocalActor);
+        var firstParticipant = new ComponentParticipantRequest(
+            new(groupMembers[0].Selection.Occurrence, Participant),
+            ProviderAuthority(GroupPolicy(ProviderLocalActor), Authority));
+        var secondaryAuthority = scenario == "cbi13-04-authority-identity-shared"
+            ? Authority
+            : ReportAuthority;
+        var secondParticipant = new ComponentParticipantRequest(
+            new(groupMembers[1].Selection.Occurrence, secondaryActor),
+            secondaryActor == Participant
+                ? ProviderAuthority(policy, secondaryAuthority) with
+                {
+                    Request = AdmissionRequestId.Create("admission.group-secondary"),
+                    Relationships =
+                    [
+                        new(
+                            RelationshipRequestId.Create("relationship.group-secondary"),
+                            Participant,
+                            ActorRelationshipKind.ComponentParticipant,
+                            [AuthorityEvidence]),
+                    ],
+                    Authority =
+                    [
+                        new(
+                            secondaryAuthority,
+                            RelationshipRequestId.Create("relationship.group-secondary"),
+                            ReportCapability,
+                            Target,
+                            ReportOperation,
+                            AuthorityScope,
+                            false),
+                    ],
+                }
+                : SupervisorAuthority(policy, secondaryAuthority, scenario == "cbi13-03-second-member-denied"));
+
+        var result = await ComponentGroupAuthority.ActivateAsync(
+            resolution,
+            [
+                new(groupMembers[0], [firstParticipant]),
+                new(groupMembers[1], [secondParticipant]),
+            ],
+            RuntimeRequest(Plan(groupMembers.Select(item => item.Selection.Occurrence).ToArray())));
+        return (result, handlers);
+    }
+
+    /// <summary>The receiving-domain policy, with the participant's own local Actor overridable.</summary>
+    private static LocalAuthorityPolicy GroupPolicy(
+        LocalActorReferenceId participantActor,
+        LocalActorReferenceId? supervisorActor = null)
+    {
+        var policy = SetPolicy(supervisorActor ?? SupervisorLocalActor, ObserverLocalActor);
+        return policy with
+        {
+            RelationshipRules = policy.RelationshipRules
+                .Select(rule => rule.ProposedActor == Participant
+                    ? rule with { LocalActor = participantActor }
+                    : rule)
+                .ToArray(),
+        };
+    }
+
+    private static AuthorityAdmissionRequest ProviderAuthority(
+        LocalAuthorityPolicy policy,
+        AuthorityRequestId authority) =>
+        new(
+            AdmissionRequestId.Create("admission.group-provider"),
+            Participant,
+            EvaluationTime,
+            [SetEvidence(AuthorityEvidence, Participant)],
+            [new(Relationship, Participant, ActorRelationshipKind.ComponentParticipant, [AuthorityEvidence])],
+            [
+                authority == Authority
+                    ? new(Authority, Relationship, Capability, Target, Operation, AuthorityScope, false)
+                    : new(authority, Relationship, ReportCapability, Target, ReportOperation, AuthorityScope, false),
+            ],
+            policy);
+
+    private static AuthorityAdmissionRequest SupervisorAuthority(
+        LocalAuthorityPolicy policy,
+        AuthorityRequestId authority,
+        bool revoked)
+    {
+        var evidence = SetEvidence(SupervisorEvidence, Supervisor);
+        return new(
+            AdmissionRequestId.Create("admission.group-supervisor"),
+            Supervisor,
+            EvaluationTime,
+            [revoked ? evidence with { State = AdmissionEvidenceState.Revoked } : evidence],
+            [new(SupervisorRelationship, Supervisor, ActorRelationshipKind.ComponentParticipant, [SupervisorEvidence])],
+            [new(authority, SupervisorRelationship, AuditCapability, Target, AuditOperation, AuthorityScope, false)],
+            policy);
+    }
+
+    private static string GroupAuthorityToken(ComponentGroupAuthorityFailureKind kind) => kind switch
+    {
+        ComponentGroupAuthorityFailureKind.IdentityNotDistinct => "identity-not-distinct",
+        ComponentGroupAuthorityFailureKind.MemberAuthorityRefused => "member-authority-refused",
+        ComponentGroupAuthorityFailureKind.ActorMappingInconsistent => "actor-mapping-inconsistent",
+        ComponentGroupAuthorityFailureKind.ActivationRefused => "activation-refused",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
     private static string GroupFailureToken(ComponentGroupActivationFailureKind kind) => kind switch
     {
         ComponentGroupActivationFailureKind.PlanUnsupported => "plan-unsupported",

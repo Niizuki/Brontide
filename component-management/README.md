@@ -168,6 +168,16 @@ Initialisation exists for. Its bounded behavior is recorded in the
 [CBI12 capability contract](./cbi12-capability-contract.md) and completed
 [contract-completeness review](./cbi12-contract-completeness-review.md).
 
+CBI13 closes the gap CBI12 opened, where the lifecycle spanned several members while authority still
+governed one. **Authority is admitted per member**, because CM5 admits against an occurrence and an
+occurrence is durable where an activation attempt is not. **The authority barrier and the release
+barrier are two barriers**, and the authority one is strictly earlier: every member's set is admitted
+before any provider is contacted, and Release still waits for every member to reach Ready. Across the
+activation the receiving-domain Actor mapping must be a function and injective, so one party may
+participate in two members but two parties may not arrive at one local Actor. Its bounded behavior is
+recorded in the [CBI13 capability contract](./cbi13-capability-contract.md) and completed
+[contract-completeness review](./cbi13-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -313,6 +323,16 @@ cyclic group with Relational Initialisation protocols, and a CM4 refusal before 
 vector pins the failure kind and code, the number of members, how many are released, how many are
 retired, and the runtime's verdict, so the release barrier is a checked answer in both directions.
 The fixture contains no planner, runtime, portable implementation, or cleanup mechanism.
+
+### `cbi13-group-authority-vectors` sections
+
+`vectors` names two admitted activations — two members with their own parties, and one party
+participating in both — and five refusals covering a denied member, an authority identity shared
+across members, one participant mapped onto two local Actors, two participants mapped onto one, and
+an activation refused after every member was admitted. Each vector pins how many members were
+admitted, how many aggregate grants exist, how many members were released, and how many provider
+effects occurred, so the ordering of the two barriers is a checked answer. The fixture contains no
+evaluator, policy, planner, or portable runtime.
 
 ### `cm0-mice-topology` sections
 

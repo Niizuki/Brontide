@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi13-group-authority-vectors",
+  "vectors": [
+    {
+      "id": "cbi13-01-two-members-admitted",
+      "expectedActive": true,
+      "expectedFailureKind": null,
+      "expectedMembersAdmitted": 2,
+      "expectedGrants": 2,
+      "expectedReleased": 2,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi13-02-shared-participant-consistent",
+      "expectedActive": true,
+      "expectedFailureKind": null,
+      "expectedMembersAdmitted": 2,
+      "expectedGrants": 2,
+      "expectedReleased": 2,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi13-03-second-member-denied",
+      "expectedActive": false,
+      "expectedFailureKind": "member-authority-refused",
+      "expectedMembersAdmitted": 1,
+      "expectedGrants": 0,
+      "expectedReleased": 0,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi13-04-authority-identity-shared",
+      "expectedActive": false,
+      "expectedFailureKind": "identity-not-distinct",
+      "expectedMembersAdmitted": 0,
+      "expectedGrants": 0,
+      "expectedReleased": 0,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi13-05-participant-two-local-actors",
+      "expectedActive": false,
+      "expectedFailureKind": "actor-mapping-inconsistent",
+      "expectedMembersAdmitted": 2,
+      "expectedGrants": 0,
+      "expectedReleased": 0,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi13-06-participants-one-local-actor",
+      "expectedActive": false,
+      "expectedFailureKind": "actor-mapping-inconsistent",
+      "expectedMembersAdmitted": 2,
+      "expectedGrants": 0,
+      "expectedReleased": 0,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi13-07-activation-refused-after-admission",
+      "expectedActive": false,
+      "expectedFailureKind": "activation-refused",
+      "expectedMembersAdmitted": 2,
+      "expectedGrants": 2,
+      "expectedReleased": 0,
+      "expectedProviderEffects": 0
+    }
+  ]
+}
