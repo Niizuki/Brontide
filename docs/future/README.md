@@ -437,17 +437,41 @@ boundary a mixed activation makes visible: CBI16 derives an exercise's admission
 so an undeclared member's ordinary interaction cannot be verified at all.
 
 **The lifting programme is complete.** CBI8, CBI10, and CBI11 have all been lifted, by CBI18, CBI16,
-and CBI17. What remains is not a lift, and **scoped replacement is the next implementable item**:
-CBI14, CBI15, and CBI18 each deferred to it by name, because CM4 declares it as the one operation
-that can retire and replace a member while its restart scope keeps running — which is exactly what
-"retire the whole activation" currently stands in for. Lifting it has to decide what a replacement
-does to the authority admitted against the departing member's occurrence, since CBI13 admits against
-an occurrence and a replacement changes which occurrence occupies the position; and whether the
-release barrier CBI12 established re-arms for the replacement alone or for the activation it rejoins.
-Relational Initialisation, member addition or removal, child Ports, mediation, wider Provider Sets,
-and real distribution remain future work behind it. PB8's independent reviews remain a separate
-governance prerequisite rather than implementation work; Decision 11 was ruled on and delivered on
-2026-07-30.
+and CBI17.
+
+CBI19 implements scoped replacement, and its first finding **corrects the three slices that deferred
+to it** rather than fulfilling them. CBI14, CBI15, and CBI18 each said that retiring one member while
+its scope keeps running "is a scoped replacement, an operation CM4 declares separately". Reading CM4
+to implement it shows scoped replacement targets a restart scope holding a *generation*, and its
+Release makes the successor generation active **atomically for the whole scope**. Nothing in CM4
+retires one member and leaves its siblings running. So those slices' answer — retire everything — was
+not a placeholder awaiting this one; it was already correct, and the forward reference named a
+capability the model does not have.
+
+That disposes of the second question this item recorded, which presupposed a per-member replacement:
+the release barrier re-arms for the **whole successor activation**, from CM4's shape as CBI12's
+original barrier did. The first question has a real answer. **Authority follows the occurrence, not
+the activation attempt** — CBI13 admits against an occurrence *because* an occurrence is durable
+where an attempt is not, and a replacement is precisely the event that ends an attempt while
+occurrences persist, so that justification is finally exercised rather than asserted. A surviving
+occurrence must be re-admitted with the authority that admitted it, so a replacement cannot quietly
+change what it may do; a new occurrence is admitted afresh; and **nothing is inherited either way**,
+so a revocation landing between the two attempts is seen. The ordering a plausible implementation
+gets wrong is also pinned: the retained members are retired **after** cutover and never before,
+because CM4 requires a pre-cutover failure to leave the retained generation serving. The
+[`CBI19 capability contract`](../../component-management/cbi19-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi19-contract-completeness-review.md)
+bound it to replacing the generation in one restart scope over protocol-free members.
+
+**Member addition and removal is the next implementable item.** CBI19 replaces a generation whose
+successor resolves the same positions; a successor that adds or drops one is a different capability,
+and it is the last structural constraint every slice from CBI12 onward has held fixed. It has to
+decide what a dropped position does to the authority admitted against its occurrence — CBI19 says
+authority follows the occurrence, and a dropped occurrence has no successor to follow it to — and
+whether an added position may join an activation that is already released or only across a cutover.
+Relational Initialisation, child Ports, mediation, wider Provider Sets, and real distribution remain
+future work behind it. PB8's independent reviews remain a separate governance prerequisite rather
+than implementation work; Decision 11 was ruled on and delivered on 2026-07-30.
 
 ## Other planned areas
 

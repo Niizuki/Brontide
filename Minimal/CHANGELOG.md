@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased — CBI19 scoped activation replacement
+
+### Added
+
+- Minimal Host replacement of the generation occupying one restart scope with a successor generation,
+  standing the successor up under CBI13's barriers and cutting the scope over to it.
+- Re-establishment of authority per occurrence rather than inheritance: a surviving occurrence must
+  be re-admitted with the authority that admitted it, a new one is admitted afresh.
+- Retirement of the retained members only after cutover, with a post-cutover cleanup failure named
+  rather than swallowed.
+- Shared replacement vectors pinning the cutover boundary in both directions, plus a phase-boundary
+  completeness review and a named test for every contract item.
+
+CBI19's first finding corrects three earlier slices rather than fulfilling them: CM4's scoped
+replacement swaps a whole generation atomically, and nothing in CM4 retires one member while its
+scope keeps running, so CBI14, CBI15, and CBI18's "retire the whole activation" was already correct
+rather than a placeholder. Authority follows the occurrence, which is CBI13's own justification
+finally exercised, and the release barrier re-arms for the whole successor activation.
+
 ## Unreleased — CBI18 multi-member participant extension
 
 ### Added

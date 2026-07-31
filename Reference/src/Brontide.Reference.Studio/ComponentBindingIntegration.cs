@@ -3216,6 +3216,197 @@ public static class ComponentGroupVerification
             reason);
 }
 
+public enum ComponentGroupReplacementKind
+{
+    Replaced,
+    CleanupFailed,
+    Declined,
+    ActivationUnavailable,
+}
+
+public sealed record ComponentGroupReplacementResult(
+    ComponentGroupReplacementKind Kind,
+    ComponentGroupAuthorityResult? Successor,
+    bool CutOver,
+    IReadOnlyList<Cm.OccurrenceId> Retired,
+    string Code,
+    string Reason)
+{
+    public bool IsReplaced => Kind == ComponentGroupReplacementKind.Replaced;
+}
+
+/// <summary>
+/// Replaces the generation occupying one restart scope with a successor generation, and cuts the
+/// scope over to it.
+/// </summary>
+/// <remarks>
+/// CM4's scoped replacement swaps a whole generation atomically: one Release for the attempt, one
+/// cutover for the scope, and no operation anywhere that retires one member while its scope keeps
+/// running. Authority follows the occurrence rather than the attempt — CBI13's own justification,
+/// finally exercised — and is re-established in this attempt rather than inherited. The retained
+/// members are retired only after cutover, because a failure before it must leave them serving.
+/// </remarks>
+public static class ComponentGroupReplacement
+{
+    public static async ValueTask<ComponentGroupReplacementResult> ReplaceAsync(
+        Cm.ResolutionOutcome successor,
+        ComponentGroupAuthorityResult retained,
+        IReadOnlyList<ComponentGroupParticipant> members,
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(successor);
+        ArgumentNullException.ThrowIfNull(retained);
+        ArgumentNullException.ThrowIfNull(members);
+        ArgumentNullException.ThrowIfNull(runtimeRequest);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (!retained.IsActive || retained.Lifecycle is not { } lifecycle)
+        {
+            return Decline(
+                ComponentGroupReplacementKind.ActivationUnavailable,
+                "active-authority-unavailable",
+                "CBI19 requires one released CBI13 activation to replace.");
+        }
+
+        if (Scope(retained, runtimeRequest) is { } invalid)
+        {
+            return Decline(ComponentGroupReplacementKind.Declined, invalid.Code, invalid.Reason);
+        }
+
+        // A surviving occurrence keeps whatever it was admitted for: the replacement may not change
+        // it quietly. Authority is still re-established, never inherited.
+        var admitted = retained.Admissions.ToDictionary(item => item.Occurrence);
+        foreach (var member in members
+            .OrderBy(item => item.Member.Selection.Occurrence.Value, StringComparer.Ordinal))
+        {
+            if (!admitted.TryGetValue(member.Member.Selection.Occurrence, out var prior))
+            {
+                continue;
+            }
+
+            if (member.Participants.Count != prior.Participants.Count ||
+                member.Participants
+                    .OrderBy(item => item.Request.Participant.Value, StringComparer.Ordinal)
+                    .Where((item, index) => !ComponentParticipantRevalidation.MatchesPrior(
+                        prior.Participants[index],
+                        item.Request))
+                    .Any())
+            {
+                return Decline(
+                    ComponentGroupReplacementKind.Declined,
+                    "authority-revalidation-mismatch",
+                    $"Occurrence {member.Member.Selection.Occurrence} survives this replacement, so it must be admitted with the authority that admitted it.");
+            }
+        }
+
+        // The successor stands up under CBI13's barriers: every set admitted before any successor
+        // provider is contacted, then one Release once every member is Ready.
+        var activation = await ComponentGroupAuthority.ActivateAsync(
+            successor,
+            members,
+            runtimeRequest,
+            cancellationToken).ConfigureAwait(false);
+        if (!activation.IsActive)
+        {
+            // Before cutover the retained activation was never stood down; it is still serving.
+            var failure = activation.Failure;
+            return new(
+                ComponentGroupReplacementKind.Declined,
+                activation,
+                false,
+                Array.Empty<Cm.OccurrenceId>(),
+                failure?.Kind == ComponentGroupAuthorityFailureKind.ActivationRefused
+                    ? SuccessorFailureCode(activation)
+                    : failure?.Code ?? "successor-activation-refused",
+                failure?.Reason ?? "The successor activation did not release every member.");
+        }
+
+        // Cutover happened. Only now may the retained members be stood down.
+        var cleanup = new List<string>();
+        var retiredMembers = new List<Cm.OccurrenceId>();
+        foreach (var outcome in lifecycle.Members)
+        {
+            var (_, cleanupFailure) = await ComponentParticipantRevalidation
+                .TryRetireAsync(outcome.Member, retirementReason, cancellationToken)
+                .ConfigureAwait(false);
+            retiredMembers.Add(outcome.Occurrence);
+            if (cleanupFailure is not null)
+            {
+                cleanup.Add($"{outcome.Occurrence}: {cleanupFailure}");
+            }
+        }
+
+        return cleanup.Count == 0
+            ? new(
+                ComponentGroupReplacementKind.Replaced,
+                activation,
+                true,
+                retiredMembers,
+                "activation-replaced",
+                $"The scope cut over to {runtimeRequest.Plan.Generation}; {retiredMembers.Count} retained members were retired.")
+            : new(
+                // The scope has already cut over, so the successor stays released and the cleanup
+                // failure is named rather than swallowed.
+                ComponentGroupReplacementKind.CleanupFailed,
+                activation,
+                true,
+                retiredMembers,
+                "retained-retirement-failed",
+                string.Join("; ", cleanup));
+    }
+
+    /// <summary>
+    /// Checks that the request replaces the generation this activation made active, in the scope it
+    /// occupies.
+    /// </summary>
+    private static (string Code, string Reason)? Scope(
+        ComponentGroupAuthorityResult retained,
+        Cm.ActivationRuntimeRequest runtimeRequest)
+    {
+        // Read what the retained activation actually made active from CM4's own observation, not
+        // from the caller's plan.
+        if (retained.Lifecycle?.Runtime?.Observation is not { } current)
+        {
+            return ("retained-generation-unknown", "The retained activation records no CM4 observation to replace.");
+        }
+
+        if (runtimeRequest.RequestedRestartScope != current.RestartScope ||
+            runtimeRequest.Plan.RestartScope != current.RestartScope)
+        {
+            return (
+                "restart-scope-mismatch",
+                $"CBI19 replaces the generation in scope '{current.RestartScope}'; widening or moving the scope is CM4's refusal, not a replacement.");
+        }
+
+        if (runtimeRequest.Plan.Generation == current.TargetGeneration)
+        {
+            return (
+                "generation-not-successor",
+                $"Generation '{current.TargetGeneration}' is the one already active in this scope, so it succeeds nothing.");
+        }
+
+        return runtimeRequest.RetainedGeneration == current.TargetGeneration
+            ? null
+            : (
+                "retained-generation-mismatch",
+                $"The scope holds generation '{current.TargetGeneration}', not '{runtimeRequest.RetainedGeneration}'.");
+    }
+
+    /// <summary>Names a pre-cutover Release failure as CM4 classified it.</summary>
+    private static string SuccessorFailureCode(ComponentGroupAuthorityResult activation) =>
+        activation.Lifecycle?.Runtime?.Kind == Cm.ActivationRuntimeOutcomeKind.ReleaseFailedBeforeCutover
+            ? "release-failed-before-cutover"
+            : "successor-establishment-refused";
+
+    private static ComponentGroupReplacementResult Decline(
+        ComponentGroupReplacementKind kind,
+        string code,
+        string reason) =>
+        new(kind, null, false, Array.Empty<Cm.OccurrenceId>(), code, reason);
+}
+
 public enum ComponentGroupExtensionKind
 {
     Extended,

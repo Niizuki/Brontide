@@ -158,6 +158,11 @@ inherited instead of deciding it: growth needs no declaration from any member, b
 governs who may leave and growth removes nobody. The case a single member could never pose is that a
 party already participating in one member may join another — the mapping rule that usually refuses
 things, permitting one.
+CBI19 replaces the generation in a restart scope, and its first finding corrects the slices that
+pointed at it: CM4 swaps a whole generation atomically and has no operation that retires one member
+while its scope keeps running, so "retire the whole activation" was never a placeholder. Authority
+turns out to follow the occurrence rather than the attempt — which is the reason CBI13 gave for
+admitting against an occurrence in the first place, finally put to work.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary
