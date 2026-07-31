@@ -153,6 +153,11 @@ kind of reason: a generation is one immutable object resolving every position at
 the successor does not resolve blocks the others. It also splits a rule CBI11 could only state as
 one — restating what is in force still succeeds nothing, but a member the successor leaves alone is
 simply untouched.
+CBI18 finishes the lifting programme by growing those participant sets, and dissolves the question it
+inherited instead of deciding it: growth needs no declaration from any member, because a declaration
+governs who may leave and growth removes nobody. The case a single member could never pose is that a
+party already participating in one member may join another — the mapping rule that usually refuses
+things, permitting one.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

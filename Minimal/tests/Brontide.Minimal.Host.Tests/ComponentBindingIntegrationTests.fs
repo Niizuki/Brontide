@@ -813,6 +813,170 @@ type ComponentBindingIntegrationTests() =
                 Unlimited = false } ]
           Policy = policy }
 
+    let revokedRequest (request: AuthorityAdmissionRequest) =
+        { request with
+            Evidence =
+              request.Evidence
+              |> List.map (fun evidence ->
+                  { evidence with State = AdmissionEvidenceState.Revoked }) }
+
+    let groupExtensionToken kind =
+        match kind with
+        | ComponentGroupExtensionKind.Extended -> "extended"
+        | ComponentGroupExtensionKind.Declined -> "declined"
+        | ComponentGroupExtensionKind.Withdrawn -> "withdrawn"
+        | ComponentGroupExtensionKind.RetirementFailed -> "retirement-failed"
+        | ComponentGroupExtensionKind.ActivationUnavailable -> "activation-unavailable"
+
+    /// Two released members holding one participant each, so growth is observable.
+    let extensionActivation failCleanup =
+        task {
+            let resolution = pairRequest () |> FakeGenerationResolver.resolve
+            let providerSets =
+                match resolution with
+                | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            let positionFor requirement =
+                providerSets
+                |> List.find (fun item -> item.Requirement = requirement)
+                |> fun item -> List.exactlyOne item.Members
+            let handlers = [ CoolingHandler(); CoolingHandler() ]
+            let baseConversation handler =
+                PortableDirectConversation(
+                    PortableProviderEndpoint(
+                        CoolingFixture.contract,
+                        handler,
+                        Realization.FixedDirectCall))
+                :> IPortableProviderConversation
+            let secondConversation =
+                let inner = baseConversation (List.item 1 handlers)
+                if failCleanup then
+                    FailingRetirementConversation inner :> IPortableProviderConversation
+                else
+                    inner
+            let firstSelection =
+                { selection (positionFor requirementId) with
+                    HostEndpoint = "extension-host-primary" }
+            let secondSelection =
+                { selection (positionFor secondaryRequirementId) with
+                    Requirement = secondaryRequirementId
+                    HostEndpoint = "extension-host-secondary" }
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let admitted =
+                [ providerAuthority policy authorityId
+                  supervisorAuthority policy auditAuthorityId false ]
+            let! active =
+                ComponentGroupAuthority.activate
+                    resolution
+                    [ { Member =
+                          { Selection = firstSelection
+                            Conversation = baseConversation (List.item 0 handlers) }
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = firstSelection.Occurrence
+                                  Participant = participant }
+                              Request = List.item 0 admitted } ] }
+                      { Member =
+                          { Selection = secondSelection
+                            Conversation = secondConversation }
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = secondSelection.Occurrence
+                                  Participant = supervisor }
+                              Request = List.item 1 admitted } ] } ]
+                    (runtimeRequest (plan [ firstSelection.Occurrence; secondSelection.Occurrence ]))
+            return resolution, active, admitted, policy, handlers
+        }
+
+    let groupExtensionResult scenario =
+        task {
+            let failCleanup = scenario = "cbi18-14-retirement-failure"
+            let! _, active, admitted, policy, _ = extensionActivation failCleanup
+            let prior = active.Admissions
+            let first = (List.item 0 prior).Occurrence
+            let second = (List.item 1 prior).Occurrence
+            // A second request for a party already live in the first member: distinct identities
+            // throughout, and the Actor its own policy establishes.
+            let sharedParty actorPolicy : AuthorityAdmissionRequest =
+                let relationship =
+                    RelationshipRequestId.create "relationship.group-provider-second"
+                { providerAuthority actorPolicy authorityId with
+                    Request = AdmissionRequestId.create "admission.group-provider-second"
+                    Relationships =
+                      [ { Request = relationship
+                          ProposedActor = participant
+                          Kind = ActorRelationshipKind.ComponentParticipant
+                          Evidence = [ authorityEvidence ] } ]
+                    Authority =
+                      [ { Request = AuthorityRequestId.create "authority.cooling-control-second"
+                          Relationship = relationship
+                          Capability = capability
+                          Target = authorityTarget
+                          Operation = operation
+                          Scope = authorityScope
+                          Unlimited = false } ] }
+            let observer' = observerRequest policy
+            let firstRequests =
+                match scenario with
+                | "cbi18-03-shared-party-added-to-second-member"
+                | "cbi18-04-shared-party-mapped-onto-a-second-actor"
+                | "cbi18-07-activation-unchanged" -> [ List.item 0 admitted ]
+                | "cbi18-05-removal-declined" -> []
+                | "cbi18-06-substitution-declined" -> [ observer' ]
+                | "cbi18-09-identity-shared-across-members" ->
+                    [ List.item 0 admitted
+                      { observer' with
+                          Authority =
+                            [ { List.exactlyOne observer'.Authority with
+                                  Request = auditAuthorityId } ] } ]
+                | "cbi18-10-local-actor-shared-across-members" ->
+                    [ List.item 0 admitted
+                      observerRequest (
+                          groupPolicyFor providerLocalActor supervisorLocalActor supervisorLocalActor) ]
+                | "cbi18-11-addition-denied"
+                | "cbi18-15-lapse-outranks-a-denied-addition" ->
+                    [ List.item 0 admitted; revokedRequest observer' ]
+                | "cbi18-12-retained-identity-drift" ->
+                    [ { List.item 0 admitted with
+                          Authority =
+                            [ { List.exactlyOne (List.item 0 admitted).Authority with
+                                  Capability = CapabilityId.create "capability.other" } ] }
+                      observer' ]
+                | _ -> [ List.item 0 admitted; observer' ]
+            let secondBase =
+                if
+                    scenario = "cbi18-13-untouched-member-lapsed"
+                    || scenario = "cbi18-14-retirement-failure"
+                    || scenario = "cbi18-15-lapse-outranks-a-denied-addition"
+                then
+                    revokedRequest (List.item 1 admitted)
+                else
+                    List.item 1 admitted
+            let secondRequests =
+                match scenario with
+                | "cbi18-02-both-members-grown" -> [ secondBase; deputyRequest policy ]
+                | "cbi18-03-shared-party-added-to-second-member" ->
+                    [ secondBase; sharedParty policy ]
+                | "cbi18-04-shared-party-mapped-onto-a-second-actor" ->
+                    [ secondBase
+                      sharedParty (groupPolicy deputyLocalActor supervisorLocalActor) ]
+                | _ -> [ secondBase ]
+            let requests =
+                let entries =
+                    [ { Occurrence = first; Requests = firstRequests }
+                      { Occurrence = second; Requests = secondRequests } ]
+                if scenario = "cbi18-08-member-set-changed" then
+                    [ List.item 0 entries ]
+                else
+                    entries
+            let! result =
+                ComponentGroupExtension.extend
+                    active
+                    requests
+                    (sprintf "group extension %s" scenario)
+            return result, active, prior
+        }
+
     let groupSuccessionToken kind =
         match kind with
         | ComponentGroupSuccessionKind.Narrowed -> "narrowed"
@@ -1139,13 +1303,6 @@ type ComponentBindingIntegrationTests() =
     let withAuthority (entry: ComponentParticipantRequest) authority =
         { entry with
             Request = { entry.Request with Authority = authority } }
-
-    let revokedRequest (request: AuthorityAdmissionRequest) =
-        { request with
-            Evidence =
-              request.Evidence
-              |> List.map (fun evidence ->
-                  { evidence with State = AdmissionEvidenceState.Revoked }) }
 
     let expiredRequest (request: AuthorityAdmissionRequest) =
         { request with
@@ -2920,6 +3077,336 @@ type ComponentBindingIntegrationTests() =
                         released = lifecycle.Members.Length || released = 0,
                         Is.True,
                         scenario))
+        }
+
+    [<Test>]
+    member _.``shared CBI18 vectors grow every member set or none``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi18-group-extension-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI18 vector identity must be a string"
+                    | value -> value
+                let! result, active, _ = groupExtensionResult scenario
+                let lifecycle = active.Lifecycle.Value
+                let released = lifecycle.Members |> List.filter _.Member.IsReleased |> List.length
+                let inForceParticipants =
+                    result.InForce
+                    |> Option.map (fun value ->
+                        value.Admissions |> List.sumBy (fun item -> item.Participants.Length))
+                    |> Option.defaultValue 0
+                multiple (fun () ->
+                    Assert.That(
+                        groupExtensionToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.CurrentAuthority.Length,
+                        Is.EqualTo(vector.GetProperty("expectedEvaluated").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Grown.Length,
+                        Is.EqualTo(vector.GetProperty("expectedGrownMembers").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        inForceParticipants,
+                        Is.EqualTo(vector.GetProperty("expectedInForceParticipants").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Lapsed.Length,
+                        Is.EqualTo(vector.GetProperty("expectedLapsed").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        released,
+                        Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                        scenario)
+                    // Only a lapse retires, and then the whole activation.
+                    Assert.That(
+                        released = lifecycle.Members.Length || released = 0,
+                        Is.True,
+                        scenario)
+                    let retired =
+                        result.Kind = ComponentGroupExtensionKind.Withdrawn
+                        || result.Kind = ComponentGroupExtensionKind.RetirementFailed
+                    Assert.That(result.InForce.IsNone, Is.EqualTo retired, scenario)
+                    Assert.That(
+                        not result.Grown.IsEmpty,
+                        Is.EqualTo(ComponentGroupExtension.isExtended result),
+                        sprintf
+                            "%s: an applied extension grows at least one member, and a refused one grows none."
+                            scenario))
+        }
+
+    [<Test>]
+    member _.``C1 extension needs a released activation and the members it admitted``() =
+        task {
+            let unavailable: ComponentGroupAuthorityResult =
+                { Admissions = []
+                  Grants = []
+                  Lifecycle = None
+                  Failure = None }
+            let! refusedInput = ComponentGroupExtension.extend unavailable [] "extension unavailable"
+            let! wrongMembers, active, _ = groupExtensionResult "cbi18-08-member-set-changed"
+            multiple (fun () ->
+                Assert.That(
+                    refusedInput.Kind,
+                    Is.EqualTo ComponentGroupExtensionKind.ActivationUnavailable)
+                Assert.That(refusedInput.CurrentAuthority, Is.Empty)
+                Assert.That(refusedInput.InForce, Is.EqualTo None)
+                Assert.That(wrongMembers.Kind, Is.EqualTo ComponentGroupExtensionKind.Declined)
+                Assert.That(
+                    wrongMembers.CurrentAuthority,
+                    Is.Empty,
+                    "A member set the activation did not admit evaluates nothing.")
+                Assert.That(
+                    active.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True))
+        }
+
+    [<Test>]
+    member _.``C2 every member retains everyone and the activation gains someone``() =
+        task {
+            let! removal, removalActive, _ = groupExtensionResult "cbi18-05-removal-declined"
+            let! substitution, _, _ = groupExtensionResult "cbi18-06-substitution-declined"
+            let! unchanged, _, _ = groupExtensionResult "cbi18-07-activation-unchanged"
+            multiple (fun () ->
+                Assert.That(removal.Code, Is.EqualTo "participant-not-retained")
+                Assert.That(
+                    substitution.Code,
+                    Is.EqualTo "participant-not-retained",
+                    "A substitute is a removal plus an addition, and the removal decides it.")
+                Assert.That(unchanged.Code, Is.EqualTo "activation-unchanged")
+                Assert.That(
+                    [ removal; substitution; unchanged ]
+                    |> List.forall (fun item ->
+                        item.CurrentAuthority.IsEmpty && item.Grown.IsEmpty),
+                    Is.True,
+                    "None of the three evaluates anything or grows anyone.")
+                Assert.That(
+                    removalActive.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True))
+        }
+
+    [<Test>]
+    member _.``C3 no declaration is consulted for any member``() =
+        task {
+            // The absent parameter is the contract: a declaration parameter would not type-check.
+            let signature:
+                ComponentGroupAuthorityResult
+                    -> ComponentGroupMemberRequests list
+                    -> string
+                    -> Task<ComponentGroupExtensionResult> =
+                ComponentGroupExtension.extend
+            let! result, _, prior = groupExtensionResult "cbi18-01-one-member-grown"
+            // Coverage is monotone in the grants held, which is why growth needs no declaration.
+            let tuples (grants: LocalCapabilityGrant list) =
+                grants
+                |> List.map (fun grant ->
+                    sprintf
+                        "%s|%s|%s|%s"
+                        (CapabilityId.value grant.Capability)
+                        (ActorId.value grant.Target)
+                        (OperationId.value grant.Operation)
+                        (CapabilityScopeId.value grant.Scope))
+            let declared =
+                (dependency consumer).Entries
+                |> List.map (fun entry ->
+                    sprintf
+                        "%s|%s|%s|%s"
+                        (CapabilityId.value entry.Capability)
+                        (ActorId.value entry.Target)
+                        (OperationId.value entry.Operation)
+                        (CapabilityScopeId.value entry.Scope))
+            let before = prior |> List.collect _.Grants |> tuples
+            let after = result.InForce.Value.Grants |> tuples
+            ignore signature
+            multiple (fun () ->
+                Assert.That(
+                    declared
+                    |> List.filter (fun tuple -> List.contains tuple before)
+                    |> List.forall (fun tuple -> List.contains tuple after),
+                    Is.True,
+                    "Every tuple covered before the extension is still covered after it.")
+                Assert.That(
+                    before |> List.forall (fun tuple -> List.contains tuple after),
+                    Is.True,
+                    "Growth withdraws no grant at all."))
+        }
+
+    [<Test>]
+    member _.``C4 a declined extension changes nothing anywhere``() =
+        task {
+            let! result, active, prior = groupExtensionResult "cbi18-11-addition-denied"
+            multiple (fun () ->
+                Assert.That(result.Kind, Is.EqualTo ComponentGroupExtensionKind.Declined)
+                Assert.That(result.InForce.IsSome, Is.True)
+                Assert.That(
+                    result.InForce.Value.Admissions
+                    |> List.sumBy (fun item -> item.Participants.Length),
+                    Is.EqualTo(prior |> List.sumBy (fun item -> item.Participants.Length)),
+                    "The in-force activation is the one it was given, not the one that was intended.")
+                Assert.That(result.Grown, Is.Empty)
+                Assert.That(
+                    active.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True))
+        }
+
+    [<Test>]
+    member _.``C5 a malformed request decides nothing and evaluated loss retires everything``() =
+        task {
+            let! drift, driftActive, _ = groupExtensionResult "cbi18-12-retained-identity-drift"
+            let! lapse, lapseActive, _ = groupExtensionResult "cbi18-13-untouched-member-lapsed"
+            multiple (fun () ->
+                Assert.That(drift.Kind, Is.EqualTo ComponentGroupExtensionKind.Declined)
+                Assert.That(
+                    drift.CurrentAuthority,
+                    Is.Empty,
+                    "Nothing was evaluated, so nothing was learned.")
+                Assert.That(
+                    driftActive.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True)
+                Assert.That(lapse.Kind, Is.EqualTo ComponentGroupExtensionKind.Withdrawn)
+                Assert.That(
+                    lapse.CurrentAuthority,
+                    Is.Not.Empty,
+                    "No result both retires and reports zero evaluations.")
+                Assert.That(
+                    lapseActive.Lifecycle.Value.Members
+                    |> List.forall (fun item ->
+                        CompositionStage.token item.Member.Stage = "retired"),
+                    Is.True,
+                    "The lapse was in the member that was not growing, and the whole activation retires."))
+        }
+
+    [<Test>]
+    member _.``C6 retained authority is revalidated before it is extended``() =
+        task {
+            let! result, active, _ =
+                groupExtensionResult "cbi18-15-lapse-outranks-a-denied-addition"
+            multiple (fun () ->
+                Assert.That(
+                    result.Kind,
+                    Is.EqualTo ComponentGroupExtensionKind.Withdrawn,
+                    "A lapse outranks any problem with an addition, so a call that would both retire and decline retires.")
+                Assert.That(result.Code, Is.EqualTo "authority-not-renewed")
+                Assert.That(
+                    result.InForce,
+                    Is.EqualTo None,
+                    "No set is extended on top of authority that has itself lapsed.")
+                Assert.That(
+                    active.Lifecycle.Value.Members |> List.filter _.Member.IsReleased |> List.length,
+                    Is.EqualTo 0))
+        }
+
+    [<Test>]
+    member _.``C7 an added participant is admitted on CBI13 terms``() =
+        task {
+            let! result, active, _ = groupExtensionResult "cbi18-11-addition-denied"
+            multiple (fun () ->
+                Assert.That(result.Code, Is.EqualTo "authority-not-admitted")
+                Assert.That(
+                    result.CurrentAuthority.Length,
+                    Is.EqualTo 3,
+                    "The addition was evaluated, and refused on the evaluator's own terms.")
+                Assert.That(
+                    active.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True,
+                    "A refused addition declines the extension rather than retiring the activation."))
+        }
+
+    [<Test>]
+    member _.``C8 the extended activation obeys the activation-wide rules``() =
+        task {
+            let! shared, _, _ = groupExtensionResult "cbi18-03-shared-party-added-to-second-member"
+            let! secondActor, _, _ =
+                groupExtensionResult "cbi18-04-shared-party-mapped-onto-a-second-actor"
+            let! sharedActor, _, _ =
+                groupExtensionResult "cbi18-10-local-actor-shared-across-members"
+            let! identity, _, _ = groupExtensionResult "cbi18-09-identity-shared-across-members"
+            let actorsHeldByParticipant =
+                shared.InForce.Value.Admissions
+                |> List.collect _.Participants
+                |> List.filter (fun item -> item.Participant = participant)
+                |> List.map (fun item ->
+                    (List.exactlyOne item.Authority.Observation.Relationships).LocalActor)
+                |> List.distinct
+            multiple (fun () ->
+                Assert.That(
+                    ComponentGroupExtension.isExtended shared,
+                    Is.True,
+                    "A party already participating in another member may be added to a second, under the local Actor it already holds.")
+                Assert.That(
+                    actorsHeldByParticipant.Length,
+                    Is.EqualTo 1,
+                    "It arrives at exactly one receiving-domain Actor across the activation.")
+                Assert.That(secondActor.Code, Is.EqualTo "participant-actor-not-single")
+                Assert.That(sharedActor.Code, Is.EqualTo "local-actor-shared-across-members")
+                Assert.That(identity.Code, Is.EqualTo "authority-identity-not-distinct"))
+        }
+
+    [<Test>]
+    member _.``C9 an extension produces an activation the other slices accept``() =
+        task {
+            let! _, active, admitted, policy, _ = extensionActivation false
+            let intended =
+                [ { Occurrence = (List.item 0 active.Admissions).Occurrence
+                    Requests = [ List.item 0 admitted; observerRequest policy ] }
+                  { Occurrence = (List.item 1 active.Admissions).Occurrence
+                    Requests = [ List.item 1 admitted; deputyRequest policy ] } ]
+            let! result = ComponentGroupExtension.extend active intended "extend before revalidating"
+            // CBI14 revalidates the extended activation from the same requests that produced it.
+            let! continued =
+                ComponentGroupRevalidation.revalidate
+                    result.InForce.Value
+                    intended
+                    "revalidate the extended activation"
+            multiple (fun () ->
+                Assert.That(ComponentGroupExtension.isExtended result, Is.True)
+                Assert.That(
+                    continued.Kind,
+                    Is.EqualTo ComponentGroupRevalidationKind.Continued,
+                    "CBI14 accepts the activation an extension produced.")
+                Assert.That(
+                    continued.Members |> List.sumBy (fun item -> item.CurrentAuthority.Length),
+                    Is.EqualTo 4))
+        }
+
+    [<Test>]
+    member _.``C10 an extension exercises nothing and notifies no provider``() =
+        task {
+            let! _, active, admitted, policy, handlers = extensionActivation false
+            let before = handlers |> List.sumBy _.ProviderEffectCount
+            let! result =
+                ComponentGroupExtension.extend
+                    active
+                    [ { Occurrence = (List.item 0 active.Admissions).Occurrence
+                        Requests = [ List.item 0 admitted; observerRequest policy ] }
+                      { Occurrence = (List.item 1 active.Admissions).Occurrence
+                        Requests = [ List.item 1 admitted ] } ]
+                    "extension reaches no provider"
+            multiple (fun () ->
+                Assert.That(ComponentGroupExtension.isExtended result, Is.True)
+                Assert.That(
+                    handlers |> List.sumBy _.ProviderEffectCount,
+                    Is.EqualTo before,
+                    "CBI18 exercises no granted Operation.")
+                Assert.That(
+                    active.Lifecycle.Value.Members
+                    |> List.forall (fun item ->
+                        CompositionStage.token item.Member.Stage = "released"),
+                    Is.True,
+                    "It tells no provider the set changed, so no member's portable stage moves."))
         }
 
     [<Test>]

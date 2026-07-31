@@ -92,7 +92,9 @@ The implementation currently provides:
   verifies every member's declaration against what that member did, through one CM4 request whose
   single verdict makes one member's undeclared use condemn the whole activation; CBI17 narrows those
   declarations to one successor generation as a single transaction, where a member the successor does
-  not resolve blocks the others and a member it leaves alone is untouched rather than refusing;
+  not resolve blocks the others and a member it leaves alone is untouched rather than refusing; CBI18
+  grows those sets without consulting any declaration, admitting a party already live in one member
+  into another under the local Actor it already holds;
 - a headless host and seven F# test assemblies, including the host-owned CBI1-CBI16 integration
   suite.
 

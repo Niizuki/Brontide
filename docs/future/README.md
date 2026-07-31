@@ -416,13 +416,36 @@ perform. The [`CBI17 capability contract`](../../component-management/cbi17-capa
 and [`contract-completeness review`](../../component-management/cbi17-contract-completeness-review.md)
 bound it to one successor generation over one protocol-free multi-member activation.
 
-**Lifting CBI8's declaration-free extension is the last single-member slice, and is the next
-implementable integration item.** It grows an admitted set without any declaration, refusing removal
-and substitution in place. Lifting it has to decide whether an activation may hold declarations for
-some members and none for others — CBI15 requires one per member, CBI8 requires none — and whether
-growth of one member is checked against the activation the way CBI15's revision is. Relational
-Initialisation, scoped replacement, member addition or removal, child Ports, mediation, wider Provider
-Sets, and real distribution remain future work behind it. PB8's independent reviews remain a separate
+CBI18 lifts the last single-member slice and dissolves the first question the item recorded rather
+than deciding it. **An activation may hold declarations for some members and none for others, because
+growth cannot observe them.** A declaration says whether a departing participant may go; growth
+removes nobody, and coverage is monotone in the grants held, so a set that covered its declaration
+still covers it afterwards. CBI18 therefore takes no resolution and no declaration at all, and **the
+absent parameter is the contract** — the same device CBI17 used when it made succession synchronous.
+The second question was a re-application rather than a discovery: growth is checked against the whole
+activation exactly as CBI15's revision is, because CBI13's rules are activation-wide.
+
+What neither question anticipated is the case only a second member can pose. **A party already
+participating in one member may be added to another**, and must then arrive at the local Actor it
+already holds — CBI13's function-and-injective mapping rule in its *permitting* direction, which a
+single member could never exercise. Both directions have a vector. A lapse in any retained
+participant still retires the whole activation, and a declined extension still changes nothing
+anywhere. The [`CBI18 capability contract`](../../component-management/cbi18-capability-contract.md)
+and [`contract-completeness review`](../../component-management/cbi18-contract-completeness-review.md)
+bound it to declaration-free growth over one protocol-free multi-member activation, and record the
+boundary a mixed activation makes visible: CBI16 derives an exercise's admission from a declaration,
+so an undeclared member's ordinary interaction cannot be verified at all.
+
+**The lifting programme is complete.** CBI8, CBI10, and CBI11 have all been lifted, by CBI18, CBI16,
+and CBI17. What remains is not a lift, and **scoped replacement is the next implementable item**:
+CBI14, CBI15, and CBI18 each deferred to it by name, because CM4 declares it as the one operation
+that can retire and replace a member while its restart scope keeps running — which is exactly what
+"retire the whole activation" currently stands in for. Lifting it has to decide what a replacement
+does to the authority admitted against the departing member's occurrence, since CBI13 admits against
+an occurrence and a replacement changes which occurrence occupies the position; and whether the
+release barrier CBI12 established re-arms for the replacement alone or for the activation it rejoins.
+Relational Initialisation, member addition or removal, child Ports, mediation, wider Provider Sets,
+and real distribution remain future work behind it. PB8's independent reviews remain a separate
 governance prerequisite rather than implementation work; Decision 11 was ruled on and delivered on
 2026-07-30.
 

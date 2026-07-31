@@ -3358,6 +3358,337 @@ module ComponentGroupVerification =
                         "CBI16 requires one released CBI13 activation with every member admitted."
         }
 
+[<RequireQualifiedAccess>]
+type ComponentGroupExtensionKind =
+    | Extended
+    | Declined
+    | Withdrawn
+    | RetirementFailed
+    | ActivationUnavailable
+
+type ComponentGroupExtensionResult =
+    { Kind: ComponentGroupExtensionKind
+      InForce: ComponentGroupAuthorityResult option
+      CurrentAuthority: ComponentParticipantObservation list
+      Grown: OccurrenceId list
+      Lapsed: OccurrenceId list
+      Code: string
+      Reason: string }
+
+/// Grows the participant sets of a multi-member activation while every member stays released.
+///
+/// No resolution and no declaration are taken, and the absent parameters are the contract: growth
+/// removes nobody, coverage is monotone in the grants held, so a member holding a declaration is
+/// grown by the same rule as one holding none and the two may sit in one activation. What is checked
+/// against the whole activation is CBI13's identity and Actor-mapping rules, which an addition is a
+/// fresh opportunity to violate against members already live.
+[<RequireQualifiedAccess>]
+module ComponentGroupExtension =
+    let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
+
+    let isExtended (result: ComponentGroupExtensionResult) =
+        result.Kind = ComponentGroupExtensionKind.Extended
+
+    let private decline (active: ComponentGroupAuthorityResult) code reason current =
+        { Kind = ComponentGroupExtensionKind.Declined
+          InForce = Some active
+          CurrentAuthority = current
+          Grown = []
+          Lapsed = []
+          Code = code
+          Reason = reason }
+
+    /// Checks one member's intended set: retains everyone, repeats nobody, adds soundly.
+    let private structure
+        (prior: ComponentGroupMemberAdmission)
+        (intended: ComponentGroupMemberRequests)
+        =
+        let repeated =
+            intended.Requests
+            |> List.map (fun request -> ActorId.value request.Participant)
+            |> ComponentParticipantAdmission.firstDuplicate
+        match repeated with
+        | Some participant ->
+            Some(
+                "participant-not-distinct",
+                sprintf
+                    "Participant '%s' appears in more than one request for member %s."
+                    participant
+                    (OccurrenceId.value intended.Occurrence))
+        | None ->
+            let missing =
+                prior.Participants
+                |> List.filter (fun existing ->
+                    intended.Requests
+                    |> List.forall (fun request -> request.Participant <> existing.Participant))
+                |> List.map (fun existing -> ActorId.value existing.Participant)
+            if not missing.IsEmpty then
+                Some(
+                    "participant-not-retained",
+                    sprintf
+                        "CBI18 only grows a set. Removing or substituting %s in member %s requires CBI15 under a declaration, or CBI14 retirement and a fresh admission."
+                        (String.Join(", ", missing))
+                        (OccurrenceId.value intended.Occurrence))
+            else
+                let added =
+                    intended.Requests
+                    |> List.filter (fun request ->
+                        prior.Participants
+                        |> List.forall (fun existing -> existing.Participant <> request.Participant))
+                if added |> List.forall ComponentParticipantAdmission.supportedShape then
+                    None
+                else
+                    Some(
+                        "authority-shape-unsupported",
+                        "CBI18 supports one ComponentParticipant relationship per added participant and distinct narrow authority tuples dependent on it.")
+
+    let private retire
+        (lifecycle: ComponentGroupActivationResult)
+        retirementReason
+        current
+        lapsed
+        =
+        task {
+            let cleanup = ResizeArray<string>()
+            for outcome in lifecycle.Members do
+                let! retired =
+                    ComponentParticipantRevalidation.tryRetire outcome.Member retirementReason
+                match retired with
+                | Ok _ -> ()
+                | Error detail ->
+                    cleanup.Add(sprintf "%s: %s" (OccurrenceId.value outcome.Occurrence) detail)
+            if cleanup.Count = 0 then
+                return
+                    { Kind = ComponentGroupExtensionKind.Withdrawn
+                      InForce = None
+                      CurrentAuthority = current
+                      Grown = []
+                      Lapsed = lapsed
+                      Code = "authority-not-renewed"
+                      Reason =
+                        sprintf
+                            "The receiving domain no longer admits the identical authority for %s."
+                            (String.Join(", ", lapsed |> List.map OccurrenceId.value)) }
+            else
+                return
+                    { Kind = ComponentGroupExtensionKind.RetirementFailed
+                      InForce = None
+                      CurrentAuthority = current
+                      Grown = []
+                      Lapsed = lapsed
+                      Code = "authority-retirement-failed"
+                      Reason = String.Join("; ", cleanup) }
+        }
+
+    let extend
+        (active: ComponentGroupAuthorityResult)
+        (members: ComponentGroupMemberRequests list)
+        retirementReason
+        =
+        task {
+            if String.IsNullOrWhiteSpace retirementReason then
+                invalidArg (nameof retirementReason) "retirement reason is required"
+
+            match ComponentGroupAuthority.isActive active, active.Lifecycle with
+            | true, Some lifecycle ->
+                let prior = active.Admissions
+                let ordered =
+                    members
+                    |> List.sortWith (fun left right ->
+                        ordinal (OccurrenceId.value left.Occurrence) (OccurrenceId.value right.Occurrence))
+                if (ordered |> List.map _.Occurrence) <> (prior |> List.map _.Occurrence) then
+                    return
+                        { Kind = ComponentGroupExtensionKind.Declined
+                          InForce = Some active
+                          CurrentAuthority = []
+                          Grown = []
+                          Lapsed = []
+                          Code = "member-set-changed"
+                          Reason = "The extension does not name the members this activation admitted." }
+                else
+                    let paired = List.zip prior ordered
+                    let structural =
+                        paired
+                        |> List.tryPick (fun (priorMember, intended) -> structure priorMember intended)
+                    match structural with
+                    | Some(code, reason) -> return decline active code reason []
+                    | None ->
+                        // A member that gains nobody restates its own set; an activation that gains
+                        // nobody is a revalidation and belongs to CBI14.
+                        let grows =
+                            paired
+                            |> List.exists (fun (priorMember, intended) ->
+                                intended.Requests.Length > priorMember.Participants.Length)
+                        if not grows then
+                            return
+                                decline
+                                    active
+                                    "activation-unchanged"
+                                    "No member gains a participant; revalidating what is in force is CBI14."
+                                    []
+                        else
+                            let intended = ordered |> List.collect _.Requests
+                            match ComponentParticipantAdmission.distinctIdentities intended with
+                            | Error(code, reason) -> return decline active code reason []
+                            | Ok() ->
+                                let admittedOf (priorMember: ComponentGroupMemberAdmission) participant =
+                                    priorMember.Participants
+                                    |> List.tryFind (fun item -> item.Participant = participant)
+                                let drifted =
+                                    paired
+                                    |> List.tryFind (fun (priorMember, member') ->
+                                        member'.Requests
+                                        |> List.exists (fun request ->
+                                            match admittedOf priorMember request.Participant with
+                                            | Some admitted ->
+                                                not (
+                                                    ComponentParticipantRevalidation.matchesPrior
+                                                        admitted
+                                                        request)
+                                            | None -> false))
+                                match drifted with
+                                | Some(_, member') ->
+                                    // Nothing was evaluated, so nothing was learned: a malformed
+                                    // request is not evidence that the retained authority is gone.
+                                    return
+                                        decline
+                                            active
+                                            "authority-revalidation-mismatch"
+                                            (sprintf
+                                                "A retained request for member %s does not identify the authority that admitted it."
+                                                (OccurrenceId.value member'.Occurrence))
+                                            []
+                                | None ->
+                                    let evaluated =
+                                        paired
+                                        |> List.map (fun (priorMember, member') ->
+                                            priorMember,
+                                            member',
+                                            member'.Requests
+                                            |> List.sortWith (fun left right ->
+                                                ordinal
+                                                    (ActorId.value left.Participant)
+                                                    (ActorId.value right.Participant))
+                                            |> List.map (fun request ->
+                                                { Participant = request.Participant
+                                                  Authority =
+                                                    FakeAuthorityAdmission.evaluate request }))
+                                    let current =
+                                        evaluated
+                                        |> List.collect (fun (_, _, observations) -> observations)
+                                    let lapsed =
+                                        evaluated
+                                        |> List.filter (fun (priorMember, _, observations) ->
+                                            observations
+                                            |> List.exists (fun observation ->
+                                                match
+                                                    admittedOf priorMember observation.Participant
+                                                with
+                                                | Some admitted ->
+                                                    not (
+                                                        ComponentParticipantRevalidation.isSameAdmission
+                                                            admitted.Authority
+                                                            observation.Authority)
+                                                | None -> false))
+                                        |> List.map (fun (_, member', _) -> member'.Occurrence)
+                                    if not lapsed.IsEmpty then
+                                        // A lapse outranks any problem with an addition, and retires
+                                        // the whole activation: the members share one restart scope,
+                                        // so they share a fate.
+                                        return! retire lifecycle retirementReason current lapsed
+                                    else
+                                        let refused =
+                                            evaluated
+                                            |> List.collect (fun (priorMember, member', observations) ->
+                                                observations
+                                                |> List.filter (fun observation ->
+                                                    (admittedOf priorMember observation.Participant)
+                                                        .IsNone
+                                                    && (member'.Requests
+                                                        |> List.tryFind (fun request ->
+                                                            request.Participant = observation.Participant)
+                                                        |> Option.map (fun request ->
+                                                            not (
+                                                                ComponentParticipantAdmission.isExactAdmission
+                                                                    request
+                                                                    observation.Authority))
+                                                        |> Option.defaultValue false))
+                                                |> List.map (fun observation ->
+                                                    ActorId.value observation.Participant))
+                                        if not refused.IsEmpty then
+                                            return
+                                                decline
+                                                    active
+                                                    "authority-not-admitted"
+                                                    (sprintf
+                                                        "CM5 did not admit the exact submitted authority for %s."
+                                                        (String.Join(", ", refused)))
+                                                    current
+                                        else
+                                            let extended =
+                                                evaluated
+                                                |> List.map (fun (_, member', observations) ->
+                                                    { Occurrence = member'.Occurrence
+                                                      Participants = observations
+                                                      Grants =
+                                                        observations
+                                                        |> List.collect (fun observation ->
+                                                            observation.Authority.Observation.Grants)
+                                                        |> List.sortWith (fun left right ->
+                                                            ordinal
+                                                                (CapabilityGrantId.value left.Grant)
+                                                                (CapabilityGrantId.value right.Grant)) })
+                                            // The permitting direction matters here: a party already
+                                            // participating in another member may be added to a
+                                            // second, and must arrive at the local Actor it holds.
+                                            match ComponentGroupAuthority.actorMapping extended with
+                                            | Some(code, reason) ->
+                                                return decline active code reason current
+                                            | None ->
+                                                let grown =
+                                                    evaluated
+                                                    |> List.filter (fun (priorMember, _, observations) ->
+                                                        let held = priorMember.Participants.Length
+                                                        observations.Length > held)
+                                                    |> List.map (fun (_, member', _) ->
+                                                        member'.Occurrence)
+                                                let grants =
+                                                    extended
+                                                    |> List.collect _.Grants
+                                                    |> List.sortWith (fun left right ->
+                                                        ordinal
+                                                            (CapabilityGrantId.value left.Grant)
+                                                            (CapabilityGrantId.value right.Grant))
+                                                return
+                                                    { Kind = ComponentGroupExtensionKind.Extended
+                                                      InForce =
+                                                        Some
+                                                            { active with
+                                                                Admissions = extended
+                                                                Grants = grants }
+                                                      CurrentAuthority = current
+                                                      Grown = grown
+                                                      Lapsed = []
+                                                      Code = "participant-set-extended"
+                                                      Reason =
+                                                        sprintf
+                                                            "%d of %d members grew; the activation now holds %d participants."
+                                                            grown.Length
+                                                            extended.Length
+                                                            (extended
+                                                             |> List.sumBy (fun item ->
+                                                                 item.Participants.Length)) }
+            | _ ->
+                return
+                    { Kind = ComponentGroupExtensionKind.ActivationUnavailable
+                      InForce = None
+                      CurrentAuthority = []
+                      Grown = []
+                      Lapsed = []
+                      Code = "active-authority-unavailable"
+                      Reason = "CBI18 requires one released CBI13 activation with every member admitted." }
+        }
+
 type ComponentGroupMemberSuccession =
     { Selection: ComponentBindingSelection
       Declaration: ComponentGrantDependency
