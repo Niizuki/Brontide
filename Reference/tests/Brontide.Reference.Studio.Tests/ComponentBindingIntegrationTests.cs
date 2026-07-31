@@ -3064,6 +3064,277 @@ public sealed class ComponentBindingIntegrationTests
         return (result, active);
     }
 
+    [Test]
+    public async Task Shared_cbi16_vectors_verify_every_member_against_its_own_declaration()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi16-group-verification-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, active, handlers) = await GroupVerificationResult(scenario);
+            var released = active.Lifecycle!.Members.Count(item => item.Member.IsReleased);
+            var expectedRuntime = vector.GetProperty("expectedRuntimeActive");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    GroupVerificationToken(result.Kind),
+                    Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Exercises,
+                    Has.Count.EqualTo(vector.GetProperty("expectedExercises").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Violating,
+                    Has.Count.EqualTo(vector.GetProperty("expectedViolating").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Members.Sum(item => item.Unexercised.Count),
+                    Is.EqualTo(vector.GetProperty("expectedUnexercised").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Members.Sum(item => item.Uncovered.Count),
+                    Is.EqualTo(vector.GetProperty("expectedUncovered").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Runtime is null
+                        ? (bool?)null
+                        : result.Runtime.Kind == ActivationRuntimeOutcomeKind.Active,
+                    Is.EqualTo(
+                        expectedRuntime.ValueKind == JsonValueKind.Null
+                            ? (bool?)null
+                            : expectedRuntime.GetBoolean()),
+                    scenario);
+                Assert.That(
+                    released,
+                    Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                    scenario);
+                Assert.That(
+                    handlers.Sum(handler => handler.ProviderEffectCount),
+                    Is.EqualTo(vector.GetProperty("expectedProviderEffects").GetInt32()),
+                    scenario);
+
+                // The runtime accepts the one projection exactly when every member is consistent.
+                if (result.Runtime is { } runtime)
+                {
+                    Assert.That(
+                        runtime.Kind == ActivationRuntimeOutcomeKind.Active,
+                        Is.EqualTo(result.IsConsistent),
+                        scenario);
+                }
+
+                // A structural refusal evaluates nothing; a violation retires the whole activation.
+                Assert.That(
+                    released == active.Lifecycle.Members.Count || released == 0,
+                    Is.True,
+                    scenario);
+                Assert.That(
+                    result.Violating.Count == 0 || released == 0,
+                    Is.True,
+                    $"{scenario}: a violation in any member closes every member's gate.");
+                Assert.That(
+                    result.Members.All(item => item.IsViolating == result.Violating.Contains(item.Occurrence)),
+                    Is.True,
+                    $"{scenario}: only members with a failed attribution are named as violating.");
+            });
+        }
+    }
+
+    [Test]
+    public async Task One_members_undeclared_use_is_condemned_by_the_runtime_for_the_whole_activation()
+    {
+        var (result, active, _) = await GroupVerificationResult("cbi16-05-one-member-undeclared");
+        var survivor = active.Lifecycle!.Members[0].Member;
+
+        var attempted = await survivor.InvokeAsync(
+            CoolingPortableFixture.SetEnabled,
+            CoolingPortableFixture.CommandV1,
+            CoolingPortableFixture.Command("primary", enabled: true),
+            PortableConstraint.Atom(PortableTruth.Satisfied));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentGroupVerificationKind.UndeclaredUse));
+            Assert.That(
+                result.Runtime!.Kind,
+                Is.EqualTo(ActivationRuntimeOutcomeKind.BindingObservationConflict),
+                "One request carries every member's exercises, so CM4's own rule refuses all of them.");
+            Assert.That(
+                result.Violating,
+                Is.EqualTo(new[] { active.Admissions[1].Occurrence }),
+                "The member that stayed inside its declaration is retired without being named as the cause.");
+            Assert.That(result.Members[0].IsViolating, Is.False);
+            Assert.That(attempted.Category, Is.EqualTo(PortableProtocolCategory.StateViolation));
+            Assert.That(result.Replacements, Has.Count.EqualTo(active.Lifecycle.Members.Count));
+        });
+    }
+
+    [Test]
+    public async Task The_same_operation_is_attributed_separately_in_each_member()
+    {
+        var (result, _, _) = await GroupVerificationResult("cbi16-02-same-operation-in-both-members");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsConsistent, Is.True);
+            Assert.That(
+                result.Exercises.Select(item => item.Exercise.Value).Distinct().Count(),
+                Is.EqualTo(2),
+                "One CM4 request refuses a repeated binding-exercise identity.");
+            Assert.That(
+                result.Exercises.All(item => item.AuthorityAdmitted),
+                Is.True,
+                "Each member's admission is derived from its own declaration and its own grants.");
+        });
+    }
+
+    private static async Task<(
+        ComponentGroupVerificationResult Result,
+        ComponentGroupAuthorityResult Active,
+        CoolingPortableHandler[] Handlers)>
+        GroupVerificationResult(string scenario)
+    {
+        var resolution = new FakeGenerationResolver().Resolve(
+            PairRequest(["cooling.control"], ["cooling.audit"]));
+        var first = resolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var second = resolution.Generation.ProviderSets.Single(item => item.Requirement == SecondaryRequirement);
+        var handlers = new[]
+        {
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+        };
+        IPortableProviderConversation SecondConversation()
+        {
+            var conversation = new PortableDirectConversation(new PortableProviderEndpoint(
+                CoolingPortableFixture.Contract, handlers[1], PortableRealization.FixedDirectCall));
+            return scenario == "cbi16-08-retirement-failure"
+                ? new FailingRetirementConversation(conversation)
+                : conversation;
+        }
+
+        var groupMembers = new[]
+        {
+            new ComponentGroupMember(
+                Selection(first.Members[0]) with { HostEndpoint = "verification-host-primary" },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    CoolingPortableFixture.Contract, handlers[0], PortableRealization.FixedDirectCall))),
+            new ComponentGroupMember(
+                Selection(second.Members[0]) with
+                {
+                    Requirement = SecondaryRequirement,
+                    HostEndpoint = "verification-host-secondary",
+                },
+                SecondConversation()),
+        };
+        var runtimeRequest = RuntimeRequest(Plan(groupMembers.Select(item => item.Selection.Occurrence).ToArray()));
+        var active = await ComponentGroupAuthority.ActivateAsync(
+            resolution,
+            [
+                new(
+                    groupMembers[0],
+                    [new(new(groupMembers[0].Selection.Occurrence, Participant), ProviderAuthority(GroupPolicy(ProviderLocalActor), Authority))]),
+                new(
+                    groupMembers[1],
+                    [new(new(groupMembers[1].Selection.Occurrence, Supervisor), SupervisorAuthority(GroupPolicy(ProviderLocalActor), AuditAuthority, revoked: false))]),
+            ],
+            runtimeRequest);
+
+        // The observations are real: the host invokes each released member and records what came back.
+        var silent = scenario is "cbi16-01-one-member-interacted" or "cbi16-03-nothing-observed"
+            or "cbi16-04-denied-before-any-frame";
+        var observations = new List<ComponentObservedInteraction>[] { [], [] };
+        for (var index = 0; index < groupMembers.Length; index++)
+        {
+            if (scenario == "cbi16-03-nothing-observed" || (index == 1 && silent))
+            {
+                continue;
+            }
+
+            var result = await active.Lifecycle!.Members[index].Member.InvokeAsync(
+                CoolingPortableFixture.SetEnabled,
+                CoolingPortableFixture.CommandV1,
+                CoolingPortableFixture.Command("primary", enabled: true),
+                scenario == "cbi16-04-denied-before-any-frame"
+                    ? PortableConstraint.Atom(PortableTruth.Unsatisfied)
+                    : PortableConstraint.Atom(PortableTruth.Satisfied));
+            observations[index].Add(new(CoolingPortableFixture.SetEnabled, result));
+        }
+
+        var auditScope = scenario is "cbi16-06-one-member-ungranted" or "cbi16-07-undeclared-outranks-ungranted"
+            ? CapabilityScopeId.Create("scope.other")
+            : AuthorityScope;
+        var interactions = new List<ComponentGroupMemberInteractions>
+        {
+            new(
+                groupMembers[0].Selection,
+                new(
+                    groupMembers[0].Selection.Definition,
+                    [new("cooling.control", Capability, Target, Operation, AuthorityScope)]),
+                scenario switch
+                {
+                    "cbi16-07-undeclared-outranks-ungranted" => [new(CoolingPortableFixture.SetEnabled, "cooling.other")],
+                    "cbi16-10-mapping-not-distinct" =>
+                    [
+                        new(CoolingPortableFixture.SetEnabled, "cooling.control"),
+                        new(CoolingPortableFixture.SetEnabled, "cooling.other"),
+                    ],
+                    _ => [new(CoolingPortableFixture.SetEnabled, "cooling.control")],
+                },
+                observations[0]),
+            new(
+                groupMembers[1].Selection,
+                new(
+                    groupMembers[1].Selection.Definition,
+                    [
+                        new(
+                            scenario == "cbi16-11-declaration-mismatch" ? "cooling.other" : "cooling.audit",
+                            AuditCapability,
+                            Target,
+                            AuditOperation,
+                            auditScope),
+                    ]),
+                scenario is "cbi16-05-one-member-undeclared" or "cbi16-08-retirement-failure"
+                    ? [new(CoolingPortableFixture.SetEnabled, "cooling.other")]
+                    : [new(CoolingPortableFixture.SetEnabled, "cooling.audit")],
+                observations[1]),
+        };
+        if (scenario == "cbi16-09-member-set-changed")
+        {
+            interactions.RemoveAt(1);
+        }
+
+        var verdict = await ComponentGroupVerification.VerifyAsync(
+            resolution,
+            active,
+            interactions,
+            runtimeRequest,
+            $"group verification {scenario}");
+        return (verdict, active, handlers);
+    }
+
+    private static string GroupVerificationToken(ComponentGroupVerificationKind kind) => kind switch
+    {
+        ComponentGroupVerificationKind.Consistent => "consistent",
+        ComponentGroupVerificationKind.UndeclaredUse => "undeclared-use",
+        ComponentGroupVerificationKind.UngrantedUse => "ungranted-use",
+        ComponentGroupVerificationKind.RetirementFailed => "retirement-failed",
+        ComponentGroupVerificationKind.Declined => "declined",
+        ComponentGroupVerificationKind.ActivationUnavailable => "activation-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
     private static string GroupRevisionToken(ComponentGroupRevisionKind kind) => kind switch
     {
         ComponentGroupRevisionKind.Revised => "revised",

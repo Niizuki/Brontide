@@ -198,6 +198,18 @@ retiring as it does in CBI14, because a revision asks for something rather than 
 Its bounded behavior is recorded in the [CBI15 capability contract](./cbi15-capability-contract.md)
 and completed [contract-completeness review](./cbi15-contract-completeness-review.md).
 
+CBI16 lifts CBI10's verification to the activation and answers what that lift raises: **one member's
+undeclared use condemns the whole activation.** The answer is the runtime's rather than a preference,
+as CBI12's release barrier was — a CBI12 activation is one CM4 request, so every member's exercises
+are judged together and CM4 refuses the request on the first offending exercise rather than excusing
+the members that behaved. It agrees with CBI14's separate reason that the activation shares a restart
+scope. **Attribution stays per member**, because the declaration is per member, so the same Operation
+in two members is two independent attributions while a repeat inside one member is still refused, and
+no member's grants admit another member's use. A structural refusal evaluates nothing and changes
+nothing. Its bounded behavior is recorded in the
+[CBI16 capability contract](./cbi16-capability-contract.md) and completed
+[contract-completeness review](./cbi16-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -370,6 +382,18 @@ across members, a local Actor shared across members, an uncovered declaration, a
 drift. Each pins how many participants were evaluated, how many the in-force activation holds, and
 how many members stayed released, so decline-versus-retire and shared fate are both checked answers.
 The fixture contains no evaluator, resolver, declaration rule, or portable runtime.
+
+### `cbi16-group-verification-vectors` sections
+
+`vectors` names four consistent verifications — one member interacting while its sibling stays
+quiet, both members attributing the same Operation to their own declared authority, no interaction
+at all, and one denied before any frame — and seven refusals covering one member's undeclared use,
+one member's ungranted use, both at once, retirement cleanup failure, a member set the activation did
+not admit, an Operation repeated inside one member, and a declaration the generation does not record.
+Each pins the projected exercises, the violating members, the unexercised and uncovered declared
+authorities, the runtime's verdict, how many members stayed released, and how many provider effects
+the interactions caused, so per-member attribution and whole-activation condemnation are both checked
+answers. The fixture contains no evaluator, runtime, projection rule, or portable implementation.
 
 ### `cm0-mice-topology` sections
 

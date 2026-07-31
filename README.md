@@ -144,6 +144,10 @@ it runs, so members that came up together go down together — their independenc
 need from each other, not about what scope they share.
 CBI15 revises those sets: a change is decided per member and checked against the activation, and a
 declined change is local while a discovered lapse is global.
+CBI16 checks those declarations against what the members actually did, and answers what a violation
+does to the rest: one member's undeclared use condemns the activation. The projection is one CM4
+request, so CM4 refuses it on the first offending exercise rather than excusing the members that
+behaved — the same place CBI12's release barrier came from.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

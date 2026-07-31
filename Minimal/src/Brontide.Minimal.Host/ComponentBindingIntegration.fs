@@ -2134,17 +2134,20 @@ module ComponentGroupLifecycle =
         && not result.Members.IsEmpty
         && result.Members |> List.forall _.Member.IsReleased
 
-    let private supportedPlan (plan: ActivationGroupPlan) (members: ComponentGroupMember list) =
-        let selected = members |> List.map _.Selection.Occurrence |> Set.ofList
-        selected.Count = members.Length
-        && plan.Groups.Length = members.Length
+    let internal supportedPlanFor (plan: ActivationGroupPlan) (occurrences: OccurrenceId list) =
+        let selected = occurrences |> Set.ofList
+        selected.Count = occurrences.Length
+        && plan.Groups.Length = occurrences.Length
         && plan.Groups
            |> List.forall (fun group ->
                group.Members.Length = 1
                && group.Protocols.IsEmpty
                && Set.contains (List.exactlyOne group.Members).Occurrence selected)
 
-    let private groupStageOutcomes (plan: ActivationGroupPlan) failedMember failedStage =
+    let private supportedPlan (plan: ActivationGroupPlan) (members: ComponentGroupMember list) =
+        supportedPlanFor plan (members |> List.map _.Selection.Occurrence)
+
+    let internal groupStageOutcomes (plan: ActivationGroupPlan) failedMember failedStage =
         plan.Groups
         |> List.collect (fun group ->
             group.Members
@@ -3066,6 +3069,293 @@ module ComponentGroupRevision =
                       Lapsed = []
                       Code = "active-authority-unavailable"
                       Reason = "CBI15 requires one released CBI13 activation with every member admitted." }
+        }
+
+type ComponentGroupMemberInteractions =
+    { Selection: ComponentBindingSelection
+      Dependency: ComponentGrantDependency
+      Attribution: ComponentOperationAuthorityMapping list
+      Observations: ComponentObservedInteraction list }
+
+[<RequireQualifiedAccess>]
+type ComponentGroupVerificationKind =
+    | Consistent
+    | UndeclaredUse
+    | UngrantedUse
+    | RetirementFailed
+    | Declined
+    | ActivationUnavailable
+
+type ComponentGroupMemberVerification =
+    { Occurrence: OccurrenceId
+      Exercises: BindingExerciseDeclaration list
+      Unexercised: string list
+      Uncovered: string list
+      UndeclaredUse: bool
+      UngrantedUse: bool }
+
+type ComponentGroupVerificationResult =
+    { Kind: ComponentGroupVerificationKind
+      Runtime: ActivationRuntimeOutcome option
+      Members: ComponentGroupMemberVerification list
+      Violating: OccurrenceId list
+      Replacements: ReplacementRecord list
+      Code: string
+      Reason: string }
+
+/// Verifies every member's declaration against what that member actually did, through one CM4
+/// request carrying the whole activation's projected binding exercises.
+///
+/// A CBI12 activation is one CM4 request, so one member's undeclared use condemns all of them: CM4
+/// refuses the request on the first offending exercise rather than excusing the members that
+/// behaved. The answer comes from the runtime's shape, as CBI12's release barrier did, and agrees
+/// with CBI14's separate reason that the activation shares a restart scope. Attribution stays per
+/// member, because the declaration is per member.
+[<RequireQualifiedAccess>]
+module ComponentGroupVerification =
+    let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
+
+    let isViolating (verification: ComponentGroupMemberVerification) =
+        verification.UndeclaredUse || verification.UngrantedUse
+
+    let isConsistent (result: ComponentGroupVerificationResult) =
+        result.Kind = ComponentGroupVerificationKind.Consistent
+
+    let exercises (result: ComponentGroupVerificationResult) =
+        result.Members |> List.collect _.Exercises
+
+    let private decline kind code reason =
+        { Kind = kind
+          Runtime = None
+          Members = []
+          Violating = []
+          Replacements = []
+          Code = code
+          Reason = reason }
+
+    /// Projects one member's observations, deriving each exercise's admission from that member's own
+    /// declaration and its own grants.
+    ///
+    /// Exercise identity carries the occurrence because CM4 refuses a request with a repeated
+    /// binding-exercise identity, and the whole activation now shares one request.
+    let private project
+        (memberValue: ComponentGroupMemberInteractions)
+        (grants: LocalCapabilityGrant list)
+        =
+        let occurrence = memberValue.Selection.Occurrence
+        let declaredNames =
+            memberValue.Dependency.Entries |> List.map _.DeclaredAuthority |> Set.ofList
+        let uncoveredNames =
+            ComponentParticipantRevision.uncovered memberValue.Dependency grants |> Set.ofList
+        let attributed =
+            ComponentInteractionVerification.attribute
+                memberValue.Attribution
+                memberValue.Observations
+        let projectExercise index name : BindingExerciseDeclaration =
+            { Exercise =
+                BindingExerciseId.create (
+                    sprintf "exercise.observed.%s.%d" (OccurrenceId.value occurrence) (index + 1))
+              Binding = BindingId.create (sprintf "binding.%s" (OccurrenceId.value occurrence))
+              Consumer = occurrence
+              Provider = occurrence
+              Source = SourceId.create "source.portable-observation"
+              Exposure = BindingExposureKind.Distinct
+              Mediation = None
+              Routing =
+                RoutingDecisionId.create (
+                    sprintf "routing.observed.%s.%d" (OccurrenceId.value occurrence) (index + 1))
+              AuthorityAdmitted =
+                match name with
+                | Some value ->
+                    Set.contains value declaredNames && not (Set.contains value uncoveredNames)
+                | None -> false
+              Delivery = BindingDeliveryResult.Delivered
+              Failure = None }
+        let exercised =
+            attributed
+            |> List.choose id
+            |> List.filter (fun name -> Set.contains name declaredNames)
+            |> Set.ofList
+        { Occurrence = occurrence
+          Exercises = attributed |> List.mapi projectExercise
+          Unexercised =
+            memberValue.Dependency.Entries
+            |> List.map _.DeclaredAuthority
+            |> List.filter (fun name -> not (Set.contains name exercised))
+            |> List.sortWith ordinal
+          Uncovered = uncoveredNames |> Set.toList |> List.sortWith ordinal
+          UndeclaredUse =
+            attributed
+            |> List.exists (fun name ->
+                match name with
+                | Some value -> not (Set.contains value declaredNames)
+                | None -> true)
+          UngrantedUse =
+            attributed
+            |> List.exists (fun name ->
+                match name with
+                | Some value -> Set.contains value uncoveredNames
+                | None -> false) }
+
+    let private structure
+        (resolution: ResolutionOutcome)
+        (ordered: ComponentGroupMemberInteractions list)
+        =
+        ordered
+        |> List.tryPick (fun memberValue ->
+            match
+                ComponentParticipantRevision.declarationShape
+                    resolution
+                    memberValue.Selection
+                    memberValue.Dependency
+            with
+            | Error(code, reason) -> Some(code, reason)
+            | Ok() ->
+                // Distinct within a member only: two Components may both expose an Operation of the
+                // same name, and each attributes it against its own declaration.
+                memberValue.Attribution
+                |> List.map (fun entry -> PortableOperationRef.text entry.Operation)
+                |> ComponentParticipantAdmission.firstDuplicate
+                |> Option.map (fun operation ->
+                    "operation-mapping-not-distinct",
+                    sprintf
+                        "Member %s attributes Operation '%s' to more than one declared authority."
+                        (OccurrenceId.value memberValue.Selection.Occurrence)
+                        operation))
+
+    let verify
+        (resolution: ResolutionOutcome)
+        (active: ComponentGroupAuthorityResult)
+        (members: ComponentGroupMemberInteractions list)
+        (runtimeRequest: ActivationRuntimeRequest)
+        retirementReason
+        =
+        task {
+            if String.IsNullOrWhiteSpace retirementReason then
+                invalidArg (nameof retirementReason) "retirement reason is required"
+
+            match ComponentGroupAuthority.isActive active, active.Lifecycle with
+            | true, Some lifecycle ->
+                let prior = active.Admissions
+                let ordered =
+                    members
+                    |> List.sortWith (fun left right ->
+                        ordinal
+                            (OccurrenceId.value left.Selection.Occurrence)
+                            (OccurrenceId.value right.Selection.Occurrence))
+                if (ordered |> List.map _.Selection.Occurrence) <> (prior |> List.map _.Occurrence) then
+                    return
+                        decline
+                            ComponentGroupVerificationKind.Declined
+                            "member-set-changed"
+                            "The verification does not name the members this activation admitted."
+                else
+                    match structure resolution ordered with
+                    | Some(code, reason) ->
+                        return decline ComponentGroupVerificationKind.Declined code reason
+                    | None ->
+                        if
+                            not (
+                                ComponentGroupLifecycle.supportedPlanFor
+                                    runtimeRequest.Plan
+                                    (prior |> List.map _.Occurrence)
+                            )
+                        then
+                            return
+                                decline
+                                    ComponentGroupVerificationKind.Declined
+                                    "plan-unsupported"
+                                    "CBI16 projects exercises onto the protocol-free activation groups CBI12 activated."
+                        else
+                            let verified =
+                                List.zip ordered prior
+                                |> List.map (fun (memberValue, admission) ->
+                                    project memberValue admission.Grants)
+                            // One request, one verdict: every member's exercises are judged together.
+                            let runtime =
+                                FakeActivationRuntime.activate
+                                    { runtimeRequest with
+                                        StageOutcomes =
+                                            ComponentGroupLifecycle.groupStageOutcomes
+                                                runtimeRequest.Plan
+                                                None
+                                                None
+                                        BindingExercises =
+                                            verified |> List.collect _.Exercises }
+                            let violating =
+                                verified |> List.filter isViolating |> List.map _.Occurrence
+                            if violating.IsEmpty then
+                                return
+                                    { Kind = ComponentGroupVerificationKind.Consistent
+                                      Runtime = Some runtime
+                                      Members = verified
+                                      Violating = []
+                                      Replacements = []
+                                      Code = "interaction-consistent"
+                                      Reason =
+                                        sprintf
+                                            "%d delivered interaction(s) across %d members stayed inside their declarations."
+                                            (verified |> List.sumBy (fun item -> item.Exercises.Length))
+                                            verified.Length }
+                            else
+                                let undeclared = verified |> List.exists _.UndeclaredUse
+                                let replacements = ResizeArray<ReplacementRecord>()
+                                let cleanup = ResizeArray<string>()
+                                for outcome in lifecycle.Members do
+                                    let! retired =
+                                        ComponentParticipantRevalidation.tryRetire
+                                            outcome.Member
+                                            retirementReason
+                                    match retired with
+                                    | Ok replacement -> replacements.Add replacement
+                                    | Error detail ->
+                                        cleanup.Add(
+                                            sprintf
+                                                "%s: %s"
+                                                (OccurrenceId.value outcome.Occurrence)
+                                                detail)
+                                let named =
+                                    String.Join(", ", violating |> List.map OccurrenceId.value)
+                                if cleanup.Count = 0 then
+                                    return
+                                        { Kind =
+                                            if undeclared then
+                                                ComponentGroupVerificationKind.UndeclaredUse
+                                            else
+                                                ComponentGroupVerificationKind.UngrantedUse
+                                          Runtime = Some runtime
+                                          Members = verified
+                                          Violating = violating
+                                          Replacements = List.ofSeq replacements
+                                          Code =
+                                            if undeclared then
+                                                "interaction-undeclared"
+                                            else
+                                                "interaction-ungranted"
+                                          Reason =
+                                            if undeclared then
+                                                sprintf
+                                                    "A delivered interaction of %s could not be attributed to any authority that member declared."
+                                                    named
+                                            else
+                                                sprintf
+                                                    "A delivered interaction of %s exercised declared authority no participant of that member holds a grant for."
+                                                    named }
+                                else
+                                    return
+                                        { Kind = ComponentGroupVerificationKind.RetirementFailed
+                                          Runtime = Some runtime
+                                          Members = verified
+                                          Violating = violating
+                                          Replacements = List.ofSeq replacements
+                                          Code = "authority-retirement-failed"
+                                          Reason = String.Join("; ", cleanup) }
+            | _ ->
+                return
+                    decline
+                        ComponentGroupVerificationKind.ActivationUnavailable
+                        "active-authority-unavailable"
+                        "CBI16 requires one released CBI13 activation with every member admitted."
         }
 
 [<RequireQualifiedAccess>]

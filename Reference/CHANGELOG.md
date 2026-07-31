@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased — CBI16 multi-member observed-interaction verification
+
+### Added
+
+- Reference Studio verification of every member's declaration against that member's observed
+  portable interaction, through one CM4 request carrying the whole activation's projected binding
+  exercises.
+- Per-member attribution and per-member derivation of each exercise's authority admission, with
+  exercise identity carried by the occurrence so one request cannot repeat it.
+- Shared verification vectors pinning projected exercises, violating members, unexercised and
+  uncovered declared authorities, the runtime verdict, released members, and provider effects, plus
+  a phase-boundary completeness review.
+
+CBI16 answers what lifting CBI10 raises: one member's undeclared use condemns the whole activation,
+because a CBI12 activation is one CM4 request and CM4 refuses it on the first offending exercise
+rather than excusing the members that behaved. Attribution stays per member, so the same Operation
+in two members is two independent attributions. A structural refusal evaluates nothing and changes
+nothing. CBI8 and CBI11 still govern one member.
+
 ## Unreleased — CBI15 multi-member participant revision
 
 ### Added
