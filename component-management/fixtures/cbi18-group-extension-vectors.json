@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi18-group-extension-vectors",
+  "vectors": [
+    {
+      "id": "cbi18-01-one-member-grown",
+      "expectedKind": "extended",
+      "expectedCode": "participant-set-extended",
+      "expectedEvaluated": 3,
+      "expectedGrownMembers": 1,
+      "expectedInForceParticipants": 3,
+      "expectedLapsed": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi18-02-both-members-grown",
+      "expectedKind": "extended",
+      "expectedCode": "participant-set-extended",
+      "expectedEvaluated": 4,
+      "expectedGrownMembers": 2,
+      "expectedInForceParticipants": 4,
+      "expectedLapsed": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi18-03-shared-party-added-to-second-member",
+      "expectedKind": "extended",
+      "expectedCode": "participant-set-extended",
+      "expectedEvaluated": 3,
+      "expectedGrownMembers": 1,
+      "expectedInForceParticipants": 3,
+      "expectedLapsed": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi18-04-shared-party-mapped-onto-a-second-actor",
+      "expectedKind": "declined",
+      "expectedCode": "participant-actor-not-single",
+      "expectedEvaluated": 3,
+      "expectedGrownMembers": 0,
+      "expectedInForceParticipants": 2,
+      "expectedLapsed": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi18-05-removal-declined",
+      "expectedKind": "declined",
+      "expectedCode": "participant-not-retained",
+      "expectedEvaluated": 0,
+      "expectedGrownMembers": 0,
+      "expectedInForceParticipants": 2,
+      "expectedLapsed": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi18-06-substitution-declined",
+      "expectedKind": "declined",
+      "expectedCode": "participant-not-retained",
+      "expectedEvaluated": 0,
+      "expectedGrownMembers": 0,
+      "expectedInForceParticipants": 2,
+      "expectedLapsed": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi18-07-activation-unchanged",
+      "expectedKind": "declined",
+      "expectedCode": "activation-unchanged",
+      "expectedEvaluated": 0,
+      "expectedGrownMembers": 0,
+      "expectedInForceParticipants": 2,
+      "expectedLapsed": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi18-08-member-set-changed",
+      "expectedKind": "declined",
+      "expectedCode": "member-set-changed",
+      "expectedEvaluated": 0,
+      "expectedGrownMembers": 0,
+      "expectedInForceParticipants": 2,
+      "expectedLapsed": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi18-09-identity-shared-across-members",
+      "expectedKind": "declined",
+      "expectedCode": "authority-identity-not-distinct",
+      "expectedEvaluated": 0,
+      "expectedGrownMembers": 0,
+      "expectedInForceParticipants": 2,
+      "expectedLapsed": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi18-10-local-actor-shared-across-members",
+      "expectedKind": "declined",
+      "expectedCode": "local-actor-shared-across-members",
+      "expectedEvaluated": 3,
+      "expectedGrownMembers": 0,
+      "expectedInForceParticipants": 2,
+      "expectedLapsed": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi18-11-addition-denied",
+      "expectedKind": "declined",
+      "expectedCode": "authority-not-admitted",
+      "expectedEvaluated": 3,
+      "expectedGrownMembers": 0,
+      "expectedInForceParticipants": 2,
+      "expectedLapsed": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi18-12-retained-identity-drift",
+      "expectedKind": "declined",
+      "expectedCode": "authority-revalidation-mismatch",
+      "expectedEvaluated": 0,
+      "expectedGrownMembers": 0,
+      "expectedInForceParticipants": 2,
+      "expectedLapsed": 0,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi18-13-untouched-member-lapsed",
+      "expectedKind": "withdrawn",
+      "expectedCode": "authority-not-renewed",
+      "expectedEvaluated": 3,
+      "expectedGrownMembers": 0,
+      "expectedInForceParticipants": 0,
+      "expectedLapsed": 1,
+      "expectedReleased": 0
+    },
+    {
+      "id": "cbi18-14-retirement-failure",
+      "expectedKind": "retirement-failed",
+      "expectedCode": "authority-retirement-failed",
+      "expectedEvaluated": 3,
+      "expectedGrownMembers": 0,
+      "expectedInForceParticipants": 0,
+      "expectedLapsed": 1,
+      "expectedReleased": 0
+    }
+  ]
+}

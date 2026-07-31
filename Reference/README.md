@@ -105,6 +105,10 @@ CBI17 narrows those declarations to one successor generation, as one transaction
 successor does not resolve blocks every other member, a veto anywhere refuses everything, and a
 member the successor leaves alone is untouched rather than refusing. Nothing here retires a member or
 reaches a provider.
+CBI18 grows those participant sets without consulting any declaration, because growth removes nobody
+and so cannot uncover a declared dependency. A party already participating in one member may be added
+to another, under the local Actor it already holds; removal and substitution stay CBI15's, and a
+lapse in any retained participant retires the whole activation.
 
 ## Build and test
 

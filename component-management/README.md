@@ -223,6 +223,19 @@ retires a member or reaches a provider. Its bounded behavior is recorded in the
 [CBI17 capability contract](./cbi17-capability-contract.md) and completed
 [contract-completeness review](./cbi17-contract-completeness-review.md).
 
+CBI18 lifts the last single-member slice, CBI8's declaration-free extension, and dissolves the
+question the item recorded rather than deciding it. **An activation may hold declarations for some
+members and none for others, because growth cannot observe them**: a declaration says whether a
+departing participant may go, growth removes nobody, and coverage is monotone in the grants held, so
+a member holding one is grown by the same rule as a member holding none. The entry point takes no
+resolution and no declaration, and **the absent parameter is the contract**. Growth is checked
+against the whole activation, as CBI15's revision is; the case only a second member can pose is that
+**a party already participating in another member may be added to a second**, and must then arrive at
+the local Actor it already holds — CBI13's mapping rule in its permitting direction. A lapse in any
+retained participant still retires everything, and a declined extension still changes nothing. Its
+bounded behavior is recorded in the [CBI18 capability contract](./cbi18-capability-contract.md) and
+completed [contract-completeness review](./cbi18-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -419,6 +432,19 @@ dropped and vetoed authorities, how many members narrowed, the declared authorit
 afterwards, and how many members stayed released, so the one-transaction scope and the
 unchanged-versus-refused distinction are both checked answers. The fixture contains no resolver,
 declaration rule, observation, or portable runtime.
+
+### `cbi18-group-extension-vectors` sections
+
+`vectors` names three applied extensions — one member growing while the other restates its set, both
+growing, and a party already live in one member being added to a second — and eleven refusals
+covering that same party mapped onto a second local Actor, removal, substitution, an activation that
+gains nobody, a member set the activation did not admit, an authority identity shared across members,
+a local Actor shared across members, a denied addition, retained identity drift, a lapse in the member
+that was not growing, and retirement cleanup failure. Each pins how many participants were evaluated,
+how many members grew, how many the in-force activation holds, how many members lapsed, and how many
+stayed released, so growth-only, the shared-party answer in both directions, and decline-versus-retire
+are all checked answers. The fixture contains no evaluator, policy, identity rule, or portable
+runtime.
 
 ### `cm0-mice-topology` sections
 

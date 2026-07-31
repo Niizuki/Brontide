@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased — CBI18 multi-member participant extension
+
+### Added
+
+- Reference Studio declaration-free growth of the participant sets of a multi-member activation, applied
+  while every member stays released and refusing removal and substitution in place.
+- Activation-wide identity and receiving-domain Actor checks over the extended result, including the
+  permitting direction: a party already participating in one member may be added to another under the
+  local Actor it already holds.
+- Shared extension vectors pinning evaluated participants, members grown, the in-force activation
+  size, lapsed members, and released members, plus a phase-boundary completeness review and a named
+  test for every contract item.
+
+CBI18 lifts the last single-member slice and dissolves the question it recorded: an activation may
+hold declarations for some members and none for others, because growth cannot observe them — a
+declaration governs departure, growth removes nobody, and coverage is monotone in the grants held.
+The entry point takes no resolution and no declaration, and the absent parameter is the contract. A
+lapse in any retained participant still retires the whole activation. The lifting programme is
+complete.
+
 ## Unreleased — CBI17 multi-member declaration succession
 
 ### Added

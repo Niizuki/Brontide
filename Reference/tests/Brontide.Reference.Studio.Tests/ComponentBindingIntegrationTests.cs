@@ -3713,6 +3713,488 @@ public sealed class ComponentBindingIntegrationTests
         return observations;
     }
 
+    [Test]
+    public async Task Shared_cbi18_vectors_grow_every_member_set_or_none()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi18-group-extension-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, active, _) = await GroupExtensionResult(scenario);
+            var released = active.Lifecycle!.Members.Count(item => item.Member.IsReleased);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    GroupExtensionToken(result.Kind),
+                    Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                    scenario);
+                Assert.That(
+                    result.CurrentAuthority,
+                    Has.Count.EqualTo(vector.GetProperty("expectedEvaluated").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Grown,
+                    Has.Count.EqualTo(vector.GetProperty("expectedGrownMembers").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.InForce?.Admissions.Sum(item => item.Participants.Count) ?? 0,
+                    Is.EqualTo(vector.GetProperty("expectedInForceParticipants").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Lapsed,
+                    Has.Count.EqualTo(vector.GetProperty("expectedLapsed").GetInt32()),
+                    scenario);
+                Assert.That(
+                    released,
+                    Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                    scenario);
+
+                // Only a lapse retires, and then the whole activation.
+                Assert.That(
+                    released == active.Lifecycle.Members.Count || released == 0,
+                    Is.True,
+                    scenario);
+                Assert.That(
+                    result.InForce is null,
+                    Is.EqualTo(result.Kind is ComponentGroupExtensionKind.Withdrawn
+                        or ComponentGroupExtensionKind.RetirementFailed),
+                    scenario);
+                Assert.That(
+                    result.Grown.Count > 0,
+                    Is.EqualTo(result.IsExtended),
+                    $"{scenario}: an applied extension grows at least one member, and a refused one grows none.");
+            });
+        }
+    }
+
+    [Test]
+    public async Task C1_extension_needs_a_released_activation_and_the_members_it_admitted()
+    {
+        var unavailable = await ComponentGroupExtension.ExtendAsync(
+            new(
+                Array.Empty<ComponentGroupMemberAdmission>(),
+                Array.Empty<LocalCapabilityGrant>(),
+                null,
+                null),
+            Array.Empty<ComponentGroupMemberRequests>(),
+            "extension unavailable");
+        var (wrongMembers, active, _) = await GroupExtensionResult("cbi18-08-member-set-changed");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(unavailable.Kind, Is.EqualTo(ComponentGroupExtensionKind.ActivationUnavailable));
+            Assert.That(unavailable.CurrentAuthority, Is.Empty);
+            Assert.That(unavailable.InForce, Is.Null);
+            Assert.That(wrongMembers.Kind, Is.EqualTo(ComponentGroupExtensionKind.Declined));
+            Assert.That(wrongMembers.CurrentAuthority, Is.Empty, "A member set the activation did not admit evaluates nothing.");
+            Assert.That(active.Lifecycle!.Members.All(item => item.Member.IsReleased), Is.True);
+        });
+    }
+
+    [Test]
+    public async Task C2_every_member_retains_everyone_and_the_activation_gains_someone()
+    {
+        var (removal, removalActive, _) = await GroupExtensionResult("cbi18-05-removal-declined");
+        var (substitution, _, _) = await GroupExtensionResult("cbi18-06-substitution-declined");
+        var (unchanged, _, _) = await GroupExtensionResult("cbi18-07-activation-unchanged");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(removal.Code, Is.EqualTo("participant-not-retained"));
+            Assert.That(substitution.Code, Is.EqualTo("participant-not-retained"), "A substitute is a removal plus an addition, and the removal decides it.");
+            Assert.That(unchanged.Code, Is.EqualTo("activation-unchanged"));
+            Assert.That(
+                new[] { removal, substitution, unchanged }.All(item =>
+                    item.CurrentAuthority.Count == 0 && item.Grown.Count == 0),
+                Is.True,
+                "None of the three evaluates anything or grows anyone.");
+            Assert.That(removalActive.Lifecycle!.Members.All(item => item.Member.IsReleased), Is.True);
+        });
+    }
+
+    [Test]
+    public async Task C3_no_declaration_is_consulted_for_any_member()
+    {
+        var parameters = typeof(ComponentGroupExtension)
+            .GetMethod(nameof(ComponentGroupExtension.ExtendAsync))!
+            .GetParameters()
+            .Select(item => item.ParameterType)
+            .ToArray();
+        var (result, _, prior) = await GroupExtensionResult("cbi18-01-one-member-grown");
+
+        // Coverage is monotone in the grants held, which is why growth needs no declaration.
+        var declared = Dependency(Consumer).Entries
+            .Select(entry => $"{entry.Capability.Value}|{entry.Target.Value}|{entry.Operation.Value}|{entry.Scope.Value}")
+            .ToArray();
+        string[] Tuples(IReadOnlyList<LocalCapabilityGrant> grants) => grants
+            .Select(grant => $"{grant.Capability.Value}|{grant.Target.Value}|{grant.Operation.Value}|{grant.Scope.Value}")
+            .ToArray();
+        var before = Tuples(prior.SelectMany(item => item.Grants).ToArray());
+        var after = Tuples(result.InForce!.Grants);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                parameters,
+                Has.None.EqualTo(typeof(ResolutionOutcome)).And.None.EqualTo(typeof(ComponentGrantDependency)),
+                "The absent parameter is the contract: growth reads no resolution and no declaration.");
+            Assert.That(
+                declared.Where(before.Contains).All(after.Contains),
+                Is.True,
+                "Every tuple covered before the extension is still covered after it.");
+            Assert.That(before.All(after.Contains), Is.True, "Growth withdraws no grant at all.");
+        });
+    }
+
+    [Test]
+    public async Task C4_a_declined_extension_changes_nothing_anywhere()
+    {
+        var (result, active, prior) = await GroupExtensionResult("cbi18-11-addition-denied");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentGroupExtensionKind.Declined));
+            Assert.That(result.InForce, Is.Not.Null);
+            Assert.That(
+                result.InForce!.Admissions.Sum(item => item.Participants.Count),
+                Is.EqualTo(prior.Sum(item => item.Participants.Count)),
+                "The in-force activation is the one it was given, not the one that was intended.");
+            Assert.That(result.Grown, Is.Empty);
+            Assert.That(active.Lifecycle!.Members.All(item => item.Member.IsReleased), Is.True);
+        });
+    }
+
+    [Test]
+    public async Task C5_a_malformed_request_decides_nothing_and_evaluated_loss_retires_everything()
+    {
+        var (drift, driftActive, _) = await GroupExtensionResult("cbi18-12-retained-identity-drift");
+        var (lapse, lapseActive, _) = await GroupExtensionResult("cbi18-13-untouched-member-lapsed");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(drift.Kind, Is.EqualTo(ComponentGroupExtensionKind.Declined));
+            Assert.That(drift.CurrentAuthority, Is.Empty, "Nothing was evaluated, so nothing was learned.");
+            Assert.That(driftActive.Lifecycle!.Members.All(item => item.Member.IsReleased), Is.True);
+
+            Assert.That(lapse.Kind, Is.EqualTo(ComponentGroupExtensionKind.Withdrawn));
+            Assert.That(lapse.CurrentAuthority, Is.Not.Empty, "No result both retires and reports zero evaluations.");
+            Assert.That(
+                lapseActive.Lifecycle!.Members.All(item => item.Member.Stage == PortableCompositionStage.Retired),
+                Is.True,
+                "The lapse was in the member that was not growing, and the whole activation retires.");
+        });
+    }
+
+    [Test]
+    public async Task C6_retained_authority_is_revalidated_before_it_is_extended()
+    {
+        var (result, active, _) = await GroupExtensionResult("cbi18-15-lapse-outranks-a-denied-addition");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                result.Kind,
+                Is.EqualTo(ComponentGroupExtensionKind.Withdrawn),
+                "A lapse outranks any problem with an addition, so a call that would both retire and decline retires.");
+            Assert.That(result.Code, Is.EqualTo("authority-not-renewed"));
+            Assert.That(result.InForce, Is.Null, "No set is extended on top of authority that has itself lapsed.");
+            Assert.That(active.Lifecycle!.Members.Count(item => item.Member.IsReleased), Is.Zero);
+        });
+    }
+
+    [Test]
+    public async Task C7_an_added_participant_is_admitted_on_cbi13_terms()
+    {
+        var (result, active, _) = await GroupExtensionResult("cbi18-11-addition-denied");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Code, Is.EqualTo("authority-not-admitted"));
+            Assert.That(
+                result.CurrentAuthority,
+                Has.Count.EqualTo(3),
+                "The addition was evaluated, and refused on the evaluator's own terms.");
+            Assert.That(
+                active.Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True,
+                "A refused addition declines the extension rather than retiring the activation.");
+        });
+    }
+
+    [Test]
+    public async Task C8_the_extended_activation_obeys_the_activation_wide_rules()
+    {
+        var (shared, _, _) = await GroupExtensionResult("cbi18-03-shared-party-added-to-second-member");
+        var (secondActor, _, _) = await GroupExtensionResult("cbi18-04-shared-party-mapped-onto-a-second-actor");
+        var (sharedActor, _, _) = await GroupExtensionResult("cbi18-10-local-actor-shared-across-members");
+        var (identity, _, _) = await GroupExtensionResult("cbi18-09-identity-shared-across-members");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                shared.IsExtended,
+                Is.True,
+                "A party already participating in another member may be added to a second, under the local Actor it already holds.");
+            Assert.That(
+                shared.InForce!.Admissions
+                    .SelectMany(item => item.Participants)
+                    .Where(item => item.Participant == Participant)
+                    .Select(item => item.Authority.Observation.Relationships[0].LocalActor)
+                    .Distinct()
+                    .Count(),
+                Is.EqualTo(1),
+                "It arrives at exactly one receiving-domain Actor across the activation.");
+            Assert.That(secondActor.Code, Is.EqualTo("participant-actor-not-single"));
+            Assert.That(sharedActor.Code, Is.EqualTo("local-actor-shared-across-members"));
+            Assert.That(identity.Code, Is.EqualTo("authority-identity-not-distinct"));
+        });
+    }
+
+    [Test]
+    public async Task C9_an_extension_produces_an_activation_the_other_slices_accept()
+    {
+        var (_, active, admitted, policy, _) = await ExtensionActivation(failCleanup: false);
+        var intended = new ComponentGroupMemberRequests[]
+        {
+            new(active.Admissions[0].Occurrence, [admitted[0], ObserverRequest(policy)]),
+            new(active.Admissions[1].Occurrence, [admitted[1], DeputyRequest(policy)]),
+        };
+        var result = await ComponentGroupExtension.ExtendAsync(active, intended, "extend before revalidating");
+
+        // CBI14 revalidates the extended activation from the same requests that produced it.
+        var continued = await ComponentGroupRevalidation.RevalidateAsync(
+            result.InForce!,
+            intended,
+            "revalidate the extended activation");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsExtended, Is.True);
+            Assert.That(
+                continued.Kind,
+                Is.EqualTo(ComponentGroupRevalidationKind.Continued),
+                "CBI14 accepts the activation an extension produced.");
+            Assert.That(continued.Members.Sum(item => item.CurrentAuthority.Count), Is.EqualTo(4));
+        });
+    }
+
+    [Test]
+    public async Task C10_an_extension_exercises_nothing_and_notifies_no_provider()
+    {
+        var (resolution, active, admitted, policy, handlers) = await ExtensionActivation(failCleanup: false);
+        var before = handlers.Sum(handler => handler.ProviderEffectCount);
+        var result = await ComponentGroupExtension.ExtendAsync(
+            active,
+            [
+                new(active.Admissions[0].Occurrence, [admitted[0], ObserverRequest(policy)]),
+                new(active.Admissions[1].Occurrence, [admitted[1]]),
+            ],
+            "extension reaches no provider");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsExtended, Is.True);
+            Assert.That(
+                handlers.Sum(handler => handler.ProviderEffectCount),
+                Is.EqualTo(before),
+                "CBI18 exercises no granted Operation.");
+            Assert.That(
+                active.Lifecycle!.Members.All(item => item.Member.Stage == PortableCompositionStage.Released),
+                Is.True,
+                "It tells no provider the set changed, so no member's portable stage moves.");
+            Assert.That(resolution.Generation, Is.Not.Null);
+        });
+    }
+
+    private static async Task<(
+        ComponentGroupExtensionResult Result,
+        ComponentGroupAuthorityResult Active,
+        ComponentGroupMemberAdmission[] Prior)>
+        GroupExtensionResult(string scenario)
+    {
+        var failCleanup = scenario == "cbi18-14-retirement-failure";
+        var (_, active, admitted, policy, _) = await ExtensionActivation(failCleanup);
+        var prior = active.Admissions.ToArray();
+        var first = prior[0].Occurrence;
+        var second = prior[1].Occurrence;
+
+        // A second request for a party already live in the first member: distinct identities
+        // throughout, and the Actor its own policy establishes.
+        AuthorityAdmissionRequest SharedParty(LocalAuthorityPolicy actorPolicy)
+        {
+            var relationship = RelationshipRequestId.Create("relationship.group-provider-second");
+            return ProviderAuthority(actorPolicy, Authority) with
+            {
+                Request = AdmissionRequestId.Create("admission.group-provider-second"),
+                Relationships =
+                [
+                    new(relationship, Participant, ActorRelationshipKind.ComponentParticipant, [AuthorityEvidence]),
+                ],
+                Authority =
+                [
+                    new(
+                        AuthorityRequestId.Create("authority.cooling-control-second"),
+                        relationship,
+                        Capability,
+                        Target,
+                        Operation,
+                        AuthorityScope,
+                        false),
+                ],
+            };
+        }
+
+        var observer = ObserverRequest(policy);
+        var firstRequests = new List<AuthorityAdmissionRequest> { admitted[0], observer };
+        var secondRequests = new List<AuthorityAdmissionRequest> { admitted[1] };
+        switch (scenario)
+        {
+            case "cbi18-02-both-members-grown":
+                secondRequests.Add(DeputyRequest(policy));
+                break;
+            case "cbi18-03-shared-party-added-to-second-member":
+                firstRequests.RemoveAt(1);
+                secondRequests.Add(SharedParty(policy));
+                break;
+            case "cbi18-04-shared-party-mapped-onto-a-second-actor":
+                firstRequests.RemoveAt(1);
+                secondRequests.Add(SharedParty(GroupPolicy(DeputyLocalActor)));
+                break;
+            case "cbi18-05-removal-declined":
+                firstRequests.Clear();
+                break;
+            case "cbi18-06-substitution-declined":
+                firstRequests.RemoveAt(0);
+                break;
+            case "cbi18-07-activation-unchanged":
+                firstRequests.RemoveAt(1);
+                break;
+            case "cbi18-09-identity-shared-across-members":
+                firstRequests[1] = observer with
+                {
+                    Authority = [observer.Authority.Single() with { Request = AuditAuthority }],
+                };
+                break;
+            case "cbi18-10-local-actor-shared-across-members":
+                firstRequests[1] = ObserverRequest(
+                    GroupPolicy(ProviderLocalActor, observerActor: SupervisorLocalActor));
+                break;
+            case "cbi18-11-addition-denied":
+            case "cbi18-15-lapse-outranks-a-denied-addition":
+                firstRequests[1] = Revoked(observer);
+                break;
+            case "cbi18-12-retained-identity-drift":
+                firstRequests[0] = admitted[0] with
+                {
+                    Authority =
+                    [
+                        admitted[0].Authority.Single() with { Capability = CapabilityId.Create("capability.other") },
+                    ],
+                };
+                break;
+            default:
+                break;
+        }
+
+        if (scenario is "cbi18-13-untouched-member-lapsed" or "cbi18-14-retirement-failure"
+            or "cbi18-15-lapse-outranks-a-denied-addition")
+        {
+            secondRequests[0] = Revoked(admitted[1]);
+        }
+
+        var requests = new List<ComponentGroupMemberRequests>
+        {
+            new(first, firstRequests),
+            new(second, secondRequests),
+        };
+        if (scenario == "cbi18-08-member-set-changed")
+        {
+            requests.RemoveAt(1);
+        }
+
+        var result = await ComponentGroupExtension.ExtendAsync(
+            active,
+            requests,
+            $"group extension {scenario}");
+        return (result, active, prior);
+    }
+
+    /// <summary>Two released members holding one participant each, so growth is observable.</summary>
+    private static async Task<(
+        ResolutionOutcome Resolution,
+        ComponentGroupAuthorityResult Active,
+        AuthorityAdmissionRequest[] Admitted,
+        LocalAuthorityPolicy Policy,
+        CoolingPortableHandler[] Handlers)>
+        ExtensionActivation(bool failCleanup)
+    {
+        var resolution = new FakeGenerationResolver().Resolve(PairRequest());
+        var first = resolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var second = resolution.Generation.ProviderSets.Single(item => item.Requirement == SecondaryRequirement);
+        var handlers = new[]
+        {
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+        };
+        IPortableProviderConversation SecondConversation()
+        {
+            var conversation = new PortableDirectConversation(new PortableProviderEndpoint(
+                CoolingPortableFixture.Contract, handlers[1], PortableRealization.FixedDirectCall));
+            return failCleanup ? new FailingRetirementConversation(conversation) : conversation;
+        }
+
+        var groupMembers = new[]
+        {
+            new ComponentGroupMember(
+                Selection(first.Members[0]) with { HostEndpoint = "extension-host-primary" },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    CoolingPortableFixture.Contract, handlers[0], PortableRealization.FixedDirectCall))),
+            new ComponentGroupMember(
+                Selection(second.Members[0]) with
+                {
+                    Requirement = SecondaryRequirement,
+                    HostEndpoint = "extension-host-secondary",
+                },
+                SecondConversation()),
+        };
+        var policy = GroupPolicy(ProviderLocalActor);
+        var admitted = new[]
+        {
+            ProviderAuthority(policy, Authority),
+            SupervisorAuthority(policy, AuditAuthority, revoked: false),
+        };
+        var active = await ComponentGroupAuthority.ActivateAsync(
+            resolution,
+            [
+                new(groupMembers[0], [new(new(groupMembers[0].Selection.Occurrence, Participant), admitted[0])]),
+                new(groupMembers[1], [new(new(groupMembers[1].Selection.Occurrence, Supervisor), admitted[1])]),
+            ],
+            RuntimeRequest(Plan(groupMembers.Select(item => item.Selection.Occurrence).ToArray())));
+        return (resolution, active, admitted, policy, handlers);
+    }
+
+    private static string GroupExtensionToken(ComponentGroupExtensionKind kind) => kind switch
+    {
+        ComponentGroupExtensionKind.Extended => "extended",
+        ComponentGroupExtensionKind.Declined => "declined",
+        ComponentGroupExtensionKind.Withdrawn => "withdrawn",
+        ComponentGroupExtensionKind.RetirementFailed => "retirement-failed",
+        ComponentGroupExtensionKind.ActivationUnavailable => "activation-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
     private static string GroupSuccessionToken(ComponentGroupSuccessionKind kind) => kind switch
     {
         ComponentGroupSuccessionKind.Narrowed => "narrowed",
