@@ -30,7 +30,7 @@
       "group": "negotiated contracts",
       "entries": [
         { "id": "component", "shape": "canonicalReference" },
-        { "id": "provider", "shape": "canonicalReference" },
+        { "id": "provider", "shape": "canonicalReference", "detail": "The provider that answered, read from the offered document. Negotiation refuses a mismatch, so this equals the required declaration whenever a plan exists." },
         { "id": "operations", "shape": "sequence<canonicalReference>" },
         { "id": "shapes", "shape": "sequence<canonicalReference>" },
         { "id": "fragments", "shape": "sequence<canonicalReference>" },
@@ -43,7 +43,7 @@
       "entries": [
         { "id": "hostEndpoint", "shape": "Text", "detail": "Opaque host-side endpoint designation." },
         { "id": "providerEndpoint", "shape": "Text", "detail": "Opaque provider-side endpoint designation." },
-        { "id": "selectedProvider", "shape": "canonicalReference" },
+        { "id": "selectedProvider", "shape": "canonicalReference", "detail": "The provider that answered, read from the offered document." },
         { "id": "selectionReason", "shape": "Text", "detail": "Why this provider was selected. Version 0.1 performs no provider selection policy, so the value records the fixed or negotiated basis." }
       ]
     },

@@ -11,6 +11,7 @@ type BindingPlan =
     private
         { Identifier: PlanId
           Contract: ContractDocument
+          AnsweringProvider: PortableProviderRef
           Catalog: ShapeCatalog
           Operations: PortableOperationRef list
           Shapes: PortableShapeRef list
@@ -35,7 +36,14 @@ module BindingPlan =
     let catalog plan = plan.Catalog
     let contractVersion plan = plan.Contract.ContractVersion
     let component' plan = plan.Contract.Component
-    let provider plan = plan.Contract.Provider
+    /// The provider that answered, read from the offered document.
+    ///
+    /// Negotiation refuses a provider mismatch, so this equals the required declaration whenever a
+    /// plan exists. Reading it from the offered side keeps the fact honest about who answered rather
+    /// than who was asked, which is what a field of this name has to mean. Decision 11.
+    let answeringProvider plan = plan.AnsweringProvider
+
+    let provider plan = plan.AnsweringProvider
     let operations plan = plan.Operations
     let shapes plan = plan.Shapes
     let fragments plan = plan.Fragments
@@ -43,7 +51,7 @@ module BindingPlan =
     let compactAssignments plan = plan.CompactAssignments
     let hostEndpoint plan = plan.HostEndpoint
     let providerEndpoint plan = plan.ProviderEndpoint
-    let selectedProvider plan = plan.Contract.Provider
+    let selectedProvider plan = plan.AnsweringProvider
     let selectionReason plan = plan.SelectionReason
     let realization plan = plan.Realization
     let limits plan = plan.Contract.Limits
@@ -124,7 +132,7 @@ module BindingPlan =
             [ "planId", PlanId.value plan.Identifier
               "contractVersion", string plan.Contract.ContractVersion
               "component", PortableComponentRef.text plan.Contract.Component
-              "provider", PortableProviderRef.text plan.Contract.Provider
+              "provider", PortableProviderRef.text plan.AnsweringProvider
               "operations", join (plan.Operations |> List.map PortableOperationRef.text)
               "shapes", join (plan.Shapes |> List.map PortableShapeRef.text)
               "fragments", join (plan.Fragments |> List.map PortableFragmentRef.text)
@@ -185,6 +193,7 @@ module BindingPlan =
     let internal freeze
         (identifier: PlanId)
         (document: ContractDocument)
+        (answeringProvider: PortableProviderRef)
         (catalog: ShapeCatalog)
         (operations: PortableOperationRef list)
         (shapes: PortableShapeRef list)
@@ -199,6 +208,7 @@ module BindingPlan =
         let plan =
             { Identifier = identifier
               Contract = document
+              AnsweringProvider = answeringProvider
               Catalog = catalog
               Operations = operations
               Shapes = shapes

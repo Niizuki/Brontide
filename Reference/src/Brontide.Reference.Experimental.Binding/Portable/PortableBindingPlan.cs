@@ -35,6 +35,7 @@ public sealed record PortableBindingPlan
     internal PortableBindingPlan(
         PortablePlanId planId,
         PortableContractDocument contract,
+        PortableProviderReference answeringProvider,
         ImmutableArray<PortableOperationReference> operations,
         ImmutableArray<PortableShapeReference> shapes,
         ImmutableArray<PortableFragmentReference> fragments,
@@ -47,6 +48,7 @@ public sealed record PortableBindingPlan
     {
         PlanId = planId;
         Contract = contract;
+        AnsweringProvider = answeringProvider;
         Operations = operations;
         Shapes = shapes;
         Fragments = fragments;
@@ -70,7 +72,15 @@ public sealed record PortableBindingPlan
 
     public PortableComponentReference Component => Contract.Component;
 
-    public PortableProviderReference Provider => Contract.Provider;
+    /// <summary>The provider that answered, read from the offered document.</summary>
+    /// <remarks>
+    /// Negotiation refuses a provider mismatch, so this equals the required declaration whenever a
+    /// plan exists. Reading it from the offered side keeps the fact honest about who answered rather
+    /// than who was asked, which is what a field of this name has to mean. Decision 11.
+    /// </remarks>
+    public PortableProviderReference AnsweringProvider { get; }
+
+    public PortableProviderReference Provider => AnsweringProvider;
 
     public ImmutableArray<PortableOperationReference> Operations { get; }
 
@@ -86,7 +96,7 @@ public sealed record PortableBindingPlan
 
     public string ProviderEndpoint { get; }
 
-    public PortableProviderReference SelectedProvider => Contract.Provider;
+    public PortableProviderReference SelectedProvider => AnsweringProvider;
 
     public string SelectionReason { get; }
 

@@ -1,7 +1,7 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
 **Status:** Partially implemented experimental work — PB0 through PB7 complete; PB8 partly complete
-(evidence and documentation delivered; independent review and owner-question closure outstanding)
+(evidence and documentation delivered; Decision 11 ruled on 2026-07-30; independent review outstanding)
 **Date:** 2026-07-23 (delivery status updated 2026-07-30)
 **Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
@@ -648,7 +648,10 @@ binding rather than releasing it. That is defensible on its own terms — which 
 is a composition fact rather than a contract fact — but it leaves the plan fact itself unchanged, and
 a host using the binding layer without this seam still has no way to learn who answered. Whether
 negotiation should compare provider identity, and whether the plan's provider fact should name the
-answering endpoint, is **Decision 11** for the contract maintainers.
+answering endpoint, is **Decision 11** for the contract maintainers. It was ruled on 2026-07-30:
+negotiation compares the provider and refuses a mismatch, and the plan reads the fact from the
+offered document. The composition-seam check is retained for the case negotiation cannot see — a
+required contract naming a provider the resolution did not select.
 
 This is the third phase in a row whose finding was invisible to comparing the two stacks against each
 other, and it is the same shape as PB6's first defect: an observation field that describes what was
@@ -731,13 +734,15 @@ cannot review it. The existing control plane under `conformance/reviews/` is pin
 implementation-correction programme; using it would require a new request rather than an edit to that
 closed record, which is an owner decision about what is being reviewed and by whom.
 
-**Step 6 — question closure.** Two questions are open — the Channel naming question and Decision 11 —
-and both await an *owner* ruling rather than an implementer's. Moving either to `Resolved questions`
+**Step 6 — question closure.** Decision 11 was ruled on 2026-07-30 and is recorded in
+[`open-decisions.md`](../../../binding/portable/open-decisions.md): negotiation compares provider
+identity, and the plan reports the provider that answered. The Channel naming question remains open
+and still awaits an *owner* ruling rather than an implementer's. Moving it to `Resolved questions`
 without a ruling would convert a provisional choice into a decision by writing it down, which is the
 one thing the open-decisions file exists to prevent. The eight decisions raised by PB4 through PB6
 were ruled on separately and are already recorded there.
 
-Both remain open work for PB8; nothing in steps 1 through 4 depends on them.
+The Channel naming question remains open work for PB8; nothing in steps 1 through 4 depends on it.
 
 ## 6. Mandatory evidence matrix
 
@@ -781,23 +786,34 @@ promotion, and an Architecture 0.8 implementation claim remain separate decision
 
 ## Open questions (owners needed)
 
-Two questions are open. The eight raised by PB4, PB5, and PB6 were all recorded on 2026-07-28 and
-have moved to [Resolved questions](#resolved-questions); each remains written up in full — what was
-observed, what was running and why, the alternatives with their trade-offs, and what the ruling
-changed — in [`binding/portable/open-decisions.md`](../../../binding/portable/open-decisions.md).
-PB7 raised the second open question after those rulings, and it is written up there in the same form.
+One question is open. The eight raised by PB4, PB5, and PB6 were all recorded on 2026-07-28, and
+Decision 11, raised by PB7, was recorded on 2026-07-30; all nine have moved to
+[Resolved questions](#resolved-questions). Each remains written up in full — what was observed, what
+was running and why, the alternatives with their trade-offs, and what the ruling changed — in
+[`binding/portable/open-decisions.md`](../../../binding/portable/open-decisions.md).
 
 | Owner | Question | Blocking point |
 | --- | --- | --- |
 | Brontide architecture maintainers | Ratify the provisional Channel Shape/category names or publish an explicitly migrated revision? | Blocks a stable public Portable Binding version; experimental PB0-PB6 may proceed against a versioned draft. |
-| Portable Binding contract maintainers | **Decision 11:** the plan's `provider` fact names who the host asked for, not who answered, because negotiation never compares provider identity. Should it? | Blocks nothing today, because PB7's handoff checks it; a host using the binding layer without that seam still cannot learn who answered. |
 
 ## Resolved questions
 
 The eight below were raised by PB4, PB5, and PB6, ran on a provisional implementer choice while each
 phase proceeded, and were recorded on **2026-07-28**. Four confirm the provisional choice unchanged;
-four create follow-on work, marked as such. Full option sets and rationale stay in
+four create follow-on work, marked as such. Decision 11, raised by PB7, follows them. Full option
+sets and rationale stay in
 [`binding/portable/open-decisions.md`](../../../binding/portable/open-decisions.md).
+
+- **2026-07-30 — Decision 11, the plan's provider fact:** **negotiation compares provider identity**
+  and refuses a mismatch as `unsupported-contract`, and the plan's `provider`/`selectedProvider`
+  facts and the C9 observation are read from the **offered** document. A required document naming a
+  provider is binding rather than expectational; version 0.1 deliberately defines no way to say "any
+  provider of this Component", which stays an additive change if it is ever needed. PB7's
+  composition-seam check is retained for the case negotiation cannot see — a required contract naming
+  a provider the resolution did not select — and is reachable only when the requirement names no
+  provider. Creates follow-on work, delivered with the ruling: PB-83 pins the refusal, and both
+  stacks re-derive the plan fact. Because the two providers are equal whenever a plan exists, no
+  black-box vector can distinguish the read side; that limit is recorded in the decision.
 
 - **2026-07-28 — Decision 3, failure domain of an endpoint-decided refusal:** `failureDomain` names
   **which endpoint decided**, recorded relative to the observer as CH-24 requires, not how far away it

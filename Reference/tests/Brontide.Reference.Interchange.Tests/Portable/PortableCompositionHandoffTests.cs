@@ -233,21 +233,31 @@ public sealed class PortableCompositionHandoffTests
     /// PB-70: negotiation accepts an endpoint that answers as another provider; the handoff does not.
     /// </summary>
     /// <remarks>
-    /// Version 0.1 negotiation matches the Component by exact reference equality and never compares
-    /// provider identity, so the establishment below succeeds on both sides. Which provision was
-    /// selected is a composition fact, and this is the one place that holds it.
+    /// Negotiation now refuses an endpoint that answers as a provider the host did not require
+    /// (Decision 11), so the composition seam is left with the case negotiation cannot see: a host
+    /// whose required contract names a provider its own resolution did not select. It is reachable
+    /// only when the requirement names no provider, because preflight otherwise settles it before
+    /// any contact.
     /// </remarks>
     [Test]
-    public async Task An_endpoint_that_answers_as_another_provider_is_refused()
+    public async Task An_endpoint_that_is_not_the_selected_provision_is_refused()
     {
         var handler = new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry());
-        var substituted = CoolingPortableFixture.Contract with
-        {
-            Provider = PortableProviderReference.Parse("interchange.tests.substitute-provider", 1)
-        };
-        var endpoint = new PortableProviderEndpoint(substituted, handler, PortableRealization.FixedDirectCall);
+        var endpoint = new PortableProviderEndpoint(
+            CoolingPortableFixture.Contract,
+            handler,
+            PortableRealization.FixedDirectCall);
+        var unselected = PortableProviderReference.Parse("interchange.tests.substitute-provider", 1);
 
-        await using var member = PrepareCooling();
+        // The requirement names no provider, so the resolution's provision is free of preflight and
+        // reaches step 6; the contract the host requires is still the one the endpoint offers.
+        await using var member = PortableCompositionHandoff.Prepare(
+            PortableResolvedRequirement.OneToOneContract(
+                Scope("workspace.cooling"),
+                CoolingPortableFixture.Component,
+                HostEndpoint),
+            new PortableOfferedProvision(CoolingPortableFixture.Component, unselected, "cooling-endpoint"),
+            CoolingPortableFixture.Contract);
         var fault = Assert.ThrowsAsync<PortableFaultException>(async () =>
             await member.InterconnectAsync(new PortableDirectConversation(endpoint)));
 
@@ -256,7 +266,7 @@ public sealed class PortableCompositionHandoffTests
             Assert.That(
                 endpoint.Plan,
                 Is.Not.Null,
-                "The contract negotiated on the provider side, which is what makes the substitution invisible to negotiation.");
+                "Negotiation passed: the endpoint answered as exactly the provider the host required.");
             Assert.That(fault!.Category, Is.EqualTo(PortableProtocolCategory.UnsupportedContract));
             Assert.That(fault.LocalCode, Is.EqualTo("provider-substituted"));
             Assert.That(member.Plan, Is.Null, "An abandoned binding leaves the member without a plan.");

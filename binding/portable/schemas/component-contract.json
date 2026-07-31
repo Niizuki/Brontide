@@ -113,6 +113,7 @@
     "order": [
       "Validate the contract document structurally; a malformed document is 'malformed-message'.",
       "Compare contractVersion; a mismatch is 'unsupported-version'.",
+      "Compare the provider by exact reference equality; a mismatch is 'unsupported-contract'.",
       "Match every 'required' requirement against an exactly equal peer provision; a miss is 'unsupported-contract'.",
       "Reject any 'opposed' requirement the peer provides; a hit is 'unsupported-contract'.",
       "Compare each negotiated Operation's inputShape, resultShape, detailShape, and requiredFragments for exact equality; a difference is 'unsupported-contract'.",
@@ -123,6 +124,7 @@
     ],
     "failClosedRule": "Every step above completes before any provider activation. A failure at any step produces zero provider effects.",
     "exactnessRule": "Version 0.1 negotiates by exact reference equality. There is no structural similarity matching, no nearest-version selection, and no inference of authority from provider availability.",
+    "providerIdentityRule": "A required document naming a provider is binding, not expectational: the peer must answer as that provider or negotiation refuses. Version 0.1 defines no way to say 'any provider of this Component'; an absent or wildcard provider is deliberately undefined and would be an additive change. Because a mismatch is refused, the required and offered providers are equal whenever a plan exists, so the Binding Plan's provider facts are read from the offered document to say who answered rather than who was asked. See open-decisions.md Decision 11.",
     "unknownHandling": [
       { "what": "an unknown required Operation", "outcome": "unsupported-operation" },
       { "what": "an unknown Shape, Fragment, or dependency reference", "outcome": "unsupported-contract" },

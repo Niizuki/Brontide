@@ -295,9 +295,11 @@ type CompositionMember private (requirement: ResolvedRequirement, provision: Off
                 match established with
                 | Error error -> return Error error
                 | Ok host ->
-                    // Negotiation matched the Component exactly and never compared provider identity,
-                    // because which provision was selected is a composition fact rather than a
-                    // contract fact. This is the only point at which a substitution is visible.
+                    // Negotiation refuses an endpoint answering as a provider the host did not
+                    // require, so what is left here is the case it cannot see: a required contract
+                    // naming a provider this resolution did not select. Reachable only when the
+                    // requirement named no provider, since preflight otherwise settles it before
+                    // contact.
                     match witness.Offered with
                     | Some offered when offered.Provider = provision.Provider ->
                         stage <- CompositionStage.Interconnected host

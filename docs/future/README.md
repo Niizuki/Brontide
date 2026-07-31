@@ -104,8 +104,9 @@ Pointing a new consumer at the layer found what six phases of using it had not: 
 compares provider identity**, so the Binding Plan's provider fact reports who the host asked for
 rather than who answered. Both stacks do this identically, and every fixture derives from one
 declaration, so the two have always agreed. The handoff checks it provisionally; the contract
-question is **Decision 11**, the one decision now open, and another instance of the gap Decision 10
-names.
+question is **Decision 11**, recorded on 2026-07-30: negotiation now compares provider identity and
+refuses a mismatch, and the plan reports the provider that answered. It was another instance of the
+gap Decision 10 names.
 
 **PB8 is partly complete.** Its evidence and documentation work is done: the contract matrix now
 carries an executed-evidence table naming which realizations have run each capability; the Channel
@@ -117,8 +118,9 @@ facts for both realizations, each stating how it is known. The complete reposito
 
 Two PB8 steps remain, and neither is the implementer's to close: **fresh independent reviews** of
 Reference, Minimal, and the neutral contract, which require a reviewer identity distinct from every
-implementation actor in a fresh context; and **question closure**, which requires owner rulings on the
-Decision 11 rather than an implementer writing a provisional choice down as a decision.
+implementation actor in a fresh context; and **question closure**, of which Decision 11 was recorded
+on 2026-07-30, leaving the Channel naming question. Neither was closed by an implementer writing a
+provisional choice down as a decision.
 
 The former Priority 0 documentation relocation is complete; its archived plan is the
 [Pinned Documentation Relocation Plan 0.1](../archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).
@@ -340,8 +342,8 @@ the release barrier and the authority barrier are the same barrier — CBI12's a
 suggests they should be, but the receiving domain admits participants against a Component, not
 against an attempt, so it has to be decided rather than assumed. Relational Initialisation,
 replacement, child Ports, mediation, wider Provider Sets, and real distribution remain future work
-behind it. PB8's independent reviews and Decision 11 owner ruling remain separate governance
-prerequisites rather than implementation work.
+behind it. PB8's independent reviews remain a separate governance prerequisite rather than
+implementation work; Decision 11 was ruled on and delivered on 2026-07-30.
 
 ## Other planned areas
 

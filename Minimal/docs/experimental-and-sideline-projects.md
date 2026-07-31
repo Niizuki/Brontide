@@ -90,12 +90,13 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   the stage modelled as a union that carries the established binding, so a member outside the released
   case has no host to interact through. A Provider Set, a mediated exposure, an unselected provider,
   and a provider substituted by the answering endpoint are refused rather than approximated. PB7 also
-  found that negotiation never compares provider identity, so the plan's provider fact names who this
-  host asked for rather than who answered — identically in the Reference stack, and recorded as
-  Decision 11. PB8 has since recorded this layer's executed evidence, re-measured its source cost
-  (6,392 portable lines against Reference's 7,337, two independent implementations of one contract),
-  and documented the portable seam's operational assumptions; its fresh independent reviews and owner
-  ruling on Decision 11 remain outstanding. Nothing here is an Architecture 0.8
+  found that negotiation never compared provider identity, so the plan's provider fact named who this
+  host asked for rather than who answered — identically in the Reference stack, and raised as
+  Decision 11. That was ruled on 2026-07-30: negotiation now refuses a provider mismatch and the plan
+  reads the fact from the offered document. PB8 has since recorded this layer's executed evidence,
+  re-measured its source cost (6,429 portable lines against Reference's 7,378, two independent
+  implementations of one contract), and documented the portable seam's operational assumptions; its
+  fresh independent reviews remain outstanding. Nothing here is an Architecture 0.8
   conformance claim or part of Brontide Minimal Stack Base.
 - Reference/Minimal entanglement is a future cross-process experiment. Neither implementation is allowed
   to become the other's in-process compatibility layer.

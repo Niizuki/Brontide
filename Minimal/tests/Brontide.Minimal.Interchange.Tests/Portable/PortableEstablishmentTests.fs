@@ -58,6 +58,32 @@ type PortableEstablishmentTests() =
             Assert.That(handler.ProviderEffectCount, Is.EqualTo 0L))
 
     [<Test>]
+    member _.``PB-83 an endpoint answering as another provider fails closed``() =
+        let substituted =
+            { CoolingFixture.contract with
+                Provider = expectOk (PortableProviderRef.tryCreate "interchange.tests.substitute-provider" 1) }
+
+        let fault =
+            negotiate CoolingFixture.contract substituted
+            |> expectCategory ProtocolCategory.UnsupportedContract
+
+        fault.LocalCode |> shouldEqual "provider-mismatch"
+
+    /// PB-83: the fact the refusal protects.
+    [<Test>]
+    member _.``PB-83 a frozen plan names the provider that answered``() =
+        let plan = expectOk (negotiate CoolingFixture.contract CoolingFixture.contract)
+
+        assertAll (fun () ->
+            shouldEqual CoolingFixture.contract.Provider (BindingPlan.selectedProvider plan)
+            shouldEqual
+                (Some(PortableProviderRef.text (BindingPlan.answeringProvider plan)))
+                (BindingPlan.tryFact "selectedProvider" plan)
+            shouldEqual
+                (Some(PortableProviderRef.text (BindingPlan.answeringProvider plan)))
+                (BindingPlan.tryFact "provider" plan))
+
+    [<Test>]
     member _.``PB-02 a contract version the endpoint does not recognize fails closed``() =
         let document =
             ContractCodec.encode CoolingFixture.contract |> withEntry "contractVersion" (CborInteger 2L)

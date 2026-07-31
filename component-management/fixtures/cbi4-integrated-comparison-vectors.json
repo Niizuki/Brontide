@@ -30,7 +30,7 @@
       "id": "cbi4-05-lifecycle",
       "expectedActive": false,
       "expectedIntegrationFailure": "lifecycle-refused",
-      "expectedProfileSha256": "2b4f4ca84b033bf6dea7fe059ff3d758db6a8afcbc2f075a1d5ab2c8d9be61ba"
+      "expectedProfileSha256": "e062f3d623dd0ff740007a2f08db9197dd0f737855cab2811eb490983ff901a7"
     }
   ]
 }
