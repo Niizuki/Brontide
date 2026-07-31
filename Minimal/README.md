@@ -90,7 +90,9 @@ The implementation currently provides:
   CBI15 revises those sets per member under per-member declarations, checking the result against the
   whole activation and declining rather than retiring when the request itself is wrong; CBI16
   verifies every member's declaration against what that member did, through one CM4 request whose
-  single verdict makes one member's undeclared use condemn the whole activation;
+  single verdict makes one member's undeclared use condemn the whole activation; CBI17 narrows those
+  declarations to one successor generation as a single transaction, where a member the successor does
+  not resolve blocks the others and a member it leaves alone is untouched rather than refusing;
 - a headless host and seven F# test assemblies, including the host-owned CBI1-CBI16 integration
   suite.
 

@@ -2011,7 +2011,7 @@ public static class ComponentDeclarationSuccession
             $"The declaration in force no longer includes {string.Join(", ", dropped)}.");
     }
 
-    private static string? SamePosition(
+    internal static string? SamePosition(
         Cm.ResolutionOutcome successor,
         ComponentBindingSelection selection,
         Portable.PortableCompositionMember member)
@@ -3212,6 +3212,255 @@ public static class ComponentGroupVerification
             Array.Empty<ComponentGroupMemberVerification>(),
             Array.Empty<Cm.OccurrenceId>(),
             Array.Empty<Portable.PortableReplacementRecord>(),
+            code,
+            reason);
+}
+
+public sealed record ComponentGroupMemberSuccession(
+    ComponentBindingSelection Selection,
+    ComponentGrantDependency Declaration,
+    ComponentGrantDependency SuccessorDeclaration,
+    IReadOnlyList<ComponentOperationAuthorityMapping> Attribution,
+    IReadOnlyList<ComponentObservedInteraction> Observations);
+
+public enum ComponentGroupSuccessionKind
+{
+    Narrowed,
+    Declined,
+    ActivationUnavailable,
+}
+
+public sealed record ComponentGroupMemberDeclaration(
+    Cm.OccurrenceId Occurrence,
+    ComponentGrantDependency Declaration,
+    IReadOnlyList<string> Dropped,
+    IReadOnlyList<string> Vetoed);
+
+public sealed record ComponentGroupSuccessionResult(
+    ComponentGroupSuccessionKind Kind,
+    IReadOnlyList<ComponentGroupMemberDeclaration> Members,
+    IReadOnlyList<Cm.OccurrenceId> Narrowed,
+    IReadOnlyList<Cm.OccurrenceId> Vetoing,
+    string Code,
+    string Reason)
+{
+    public bool IsNarrowed => Kind == ComponentGroupSuccessionKind.Narrowed;
+}
+
+/// <summary>
+/// Narrows every member's declaration to one successor generation, unless any member's observed use
+/// vetoes it.
+/// </summary>
+/// <remarks>
+/// The permission is a generation, and a CM2 generation is one immutable object resolving every
+/// position at once, so a succession is one transaction: applying the members it narrows while
+/// refusing the rest would leave the activation holding declarations from two generations. A member
+/// the successor does not narrow is untouched rather than refused, which is the case CBI11's single
+/// rule could not distinguish. Nothing here retires a member or touches a participant set, which is
+/// why it needs no cancellation token.
+/// </remarks>
+public static class ComponentGroupSuccession
+{
+    public static ComponentGroupSuccessionResult Succeed(
+        Cm.ResolutionOutcome resolution,
+        Cm.ResolutionOutcome successor,
+        ComponentGroupAuthorityResult active,
+        IReadOnlyList<ComponentGroupMemberSuccession> members)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(successor);
+        ArgumentNullException.ThrowIfNull(active);
+        ArgumentNullException.ThrowIfNull(members);
+
+        if (!active.IsActive || active.Lifecycle is not { } lifecycle)
+        {
+            return new(
+                ComponentGroupSuccessionKind.ActivationUnavailable,
+                Array.Empty<ComponentGroupMemberDeclaration>(),
+                Array.Empty<Cm.OccurrenceId>(),
+                Array.Empty<Cm.OccurrenceId>(),
+                "active-authority-unavailable",
+                "CBI17 requires one released CBI13 activation with every member admitted.");
+        }
+
+        var ordered = members
+            .OrderBy(item => item.Selection.Occurrence.Value, StringComparer.Ordinal)
+            .ToArray();
+        if (!ordered.Select(item => item.Selection.Occurrence)
+            .SequenceEqual(active.Admissions.Select(item => item.Occurrence)))
+        {
+            return new(
+                ComponentGroupSuccessionKind.Declined,
+                Array.Empty<ComponentGroupMemberDeclaration>(),
+                Array.Empty<Cm.OccurrenceId>(),
+                Array.Empty<Cm.OccurrenceId>(),
+                "member-set-changed",
+                "The succession does not name the members this activation admitted.");
+        }
+
+        var portable = lifecycle.Members.ToDictionary(item => item.Occurrence, item => item.Member);
+        foreach (var member in ordered)
+        {
+            if (Structure(resolution, successor, member, portable[member.Selection.Occurrence]) is { } invalid)
+            {
+                return Decline(ordered, invalid.Code, invalid.Reason);
+            }
+        }
+
+        // Restating what is in force succeeds nothing; a member that restates its own is untouched.
+        // The subset check has already run, so a member whose names differ at all is one that narrows.
+        if (!ordered.Any(member => !Names(member.SuccessorDeclaration).SetEquals(Names(member.Declaration))))
+        {
+            return Decline(
+                ordered,
+                "activation-unchanged",
+                "No member's successor declares fewer authorities, so there is nothing to succeed.");
+        }
+
+        var evaluated = ordered.Select(Evaluate).ToArray();
+        var vetoing = evaluated
+            .Where(item => item.Vetoed.Count > 0)
+            .Select(item => item.Occurrence)
+            .ToArray();
+        if (vetoing.Length > 0)
+        {
+            // One transaction, so a veto anywhere refuses every member's narrowing.
+            return new(
+                ComponentGroupSuccessionKind.Declined,
+                ordered
+                    .Select((member, index) => new ComponentGroupMemberDeclaration(
+                        member.Selection.Occurrence,
+                        member.Declaration,
+                        Array.Empty<string>(),
+                        evaluated[index].Vetoed))
+                    .ToArray(),
+                Array.Empty<Cm.OccurrenceId>(),
+                vetoing,
+                "declaration-use-vetoed",
+                $"{string.Join(", ", vetoing.Select(item => item.Value))} has already exercised authority the successor would narrow away.");
+        }
+
+        var narrowed = evaluated
+            .Where(item => item.Dropped.Count > 0)
+            .Select(item => item.Occurrence)
+            .ToArray();
+        return new(
+            ComponentGroupSuccessionKind.Narrowed,
+            ordered
+                .Select((member, index) => new ComponentGroupMemberDeclaration(
+                    member.Selection.Occurrence,
+                    member.SuccessorDeclaration,
+                    evaluated[index].Dropped,
+                    Array.Empty<string>()))
+                .ToArray(),
+            narrowed,
+            Array.Empty<Cm.OccurrenceId>(),
+            "declaration-narrowed",
+            $"{narrowed.Length} of {ordered.Length} members narrowed, dropping {evaluated.Sum(item => item.Dropped.Count)} declared authorities.");
+    }
+
+    /// <summary>
+    /// Checks one member's pair of declarations and its successor position, without asking what the
+    /// member has exercised.
+    /// </summary>
+    private static (string Code, string Reason)? Structure(
+        Cm.ResolutionOutcome resolution,
+        Cm.ResolutionOutcome successor,
+        ComponentGroupMemberSuccession member,
+        Portable.PortableCompositionMember portable)
+    {
+        if (ComponentParticipantRevision.DeclarationShape(
+                resolution,
+                member.Selection,
+                member.Declaration) is { } stale)
+        {
+            return stale;
+        }
+
+        if (ComponentParticipantRevision.DeclarationShape(
+                successor,
+                member.Selection,
+                member.SuccessorDeclaration) is { } invalid)
+        {
+            return invalid;
+        }
+
+        // A generation that fails this for any member is not a successor of this activation.
+        if (ComponentDeclarationSuccession.SamePosition(successor, member.Selection, portable) is { } mismatch)
+        {
+            return ("successor-position-mismatch", $"{member.Selection.Occurrence}: {mismatch}");
+        }
+
+        var names = Names(member.Declaration);
+        if (!Names(member.SuccessorDeclaration).IsSubsetOf(names))
+        {
+            return (
+                "declaration-not-narrower",
+                $"Member {member.Selection.Occurrence} would gain declared authority; succession only removes it.");
+        }
+
+        var repointed = member.SuccessorDeclaration.Entries
+            .Where(entry => member.Declaration.Entries.Any(current =>
+                current.DeclaredAuthority == entry.DeclaredAuthority &&
+                ComponentParticipantRevision.Tuple(current) != ComponentParticipantRevision.Tuple(entry)))
+            .Select(entry => entry.DeclaredAuthority)
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .ToArray();
+        if (repointed.Length > 0)
+        {
+            return (
+                "declaration-tuple-changed",
+                $"Succession removes dependencies; it does not re-point them. {member.Selection.Occurrence}: {string.Join(", ", repointed)} would change tuple.");
+        }
+
+        return ComponentParticipantAdmission.FirstDuplicate(
+                member.Attribution.Select(item => item.Operation.ToString())) is { } repeated
+            ? (
+                "operation-mapping-not-distinct",
+                $"Member {member.Selection.Occurrence} attributes Operation '{repeated}' to more than one declared authority.")
+            : null;
+    }
+
+    /// <summary>
+    /// Computes what one member would drop, and what its own observed use vetoes.
+    /// </summary>
+    /// <remarks>
+    /// Exercised authority is per member, as CBI16 attributes it: one member's interaction cannot
+    /// veto another member's narrowing.
+    /// </remarks>
+    private static (Cm.OccurrenceId Occurrence, IReadOnlyList<string> Dropped, IReadOnlyList<string> Vetoed)
+        Evaluate(ComponentGroupMemberSuccession member)
+    {
+        var dropped = Names(member.Declaration)
+            .Except(Names(member.SuccessorDeclaration), StringComparer.Ordinal)
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .ToArray();
+        var exercised = ComponentInteractionVerification
+            .Attribute(member.Attribution, member.Observations)
+            .Where(name => name is not null)
+            .Select(name => name!)
+            .ToHashSet(StringComparer.Ordinal);
+        return (member.Selection.Occurrence, dropped, dropped.Where(exercised.Contains).ToArray());
+    }
+
+    private static HashSet<string> Names(ComponentGrantDependency declaration) =>
+        declaration.Entries.Select(item => item.DeclaredAuthority).ToHashSet(StringComparer.Ordinal);
+
+    private static ComponentGroupSuccessionResult Decline(
+        IReadOnlyList<ComponentGroupMemberSuccession> members,
+        string code,
+        string reason) =>
+        new(
+            ComponentGroupSuccessionKind.Declined,
+            members
+                .Select(member => new ComponentGroupMemberDeclaration(
+                    member.Selection.Occurrence,
+                    member.Declaration,
+                    Array.Empty<string>(),
+                    Array.Empty<string>()))
+                .ToArray(),
+            Array.Empty<Cm.OccurrenceId>(),
+            Array.Empty<Cm.OccurrenceId>(),
             code,
             reason);
 }

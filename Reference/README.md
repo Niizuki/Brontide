@@ -101,6 +101,10 @@ CBI16 verifies every member's declaration against what that member actually did.
 projected binding exercises go to CM4 as one request, so one member's undeclared or ungranted use
 condemns all of them; attribution stays per member, so the same Operation in two members is two
 independent attributions.
+CBI17 narrows those declarations to one successor generation, as one transaction: a member the
+successor does not resolve blocks every other member, a veto anywhere refuses everything, and a
+member the successor leaves alone is untouched rather than refusing. Nothing here retires a member or
+reaches a provider.
 
 ## Build and test
 

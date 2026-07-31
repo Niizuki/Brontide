@@ -3324,6 +3324,403 @@ public sealed class ComponentBindingIntegrationTests
         return (verdict, active, handlers);
     }
 
+    [Test]
+    public async Task Shared_cbi17_vectors_narrow_every_member_or_none()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi17-group-succession-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, active, effects) = await GroupSuccessionResult(scenario);
+            var released = active.Lifecycle!.Members.Count(item => item.Member.IsReleased);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    GroupSuccessionToken(result.Kind),
+                    Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Members.Sum(item => item.Dropped.Count),
+                    Is.EqualTo(vector.GetProperty("expectedDropped").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Members.Sum(item => item.Vetoed.Count),
+                    Is.EqualTo(vector.GetProperty("expectedVetoed").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Narrowed,
+                    Has.Count.EqualTo(vector.GetProperty("expectedNarrowedMembers").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Members.Sum(item => item.Declaration.Entries.Count),
+                    Is.EqualTo(vector.GetProperty("expectedDeclaredInForce").GetInt32()),
+                    scenario);
+                Assert.That(
+                    released,
+                    Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                    scenario);
+
+                // This slice has no retirement path and reaches no provider.
+                Assert.That(released, Is.EqualTo(active.Lifecycle.Members.Count), scenario);
+                Assert.That(
+                    effects.After,
+                    Is.EqualTo(effects.Before),
+                    $"{scenario}: succession performs nothing, so no member's provider is reached.");
+
+                // A veto anywhere refuses every member's narrowing, and vice versa.
+                Assert.That(
+                    result.Vetoing.Count > 0,
+                    Is.EqualTo(result.Members.Any(item => item.Vetoed.Count > 0)),
+                    scenario);
+                Assert.That(
+                    result.Narrowed.Count > 0,
+                    Is.EqualTo(result.IsNarrowed),
+                    $"{scenario}: an applied succession narrows at least one member, and a refused one narrows none.");
+            });
+        }
+    }
+
+    [Test]
+    public async Task A_successor_that_narrows_one_member_leaves_the_other_untouched()
+    {
+        var (result, active, _) = await GroupSuccessionResult("cbi17-02-one-member-unchanged");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsNarrowed, Is.True);
+            Assert.That(
+                result.Narrowed,
+                Is.EqualTo(new[] { active.Admissions[0].Occurrence }),
+                "A member the successor does not narrow is untouched rather than refusing the succession.");
+            Assert.That(result.Members[1].Dropped, Is.Empty);
+            Assert.That(result.Members[1].Declaration.Entries, Has.Count.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public async Task A_member_the_successor_does_not_resolve_blocks_every_other_member()
+    {
+        var (result, _, _) = await GroupSuccessionResult("cbi17-07-member-position-absent");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentGroupSuccessionKind.Declined));
+            Assert.That(result.Code, Is.EqualTo("successor-position-mismatch"));
+            Assert.That(
+                result.Members.All(item => item.Dropped.Count == 0),
+                Is.True,
+                "A generation that does not resolve one member's position narrows none of them.");
+        });
+    }
+
+    [Test]
+    public async Task A_veto_in_one_member_refuses_the_narrowing_the_other_had_earned()
+    {
+        var (result, active, _) = await GroupSuccessionResult("cbi17-03-use-vetoed-in-other-member");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentGroupSuccessionKind.Declined));
+            Assert.That(
+                result.Vetoing,
+                Is.EqualTo(new[] { active.Admissions[1].Occurrence }),
+                "The member that vetoed is named; the one whose narrowing it refused is not.");
+            Assert.That(result.Members[0].Vetoed, Is.Empty);
+            Assert.That(
+                result.Members[0].Dropped,
+                Is.Empty,
+                "One transaction: the member with no veto drops nothing either.");
+            Assert.That(result.Members[1].Vetoed, Is.EqualTo(new[] { "cooling.observe" }));
+        });
+    }
+
+    [Test]
+    public async Task A_narrowed_activation_lets_cbi15_release_the_participant_it_kept()
+    {
+        var (resolution, active, members, handlers) = await SuccessionActivation();
+        var observations = await SuccessionObservations(active, handlers);
+
+        // Dropping the supervisor is refused while the declaration in force still needs its grant.
+        ComponentGroupMemberRevision Revision(int index, ComponentGrantDependency declaration) =>
+            new(
+                members[index].Occurrence,
+                members[index].Selection,
+                declaration,
+                index == 0
+                    ? [members[0].Participants[0]]
+                    : members[1].Participants);
+        var before = await ComponentGroupRevision.ReviseAsync(
+            resolution,
+            active,
+            [Revision(0, members[0].Declaration), Revision(1, members[1].Declaration)],
+            "drop the supervisor before succession");
+
+        var successor = new FakeGenerationResolver().Resolve(
+            PairRequest(["cooling.control"], ["cooling.observe"]));
+        var narrowed = ComponentGroupSuccession.Succeed(
+            resolution,
+            successor,
+            active,
+            members.Select((member, index) => new ComponentGroupMemberSuccession(
+                member.Selection,
+                member.Declaration,
+                NarrowedDeclaration(member, index),
+                member.Attribution,
+                observations[index])).ToArray());
+
+        var after = await ComponentGroupRevision.ReviseAsync(
+            successor,
+            active,
+            [
+                Revision(0, narrowed.Members[0].Declaration),
+                Revision(1, narrowed.Members[1].Declaration),
+            ],
+            "drop the supervisor after succession");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(before.Code, Is.EqualTo("dependency-not-covered"));
+            Assert.That(narrowed.IsNarrowed, Is.True);
+            Assert.That(narrowed.Members[0].Dropped, Is.EqualTo(new[] { "cooling.audit" }));
+            Assert.That(after.Kind, Is.EqualTo(ComponentGroupRevisionKind.Revised));
+            Assert.That(
+                after.InForce!.Admissions[0].Participants,
+                Has.Count.EqualTo(1),
+                "Narrowing permits the revision; it does not perform it.");
+        });
+    }
+
+    private static async Task<(
+        ComponentGroupSuccessionResult Result,
+        ComponentGroupAuthorityResult Active,
+        (long Before, long After) Effects)>
+        GroupSuccessionResult(string scenario)
+    {
+        var (resolution, active, members, handlers) = await SuccessionActivation();
+        var observations = await SuccessionObservations(active, handlers);
+        var before = handlers.Sum(handler => handler.ProviderEffectCount);
+
+        var successorRequest = scenario switch
+        {
+            "cbi17-02-one-member-unchanged" => PairRequest(["cooling.control"], ["cooling.observe", "cooling.report"]),
+            "cbi17-03-use-vetoed-in-other-member" => PairRequest(["cooling.control"], ["cooling.report"]),
+            "cbi17-04-activation-unchanged" =>
+                PairRequest(["cooling.control", "cooling.audit"], ["cooling.observe", "cooling.report"]),
+            "cbi17-05-wider-in-one-member" =>
+                PairRequest(["cooling.control", "cooling.audit", "cooling.observe"], ["cooling.observe"]),
+            "cbi17-07-member-position-absent" => RescopedSecondary(),
+            "cbi17-08-successor-declares-nothing" => PairRequest(["cooling.control"], []),
+            _ => PairRequest(["cooling.control"], ["cooling.observe"]),
+        };
+        var successor = new FakeGenerationResolver().Resolve(successorRequest);
+
+        var successions = members
+            .Select((member, index) => new ComponentGroupMemberSuccession(
+                member.Selection,
+                member.Declaration,
+                scenario switch
+                {
+                    "cbi17-04-activation-unchanged" => member.Declaration,
+                    "cbi17-05-wider-in-one-member" when index == 0 => new(
+                        member.Selection.Definition,
+                        [
+                            .. member.Declaration.Entries,
+                            new("cooling.observe", ObserveCapability, Target, ObserveOperation, AuthorityScope),
+                        ]),
+                    "cbi17-06-tuple-changed" when index == 0 => new(
+                        member.Selection.Definition,
+                        [
+                            new(
+                                "cooling.control",
+                                Capability,
+                                Target,
+                                Operation,
+                                CapabilityScopeId.Create("scope.other")),
+                        ]),
+                    "cbi17-08-successor-declares-nothing" when index == 1 => new(
+                        member.Selection.Definition,
+                        Array.Empty<ComponentGrantDependencyEntry>()),
+                    _ => NarrowedDeclaration(member, index, scenario),
+                },
+                scenario == "cbi17-10-ambiguous-attribution" && index == 0
+                    ? [.. member.Attribution, new(CoolingPortableFixture.SetEnabled, "cooling.audit")]
+                    : member.Attribution,
+                observations[index]))
+            .ToList();
+        if (scenario == "cbi17-09-member-set-changed")
+        {
+            successions.RemoveAt(1);
+        }
+
+        var result = ComponentGroupSuccession.Succeed(resolution, successor, active, successions);
+        return (result, active, (before, handlers.Sum(handler => handler.ProviderEffectCount)));
+    }
+
+    /// <summary>The successor a scenario narrows to, in the shape its generation records.</summary>
+    private static ComponentGrantDependency NarrowedDeclaration(
+        SuccessionMember member,
+        int index,
+        string scenario = "")
+    {
+        var kept = index == 0
+            ? "cooling.control"
+            : scenario == "cbi17-03-use-vetoed-in-other-member" ? "cooling.report" : "cooling.observe";
+        var retained = member.Declaration.Entries
+            .Where(entry => entry.DeclaredAuthority == kept)
+            .ToArray();
+        return new(
+            member.Selection.Definition,
+            scenario == "cbi17-02-one-member-unchanged" && index == 1 ? member.Declaration.Entries : retained);
+    }
+
+    /// <summary>A successor that resolves the secondary position under a different binding scope.</summary>
+    private static ResolutionRequest RescopedSecondary()
+    {
+        var request = PairRequest(["cooling.control"], ["cooling.observe"]);
+        var consumer = request.Definitions.Single(item => item.Definition == Consumer);
+        return request with
+        {
+            Definitions = request.Definitions
+                .Select(item => item.Definition == Consumer
+                    ? consumer with
+                    {
+                        Requirements = consumer.Requirements
+                            .Select(requirement => requirement.Requirement == SecondaryRequirement
+                                ? requirement with { Scope = BindingScopeId.Create("scope.cooling-successor") }
+                                : requirement)
+                            .ToArray(),
+                    }
+                    : item)
+                .ToArray(),
+        };
+    }
+
+    private sealed record SuccessionMember(
+        OccurrenceId Occurrence,
+        ComponentBindingSelection Selection,
+        ComponentGrantDependency Declaration,
+        IReadOnlyList<ComponentOperationAuthorityMapping> Attribution,
+        IReadOnlyList<AuthorityAdmissionRequest> Participants);
+
+    /// <summary>
+    /// Two released members, the first covering its two declared authorities with two participants
+    /// so a later CBI15 revision has one to release.
+    /// </summary>
+    private static async Task<(
+        ResolutionOutcome Resolution,
+        ComponentGroupAuthorityResult Active,
+        SuccessionMember[] Members,
+        CoolingPortableHandler[] Handlers)>
+        SuccessionActivation()
+    {
+        var resolution = new FakeGenerationResolver().Resolve(
+            PairRequest(["cooling.control", "cooling.audit"], ["cooling.observe", "cooling.report"]));
+        var first = resolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var second = resolution.Generation.ProviderSets.Single(item => item.Requirement == SecondaryRequirement);
+        var handlers = new[]
+        {
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+        };
+        var groupMembers = new[]
+        {
+            new ComponentGroupMember(
+                Selection(first.Members[0]) with { HostEndpoint = "succession-host-primary" },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    CoolingPortableFixture.Contract, handlers[0], PortableRealization.FixedDirectCall))),
+            new ComponentGroupMember(
+                Selection(second.Members[0]) with
+                {
+                    Requirement = SecondaryRequirement,
+                    HostEndpoint = "succession-host-secondary",
+                },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    CoolingPortableFixture.Contract, handlers[1], PortableRealization.FixedDirectCall))),
+        };
+
+        var policy = GroupPolicy(ProviderLocalActor);
+        var observer = ObserverRequest(policy) with
+        {
+            Authority =
+            [
+                new(ObserveAuthority, ObserverRelationship, ObserveCapability, Target, ObserveOperation, AuthorityScope, false),
+                new(ReportAuthority, ObserverRelationship, ReportCapability, Target, ReportOperation, AuthorityScope, false),
+            ],
+        };
+        var members = new[]
+        {
+            new SuccessionMember(
+                groupMembers[0].Selection.Occurrence,
+                groupMembers[0].Selection,
+                Dependency(groupMembers[0].Selection.Definition),
+                [new(CoolingPortableFixture.SetEnabled, "cooling.control")],
+                [ProviderAuthority(policy, Authority), SupervisorAuthority(policy, AuditAuthority, revoked: false)]),
+            new SuccessionMember(
+                groupMembers[1].Selection.Occurrence,
+                groupMembers[1].Selection,
+                new(
+                    groupMembers[1].Selection.Definition,
+                    [
+                        new("cooling.observe", ObserveCapability, Target, ObserveOperation, AuthorityScope),
+                        new("cooling.report", ReportCapability, Target, ReportOperation, AuthorityScope),
+                    ]),
+                [new(CoolingPortableFixture.SetEnabled, "cooling.observe")],
+                [observer]),
+        };
+        var active = await ComponentGroupAuthority.ActivateAsync(
+            resolution,
+            [
+                new(
+                    groupMembers[0],
+                    [
+                        new(new(members[0].Occurrence, Participant), members[0].Participants[0]),
+                        new(new(members[0].Occurrence, Supervisor), members[0].Participants[1]),
+                    ]),
+                new(groupMembers[1], [new(new(members[1].Occurrence, Observer), members[1].Participants[0])]),
+            ],
+            RuntimeRequest(Plan(groupMembers.Select(item => item.Selection.Occurrence).ToArray())));
+        return (resolution, active, members, handlers);
+    }
+
+    /// <summary>Each member interacts once, so each has an exercised authority of its own.</summary>
+    private static async Task<List<ComponentObservedInteraction>[]> SuccessionObservations(
+        ComponentGroupAuthorityResult active,
+        CoolingPortableHandler[] handlers)
+    {
+        var observations = new List<ComponentObservedInteraction>[] { [], [] };
+        for (var index = 0; index < handlers.Length; index++)
+        {
+            var result = await active.Lifecycle!.Members[index].Member.InvokeAsync(
+                CoolingPortableFixture.SetEnabled,
+                CoolingPortableFixture.CommandV1,
+                CoolingPortableFixture.Command("primary", enabled: true),
+                PortableConstraint.Atom(PortableTruth.Satisfied));
+            observations[index].Add(new(CoolingPortableFixture.SetEnabled, result));
+        }
+
+        return observations;
+    }
+
+    private static string GroupSuccessionToken(ComponentGroupSuccessionKind kind) => kind switch
+    {
+        ComponentGroupSuccessionKind.Narrowed => "narrowed",
+        ComponentGroupSuccessionKind.Declined => "declined",
+        ComponentGroupSuccessionKind.ActivationUnavailable => "activation-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
     private static string GroupVerificationToken(ComponentGroupVerificationKind kind) => kind switch
     {
         ComponentGroupVerificationKind.Consistent => "consistent",
