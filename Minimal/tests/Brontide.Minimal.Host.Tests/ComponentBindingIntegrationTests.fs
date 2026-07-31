@@ -411,8 +411,8 @@ type ComponentBindingIntegrationTests() =
     let secondaryContractId = ContractId.create "brontide.fake.cooling-secondary"
 
     /// Two independent requirements, so the generation resolves two distinct occurrences.
-    let pairRequest () =
-        let single = request (Cardinality.parse "1..1")
+    let pairRequestFor firstAuthority secondAuthority =
+        let single = requestWith (Cardinality.parse "1..1") firstAuthority
         let consumerDefinition =
             single.Definitions |> List.find (fun item -> item.Definition = consumer)
         let providerDefinition =
@@ -430,7 +430,8 @@ type ComponentBindingIntegrationTests() =
                   providerDefinition
                   { providerDefinition with
                       Definition = secondaryProvider
-                      Provides = [ { Contract = secondaryContractId; Version = version } ] } ]
+                      Provides = [ { Contract = secondaryContractId; Version = version } ]
+                      RequestedAuthority = secondAuthority } ]
             Candidates =
                 [ candidate
                   { candidate with
@@ -486,9 +487,11 @@ type ComponentBindingIntegrationTests() =
         | Planned value -> value
         | outcome -> failwithf "Expected a cyclic CM3 plan, got %A." outcome
 
+    let pairRequest () = pairRequestFor [] []
+
     /// The receiving-domain policy, with the participant's own local Actor overridable.
-    let groupPolicy participantActor supervisorActor : LocalAuthorityPolicy =
-        let policy = setPolicyWith supervisorActor observerLocalActor
+    let groupPolicyFor participantActor supervisorActor observerActor : LocalAuthorityPolicy =
+        let policy = setPolicyFor supervisorActor observerActor deputyLocalActor
         { policy with
             RelationshipRules =
                 policy.RelationshipRules
@@ -497,6 +500,9 @@ type ComponentBindingIntegrationTests() =
                         { rule with LocalActor = Some participantActor }
                     else
                         rule) }
+
+    let groupPolicy participantActor supervisorActor =
+        groupPolicyFor participantActor supervisorActor observerLocalActor
 
     let providerAuthority policy authority : AuthorityAdmissionRequest =
         { Request = AdmissionRequestId.create "admission.group-provider"
@@ -551,6 +557,14 @@ type ComponentBindingIntegrationTests() =
                 Scope = authorityScope
                 Unlimited = false } ]
           Policy = policy }
+
+    let groupRevisionToken kind =
+        match kind with
+        | ComponentGroupRevisionKind.Revised -> "revised"
+        | ComponentGroupRevisionKind.Declined -> "declined"
+        | ComponentGroupRevisionKind.Withdrawn -> "withdrawn"
+        | ComponentGroupRevisionKind.RetirementFailed -> "retirement-failed"
+        | ComponentGroupRevisionKind.ActivationUnavailable -> "activation-unavailable"
 
     let groupRevalidationToken kind =
         match kind with
@@ -2313,6 +2327,182 @@ type ComponentBindingIntegrationTests() =
                         ->
                         Assert.That(result.Lifecycle, Is.EqualTo None, scenario)
                     | _ -> ())
+        }
+
+    [<Test>]
+    member _.``shared CBI15 vectors revise per member and check the activation``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi15-group-revision-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI15 vector identity must be a string"
+                    | value -> value
+                let resolution =
+                    pairRequestFor [ "cooling.control" ] [ "cooling.audit" ]
+                    |> FakeGenerationResolver.resolve
+                let providerSets =
+                    match resolution with
+                    | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                    | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+                let positionFor requirement =
+                    providerSets
+                    |> List.find (fun item -> item.Requirement = requirement)
+                    |> fun item -> List.exactlyOne item.Members
+                let handlers = [ CoolingHandler(); CoolingHandler() ]
+                let conversationFor handler =
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(
+                            CoolingFixture.contract,
+                            handler,
+                            Realization.FixedDirectCall))
+                    :> IPortableProviderConversation
+                let firstMember =
+                    { Selection =
+                        { selection (positionFor requirementId) with
+                            HostEndpoint = "revision-host-primary" }
+                      Conversation = conversationFor (List.item 0 handlers) }
+                let secondMember =
+                    { Selection =
+                        { selection (positionFor secondaryRequirementId) with
+                            Requirement = secondaryRequirementId
+                            HostEndpoint = "revision-host-secondary" }
+                      Conversation = conversationFor (List.item 1 handlers) }
+                let admitted =
+                    [ providerAuthority (groupPolicy providerLocalActor supervisorLocalActor) authorityId
+                      supervisorAuthority
+                          (groupPolicy providerLocalActor supervisorLocalActor)
+                          auditAuthorityId
+                          false ]
+                let occurrences =
+                    [ firstMember.Selection.Occurrence; secondMember.Selection.Occurrence ]
+                let! active =
+                    ComponentGroupAuthority.activate
+                        resolution
+                        [ { Member = firstMember
+                            Participants =
+                              [ { Mapping =
+                                    { Occurrence = firstMember.Selection.Occurrence
+                                      Participant = participant }
+                                  Request = List.item 0 admitted } ] }
+                          { Member = secondMember
+                            Participants =
+                              [ { Mapping =
+                                    { Occurrence = secondMember.Selection.Occurrence
+                                      Participant = supervisor }
+                                  Request = List.item 1 admitted } ] } ]
+                        (runtimeRequest (plan occurrences))
+                // The first member gains an observer; the second member is restated unchanged.
+                let observer' = observerRequest (groupPolicy providerLocalActor supervisorLocalActor)
+                let firstDependency: ComponentGrantDependency =
+                    { Definition = firstMember.Selection.Definition
+                      Entries =
+                        [ { DeclaredAuthority = "cooling.control"
+                            Capability = capability
+                            Target = authorityTarget
+                            Operation = operation
+                            Scope = authorityScope } ] }
+                let secondDependency: ComponentGrantDependency =
+                    { Definition = secondMember.Selection.Definition
+                      Entries =
+                        [ { DeclaredAuthority = "cooling.audit"
+                            Capability = auditCapability
+                            Target = authorityTarget
+                            Operation = auditOperation
+                            Scope = authorityScope } ] }
+                let firstRequests =
+                    match scenario with
+                    | "cbi15-04-nothing-changed" -> [ List.item 0 admitted ]
+                    | "cbi15-05-identity-shared-across-members" ->
+                        [ List.item 0 admitted
+                          { observer' with
+                              Authority =
+                                [ { List.exactlyOne observer'.Authority with
+                                      Request = auditAuthorityId } ] } ]
+                    | "cbi15-06-local-actor-shared-across-members" ->
+                        // The observer is mapped onto the Actor the second member's supervisor
+                        // already holds.
+                        [ List.item 0 admitted
+                          observerRequest (
+                              groupPolicyFor providerLocalActor supervisorLocalActor supervisorLocalActor) ]
+                    | "cbi15-07-dependency-not-covered" -> [ observer' ]
+                    | "cbi15-08-retained-identity-drift" ->
+                        [ { List.item 0 admitted with
+                              Authority =
+                                [ { List.exactlyOne (List.item 0 admitted).Authority with
+                                      Capability = CapabilityId.create "capability.other" } ] }
+                          observer' ]
+                    | _ -> [ List.item 0 admitted; observer' ]
+                let secondRequests =
+                    if scenario = "cbi15-02-unchanged-member-lapsed" then
+                        [ revokedRequest (List.item 1 admitted) ]
+                    else
+                        [ List.item 1 admitted ]
+                let revisions =
+                    let first =
+                        { Occurrence = firstMember.Selection.Occurrence
+                          Selection = firstMember.Selection
+                          Dependency = firstDependency
+                          Requests = firstRequests }
+                    let second =
+                        { Occurrence = secondMember.Selection.Occurrence
+                          Selection = secondMember.Selection
+                          Dependency = secondDependency
+                          Requests = secondRequests }
+                    if scenario = "cbi15-03-member-set-changed" then
+                        [ first ]
+                    else
+                        [ first; second ]
+                let! result =
+                    ComponentGroupRevision.revise
+                        resolution
+                        active
+                        revisions
+                        (sprintf "group revision %s" scenario)
+                let lifecycle = active.Lifecycle.Value
+                let released = lifecycle.Members |> List.filter _.Member.IsReleased |> List.length
+                let inForceParticipants =
+                    result.InForce
+                    |> Option.map (fun value ->
+                        value.Admissions |> List.sumBy (fun item -> item.Participants.Length))
+                    |> Option.defaultValue 0
+                multiple (fun () ->
+                    Assert.That(
+                        groupRevisionToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.CurrentAuthority.Length,
+                        Is.EqualTo(vector.GetProperty("expectedEvaluated").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        inForceParticipants,
+                        Is.EqualTo(vector.GetProperty("expectedInForceParticipants").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        released,
+                        Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                        scenario)
+                    // A declined change is local; only a lapse retires, and then the whole
+                    // activation.
+                    let retired =
+                        result.Kind = ComponentGroupRevisionKind.Withdrawn
+                        || result.Kind = ComponentGroupRevisionKind.RetirementFailed
+                    Assert.That(result.InForce.IsNone, Is.EqualTo retired, scenario)
+                    Assert.That(
+                        released = lifecycle.Members.Length || released = 0,
+                        Is.True,
+                        scenario))
         }
 
     [<Test>]

@@ -93,6 +93,10 @@ receiving-domain Actor mapping to be a function and injective across it.
 CBI14 revalidates every member's authority from fresh explicit CM5 requests and retires the whole
 activation when any member's lapses, naming which members lapsed and which participants within them
 so a member retired because a sibling lapsed is not reported as the cause.
+CBI15 revises those participant sets under per-member declarations. A change is decided per member
+and checked against the activation; a declined revision leaves everything as it was, while a lapse
+found while evaluating retires the activation even when it is in a member that was not being
+revised.
 
 ## Build and test
 

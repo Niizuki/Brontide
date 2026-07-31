@@ -87,6 +87,8 @@ The implementation currently provides:
   with identities distinct across the whole activation and the receiving-domain Actor mapping a
   function and injective across it; CBI14 revalidates every member and retires the whole activation
   when any member's authority lapses, naming the lapsed members and the participants within them;
+  CBI15 revises those sets per member under per-member declarations, checking the result against the
+  whole activation and declining rather than retiring when the request itself is wrong;
 - a headless host and seven F# test assemblies, including the host-owned CBI1-CBI12 integration
   suite.
 

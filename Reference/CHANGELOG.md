@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — CBI15 multi-member participant revision
+
+### Added
+
+- Reference Studio revision of the participant sets of a multi-member activation under per-member
+  declarations, decided per member and checked against the activation.
+- Activation-wide identity and receiving-domain Actor checks over the revised result, and per-member
+  coverage of each member's own declaration.
+- Shared revision vectors pinning evaluated participants, the in-force activation size, and released
+  members, plus a phase-boundary completeness review.
+
+CBI15 answers what CBI14 left open, and separates two outcomes of one call: a declined change is
+local and alters nothing, while a lapse discovered while evaluating retires the whole activation —
+including when it is in a member that was not being revised. A wrongly named member set is declined
+here rather than retiring as it does in CBI14. CBI8, CBI10, and CBI11 still govern one member.
+
 ## Unreleased — CBI14 multi-member revalidation and withdrawal
 
 ### Added

@@ -363,12 +363,29 @@ them, so a member retired because a sibling lapsed is never reported as the caus
 [`contract-completeness review`](../../component-management/cbi14-contract-completeness-review.md)
 bound it to revalidation and withdrawal of one protocol-free multi-member activation.
 
-**Lifting the four remaining single-member slices is the next implementable integration item.**
-CBI8 through CBI11 — extension, revision, verification, and succession — still govern one member.
-Extension and revision raise the same shared-fate question CBI14 just settled for withdrawal, but in
-the other direction: whether a set changed for one member has to be admitted against the activation
-or only against that member, given that CBI13 admits per member while CBI14 retires per activation.
-Relational Initialisation, scoped replacement, child Ports, mediation, wider Provider Sets, and real
+CBI15 lifts revision and answers that question: **a change is decided per member and checked against
+the activation.** Admission is about an occurrence, so changing one member's set decides nothing
+about another member's authority; but CBI13's identity and Actor-mapping rules are activation-wide,
+so the result is checked across every member. Splitting the question that way is what lets CBI13's
+per-member admission and CBI14's per-activation retirement both hold at once instead of one
+overriding the other. It also settles a second thing: **a declined change is local and a discovered
+lapse is global.** The same call can produce either — a revision the activation will not admit
+changes nothing, while a retained participant that no longer renews is CBI14's case and retires
+everything, including when the lapse is in a member that was not being revised. A wrongly named
+member set is declined here rather than retiring as it does in CBI14, because a revision asks for
+something the activation will not do while a revalidation asserts continuity it then cannot
+demonstrate. The
+[`CBI15 capability contract`](../../component-management/cbi15-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi15-contract-completeness-review.md)
+bound it to revision under per-member declarations.
+
+**Lifting the three remaining single-member slices is the next implementable integration item.**
+CBI8's declaration-free extension, CBI10's observed-interaction verification, and CBI11's succession
+still govern one member. CBI10 is the interesting one: it projects observed interaction into CM4
+binding exercises, and a multi-member activation has one CM4 request, so the projection would have to
+carry every member's interactions into a single runtime judgement — which raises whether one member's
+undeclared use should condemn the activation the way a lapse now does. Relational Initialisation,
+scoped replacement, member addition or removal, child Ports, mediation, wider Provider Sets, and real
 distribution remain future work behind it. PB8's independent reviews remain a separate governance
 prerequisite rather than implementation work; Decision 11 was ruled on and delivered on 2026-07-30.
 

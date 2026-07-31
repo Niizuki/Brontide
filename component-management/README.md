@@ -188,6 +188,16 @@ the cause stays distinguishable from the consequence. Its bounded behavior is re
 [CBI14 capability contract](./cbi14-capability-contract.md) and completed
 [contract-completeness review](./cbi14-contract-completeness-review.md).
 
+CBI15 lifts CBI9's revision to the activation and answers what CBI14 left: **a change is decided per
+member and checked against the activation.** Admission is about an occurrence, so changing one
+member's set decides nothing about another's authority; but CBI13's identity and Actor-mapping rules
+are activation-wide, so the result is checked across every member. **A declined change is local; a
+discovered lapse is global** — the same call can produce either, and a lapse in a member that was not
+being revised retires the whole activation. A wrongly named member set is declined here rather than
+retiring as it does in CBI14, because a revision asks for something rather than asserting continuity.
+Its bounded behavior is recorded in the [CBI15 capability contract](./cbi15-capability-contract.md)
+and completed [contract-completeness review](./cbi15-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -351,6 +361,15 @@ lapsed, a changed member set, participant identity drift, and retirement cleanup
 how many members were evaluated, how many lapsed, how many stayed released, and how many replacement
 records exist, so shared fate and the cause-versus-consequence distinction are both checked answers.
 The fixture contains no evaluator, clock, cleanup mechanism, or portable runtime.
+
+### `cbi15-group-revision-vectors` sections
+
+`vectors` names one applied revision and seven refusals — a lapse in the member that was not being
+revised, a wrongly named member set, a revision that changes nothing, an authority identity shared
+across members, a local Actor shared across members, an uncovered declaration, and retained identity
+drift. Each pins how many participants were evaluated, how many the in-force activation holds, and
+how many members stayed released, so decline-versus-retire and shared fate are both checked answers.
+The fixture contains no evaluator, resolver, declaration rule, or portable runtime.
 
 ### `cm0-mice-topology` sections
 
