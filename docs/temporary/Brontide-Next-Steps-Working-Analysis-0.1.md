@@ -148,9 +148,14 @@ introduced in PB0/PB1 layout and wired into the repository gate.
 
 ## C. The open 0.7 gap — M3/M4 (R3/R4)
 
-Both stacks have delivered M1/R1 (composite constraint poisoning, `BR_07_CONSTRAINT_001/002/003`)
-and M2/R2 (typed member canonical names). The remaining runtime-bearing 0.7 changes are C3, C4, C5
-— all still classified `missing` and none built. This is the honest gap in the current target.
+Both stacks have delivered M1/R1 (composite constraint poisoning, `BR_07_CONSTRAINT_001/002/003`),
+and M2/R2 (typed member canonical names). M3/R3 (`BR-07-BINDING-001`, static Attribute-constrained
+binding) is **implemented and tested natively in both stacks** against
+[its behavioural contract](../../conformance/br-07-binding-001-contract.md), but both matrices still
+record it as `planned`: the matrix hash is pinned by the status registry, whose own hash is pinned by
+the closed independent-review request, so the status change needs that review retargeted and freshly
+attested by a non-implementing reviewer. C4 and C5 remain classified `missing` and unbuilt. That —
+plus the blocked M3/R3 status flip — is the honest gap in the current target.
 
 ### C3 — static Attribute-constrained binding (§18.1) → M3 / R3
 
@@ -201,7 +206,7 @@ roles stay deferred.
 
 ### Sequencing note (interacts with B and D)
 
-M3/R3 is small and self-contained — good to land first. M4/R4 is the persistent-information slice and
+M3/R3 is small and self-contained — it was landed first, as this note recommended. M4/R4 is the persistent-information slice and
 is heavier. Neither blocks Portable Binding (B), which targets 0.8 §16/§18.1 and reuses the
 Cooling/Catalog estate — so B and C can proceed in parallel with different focus. **However**, do not
 invest in re-hardening M1's poisoning rule: under 0.8 C7 it becomes `conflicting` rework (see D).

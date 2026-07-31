@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased — BR-07-BINDING-001 static Attribute-constrained binding
+
+### Added
+
+- `Brontide.Reference.Experimental.Composition` resolution of an Attribute-constrained binding
+  exactly once, recording the effective values that decided it and a per-candidate account of the
+  evaluation.
+- Explicit failure when no candidate satisfies the declared constraints, candidate exclusion when an
+  atom is unevaluatable, deterministic selection under ties, and restoration that consults no source.
+- A named test for every item of the shared behavioural contract, each observed failing before being
+  accepted.
+
+Architecture 0.7 §18.1 change C3. The 0.7 matrix still records the requirement as `planned`: moving
+it to `tested` changes a hash the closed independent-review request pins, which requires retargeting
+that review and obtaining fresh attestations from a reviewer who is not an implementation actor. The
+implementation and its evidence are complete and awaiting that.
+The tempting implementation is a live query that re-answers on every read; the resolved record
+therefore captures values rather than sources, and the evidence shows a change that would have
+selected differently leaving the binding unmoved. Not a Brontide Base conformance claim.
+
 ## Unreleased — CBI19 scoped activation replacement
 
 ### Added

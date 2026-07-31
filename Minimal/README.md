@@ -17,7 +17,11 @@ another through an explicit external binding seam.
 
 Architecture 0.7 M1-M2 now have Minimal-native Complete Draft evidence for recursive three-state
 Constraint expressions, fail-closed target-side evaluation, experimental Composition selection,
-and opaque typed-member canonical names with an open provisional member-kind token. The retained
+and opaque typed-member canonical names with an open provisional member-kind token. M3's static
+Attribute-constrained binding (`BR-07-BINDING-001`) is implemented and tested, but the matrix still
+records it as `planned`: changing that status changes a hash the closed independent-review request
+pins, which needs that review retargeted and freshly attested by a reviewer who is not an
+implementation actor. The retained
 [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json)
 matrix is detailed test evidence, not the source of the implementation target and not a claim that
 the remaining Architecture 0.7 work is implemented.
@@ -36,7 +40,9 @@ The implementation currently provides:
 - canonical versioned Shapes, authored Fragments, explicit projection, Operations, Constraints,
   Capabilities, attenuation, Outcomes, Events, and provenance;
 - native Cooling, Event Distribution, and Flow semantics;
-- isolated Enrichment and implementation-baseline Composition experiments;
+- isolated Enrichment and implementation-baseline Composition experiments, the latter carrying
+  Architecture 0.7 §18.1's static Attribute-constrained binding: one-time resolution recording
+  effective values and provenance, holding no source, and restoring without reselection;
 - deterministic CPU imaging, boxed application boundaries, provider opposition and selection
   explanations, and visible optimisation eligibility;
 - a tagged JSON ShapeValue codec and versioned external manifest negotiation;
