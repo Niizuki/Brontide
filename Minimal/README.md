@@ -83,7 +83,9 @@ The implementation currently provides:
   only to a successor resolution of the same position that declares less, with observed use vetoing
   its own removal and no retirement path at all; CBI12 activates several independent members under
   one CM4 activation, with the release barrier at the activation and a failed member retiring the
-  ones that succeeded;
+  ones that succeeded; CBI13 admits a participant set per member before any provider is contacted,
+  with identities distinct across the whole activation and the receiving-domain Actor mapping a
+  function and injective across it;
 - a headless host and seven F# test assemblies, including the host-owned CBI1-CBI12 integration
   suite.
 

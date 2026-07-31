@@ -87,6 +87,9 @@ CBI12 activates several independent members under one CM4 activation. No member 
 every member is Ready and CM4 accepts the activation; a failed member retires the ones that
 succeeded; and a cyclic group carrying Relational Initialisation is refused rather than activated
 without it.
+CBI13 admits a participant set per member before any provider is contacted, keeps admission,
+relationship, and authority identities distinct across the whole activation, and requires the
+receiving-domain Actor mapping to be a function and injective across it.
 
 ## Build and test
 

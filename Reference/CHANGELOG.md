@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased — CBI13 multi-member authority
+
+### Added
+
+- Reference Studio admission of a participant set per member of a multi-member activation, evaluated for
+  every member before any provider is contacted.
+- Activation-wide identity distinctness for admission, relationship, and authority requests, and a
+  receiving-domain Actor mapping required to be a function and injective across the activation.
+- Shared group-authority vectors pinning admitted members, aggregate grants, released members, and
+  provider effects, plus a phase-boundary completeness review.
+
+### Changed
+
+- The effect-free half of CBI6 admission is now a separate step, so a multi-member activation can
+  admit every member's set before any of them is established. CBI6's own behaviour is unchanged.
+
+CBI13 answers both questions the plan raised: authority is admitted per member, against the
+occurrence rather than the attempt, and the authority barrier is earlier than the release barrier
+rather than the same one. CBI7 through CBI11 still govern one member, so a multi-member activation
+has no post-activation authority story yet.
+
 ## Unreleased — Decision 11: negotiation compares provider identity
 
 ### Changed

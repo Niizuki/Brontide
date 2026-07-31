@@ -133,6 +133,11 @@ CBI12 finally relaxes the single member. Several members activate under one CM4 
 release barrier is the activation rather than the member: ordinary interaction opens for all of them
 or for none, and a member that reached Ready while another failed is retired rather than left
 holding a channel. Cyclic groups are refused, because that is what Relational Initialisation is for.
+CBI13 gives that activation its authority. Each member's participant set is admitted separately,
+against the occurrence rather than the attempt, and every set is admitted before any provider is
+contacted — so the authority barrier turns out to be earlier than the release barrier rather than the
+same one. One party may participate in two members, but two parties may not arrive at one
+receiving-domain Actor.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

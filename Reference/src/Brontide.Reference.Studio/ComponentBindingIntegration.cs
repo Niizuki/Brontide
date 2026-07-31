@@ -656,6 +656,12 @@ public sealed record ComponentParticipantObservation(
     Cm.ActorId Participant,
     Cm.AuthorityAdmissionOutcome Authority);
 
+/// <summary>The outcome of the effect-free admission step, before any provider is contacted.</summary>
+internal sealed record ComponentParticipantAdmissionStep(
+    IReadOnlyList<ComponentParticipantObservation> Admissions,
+    IReadOnlyList<Cm.LocalCapabilityGrant> Grants,
+    ComponentParticipantAdmissionFailure? Failure);
+
 public sealed record ComponentParticipantAdmissionResult(
     IReadOnlyList<ComponentParticipantObservation> Admissions,
     IReadOnlyList<Cm.LocalCapabilityGrant> Grants,
@@ -690,6 +696,44 @@ public static class ComponentParticipantAdmission
         ArgumentNullException.ThrowIfNull(runtimeRequest);
         ArgumentNullException.ThrowIfNull(conversation);
 
+        var admitted = Admit(selection, participants, runtimeRequest);
+        if (admitted.Failure is { } refusal)
+        {
+            return new(admitted.Admissions, Array.Empty<Cm.LocalCapabilityGrant>(), null, refusal);
+        }
+
+        var admissions = admitted.Admissions;
+        var lifecycle = await ComponentBindingLifecycle.ActivateAsync(
+            resolution,
+            selection,
+            runtimeRequest,
+            conversation,
+            cancellationToken).ConfigureAwait(false);
+        if (!lifecycle.IsActive)
+        {
+            return Refuse(
+                ComponentParticipantAdmissionFailureKind.LifecycleRefused,
+                lifecycle.Failure?.Code ?? "lifecycle-not-active",
+                lifecycle.Failure?.Reason ?? "CBI2 did not return a released Active member.",
+                admissions,
+                lifecycle);
+        }
+
+        return new(admissions, admitted.Grants, lifecycle, null);
+    }
+
+    /// <summary>
+    /// The effect-free half: everything decided before a provider is contacted.
+    /// </summary>
+    /// <remarks>
+    /// Separated so an activation of several members can admit every member's set before any of them
+    /// is established, which is what lets a refusal cost nothing to undo.
+    /// </remarks>
+    internal static ComponentParticipantAdmissionStep Admit(
+        ComponentBindingSelection selection,
+        IReadOnlyList<ComponentParticipantRequest> participants,
+        Cm.ActivationRuntimeRequest runtimeRequest)
+    {
         // Ordering by participant makes evaluation, observation, and grant order independent of
         // the order the caller happened to build the set in.
         var ordered = participants
@@ -697,7 +741,7 @@ public static class ComponentParticipantAdmission
             .ToArray();
         if (ValidateSet(ordered, selection) is { } invalid)
         {
-            return Refuse(
+            return Step(
                 ComponentParticipantAdmissionFailureKind.ParticipantSetInvalid,
                 invalid.Code,
                 invalid.Reason);
@@ -706,7 +750,7 @@ public static class ComponentParticipantAdmission
         if (runtimeRequest.BindingExercises.Count > 0 ||
             ordered.Any(item => !SupportedShape(item.Request)))
         {
-            return Refuse(
+            return Step(
                 ComponentParticipantAdmissionFailureKind.AuthorityShapeUnsupported,
                 "authority-shape-unsupported",
                 "CBI6 supports one ComponentParticipant relationship per participant, distinct narrow authority tuples dependent on it, and no caller-authored CM4 binding exercises.");
@@ -724,7 +768,7 @@ public static class ComponentParticipantAdmission
             .ToArray();
         if (refused.Length > 0)
         {
-            return Refuse(
+            return Step(
                 ComponentParticipantAdmissionFailureKind.AuthorityRefused,
                 "authority-not-admitted",
                 $"CM5 did not admit the exact submitted authority for {string.Join(", ", refused)}.",
@@ -736,35 +780,31 @@ public static class ComponentParticipantAdmission
             .ToArray();
         if (FirstDuplicate(holders) is { } sharedHolder)
         {
-            return Refuse(
+            return Step(
                 ComponentParticipantAdmissionFailureKind.LocalIdentityConflict,
                 "local-actor-conflict",
                 $"Two participants were mapped onto the receiving-domain Actor '{sharedHolder}', which would merge their grants into one holder.",
                 admissions);
         }
 
-        var lifecycle = await ComponentBindingLifecycle.ActivateAsync(
-            resolution,
-            selection,
-            runtimeRequest,
-            conversation,
-            cancellationToken).ConfigureAwait(false);
-        if (!lifecycle.IsActive)
-        {
-            return Refuse(
-                ComponentParticipantAdmissionFailureKind.LifecycleRefused,
-                lifecycle.Failure?.Code ?? "lifecycle-not-active",
-                lifecycle.Failure?.Reason ?? "CBI2 did not return a released Active member.",
-                admissions,
-                lifecycle);
-        }
-
-        var grants = admissions
-            .SelectMany(item => item.Authority.Observation.Grants)
-            .OrderBy(item => item.Grant.Value, StringComparer.Ordinal)
-            .ToArray();
-        return new(admissions, grants, lifecycle, null);
+        return new(
+            admissions,
+            admissions
+                .SelectMany(item => item.Authority.Observation.Grants)
+                .OrderBy(item => item.Grant.Value, StringComparer.Ordinal)
+                .ToArray(),
+            null);
     }
+
+    private static ComponentParticipantAdmissionStep Step(
+        ComponentParticipantAdmissionFailureKind kind,
+        string code,
+        string reason,
+        IReadOnlyList<ComponentParticipantObservation>? admissions = null) =>
+        new(
+            admissions ?? Array.Empty<ComponentParticipantObservation>(),
+            Array.Empty<Cm.LocalCapabilityGrant>(),
+            new(kind, code, reason));
 
     private static (string Code, string Reason)? ValidateSet(
         IReadOnlyList<ComponentParticipantRequest> participants,
@@ -2269,6 +2309,182 @@ public static class ComponentGroupLifecycle
         string reason,
         Cm.OccurrenceId? member = null) =>
         new(null, Array.Empty<ComponentGroupMemberOutcome>(), new(kind, code, reason, member));
+}
+
+public sealed record ComponentGroupParticipant(
+    ComponentGroupMember Member,
+    IReadOnlyList<ComponentParticipantRequest> Participants);
+
+public enum ComponentGroupAuthorityFailureKind
+{
+    IdentityNotDistinct,
+    MemberAuthorityRefused,
+    ActorMappingInconsistent,
+    ActivationRefused,
+}
+
+public sealed record ComponentGroupAuthorityFailure(
+    ComponentGroupAuthorityFailureKind Kind,
+    string Code,
+    string Reason,
+    Cm.OccurrenceId? Member);
+
+public sealed record ComponentGroupMemberAdmission(
+    Cm.OccurrenceId Occurrence,
+    IReadOnlyList<ComponentParticipantObservation> Participants,
+    IReadOnlyList<Cm.LocalCapabilityGrant> Grants);
+
+public sealed record ComponentGroupAuthorityResult(
+    IReadOnlyList<ComponentGroupMemberAdmission> Admissions,
+    IReadOnlyList<Cm.LocalCapabilityGrant> Grants,
+    ComponentGroupActivationResult? Lifecycle,
+    ComponentGroupAuthorityFailure? Failure)
+{
+    public bool IsActive => Failure is null && Lifecycle?.IsActive == true;
+}
+
+/// <summary>
+/// Admits a participant set per member, then activates the members together.
+/// </summary>
+/// <remarks>
+/// Authority is admitted against an occurrence rather than an activation attempt, because an
+/// occurrence is durable and an attempt is not. The authority barrier is therefore earlier than the
+/// release barrier rather than the same one: every set is admitted before any provider is contacted,
+/// and Release still waits for every member to reach Ready.
+/// </remarks>
+public static class ComponentGroupAuthority
+{
+    public static async ValueTask<ComponentGroupAuthorityResult> ActivateAsync(
+        Cm.ResolutionOutcome resolution,
+        IReadOnlyList<ComponentGroupParticipant> members,
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(members);
+        ArgumentNullException.ThrowIfNull(runtimeRequest);
+
+        var ordered = members
+            .OrderBy(item => item.Member.Selection.Occurrence.Value, StringComparer.Ordinal)
+            .ToArray();
+        var requests = ordered.SelectMany(item => item.Participants.Select(entry => entry.Request)).ToArray();
+        if (ComponentParticipantAdmission.DistinctIdentities(requests) is { } collision)
+        {
+            return Refuse(
+                ComponentGroupAuthorityFailureKind.IdentityNotDistinct,
+                collision.Code,
+                collision.Reason);
+        }
+
+        // Every set is admitted before any member is prepared: CM5 evaluation is effect-free, so a
+        // refusal here costs nothing to undo.
+        var admissions = new List<ComponentGroupMemberAdmission>();
+        foreach (var member in ordered)
+        {
+            var step = ComponentParticipantAdmission.Admit(
+                member.Member.Selection,
+                member.Participants,
+                runtimeRequest);
+            if (step.Failure is { } refusal)
+            {
+                return new(
+                    admissions,
+                    Array.Empty<Cm.LocalCapabilityGrant>(),
+                    null,
+                    new(
+                        ComponentGroupAuthorityFailureKind.MemberAuthorityRefused,
+                        refusal.Code,
+                        refusal.Reason,
+                        member.Member.Selection.Occurrence));
+            }
+
+            admissions.Add(new(member.Member.Selection.Occurrence, step.Admissions, step.Grants));
+        }
+
+        if (ActorMapping(admissions) is { } inconsistent)
+        {
+            return new(
+                admissions,
+                Array.Empty<Cm.LocalCapabilityGrant>(),
+                null,
+                new(
+                    ComponentGroupAuthorityFailureKind.ActorMappingInconsistent,
+                    inconsistent.Code,
+                    inconsistent.Reason,
+                    null));
+        }
+
+        var grants = admissions
+            .SelectMany(item => item.Grants)
+            .OrderBy(item => item.Grant.Value, StringComparer.Ordinal)
+            .ToArray();
+        var lifecycle = await ComponentGroupLifecycle.ActivateAsync(
+            resolution,
+            ordered.Select(item => item.Member).ToArray(),
+            runtimeRequest,
+            cancellationToken).ConfigureAwait(false);
+        return lifecycle.IsActive
+            ? new(admissions, grants, lifecycle, null)
+            : new(
+                admissions,
+                grants,
+                lifecycle,
+                new(
+                    ComponentGroupAuthorityFailureKind.ActivationRefused,
+                    lifecycle.Failure?.Code ?? "activation-not-active",
+                    lifecycle.Failure?.Reason ?? "CBI12 did not release every member.",
+                    lifecycle.Failure?.Member));
+    }
+
+    /// <summary>
+    /// Across the activation, one participant holds one local Actor and one local Actor is held by
+    /// one participant.
+    /// </summary>
+    /// <remarks>
+    /// The same party participating in two members is legitimate and must map consistently; two
+    /// parties arriving at one local Actor is the conflation CBI6 refuses within a set, and it is no
+    /// less a conflation across members.
+    /// </remarks>
+    private static (string Code, string Reason)? ActorMapping(
+        IReadOnlyList<ComponentGroupMemberAdmission> admissions)
+    {
+        var byParticipant = new Dictionary<Cm.ActorId, Cm.LocalActorReferenceId>();
+        var byLocalActor = new Dictionary<Cm.LocalActorReferenceId, Cm.ActorId>();
+        foreach (var observation in admissions
+            .SelectMany(item => item.Participants)
+            .OrderBy(item => item.Participant.Value, StringComparer.Ordinal))
+        {
+            var local = observation.Authority.Observation.Relationships[0].LocalActor;
+            if (byParticipant.TryGetValue(observation.Participant, out var existing) && existing != local)
+            {
+                return (
+                    "participant-actor-not-single",
+                    $"Participant '{observation.Participant}' is mapped onto both '{existing}' and '{local}' in one activation.");
+            }
+
+            if (byLocalActor.TryGetValue(local, out var holder) && holder != observation.Participant)
+            {
+                return (
+                    "local-actor-shared-across-members",
+                    $"Participants '{holder}' and '{observation.Participant}' are both mapped onto the receiving-domain Actor '{local}'.");
+            }
+
+            byParticipant[observation.Participant] = local;
+            byLocalActor[local] = observation.Participant;
+        }
+
+        return null;
+    }
+
+    private static ComponentGroupAuthorityResult Refuse(
+        ComponentGroupAuthorityFailureKind kind,
+        string code,
+        string reason) =>
+        new(
+            Array.Empty<ComponentGroupMemberAdmission>(),
+            Array.Empty<Cm.LocalCapabilityGrant>(),
+            null,
+            new(kind, code, reason, null));
 }
 
 /// <summary>
