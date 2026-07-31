@@ -22,7 +22,7 @@ Graduation into the main showcase would require repeatable GPU execution tests, 
 operational observations, honest fallback behavior, and evidence that the transformation module
 does not need an application-level redesign.
 
-Reference Studio is the composition root for the CBI1-CBI19 integration slices. It references the
+Reference Studio is the composition root for the CBI1-CBI20 integration slices. It references the
 independent Component Management and Portable Binding experiments and maps one completed native
 CM2 direct `1..1` position into PB7 preflight, then coordinates one singleton, protocol-free CM4
 plan from PB7 lifecycle evidence and releases the portable gate only after CM4 Active.
@@ -52,7 +52,9 @@ undeclared use condemns the activation. CBI17 narrows those declarations to one 
 as a single transaction, so a member the successor does not resolve blocks the others. CBI18 grows
 those sets without consulting any declaration, because growth removes nobody and so cannot uncover a
 declared dependency. CBI19 replaces the generation in the restart scope with a successor generation,
-re-establishing authority per occurrence and retiring the retained members only after cutover. This
+re-establishing authority per occurrence and retiring the retained members only after cutover. CBI20
+lets that successor resolve a different set of positions, reading the membership from the generation
+rather than the caller and joining an added position only across the cutover. This
 does not merge the experimental projects,
-support relational activation, member addition or removal, mediation, or wider
+support relational activation, mediation, or wider
 Provider Sets, or establish real Component interchange.

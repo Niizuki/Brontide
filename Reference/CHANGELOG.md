@@ -1,5 +1,40 @@
 # Changelog
 
+## Unreleased — CBI20 membership replacement
+
+### Added
+
+- Reference Studio replacement of the generation occupying one restart scope with a successor
+  generation that resolves a different set of positions, adding and dropping members across the
+  cutover and reporting the added, dropped, and surviving occurrences.
+- Refusal of an emptied membership, which is CBI14's withdrawal rather than a replacement.
+- Shared membership vectors pinning the derived membership sets and the cutover-only rule for an
+  addition, plus a phase-boundary completeness review and a named test for every contract item.
+
+### Fixed
+
+- CBI19 accepted a membership the successor generation does not resolve. It declares one entry per
+  successor member and no position added or removed, and checked neither, so a caller supplying a
+  strict subset — with a CM3 plan built from that same subset — cut the scope over to a generation
+  whose plan covered fewer members than CM2 resolved, retiring the omitted Component with no refusal
+  anywhere. It now refuses an under-supplied, over-supplied, or changed membership by name.
+
+### Changed (breaking)
+
+- `ComponentGroupReplacement.ReplaceAsync` refuses inputs it previously accepted: a membership that is
+  not exactly the positions the successor generation resolves (`position-not-supplied`,
+  `member-not-resolved`) and one that differs from the retained activation's (`membership-changed`).
+  A caller replacing a generation that resolves the same positions supplies the generation's full
+  membership; a caller adding or dropping a position calls
+  `ComponentGroupMembership.ReplaceAsync` instead, which accepts the same arguments and additionally
+  reports the added, dropped, and surviving occurrences.
+
+The lift needed no new authority rule, because CBI19 decided authority per occurrence: a dropped
+occurrence has nothing to follow it to, so its grant is not re-established and no withdrawal is
+performed against the receiving domain, while an added occurrence is admitted afresh. An added
+position joins only across a cutover, because a CM2 generation is one immutable object and a CM4
+attempt covers its whole plan.
+
 ## Unreleased — BR-07-BINDING-001 static Attribute-constrained binding
 
 ### Added

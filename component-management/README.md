@@ -250,6 +250,21 @@ pre-cutover failure must leave them serving. Its bounded behavior is recorded in
 [CBI19 capability contract](./cbi19-capability-contract.md) and completed
 [contract-completeness review](./cbi19-contract-completeness-review.md).
 
+CBI20 lets the successor resolve a **different set of positions**, adding and dropping members across
+the cutover, and pointing it at CBI19 found a defect there first: CBI19 claims one entry per successor
+member and no position added or removed, and checked neither, so a caller could omit a position the
+generation still resolves and cut a scope over to a generation whose plan covered fewer members than
+CM2 resolved. Its vectors could not catch it, because each one derives the member list, the participant
+sets, and the plan from one declaration. **The membership is the successor generation's statement, not
+the caller's**, and both stacks now refuse an under-supplied, over-supplied, or changed one. The lift
+itself needs no new authority rule, because CBI19 decided authority per occurrence: **a dropped
+occurrence has nothing to follow it to**, so its grant is simply not re-established, and **an added
+position joins only across a cutover**, because a CM2 generation is one immutable object and a CM4
+attempt covers its whole plan. An emptied membership is refused as CBI14's withdrawal reached through
+the wrong door. Its bounded behavior is recorded in the
+[CBI20 capability contract](./cbi20-capability-contract.md) and completed
+[contract-completeness review](./cbi20-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -470,6 +485,21 @@ before cutover. Each pins whether the scope cut over, how many successor members
 many retained members are still released and how many are retired, and how many members the successor
 admitted, so the cutover boundary is a checked answer in both directions. The fixture contains no
 runtime, evaluator, planner, or portable implementation.
+
+### `cbi20-membership-replacement-vectors` sections
+
+`vectors` names six cutovers — a position added, one dropped, both at once, an unchanged membership, an
+added party taking the receiving-domain Actor a dropped one held, and a dropped member whose cleanup
+fails afterwards — and eight refusals covering a resolved position the caller did not supply, a member
+the generation does not resolve, a successor resolving nothing, a surviving occurrence re-admitted for
+different authority, a denied addition, an added party taking a *surviving* participant's local Actor,
+an added member that never reports Ready, and a Release that fails before cutover. Each pins whether
+the scope cut over, how many successor members are released, how many retained members are still
+released and how many are retired, how many members the successor admitted, and how many positions were
+added and dropped, so the derived membership sets and the cutover-only rule for an addition are both
+checked answers. The cutover vectors keep CBI19's own outcome codes, because CBI20 delegates the cutover
+rather than restating it. The fixture contains no runtime, evaluator, resolver, or portable
+implementation.
 
 ### `cm0-mice-topology` sections
 
