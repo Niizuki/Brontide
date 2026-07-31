@@ -2387,7 +2387,7 @@ module ComponentGroupAuthority =
     /// The same party participating in two members is legitimate and must map consistently; two
     /// parties arriving at one local Actor is the conflation CBI6 refuses within a set, and it is no
     /// less a conflation across members.
-    let private actorMapping (admissions: ComponentGroupMemberAdmission list) =
+    let internal actorMapping (admissions: ComponentGroupMemberAdmission list) =
         let observations =
             admissions
             |> List.collect _.Participants
@@ -2718,6 +2718,354 @@ module ComponentGroupRevalidation =
                       Replacements = []
                       Code = "active-authority-unavailable"
                       Reason = "CBI14 requires one released CBI13 activation with every member admitted." }
+        }
+
+type ComponentGroupMemberRevision =
+    { Occurrence: OccurrenceId
+      Selection: ComponentBindingSelection
+      Dependency: ComponentGrantDependency
+      Requests: AuthorityAdmissionRequest list }
+
+[<RequireQualifiedAccess>]
+type ComponentGroupRevisionKind =
+    | Revised
+    | Declined
+    | Withdrawn
+    | RetirementFailed
+    | ActivationUnavailable
+
+type ComponentGroupRevisionResult =
+    { Kind: ComponentGroupRevisionKind
+      InForce: ComponentGroupAuthorityResult option
+      CurrentAuthority: ComponentParticipantObservation list
+      Lapsed: OccurrenceId list
+      Code: string
+      Reason: string }
+
+/// Revises the participant sets of a multi-member activation under per-member declarations.
+///
+/// A change is decided per member, because admission is about an occurrence, and checked against the
+/// activation, because CBI13's identity and Actor-mapping rules are activation-wide. A declined
+/// change is local and alters nothing; a lapse discovered while evaluating is CBI14's case and
+/// retires the whole activation, which shares a restart scope.
+[<RequireQualifiedAccess>]
+module ComponentGroupRevision =
+    let private ordinal (left: string) (right: string) = String.CompareOrdinal(left, right)
+
+    let private decline (active: ComponentGroupAuthorityResult) code reason current =
+        { Kind = ComponentGroupRevisionKind.Declined
+          InForce = Some active
+          CurrentAuthority = current
+          Lapsed = []
+          Code = code
+          Reason = reason }
+
+    let private setChanged
+        (prior: ComponentGroupMemberAdmission)
+        (intended: ComponentGroupMemberRevision)
+        =
+        let names (values: ActorId list) =
+            values |> List.map ActorId.value |> List.sortWith ordinal
+        names (intended.Requests |> List.map _.Participant)
+        <> names (prior.Participants |> List.map _.Participant)
+
+    let private retire
+        (lifecycle: ComponentGroupActivationResult)
+        retirementReason
+        current
+        lapsed
+        reason
+        =
+        task {
+            let cleanup = ResizeArray<string>()
+            for outcome in lifecycle.Members do
+                let! retired =
+                    ComponentParticipantRevalidation.tryRetire outcome.Member retirementReason
+                match retired with
+                | Ok _ -> ()
+                | Error detail ->
+                    cleanup.Add(sprintf "%s: %s" (OccurrenceId.value outcome.Occurrence) detail)
+            if cleanup.Count = 0 then
+                return
+                    { Kind = ComponentGroupRevisionKind.Withdrawn
+                      InForce = None
+                      CurrentAuthority = current
+                      Lapsed = lapsed
+                      Code = "authority-not-renewed"
+                      Reason = reason }
+            else
+                return
+                    { Kind = ComponentGroupRevisionKind.RetirementFailed
+                      InForce = None
+                      CurrentAuthority = current
+                      Lapsed = lapsed
+                      Code = "authority-retirement-failed"
+                      Reason = String.Join("; ", cleanup) }
+        }
+
+    let revise
+        (resolution: ResolutionOutcome)
+        (active: ComponentGroupAuthorityResult)
+        (members: ComponentGroupMemberRevision list)
+        retirementReason
+        =
+        task {
+            if String.IsNullOrWhiteSpace retirementReason then
+                invalidArg (nameof retirementReason) "retirement reason is required"
+
+            match ComponentGroupAuthority.isActive active, active.Lifecycle with
+            | true, Some lifecycle ->
+                let prior = active.Admissions
+                let ordered =
+                    members
+                    |> List.sortWith (fun left right ->
+                        ordinal (OccurrenceId.value left.Occurrence) (OccurrenceId.value right.Occurrence))
+                if (ordered |> List.map _.Occurrence) <> (prior |> List.map _.Occurrence) then
+                    // Naming the wrong members is a malformed request, not evidence about authority,
+                    // so the activation is left exactly as it was. CBI14 retires in the same
+                    // situation because a revalidation asserts continuity it then cannot
+                    // demonstrate.
+                    return
+                        decline
+                            active
+                            "member-set-changed"
+                            "The revision does not name the members this activation admitted."
+                            []
+                elif
+                    List.zip prior ordered
+                    |> List.forall (fun (priorMember, member') -> not (setChanged priorMember member'))
+                then
+                    return
+                        decline
+                            active
+                            "activation-unchanged"
+                            "No member's participant set differs; revalidating what is in force is CBI14."
+                            []
+                else
+                    let paired = List.zip prior ordered
+                    let declarationProblem =
+                        paired
+                        |> List.tryPick (fun (priorMember, member') ->
+                            match
+                                ComponentParticipantRevision.declarationShape
+                                    resolution
+                                    member'.Selection
+                                    member'.Dependency
+                            with
+                            | Error(code, reason) -> Some(code, reason)
+                            | Ok() ->
+                                match
+                                    ComponentParticipantRevision.uncovered
+                                        member'.Dependency
+                                        priorMember.Grants
+                                with
+                                | [] -> None
+                                | missing ->
+                                    Some(
+                                        "dependency-unsatisfied",
+                                        sprintf
+                                            "Member %s does not cover declared authority %s."
+                                            (OccurrenceId.value member'.Occurrence)
+                                            (String.Join(", ", missing))))
+                    match declarationProblem with
+                    | Some(code, reason) -> return decline active code reason []
+                    | None ->
+                        let intended = ordered |> List.collect _.Requests
+                        match ComponentParticipantAdmission.distinctIdentities intended with
+                        | Error(code, reason) -> return decline active code reason []
+                        | Ok() ->
+                            let malformedSet =
+                                ordered
+                                |> List.tryFind (fun member' ->
+                                    member'.Requests.IsEmpty
+                                    || (member'.Requests
+                                        |> List.map (fun request -> ActorId.value request.Participant)
+                                        |> ComponentParticipantAdmission.firstDuplicate)
+                                       |> Option.isSome)
+                            match malformedSet with
+                            | Some member' ->
+                                return
+                                    decline
+                                        active
+                                        "participant-set-invalid"
+                                        (sprintf
+                                            "Member %s must keep at least one participant, each named once."
+                                            (OccurrenceId.value member'.Occurrence))
+                                        []
+                            | None ->
+                                let admittedOf (priorMember: ComponentGroupMemberAdmission) participant =
+                                    priorMember.Participants
+                                    |> List.tryFind (fun item -> item.Participant = participant)
+                                let drifted =
+                                    paired
+                                    |> List.tryFind (fun (priorMember, member') ->
+                                        member'.Requests
+                                        |> List.exists (fun request ->
+                                            match admittedOf priorMember request.Participant with
+                                            | Some admitted ->
+                                                not (
+                                                    ComponentParticipantRevalidation.matchesPrior
+                                                        admitted
+                                                        request)
+                                            | None -> false))
+                                match drifted with
+                                | Some(_, member') ->
+                                    return
+                                        decline
+                                            active
+                                            "authority-revalidation-mismatch"
+                                            (sprintf
+                                                "A retained request for member %s does not identify the authority that admitted it."
+                                                (OccurrenceId.value member'.Occurrence))
+                                            []
+                                | None ->
+                                    let evaluated =
+                                        paired
+                                        |> List.map (fun (priorMember, member') ->
+                                            priorMember,
+                                            member',
+                                            member'.Requests
+                                            |> List.sortWith (fun left right ->
+                                                ordinal
+                                                    (ActorId.value left.Participant)
+                                                    (ActorId.value right.Participant))
+                                            |> List.map (fun request ->
+                                                { Participant = request.Participant
+                                                  Authority =
+                                                    FakeAuthorityAdmission.evaluate request }))
+                                    let current =
+                                        evaluated
+                                        |> List.collect (fun (_, _, observations) -> observations)
+                                    let lapsed =
+                                        evaluated
+                                        |> List.filter (fun (priorMember, _, observations) ->
+                                            observations
+                                            |> List.exists (fun observation ->
+                                                match
+                                                    admittedOf priorMember observation.Participant
+                                                with
+                                                | Some admitted ->
+                                                    not (
+                                                        ComponentParticipantRevalidation.isSameAdmission
+                                                            admitted.Authority
+                                                            observation.Authority)
+                                                | None -> false))
+                                        |> List.map (fun (_, member', _) -> member'.Occurrence)
+                                    if not lapsed.IsEmpty then
+                                        // A lapse is CBI14's case, not this one: the activation
+                                        // shares a restart scope.
+                                        return!
+                                            retire
+                                                lifecycle
+                                                retirementReason
+                                                current
+                                                lapsed
+                                                (sprintf
+                                                    "The receiving domain no longer admits the identical authority for %s."
+                                                    (String.Join(
+                                                        ", ",
+                                                        lapsed |> List.map OccurrenceId.value)))
+                                    else
+                                        let refused =
+                                            evaluated
+                                            |> List.collect (fun (priorMember, member', observations) ->
+                                                List.zip
+                                                    (member'.Requests
+                                                     |> List.sortWith (fun left right ->
+                                                         ordinal
+                                                             (ActorId.value left.Participant)
+                                                             (ActorId.value right.Participant)))
+                                                    observations
+                                                |> List.filter (fun (request, observation) ->
+                                                    (admittedOf priorMember request.Participant).IsNone
+                                                    && not (
+                                                        ComponentParticipantAdmission.isExactAdmission
+                                                            request
+                                                            observation.Authority))
+                                                |> List.map (fun (request, _) ->
+                                                    ActorId.value request.Participant))
+                                        if not refused.IsEmpty then
+                                            return
+                                                decline
+                                                    active
+                                                    "authority-not-admitted"
+                                                    (sprintf
+                                                        "CM5 did not admit the exact submitted authority for %s."
+                                                        (String.Join(", ", refused)))
+                                                    current
+                                        else
+                                            let revised =
+                                                evaluated
+                                                |> List.map (fun (_, member', observations) ->
+                                                    { Occurrence = member'.Occurrence
+                                                      Participants = observations
+                                                      Grants =
+                                                        observations
+                                                        |> List.collect (fun observation ->
+                                                            observation.Authority.Observation.Grants)
+                                                        |> List.sortWith (fun left right ->
+                                                            ordinal
+                                                                (CapabilityGrantId.value left.Grant)
+                                                                (CapabilityGrantId.value right.Grant)) })
+                                            match ComponentGroupAuthority.actorMapping revised with
+                                            | Some(code, reason) ->
+                                                return decline active code reason current
+                                            | None ->
+                                                let uncoveredMember =
+                                                    List.zip ordered revised
+                                                    |> List.tryPick (fun (member', admission) ->
+                                                        match
+                                                            ComponentParticipantRevision.uncovered
+                                                                member'.Dependency
+                                                                admission.Grants
+                                                        with
+                                                        | [] -> None
+                                                        | missing ->
+                                                            Some(member'.Occurrence, missing))
+                                                match uncoveredMember with
+                                                | Some(occurrence, missing) ->
+                                                    return
+                                                        decline
+                                                            active
+                                                            "dependency-not-covered"
+                                                            (sprintf
+                                                                "Member %s would hold no grant satisfying declared authority %s."
+                                                                (OccurrenceId.value occurrence)
+                                                                (String.Join(", ", missing)))
+                                                            current
+                                                | None ->
+                                                    let grants =
+                                                        revised
+                                                        |> List.collect _.Grants
+                                                        |> List.sortWith (fun left right ->
+                                                            ordinal
+                                                                (CapabilityGrantId.value left.Grant)
+                                                                (CapabilityGrantId.value right.Grant))
+                                                    return
+                                                        { Kind = ComponentGroupRevisionKind.Revised
+                                                          InForce =
+                                                            Some
+                                                                { active with
+                                                                    Admissions = revised
+                                                                    Grants = grants }
+                                                          CurrentAuthority = current
+                                                          Lapsed = []
+                                                          Code = "activation-revised"
+                                                          Reason =
+                                                            sprintf
+                                                                "%d members now hold %d participants."
+                                                                revised.Length
+                                                                (revised
+                                                                 |> List.sumBy (fun item ->
+                                                                     item.Participants.Length)) }
+            | _ ->
+                return
+                    { Kind = ComponentGroupRevisionKind.ActivationUnavailable
+                      InForce = None
+                      CurrentAuthority = []
+                      Lapsed = []
+                      Code = "active-authority-unavailable"
+                      Reason = "CBI15 requires one released CBI13 activation with every member admitted." }
         }
 
 [<RequireQualifiedAccess>]

@@ -2445,7 +2445,7 @@ public static class ComponentGroupAuthority
     /// parties arriving at one local Actor is the conflation CBI6 refuses within a set, and it is no
     /// less a conflation across members.
     /// </remarks>
-    private static (string Code, string Reason)? ActorMapping(
+    internal static (string Code, string Reason)? ActorMapping(
         IReadOnlyList<ComponentGroupMemberAdmission> admissions)
     {
         var byParticipant = new Dictionary<Cm.ActorId, Cm.LocalActorReferenceId>();
@@ -2666,6 +2666,290 @@ public static class ComponentGroupRevalidation
                 "authority-retirement-failed",
                 string.Join("; ", cleanup));
     }
+}
+
+public sealed record ComponentGroupMemberRevision(
+    Cm.OccurrenceId Occurrence,
+    ComponentBindingSelection Selection,
+    ComponentGrantDependency Dependency,
+    IReadOnlyList<Cm.AuthorityAdmissionRequest> Requests);
+
+public enum ComponentGroupRevisionKind
+{
+    Revised,
+    Declined,
+    Withdrawn,
+    RetirementFailed,
+    ActivationUnavailable,
+}
+
+public sealed record ComponentGroupRevisionResult(
+    ComponentGroupRevisionKind Kind,
+    ComponentGroupAuthorityResult? InForce,
+    IReadOnlyList<ComponentParticipantObservation> CurrentAuthority,
+    IReadOnlyList<Cm.OccurrenceId> Lapsed,
+    string Code,
+    string Reason)
+{
+    public bool IsRevised => Kind == ComponentGroupRevisionKind.Revised;
+}
+
+/// <summary>
+/// Revises the participant sets of a multi-member activation under per-member declarations.
+/// </summary>
+/// <remarks>
+/// A change is decided per member, because admission is about an occurrence, and checked against the
+/// activation, because CBI13's identity and Actor-mapping rules are activation-wide. A declined
+/// change is local and alters nothing; a lapse discovered while evaluating is CBI14's case and
+/// retires the whole activation, which shares a restart scope.
+/// </remarks>
+public static class ComponentGroupRevision
+{
+    public static async ValueTask<ComponentGroupRevisionResult> ReviseAsync(
+        Cm.ResolutionOutcome resolution,
+        ComponentGroupAuthorityResult active,
+        IReadOnlyList<ComponentGroupMemberRevision> members,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(active);
+        ArgumentNullException.ThrowIfNull(members);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (!active.IsActive || active.Lifecycle is not { } lifecycle)
+        {
+            return new(
+                ComponentGroupRevisionKind.ActivationUnavailable,
+                null,
+                Array.Empty<ComponentParticipantObservation>(),
+                Array.Empty<Cm.OccurrenceId>(),
+                "active-authority-unavailable",
+                "CBI15 requires one released CBI13 activation with every member admitted.");
+        }
+
+        var prior = active.Admissions;
+        var ordered = members.OrderBy(item => item.Occurrence.Value, StringComparer.Ordinal).ToArray();
+        if (!ordered.Select(item => item.Occurrence).SequenceEqual(prior.Select(item => item.Occurrence)))
+        {
+            // Naming the wrong members is a malformed request, not evidence about authority, so the
+            // activation is left exactly as it was. CBI14 retires in the same situation because a
+            // revalidation asserts continuity it then cannot demonstrate.
+            return Decline(active, "member-set-changed", "The revision does not name the members this activation admitted.");
+        }
+
+        if (ordered.Where((item, index) => !SetChanged(prior[index], item)).Count() == ordered.Length)
+        {
+            return Decline(
+                active,
+                "activation-unchanged",
+                "No member's participant set differs; revalidating what is in force is CBI14.");
+        }
+
+        for (var index = 0; index < ordered.Length; index++)
+        {
+            var member = ordered[index];
+            if (ComponentParticipantRevision.DeclarationShape(resolution, member.Selection, member.Dependency) is { } invalid)
+            {
+                return Decline(active, invalid.Code, invalid.Reason);
+            }
+
+            var uncovered = ComponentParticipantRevision.Uncovered(member.Dependency, prior[index].Grants);
+            if (uncovered.Length > 0)
+            {
+                return Decline(
+                    active,
+                    "dependency-unsatisfied",
+                    $"Member {member.Occurrence} does not cover declared authority {string.Join(", ", uncovered)}.");
+            }
+        }
+
+        var intended = ordered.SelectMany(item => item.Requests).ToArray();
+        if (ComponentParticipantAdmission.DistinctIdentities(intended) is { } collision)
+        {
+            return Decline(active, collision.Code, collision.Reason);
+        }
+
+        foreach (var member in ordered)
+        {
+            if (member.Requests.Count == 0 ||
+                ComponentParticipantAdmission.FirstDuplicate(
+                    member.Requests.Select(item => item.Participant.Value)) is not null)
+            {
+                return Decline(
+                    active,
+                    "participant-set-invalid",
+                    $"Member {member.Occurrence} must keep at least one participant, each named once.");
+            }
+        }
+
+        var priorByMember = prior.ToDictionary(item => item.Occurrence);
+        foreach (var member in ordered)
+        {
+            var admitted = priorByMember[member.Occurrence].Participants
+                .ToDictionary(item => item.Participant);
+            if (member.Requests
+                .Where(item => admitted.ContainsKey(item.Participant))
+                .Any(item => !ComponentParticipantRevalidation.MatchesPrior(admitted[item.Participant], item)))
+            {
+                return Decline(
+                    active,
+                    "authority-revalidation-mismatch",
+                    $"A retained request for member {member.Occurrence} does not identify the authority that admitted it.");
+            }
+        }
+
+        var evaluator = new Cm.FakeAuthorityAdmissionEvaluator();
+        var evaluated = ordered
+            .Select(member => (
+                Member: member,
+                Observations: member.Requests
+                    .OrderBy(item => item.Participant.Value, StringComparer.Ordinal)
+                    .Select(item => new ComponentParticipantObservation(item.Participant, evaluator.Evaluate(item)))
+                    .ToArray()))
+            .ToArray();
+        var current = evaluated.SelectMany(item => item.Observations).ToArray();
+
+        var lapsed = evaluated
+            .Where(item => item.Observations.Any(observation =>
+                priorByMember[item.Member.Occurrence].Participants
+                    .Any(admitted => admitted.Participant == observation.Participant &&
+                        !ComponentParticipantRevalidation.IsSameAdmission(admitted.Authority, observation.Authority))))
+            .Select(item => item.Member.Occurrence)
+            .ToArray();
+        if (lapsed.Length > 0)
+        {
+            // A lapse is CBI14's case, not this one: the activation shares a restart scope.
+            return await RetireAsync(
+                lifecycle,
+                retirementReason,
+                current,
+                lapsed,
+                $"The receiving domain no longer admits the identical authority for {string.Join(", ", lapsed.Select(item => item.Value))}.",
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        foreach (var (member, observations) in evaluated)
+        {
+            var admitted = priorByMember[member.Occurrence].Participants
+                .Select(item => item.Participant)
+                .ToHashSet();
+            var refused = member.Requests
+                .Where(item => !admitted.Contains(item.Participant))
+                .Where((item, position) => !ComponentParticipantAdmission.IsExactAdmission(
+                    observations.Single(observation => observation.Participant == item.Participant).Authority,
+                    item))
+                .Select(item => item.Participant.Value)
+                .ToArray();
+            if (refused.Length > 0)
+            {
+                return Decline(
+                    active,
+                    "authority-not-admitted",
+                    $"CM5 did not admit the exact submitted authority for {string.Join(", ", refused)}.",
+                    current);
+            }
+        }
+
+        var revised = evaluated
+            .Select(item => new ComponentGroupMemberAdmission(
+                item.Member.Occurrence,
+                item.Observations,
+                item.Observations
+                    .SelectMany(observation => observation.Authority.Observation.Grants)
+                    .OrderBy(grant => grant.Grant.Value, StringComparer.Ordinal)
+                    .ToArray()))
+            .ToArray();
+        if (ComponentGroupAuthority.ActorMapping(revised) is { } inconsistent)
+        {
+            return Decline(active, inconsistent.Code, inconsistent.Reason, current);
+        }
+
+        foreach (var (member, _) in evaluated)
+        {
+            var grants = revised.Single(item => item.Occurrence == member.Occurrence).Grants;
+            var uncovered = ComponentParticipantRevision.Uncovered(member.Dependency, grants);
+            if (uncovered.Length > 0)
+            {
+                return Decline(
+                    active,
+                    "dependency-not-covered",
+                    $"Member {member.Occurrence} would hold no grant satisfying declared authority {string.Join(", ", uncovered)}.",
+                    current);
+            }
+        }
+
+        return new(
+            ComponentGroupRevisionKind.Revised,
+            active with
+            {
+                Admissions = revised,
+                Grants = revised
+                    .SelectMany(item => item.Grants)
+                    .OrderBy(item => item.Grant.Value, StringComparer.Ordinal)
+                    .ToArray(),
+            },
+            current,
+            Array.Empty<Cm.OccurrenceId>(),
+            "activation-revised",
+            $"{revised.Length} members now hold {revised.Sum(item => item.Participants.Count)} participants.");
+    }
+
+    private static bool SetChanged(
+        ComponentGroupMemberAdmission prior,
+        ComponentGroupMemberRevision intended) =>
+        !intended.Requests
+            .Select(item => item.Participant.Value)
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .SequenceEqual(
+                prior.Participants
+                    .Select(item => item.Participant.Value)
+                    .OrderBy(item => item, StringComparer.Ordinal),
+                StringComparer.Ordinal);
+
+    private static async ValueTask<ComponentGroupRevisionResult> RetireAsync(
+        ComponentGroupActivationResult lifecycle,
+        string retirementReason,
+        IReadOnlyList<ComponentParticipantObservation> current,
+        IReadOnlyList<Cm.OccurrenceId> lapsed,
+        string reason,
+        CancellationToken cancellationToken)
+    {
+        var cleanup = new List<string>();
+        foreach (var outcome in lifecycle.Members)
+        {
+            var (_, failure) = await ComponentParticipantRevalidation
+                .TryRetireAsync(outcome.Member, retirementReason, cancellationToken)
+                .ConfigureAwait(false);
+            if (failure is not null)
+            {
+                cleanup.Add($"{outcome.Occurrence}: {failure}");
+            }
+        }
+
+        return cleanup.Count == 0
+            ? new(ComponentGroupRevisionKind.Withdrawn, null, current, lapsed, "authority-not-renewed", reason)
+            : new(
+                ComponentGroupRevisionKind.RetirementFailed,
+                null,
+                current,
+                lapsed,
+                "authority-retirement-failed",
+                string.Join("; ", cleanup));
+    }
+
+    private static ComponentGroupRevisionResult Decline(
+        ComponentGroupAuthorityResult active,
+        string code,
+        string reason,
+        IReadOnlyList<ComponentParticipantObservation>? current = null) =>
+        new(
+            ComponentGroupRevisionKind.Declined,
+            active,
+            current ?? Array.Empty<ComponentParticipantObservation>(),
+            Array.Empty<Cm.OccurrenceId>(),
+            code,
+            reason);
 }
 
 /// <summary>

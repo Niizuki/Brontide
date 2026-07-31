@@ -2647,9 +2647,10 @@ public sealed class ComponentBindingIntegrationTests
     /// <summary>The receiving-domain policy, with the participant's own local Actor overridable.</summary>
     private static LocalAuthorityPolicy GroupPolicy(
         LocalActorReferenceId participantActor,
-        LocalActorReferenceId? supervisorActor = null)
+        LocalActorReferenceId? supervisorActor = null,
+        LocalActorReferenceId? observerActor = null)
     {
-        var policy = SetPolicy(supervisorActor ?? SupervisorLocalActor, ObserverLocalActor);
+        var policy = SetPolicy(supervisorActor ?? SupervisorLocalActor, observerActor ?? ObserverLocalActor);
         return policy with
         {
             RelationshipRules = policy.RelationshipRules
@@ -2882,6 +2883,197 @@ public sealed class ComponentBindingIntegrationTests
         return (active, handlers, participants);
     }
 
+    [Test]
+    public async Task Shared_cbi15_vectors_revise_per_member_and_check_the_activation()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi15-group-revision-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, active) = await GroupRevisionResult(scenario);
+            var released = active.Lifecycle!.Members.Count(item => item.Member.IsReleased);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    GroupRevisionToken(result.Kind),
+                    Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                    scenario);
+                Assert.That(
+                    result.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                    scenario);
+                Assert.That(
+                    result.CurrentAuthority,
+                    Has.Count.EqualTo(vector.GetProperty("expectedEvaluated").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.InForce?.Admissions.Sum(item => item.Participants.Count) ?? 0,
+                    Is.EqualTo(vector.GetProperty("expectedInForceParticipants").GetInt32()),
+                    scenario);
+                Assert.That(
+                    released,
+                    Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                    scenario);
+
+                // A declined change is local; only a lapse retires, and then the whole activation.
+                Assert.That(
+                    result.InForce,
+                    result.Kind is ComponentGroupRevisionKind.Withdrawn
+                        or ComponentGroupRevisionKind.RetirementFailed
+                        ? Is.Null
+                        : Is.Not.Null,
+                    scenario);
+                Assert.That(
+                    released == active.Lifecycle.Members.Count || released == 0,
+                    Is.True,
+                    scenario);
+            });
+        }
+    }
+
+    [Test]
+    public async Task A_lapse_in_an_untouched_member_retires_the_activation_being_revised()
+    {
+        var (result, active) = await GroupRevisionResult("cbi15-02-unchanged-member-lapsed");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentGroupRevisionKind.Withdrawn));
+            Assert.That(
+                result.Lapsed,
+                Is.EqualTo(new[] { active.Admissions[1].Occurrence }),
+                "The member that lapsed is not the member being revised.");
+            Assert.That(
+                active.Lifecycle!.Members.All(item => item.Member.Stage == PortableCompositionStage.Retired),
+                Is.True);
+        });
+    }
+
+    private static async Task<(ComponentGroupRevisionResult Result, ComponentGroupAuthorityResult Active)>
+        GroupRevisionResult(string scenario)
+    {
+        var resolution = new FakeGenerationResolver().Resolve(
+            PairRequest(["cooling.control"], ["cooling.audit"]));
+        var first = resolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var second = resolution.Generation.ProviderSets.Single(item => item.Requirement == SecondaryRequirement);
+        var handlers = new[]
+        {
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+        };
+        var groupMembers = new[]
+        {
+            new ComponentGroupMember(
+                Selection(first.Members[0]) with { HostEndpoint = "revision-host-primary" },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    CoolingPortableFixture.Contract, handlers[0], PortableRealization.FixedDirectCall))),
+            new ComponentGroupMember(
+                Selection(second.Members[0]) with
+                {
+                    Requirement = SecondaryRequirement,
+                    HostEndpoint = "revision-host-secondary",
+                },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    CoolingPortableFixture.Contract, handlers[1], PortableRealization.FixedDirectCall))),
+        };
+        var admitted = new[]
+        {
+            ProviderAuthority(GroupPolicy(ProviderLocalActor), Authority),
+            SupervisorAuthority(GroupPolicy(ProviderLocalActor), AuditAuthority, revoked: false),
+        };
+        var active = await ComponentGroupAuthority.ActivateAsync(
+            resolution,
+            [
+                new(groupMembers[0], [new(new(groupMembers[0].Selection.Occurrence, Participant), admitted[0])]),
+                new(groupMembers[1], [new(new(groupMembers[1].Selection.Occurrence, Supervisor), admitted[1])]),
+            ],
+            RuntimeRequest(Plan(groupMembers.Select(item => item.Selection.Occurrence).ToArray())));
+
+        // The first member gains an observer; the second member is restated unchanged.
+        var observer = ObserverRequest(GroupPolicy(ProviderLocalActor));
+        var firstDependency = new ComponentGrantDependency(
+            groupMembers[0].Selection.Definition,
+            [new("cooling.control", Capability, Target, Operation, AuthorityScope)]);
+        var secondDependency = new ComponentGrantDependency(
+            groupMembers[1].Selection.Definition,
+            [new("cooling.audit", AuditCapability, Target, AuditOperation, AuthorityScope)]);
+
+        var firstRequests = new List<AuthorityAdmissionRequest> { admitted[0], observer };
+        var secondRequests = new List<AuthorityAdmissionRequest> { admitted[1] };
+        switch (scenario)
+        {
+            case "cbi15-02-unchanged-member-lapsed":
+                secondRequests[0] = Revoked(admitted[1]);
+                break;
+            case "cbi15-04-nothing-changed":
+                firstRequests.RemoveAt(1);
+                break;
+            case "cbi15-05-identity-shared-across-members":
+                firstRequests[1] = observer with
+                {
+                    Authority = [observer.Authority.Single() with { Request = AuditAuthority }],
+                };
+                break;
+            case "cbi15-06-local-actor-shared-across-members":
+                // The observer is mapped onto the Actor the second member's supervisor already holds.
+                firstRequests[1] = ObserverRequest(
+                    GroupPolicy(ProviderLocalActor, observerActor: SupervisorLocalActor));
+                break;
+            case "cbi15-07-dependency-not-covered":
+                firstRequests.RemoveAt(0);
+                break;
+            case "cbi15-08-retained-identity-drift":
+                firstRequests[0] = admitted[0] with
+                {
+                    Authority =
+                    [
+                        admitted[0].Authority.Single() with
+                        {
+                            Capability = CapabilityId.Create("capability.other"),
+                        },
+                    ],
+                };
+                break;
+            default:
+                break;
+        }
+
+        var revisions = new List<ComponentGroupMemberRevision>
+        {
+            new(groupMembers[0].Selection.Occurrence, groupMembers[0].Selection, firstDependency, firstRequests),
+            new(groupMembers[1].Selection.Occurrence, groupMembers[1].Selection, secondDependency, secondRequests),
+        };
+        if (scenario == "cbi15-03-member-set-changed")
+        {
+            revisions.RemoveAt(1);
+        }
+
+        var result = await ComponentGroupRevision.ReviseAsync(
+            resolution,
+            active,
+            revisions,
+            $"group revision {scenario}");
+        return (result, active);
+    }
+
+    private static string GroupRevisionToken(ComponentGroupRevisionKind kind) => kind switch
+    {
+        ComponentGroupRevisionKind.Revised => "revised",
+        ComponentGroupRevisionKind.Declined => "declined",
+        ComponentGroupRevisionKind.Withdrawn => "withdrawn",
+        ComponentGroupRevisionKind.RetirementFailed => "retirement-failed",
+        ComponentGroupRevisionKind.ActivationUnavailable => "activation-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
     private static string GroupRevalidationToken(ComponentGroupRevalidationKind kind) => kind switch
     {
         ComponentGroupRevalidationKind.Continued => "continued",
@@ -2990,10 +3182,14 @@ public sealed class ComponentBindingIntegrationTests
             Array.Empty<TopologyPolicyInput>());
     }
 
+    private static ResolutionRequest PairRequest() => PairRequest([], []);
+
     /// <summary>Two independent requirements, so the generation resolves two distinct occurrences.</summary>
-    private static ResolutionRequest PairRequest()
+    private static ResolutionRequest PairRequest(
+        IReadOnlyList<string> firstAuthority,
+        IReadOnlyList<string> secondAuthority)
     {
-        var single = Request(Cardinality.Parse("1..1"));
+        var single = Request(Cardinality.Parse("1..1"), firstAuthority);
         var secondaryRequirement = single.Definitions
             .Single(item => item.Definition == Consumer).Requirements.Single() with
         {
@@ -3013,6 +3209,7 @@ public sealed class ComponentBindingIntegrationTests
                 {
                     Definition = SecondaryProvider,
                     Provides = [new ProvidedContract(SecondaryContract, Version)],
+                    RequestedAuthority = secondAuthority.ToArray(),
                 },
             ],
             Candidates =

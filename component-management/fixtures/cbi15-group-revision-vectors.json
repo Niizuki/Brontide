@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi15-group-revision-vectors",
+  "vectors": [
+    {
+      "id": "cbi15-01-one-member-revised",
+      "expectedKind": "revised",
+      "expectedCode": "activation-revised",
+      "expectedEvaluated": 3,
+      "expectedInForceParticipants": 3,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi15-02-unchanged-member-lapsed",
+      "expectedKind": "withdrawn",
+      "expectedCode": "authority-not-renewed",
+      "expectedEvaluated": 3,
+      "expectedInForceParticipants": 0,
+      "expectedReleased": 0
+    },
+    {
+      "id": "cbi15-03-member-set-changed",
+      "expectedKind": "declined",
+      "expectedCode": "member-set-changed",
+      "expectedEvaluated": 0,
+      "expectedInForceParticipants": 2,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi15-04-nothing-changed",
+      "expectedKind": "declined",
+      "expectedCode": "activation-unchanged",
+      "expectedEvaluated": 0,
+      "expectedInForceParticipants": 2,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi15-05-identity-shared-across-members",
+      "expectedKind": "declined",
+      "expectedCode": "authority-identity-not-distinct",
+      "expectedEvaluated": 0,
+      "expectedInForceParticipants": 2,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi15-06-local-actor-shared-across-members",
+      "expectedKind": "declined",
+      "expectedCode": "local-actor-shared-across-members",
+      "expectedEvaluated": 3,
+      "expectedInForceParticipants": 2,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi15-07-dependency-not-covered",
+      "expectedKind": "declined",
+      "expectedCode": "dependency-not-covered",
+      "expectedEvaluated": 2,
+      "expectedInForceParticipants": 2,
+      "expectedReleased": 2
+    },
+    {
+      "id": "cbi15-08-retained-identity-drift",
+      "expectedKind": "declined",
+      "expectedCode": "authority-revalidation-mismatch",
+      "expectedEvaluated": 0,
+      "expectedInForceParticipants": 2,
+      "expectedReleased": 2
+    }
+  ]
+}

@@ -142,6 +142,8 @@ CBI14 revalidates that authority afterwards, and answers what a lapse does to th
 activation retires. CM4 gives an activation one restart scope and no way to retire one member while
 it runs, so members that came up together go down together — their independence is about what they
 need from each other, not about what scope they share.
+CBI15 revises those sets: a change is decided per member and checked against the activation, and a
+declined change is local while a discovered lapse is global.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

@@ -57,5 +57,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi14-group-withdrawal-vectors.json"
           Link="component-management\fixtures\cbi14-group-withdrawal-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi15-group-revision-vectors.json"
+          Link="component-management\fixtures\cbi15-group-revision-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
