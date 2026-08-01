@@ -1,12 +1,14 @@
 # Portable Binding — open owner decisions
 
-**Status:** All eleven decisions are **recorded**. Decisions 1 and 2 (the PB0 exit blockers) were
+**Status:** Decisions 1 through 11 are **recorded**; **Decision 12 is open**, raised 2026-08-01 by
+CBI20 and blocking nothing today. Decisions 1 and 2 (the PB0 exit blockers) were
 recorded 2026-07-24. Decisions 3 through 10 were raised by evidence in PB4, PB5, or PB6, ran on a
 provisional implementer choice while each phase proceeded, and were recorded 2026-07-28. Four of
 those eight confirm the provisional choice unchanged; four confirm it and create follow-on work,
 tracked under [Work the rulings create](#work-the-rulings-create).
 **Decision 11 was raised later, by PB7, and was recorded on 2026-07-30**: negotiation now compares
-provider identity and the Binding Plan reports the provider that answered. Non-pinned.
+provider identity and the Binding Plan reports the provider that answered. **Decision 12 was raised by
+CBI20 on 2026-08-01 and awaits a ruling.** Non-pinned.
 
 **How to read this file.** Every decision below is written to be answerable without any other
 context: it states what was observed, what was running when the question was raised and why, what the
@@ -30,6 +32,7 @@ reader can see what was rejected and on what grounds.
 | 9 | The resource floor leaves three C6 conditions unrepresentable | PB6 | **Recorded** 2026-07-28 — accepted; C6's text narrowed |
 | 10 | What supplements independent implementation as a safeguard | PB6 | **Recorded** 2026-07-28 — property tests and completeness review |
 | 11 | The plan's provider fact names who was asked, not who answered | PB7 | **Recorded** 2026-07-30 — negotiation compares the provider; the plan reports who answered |
+| 12 | A receiving-domain Actor freed by a dropped member, taken by a different party | CBI20 | **Open** — raised 2026-08-01; Option A running |
 
 ---
 
@@ -598,3 +601,65 @@ B — a substituted provider is refused — and C is carried by this decision an
 than by a discriminating vector. That limit is stated here rather than left for a later reader to
 notice, because it is exactly the shape Decision 10 warns about: the fixtures agree everywhere, so
 the contract has to speak where the vectors cannot.
+
+---
+
+## Decision 12 — a receiving-domain Actor freed by a dropped member, taken by a different party
+
+**Owner:** Component Management / Portable Binding integration owners.
+**Raised by:** CBI20, twice and independently — two sessions implemented the slice from the same
+priority document, and this is the only substantive answer they disagreed on.
+**Blocks:** nothing today. The merged slice runs Option A, and the window the question is about is
+internal to one synchronous call, so no caller can currently observe either answer.
+
+**Context.** CBI6 refuses two participants of one set being mapped onto one receiving-domain Actor,
+because that would merge their grants into one holder. CBI13 lifts the rule to the activation: across
+the members of one activation the participant-to-local-Actor mapping must be a function and
+injective. Until a membership could change, the rule had nothing to say about a replacement, because
+the successor mapped the same parties onto the same local Actors as the generation it replaced.
+
+CBI20 makes the mappings differ. A dropped member's participant releases its hold on a local Actor,
+and an added member's participant may ask for that same Actor. The two implementations answered
+differently, and both derived their answer from a rule already in the repository:
+
+- the merged slice reads CBI13's rule as **a property of an activation**, and the retained activation
+  ends at cutover, so a local Actor a *dropped* participant held is free for a different party in an
+  *added* member; the same reuse against a **surviving** participant stays refused, because that one
+  is a conflation inside the successor's own mapping;
+- the superseded one read the same rule as **a property of the receiving domain**, and refused the
+  reuse while the retained generation still held it, because CBI19 accepts that both generations are
+  established against the same binding scope between the successor's Release and the retained
+  members' retirement — so for that window a grant admitted for the new party and one admitted for
+  the old are both in force on one local Actor, which is CBI6's stated reason for refusing it.
+
+Two facts bear on it and neither is decisive on its own. The window is real but is inside one method,
+so nothing in either stack can observe it and no vector distinguishes the answers. And CM5 — the
+receiving domain itself — has no notion of an activation or an attempt at all: it admits against an
+occurrence under local policy and would admit both mappings without complaint. The distinctness rule
+exists only in the composition root, so this is a question about what invariant the root intends to
+hold, not about what the modelled domain enforces.
+
+| Option | What it is | Pros | Cons |
+| --- | --- | --- | --- |
+| **A. Permitted for a dropped participant's Actor** *(running, merged)* | CBI13's rule is checked over the successor's membership alone; reuse against a surviving participant stays refused | The rule keeps one scope — an activation — rather than acquiring a second, special one for replacements; a replacement can genuinely re-house a receiving-domain identity; matches CM5, which decides per occurrence and knows nothing of attempts | For the width of the cutover, two parties hold one local Actor across two established generations, which is the state CBI6 refuses within a set; nothing records that the window is intended |
+| **B. Refused while the retained generation still holds it** | The mapping is checked over the union of the retained and successor activations; reuse becomes available only after the retained members retire, through CBI14 retirement and a fresh admission | Preserves CBI6's reason rather than its wording — the conflation is never live, even briefly; fails closed | Gives the rule a scope no other slice uses; forbids a re-housing that is otherwise legitimate; the state it prevents is unobservable in this programme, so the cost is paid against a hazard nothing here can demonstrate |
+| **C. Refused unconditionally across a replacement** | Neither party may change local Actor and no local Actor may change party across a cutover | Simplest to state | Strictly stronger than B and rejected by both readings: it also refuses re-homing a *surviving* party, which is an ordinary CBI13 question the successor's own mapping already answers |
+| **D. Ask the receiving domain** | Model CM5 as holding local-Actor occupancy across attempts and let it refuse | Puts the rule where the identity actually lives | CM5 admits against an occurrence by design and holds no cross-attempt state; adding one is a CM5 contract change, not an integration decision |
+
+**Recommendation: A, with the window written down.** A is running, and the argument that decided it
+is the better-formed one: CBI13's rule is stated over an activation, the retained activation is over
+at cutover, and A keeps the refusal for the case that is genuinely a conflation — a surviving
+participant. B's argument is not wrong, but the state it prevents cannot be reached by any caller in
+this programme, so adopting it would buy an unobservable guarantee at the cost of a rule with a scope
+nothing else uses. What A is missing is not a refusal but a record: the overlap is a deliberate
+window, and neither the CBI19 nor the CBI20 contract says a receiving-domain identity may be reused
+inside it.
+
+**Decision:** **Open.** Raised 2026-08-01.
+
+**What would settle it.** Not a vector, on current evidence — the window is inside one call, so both
+options produce identical observations, which is the shape Decision 10 warns about. It would become
+observable if a replacement ever became interruptible, if retirement of the retained members were
+deferred past the call that cuts over, or if CM5 gained any cross-attempt notion of local-Actor
+occupancy. Any of those three turns this from a question about intent into one a test can answer, and
+each of them argues for B; none is in scope for version 0.1.
