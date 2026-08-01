@@ -125,6 +125,12 @@ cutover. The membership is read from the successor generation rather than taken 
 rule CBI19 declared and never checked — and the added, dropped, and surviving occurrences are derived
 from it. A dropped occurrence's authority is not re-established because there is nothing to admit it
 against, and an added position joins only across the cutover.
+CBI21 activates a strongly connected group that declares no lifecycle protocol. CM3 groups by
+strongly connected component over every edge, so being cyclic is not the same as needing a handshake,
+and CBI12 refused the first for a property only the second has. A group that does declare one is
+refused by name: Portable Binding's Composition handoff declares Relational Initialisation out of
+scope, offers a composition one traffic verb gated on Release, and reports Ready during
+Interconnection, so there is no window before the readiness CM4 requires a handshake to precede.
 
 ## Build and test
 

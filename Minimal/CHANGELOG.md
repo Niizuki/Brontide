@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased — CBI21 strongly connected activation groups
+
+### Added
+
+- Minimal Host activation of a strongly connected group that declares no lifecycle protocol, and of a plan
+  mixing such a group with singleton ones.
+- A named refusal for a group declaring bounded lifecycle protocols, which Portable Binding's
+  Composition handoff declares out of scope.
+- Evidence locating that refusal: CM3 produces the plan, CM4 accepts it with its declared handshakes
+  supplied, and only the portable seam declines it.
+- Shared strongly-connected-group vectors, a phase-boundary completeness review, and a named test for
+  every contract item.
+
+### Changed
+
+- The plan refusal reports which condition fired — a declared protocol, an unplanned member, an
+  unselected member, or a repeated selection — where it previously reported one code for all four.
+  CBI12's vectors pin the specific codes now.
+
+CBI21's first finding corrects CBI12 rather than extending it: CM3 groups by strongly connected
+component over every edge, so a cyclic group is not the same thing as a group needing Relational
+Initialisation, and CBI12 refused the first for a property only the second has. What the seam would
+need to host the stage is recorded as Decision 13 rather than approximated.
+
 ## Unreleased — CBI20 membership replacement
 
 ### Added

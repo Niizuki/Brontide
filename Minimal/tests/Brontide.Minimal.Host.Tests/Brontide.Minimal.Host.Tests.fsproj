@@ -61,6 +61,9 @@
     <None Include="..\..\..\component-management\fixtures\cbi20-membership-replacement-vectors.json"
           Link="component-management\fixtures\cbi20-membership-replacement-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi21-strongly-connected-group-vectors.json"
+          Link="component-management\fixtures\cbi21-strongly-connected-group-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />

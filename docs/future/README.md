@@ -85,9 +85,10 @@ implementations on partial-match and count semantics, which the fixture contract
 PB-70 and PB-71 settle both, with the rules derived from the declared Shapes rather than adopted from
 whichever implementation was read first, and Minimal brought to them.
 
-Two questions remain open, and neither is one of the eight: whether to ratify the provisional Channel
-Shape and category names or publish an explicitly migrated revision, and Decision 12, raised by CBI20
-on 2026-08-01.
+Three questions remain open, and none is one of the eight: whether to ratify the provisional Channel
+Shape and category names or publish an explicitly migrated revision, Decision 12, raised by CBI20 on
+2026-08-01, and Decision 13, raised by CBI21 the same day — the only one of the three that blocks
+implementation work, since it holds every CM3 group declaring a bounded lifecycle protocol.
 
 **PB7 added the Composition handoff**: the narrow seam by which a resolved Component requirement and
 an offered provision produce a Binding Plan during activation preflight. It consumes a resolution and
@@ -499,15 +500,45 @@ the same binding scope for the width of the cutover. No vector distinguishes the
 [`contract-completeness review`](../../component-management/cbi20-contract-completeness-review.md)
 bound it to one successor generation resolving a different set of positions over protocol-free members.
 
-**Relational Initialisation is the next implementable item.** Every slice from CBI12 onward has
-activated protocol-free members only, refusing a cyclic group because a multi-member group is a
-strongly connected component and that is what Relational Initialisation exists for. It has to decide
-what a bounded lifecycle protocol between two members means for the release barrier, whether authority
-for lifecycle traffic is the same admission CBI13 grants for ordinary interaction or a separate one, and
-what a protocol that fails mid-handshake leaves behind. Child Ports, mediation, wider Provider Sets, and
-real distribution remain future work behind it. PB8's independent reviews remain a separate governance
-prerequisite rather than implementation work; Decision 11 was ruled on and delivered on 2026-07-30,
-and Decision 12 awaits a ruling without blocking anything.
+CBI21 reaches Relational Initialisation, and its first result is that **CBI12 refused two different
+things under one justification**. CBI12 declines a multi-member group because "a multi-member group is
+a strongly connected component, which is what Relational Initialisation exists for". CM3 computes
+strongly connected components over *every* edge, so two Components with mutual ordinary-interaction
+edges are one cyclic group that declares no protocol, no relational stage, and a stage plan CM4
+returns Active for. Being cyclic and needing a handshake are two properties, and only the second is a
+reason this seam cannot host a group. CBI21 delivers the first and refuses the second by name.
+
+**What stays refused is refused by Portable Binding's own published contract, and this slice locates
+it rather than deciding it.** The PB7 Composition handoff lists Relational Initialisation in its
+`outOfScope` array. Two things are missing and the second is the one a later implementer would miss:
+the seam offers a composition exactly one traffic verb and gates it on Release, and a portable member
+reports Ready *during* Interconnection, while CM4 requires the handshake to complete **before** Ready.
+Adding a verb without splitting that step would leave the handshake with nowhere to run that still
+precedes the readiness it must precede. The vectors show CM3 produced the plan and CM4 accepts it with
+its own declared handshakes supplied, so the integration is the only refusal in the chain.
+
+The three questions this item recorded — what a bounded protocol means for the release barrier,
+whether lifecycle-traffic authority is CBI13's admission or a separate one, and what a handshake
+failing midway leaves behind — are therefore **unreachable rather than undecided**, and answering them
+here would settle a Portable Binding contract question inside a Component Management slice. What the
+seam would need is **Decision 13**, raised 2026-08-01 and open: leave the stage out of scope, or split
+readiness from establishment and add a declared-protocol verb, which is a version boundary's work
+rather than a slice's. CBI12's plan refusal also stops reporting one code for four conditions. The
+[`CBI21 capability contract`](../../component-management/cbi21-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi21-contract-completeness-review.md)
+bound it to protocol-free strongly connected groups over one activation.
+
+**Child Ports are the next implementable item.** CM4 models a child activation attaching to a
+runtime-open Port of an active parent generation, with its own restart scope, an initial attachment
+that is not hot replacement, a sealed Port refused, an occupied Port requiring an explicit replacement
+lifecycle declaration, and a host-assisted ordering in which the child's internal Release precedes the
+exported outer boundary. None of it has been reached: CBI1 refuses a position carrying a child Port
+envelope, and every activation since has used one restart scope. It has to decide whether a child's
+members are portable members of the same composition root or of a nested one, and what the parent's
+release barrier means for a child that is still coming up. Mediation, wider Provider Sets, and real
+distribution remain future work behind it, and Relational Initialisation waits on Decision 13. PB8's
+independent reviews remain a separate governance prerequisite rather than implementation work;
+Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 and 13 await rulings.
 
 ## Other planned areas
 

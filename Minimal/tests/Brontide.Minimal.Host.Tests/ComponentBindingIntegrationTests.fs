@@ -446,6 +446,37 @@ type ComponentBindingIntegrationTests() =
                       Definition = secondaryProvider
                       Provides = [ { Contract = secondaryContractId; Version = version } ] } ] }
 
+    /// A strongly connected group that declares no protocol: the members interact ordinarily, which
+    /// is enough to make one component of the graph and nothing more.
+    let cyclePlan (cycle: OccurrenceId list) (isolated: OccurrenceId list) =
+        let members = cycle @ isolated |> List.map activationMember
+        let edges =
+            cycle
+            |> List.mapi (fun index occurrence ->
+                { Edge = ActivationEdgeId.create (sprintf "edge.cycle-%d" index)
+                  From = occurrence
+                  To = List.item ((index + 1) % cycle.Length) cycle
+                  Kind = ActivationDependencyKind.OrdinaryInteraction
+                  Contract = contractId
+                  Version = version
+                  // Ordinary traffic observed before Release is what CM3 refuses; this only declares
+                  // that the members interact once both are serving.
+                  ObservedBeforeRelease = false
+                  Protocol = None
+                  CrossingPort = None
+                  AllowWiderRegionProposal = false })
+        let groupRequest =
+            { Request = ActivationGroupRequestId.create "group.integration"
+              Generation = GenerationId.create "gen.lifecycle"
+              RestartScope = RestartScopeId.create "restart.lifecycle"
+              Members = members
+              Edges = edges
+              Protocols = []
+              RegionCrossings = [] }
+        match FakeActivationGroupPlanner.plan groupRequest with
+        | Planned value -> value
+        | outcome -> failwithf "CM3 refused the ordinary cycle: %A" outcome
+
     /// A genuinely cyclic group: one strongly connected component carrying protocols.
     let protocolPlan (occurrences: OccurrenceId list) =
         let forward = ActivationEdgeId.create "edge.forward"
@@ -1574,6 +1605,56 @@ type ComponentBindingIntegrationTests() =
                     { candidate with
                         Definition = definition
                         Provides = [ { Contract = contract; Version = version } ] }) }
+
+    /// One CBI21 scenario: the plan it is given and the members it selects.
+    let stronglyConnectedResult scenario =
+        task {
+            let requirements =
+                if scenario = "cbi21-02-mixed-grouping-activated" then
+                    [ requirementId; secondaryRequirementId; tertiaryRequirementId ]
+                else
+                    [ requirementId; secondaryRequirementId ]
+            let resolution = requestForPositions requirements |> FakeGenerationResolver.resolve
+            let providerSets =
+                match resolution with
+                | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            let handlers = requirements |> List.map (fun _ -> CoolingHandler())
+            let members =
+                requirements
+                |> List.mapi (fun index requirement ->
+                    let position =
+                        providerSets
+                        |> List.find (fun item -> item.Requirement = requirement)
+                        |> fun item -> List.exactlyOne item.Members
+                    { Selection =
+                        { selection position with
+                            Requirement = requirement
+                            HostEndpoint = sprintf "cycle-host-%d" index }
+                      Conversation =
+                        PortableDirectConversation(
+                            PortableProviderEndpoint(
+                                CoolingFixture.contract,
+                                List.item index handlers,
+                                Realization.FixedDirectCall))
+                        :> IPortableProviderConversation })
+            let occurrences = members |> List.map _.Selection.Occurrence
+            let planValue, selected =
+                match scenario with
+                | "cbi21-02-mixed-grouping-activated" ->
+                    cyclePlan [ List.item 0 occurrences; List.item 1 occurrences ] [ List.item 2 occurrences ],
+                    members
+                | "cbi21-03-protocol-group-refused" -> protocolPlan occurrences, members
+                | "cbi21-04-member-not-planned" -> cyclePlan [ List.item 0 occurrences ] [], members
+                | "cbi21-05-member-not-selected" -> cyclePlan occurrences [], [ List.item 0 members ]
+                | "cbi21-06-member-not-distinct" ->
+                    cyclePlan [ List.item 0 occurrences ] [],
+                    [ List.item 0 members; List.item 0 members ]
+                | _ -> cyclePlan occurrences [], members
+            let! result =
+                ComponentGroupLifecycle.activate resolution selected (runtimeRequest planValue)
+            return result, planValue, handlers
+        }
 
     /// The positions the successor generation resolves, per scenario.
     let membershipPositions scenario =
@@ -3038,6 +3119,289 @@ type ComponentBindingIntegrationTests() =
                     // A set is in force exactly while the member is released.
                     Assert.That(result.InForce.IsSome, Is.EqualTo released, scenario)
                     Assert.That(handler.ProviderEffectCount, Is.Zero, scenario))
+        }
+
+    [<Test>]
+    member _.``shared CBI21 vectors activate a strongly connected group without a protocol``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi21-strongly-connected-group-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI21 vector identity must be a string"
+                    | value -> value
+                let! result, planValue, handlers = stronglyConnectedResult scenario
+                let expectedCode = vector.GetProperty("expectedCode")
+                multiple (fun () ->
+                    Assert.That(
+                        ComponentGroupLifecycle.isActive result,
+                        Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()),
+                        scenario)
+                    Assert.That(
+                        result.Failure |> Option.map _.Code,
+                        Is.EqualTo(
+                            if expectedCode.ValueKind = JsonValueKind.Null then
+                                None
+                            else
+                                Some(expectedCode.GetString())),
+                        scenario)
+                    Assert.That(
+                        planValue.Groups.Length,
+                        Is.EqualTo(vector.GetProperty("expectedGroups").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        planValue.Groups |> List.sumBy (fun group -> group.Members.Length),
+                        Is.EqualTo(vector.GetProperty("expectedMembers").GetInt32()),
+                        sprintf "%s: the plan carries the members the vector names." scenario)
+                    Assert.That(
+                        result.Members.Length,
+                        Is.EqualTo(vector.GetProperty("expectedPrepared").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Members |> List.filter _.Member.IsReleased |> List.length,
+                        Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                        scenario)
+                    // Grouping changes which members CM4 expects observations for; it changes no
+                    // barrier.
+                    Assert.That(
+                        (result.Members |> List.forall _.Member.IsReleased)
+                        || (result.Members |> List.forall (fun item -> not item.Member.IsReleased)),
+                        Is.True,
+                        sprintf
+                            "%s: the release barrier is the activation's, whatever the grouping."
+                            scenario)
+                    Assert.That(
+                        handlers |> List.sumBy _.ProviderEffectCount,
+                        Is.EqualTo 0,
+                        sprintf "%s: activation exercises nothing of its own." scenario))
+        }
+
+    [<Test>]
+    member _.``C1 a group is refused for its protocols and not for its members``() =
+        task {
+            let! cycle, _, _ = stronglyConnectedResult "cbi21-01-ordinary-cycle-activated"
+            let! mixed, mixedPlan, _ = stronglyConnectedResult "cbi21-02-mixed-grouping-activated"
+            let! unplanned, _, _ = stronglyConnectedResult "cbi21-04-member-not-planned"
+            let! unselected, _, _ = stronglyConnectedResult "cbi21-05-member-not-selected"
+            let! repeated, _, _ = stronglyConnectedResult "cbi21-06-member-not-distinct"
+            multiple (fun () ->
+                Assert.That(
+                    ComponentGroupLifecycle.isActive cycle,
+                    Is.True,
+                    "A cyclic group that declares no protocol needs nothing this seam lacks.")
+                Assert.That(ComponentGroupLifecycle.isActive mixed, Is.True)
+                Assert.That(
+                    mixedPlan.Groups
+                    |> List.map (fun group -> string group.Members.Length)
+                    |> List.sort
+                    |> String.concat ",",
+                    Is.EqualTo "1,2",
+                    "One plan carrying a singleton group and a cyclic pair activates as one activation.")
+                Assert.That(unplanned.Failure.Value.Code, Is.EqualTo "member-not-planned")
+                Assert.That(unselected.Failure.Value.Code, Is.EqualTo "member-not-selected")
+                Assert.That(repeated.Failure.Value.Code, Is.EqualTo "member-not-distinct")
+                Assert.That(
+                    [ unplanned; unselected; repeated ]
+                    |> List.forall (fun item -> item.Members.IsEmpty && item.Runtime.IsNone),
+                    Is.True,
+                    "Every plan refusal happens before a member is prepared."))
+        }
+
+    [<Test>]
+    member _.``C2 a declared bounded protocol is refused by name``() =
+        task {
+            let! refused, planValue, handlers = stronglyConnectedResult "cbi21-03-protocol-group-refused"
+            multiple (fun () ->
+                Assert.That(
+                    refused.Failure.Value.Kind,
+                    Is.EqualTo ComponentGroupActivationFailureKind.PlanUnsupported)
+                Assert.That(
+                    refused.Failure.Value.Code,
+                    Is.EqualTo "relational-initialisation-unsupported")
+                Assert.That(
+                    refused.Failure.Value.Reason,
+                    Does.Contain "Relational Initialisation",
+                    "The refusal names the stage rather than the group's shape.")
+                Assert.That(
+                    (List.exactlyOne planValue.Groups).Protocols.Length,
+                    Is.EqualTo 2,
+                    "The plan really does declare bounded protocols.")
+                Assert.That(refused.Members, Is.Empty)
+                Assert.That(handlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0))
+        }
+
+    [<Test>]
+    member _.``C3 the refusal is the seam's and CM3 and CM4 both accept the plan``() =
+        task {
+            let! refused, planValue, _ = stronglyConnectedResult "cbi21-03-protocol-group-refused"
+            let baseRequest = runtimeRequest planValue
+            let supplied =
+                { baseRequest with
+                    StageOutcomes =
+                        planValue.Groups
+                        |> List.collect (fun group ->
+                            group.Members
+                            |> List.collect (fun groupMember ->
+                                group.Stages
+                                |> List.map (fun stage ->
+                                    { Group = group.Group
+                                      Member = groupMember.Occurrence
+                                      Stage = stage.Stage
+                                      Succeeded = true
+                                      Detail = "supplied" })))
+                    InteractionAttempts =
+                        planValue.Groups
+                        |> List.collect (fun group ->
+                            group.Protocols
+                            |> List.mapi (fun index protocol ->
+                                { Interaction =
+                                    RuntimeInteractionId.create (sprintf "interaction.%d" index)
+                                  Group = group.Group
+                                  From = protocol.From
+                                  To = protocol.To
+                                  Phase = RuntimeInteractionPhase.RelationalInitialisation
+                                  Kind = RuntimeInteractionKind.Lifecycle
+                                  Edge = protocol.Edge
+                                  Operation = Some protocol.Operation
+                                  Capability = Some(List.head protocol.Authority)
+                                  InputShape = Some protocol.InputShape })) }
+            let runtime = FakeActivationRuntime.activate supplied
+            multiple (fun () ->
+                Assert.That(
+                    ComponentGroupLifecycle.isActive refused,
+                    Is.False,
+                    "The integration refuses it.")
+                Assert.That(
+                    (List.exactlyOne planValue.Groups).Stages
+                    |> List.exists (fun stage ->
+                        stage.Stage = ActivationStage.RelationalInitialisationStage),
+                    Is.True,
+                    "CM3 planned the stage.")
+                Assert.That(
+                    runtime.Kind,
+                    Is.EqualTo ActivationRuntimeOutcomeKind.Active,
+                    "And CM4 accepts the plan and its declared handshakes, so neither of them is the refusal."))
+        }
+
+    [<Test>]
+    member _.``C4 the seam leaves no window for a relational stage``() =
+        task {
+            let resolution = requestForPositions [ requirementId ] |> FakeGenerationResolver.resolve
+            let position =
+                match resolution with
+                | ResolutionOutcome.Resolved(_, generation) ->
+                    generation.ProviderSets
+                    |> List.exactlyOne
+                    |> fun item -> List.exactlyOne item.Members
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            let prepared =
+                match ComponentBindingIntegration.prepare resolution (selection position) with
+                | ComponentBindingIntegrationResult.Prepared memberValue -> memberValue
+                | outcome -> failwithf "Expected a prepared member, got %A." outcome
+            let readyBefore = prepared.IsReady
+            let! interconnected = prepared.Interconnect(directCooling CoolingFixture.contract)
+            multiple (fun () ->
+                Assert.That(readyBefore, Is.False)
+                Assert.That(Result.isOk interconnected, Is.True)
+                Assert.That(
+                    prepared.IsReady,
+                    Is.True,
+                    "Interconnection carries establishment and the readiness signal together.")
+                Assert.That(
+                    CompositionStage.token prepared.Stage,
+                    Is.EqualTo "interconnected",
+                    "So a member is Ready before anything else the seam offers can be called, and CM4 requires Relational Initialisation to precede Ready."))
+        }
+
+    [<Test>]
+    member _.``C5 the seam has no lifecycle traffic verb``() =
+        task {
+            let resolution = requestForPositions [ requirementId ] |> FakeGenerationResolver.resolve
+            let position =
+                match resolution with
+                | ResolutionOutcome.Resolved(_, generation) ->
+                    generation.ProviderSets
+                    |> List.exactlyOne
+                    |> fun item -> List.exactlyOne item.Members
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            let prepared =
+                match ComponentBindingIntegration.prepare resolution (selection position) with
+                | ComponentBindingIntegrationResult.Prepared memberValue -> memberValue
+                | outcome -> failwithf "Expected a prepared member, got %A." outcome
+            let handler = CoolingHandler()
+            let! _ =
+                prepared.Interconnect(
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(
+                            CoolingFixture.contract,
+                            handler,
+                            Realization.FixedDirectCall))
+                    :> IPortableProviderConversation)
+            let! attempted =
+                prepared.Invoke(
+                    CoolingFixture.setEnabled,
+                    CoolingFixture.commandV1,
+                    CoolingFixture.authorizedCommand "primary" true,
+                    PortableConstraint.Atom PortableTruth.Satisfied)
+            multiple (fun () ->
+                Assert.That(prepared.IsReady, Is.True)
+                Assert.That(
+                    (match attempted with
+                     | Ok value -> value.Category
+                     | Error _ -> None),
+                    Is.EqualTo(Some ProtocolCategory.StateViolation),
+                    "The one verb a composition can initiate is gated on Release, and the refusal is the portable layer's own.")
+                Assert.That(
+                    (match attempted with
+                     | Ok value -> value.FrameDecision
+                     | Error _ -> FrameDecision.None),
+                    Is.EqualTo FrameDecision.None,
+                    "So a declared handshake could not reach a provider even if one were named.")
+                Assert.That(handler.ProviderEffectCount, Is.EqualTo 0))
+        }
+
+    [<Test>]
+    member _.``C6 a delivered group activates on CBI12 terms``() =
+        task {
+            let! cycle, planValue, handlers = stronglyConnectedResult "cbi21-01-ordinary-cycle-activated"
+            multiple (fun () ->
+                Assert.That(ComponentGroupLifecycle.isActive cycle, Is.True)
+                Assert.That(
+                    (List.exactlyOne planValue.Groups).Cyclic,
+                    Is.True,
+                    "One group, and CM3 calls it cyclic.")
+                Assert.That(
+                    (List.exactlyOne planValue.Groups).Stages
+                    |> List.exists (fun stage ->
+                        stage.Stage = ActivationStage.RelationalInitialisationStage),
+                    Is.False,
+                    "And it declares no relational stage, which is why it is deliverable.")
+                Assert.That(cycle.Members |> List.forall _.Member.IsReleased, Is.True)
+                Assert.That(cycle.Runtime.Value.Kind, Is.EqualTo ActivationRuntimeOutcomeKind.Active)
+                Assert.That(handlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0))
+        }
+
+    [<Test>]
+    member _.``C7 a delivered group performs none of its internal edges``() =
+        task {
+            let! cycle, planValue, handlers = stronglyConnectedResult "cbi21-01-ordinary-cycle-activated"
+            multiple (fun () ->
+                Assert.That(
+                    (List.exactlyOne planValue.Groups).InternalEdges.Length,
+                    Is.EqualTo 2,
+                    "The edges that made the group are declarations.")
+                Assert.That(
+                    cycle.Runtime.Value.Observation.BindingExercises,
+                    Is.Empty,
+                    "Activation produces no binding exercise of its own; that is CBI16's question.")
+                Assert.That(cycle.Runtime.Value.Observation.Interactions, Is.Empty)
+                Assert.That(handlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0))
         }
 
     [<Test>]

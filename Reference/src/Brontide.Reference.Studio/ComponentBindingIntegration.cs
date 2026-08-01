@@ -2120,12 +2120,12 @@ public static class ComponentGroupLifecycle
         var ordered = members
             .OrderBy(item => item.Selection.Occurrence.Value, StringComparer.Ordinal)
             .ToArray();
-        if (!SupportedPlan(runtimeRequest.Plan, ordered))
+        if (UnsupportedPlan(runtimeRequest.Plan, ordered) is { } unsupported)
         {
             return Refuse(
                 ComponentGroupActivationFailureKind.PlanUnsupported,
-                "plan-unsupported",
-                "CBI12 activates one protocol-free single-member group per selected occurrence, and no others.");
+                unsupported.Code,
+                unsupported.Reason);
         }
 
         var prepared = new List<ComponentGroupMemberOutcome>();
@@ -2278,22 +2278,65 @@ public static class ComponentGroupLifecycle
                 failed));
     }
 
-    private static bool SupportedPlan(
+    private static (string Code, string Reason)? UnsupportedPlan(
         Cm.ActivationGroupPlan plan,
         IReadOnlyList<ComponentGroupMember> members) =>
-        SupportedPlan(plan, members.Select(item => item.Selection.Occurrence).ToArray());
+        UnsupportedPlan(plan, members.Select(item => item.Selection.Occurrence).ToArray());
 
-    internal static bool SupportedPlan(
+    /// <summary>
+    /// Says why a CM3 plan cannot be activated across the portable seam, or nothing if it can.
+    /// </summary>
+    /// <remarks>
+    /// The unit of refusal is a group's declared protocols, not its member count. CM3 groups by
+    /// strongly connected component over every edge, so two Components with mutual ordinary
+    /// interaction are one cyclic group that declares no protocol, no Relational Initialisation
+    /// stage, and a stage plan CM4 activates — which is nothing this seam lacks. What it lacks is the
+    /// stage itself: the Composition handoff declares Relational Initialisation out of scope, and a
+    /// portable member is Ready the moment Interconnection returns, so there is no window before
+    /// Ready in which a declared handshake could run.
+    /// </remarks>
+    internal static (string Code, string Reason)? UnsupportedPlan(
         Cm.ActivationGroupPlan plan,
         IReadOnlyList<Cm.OccurrenceId> occurrences)
     {
+        if (ComponentParticipantAdmission.FirstDuplicate(
+                occurrences.Select(item => item.Value)) is { } repeated)
+        {
+            return ("member-not-distinct", $"Occurrence '{repeated}' is selected more than once.");
+        }
+
+        var relational = plan.Groups.FirstOrDefault(group => group.Protocols.Count > 0);
+        if (relational is not null)
+        {
+            return (
+                "relational-initialisation-unsupported",
+                $"Group '{relational.Group}' declares {relational.Protocols.Count} bounded lifecycle protocol(s), and Portable Binding declares Relational Initialisation outside the Composition handoff.");
+        }
+
+        var planned = plan.Groups
+            .SelectMany(group => group.Members.Select(member => member.Occurrence))
+            .ToHashSet();
+        var unplanned = occurrences
+            .Where(item => !planned.Contains(item))
+            .OrderBy(item => item.Value, StringComparer.Ordinal)
+            .ToArray();
+        if (unplanned.Length > 0)
+        {
+            return (
+                "member-not-planned",
+                $"The CM3 plan carries no member for {string.Join(", ", unplanned.Select(item => item.Value))}.");
+        }
+
         var selected = occurrences.ToHashSet();
-        return selected.Count == occurrences.Count &&
-            plan.Groups.Count == occurrences.Count &&
-            plan.Groups.All(group =>
-                group.Members.Count == 1 &&
-                group.Protocols.Count == 0 &&
-                selected.Contains(group.Members[0].Occurrence));
+        var unselected = planned
+            .Where(item => !selected.Contains(item))
+            .OrderBy(item => item.Value, StringComparer.Ordinal)
+            .ToArray();
+        return unselected.Length == 0
+            ? null
+            : (
+                "member-not-selected",
+                $"The CM3 plan carries {string.Join(", ", unselected.Select(item => item.Value))}, which this activation did not select.");
     }
 
     internal static IReadOnlyList<Cm.MemberStageOutcome> GroupStageOutcomes(
@@ -3069,9 +3112,9 @@ public static class ComponentGroupVerification
             }
         }
 
-        if (!ComponentGroupLifecycle.SupportedPlan(
+        if (ComponentGroupLifecycle.UnsupportedPlan(
                 runtimeRequest.Plan,
-                prior.Select(item => item.Occurrence).ToArray()))
+                prior.Select(item => item.Occurrence).ToArray()) is not null)
         {
             return Decline(
                 ComponentGroupVerificationKind.Declined,

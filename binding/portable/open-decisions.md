@@ -1,14 +1,15 @@
 # Portable Binding — open owner decisions
 
-**Status:** Decisions 1 through 11 are **recorded**; **Decision 12 is open**, raised 2026-08-01 by
-CBI20 and blocking nothing today. Decisions 1 and 2 (the PB0 exit blockers) were
+**Status:** Decisions 1 through 11 are **recorded**; **Decisions 12 and 13 are open**, raised
+2026-08-01 by CBI20 and CBI21. Decision 12 blocks nothing; Decision 13 blocks every activation of a
+CM3 group that declares a bounded lifecycle protocol. Decisions 1 and 2 (the PB0 exit blockers) were
 recorded 2026-07-24. Decisions 3 through 10 were raised by evidence in PB4, PB5, or PB6, ran on a
 provisional implementer choice while each phase proceeded, and were recorded 2026-07-28. Four of
 those eight confirm the provisional choice unchanged; four confirm it and create follow-on work,
 tracked under [Work the rulings create](#work-the-rulings-create).
 **Decision 11 was raised later, by PB7, and was recorded on 2026-07-30**: negotiation now compares
-provider identity and the Binding Plan reports the provider that answered. **Decision 12 was raised by
-CBI20 on 2026-08-01 and awaits a ruling.** Non-pinned.
+provider identity and the Binding Plan reports the provider that answered. **Decisions 12 and 13 were raised by
+CBI20 and CBI21 on 2026-08-01 and await rulings.** Non-pinned.
 
 **How to read this file.** Every decision below is written to be answerable without any other
 context: it states what was observed, what was running when the question was raised and why, what the
@@ -33,6 +34,7 @@ reader can see what was rejected and on what grounds.
 | 10 | What supplements independent implementation as a safeguard | PB6 | **Recorded** 2026-07-28 — property tests and completeness review |
 | 11 | The plan's provider fact names who was asked, not who answered | PB7 | **Recorded** 2026-07-30 — negotiation compares the provider; the plan reports who answered |
 | 12 | A receiving-domain Actor freed by a dropped member, taken by a different party | CBI20 | **Open** — raised 2026-08-01; Option A running |
+| 13 | Relational Initialisation is declared out of scope, and CM4 needs it | CBI21 | **Open** — raised 2026-08-01; Option A running |
 
 ---
 
@@ -663,3 +665,58 @@ observable if a replacement ever became interruptible, if retirement of the reta
 deferred past the call that cuts over, or if CM5 gained any cross-attempt notion of local-Actor
 occupancy. Any of those three turns this from a question about intent into one a test can answer, and
 each of them argues for B; none is in scope for version 0.1.
+
+---
+
+## Decision 13 — Relational Initialisation is declared out of scope, and CM4 needs it
+
+**Owner:** Portable Binding contract maintainers, with the Component Management integration owners.
+**Raised by:** CBI21, on finding that the seam and CM4 disagree about whether the stage exists.
+**Blocks:** any activation of a CM3 group that declares a bounded lifecycle protocol. CBI21 refuses
+those as `relational-initialisation-unsupported`; nothing else is blocked, because a strongly
+connected group that declares no protocol activates today.
+
+**Context.** CM3 plans a group carrying bounded lifecycle protocols with four stages — local
+initialisation, interconnection, **relational initialisation**, ready — and CM4 admits a lifecycle
+interaction only during the third, matching it against exactly one declared protocol by edge,
+direction, Operation, Capability, and input Shape. The PB7 Composition handoff declares
+`Relational Initialisation` in its `outOfScope` array, and its stages run local initialisation →
+interconnection → ready → release with nothing between the last two.
+
+Two independent things are missing, and the second is easy to overlook:
+
+- **No verb.** The seam offers a composition exactly one traffic verb, and it is gated on Release.
+  Establishment, readiness, withdrawal, and termination are the seam's own lifecycle traffic and none
+  of them names an Operation, a Capability, or an input Shape, which a declared protocol does.
+- **No window.** A portable member reports Ready *during* Interconnection: establishment and the
+  readiness signal are one step, so the member is Ready the moment Interconnection returns. CM4
+  requires Relational Initialisation to complete **before** Ready. Adding a verb without splitting
+  that step would leave the handshake with nowhere to run that still precedes the readiness it must
+  precede.
+
+There is also a structural question underneath both. A portable member binds a **host to a provider**;
+a declared protocol is traffic from one group member **to another**. Whether the second is expressible
+as the first — the composition root standing in for the initiating Component, as CBI1 already has it
+stand in for the consumer — or needs a Component-to-Component binding the layer does not define, is
+the part of this decision with the widest blast radius.
+
+| Option | What it is | Pros | Cons |
+| --- | --- | --- | --- |
+| **A. Leave it out of scope** *(running)* | Version 0.1 keeps the declaration; CBI21's refusal names it and a composition needing a handshake does not use this seam for it | No contract change; the published schemas, vectors, and the pending independent review stay as they are; strongly connected groups that need no handshake are already delivered | CM3 and CM4 model a stage the integration can never reach, so a whole class of CM4 plan is permanently unactivatable through Portable Binding, and the two models stay knowingly out of step |
+| **B. Split readiness from establishment, and add a declared-protocol verb** | Interconnection stops implying Ready; a `relational` stage sits between them, carrying an Operation, Capability, and input Shape drawn from the group's CM3 protocols and refused otherwise; Ready becomes a separate signal | Matches CM4's stage order exactly, so the derived observations stay derived rather than claimed; the refusal rules already exist in CM4 and would be mirrored, not invented | The largest change in the layer: a new stage in the published contract, a new envelope kind, new neutral vectors in both directions, and re-measurement of the parity profiles; the pending PB8 independent reviews would be reviewing a moved target |
+| **C. Add the verb without splitting readiness** | A pre-Release traffic verb admitted while interconnected, with the handshake running after Ready | Much smaller than B; no envelope or stage change | Produces the wrong order: a handshake after Ready cannot be projected into CM4 as a Relational Initialisation interaction without claiming a sequence that did not happen, which is the class of false projection CBI10 and CBI16 exist to refuse. Not recommended in any form |
+| **D. Model a Component-to-Component binding** | A binding whose two ends are both provisions, of which the protocol is ordinary traffic | Puts peer traffic where peer traffic belongs and would serve more than this stage | A new binding kind in a layer built end-to-end around one host and one provider; far beyond what the stage needs and not obviously required, since the composition root can initiate on a member's behalf |
+
+**Recommendation: A for version 0.1, B for the version that follows, and C ruled out.** A is
+running and costs nothing today; the group shapes that need no handshake are delivered, and the
+refusal now names the missing capability rather than a group's shape. B is the only option that makes
+the observation honest, and it is a version boundary's worth of work rather than a slice's — it
+should be planned with the PB8 reviews rather than landed under them. C is listed only to record why
+the cheap option is wrong, since it is the one a later implementer will reach for first.
+
+**Decision:** **Open.** Raised 2026-08-01.
+
+**What would settle it.** Whether the Composition handoff's `outOfScope` list is a statement about
+version 0.1 or about the seam. If the former, B is scheduling; if the latter, CM4's relational stage
+needs a different realisation than Portable Binding, and the integration's answer is A permanently —
+which should then be said in CM4's own contract rather than left as an integration refusal.

@@ -265,6 +265,22 @@ the wrong door. Its bounded behavior is recorded in the
 [CBI20 capability contract](./cbi20-capability-contract.md) and completed
 [contract-completeness review](./cbi20-contract-completeness-review.md).
 
+CBI21 reaches the last stage neither the integration nor the seam has exercised, and its first result
+is that **CBI12 refused two different things under one justification**. CBI12 declines a multi-member
+group because "a multi-member group is a strongly connected component, which is what Relational
+Initialisation exists for" — but CM3 groups by strongly connected component over *every* edge, so two
+Components with mutual ordinary interaction are one cyclic group declaring no protocol, no relational
+stage, and a stage plan CM4 activates. That group needs nothing the seam lacks, and CBI21 delivers it.
+**What stays refused is refused by Portable Binding's own published contract**: the PB7 Composition
+handoff lists Relational Initialisation in its `outOfScope` array, offers a composition one traffic
+verb gated on Release, and reports Ready *during* Interconnection — so there is no verb for a declared
+handshake and no window before the readiness CM4 requires it to precede. A protocol-bearing plan is
+therefore refused by name while CM3 and CM4 both accept it, which locates the gap rather than
+papering over it, and what the seam would need is recorded as Decision 13 rather than approximated
+here. Its bounded behavior is recorded in the
+[CBI21 capability contract](./cbi21-capability-contract.md) and completed
+[contract-completeness review](./cbi21-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -500,6 +516,16 @@ added and dropped, so the derived membership sets and the cutover-only rule for 
 checked answers. The cutover vectors keep CBI19's own outcome codes, because CBI20 delegates the cutover
 rather than restating it. The fixture contains no runtime, evaluator, resolver, or portable
 implementation.
+
+### `cbi21-strongly-connected-group-vectors` sections
+
+`vectors` names two activations - a cyclic pair that declares no protocol, and one plan carrying a
+singleton group beside a cyclic pair - and four refusals covering a group declaring bounded lifecycle
+protocols, a selected occurrence the plan does not carry, a planned member the activation did not
+select, and a repeated selection. Each pins whether the activation reached Active, the refusal code,
+how many groups and members the plan carries, and how many members were prepared and released, so
+"which condition refused this plan" is a checked answer rather than one code standing for four. The
+fixture contains no planner, runtime, portable implementation, or lifecycle protocol.
 
 ### `cm0-mice-topology` sections
 
