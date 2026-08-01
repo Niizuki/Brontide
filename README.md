@@ -163,6 +163,13 @@ pointed at it: CM4 swaps a whole generation atomically and has no operation that
 while its scope keeps running, so "retire the whole activation" was never a placeholder. Authority
 turns out to follow the occurrence rather than the attempt — which is the reason CBI13 gave for
 admitting against an occurrence in the first place, finally put to work.
+CBI20 adds and removes the positions themselves, and corrects CBI19 the way CBI19 corrected the
+slices before it: "it does not add or remove a position" turned out to describe how CBI19 was called
+rather than a rule it applied. The question of what a dropped position does to its authority
+dissolves instead of being answered — nothing survives an attempt anyway, so a drop is just the
+absence of a successor admission — and the case only a membership change can pose is a receiving-
+domain Actor freed by a drop and taken by someone else, which is refused because both generations are
+live until the cutover finishes.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

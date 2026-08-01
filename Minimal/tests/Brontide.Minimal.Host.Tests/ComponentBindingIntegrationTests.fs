@@ -995,6 +995,266 @@ type ComponentBindingIntegrationTests() =
             return result, retained
         }
 
+    let tertiaryRequirementId = RequirementId.create "req.cooling-tertiary"
+    let tertiaryProvider = DefinitionId.create "def.test.cooling-tertiary"
+    let tertiaryContractId = ContractId.create "brontide.fake.cooling-tertiary"
+
+    /// Two requirements again, but the second names a position the pair generation never had.
+    let successorRequest () =
+        let single = requestWith (Cardinality.parse "1..1") []
+        let consumerDefinition =
+            single.Definitions |> List.find (fun item -> item.Definition = consumer)
+        let providerDefinition =
+            single.Definitions |> List.find (fun item -> item.Definition = provider)
+        let candidate = List.exactlyOne single.Candidates
+        let tertiaryRequirement =
+            { List.exactlyOne consumerDefinition.Requirements with
+                Requirement = tertiaryRequirementId
+                Contract = tertiaryContractId }
+        { single with
+            Definitions =
+                [ { consumerDefinition with
+                      Requirements = consumerDefinition.Requirements @ [ tertiaryRequirement ] }
+                  providerDefinition
+                  { providerDefinition with
+                      Definition = tertiaryProvider
+                      Provides = [ { Contract = tertiaryContractId; Version = version } ] } ]
+            Candidates =
+                [ candidate
+                  { candidate with
+                      Definition = tertiaryProvider
+                      Provides = [ { Contract = tertiaryContractId; Version = version } ] } ] }
+
+    let occurrenceNames (values: OccurrenceId list) =
+        values |> List.map OccurrenceId.value |> String.concat ", "
+
+    let membershipToken kind =
+        match kind with
+        | ComponentGroupMembershipKind.Restructured -> "restructured"
+        | ComponentGroupMembershipKind.CleanupFailed -> "cleanup-failed"
+        | ComponentGroupMembershipKind.Declined -> "declined"
+        | ComponentGroupMembershipKind.ActivationUnavailable -> "activation-unavailable"
+
+    let retainedSecondaryOccurrence =
+        OccurrenceId.create (sprintf "occ.%s.1" (DefinitionId.value secondaryProvider))
+
+    /// The activation being restructured: two members, of which the second's position is the one a
+    /// membership change drops.
+    let membershipRetained failDroppedCleanup =
+        task {
+            let resolution = pairRequest () |> FakeGenerationResolver.resolve
+            let providerSets =
+                match resolution with
+                | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            let positionFor requirement =
+                providerSets
+                |> List.find (fun item -> item.Requirement = requirement)
+                |> fun item -> List.exactlyOne item.Members
+            let handlers = [ CoolingHandler(); CoolingHandler() ]
+            let conversationFor index =
+                let inner =
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(
+                            CoolingFixture.contract,
+                            List.item index handlers,
+                            Realization.FixedDirectCall))
+                    :> IPortableProviderConversation
+                // Only the departing member's peer refuses, so a cleanup failure is attributable
+                // to it.
+                if failDroppedCleanup && index = 1 then
+                    FailingRetirementConversation inner :> IPortableProviderConversation
+                else
+                    inner
+            let firstSelection =
+                { selection (positionFor requirementId) with
+                    HostEndpoint = "membership-retained-primary" }
+            let secondSelection =
+                { selection (positionFor secondaryRequirementId) with
+                    Requirement = secondaryRequirementId
+                    HostEndpoint = "membership-retained-secondary" }
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let! retained =
+                ComponentGroupAuthority.activate
+                    resolution
+                    [ { Member =
+                          { Selection = firstSelection
+                            Conversation = conversationFor 0 }
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = firstSelection.Occurrence
+                                  Participant = participant }
+                              Request = providerAuthority policy authorityId } ] }
+                      { Member =
+                          { Selection = secondSelection
+                            Conversation = conversationFor 1 }
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = secondSelection.Occurrence
+                                  Participant = supervisor }
+                              Request = supervisorAuthority policy auditAuthorityId false } ] } ]
+                    (runtimeRequest (plan [ firstSelection.Occurrence; secondSelection.Occurrence ]))
+            return retained, handlers
+        }
+
+    /// The successor half of a membership change: a generation resolving one surviving position and
+    /// one the retained activation never held.
+    let membershipSuccessor scenario =
+        // Two vectors need a successor that still resolves the position the caller wants to drop,
+        // so they succeed the pair generation instead of the one that replaces its second position.
+        let succeedsPair =
+            scenario = "cbi20-07-membership-unchanged"
+            || scenario = "cbi20-08-dropped-position-still-resolved"
+        let successorResolution =
+            (if succeedsPair then pairRequest () else successorRequest ())
+            |> FakeGenerationResolver.resolve
+        let providerSets =
+            match successorResolution with
+            | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+            | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+        let positionFor requirement =
+            providerSets
+            |> List.find (fun item -> item.Requirement = requirement)
+            |> fun item -> List.exactlyOne item.Members
+        let joiningRequirement =
+            if succeedsPair then secondaryRequirementId else tertiaryRequirementId
+        let handlers = [ CoolingHandler(); CoolingHandler() ]
+        // A provider the required contract does not match never reports Ready.
+        let joiningDocument =
+            if scenario = "cbi20-12-added-member-never-ready" then
+                { CoolingFixture.contract with
+                    Provider = expectProvider "brontide.fake.substituted" }
+            else
+                CoolingFixture.contract
+        let conversationFor document index =
+            PortableDirectConversation(
+                PortableProviderEndpoint(document, List.item index handlers, Realization.FixedDirectCall))
+            :> IPortableProviderConversation
+        let survivorSelection =
+            { selection (positionFor requirementId) with
+                HostEndpoint = "membership-host-primary" }
+        let joiningSelection =
+            { selection (positionFor joiningRequirement) with
+                Requirement = joiningRequirement
+                HostEndpoint = "membership-host-joining" }
+        let policy =
+            if scenario = "cbi20-10-added-party-takes-a-live-local-actor" then
+                groupPolicyFor providerLocalActor supervisorLocalActor supervisorLocalActor
+            else
+                groupPolicy providerLocalActor supervisorLocalActor
+        let survivorRequest =
+            if scenario = "cbi20-09-surviving-occurrence-authority-changed" then
+                let baseline = providerAuthority policy authorityId
+                { baseline with
+                    Authority =
+                      [ { List.exactlyOne baseline.Authority with
+                            Capability = CapabilityId.create "capability.other" } ] }
+            else
+                providerAuthority policy authorityId
+        let joiningParty =
+            if scenario = "cbi20-02-shared-party-joins-the-added-member" then
+                participant
+            else
+                observer
+        let joiningRequest =
+            if joiningParty = participant then
+                let joiningRelationship = RelationshipRequestId.create "relationship.group-joining"
+                { providerAuthority policy reportAuthorityId with
+                    Request = AdmissionRequestId.create "admission.group-joining"
+                    Relationships =
+                      [ { Request = joiningRelationship
+                          ProposedActor = participant
+                          Kind = ActorRelationshipKind.ComponentParticipant
+                          Evidence = [ authorityEvidence ] } ]
+                    Authority =
+                      [ { Request = reportAuthorityId
+                          Relationship = joiningRelationship
+                          Capability = reportCapability
+                          Target = authorityTarget
+                          Operation = reportOperation
+                          Scope = authorityScope
+                          Unlimited = false } ] }
+            elif scenario = "cbi20-11-added-authority-denied" then
+                revokedRequest (observerRequest policy)
+            else
+                observerRequest policy
+        let participate selection' conversation request =
+            { Member =
+                { Selection = selection'
+                  Conversation = conversation }
+              Participants =
+                [ { Mapping =
+                      { Occurrence = (selection': ComponentBindingSelection).Occurrence
+                        Participant = (request: AuthorityAdmissionRequest).Participant }
+                    Request = request } ] }
+        let survivorMember =
+            participate survivorSelection (conversationFor CoolingFixture.contract 0) survivorRequest
+        let joiningMember =
+            participate joiningSelection (conversationFor joiningDocument 1) joiningRequest
+        let members =
+            match scenario with
+            | "cbi20-06-successor-holds-no-member" -> []
+            | "cbi20-08-dropped-position-still-resolved" -> [ survivorMember ]
+            | _ -> [ survivorMember; joiningMember ]
+        let dropped =
+            match scenario with
+            | "cbi20-03-drop-not-declared"
+            | "cbi20-07-membership-unchanged" -> []
+            | "cbi20-04-drop-not-held" ->
+                [ retainedSecondaryOccurrence; OccurrenceId.create "occ.never-held" ]
+            | "cbi20-05-drop-is-a-successor-member" -> [ survivorSelection.Occurrence ]
+            | "cbi20-06-successor-holds-no-member" ->
+                [ survivorSelection.Occurrence; retainedSecondaryOccurrence ]
+            | _ -> [ retainedSecondaryOccurrence ]
+        let baseRequest =
+            runtimeRequestFor
+                (planFor
+                    (GenerationId.create "gen.successor")
+                    (RestartScopeId.create "restart.lifecycle")
+                    (members |> List.map _.Member.Selection.Occurrence))
+                (GenerationId.create "gen.lifecycle")
+        let request =
+            if scenario = "cbi20-13-release-fails-before-cutover" then
+                { baseRequest with
+                    Release =
+                        { baseRequest.Release with
+                            FailureMoment = ReleaseFailureMoment.BeforeCutover } }
+            else
+                baseRequest
+        successorResolution, members, dropped, request
+
+    let membershipChangeResult scenario =
+        task {
+            let! retained, _ =
+                membershipRetained (scenario = "cbi20-14-dropped-member-cleanup-fails-after-cutover")
+            let successorResolution, members, dropped, request = membershipSuccessor scenario
+            let! result =
+                ComponentGroupRestructuring.restructure
+                    successorResolution
+                    retained
+                    members
+                    dropped
+                    request
+                    (sprintf "membership change %s" scenario)
+            return result, retained
+        }
+
+    /// The same inputs CBI20 accepts, offered to CBI19, which must refuse them.
+    let membershipChangeAsReplacement () =
+        task {
+            let! retained, _ = membershipRetained false
+            let successorResolution, members, _, request =
+                membershipSuccessor "cbi20-01-position-added-and-dropped"
+            let! result =
+                ComponentGroupReplacement.replace
+                    successorResolution
+                    retained
+                    members
+                    request
+                    "membership change offered to CBI19"
+            return result, retained
+        }
+
     let groupExtensionToken kind =
         match kind with
         | ComponentGroupExtensionKind.Extended -> "extended"
@@ -3570,6 +3830,458 @@ type ComponentBindingIntegrationTests() =
                     result.Retired.Length,
                     Is.EqualTo retainedMembers.Length,
                     "The whole retained generation goes, never one member of it."))
+        }
+
+    [<Test>]
+    member _.``shared CBI20 vectors add and drop positions across a cutover``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi20-membership-change-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI20 vector identity must be a string"
+                    | value -> value
+                let! result, retained = membershipChangeResult scenario
+                let retainedMembers = retained.Lifecycle.Value.Members
+                let successorMembers =
+                    result.Successor
+                    |> Option.bind _.Lifecycle
+                    |> Option.map _.Members
+                    |> Option.defaultValue []
+                let successorReleased =
+                    successorMembers |> List.filter _.Member.IsReleased |> List.length
+                multiple (fun () ->
+                    Assert.That(
+                        membershipToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.CutOver,
+                        Is.EqualTo(vector.GetProperty("expectedCutover").GetBoolean()),
+                        scenario)
+                    Assert.That(
+                        successorReleased,
+                        Is.EqualTo(vector.GetProperty("expectedSuccessorReleased").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        retainedMembers |> List.filter _.Member.IsReleased |> List.length,
+                        Is.EqualTo(vector.GetProperty("expectedRetainedReleased").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        retainedMembers
+                        |> List.filter (fun item ->
+                            CompositionStage.token item.Member.Stage = "retired")
+                        |> List.length,
+                        Is.EqualTo(vector.GetProperty("expectedRetainedRetired").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Successor
+                        |> Option.map (fun value -> value.Admissions.Length)
+                        |> Option.defaultValue 0,
+                        Is.EqualTo(vector.GetProperty("expectedAdmitted").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Added.Length,
+                        Is.EqualTo(vector.GetProperty("expectedAdded").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Dropped.Length,
+                        Is.EqualTo(vector.GetProperty("expectedDropped").GetInt32()),
+                        scenario)
+                    // A membership change is a replacement, so the cutover boundary governs it
+                    // exactly as it governs one that changes no position.
+                    Assert.That(
+                        not result.Added.IsEmpty || not result.Dropped.IsEmpty,
+                        Is.EqualTo result.CutOver,
+                        sprintf "%s: a membership change is applied only by a cutover." scenario)
+                    Assert.That(
+                        not result.Retired.IsEmpty,
+                        Is.EqualTo result.CutOver,
+                        sprintf
+                            "%s: the retained members are retired exactly when the scope cut over."
+                            scenario)
+                    Assert.That(
+                        successorReleased = successorMembers.Length || successorReleased = 0,
+                        Is.True,
+                        sprintf
+                            "%s: the release barrier covers the successor's members, whichever they are."
+                            scenario)
+                    Assert.That(
+                        result.CutOver || (retainedMembers |> List.forall _.Member.IsReleased),
+                        Is.True,
+                        sprintf "%s: before cutover the retained activation is untouched." scenario))
+        }
+
+    [<Test>]
+    member _.``C1 a membership change needs a released activation and the change named``() =
+        task {
+            let unavailable: ComponentGroupAuthorityResult =
+                { Admissions = []
+                  Grants = []
+                  Lifecycle = None
+                  Failure = None }
+            let! refusedInput =
+                ComponentGroupRestructuring.restructure
+                    (successorRequest () |> FakeGenerationResolver.resolve)
+                    unavailable
+                    []
+                    []
+                    (runtimeRequest (plan []))
+                    "membership change unavailable"
+            let! undeclared, undeclaredRetained = membershipChangeResult "cbi20-03-drop-not-declared"
+            let! unknown, _ = membershipChangeResult "cbi20-04-drop-not-held"
+            let! notADrop, _ = membershipChangeResult "cbi20-05-drop-is-a-successor-member"
+            let! empty, _ = membershipChangeResult "cbi20-06-successor-holds-no-member"
+            let! unchanged, _ = membershipChangeResult "cbi20-07-membership-unchanged"
+            multiple (fun () ->
+                Assert.That(
+                    refusedInput.Kind,
+                    Is.EqualTo ComponentGroupMembershipKind.ActivationUnavailable)
+                Assert.That(
+                    undeclared.Code,
+                    Is.EqualTo "member-drop-not-declared",
+                    "A member left out of the successor list is dropped, so leaving it out silently is refused.")
+                Assert.That(unknown.Code, Is.EqualTo "member-drop-unknown")
+                Assert.That(notADrop.Code, Is.EqualTo "member-drop-not-a-drop")
+                Assert.That(empty.Code, Is.EqualTo "successor-empty")
+                Assert.That(unchanged.Code, Is.EqualTo "membership-unchanged")
+                Assert.That(
+                    [ refusedInput; undeclared; unknown; notADrop; empty; unchanged ]
+                    |> List.forall (fun item ->
+                        item.Successor.IsNone && not item.CutOver && item.Retired.IsEmpty),
+                    Is.True,
+                    "Every refusal before establishment creates no successor and cuts nothing over.")
+                Assert.That(
+                    undeclaredRetained.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True))
+        }
+
+    [<Test>]
+    member _.``C2 the successor generation decides what may be dropped``() =
+        task {
+            let! stillResolved, retained =
+                membershipChangeResult "cbi20-08-dropped-position-still-resolved"
+            let! changed, _ = membershipChangeResult "cbi20-01-position-added-and-dropped"
+            let resolved =
+                match successorRequest () |> FakeGenerationResolver.resolve with
+                | ResolutionOutcome.Resolved(_, generation) ->
+                    generation.ProviderSets
+                    |> List.collect (fun item -> item.Members |> List.map _.Occurrence)
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            multiple (fun () ->
+                Assert.That(
+                    stillResolved.Code,
+                    Is.EqualTo "position-still-resolved",
+                    "Dropping a position the successor generation still resolves would be the caller narrowing the composition.")
+                Assert.That(stillResolved.Successor, Is.EqualTo None)
+                Assert.That(
+                    retained.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True)
+                Assert.That(
+                    resolved |> List.contains (List.exactlyOne changed.Dropped),
+                    Is.False,
+                    "The admitted drop is a position the successor generation genuinely does not resolve.")
+                Assert.That(
+                    resolved |> List.contains (List.exactlyOne changed.Added),
+                    Is.True,
+                    "And the addition is one it does."))
+        }
+
+    [<Test>]
+    member _.``C3 an added position joins only across a cutover``() =
+        task {
+            let! replaced, retainedForReplacement = membershipChangeAsReplacement ()
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let! extended =
+                ComponentGroupExtension.extend
+                    retainedForReplacement
+                    [ { Occurrence = (List.item 0 retainedForReplacement.Admissions).Occurrence
+                        Requests = [ providerAuthority policy authorityId ] }
+                      { Occurrence = OccurrenceId.create "occ.def.test.cooling-tertiary.1"
+                        Requests = [ observerRequest policy ] } ]
+                    "extension cannot add a member"
+            let! added, _ = membershipChangeResult "cbi20-01-position-added-and-dropped"
+            let! neverReady, _ = membershipChangeResult "cbi20-12-added-member-never-ready"
+            multiple (fun () ->
+                Assert.That(
+                    replaced.Code,
+                    Is.EqualTo "membership-change-required",
+                    "CBI19 replaces a generation over the same positions and refuses a member-set change.")
+                Assert.That(
+                    extended.Code,
+                    Is.EqualTo "member-set-changed",
+                    "CBI18 grows participant sets in place and cannot introduce a member.")
+                Assert.That(
+                    retainedForReplacement.Lifecycle.Value.Members.Length,
+                    Is.EqualTo 2,
+                    "Neither in-place path left an added member behind.")
+                Assert.That(added.CutOver, Is.True)
+                Assert.That(
+                    added.Successor.Value.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True,
+                    "The added member is released by the cutover.")
+                Assert.That(
+                    neverReady.Successor.Value.Lifecycle.Value.Members
+                    |> List.filter _.Member.IsReleased
+                    |> List.length,
+                    Is.EqualTo 0,
+                    "And an addition that never reports Ready is released by nothing."))
+        }
+
+    [<Test>]
+    member _.``C4 authority survives per occurrence and a dropped one hands nothing on``() =
+        task {
+            let! drifted, driftedRetained =
+                membershipChangeResult "cbi20-09-surviving-occurrence-authority-changed"
+            let! changed, retained = membershipChangeResult "cbi20-01-position-added-and-dropped"
+            let dropped = List.exactlyOne changed.Dropped
+            let successor = changed.Successor.Value
+            let droppedGrants =
+                retained.Admissions
+                |> List.find (fun item -> item.Occurrence = dropped)
+                |> fun item -> item.Grants |> List.map _.Grant
+            multiple (fun () ->
+                Assert.That(
+                    drifted.Code,
+                    Is.EqualTo "authority-revalidation-mismatch",
+                    "A surviving occurrence may not be re-admitted for different authority.")
+                Assert.That(
+                    driftedRetained.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True)
+                Assert.That(
+                    occurrenceNames (successor.Admissions |> List.map _.Occurrence),
+                    Is.EqualTo(
+                        occurrenceNames (successor.Lifecycle.Value.Members |> List.map _.Occurrence)),
+                    "The successor's admissions name exactly the successor's members.")
+                Assert.That(
+                    successor.Admissions |> List.exists (fun item -> item.Occurrence = dropped),
+                    Is.False,
+                    "A dropped occurrence has no successor member for its authority to follow to.")
+                Assert.That(droppedGrants, Is.Not.Empty)
+                Assert.That(
+                    successor.Grants
+                    |> List.exists (fun grant -> droppedGrants |> List.contains grant.Grant),
+                    Is.False,
+                    "And nothing it held is carried into the successor."))
+        }
+
+    [<Test>]
+    member _.``C5 the actor mapping is checked across both activations``() =
+        task {
+            let! conflated, retained =
+                membershipChangeResult "cbi20-10-added-party-takes-a-live-local-actor"
+            let! shared, _ = membershipChangeResult "cbi20-02-shared-party-joins-the-added-member"
+            let localActors =
+                shared.Successor.Value.Admissions
+                |> List.collect _.Participants
+                |> List.map (fun item ->
+                    (List.exactlyOne item.Authority.Observation.Relationships).LocalActor)
+                |> List.distinct
+            multiple (fun () ->
+                Assert.That(
+                    conflated.Code,
+                    Is.EqualTo "local-actor-shared-across-members",
+                    "The retained generation still maps that local Actor to another party, so the conflation is live.")
+                Assert.That(
+                    conflated.Successor,
+                    Is.EqualTo None,
+                    "It is refused before any successor provider is contacted.")
+                Assert.That(
+                    retained.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True)
+                // The permitting direction: the party the survivor already holds locally may take
+                // the added member too, under the local Actor it already has.
+                Assert.That(ComponentGroupRestructuring.isChanged shared, Is.True)
+                Assert.That(
+                    localActors.Length,
+                    Is.EqualTo 1,
+                    "One party across both successor members means one receiving-domain Actor."))
+        }
+
+    [<Test>]
+    member _.``C6 the release barrier covers the successor members whichever they are``() =
+        task {
+            let! neverReady, _ = membershipChangeResult "cbi20-12-added-member-never-ready"
+            let! changed, _ = membershipChangeResult "cbi20-01-position-added-and-dropped"
+            let successorMembers = neverReady.Successor.Value.Lifecycle.Value.Members
+            let survivor = (List.item 0 successorMembers).Member
+            let! attempted =
+                survivor.Invoke(
+                    CoolingFixture.setEnabled,
+                    CoolingFixture.commandV1,
+                    CoolingFixture.authorizedCommand "primary" true,
+                    PortableConstraint.Atom PortableTruth.Satisfied)
+            multiple (fun () ->
+                Assert.That(
+                    successorMembers |> List.filter _.Member.IsReleased |> List.length,
+                    Is.EqualTo 0,
+                    "The addition that never reports Ready releases the survivor with it.")
+                Assert.That(successorMembers.Length, Is.EqualTo 2)
+                Assert.That(
+                    (match attempted with
+                     | Ok value -> value.Category
+                     | Error _ -> None),
+                    Is.EqualTo(Some ProtocolCategory.StateViolation),
+                    "And the survivor is left holding no open channel of its own.")
+                Assert.That(
+                    changed.Successor.Value.Lifecycle.Value.Members
+                    |> List.forall _.Member.IsReleased,
+                    Is.True))
+        }
+
+    [<Test>]
+    member _.``C7 before cutover the member a change would drop is still serving``() =
+        task {
+            let! refused, retained = membershipChangeResult "cbi20-13-release-fails-before-cutover"
+            let departing =
+                retained.Lifecycle.Value.Members
+                |> List.find (fun item ->
+                    (OccurrenceId.value item.Occurrence).Contains "secondary")
+            let! attempted =
+                departing.Member.Invoke(
+                    CoolingFixture.setEnabled,
+                    CoolingFixture.commandV1,
+                    CoolingFixture.authorizedCommand "primary" true,
+                    PortableConstraint.Atom PortableTruth.Satisfied)
+            let interaction =
+                match attempted with
+                | Ok value -> value
+                | Error error -> failwithf "Expected the departing member to still serve, got %A." error
+            multiple (fun () ->
+                Assert.That(refused.Code, Is.EqualTo "release-failed-before-cutover")
+                Assert.That(refused.CutOver, Is.False)
+                Assert.That(
+                    retained.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True,
+                    "Nothing was stood down, so nothing needs restoring.")
+                Assert.That(
+                    interaction.FrameDecision,
+                    Is.Not.EqualTo FrameDecision.None,
+                    "The member whose position the change would have dropped is still serving."))
+        }
+
+    [<Test>]
+    member _.``C8 the dropped member is retired after cutover and never before``() =
+        task {
+            let! changed, retained = membershipChangeResult "cbi20-01-position-added-and-dropped"
+            let! refused, untouched = membershipChangeResult "cbi20-12-added-member-never-ready"
+            let! cleanup, _ =
+                membershipChangeResult "cbi20-14-dropped-member-cleanup-fails-after-cutover"
+            multiple (fun () ->
+                Assert.That(changed.CutOver, Is.True)
+                Assert.That(
+                    retained.Lifecycle.Value.Members
+                    |> List.forall (fun item ->
+                        CompositionStage.token item.Member.Stage = "retired"),
+                    Is.True,
+                    "Every retained member goes, the dropped one with the rest.")
+                Assert.That(changed.Retired.Length, Is.EqualTo 2)
+                Assert.That(refused.CutOver, Is.False)
+                Assert.That(
+                    untouched.Lifecycle.Value.Members
+                    |> List.exists (fun item ->
+                        CompositionStage.token item.Member.Stage = "retired"),
+                    Is.False,
+                    "Knowing a position is going is not permission to stand it down early.")
+                Assert.That(cleanup.Kind, Is.EqualTo ComponentGroupMembershipKind.CleanupFailed)
+                Assert.That(cleanup.CutOver, Is.True)
+                Assert.That(cleanup.Reason, Does.Contain "withdraw-refused")
+                Assert.That(
+                    cleanup.Successor.Value.Lifecycle.Value.Members
+                    |> List.forall _.Member.IsReleased,
+                    Is.True,
+                    "The scope has already cut over, so the successor stays released."))
+        }
+
+    [<Test>]
+    member _.``C9 a membership change produces an activation the other slices accept``() =
+        task {
+            let! changed, _ = membershipChangeResult "cbi20-01-position-added-and-dropped"
+            let successor = changed.Successor.Value
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let requests =
+                [ { Occurrence = (List.item 0 successor.Admissions).Occurrence
+                    Requests = [ providerAuthority policy authorityId ] }
+                  { Occurrence = (List.item 1 successor.Admissions).Occurrence
+                    Requests = [ observerRequest policy ] } ]
+            let! continued =
+                ComponentGroupRevalidation.revalidate
+                    successor
+                    requests
+                    "revalidate the restructured activation"
+            multiple (fun () ->
+                Assert.That(ComponentGroupRestructuring.isChanged changed, Is.True)
+                Assert.That(
+                    continued.Kind,
+                    Is.EqualTo ComponentGroupRevalidationKind.Continued,
+                    "CBI14 accepts the activation a membership change produced."))
+        }
+
+    [<Test>]
+    member _.``C10 a membership change migrates no state and invents no grant``() =
+        task {
+            let! changed, retained = membershipChangeResult "cbi20-01-position-added-and-dropped"
+            let successorMembers = changed.Successor.Value.Lifecycle.Value.Members
+            let retainedMembers = retained.Lifecycle.Value.Members
+            let successorOccurrences = successorMembers |> List.map _.Occurrence
+            let retainedOccurrences = retainedMembers |> List.map _.Occurrence
+            multiple (fun () ->
+                Assert.That(
+                    occurrenceNames (
+                        successorOccurrences
+                        |> List.filter (fun item -> not (List.contains item retainedOccurrences))),
+                    Is.EqualTo(occurrenceNames changed.Added),
+                    "The change is exactly the positions the successor gained.")
+                Assert.That(
+                    occurrenceNames (
+                        retainedOccurrences
+                        |> List.filter (fun item -> not (List.contains item successorOccurrences))),
+                    Is.EqualTo(occurrenceNames changed.Dropped),
+                    "And exactly the ones it lost.")
+                Assert.That(
+                    retainedMembers
+                    |> List.exists (fun retainedItem ->
+                        successorMembers
+                        |> List.exists (fun successorItem ->
+                            obj.ReferenceEquals(retainedItem.Member, successorItem.Member))),
+                    Is.False,
+                    "No portable member is carried across, not even for a surviving occurrence.")
+                Assert.That(
+                    changed.Successor.Value.Grants
+                    |> List.map (fun grant -> CapabilityGrantId.value grant.Grant)
+                    |> String.concat ", ",
+                    Is.EqualTo(
+                        changed.Successor.Value.Admissions
+                        |> List.collect _.Grants
+                        |> List.map (fun grant -> CapabilityGrantId.value grant.Grant)
+                        |> List.sortWith (fun left right -> String.CompareOrdinal(left, right))
+                        |> String.concat ", "),
+                    "Every grant the result reports came from an admission in this attempt."))
+        }
+
+    [<Test>]
+    member _.``CBI19 refuses a successor that changes the member set``() =
+        task {
+            let! replaced, retained = membershipChangeAsReplacement ()
+            multiple (fun () ->
+                Assert.That(replaced.Kind, Is.EqualTo ComponentGroupReplacementKind.Declined)
+                Assert.That(replaced.Code, Is.EqualTo "membership-change-required")
+                Assert.That(replaced.Successor, Is.EqualTo None)
+                Assert.That(replaced.CutOver, Is.False)
+                Assert.That(
+                    retained.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True,
+                    "CBI19's stated limit is now a rule it applies rather than a description of how it is called."))
         }
 
     [<Test>]

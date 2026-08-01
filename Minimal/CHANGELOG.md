@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased — CBI20 activation membership change
+
+### Added
+
+- Minimal Host addition and removal of activation positions across a scoped replacement: a successor
+  generation resolving a different set of positions stands up, the scope cuts over, and the whole
+  retained generation retires.
+- Fail-closed naming of the change: an undeclared drop, a drop the activation does not hold, a drop
+  that is also a successor member, an empty successor, and a member set that changes nothing are each
+  refused before establishment.
+- Refusal of a drop the successor generation still resolves, so removal stays the composition's
+  decision rather than the caller's.
+- CBI13's receiving-domain Actor rules checked over the retained and successor activations together,
+  because both are established against the same binding scope until the cutover completes.
+- Shared membership-change vectors, a phase-boundary completeness review, and a named test for every
+  contract item.
+
+### Changed
+
+- CBI19 now refuses a successor whose member set differs from the activation's and names CBI20. Its
+  stated limit had never been enforced: the replacer took the caller's member list, so an added or
+  dropped position went through unannounced.
+
 ## Unreleased — BR-07-BINDING-001 static Attribute-constrained binding
 
 ### Added
