@@ -158,6 +158,80 @@ public static class ComponentBindingIntegration
         }
     }
 
+    /// <summary>
+    /// Checks that where CM2 placed these positions and what the request says about a child Port
+    /// agree, before anything is prepared.
+    /// </summary>
+    /// <remarks>
+    /// A Provider Set carries the Region and Port CM2 resolved it into, and until CBI22 nothing read
+    /// either: a position resolved inside a child Port was flattened into an ordinary one and
+    /// activated in whatever scope the caller's plan named, so CM4 never saw an attachment and the
+    /// restart boundary the Port exists to give was silently dropped.
+    /// </remarks>
+    internal static (string Code, string Reason)? PortContainment(
+        Cm.ResolutionOutcome resolution,
+        IReadOnlyList<ComponentBindingSelection> selections,
+        Cm.ChildActivationDeclaration? child)
+    {
+        if (resolution.Generation is not { } generation)
+        {
+            return null;
+        }
+
+        var contained = selections
+            .Select(selection => (
+                selection.Requirement,
+                Port: generation.ProviderSets
+                    .Where(item => item.Requirement == selection.Requirement)
+                    .Select(item => item.ContainingPort)
+                    .FirstOrDefault()))
+            .OrderBy(item => item.Requirement.Value, StringComparer.Ordinal)
+            .ToArray();
+
+        if (child is null)
+        {
+            var inPort = contained.Where(item => item.Port is not null).ToArray();
+            return inPort.Length == 0
+                ? null
+                : (
+                    "member-port-contained",
+                    $"CM2 resolved {string.Join(", ", inPort.Select(item => item.Requirement.Value))} inside Port '{inPort[0].Port}', which needs a child attachment rather than an ordinary activation.");
+        }
+
+        var loose = contained.Where(item => item.Port is null).ToArray();
+        if (loose.Length > 0)
+        {
+            return (
+                "member-not-port-contained",
+                $"{string.Join(", ", loose.Select(item => item.Requirement.Value))} is not resolved inside any Port, so it has nothing to attach to Port '{child.Port}'.");
+        }
+
+        var foreign = contained.Where(item => item.Port != child.Port).ToArray();
+        if (foreign.Length > 0)
+        {
+            return (
+                "port-not-resolved",
+                $"The attachment names Port '{child.Port}', but CM2 resolved {string.Join(", ", foreign.Select(item => item.Requirement.Value))} into '{foreign[0].Port}'.");
+        }
+
+        // The envelope, not the caller, says what the Port permits. CM2 refuses a sealed Port at
+        // resolution, so the reachable disagreement is a caller claiming a runtime-open Port the
+        // generation resolved as activation-open.
+        var envelope = generation.Ports.FirstOrDefault(item => item.Port == child.Port);
+        if (envelope is null)
+        {
+            return (
+                "port-not-resolved",
+                $"The completed generation carries no envelope for Port '{child.Port}'.");
+        }
+
+        return child.RuntimeOpen && envelope.Lifecycle != Cm.PortLifecycleMode.RuntimeOpen
+            ? (
+                "port-lifecycle-overstated",
+                $"The attachment declares Port '{child.Port}' runtime-open; the resolved envelope declares it {envelope.Lifecycle}.")
+            : null;
+    }
+
     private static ComponentBindingIntegrationResult Refuse(
         ComponentBindingIntegrationFailureKind kind,
         string code,
@@ -208,6 +282,14 @@ public static class ComponentBindingLifecycle
         ArgumentNullException.ThrowIfNull(selection);
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(conversation);
+
+        if (ComponentBindingIntegration.PortContainment(resolution, [selection], request.Child) is { } containment)
+        {
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.PlanUnsupported,
+                containment.Code,
+                containment.Reason);
+        }
 
         var preparation = ComponentBindingIntegration.Prepare(resolution, selection);
         if (preparation.Member is not { } member)
@@ -2128,6 +2210,17 @@ public static class ComponentGroupLifecycle
                 unsupported.Reason);
         }
 
+        if (ComponentBindingIntegration.PortContainment(
+                resolution,
+                ordered.Select(item => item.Selection).ToArray(),
+                runtimeRequest.Child) is { } containment)
+        {
+            return Refuse(
+                ComponentGroupActivationFailureKind.PlanUnsupported,
+                containment.Code,
+                containment.Reason);
+        }
+
         var prepared = new List<ComponentGroupMemberOutcome>();
         foreach (var member in ordered)
         {
@@ -2533,6 +2626,170 @@ public static class ComponentGroupAuthority
             Array.Empty<Cm.LocalCapabilityGrant>(),
             null,
             new(kind, code, reason, null));
+}
+
+public enum ComponentChildActivationKind
+{
+    Attached,
+    Declined,
+    ParentUnavailable,
+}
+
+public sealed record ComponentChildActivationResult(
+    ComponentChildActivationKind Kind,
+    ComponentGroupAuthorityResult? Child,
+    Cm.PortId? Port,
+    string Code,
+    string Reason)
+{
+    public bool IsAttached => Kind == ComponentChildActivationKind.Attached;
+}
+
+/// <summary>
+/// Activates a Component position CM2 resolved inside a child Port, in its own restart scope,
+/// attached to the scope and generation a released parent activation made active.
+/// </summary>
+/// <remarks>
+/// A child activation is a second activation rather than a replacement of the first: separate plan,
+/// separate Release, separate restart scope, and a parent that CM4 requires to stay active and
+/// unchanged throughout. What the attachment says about the Port is read from the resolved envelope
+/// rather than from the caller, because the Port is where the generation placed the Component.
+/// </remarks>
+public static class ComponentChildActivation
+{
+    public static async ValueTask<ComponentChildActivationResult> AttachAsync(
+        Cm.ResolutionOutcome resolution,
+        ComponentGroupAuthorityResult parent,
+        IReadOnlyList<ComponentGroupParticipant> members,
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(parent);
+        ArgumentNullException.ThrowIfNull(members);
+        ArgumentNullException.ThrowIfNull(runtimeRequest);
+
+        if (!parent.IsActive)
+        {
+            return Decline(
+                ComponentChildActivationKind.ParentUnavailable,
+                "active-parent-unavailable",
+                "CBI22 attaches a child to one released CBI13 activation.");
+        }
+
+        if (runtimeRequest.Child is not { } child)
+        {
+            return Decline(
+                ComponentChildActivationKind.Declined,
+                "child-attachment-missing",
+                "CBI22 requires the CM4 request to declare the child attachment it is making.");
+        }
+
+        if (Attachment(parent, runtimeRequest, child) is { } invalid)
+        {
+            return Decline(ComponentChildActivationKind.Declined, invalid.Code, invalid.Reason);
+        }
+
+        // Where the generation put these positions is a structural question, so it is answered
+        // before any authority is evaluated: a disagreement about the Port decides nothing about
+        // whether the receiving domain would have admitted the child.
+        if (ComponentBindingIntegration.PortContainment(
+                resolution,
+                members.Select(item => item.Member.Selection).ToArray(),
+                child) is { } containment)
+        {
+            return Decline(ComponentChildActivationKind.Declined, containment.Code, containment.Reason);
+        }
+
+        var activation = await ComponentGroupAuthority.ActivateAsync(
+            resolution,
+            members,
+            runtimeRequest,
+            cancellationToken).ConfigureAwait(false);
+        if (activation.IsActive)
+        {
+            return new(
+                ComponentChildActivationKind.Attached,
+                activation,
+                child.Port,
+                "child-attached",
+                $"The child activation occupies scope '{runtimeRequest.Plan.RestartScope}' through Port '{child.Port}' of generation '{child.ParentGeneration}'.");
+        }
+
+        var failure = activation.Failure;
+        return new(
+            ComponentChildActivationKind.Declined,
+            activation,
+            child.Port,
+            failure?.Kind == ComponentGroupAuthorityFailureKind.ActivationRefused
+                ? ChildFailureCode(activation)
+                : failure?.Code ?? "child-activation-refused",
+            failure?.Reason ?? "The child activation did not release every member.");
+    }
+
+    /// <summary>
+    /// Checks the attachment against what the parent activation actually made active, rather than
+    /// against the caller's plan.
+    /// </summary>
+    private static (string Code, string Reason)? Attachment(
+        ComponentGroupAuthorityResult parent,
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        Cm.ChildActivationDeclaration child)
+    {
+        if (parent.Lifecycle?.Runtime?.Observation is not { } current)
+        {
+            return ("parent-generation-unknown", "The parent activation records no CM4 observation to attach to.");
+        }
+
+        if (child.ParentScope != current.RestartScope)
+        {
+            return (
+                "parent-scope-mismatch",
+                $"The parent activation occupies scope '{current.RestartScope}', not '{child.ParentScope}'.");
+        }
+
+        if (child.ParentGeneration != current.TargetGeneration)
+        {
+            return (
+                "parent-generation-mismatch",
+                $"Scope '{current.RestartScope}' holds generation '{current.TargetGeneration}', not '{child.ParentGeneration}'.");
+        }
+
+        return runtimeRequest.Plan.RestartScope == child.ParentScope
+            ? (
+                "child-scope-not-distinct",
+                $"A child Port exists to give its Component a restart boundary, so its scope may not be the parent's '{child.ParentScope}'.")
+            : null;
+    }
+
+    /// <summary>Names a child refusal as whichever layer classified it.</summary>
+    /// <remarks>
+    /// A containment disagreement is refused before CM4 runs at all, so its code has to be read from
+    /// the plan refusal rather than from a runtime outcome that does not exist yet.
+    /// </remarks>
+    private static string ChildFailureCode(ComponentGroupAuthorityResult activation)
+    {
+        if (activation.Lifecycle?.Failure is
+            { Kind: ComponentGroupActivationFailureKind.PlanUnsupported } refusal)
+        {
+            return refusal.Code;
+        }
+
+        return activation.Lifecycle?.Runtime?.Kind switch
+        {
+            Cm.ActivationRuntimeOutcomeKind.ChildPortClosed => "child-port-closed",
+            Cm.ActivationRuntimeOutcomeKind.ReplacementLifecycleRequired => "replacement-lifecycle-required",
+            Cm.ActivationRuntimeOutcomeKind.HostAssistedOrderConflict => "host-assisted-order-conflict",
+            Cm.ActivationRuntimeOutcomeKind.RestartScopeConflict => "restart-scope-conflict",
+            _ => "child-establishment-refused",
+        };
+    }
+
+    private static ComponentChildActivationResult Decline(
+        ComponentChildActivationKind kind,
+        string code,
+        string reason) =>
+        new(kind, null, null, code, reason);
 }
 
 public sealed record ComponentGroupMemberRequests(

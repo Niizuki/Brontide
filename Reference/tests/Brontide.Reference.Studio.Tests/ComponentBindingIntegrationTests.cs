@@ -5689,6 +5689,542 @@ public sealed class ComponentBindingIntegrationTests
         return (result, plan, handlers);
     }
 
+    [Test]
+    public async Task Shared_cbi22_vectors_attach_a_child_to_a_released_parent()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi22-child-port-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, parent, handlers) = await ChildActivationResult(scenario);
+            var childReleased = result.Child?.Lifecycle?.Members.Count(item => item.Member.IsReleased) ?? 0;
+            var parentReleased = parent.Lifecycle?.Members.Count(item => item.Member.IsReleased) ?? 0;
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(ChildToken(result.Kind), Is.EqualTo(vector.GetProperty("expectedKind").GetString()), scenario);
+                Assert.That(result.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), scenario);
+                Assert.That(
+                    childReleased,
+                    Is.EqualTo(vector.GetProperty("expectedChildReleased").GetInt32()),
+                    scenario);
+                Assert.That(
+                    parentReleased,
+                    Is.EqualTo(vector.GetProperty("expectedParentReleased").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Child?.Admissions.Count ?? 0,
+                    Is.EqualTo(vector.GetProperty("expectedAdmitted").GetInt32()),
+                    scenario);
+
+                // A child activation is a second activation, never a replacement of the first.
+                Assert.That(
+                    vector.GetProperty("expectedParentReleased").GetInt32() == 0 ||
+                        !(parent.Lifecycle?.Members.Any(item =>
+                            item.Member.Stage == PortableCompositionStage.Retired) ?? false),
+                    Is.True,
+                    $"{scenario}: nothing in a child activation stands a released parent down.");
+                Assert.That(
+                    childReleased == (result.Child?.Lifecycle?.Members.Count ?? 0) || childReleased == 0,
+                    Is.True,
+                    $"{scenario}: the child's release barrier covers the child's members.");
+                Assert.That(
+                    handlers.Parent.Sum(handler => handler.ProviderEffectCount),
+                    Is.Zero,
+                    $"{scenario}: no child outcome exercises a parent provider.");
+            });
+        }
+    }
+
+    [Test]
+    public async Task C1_a_child_needs_a_released_parent_and_an_attachment_read_from_it()
+    {
+        var (unavailable, _, _) = await ChildActivationResult("cbi22-03-parent-not-released");
+        var (generation, parent, _) = await ChildActivationResult("cbi22-04-parent-generation-mismatch");
+        var (scope, _, _) = await ChildActivationResult("cbi22-05-child-scope-is-the-parent-scope");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(unavailable.Kind, Is.EqualTo(ComponentChildActivationKind.ParentUnavailable));
+            Assert.That(generation.Code, Is.EqualTo("parent-generation-mismatch"));
+            Assert.That(
+                scope.Code,
+                Is.EqualTo("child-scope-not-distinct"),
+                "A child Port exists to give its Component a restart boundary.");
+            Assert.That(
+                new[] { unavailable, generation, scope }.All(item => item.Child is null),
+                Is.True,
+                "Every refusal before establishment creates no child member.");
+            Assert.That(parent.Lifecycle!.Members.All(item => item.Member.IsReleased), Is.True);
+        });
+    }
+
+    [Test]
+    public async Task C2_the_port_is_the_generations_and_not_the_callers()
+    {
+        var (foreign, _, _) = await ChildActivationResult("cbi22-06-attachment-names-another-port");
+        var (loose, _, _) = await ChildActivationResult("cbi22-07-member-not-port-contained");
+        var (overstated, _, _) = await ChildActivationResult("cbi22-08-port-lifecycle-overstated");
+        var (attached, _, _) = await ChildActivationResult("cbi22-01-child-attached");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(foreign.Code, Is.EqualTo("port-not-resolved"));
+            Assert.That(loose.Code, Is.EqualTo("member-not-port-contained"));
+            Assert.That(
+                overstated.Code,
+                Is.EqualTo("port-lifecycle-overstated"),
+                "The envelope, not the caller, says what the Port permits.");
+            Assert.That(
+                attached.Port,
+                Is.EqualTo(ChildPort),
+                "An admitted attachment names the Port its members were resolved into.");
+        });
+    }
+
+    [Test]
+    public async Task C2_members_drawn_from_two_ports_have_no_one_port_to_attach_to()
+    {
+        var (parent, _) = await ChildParent(fail: false);
+        var (resolution, selections) = TwoPortPositions();
+        var handlers = selections.Select(_ =>
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry())).ToArray();
+        var policy = GroupPolicy(ProviderLocalActor);
+        var members = selections
+            .Select((selection, index) => new ComponentGroupParticipant(
+                new(
+                    selection,
+                    new PortableDirectConversation(new PortableProviderEndpoint(
+                        CoolingPortableFixture.Contract, handlers[index], PortableRealization.FixedDirectCall))),
+                [
+                    new(
+                        new(selection.Occurrence, index == 0 ? Participant : Supervisor),
+                        index == 0
+                            ? ProviderAuthority(policy, Authority)
+                            : SupervisorAuthority(policy, AuditAuthority, revoked: false)),
+                ]))
+            .ToArray();
+        var plan = PlanFor(
+            GenerationId.Create("gen.child"),
+            ChildScope,
+            selections.Select(item => item.Occurrence).ToArray());
+        var result = await ComponentChildActivation.AttachAsync(
+            resolution,
+            parent,
+            members,
+            RuntimeRequestFor(plan, GenerationId.Create("gen.child-retained")) with
+            {
+                ActiveScopes =
+                [
+                    new(ChildScope, GenerationId.Create("gen.child-retained"), RuntimeScopeStatus.Active),
+                    new(ParentScope, GenerationId.Create("gen.lifecycle"), RuntimeScopeStatus.Active),
+                ],
+                Child = new(
+                    ParentScope,
+                    GenerationId.Create("gen.lifecycle"),
+                    ChildPort,
+                    RuntimeOpen: true,
+                    Occupied: false,
+                    ReplacementLifecycleDeclared: false,
+                    HostAssisted: false,
+                    InternalReleaseSequence: 0,
+                    ExportReleaseSequence: 2,
+                    OuterHostOwnsAdmission: false),
+            });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                result.Code,
+                Is.EqualTo("port-not-resolved"),
+                "One attachment names one Port, so members from two have no single Port to attach to.");
+            Assert.That(result.Child, Is.Null);
+            Assert.That(
+                handlers.Sum(handler => handler.ProviderEffectCount),
+                Is.Zero);
+        });
+    }
+
+    [Test]
+    public async Task C3_a_port_contained_position_outside_a_child_activation_is_refused()
+    {
+        var (resolution, selection) = ChildPosition(PortLifecycleMode.RuntimeOpen);
+        var member = new ComponentGroupMember(selection, DirectCooling(CoolingPortableFixture.Contract));
+        var flattened = await ComponentGroupLifecycle.ActivateAsync(
+            resolution,
+            [member],
+            RuntimeRequest(Plan(selection.Occurrence)));
+        var singleton = await ComponentBindingLifecycle.ActivateAsync(
+            resolution,
+            selection,
+            RuntimeRequest(Plan(selection.Occurrence)),
+            DirectCooling(CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                flattened.Failure!.Code,
+                Is.EqualTo("member-port-contained"),
+                "The containment is a statement the generation made about where the Component runs.");
+            Assert.That(flattened.Members, Is.Empty);
+            Assert.That(
+                singleton.Failure!.Code,
+                Is.EqualTo("member-port-contained"),
+                "And the singleton path flattened it too.");
+            Assert.That(singleton.Member, Is.Null);
+        });
+    }
+
+    [Test]
+    public async Task C4_an_occupied_port_needs_an_explicit_replacement_lifecycle()
+    {
+        var (occupied, parent, handlers) = await ChildActivationResult("cbi22-09-occupied-port-without-replacement");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(occupied.Code, Is.EqualTo("replacement-lifecycle-required"));
+            Assert.That(
+                occupied.Child!.Lifecycle!.Runtime!.Kind,
+                Is.EqualTo(ActivationRuntimeOutcomeKind.ReplacementLifecycleRequired),
+                "The classification is CM4's, reported rather than reformed.");
+            Assert.That(
+                handlers.Child.Sum(handler => handler.ProviderEffectCount),
+                Is.Zero,
+                "It reaches no provider.");
+            Assert.That(parent.Lifecycle!.Members.All(item => item.Member.IsReleased), Is.True);
+        });
+    }
+
+    [Test]
+    public async Task C5_a_host_assisted_export_follows_the_childs_internal_release()
+    {
+        var (ordered, _, _) = await ChildActivationResult("cbi22-02-host-assisted-attached");
+        var (conflict, _, _) = await ChildActivationResult("cbi22-10-host-assisted-order-conflict");
+        var child = ordered.Child!.Lifecycle!.Runtime!.Observation.Child!;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ordered.IsAttached, Is.True);
+            Assert.That(child.HostAssisted, Is.True);
+            Assert.That(
+                child.ExportReleaseSequence,
+                Is.GreaterThan(child.InternalReleaseSequence),
+                "The exported boundary is released after the child's own Release.");
+            Assert.That(conflict.Code, Is.EqualTo("host-assisted-order-conflict"));
+        });
+    }
+
+    [Test]
+    public async Task C6_the_parent_is_untouched_in_every_outcome()
+    {
+        var (attached, parent, _) = await ChildActivationResult("cbi22-01-child-attached");
+        var survivor = parent.Lifecycle!.Members[0].Member;
+        var attempted = await survivor.InvokeAsync(
+            CoolingPortableFixture.SetEnabled,
+            CoolingPortableFixture.CommandV1,
+            CoolingPortableFixture.Command("primary", enabled: true),
+            PortableConstraint.Atom(PortableTruth.Satisfied));
+        var observation = attached.Child!.Lifecycle!.Runtime!.Observation;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(attached.IsAttached, Is.True);
+            Assert.That(parent.Lifecycle.Members.All(item => item.Member.IsReleased), Is.True);
+            Assert.That(
+                attempted.FrameDecision,
+                Is.Not.EqualTo(PortableFrameDecision.None),
+                "The parent is still serving ordinary interaction.");
+            Assert.That(
+                observation.Scopes.Single(item => item.Scope == ParentScope).Generation,
+                Is.EqualTo(GenerationId.Create("gen.lifecycle")),
+                "And CM4 reports the parent scope carrying the generation it already had.");
+        });
+    }
+
+    [Test]
+    public async Task C7_the_childs_barriers_are_its_own()
+    {
+        var (neverReady, parent, _) = await ChildActivationResult("cbi22-11-child-member-never-ready");
+        var (attached, attachedParent, _) = await ChildActivationResult("cbi22-01-child-attached");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(neverReady.Code, Is.EqualTo("child-establishment-refused"));
+            Assert.That(
+                neverReady.Child!.Lifecycle!.Members.Count(item => item.Member.IsReleased),
+                Is.Zero);
+            Assert.That(
+                parent.Lifecycle!.Members.Count(item => item.Member.IsReleased),
+                Is.EqualTo(2),
+                "A child that never comes up leaves the parent exactly as it was.");
+            Assert.That(
+                attached.Child!.Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True);
+            Assert.That(
+                attachedParent.Lifecycle!.Members.Count(item => item.Member.IsReleased),
+                Is.EqualTo(2),
+                "And so does one that does.");
+        });
+    }
+
+    [Test]
+    public async Task C8_authority_is_the_childs_own()
+    {
+        var (denied, _, handlers) = await ChildActivationResult("cbi22-12-child-authority-denied");
+        var (attached, parent, _) = await ChildActivationResult("cbi22-01-child-attached");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(denied.Code, Is.EqualTo("authority-not-admitted"));
+            Assert.That(
+                handlers.Child.Sum(handler => handler.ProviderEffectCount),
+                Is.Zero,
+                "A denied child admission contacts no child provider.");
+            Assert.That(attached.Child!.Admissions, Has.Count.EqualTo(1));
+            Assert.That(
+                attached.Child.Grants.Select(item => item.Grant)
+                    .Intersect(parent.Grants.Select(item => item.Grant)),
+                Is.Empty,
+                "The parent's grants admit nothing for a child member.");
+        });
+    }
+
+    private static string ChildToken(ComponentChildActivationKind kind) => kind switch
+    {
+        ComponentChildActivationKind.Attached => "attached",
+        ComponentChildActivationKind.Declined => "declined",
+        ComponentChildActivationKind.ParentUnavailable => "parent-unavailable",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
+    private static readonly RegionId ChildRegion = RegionId.Create("region.child");
+    private static readonly PortId ChildPort = PortId.Create("port.child");
+    private static readonly RestartScopeId ParentScope = RestartScopeId.Create("restart.lifecycle");
+    private static readonly RestartScopeId ChildScope = RestartScopeId.Create("restart.child");
+
+    /// <summary>One position CM2 resolved inside a child Port of the named lifecycle.</summary>
+    private static (ResolutionOutcome Resolution, ComponentBindingSelection Selection) ChildPosition(
+        PortLifecycleMode lifecycle)
+    {
+        var single = Request(Cardinality.Parse("1..1"));
+        var consumer = single.Definitions.Single(item => item.Definition == Consumer);
+        var contained = consumer.Requirements.Single() with
+        {
+            ContainingRegion = ChildRegion,
+            ContainingPort = ChildPort,
+            RuntimeAttachment = lifecycle == PortLifecycleMode.RuntimeOpen,
+        };
+        var resolution = new FakeGenerationResolver().Resolve(single with
+        {
+            Definitions = [consumer with { Requirements = [contained] }, .. single.Definitions.Skip(1)],
+            Ports =
+            [
+                new PortEnvelope(
+                    ChildRegion,
+                    ChildPort,
+                    lifecycle,
+                    [new ProvidedContract(Contract, Version)],
+                    Cardinality.Parse("1..1"),
+                    [],
+                    [],
+                    [],
+                    [],
+                    "isolate",
+                    "scope",
+                    false),
+            ],
+        });
+        var member = resolution.Generation!.ProviderSets.Single().Members.Single();
+        return (resolution, Selection(member) with { HostEndpoint = "child-host" });
+    }
+
+    private static async Task<(
+        ComponentChildActivationResult Result,
+        ComponentGroupAuthorityResult Parent,
+        (CoolingPortableHandler[] Parent, CoolingPortableHandler[] Child) Handlers)>
+        ChildActivationResult(string scenario)
+    {
+        var (parent, parentHandlers) = await ChildParent(scenario == "cbi22-03-parent-not-released");
+        var (resolution, selection) = scenario == "cbi22-07-member-not-port-contained"
+            ? LooseChildPosition()
+            : ChildPosition(scenario == "cbi22-08-port-lifecycle-overstated"
+                ? PortLifecycleMode.ActivationOpen
+                : PortLifecycleMode.RuntimeOpen);
+        var childHandlers = new[] { new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()) };
+        var document = scenario == "cbi22-11-child-member-never-ready"
+            ? CoolingPortableFixture.Contract with
+            {
+                Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
+            }
+            : CoolingPortableFixture.Contract;
+        var member = new ComponentGroupMember(
+            selection,
+            new PortableDirectConversation(new PortableProviderEndpoint(
+                document, childHandlers[0], PortableRealization.FixedDirectCall)));
+        var policy = GroupPolicy(ProviderLocalActor);
+        // A child member's authority is its own request; reusing the parent's identity would give
+        // the two the same grant identity without CM5 having decided anything about the child.
+        var childRelationship = RelationshipRequestId.Create("relationship.child");
+        var request = ProviderAuthority(policy, Authority) with
+        {
+            Request = AdmissionRequestId.Create("admission.child"),
+            Relationships =
+            [
+                new(childRelationship, Participant, ActorRelationshipKind.ComponentParticipant, [AuthorityEvidence]),
+            ],
+            Authority =
+            [
+                new(
+                    AuthorityRequestId.Create("authority.child-control"),
+                    childRelationship,
+                    Capability,
+                    Target,
+                    Operation,
+                    AuthorityScope,
+                    false),
+            ],
+        };
+        if (scenario == "cbi22-12-child-authority-denied")
+        {
+            request = request with
+            {
+                Evidence = [SetEvidence(AuthorityEvidence, Participant) with { State = AdmissionEvidenceState.Revoked }],
+            };
+        }
+
+        var childScope = scenario == "cbi22-05-child-scope-is-the-parent-scope" ? ParentScope : ChildScope;
+        var plan = PlanFor(GenerationId.Create("gen.child"), childScope, selection.Occurrence);
+        var hostAssisted = scenario is "cbi22-02-host-assisted-attached" or "cbi22-10-host-assisted-order-conflict";
+        var runtimeRequest = RuntimeRequestFor(plan, GenerationId.Create("gen.child-retained")) with
+        {
+            ActiveScopes =
+            [
+                new ActiveScopeSnapshot(childScope, GenerationId.Create("gen.child-retained"), RuntimeScopeStatus.Active),
+                .. childScope == ParentScope
+                    ? Array.Empty<ActiveScopeSnapshot>()
+                    : [new ActiveScopeSnapshot(ParentScope, GenerationId.Create("gen.lifecycle"), RuntimeScopeStatus.Active)],
+            ],
+            Child = new ChildActivationDeclaration(
+                ParentScope,
+                scenario == "cbi22-04-parent-generation-mismatch"
+                    ? GenerationId.Create("gen.other")
+                    : GenerationId.Create("gen.lifecycle"),
+                scenario == "cbi22-06-attachment-names-another-port" ? PortId.Create("port.other") : ChildPort,
+                RuntimeOpen: true,
+                Occupied: scenario == "cbi22-09-occupied-port-without-replacement",
+                ReplacementLifecycleDeclared: false,
+                HostAssisted: hostAssisted,
+                InternalReleaseSequence: hostAssisted ? 1 : 0,
+                ExportReleaseSequence: scenario == "cbi22-10-host-assisted-order-conflict" ? 1 : 2,
+                OuterHostOwnsAdmission: false),
+        };
+
+        var result = await ComponentChildActivation.AttachAsync(
+            resolution,
+            parent,
+            [new(member, [new(new(selection.Occurrence, Participant), request)])],
+            runtimeRequest);
+        return (result, parent, (parentHandlers, childHandlers));
+    }
+
+    /// <summary>Two positions, each resolved into a Port of its own.</summary>
+    private static (ResolutionOutcome Resolution, ComponentBindingSelection[] Selections) TwoPortPositions()
+    {
+        var secondPort = PortId.Create("port.child-secondary");
+        var pair = RequestFor(Requirement, SecondaryRequirement);
+        var consumer = pair.Definitions.Single(item => item.Definition == Consumer);
+        var contained = consumer.Requirements
+            .Select(item => item with
+            {
+                ContainingRegion = ChildRegion,
+                ContainingPort = item.Requirement == Requirement ? ChildPort : secondPort,
+                RuntimeAttachment = true,
+            })
+            .ToArray();
+        PortEnvelope Envelope(PortId port, ContractId contract) => new(
+            ChildRegion,
+            port,
+            PortLifecycleMode.RuntimeOpen,
+            [new ProvidedContract(contract, Version)],
+            Cardinality.Parse("1..1"),
+            [],
+            [],
+            [],
+            [],
+            "isolate",
+            "scope",
+            false);
+        var resolution = new FakeGenerationResolver().Resolve(pair with
+        {
+            Definitions = [consumer with { Requirements = contained }, .. pair.Definitions.Skip(1)],
+            Ports = [Envelope(ChildPort, Contract), Envelope(secondPort, SecondaryContract)],
+        });
+        var selections = new[] { Requirement, SecondaryRequirement }
+            .Select((requirement, index) => Selection(resolution.Generation!.ProviderSets
+                .Single(item => item.Requirement == requirement).Members[0]) with
+            {
+                Requirement = requirement,
+                HostEndpoint = $"two-port-host-{index}",
+            })
+            .ToArray();
+        return (resolution, selections);
+    }
+
+    /// <summary>A position resolved outside any Port, for the attachment that has nothing to attach.</summary>
+    private static (ResolutionOutcome Resolution, ComponentBindingSelection Selection) LooseChildPosition()
+    {
+        var resolution = new FakeGenerationResolver().Resolve(Request(Cardinality.Parse("1..1")));
+        var member = resolution.Generation!.ProviderSets.Single().Members.Single();
+        return (resolution, Selection(member) with { HostEndpoint = "child-host" });
+    }
+
+    /// <summary>The parent activation a child attaches to: two members over the parent scope.</summary>
+    private static async Task<(ComponentGroupAuthorityResult Parent, CoolingPortableHandler[] Handlers)>
+        ChildParent(bool fail)
+    {
+        var resolution = new FakeGenerationResolver().Resolve(RequestFor(Requirement, SecondaryRequirement));
+        var handlers = new[]
+        {
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+        };
+        var secondDocument = fail
+            ? CoolingPortableFixture.Contract with
+            {
+                Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
+            }
+            : CoolingPortableFixture.Contract;
+        var members = new[] { Requirement, SecondaryRequirement }
+            .Select((requirement, index) => new ComponentGroupMember(
+                Selection(resolution.Generation!.ProviderSets
+                    .Single(item => item.Requirement == requirement).Members[0]) with
+                {
+                    Requirement = requirement,
+                    HostEndpoint = $"parent-host-{index}",
+                },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    index == 1 ? secondDocument : CoolingPortableFixture.Contract,
+                    handlers[index],
+                    PortableRealization.FixedDirectCall))))
+            .ToArray();
+        var policy = GroupPolicy(ProviderLocalActor);
+        var parent = await ComponentGroupAuthority.ActivateAsync(
+            resolution,
+            [
+                new(members[0], [new(new(members[0].Selection.Occurrence, Participant), ProviderAuthority(policy, Authority))]),
+                new(members[1], [new(new(members[1].Selection.Occurrence, Supervisor), SupervisorAuthority(policy, AuditAuthority, revoked: false))]),
+            ],
+            RuntimeRequest(Plan(members.Select(item => item.Selection.Occurrence).ToArray())));
+        return (parent, handlers);
+    }
+
     private static string GroupFailureToken(ComponentGroupActivationFailureKind kind) => kind switch
     {
         ComponentGroupActivationFailureKind.PlanUnsupported => "plan-unsupported",

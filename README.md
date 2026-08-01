@@ -176,6 +176,12 @@ Portable Binding's own published contract, which declares the stage out of scope
 one traffic verb gated on Release, and reports Ready during Interconnection — so there is neither a
 verb nor a window before the readiness CM4 requires a handshake to precede. The gap is located rather
 than papered over, and what the seam would need is left as an owner decision.
+CBI22 activates a Component CM2 resolved inside a child Port, in its own restart scope beneath a
+released parent — and finds a fail-open the programme had asserted was closed: the Region and Port a
+Provider Set carries were read by nothing, so such a Component was flattened into an ordinary one and
+activated in whatever scope the caller named. Which Port an attachment names is the generation's
+statement rather than the caller's, and the parent stays active and serving throughout, because a
+child activation is a second activation rather than a replacement of the first.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

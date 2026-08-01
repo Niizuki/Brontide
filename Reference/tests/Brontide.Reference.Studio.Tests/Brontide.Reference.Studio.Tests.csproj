@@ -78,5 +78,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi21-strongly-connected-group-vectors.json"
           Link="component-management\fixtures\cbi21-strongly-connected-group-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi22-child-port-vectors.json"
+          Link="component-management\fixtures\cbi22-child-port-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi22-child-port-vectors",
+  "vectors": [
+    {
+      "id": "cbi22-01-child-attached",
+      "expectedKind": "attached",
+      "expectedCode": "child-attached",
+      "expectedChildReleased": 1,
+      "expectedParentReleased": 2,
+      "expectedAdmitted": 1
+    },
+    {
+      "id": "cbi22-02-host-assisted-attached",
+      "expectedKind": "attached",
+      "expectedCode": "child-attached",
+      "expectedChildReleased": 1,
+      "expectedParentReleased": 2,
+      "expectedAdmitted": 1
+    },
+    {
+      "id": "cbi22-03-parent-not-released",
+      "expectedKind": "parent-unavailable",
+      "expectedCode": "active-parent-unavailable",
+      "expectedChildReleased": 0,
+      "expectedParentReleased": 0,
+      "expectedAdmitted": 0
+    },
+    {
+      "id": "cbi22-04-parent-generation-mismatch",
+      "expectedKind": "declined",
+      "expectedCode": "parent-generation-mismatch",
+      "expectedChildReleased": 0,
+      "expectedParentReleased": 2,
+      "expectedAdmitted": 0
+    },
+    {
+      "id": "cbi22-05-child-scope-is-the-parent-scope",
+      "expectedKind": "declined",
+      "expectedCode": "child-scope-not-distinct",
+      "expectedChildReleased": 0,
+      "expectedParentReleased": 2,
+      "expectedAdmitted": 0
+    },
+    {
+      "id": "cbi22-06-attachment-names-another-port",
+      "expectedKind": "declined",
+      "expectedCode": "port-not-resolved",
+      "expectedChildReleased": 0,
+      "expectedParentReleased": 2,
+      "expectedAdmitted": 0
+    },
+    {
+      "id": "cbi22-07-member-not-port-contained",
+      "expectedKind": "declined",
+      "expectedCode": "member-not-port-contained",
+      "expectedChildReleased": 0,
+      "expectedParentReleased": 2,
+      "expectedAdmitted": 0
+    },
+    {
+      "id": "cbi22-08-port-lifecycle-overstated",
+      "expectedKind": "declined",
+      "expectedCode": "port-lifecycle-overstated",
+      "expectedChildReleased": 0,
+      "expectedParentReleased": 2,
+      "expectedAdmitted": 0
+    },
+    {
+      "id": "cbi22-09-occupied-port-without-replacement",
+      "expectedKind": "declined",
+      "expectedCode": "replacement-lifecycle-required",
+      "expectedChildReleased": 0,
+      "expectedParentReleased": 2,
+      "expectedAdmitted": 1
+    },
+    {
+      "id": "cbi22-10-host-assisted-order-conflict",
+      "expectedKind": "declined",
+      "expectedCode": "host-assisted-order-conflict",
+      "expectedChildReleased": 0,
+      "expectedParentReleased": 2,
+      "expectedAdmitted": 1
+    },
+    {
+      "id": "cbi22-11-child-member-never-ready",
+      "expectedKind": "declined",
+      "expectedCode": "child-establishment-refused",
+      "expectedChildReleased": 0,
+      "expectedParentReleased": 2,
+      "expectedAdmitted": 1
+    },
+    {
+      "id": "cbi22-12-child-authority-denied",
+      "expectedKind": "declined",
+      "expectedCode": "authority-not-admitted",
+      "expectedChildReleased": 0,
+      "expectedParentReleased": 2,
+      "expectedAdmitted": 0
+    }
+  ]
+}

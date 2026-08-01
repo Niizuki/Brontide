@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased — CBI22 child-Port activation
+
+### Added
+
+- Reference Studio activation of a Component position CM2 resolved inside a child Port, in its own restart
+  scope, attached to the scope and generation a released parent activation made active.
+- Attachment facts read from the parent's own CM4 observation and from the resolved Port envelope
+  rather than from the caller, with a distinct refusal for each disagreement.
+- CM4's child classifications reported rather than reformed: an occupied Port without a replacement
+  lifecycle, and a host-assisted export that does not follow the child's internal Release.
+- Shared child-Port vectors, a phase-boundary completeness review, and a named test for every
+  contract item.
+
+### Fixed
+
+- A position CM2 resolved inside a child Port was flattened into an ordinary one and activated in
+  whatever restart scope the caller named, dropping the restart boundary the Port exists to give.
+  Both the group and singleton activation paths now refuse it, and the child path is the way through.
+
 ## Unreleased — CBI21 strongly connected activation groups
 
 ### Added

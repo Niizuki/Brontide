@@ -1656,6 +1656,270 @@ type ComponentBindingIntegrationTests() =
             return result, planValue, handlers
         }
 
+    let childRegion = RegionId.create "region.child"
+    let childPortId = PortId.create "port.child"
+    let parentScopeId = RestartScopeId.create "restart.lifecycle"
+    let childScopeId = RestartScopeId.create "restart.child"
+
+    let portEnvelope port contract lifecycle : PortEnvelope =
+        { Region = childRegion
+          Port = port
+          Lifecycle = lifecycle
+          Contracts = [ { Contract = contract; Version = version } ]
+          Cardinality = Cardinality.parse "1..1"
+          Imports = []
+          Exports = []
+          AuthorityCeiling = []
+          TopologyRequirements = []
+          FailurePolicy = "isolate"
+          RollbackBoundary = "scope"
+          AllowWiderGenerationProposal = false }
+
+    /// One position CM2 resolved inside a child Port of the named lifecycle.
+    let childPosition lifecycle =
+        let single = request (Cardinality.parse "1..1")
+        let consumerDefinition =
+            single.Definitions |> List.find (fun item -> item.Definition = consumer)
+        let contained =
+            { List.exactlyOne consumerDefinition.Requirements with
+                ContainingRegion = Some childRegion
+                ContainingPort = Some childPortId
+                RuntimeAttachment = lifecycle = PortLifecycleMode.RuntimeOpen }
+        let resolution =
+            { single with
+                Definitions =
+                    { consumerDefinition with Requirements = [ contained ] }
+                    :: (single.Definitions |> List.filter (fun item -> item.Definition <> consumer))
+                Ports = [ portEnvelope childPortId contractId lifecycle ] }
+            |> FakeGenerationResolver.resolve
+        let position =
+            match resolution with
+            | ResolutionOutcome.Resolved(_, generation) ->
+                generation.ProviderSets |> List.exactlyOne |> fun item -> List.exactlyOne item.Members
+            | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+        resolution, { selection position with HostEndpoint = "child-host" }
+
+    /// A position resolved outside any Port, for the attachment that has nothing to attach.
+    let looseChildPosition () =
+        let resolution = request (Cardinality.parse "1..1") |> FakeGenerationResolver.resolve
+        let position =
+            match resolution with
+            | ResolutionOutcome.Resolved(_, generation) ->
+                generation.ProviderSets |> List.exactlyOne |> fun item -> List.exactlyOne item.Members
+            | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+        resolution, { selection position with HostEndpoint = "child-host" }
+
+    /// Two positions, each resolved into a Port of its own.
+    let twoPortPositions () =
+        let secondPort = PortId.create "port.child-secondary"
+        let pair = requestForPositions [ requirementId; secondaryRequirementId ]
+        let consumerDefinition =
+            pair.Definitions |> List.find (fun item -> item.Definition = consumer)
+        let contained =
+            consumerDefinition.Requirements
+            |> List.map (fun item ->
+                { item with
+                    ContainingRegion = Some childRegion
+                    ContainingPort =
+                        Some(if item.Requirement = requirementId then childPortId else secondPort)
+                    RuntimeAttachment = true })
+        let resolution =
+            { pair with
+                Definitions =
+                    { consumerDefinition with Requirements = contained }
+                    :: (pair.Definitions |> List.filter (fun item -> item.Definition <> consumer))
+                Ports =
+                    [ portEnvelope childPortId contractId PortLifecycleMode.RuntimeOpen
+                      portEnvelope secondPort secondaryContractId PortLifecycleMode.RuntimeOpen ] }
+            |> FakeGenerationResolver.resolve
+        let providerSets =
+            match resolution with
+            | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+            | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+        let selections =
+            [ requirementId; secondaryRequirementId ]
+            |> List.mapi (fun index requirement ->
+                let position =
+                    providerSets
+                    |> List.find (fun item -> item.Requirement = requirement)
+                    |> fun item -> List.exactlyOne item.Members
+                { selection position with
+                    Requirement = requirement
+                    HostEndpoint = sprintf "two-port-host-%d" index })
+        resolution, selections
+
+    /// The parent activation a child attaches to: two members over the parent scope.
+    let childParent fail =
+        task {
+            let resolution =
+                requestForPositions [ requirementId; secondaryRequirementId ]
+                |> FakeGenerationResolver.resolve
+            let providerSets =
+                match resolution with
+                | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            let handlers = [ CoolingHandler(); CoolingHandler() ]
+            let secondDocument =
+                if fail then
+                    { CoolingFixture.contract with
+                        Provider = expectProvider "brontide.fake.substituted" }
+                else
+                    CoolingFixture.contract
+            let members =
+                [ requirementId; secondaryRequirementId ]
+                |> List.mapi (fun index requirement ->
+                    let position =
+                        providerSets
+                        |> List.find (fun item -> item.Requirement = requirement)
+                        |> fun item -> List.exactlyOne item.Members
+                    { Selection =
+                        { selection position with
+                            Requirement = requirement
+                            HostEndpoint = sprintf "parent-host-%d" index }
+                      Conversation =
+                        PortableDirectConversation(
+                            PortableProviderEndpoint(
+                                (if index = 1 then secondDocument else CoolingFixture.contract),
+                                List.item index handlers,
+                                Realization.FixedDirectCall))
+                        :> IPortableProviderConversation })
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let! parent =
+                ComponentGroupAuthority.activate
+                    resolution
+                    [ { Member = List.item 0 members
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = (List.item 0 members).Selection.Occurrence
+                                  Participant = participant }
+                              Request = providerAuthority policy authorityId } ] }
+                      { Member = List.item 1 members
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = (List.item 1 members).Selection.Occurrence
+                                  Participant = supervisor }
+                              Request = supervisorAuthority policy auditAuthorityId false } ] } ]
+                    (runtimeRequest (plan (members |> List.map _.Selection.Occurrence)))
+            return parent, handlers
+        }
+
+    let childToken kind =
+        match kind with
+        | ComponentChildActivationKind.Attached -> "attached"
+        | ComponentChildActivationKind.Declined -> "declined"
+        | ComponentChildActivationKind.ParentUnavailable -> "parent-unavailable"
+
+    /// A child member's authority is its own request; reusing the parent's identity would give the
+    /// two the same grant identity without CM5 having decided anything about the child.
+    let childAuthority policy revoked =
+        let childRelationship = RelationshipRequestId.create "relationship.child"
+        let baseline = providerAuthority policy authorityId
+        let request' =
+            { baseline with
+                Request = AdmissionRequestId.create "admission.child"
+                Relationships =
+                  [ { Request = childRelationship
+                      ProposedActor = participant
+                      Kind = ActorRelationshipKind.ComponentParticipant
+                      Evidence = [ authorityEvidence ] } ]
+                Authority =
+                  [ { Request = AuthorityRequestId.create "authority.child-control"
+                      Relationship = childRelationship
+                      Capability = capability
+                      Target = authorityTarget
+                      Operation = operation
+                      Scope = authorityScope
+                      Unlimited = false } ] }
+        if revoked then revokedRequest request' else request'
+
+    let childActivationResult scenario =
+        task {
+            let! parent, parentHandlers = childParent (scenario = "cbi22-03-parent-not-released")
+            let resolution, childSelection =
+                if scenario = "cbi22-07-member-not-port-contained" then
+                    looseChildPosition ()
+                else
+                    childPosition (
+                        if scenario = "cbi22-08-port-lifecycle-overstated" then
+                            PortLifecycleMode.ActivationOpen
+                        else
+                            PortLifecycleMode.RuntimeOpen
+                    )
+            let childHandlers = [ CoolingHandler() ]
+            let document =
+                if scenario = "cbi22-11-child-member-never-ready" then
+                    { CoolingFixture.contract with
+                        Provider = expectProvider "brontide.fake.substituted" }
+                else
+                    CoolingFixture.contract
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let childScope =
+                if scenario = "cbi22-05-child-scope-is-the-parent-scope" then
+                    parentScopeId
+                else
+                    childScopeId
+            let planValue =
+                planFor (GenerationId.create "gen.child") childScope [ childSelection.Occurrence ]
+            let hostAssisted =
+                scenario = "cbi22-02-host-assisted-attached"
+                || scenario = "cbi22-10-host-assisted-order-conflict"
+            let baseRequest = runtimeRequestFor planValue (GenerationId.create "gen.child-retained")
+            let childRequest =
+                { baseRequest with
+                    ActiveScopes =
+                        [ yield
+                              { Scope = childScope
+                                Generation = GenerationId.create "gen.child-retained"
+                                Status = RuntimeScopeStatus.ActiveScope }
+                          if childScope <> parentScopeId then
+                              yield
+                                  { Scope = parentScopeId
+                                    Generation = GenerationId.create "gen.lifecycle"
+                                    Status = RuntimeScopeStatus.ActiveScope } ]
+                    Child =
+                        Some
+                            { ParentScope = parentScopeId
+                              ParentGeneration =
+                                if scenario = "cbi22-04-parent-generation-mismatch" then
+                                    GenerationId.create "gen.other"
+                                else
+                                    GenerationId.create "gen.lifecycle"
+                              Port =
+                                if scenario = "cbi22-06-attachment-names-another-port" then
+                                    PortId.create "port.other"
+                                else
+                                    childPortId
+                              RuntimeOpen = true
+                              Occupied = scenario = "cbi22-09-occupied-port-without-replacement"
+                              ReplacementLifecycleDeclared = false
+                              HostAssisted = hostAssisted
+                              InternalReleaseSequence = (if hostAssisted then 1 else 0)
+                              ExportReleaseSequence =
+                                (if scenario = "cbi22-10-host-assisted-order-conflict" then 1 else 2)
+                              OuterHostOwnsAdmission = false } }
+            let! result =
+                ComponentChildActivation.attach
+                    resolution
+                    parent
+                    [ { Member =
+                          { Selection = childSelection
+                            Conversation =
+                              PortableDirectConversation(
+                                  PortableProviderEndpoint(
+                                      document,
+                                      List.item 0 childHandlers,
+                                      Realization.FixedDirectCall))
+                              :> IPortableProviderConversation }
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = childSelection.Occurrence
+                                  Participant = participant }
+                              Request =
+                                childAuthority policy (scenario = "cbi22-12-child-authority-denied") } ] } ]
+                    childRequest
+            return result, parent, parentHandlers, childHandlers
+        }
+
     /// The positions the successor generation resolves, per scenario.
     let membershipPositions scenario =
         match scenario with
@@ -3402,6 +3666,339 @@ type ComponentBindingIntegrationTests() =
                     "Activation produces no binding exercise of its own; that is CBI16's question.")
                 Assert.That(cycle.Runtime.Value.Observation.Interactions, Is.Empty)
                 Assert.That(handlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0))
+        }
+
+    [<Test>]
+    member _.``shared CBI22 vectors attach a child to a released parent``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi22-child-port-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI22 vector identity must be a string"
+                    | value -> value
+                let! result, parent, parentHandlers, _ = childActivationResult scenario
+                let childMembers =
+                    result.Child
+                    |> Option.bind _.Lifecycle
+                    |> Option.map _.Members
+                    |> Option.defaultValue []
+                let childReleased = childMembers |> List.filter _.Member.IsReleased |> List.length
+                let parentMembers =
+                    parent.Lifecycle |> Option.map _.Members |> Option.defaultValue []
+                let parentReleased = parentMembers |> List.filter _.Member.IsReleased |> List.length
+                multiple (fun () ->
+                    Assert.That(
+                        childToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        childReleased,
+                        Is.EqualTo(vector.GetProperty("expectedChildReleased").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        parentReleased,
+                        Is.EqualTo(vector.GetProperty("expectedParentReleased").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Child
+                        |> Option.map (fun value -> value.Admissions.Length)
+                        |> Option.defaultValue 0,
+                        Is.EqualTo(vector.GetProperty("expectedAdmitted").GetInt32()),
+                        scenario)
+                    // A child activation is a second activation, never a replacement of the first.
+                    Assert.That(
+                        vector.GetProperty("expectedParentReleased").GetInt32() = 0
+                        || not (
+                            parentMembers
+                            |> List.exists (fun item ->
+                                CompositionStage.token item.Member.Stage = "retired")
+                        ),
+                        Is.True,
+                        sprintf
+                            "%s: nothing in a child activation stands a released parent down."
+                            scenario)
+                    Assert.That(
+                        childReleased = childMembers.Length || childReleased = 0,
+                        Is.True,
+                        sprintf "%s: the child's release barrier covers the child's members." scenario)
+                    Assert.That(
+                        parentHandlers |> List.sumBy _.ProviderEffectCount,
+                        Is.EqualTo 0,
+                        sprintf "%s: no child outcome exercises a parent provider." scenario))
+        }
+
+    [<Test>]
+    member _.``C1 a child needs a released parent and an attachment read from it``() =
+        task {
+            let! unavailable, _, _, _ = childActivationResult "cbi22-03-parent-not-released"
+            let! generation, parent, _, _ = childActivationResult "cbi22-04-parent-generation-mismatch"
+            let! scopeResult, _, _, _ = childActivationResult "cbi22-05-child-scope-is-the-parent-scope"
+            multiple (fun () ->
+                Assert.That(
+                    unavailable.Kind,
+                    Is.EqualTo ComponentChildActivationKind.ParentUnavailable)
+                Assert.That(generation.Code, Is.EqualTo "parent-generation-mismatch")
+                Assert.That(
+                    scopeResult.Code,
+                    Is.EqualTo "child-scope-not-distinct",
+                    "A child Port exists to give its Component a restart boundary.")
+                Assert.That(
+                    [ unavailable; generation; scopeResult ]
+                    |> List.forall (fun item -> item.Child.IsNone),
+                    Is.True,
+                    "Every refusal before establishment creates no child member.")
+                Assert.That(
+                    parent.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True))
+        }
+
+    [<Test>]
+    member _.``C2 the Port is the generation's and not the caller's``() =
+        task {
+            let! foreign, _, _, _ = childActivationResult "cbi22-06-attachment-names-another-port"
+            let! loose, _, _, _ = childActivationResult "cbi22-07-member-not-port-contained"
+            let! overstated, _, _, _ = childActivationResult "cbi22-08-port-lifecycle-overstated"
+            let! attached, _, _, _ = childActivationResult "cbi22-01-child-attached"
+            multiple (fun () ->
+                Assert.That(foreign.Code, Is.EqualTo "port-not-resolved")
+                Assert.That(loose.Code, Is.EqualTo "member-not-port-contained")
+                Assert.That(
+                    overstated.Code,
+                    Is.EqualTo "port-lifecycle-overstated",
+                    "The envelope, not the caller, says what the Port permits.")
+                Assert.That(
+                    attached.Port |> Option.map PortId.value,
+                    Is.EqualTo(Some(PortId.value childPortId)),
+                    "An admitted attachment names the Port its members were resolved into."))
+        }
+
+    [<Test>]
+    member _.``C2 members drawn from two Ports have no one Port to attach to``() =
+        task {
+            let! parent, _ = childParent false
+            let resolution, selections = twoPortPositions ()
+            let handlers = selections |> List.map (fun _ -> CoolingHandler())
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let members =
+                selections
+                |> List.mapi (fun index childSelection ->
+                    { Member =
+                        { Selection = childSelection
+                          Conversation =
+                            PortableDirectConversation(
+                                PortableProviderEndpoint(
+                                    CoolingFixture.contract,
+                                    List.item index handlers,
+                                    Realization.FixedDirectCall))
+                            :> IPortableProviderConversation }
+                      Participants =
+                        [ { Mapping =
+                              { Occurrence = childSelection.Occurrence
+                                Participant = (if index = 0 then participant else supervisor) }
+                            Request =
+                              if index = 0 then
+                                  providerAuthority policy authorityId
+                              else
+                                  supervisorAuthority policy auditAuthorityId false } ] })
+            let planValue =
+                planFor
+                    (GenerationId.create "gen.child")
+                    childScopeId
+                    (selections |> List.map _.Occurrence)
+            let baseRequest = runtimeRequestFor planValue (GenerationId.create "gen.child-retained")
+            let! result =
+                ComponentChildActivation.attach
+                    resolution
+                    parent
+                    members
+                    { baseRequest with
+                        ActiveScopes =
+                            [ { Scope = childScopeId
+                                Generation = GenerationId.create "gen.child-retained"
+                                Status = RuntimeScopeStatus.ActiveScope }
+                              { Scope = parentScopeId
+                                Generation = GenerationId.create "gen.lifecycle"
+                                Status = RuntimeScopeStatus.ActiveScope } ]
+                        Child =
+                            Some
+                                { ParentScope = parentScopeId
+                                  ParentGeneration = GenerationId.create "gen.lifecycle"
+                                  Port = childPortId
+                                  RuntimeOpen = true
+                                  Occupied = false
+                                  ReplacementLifecycleDeclared = false
+                                  HostAssisted = false
+                                  InternalReleaseSequence = 0
+                                  ExportReleaseSequence = 2
+                                  OuterHostOwnsAdmission = false } }
+            multiple (fun () ->
+                Assert.That(
+                    result.Code,
+                    Is.EqualTo "port-not-resolved",
+                    "One attachment names one Port, so members from two have no single Port to attach to.")
+                Assert.That(result.Child, Is.EqualTo None)
+                Assert.That(handlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0))
+        }
+
+    [<Test>]
+    member _.``C3 a Port-contained position outside a child activation is refused``() =
+        task {
+            let resolution, childSelection = childPosition PortLifecycleMode.RuntimeOpen
+            let planValue = plan [ childSelection.Occurrence ]
+            let! flattened =
+                ComponentGroupLifecycle.activate
+                    resolution
+                    [ { Selection = childSelection
+                        Conversation = directCooling CoolingFixture.contract } ]
+                    (runtimeRequest planValue)
+            let! singleton =
+                ComponentBindingLifecycle.activate
+                    resolution
+                    childSelection
+                    (runtimeRequest planValue)
+                    (directCooling CoolingFixture.contract)
+            multiple (fun () ->
+                Assert.That(
+                    flattened.Failure.Value.Code,
+                    Is.EqualTo "member-port-contained",
+                    "The containment is a statement the generation made about where the Component runs.")
+                Assert.That(flattened.Members, Is.Empty)
+                Assert.That(
+                    singleton.Failure.Value.Code,
+                    Is.EqualTo "member-port-contained",
+                    "And the singleton path flattened it too.")
+                Assert.That(singleton.Member, Is.EqualTo None))
+        }
+
+    [<Test>]
+    member _.``C4 an occupied Port needs an explicit replacement lifecycle``() =
+        task {
+            let! occupied, parent, _, childHandlers =
+                childActivationResult "cbi22-09-occupied-port-without-replacement"
+            multiple (fun () ->
+                Assert.That(occupied.Code, Is.EqualTo "replacement-lifecycle-required")
+                Assert.That(
+                    occupied.Child.Value.Lifecycle.Value.Runtime.Value.Kind,
+                    Is.EqualTo ActivationRuntimeOutcomeKind.ReplacementLifecycleRequired,
+                    "The classification is CM4's, reported rather than reformed.")
+                Assert.That(
+                    childHandlers |> List.sumBy _.ProviderEffectCount,
+                    Is.EqualTo 0,
+                    "It reaches no provider.")
+                Assert.That(
+                    parent.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True))
+        }
+
+    [<Test>]
+    member _.``C5 a host-assisted export follows the child's internal Release``() =
+        task {
+            let! ordered, _, _, _ = childActivationResult "cbi22-02-host-assisted-attached"
+            let! conflict, _, _, _ = childActivationResult "cbi22-10-host-assisted-order-conflict"
+            let child =
+                ordered.Child.Value.Lifecycle.Value.Runtime.Value.Observation.Child.Value
+            multiple (fun () ->
+                Assert.That(ComponentChildActivation.isAttached ordered, Is.True)
+                Assert.That(child.HostAssisted, Is.True)
+                Assert.That(
+                    child.ExportReleaseSequence,
+                    Is.GreaterThan child.InternalReleaseSequence,
+                    "The exported boundary is released after the child's own Release.")
+                Assert.That(conflict.Code, Is.EqualTo "host-assisted-order-conflict"))
+        }
+
+    [<Test>]
+    member _.``C6 the parent is untouched in every outcome``() =
+        task {
+            let! attached, parent, _, _ = childActivationResult "cbi22-01-child-attached"
+            let survivor = (List.item 0 parent.Lifecycle.Value.Members).Member
+            let! attempted =
+                survivor.Invoke(
+                    CoolingFixture.setEnabled,
+                    CoolingFixture.commandV1,
+                    CoolingFixture.authorizedCommand "primary" true,
+                    PortableConstraint.Atom PortableTruth.Satisfied)
+            let interaction =
+                match attempted with
+                | Ok value -> value
+                | Error error -> failwithf "Expected the parent to still serve, got %A." error
+            let observation = attached.Child.Value.Lifecycle.Value.Runtime.Value.Observation
+            multiple (fun () ->
+                Assert.That(ComponentChildActivation.isAttached attached, Is.True)
+                Assert.That(
+                    parent.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True)
+                Assert.That(
+                    interaction.FrameDecision,
+                    Is.Not.EqualTo FrameDecision.None,
+                    "The parent is still serving ordinary interaction.")
+                let parentScopeGeneration =
+                    observation.Scopes
+                    |> List.find (fun item -> item.Scope = parentScopeId)
+                    |> fun item -> item.Generation |> Option.map GenerationId.value
+                Assert.That(
+                    parentScopeGeneration,
+                    Is.EqualTo(Some "gen.lifecycle"),
+                    "And CM4 reports the parent scope carrying the generation it already had."))
+        }
+
+    [<Test>]
+    member _.``C7 the child's barriers are its own``() =
+        task {
+            let! neverReady, parent, _, _ = childActivationResult "cbi22-11-child-member-never-ready"
+            let! attached, attachedParent, _, _ = childActivationResult "cbi22-01-child-attached"
+            multiple (fun () ->
+                Assert.That(neverReady.Code, Is.EqualTo "child-establishment-refused")
+                Assert.That(
+                    neverReady.Child.Value.Lifecycle.Value.Members
+                    |> List.filter _.Member.IsReleased
+                    |> List.length,
+                    Is.EqualTo 0)
+                Assert.That(
+                    parent.Lifecycle.Value.Members |> List.filter _.Member.IsReleased |> List.length,
+                    Is.EqualTo 2,
+                    "A child that never comes up leaves the parent exactly as it was.")
+                Assert.That(
+                    attached.Child.Value.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True)
+                Assert.That(
+                    attachedParent.Lifecycle.Value.Members
+                    |> List.filter _.Member.IsReleased
+                    |> List.length,
+                    Is.EqualTo 2,
+                    "And so does one that does."))
+        }
+
+    [<Test>]
+    member _.``C8 authority is the child's own``() =
+        task {
+            let! denied, _, _, childHandlers = childActivationResult "cbi22-12-child-authority-denied"
+            let! attached, parent, _, _ = childActivationResult "cbi22-01-child-attached"
+            let parentGrants = parent.Grants |> List.map (fun item -> CapabilityGrantId.value item.Grant)
+            multiple (fun () ->
+                Assert.That(denied.Code, Is.EqualTo "authority-not-admitted")
+                Assert.That(
+                    childHandlers |> List.sumBy _.ProviderEffectCount,
+                    Is.EqualTo 0,
+                    "A denied child admission contacts no child provider.")
+                Assert.That(attached.Child.Value.Admissions.Length, Is.EqualTo 1)
+                Assert.That(
+                    attached.Child.Value.Grants
+                    |> List.exists (fun item ->
+                        List.contains (CapabilityGrantId.value item.Grant) parentGrants),
+                    Is.False,
+                    "The parent's grants admit nothing for a child member."))
         }
 
     [<Test>]
