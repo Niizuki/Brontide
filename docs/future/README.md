@@ -85,8 +85,9 @@ implementations on partial-match and count semantics, which the fixture contract
 PB-70 and PB-71 settle both, with the rules derived from the declared Shapes rather than adopted from
 whichever implementation was read first, and Minimal brought to them.
 
-One question remains open, and it is not one of the eight: whether to ratify the provisional Channel
-Shape and category names or publish an explicitly migrated revision.
+Two questions remain open, and neither is one of the eight: whether to ratify the provisional Channel
+Shape and category names or publish an explicitly migrated revision, and Decision 12, raised by CBI20
+on 2026-08-01.
 
 **PB7 added the Composition handoff**: the narrow seam by which a resolved Component requirement and
 an offered provision produce a Binding Plan during activation preflight. It consumes a resolution and
@@ -488,7 +489,13 @@ already serving — which is also the line between CBI18 and CBI20. An emptied m
 CBI14's withdrawal reached through the wrong door, and the case only a changed membership can pose is
 that a receiving-domain Actor a **dropped** participant held may be taken by a different party in an
 **added** member, while the same reuse against a *surviving* participant stays the conflation CBI13
-refuses. The [`CBI20 capability contract`](../../component-management/cbi20-capability-contract.md) and
+refuses. That permitted reuse is the one answer a second, independent implementation of this slice
+reached differently, and it is **open as Decision 12** in
+[`binding/portable/open-decisions.md`](../../binding/portable/open-decisions.md): the merged rule
+reads CBI13's mapping as a property of an activation that ends at cutover, while the other reading
+refuses the reuse until the retained members retire, because both generations are established against
+the same binding scope for the width of the cutover. No vector distinguishes them today. The
+[`CBI20 capability contract`](../../component-management/cbi20-capability-contract.md) and
 [`contract-completeness review`](../../component-management/cbi20-contract-completeness-review.md)
 bound it to one successor generation resolving a different set of positions over protocol-free members.
 
@@ -499,7 +506,8 @@ what a bounded lifecycle protocol between two members means for the release barr
 for lifecycle traffic is the same admission CBI13 grants for ordinary interaction or a separate one, and
 what a protocol that fails mid-handshake leaves behind. Child Ports, mediation, wider Provider Sets, and
 real distribution remain future work behind it. PB8's independent reviews remain a separate governance
-prerequisite rather than implementation work; Decision 11 was ruled on and delivered on 2026-07-30.
+prerequisite rather than implementation work; Decision 11 was ruled on and delivered on 2026-07-30,
+and Decision 12 awaits a ruling without blocking anything.
 
 ## Other planned areas
 
