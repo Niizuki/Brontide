@@ -2150,6 +2150,51 @@ public sealed class ComponentBindingIntegrationTests
     }
 
     /// <summary>A genuinely cyclic group: one strongly connected component carrying a protocol.</summary>
+    /// <summary>
+    /// A strongly connected group that declares no protocol: the members interact ordinarily, which
+    /// is enough to make one component of the graph and nothing more.
+    /// </summary>
+    private static ActivationGroupPlan CyclePlan(
+        IReadOnlyList<OccurrenceId> cycle,
+        params OccurrenceId[] isolated)
+    {
+        var members = cycle.Concat(isolated)
+            .Select(occurrence => new ActivationGroupMember(
+                occurrence,
+                DefinitionId.Create($"def.{occurrence.Value}"),
+                RegionId.Create("region.integration"),
+                [new ProvidedContract(Contract, Version)],
+                [],
+                [],
+                []))
+            .ToArray();
+        var edges = cycle
+            .Select((occurrence, index) => new ActivationDependency(
+                ActivationEdgeId.Create($"edge.cycle-{index}"),
+                occurrence,
+                cycle[(index + 1) % cycle.Count],
+                ActivationDependencyKind.OrdinaryInteraction,
+                Contract,
+                Version,
+                // Ordinary traffic observed before Release is what CM3 refuses; this only declares
+                // that the members interact once both are serving.
+                false,
+                null,
+                null,
+                false))
+            .ToArray();
+        var outcome = new FakeActivationGroupPlanner().Plan(new(
+            ActivationGroupRequestId.Create("group.integration"),
+            GenerationId.Create("gen.lifecycle"),
+            RestartScopeId.Create("restart.lifecycle"),
+            members,
+            edges,
+            [],
+            []));
+        return outcome.Plan ?? throw new InvalidOperationException(
+            $"CM3 refused the ordinary cycle: {outcome.Failure?.Kind} {outcome.Failure?.Reason}");
+    }
+
     private static ActivationGroupPlan ProtocolPlan(IReadOnlyList<OccurrenceId> occurrences)
     {
         var members = occurrences.Select(occurrence => new ActivationGroupMember(
@@ -5356,6 +5401,293 @@ public sealed class ComponentBindingIntegrationTests
         ComponentGroupAuthorityFailureKind.ActivationRefused => "activation-refused",
         _ => throw new ArgumentOutOfRangeException(nameof(kind)),
     };
+
+    [Test]
+    public async Task Shared_cbi21_vectors_activate_a_strongly_connected_group_without_a_protocol()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi21-strongly-connected-group-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, plan, handlers) = await StronglyConnectedResult(scenario);
+            var expectedCode = vector.GetProperty("expectedCode");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    result.IsActive,
+                    Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()),
+                    scenario);
+                Assert.That(
+                    result.Failure?.Code,
+                    Is.EqualTo(expectedCode.ValueKind == JsonValueKind.Null ? null : expectedCode.GetString()),
+                    scenario);
+                Assert.That(
+                    plan.Groups,
+                    Has.Count.EqualTo(vector.GetProperty("expectedGroups").GetInt32()),
+                    scenario);
+                Assert.That(
+                    plan.Groups.Sum(group => group.Members.Count),
+                    Is.EqualTo(vector.GetProperty("expectedMembers").GetInt32()),
+                    $"{scenario}: the plan carries the members the vector names.");
+                Assert.That(
+                    result.Members,
+                    Has.Count.EqualTo(vector.GetProperty("expectedPrepared").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Members.Count(item => item.Member.IsReleased),
+                    Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                    scenario);
+
+                // Grouping changes which members CM4 expects observations for; it changes no barrier.
+                Assert.That(
+                    result.Members.All(item => item.Member.IsReleased) ||
+                        result.Members.All(item => !item.Member.IsReleased),
+                    Is.True,
+                    $"{scenario}: the release barrier is the activation's, whatever the grouping.");
+                Assert.That(
+                    handlers.Sum(handler => handler.ProviderEffectCount),
+                    Is.Zero,
+                    $"{scenario}: activation exercises nothing of its own.");
+            });
+        }
+    }
+
+    [Test]
+    public async Task C1_a_group_is_refused_for_its_protocols_and_not_for_its_members()
+    {
+        var (cycle, _, _) = await StronglyConnectedResult("cbi21-01-ordinary-cycle-activated");
+        var (mixed, mixedPlan, _) = await StronglyConnectedResult("cbi21-02-mixed-grouping-activated");
+        var (unplanned, _, _) = await StronglyConnectedResult("cbi21-04-member-not-planned");
+        var (unselected, _, _) = await StronglyConnectedResult("cbi21-05-member-not-selected");
+        var (repeated, _, _) = await StronglyConnectedResult("cbi21-06-member-not-distinct");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                cycle.IsActive,
+                Is.True,
+                "A cyclic group that declares no protocol needs nothing this seam lacks.");
+            Assert.That(mixed.IsActive, Is.True);
+            Assert.That(
+                mixedPlan.Groups.Select(group => group.Members.Count).OrderBy(count => count),
+                Is.EqualTo(new[] { 1, 2 }),
+                "One plan carrying a singleton group and a cyclic pair activates as one activation.");
+
+            Assert.That(unplanned.Failure!.Code, Is.EqualTo("member-not-planned"));
+            Assert.That(unselected.Failure!.Code, Is.EqualTo("member-not-selected"));
+            Assert.That(repeated.Failure!.Code, Is.EqualTo("member-not-distinct"));
+            Assert.That(
+                new[] { unplanned, unselected, repeated }.All(item =>
+                    item.Members.Count == 0 && item.Runtime is null),
+                Is.True,
+                "Every plan refusal happens before a member is prepared.");
+        });
+    }
+
+    [Test]
+    public async Task C2_a_declared_bounded_protocol_is_refused_by_name()
+    {
+        var (refused, plan, handlers) = await StronglyConnectedResult("cbi21-03-protocol-group-refused");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(refused.Failure!.Kind, Is.EqualTo(ComponentGroupActivationFailureKind.PlanUnsupported));
+            Assert.That(refused.Failure.Code, Is.EqualTo("relational-initialisation-unsupported"));
+            Assert.That(
+                refused.Failure.Reason,
+                Does.Contain("Relational Initialisation"),
+                "The refusal names the stage rather than the group's shape.");
+            Assert.That(
+                plan.Groups.Single().Protocols,
+                Has.Count.EqualTo(2),
+                "The plan really does declare bounded protocols.");
+            Assert.That(refused.Members, Is.Empty);
+            Assert.That(handlers.Sum(handler => handler.ProviderEffectCount), Is.Zero);
+        });
+    }
+
+    [Test]
+    public async Task C3_the_refusal_is_the_seams_and_cm3_and_cm4_both_accept_the_plan()
+    {
+        var (refused, plan, _) = await StronglyConnectedResult("cbi21-03-protocol-group-refused");
+        var runtime = new FakeActivationRuntime().Activate(RuntimeRequest(plan) with
+        {
+            StageOutcomes = plan.Groups
+                .SelectMany(group => group.Members.SelectMany(member => group.Stages.Select(stage =>
+                    new MemberStageOutcome(group.Group, member.Occurrence, stage.Stage, true, "supplied"))))
+                .ToArray(),
+            InteractionAttempts = plan.Groups
+                .SelectMany(group => group.Protocols.Select((protocol, index) => new RuntimeInteractionAttempt(
+                    RuntimeInteractionId.Create($"interaction.{index}"),
+                    group.Group,
+                    protocol.From,
+                    protocol.To,
+                    RuntimeInteractionPhase.RelationalInitialisation,
+                    RuntimeInteractionKind.Lifecycle,
+                    protocol.Edge,
+                    protocol.Operation,
+                    protocol.Authority[0],
+                    protocol.InputShape)))
+                .ToArray(),
+        });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(refused.IsActive, Is.False, "The integration refuses it.");
+            Assert.That(
+                plan.Groups.Single().Stages.Select(stage => stage.Stage),
+                Does.Contain(ActivationStage.RelationalInitialisation),
+                "CM3 planned the stage.");
+            Assert.That(
+                runtime.Kind,
+                Is.EqualTo(ActivationRuntimeOutcomeKind.Active),
+                "And CM4 accepts the plan and its declared handshakes, so neither of them is the refusal.");
+        });
+    }
+
+    [Test]
+    public async Task C4_the_seam_leaves_no_window_for_a_relational_stage()
+    {
+        var resolution = new FakeGenerationResolver().Resolve(RequestFor(Requirement));
+        var member = resolution.Generation!.ProviderSets.Single().Members.Single();
+        var prepared = ComponentBindingIntegration.Prepare(resolution, Selection(member)).Member!;
+
+        var readyBefore = prepared.IsReady;
+        await prepared.InterconnectAsync(DirectCooling(CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(readyBefore, Is.False);
+            Assert.That(
+                prepared.IsReady,
+                Is.True,
+                "Interconnection carries establishment and the readiness signal together.");
+            Assert.That(
+                prepared.Stage,
+                Is.EqualTo(PortableCompositionStage.Interconnected),
+                "So a member is Ready before anything else the seam offers can be called, and CM4 requires Relational Initialisation to precede Ready.");
+        });
+    }
+
+    [Test]
+    public async Task C5_the_seam_has_no_lifecycle_traffic_verb()
+    {
+        var resolution = new FakeGenerationResolver().Resolve(RequestFor(Requirement));
+        var member = resolution.Generation!.ProviderSets.Single().Members.Single();
+        var prepared = ComponentBindingIntegration.Prepare(resolution, Selection(member)).Member!;
+        var handler = new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry());
+        await prepared.InterconnectAsync(new PortableDirectConversation(
+            new PortableProviderEndpoint(CoolingPortableFixture.Contract, handler, PortableRealization.FixedDirectCall)));
+
+        var attempted = await prepared.InvokeAsync(
+            CoolingPortableFixture.SetEnabled,
+            CoolingPortableFixture.CommandV1,
+            CoolingPortableFixture.Command("primary", enabled: true),
+            PortableConstraint.Atom(PortableTruth.Satisfied));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(prepared.IsReady, Is.True);
+            Assert.That(
+                attempted.Category,
+                Is.EqualTo(PortableProtocolCategory.StateViolation),
+                "The one verb a composition can initiate is gated on Release, and the refusal is the portable layer's own.");
+            Assert.That(
+                attempted.FrameDecision,
+                Is.EqualTo(PortableFrameDecision.None),
+                "So a declared handshake could not reach a provider even if one were named.");
+            Assert.That(handler.ProviderEffectCount, Is.Zero);
+        });
+    }
+
+    [Test]
+    public async Task C6_a_delivered_group_activates_on_cbi12_terms()
+    {
+        var (cycle, plan, handlers) = await StronglyConnectedResult("cbi21-01-ordinary-cycle-activated");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(cycle.IsActive, Is.True);
+            Assert.That(plan.Groups.Single().Cyclic, Is.True, "One group, and CM3 calls it cyclic.");
+            Assert.That(
+                plan.Groups.Single().Stages.Select(stage => stage.Stage),
+                Does.Not.Contain(ActivationStage.RelationalInitialisation),
+                "And it declares no relational stage, which is why it is deliverable.");
+            Assert.That(cycle.Members.All(item => item.Member.IsReleased), Is.True);
+            Assert.That(cycle.Runtime!.IsActive, Is.True);
+            Assert.That(handlers.Sum(handler => handler.ProviderEffectCount), Is.Zero);
+        });
+    }
+
+    [Test]
+    public async Task C7_a_delivered_group_performs_none_of_its_internal_edges()
+    {
+        var (cycle, plan, handlers) = await StronglyConnectedResult("cbi21-01-ordinary-cycle-activated");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                plan.Groups.Single().InternalEdges,
+                Has.Count.EqualTo(2),
+                "The edges that made the group are declarations.");
+            Assert.That(
+                cycle.Runtime!.Observation.BindingExercises,
+                Is.Empty,
+                "Activation produces no binding exercise of its own; that is CBI16's question.");
+            Assert.That(cycle.Runtime.Observation.Interactions, Is.Empty);
+            Assert.That(handlers.Sum(handler => handler.ProviderEffectCount), Is.Zero);
+        });
+    }
+
+    private static async Task<(
+        ComponentGroupActivationResult Result,
+        ActivationGroupPlan Plan,
+        CoolingPortableHandler[] Handlers)>
+        StronglyConnectedResult(string scenario)
+    {
+        var requirements = scenario == "cbi21-02-mixed-grouping-activated"
+            ? new[] { Requirement, SecondaryRequirement, TertiaryRequirement }
+            : [Requirement, SecondaryRequirement];
+        var resolution = new FakeGenerationResolver().Resolve(RequestFor(requirements));
+        var handlers = requirements.Select(_ =>
+            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry())).ToArray();
+        var members = requirements
+            .Select((requirement, index) => new ComponentGroupMember(
+                Selection(resolution.Generation!.ProviderSets
+                    .Single(item => item.Requirement == requirement).Members[0]) with
+                {
+                    Requirement = requirement,
+                    HostEndpoint = $"cycle-host-{index}",
+                },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    CoolingPortableFixture.Contract, handlers[index], PortableRealization.FixedDirectCall))))
+            .ToArray();
+        var occurrences = members.Select(item => item.Selection.Occurrence).ToArray();
+
+        // Each scenario differs only in the plan it is given and which members it selects.
+        var (plan, selected) = scenario switch
+        {
+            "cbi21-02-mixed-grouping-activated" => (
+                CyclePlan([occurrences[0], occurrences[1]], occurrences[2]),
+                members),
+            "cbi21-03-protocol-group-refused" => (ProtocolPlan(occurrences), members),
+            "cbi21-04-member-not-planned" => (CyclePlan([occurrences[0]]), members),
+            "cbi21-05-member-not-selected" => (CyclePlan(occurrences), members[..1]),
+            "cbi21-06-member-not-distinct" => (CyclePlan([occurrences[0]]), [members[0], members[0]]),
+            _ => (CyclePlan(occurrences), members),
+        };
+
+        var result = await ComponentGroupLifecycle.ActivateAsync(resolution, selected, RuntimeRequest(plan));
+        return (result, plan, handlers);
+    }
 
     private static string GroupFailureToken(ComponentGroupActivationFailureKind kind) => kind switch
     {

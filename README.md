@@ -169,6 +169,13 @@ drop a position the generation still resolved. The lift needed no new authority 
 dropped occurrence has nothing to follow it to — and the one question left, whether an addition can
 join a running activation, is answered by the runtime rather than by preference: a generation is
 immutable and an attempt covers its whole plan, so it joins across the cutover or not at all.
+CBI21 reaches Relational Initialisation and finds CBI12 had refused two different things under one
+sentence: CM3 groups by strongly connected component over every edge, so a cyclic group is not the
+same as one needing a handshake, and the first activates today. What stays refused is refused by
+Portable Binding's own published contract, which declares the stage out of scope, offers a composition
+one traffic verb gated on Release, and reports Ready during Interconnection — so there is neither a
+verb nor a window before the readiness CM4 requires a handshake to precede. The gap is located rather
+than papered over, and what the seam would need is left as an owner decision.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

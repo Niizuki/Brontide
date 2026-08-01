@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi21-strongly-connected-group-vectors",
+  "vectors": [
+    {
+      "id": "cbi21-01-ordinary-cycle-activated",
+      "expectedActive": true,
+      "expectedCode": null,
+      "expectedMembers": 2,
+      "expectedGroups": 1,
+      "expectedReleased": 2,
+      "expectedPrepared": 2
+    },
+    {
+      "id": "cbi21-02-mixed-grouping-activated",
+      "expectedActive": true,
+      "expectedCode": null,
+      "expectedMembers": 3,
+      "expectedGroups": 2,
+      "expectedReleased": 3,
+      "expectedPrepared": 3
+    },
+    {
+      "id": "cbi21-03-protocol-group-refused",
+      "expectedActive": false,
+      "expectedCode": "relational-initialisation-unsupported",
+      "expectedMembers": 2,
+      "expectedGroups": 1,
+      "expectedReleased": 0,
+      "expectedPrepared": 0
+    },
+    {
+      "id": "cbi21-04-member-not-planned",
+      "expectedActive": false,
+      "expectedCode": "member-not-planned",
+      "expectedMembers": 1,
+      "expectedGroups": 1,
+      "expectedReleased": 0,
+      "expectedPrepared": 0
+    },
+    {
+      "id": "cbi21-05-member-not-selected",
+      "expectedActive": false,
+      "expectedCode": "member-not-selected",
+      "expectedMembers": 2,
+      "expectedGroups": 1,
+      "expectedReleased": 0,
+      "expectedPrepared": 0
+    },
+    {
+      "id": "cbi21-06-member-not-distinct",
+      "expectedActive": false,
+      "expectedCode": "member-not-distinct",
+      "expectedMembers": 1,
+      "expectedGroups": 1,
+      "expectedReleased": 0,
+      "expectedPrepared": 0
+    }
+  ]
+}

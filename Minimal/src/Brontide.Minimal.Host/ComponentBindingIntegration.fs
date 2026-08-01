@@ -2134,18 +2134,58 @@ module ComponentGroupLifecycle =
         && not result.Members.IsEmpty
         && result.Members |> List.forall _.Member.IsReleased
 
-    let internal supportedPlanFor (plan: ActivationGroupPlan) (occurrences: OccurrenceId list) =
+    /// Says why a CM3 plan cannot be activated across the portable seam, or nothing if it can.
+    ///
+    /// The unit of refusal is a group's declared protocols, not its member count. CM3 groups by
+    /// strongly connected component over every edge, so two Components with mutual ordinary
+    /// interaction are one cyclic group that declares no protocol, no Relational Initialisation
+    /// stage, and a stage plan CM4 activates — which is nothing this seam lacks. What it lacks is
+    /// the stage itself: the Composition handoff declares Relational Initialisation out of scope,
+    /// and a portable member is Ready the moment Interconnection returns, so there is no window
+    /// before Ready in which a declared handshake could run.
+    let internal unsupportedPlanFor (plan: ActivationGroupPlan) (occurrences: OccurrenceId list) =
+        let names (values: OccurrenceId list) =
+            values
+            |> List.map OccurrenceId.value
+            |> List.sortWith ordinal
+            |> String.concat ", "
+        let planned =
+            plan.Groups
+            |> List.collect (fun group -> group.Members |> List.map _.Occurrence)
+            |> Set.ofList
         let selected = occurrences |> Set.ofList
-        selected.Count = occurrences.Length
-        && plan.Groups.Length = occurrences.Length
-        && plan.Groups
-           |> List.forall (fun group ->
-               group.Members.Length = 1
-               && group.Protocols.IsEmpty
-               && Set.contains (List.exactlyOne group.Members).Occurrence selected)
+        let unplanned = occurrences |> List.filter (fun item -> not (Set.contains item planned))
+        let unselected =
+            planned |> Set.toList |> List.filter (fun item -> not (Set.contains item selected))
+        match
+            ComponentParticipantAdmission.firstDuplicate (occurrences |> List.map OccurrenceId.value),
+            plan.Groups |> List.tryFind (fun group -> not group.Protocols.IsEmpty)
+        with
+        | Some repeated, _ ->
+            Some(
+                "member-not-distinct",
+                sprintf "Occurrence '%s' is selected more than once." repeated)
+        | None, Some relational ->
+            Some(
+                "relational-initialisation-unsupported",
+                sprintf
+                    "Group '%s' declares %d bounded lifecycle protocol(s), and Portable Binding declares Relational Initialisation outside the Composition handoff."
+                    (ActivationGroupId.value relational.Group)
+                    relational.Protocols.Length)
+        | None, None when not unplanned.IsEmpty ->
+            Some(
+                "member-not-planned",
+                sprintf "The CM3 plan carries no member for %s." (names unplanned))
+        | None, None when not unselected.IsEmpty ->
+            Some(
+                "member-not-selected",
+                sprintf
+                    "The CM3 plan carries %s, which this activation did not select."
+                    (names unselected))
+        | None, None -> None
 
-    let private supportedPlan (plan: ActivationGroupPlan) (members: ComponentGroupMember list) =
-        supportedPlanFor plan (members |> List.map _.Selection.Occurrence)
+    let private unsupportedPlan (plan: ActivationGroupPlan) (members: ComponentGroupMember list) =
+        unsupportedPlanFor plan (members |> List.map _.Selection.Occurrence)
 
     let internal groupStageOutcomes (plan: ActivationGroupPlan) failedMember failedStage =
         plan.Groups
@@ -2191,14 +2231,10 @@ module ComponentGroupLifecycle =
                     ordinal
                         (OccurrenceId.value left.Selection.Occurrence)
                         (OccurrenceId.value right.Selection.Occurrence))
-            if not (supportedPlan runtimeRequest.Plan ordered) then
-                return
-                    refuse
-                        ComponentGroupActivationFailureKind.PlanUnsupported
-                        "plan-unsupported"
-                        "CBI12 activates one protocol-free single-member group per selected occurrence, and no others."
-                        None
-            else
+            match unsupportedPlan runtimeRequest.Plan ordered with
+            | Some(code, reason) ->
+                return refuse ComponentGroupActivationFailureKind.PlanUnsupported code reason None
+            | None ->
                 let prepared =
                     ordered
                     |> List.map (fun entry ->
@@ -3255,11 +3291,10 @@ module ComponentGroupVerification =
                         return decline ComponentGroupVerificationKind.Declined code reason
                     | None ->
                         if
-                            not (
-                                ComponentGroupLifecycle.supportedPlanFor
-                                    runtimeRequest.Plan
-                                    (prior |> List.map _.Occurrence)
-                            )
+                            (ComponentGroupLifecycle.unsupportedPlanFor
+                                runtimeRequest.Plan
+                                (prior |> List.map _.Occurrence))
+                                .IsSome
                         then
                             return
                                 decline

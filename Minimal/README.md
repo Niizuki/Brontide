@@ -104,7 +104,9 @@ The implementation currently provides:
   scope with a successor, re-establishing authority per occurrence and retiring the retained members
   only after cutover; CBI20 lets that successor resolve a different set of positions, reading the
   membership from the generation rather than the caller and joining an added position only across the
-  cutover;
+  cutover; CBI21 activates a strongly connected group that declares no lifecycle protocol and refuses
+  one that does, because the portable seam declares Relational Initialisation out of scope and reports
+  Ready during Interconnection;
 - a headless host and seven F# test assemblies, including the host-owned CBI1-CBI20 integration
   suite.
 
