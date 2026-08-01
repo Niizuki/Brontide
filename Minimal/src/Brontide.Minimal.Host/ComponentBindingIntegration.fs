@@ -174,6 +174,89 @@ module ComponentBindingIntegration =
                         "The completed generation contains %d provider positions for the requested requirement."
                         matches.Length)
 
+    /// Checks that where CM2 placed these positions and what the request says about a child Port
+    /// agree, before anything is prepared.
+    ///
+    /// A Provider Set carries the Region and Port CM2 resolved it into, and until CBI22 nothing read
+    /// either: a position resolved inside a child Port was flattened into an ordinary one and
+    /// activated in whatever scope the caller's plan named, so CM4 never saw an attachment and the
+    /// restart boundary the Port exists to give was silently dropped.
+    let internal portContainment
+        (resolution: ResolutionOutcome)
+        (selections: ComponentBindingSelection list)
+        (child: ChildActivationDeclaration option)
+        =
+        match resolution with
+        | ResolutionOutcome.Resolved(_, generation) ->
+            let names (values: (RequirementId * PortId option) list) =
+                values
+                |> List.map (fst >> RequirementId.value)
+                |> List.sortWith (fun left right -> String.CompareOrdinal(left, right))
+                |> String.concat ", "
+            let contained =
+                selections
+                |> List.map (fun selection ->
+                    selection.Requirement,
+                    generation.ProviderSets
+                    |> List.tryFind (fun item -> item.Requirement = selection.Requirement)
+                    |> Option.bind _.ContainingPort)
+                |> List.sortWith (fun (left, _) (right, _) ->
+                    String.CompareOrdinal(RequirementId.value left, RequirementId.value right))
+            match child with
+            | None ->
+                let inPort = contained |> List.filter (fun (_, port) -> port.IsSome)
+                match inPort with
+                | [] -> None
+                | (_, port) :: _ ->
+                    Some(
+                        "member-port-contained",
+                        sprintf
+                            "CM2 resolved %s inside Port '%s', which needs a child attachment rather than an ordinary activation."
+                            (names inPort)
+                            (PortId.value port.Value))
+            | Some attachment ->
+                let loose = contained |> List.filter (fun (_, port) -> port.IsNone)
+                let foreign =
+                    contained |> List.filter (fun (_, port) -> port <> Some attachment.Port)
+                let envelope =
+                    generation.Ports |> List.tryFind (fun item -> item.Port = attachment.Port)
+                if not loose.IsEmpty then
+                    Some(
+                        "member-not-port-contained",
+                        sprintf
+                            "%s is not resolved inside any Port, so it has nothing to attach to Port '%s'."
+                            (names loose)
+                            (PortId.value attachment.Port))
+                elif not foreign.IsEmpty then
+                    Some(
+                        "port-not-resolved",
+                        sprintf
+                            "The attachment names Port '%s', but CM2 resolved %s elsewhere."
+                            (PortId.value attachment.Port)
+                            (names foreign))
+                else
+                    // The envelope, not the caller, says what the Port permits. CM2 refuses a sealed
+                    // Port at resolution, so the reachable disagreement is a caller claiming a
+                    // runtime-open Port the generation resolved as activation-open.
+                    match envelope with
+                    | None ->
+                        Some(
+                            "port-not-resolved",
+                            sprintf
+                                "The completed generation carries no envelope for Port '%s'."
+                                (PortId.value attachment.Port))
+                    | Some declared when
+                        attachment.RuntimeOpen && declared.Lifecycle <> PortLifecycleMode.RuntimeOpen
+                        ->
+                        Some(
+                            "port-lifecycle-overstated",
+                            sprintf
+                                "The attachment declares Port '%s' runtime-open; the resolved envelope declares it %A."
+                                (PortId.value attachment.Port)
+                                declared.Lifecycle)
+                    | Some _ -> None
+        | _ -> None
+
 [<RequireQualifiedAccess>]
 type ComponentBindingLifecycleFailureKind =
     | PreparationUnavailable
@@ -233,8 +316,13 @@ module ComponentBindingLifecycle =
         | PortableError.Refused fault -> fault.LocalCode, fault.Message
         | PortableError.Interrupted failure -> "portable-process-interrupted", failure.Message
 
-    let activate resolution selection request conversation =
+    let activate resolution selection (request: ActivationRuntimeRequest) conversation =
         task {
+            match ComponentBindingIntegration.portContainment resolution [ selection ] request.Child with
+            | Some(code, reason) ->
+                return refuse ComponentBindingLifecycleFailureKind.PlanUnsupported code reason None None
+            | None ->
+
             let preparation = ComponentBindingIntegration.prepare resolution selection
             match preparation with
             | ComponentBindingIntegrationResult.Refused _ ->
@@ -2231,7 +2319,15 @@ module ComponentGroupLifecycle =
                     ordinal
                         (OccurrenceId.value left.Selection.Occurrence)
                         (OccurrenceId.value right.Selection.Occurrence))
-            match unsupportedPlan runtimeRequest.Plan ordered with
+            match
+                unsupportedPlan runtimeRequest.Plan ordered
+                |> Option.orElse (
+                    ComponentBindingIntegration.portContainment
+                        resolution
+                        (ordered |> List.map _.Selection)
+                        runtimeRequest.Child
+                )
+            with
             | Some(code, reason) ->
                 return refuse ComponentGroupActivationFailureKind.PlanUnsupported code reason None
             | None ->
@@ -2580,6 +2676,172 @@ module ComponentGroupAuthority =
                                                 "CBI12 did not release every member."
                                           Member =
                                             lifecycle.Failure |> Option.bind _.Member } }
+        }
+
+[<RequireQualifiedAccess>]
+type ComponentChildActivationKind =
+    | Attached
+    | Declined
+    | ParentUnavailable
+
+type ComponentChildActivationResult =
+    { Kind: ComponentChildActivationKind
+      Child: ComponentGroupAuthorityResult option
+      Port: PortId option
+      Code: string
+      Reason: string }
+
+/// Activates a Component position CM2 resolved inside a child Port, in its own restart scope,
+/// attached to the scope and generation a released parent activation made active.
+///
+/// A child activation is a second activation rather than a replacement of the first: separate plan,
+/// separate Release, separate restart scope, and a parent CM4 requires to stay active and unchanged
+/// throughout. What the attachment says about the Port is read from the resolved envelope rather
+/// than from the caller, because the Port is where the generation placed the Component.
+[<RequireQualifiedAccess>]
+module ComponentChildActivation =
+    let isAttached (result: ComponentChildActivationResult) =
+        result.Kind = ComponentChildActivationKind.Attached
+
+    let private decline kind code reason =
+        { Kind = kind
+          Child = None
+          Port = None
+          Code = code
+          Reason = reason }
+
+    /// Checks the attachment against what the parent activation actually made active, rather than
+    /// against the caller's plan.
+    let private attachment
+        (parent: ComponentGroupAuthorityResult)
+        (runtimeRequest: ActivationRuntimeRequest)
+        (child: ChildActivationDeclaration)
+        =
+        match parent.Lifecycle |> Option.bind _.Runtime with
+        | None ->
+            Some(
+                "parent-generation-unknown",
+                "The parent activation records no CM4 observation to attach to.")
+        | Some current ->
+            let observation = current.Observation
+            if child.ParentScope <> observation.RestartScope then
+                Some(
+                    "parent-scope-mismatch",
+                    sprintf
+                        "The parent activation occupies scope '%s', not '%s'."
+                        (RestartScopeId.value observation.RestartScope)
+                        (RestartScopeId.value child.ParentScope))
+            elif child.ParentGeneration <> observation.TargetGeneration then
+                Some(
+                    "parent-generation-mismatch",
+                    sprintf
+                        "Scope '%s' holds generation '%s', not '%s'."
+                        (RestartScopeId.value observation.RestartScope)
+                        (GenerationId.value observation.TargetGeneration)
+                        (GenerationId.value child.ParentGeneration))
+            elif runtimeRequest.Plan.RestartScope = child.ParentScope then
+                Some(
+                    "child-scope-not-distinct",
+                    sprintf
+                        "A child Port exists to give its Component a restart boundary, so its scope may not be the parent's '%s'."
+                        (RestartScopeId.value child.ParentScope))
+            else
+                None
+
+    /// Names a child refusal as whichever layer classified it. A containment disagreement is refused
+    /// before CM4 runs at all, so its code comes from the plan refusal rather than a runtime outcome
+    /// that does not exist yet.
+    let private childFailureCode (activation: ComponentGroupAuthorityResult) =
+        match activation.Lifecycle |> Option.bind _.Failure with
+        | Some failure when failure.Kind = ComponentGroupActivationFailureKind.PlanUnsupported ->
+            failure.Code
+        | _ ->
+            match activation.Lifecycle |> Option.bind _.Runtime with
+            | Some runtime ->
+                match runtime.Kind with
+                | ActivationRuntimeOutcomeKind.ChildPortClosed -> "child-port-closed"
+                | ActivationRuntimeOutcomeKind.ReplacementLifecycleRequired ->
+                    "replacement-lifecycle-required"
+                | ActivationRuntimeOutcomeKind.HostAssistedOrderConflict ->
+                    "host-assisted-order-conflict"
+                | ActivationRuntimeOutcomeKind.RestartScopeConflict -> "restart-scope-conflict"
+                | _ -> "child-establishment-refused"
+            | None -> "child-establishment-refused"
+
+    let attach
+        (resolution: ResolutionOutcome)
+        (parent: ComponentGroupAuthorityResult)
+        (members: ComponentGroupParticipant list)
+        (runtimeRequest: ActivationRuntimeRequest)
+        =
+        task {
+            if not (ComponentGroupAuthority.isActive parent) then
+                return
+                    decline
+                        ComponentChildActivationKind.ParentUnavailable
+                        "active-parent-unavailable"
+                        "CBI22 attaches a child to one released CBI13 activation."
+            else
+                match runtimeRequest.Child with
+                | None ->
+                    return
+                        decline
+                            ComponentChildActivationKind.Declined
+                            "child-attachment-missing"
+                            "CBI22 requires the CM4 request to declare the child attachment it is making."
+                | Some child ->
+                    match attachment parent runtimeRequest child with
+                    | Some(code, reason) ->
+                        return decline ComponentChildActivationKind.Declined code reason
+                    | None ->
+                        // Where the generation put these positions is a structural question, so it
+                        // is answered before any authority is evaluated: a disagreement about the
+                        // Port decides nothing about whether the receiving domain would have
+                        // admitted the child.
+                        match
+                            ComponentBindingIntegration.portContainment
+                                resolution
+                                (members |> List.map _.Member.Selection)
+                                (Some child)
+                        with
+                        | Some(code, reason) ->
+                            return decline ComponentChildActivationKind.Declined code reason
+                        | None ->
+                            let! activation =
+                                ComponentGroupAuthority.activate resolution members runtimeRequest
+                            if ComponentGroupAuthority.isActive activation then
+                                return
+                                    { Kind = ComponentChildActivationKind.Attached
+                                      Child = Some activation
+                                      Port = Some child.Port
+                                      Code = "child-attached"
+                                      Reason =
+                                        sprintf
+                                            "The child activation occupies scope '%s' through Port '%s' of generation '%s'."
+                                            (RestartScopeId.value runtimeRequest.Plan.RestartScope)
+                                            (PortId.value child.Port)
+                                            (GenerationId.value child.ParentGeneration) }
+                            else
+                                let code =
+                                    match activation.Failure with
+                                    | Some failure when
+                                        failure.Kind
+                                        = ComponentGroupAuthorityFailureKind.ActivationRefused
+                                        ->
+                                        childFailureCode activation
+                                    | Some failure -> failure.Code
+                                    | None -> "child-activation-refused"
+                                let reason =
+                                    activation.Failure
+                                    |> Option.map _.Reason
+                                    |> Option.defaultValue
+                                        "The child activation did not release every member."
+                                return
+                                    { Kind = ComponentChildActivationKind.Declined
+                                      Child = Some activation
+                                      Port = Some child.Port
+                                      Code = code
+                                      Reason = reason }
         }
 
 type ComponentGroupMemberRequests =

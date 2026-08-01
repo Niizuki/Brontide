@@ -528,14 +528,41 @@ rather than a slice's. CBI12's plan refusal also stops reporting one code for fo
 [`contract-completeness review`](../../component-management/cbi21-contract-completeness-review.md)
 bound it to protocol-free strongly connected groups over one activation.
 
-**Child Ports are the next implementable item.** CM4 models a child activation attaching to a
-runtime-open Port of an active parent generation, with its own restart scope, an initial attachment
-that is not hot replacement, a sealed Port refused, an occupied Port requiring an explicit replacement
-lifecycle declaration, and a host-assisted ordering in which the child's internal Release precedes the
-exported outer boundary. None of it has been reached: CBI1 refuses a position carrying a child Port
-envelope, and every activation since has used one restart scope. It has to decide whether a child's
-members are portable members of the same composition root or of a nested one, and what the parent's
-release barrier means for a child that is still coming up. Mediation, wider Provider Sets, and real
+CBI22 activates a Component position CM2 resolved inside a **child Port**, in its own restart scope,
+attached to the scope and generation a released parent activation made active. Its first result is a
+fail-open this index itself asserted was closed. A `ProviderSetObservation` carries the Region and
+Port CM2 resolved a position into; **CBI1 read neither**, so such a position was flattened into an
+ordinary one and activated in whatever restart scope the caller's plan named — no child declaration,
+no parent generation, and the restart boundary the Port exists to give silently dropped. The sentence
+here saying CBI1 refused it was written from the contract rather than the code, and it is the third
+stated limit in four slices that turned out to describe how something was called rather than a rule
+it applied — the first of them written by this programme about itself. Both activation paths now
+refuse a Port-contained position, and the child path is the way through.
+
+**What the attachment says about the Port is the generation's statement, not the caller's**, which is
+CBI20's membership rule applied to containment: every member must be contained in one Port, the
+attachment must name that Port, and the lifecycle facts come from the resolved envelope, so a caller
+can neither attach a Component to a Port CM2 did not put it in nor claim a Port is runtime-open when
+the generation resolved it as activation-open. CM2 refuses a sealed Port at resolution, so that is the
+only reachable form of CM4's closed-Port refusal and the contract says so rather than manufacturing a
+path. CM4 owns the remaining refusals — an occupied Port needs an explicit replacement lifecycle
+declaration, and a host-assisted export must follow the child's internal Release — and CBI22 reports
+those classifications rather than forming its own.
+
+Both questions this item recorded have answers from the models. **A child's members are portable
+members of the same composition root**, because the seam binds a host to a provider and has no notion
+of nesting; and **the parent's release barrier means nothing for a child that is still coming up**,
+because they are separate CM4 attempts with separate plans, Releases, and restart scopes. The parent
+stays active, released, and serving in every outcome, which every vector checks. The
+[`CBI22 capability contract`](../../component-management/cbi22-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi22-contract-completeness-review.md)
+bound it to one child attached to one runtime-open Port of one released parent.
+
+**Nested child Ports are the next implementable item.** CM4 permits a child's own scope to be another
+attachment's parent, and nothing in CBI22 forbids it, but no vector exercises it and the contract does
+not claim it. It has to decide what a parent's retirement means for a child still attached beneath it
+— CBI22 keeps the two independent, which is exactly what a chain makes questionable — and whether the
+depth is bounded. Port migration between generations, mediation, wider Provider Sets, and real
 distribution remain future work behind it, and Relational Initialisation waits on Decision 13. PB8's
 independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 and 13 await rulings.

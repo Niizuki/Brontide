@@ -131,6 +131,11 @@ and CBI12 refused the first for a property only the second has. A group that doe
 refused by name: Portable Binding's Composition handoff declares Relational Initialisation out of
 scope, offers a composition one traffic verb gated on Release, and reports Ready during
 Interconnection, so there is no window before the readiness CM4 requires a handshake to precede.
+CBI22 activates a Component CM2 resolved inside a child Port, in its own restart scope beneath a
+released parent. Until it, the Region and Port a Provider Set carries were read by nothing, so
+such a position was flattened into an ordinary one; both activation paths now refuse it. Which
+Port an attachment names, and what it may claim about that Port's lifecycle, come from the
+resolved envelope rather than the caller, and the parent stays active and serving throughout.
 
 ## Build and test
 

@@ -281,6 +281,23 @@ here. Its bounded behavior is recorded in the
 [CBI21 capability contract](./cbi21-capability-contract.md) and completed
 [contract-completeness review](./cbi21-contract-completeness-review.md).
 
+CBI22 activates a Component position CM2 resolved inside a **child Port**, in its own restart scope,
+attached to the scope and generation a released parent activation made active. Its first result is a
+fail-open the programme had asserted was closed: a Provider Set carries the Region and Port CM2
+resolved it into, **CBI1 read neither**, and a Port-contained position was therefore flattened into an
+ordinary one and activated in whatever restart scope the caller named - no attachment, no parent
+generation, and the restart boundary the Port exists to give silently dropped. The future-work index
+said such a position was refused; it was not, and nothing tested it. Both activation paths now refuse
+it and the child path is the way through. **What the attachment says is the generation's, not the
+caller's**: every member must be contained in one Port, the attachment must name that Port, and the
+lifecycle comes from the resolved envelope, so a caller cannot attach a Component to a Port CM2 did
+not put it in. CM4 owns the rest - an occupied Port needs an explicit replacement lifecycle, a
+host-assisted export must follow the child's internal Release - and CBI22 reports those
+classifications rather than reforming them. The parent stays active, released, and serving throughout,
+because a child activation is a second activation rather than a replacement of the first. Its bounded
+behavior is recorded in the [CBI22 capability contract](./cbi22-capability-contract.md) and completed
+[contract-completeness review](./cbi22-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -526,6 +543,17 @@ select, and a repeated selection. Each pins whether the activation reached Activ
 how many groups and members the plan carries, and how many members were prepared and released, so
 "which condition refused this plan" is a checked answer rather than one code standing for four. The
 fixture contains no planner, runtime, portable implementation, or lifecycle protocol.
+
+### `cbi22-child-port-vectors` sections
+
+`vectors` names two attachments - an ordinary one and a host-assisted one - and ten refusals covering
+a parent that never released, a parent generation the scope does not hold, a child scope equal to the
+parent's, an attachment naming another Port, a member resolved into no Port, a Port lifecycle the
+caller overstates, an occupied Port without a replacement lifecycle, a host-assisted export that does
+not follow the internal Release, a child member that never reports Ready, and a denied child
+admission. Each pins the outcome kind and code, how many child and parent members are released, and
+how many members the child admitted, so "the parent is untouched" is a checked answer in every
+outcome. The fixture contains no runtime, planner, resolver, or portable implementation.
 
 ### `cm0-mice-topology` sections
 
