@@ -102,9 +102,9 @@ The implementation currently provides:
   grows those sets without consulting any declaration, admitting a party already live in one member
   into another under the local Actor it already holds; CBI19 replaces the generation in the restart
   scope with a successor, re-establishing authority per occurrence and retiring the retained members
-  only after cutover; CBI20 adds and removes positions across that replacement, refusing a drop the
-  successor generation does not make and checking the receiving-domain Actor mapping over both
-  activations at once;
+  only after cutover; CBI20 lets that successor resolve a different set of positions, reading the
+  membership from the generation rather than the caller and joining an added position only across the
+  cutover;
 - a headless host and seven F# test assemblies, including the host-owned CBI1-CBI20 integration
   suite.
 

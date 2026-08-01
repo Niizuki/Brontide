@@ -163,13 +163,12 @@ pointed at it: CM4 swaps a whole generation atomically and has no operation that
 while its scope keeps running, so "retire the whole activation" was never a placeholder. Authority
 turns out to follow the occurrence rather than the attempt — which is the reason CBI13 gave for
 admitting against an occurrence in the first place, finally put to work.
-CBI20 adds and removes the positions themselves, and corrects CBI19 the way CBI19 corrected the
-slices before it: "it does not add or remove a position" turned out to describe how CBI19 was called
-rather than a rule it applied. The question of what a dropped position does to its authority
-dissolves instead of being answered — nothing survives an attempt anyway, so a drop is just the
-absence of a successor admission — and the case only a membership change can pose is a receiving-
-domain Actor freed by a drop and taken by someone else, which is refused because both generations are
-live until the cutover finishes.
+CBI20 lets that successor resolve a different set of positions, and what it mostly found was a defect
+in CBI19: it declared one entry per successor member and checked nothing, so a caller could quietly
+drop a position the generation still resolved. The lift needed no new authority rule at all — a
+dropped occurrence has nothing to follow it to — and the one question left, whether an addition can
+join a running activation, is answered by the runtime rather than by preference: a generation is
+immutable and an attempt covers its whole plan, so it joins across the cutover or not at all.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

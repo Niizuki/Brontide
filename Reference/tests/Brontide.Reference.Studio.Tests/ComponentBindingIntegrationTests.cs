@@ -64,6 +64,15 @@ public sealed class ComponentBindingIntegrationTests
     private static readonly DefinitionId TertiaryProvider = DefinitionId.Create("def.test.cooling-tertiary");
     private static readonly ContractId TertiaryContract = ContractId.Create("brontide.fake.cooling-tertiary");
 
+    /// <summary>The independent positions a membership can be drawn from, one provider each.</summary>
+    private static readonly (RequirementId Requirement, DefinitionId Provider, ContractId Contract)[]
+        PositionCatalog =
+        [
+            (Requirement, Provider, Contract),
+            (SecondaryRequirement, SecondaryProvider, SecondaryContract),
+            (TertiaryRequirement, TertiaryProvider, TertiaryContract),
+        ];
+
     [Test]
     public void Completed_direct_one_to_one_resolution_enters_portable_preflight()
     {
@@ -4186,6 +4195,66 @@ public sealed class ComponentBindingIntegrationTests
         return (retained, handlers);
     }
 
+    /// <summary>
+    /// CBI19 claims one entry per successor member and no position added or removed; it checked
+    /// neither, so a caller could drop a position the successor generation still resolves.
+    /// </summary>
+    [Test]
+    public async Task Cbi19_refuses_a_membership_the_successor_generation_does_not_resolve()
+    {
+        var (retained, _) = await ReplacementRetained(false);
+        var successor = new FakeGenerationResolver().Resolve(PairRequest());
+        var primary = successor.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var selection = Selection(primary.Members[0]) with { HostEndpoint = "partial-host-primary" };
+        var result = await ComponentGroupReplacement.ReplaceAsync(
+            successor,
+            retained,
+            [
+                new(
+                    new(selection, DirectCooling(CoolingPortableFixture.Contract)),
+                    [new(new(selection.Occurrence, Participant), ProviderAuthority(GroupPolicy(ProviderLocalActor), Authority))]),
+            ],
+            RuntimeRequestFor(
+                PlanFor(
+                    GenerationId.Create("gen.successor"),
+                    RestartScopeId.Create("restart.lifecycle"),
+                    selection.Occurrence),
+                GenerationId.Create("gen.lifecycle")),
+            "partial membership");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Code, Is.EqualTo("position-not-supplied"));
+            Assert.That(result.CutOver, Is.False);
+            Assert.That(
+                retained.Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True,
+                "A membership the generation does not resolve stands nothing down.");
+        });
+    }
+
+    /// <summary>An added or dropped position is CBI20's operation, and CBI19 declines it by name.</summary>
+    [Test]
+    public async Task Cbi19_refuses_a_changed_membership()
+    {
+        var (retained, _) = await MembershipRetained(false);
+        var successor = new FakeGenerationResolver().Resolve(RequestFor(Requirement, TertiaryRequirement));
+        var (members, _) = MembershipMembers(successor, "cbi20-03-position-added-and-dropped");
+        var result = await ComponentGroupReplacement.ReplaceAsync(
+            successor,
+            retained,
+            members,
+            MembershipRuntimeRequest(members, "cbi20-03-position-added-and-dropped"),
+            "changed membership through CBI19");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Code, Is.EqualTo("membership-changed"));
+            Assert.That(result.CutOver, Is.False);
+            Assert.That(retained.Lifecycle!.Members.All(item => item.Member.IsReleased), Is.True);
+        });
+    }
+
     private static string ReplacementToken(ComponentGroupReplacementKind kind) => kind switch
     {
         ComponentGroupReplacementKind.Replaced => "replaced",
@@ -4196,7 +4265,7 @@ public sealed class ComponentBindingIntegrationTests
     };
 
     [Test]
-    public async Task Shared_cbi20_vectors_add_and_drop_positions_across_a_cutover()
+    public async Task Shared_cbi20_vectors_replace_a_membership_across_one_cutover()
     {
         using var fixture = JsonDocument.Parse(
             await File.ReadAllTextAsync(
@@ -4204,12 +4273,12 @@ public sealed class ComponentBindingIntegrationTests
                     TestContext.CurrentContext.TestDirectory,
                     "component-management",
                     "fixtures",
-                    "cbi20-membership-change-vectors.json")));
+                    "cbi20-membership-replacement-vectors.json")));
 
         foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
         {
             var scenario = vector.GetProperty("id").GetString()!;
-            var (result, retained) = await MembershipChangeResult(scenario);
+            var (result, retained) = await MembershipResult(scenario);
             var retainedMembers = retained.Lifecycle!.Members;
             var successorReleased = result.Successor?.Lifecycle?.Members
                 .Count(item => item.Member.IsReleased) ?? 0;
@@ -4253,21 +4322,27 @@ public sealed class ComponentBindingIntegrationTests
                     Has.Count.EqualTo(vector.GetProperty("expectedDropped").GetInt32()),
                     scenario);
 
-                // A membership change is a replacement, so the cutover boundary governs it exactly
-                // as it governs one that changes no position.
+                // C2 over every vector: the three sets partition the two memberships.
                 Assert.That(
-                    result.Added.Count > 0 || result.Dropped.Count > 0,
-                    Is.EqualTo(result.CutOver),
-                    $"{scenario}: a membership change is applied only by a cutover.");
+                    result.Added.Intersect(result.Dropped),
+                    Is.Empty,
+                    $"{scenario}: nothing is both added and dropped.");
+                Assert.That(
+                    result.Dropped.Concat(result.Surviving).OrderBy(item => item.Value, StringComparer.Ordinal),
+                    Is.EqualTo(retained.Admissions.Select(item => item.Occurrence)
+                        .OrderBy(item => item.Value, StringComparer.Ordinal))
+                        .Or.Empty,
+                    $"{scenario}: dropped and surviving are the retained activation's membership.");
+
+                // C4 and C7: an addition needs the cutover, and the boundary holds in both directions.
+                Assert.That(
+                    result.CutOver || successorReleased == 0,
+                    Is.True,
+                    $"{scenario}: no member is released without a cutover.");
                 Assert.That(
                     result.Retired.Count > 0,
                     Is.EqualTo(result.CutOver),
-                    $"{scenario}: the retained members are retired exactly when the scope cut over.");
-                Assert.That(
-                    successorReleased == (result.Successor?.Lifecycle?.Members.Count ?? 0) ||
-                        successorReleased == 0,
-                    Is.True,
-                    $"{scenario}: the release barrier covers the successor's members, whichever they are.");
+                    $"{scenario}: retained members are retired exactly when the scope cut over.");
                 Assert.That(
                     result.CutOver || retainedMembers.All(item => item.Member.IsReleased),
                     Is.True,
@@ -4277,198 +4352,171 @@ public sealed class ComponentBindingIntegrationTests
     }
 
     [Test]
-    public async Task C1_a_membership_change_needs_a_released_activation_and_the_change_named()
+    public async Task C1_the_membership_is_read_from_the_successor_generation()
     {
-        var unavailable = await ComponentGroupRestructuring.RestructureAsync(
-            new FakeGenerationResolver().Resolve(SuccessorRequest()),
+        var (absent, absentRetained) = await MembershipResult("cbi20-07-resolved-position-not-supplied");
+        var (foreign, _) = await MembershipResult("cbi20-08-member-not-resolved");
+        var unavailable = await ComponentGroupMembership.ReplaceAsync(
+            new FakeGenerationResolver().Resolve(PairRequest()),
             new(
                 Array.Empty<ComponentGroupMemberAdmission>(),
                 Array.Empty<LocalCapabilityGrant>(),
                 null,
                 null),
             Array.Empty<ComponentGroupParticipant>(),
-            Array.Empty<OccurrenceId>(),
             RuntimeRequest(Plan()),
-            "membership change unavailable");
-        var (undeclared, undeclaredRetained) = await MembershipChangeResult("cbi20-03-drop-not-declared");
-        var (unknown, _) = await MembershipChangeResult("cbi20-04-drop-not-held");
-        var (notADrop, _) = await MembershipChangeResult("cbi20-05-drop-is-a-successor-member");
-        var (empty, _) = await MembershipChangeResult("cbi20-06-successor-holds-no-member");
-        var (unchanged, _) = await MembershipChangeResult("cbi20-07-membership-unchanged");
+            "membership unavailable");
 
         Assert.Multiple(() =>
         {
-            Assert.That(unavailable.Kind, Is.EqualTo(ComponentGroupMembershipKind.ActivationUnavailable));
+            Assert.That(absent.Code, Is.EqualTo("position-not-supplied"));
+            Assert.That(foreign.Code, Is.EqualTo("member-not-resolved"));
             Assert.That(
-                undeclared.Code,
-                Is.EqualTo("member-drop-not-declared"),
-                "A member left out of the successor list is dropped, so leaving it out silently is refused.");
-            Assert.That(unknown.Code, Is.EqualTo("member-drop-unknown"));
-            Assert.That(notADrop.Code, Is.EqualTo("member-drop-not-a-drop"));
-            Assert.That(empty.Code, Is.EqualTo("successor-empty"));
-            Assert.That(unchanged.Code, Is.EqualTo("membership-unchanged"));
+                unavailable.Kind,
+                Is.EqualTo(ComponentGroupMembershipKind.ActivationUnavailable));
             Assert.That(
-                new[] { unavailable, undeclared, unknown, notADrop, empty, unchanged }.All(item =>
-                    item.Successor is null && !item.CutOver && item.Retired.Count == 0),
+                new[] { absent, foreign, unavailable }.All(item =>
+                    item.Successor is null &&
+                    !item.CutOver &&
+                    item.Added.Count == 0 &&
+                    item.Dropped.Count == 0 &&
+                    item.Surviving.Count == 0),
                 Is.True,
-                "Every refusal before establishment creates no successor and cuts nothing over.");
+                "A refusal of the membership itself computes no membership change.");
             Assert.That(
-                undeclaredRetained.Lifecycle!.Members.All(item => item.Member.IsReleased),
+                absentRetained.Lifecycle!.Members.All(item => item.Member.IsReleased),
                 Is.True);
         });
     }
 
     [Test]
-    public async Task C2_the_successor_generation_decides_what_may_be_dropped()
+    public async Task C2_the_added_and_dropped_sets_are_derived_from_the_generation()
     {
-        var (stillResolved, retained) = await MembershipChangeResult("cbi20-08-dropped-position-still-resolved");
-        var (changed, _) = await MembershipChangeResult("cbi20-01-position-added-and-dropped");
-        var successor = new FakeGenerationResolver().Resolve(SuccessorRequest()).Generation!;
-        var resolved = successor.ProviderSets
-            .SelectMany(item => item.Members.Select(member => member.Occurrence))
+        var (both, retained) = await MembershipResult("cbi20-03-position-added-and-dropped");
+        var successor = both.Successor!.Admissions.Select(item => item.Occurrence).ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                both.Added.Concat(both.Surviving).OrderBy(item => item.Value, StringComparer.Ordinal),
+                Is.EqualTo(successor.OrderBy(item => item.Value, StringComparer.Ordinal)),
+                "Added and surviving are exactly the successor's membership.");
+            Assert.That(
+                both.Dropped.Concat(both.Surviving).OrderBy(item => item.Value, StringComparer.Ordinal),
+                Is.EqualTo(retained.Admissions.Select(item => item.Occurrence)
+                    .OrderBy(item => item.Value, StringComparer.Ordinal)),
+                "Dropped and surviving are exactly the retained activation's.");
+            Assert.That(both.Added.Single().Value, Does.Contain("tertiary"));
+            Assert.That(both.Dropped.Single().Value, Does.Contain("secondary"));
+        });
+    }
+
+    [Test]
+    public async Task C3_a_dropped_positions_authority_is_not_re_established()
+    {
+        var (result, retained) = await MembershipResult("cbi20-02-position-dropped");
+        var dropped = result.Dropped.Single();
+        var priorGrants = retained.Admissions
+            .Single(item => item.Occurrence == dropped)
+            .Grants
+            .Select(item => item.Request)
             .ToArray();
 
         Assert.Multiple(() =>
         {
             Assert.That(
-                stillResolved.Code,
-                Is.EqualTo("position-still-resolved"),
-                "Dropping a position the successor generation still resolves would be the caller narrowing the composition.");
-            Assert.That(stillResolved.Successor, Is.Null);
+                result.Successor!.Admissions.Any(item => item.Occurrence == dropped),
+                Is.False,
+                "The successor admits nothing against a dropped occurrence.");
+            Assert.That(priorGrants, Is.Not.Empty, "The dropped occurrence did hold a grant.");
             Assert.That(
-                retained.Lifecycle!.Members.All(item => item.Member.IsReleased),
-                Is.True);
-
-            Assert.That(
-                resolved,
-                Does.Not.Contain(changed.Dropped.Single()),
-                "The admitted drop is a position the successor generation genuinely does not resolve.");
-            Assert.That(
-                resolved,
-                Does.Contain(changed.Added.Single()),
-                "And the addition is one it does.");
+                result.Successor.Grants.Select(item => item.Request).Intersect(priorGrants),
+                Is.Empty,
+                "And no grant of its authority survives into the successor.");
         });
     }
 
     [Test]
-    public async Task C3_an_added_position_joins_only_across_a_cutover()
+    public async Task C4_an_added_position_joins_only_across_a_cutover()
     {
-        var (replaced, retainedForReplacement) = await MembershipChangeAsReplacement();
-        var extended = await ComponentGroupExtension.ExtendAsync(
-            retainedForReplacement,
-            [
-                new(retainedForReplacement.Admissions[0].Occurrence, [ProviderAuthority(GroupPolicy(ProviderLocalActor), Authority)]),
-                new(OccurrenceId.Create("occ.def.test.cooling-tertiary.1"), [ObserverRequest(GroupPolicy(ProviderLocalActor))]),
-            ],
-            "extension cannot add a member");
-        var (added, _) = await MembershipChangeResult("cbi20-01-position-added-and-dropped");
-        var (neverReady, _) = await MembershipChangeResult("cbi20-12-added-member-never-ready");
+        var (refused, _) = await MembershipResult("cbi20-13-added-member-never-ready");
+        var (denied, _) = await MembershipResult("cbi20-11-added-member-authority-denied");
+        var (added, _) = await MembershipResult("cbi20-01-position-added");
 
         Assert.Multiple(() =>
         {
             Assert.That(
-                replaced.Code,
-                Is.EqualTo("membership-change-required"),
-                "CBI19 replaces a generation over the same positions and refuses a member-set change.");
+                refused.Successor!.Lifecycle!.Members.Count(item => item.Member.IsReleased),
+                Is.Zero,
+                "An added member that never reports Ready releases none of them.");
+            Assert.That(refused.CutOver, Is.False);
             Assert.That(
-                extended.Code,
-                Is.EqualTo("member-set-changed"),
-                "CBI18 grows participant sets in place and cannot introduce a member.");
-            Assert.That(
-                retainedForReplacement.Lifecycle!.Members,
-                Has.Count.EqualTo(2),
-                "Neither in-place path left an added member behind.");
-
+                denied.Successor!.Lifecycle,
+                Is.Null,
+                "An added member whose authority is denied reaches no provider.");
             Assert.That(added.CutOver, Is.True);
             Assert.That(
                 added.Successor!.Lifecycle!.Members.All(item => item.Member.IsReleased),
                 Is.True,
-                "The added member is released by the cutover.");
-            Assert.That(
-                neverReady.Successor!.Lifecycle!.Members.Count(item => item.Member.IsReleased),
-                Is.Zero,
-                "And an addition that never reports Ready is released by nothing.");
+                "The addition is released with the whole successor activation.");
+            Assert.That(added.Successor.Lifecycle.Members, Has.Count.EqualTo(3));
         });
     }
 
     [Test]
-    public async Task C4_authority_survives_per_occurrence_and_a_dropped_one_hands_nothing_on()
+    public async Task C5_an_emptied_membership_is_a_withdrawal_not_a_replacement()
     {
-        var (drifted, driftedRetained) = await MembershipChangeResult("cbi20-09-surviving-occurrence-authority-changed");
-        var (changed, retained) = await MembershipChangeResult("cbi20-01-position-added-and-dropped");
-        var dropped = changed.Dropped.Single();
-        var droppedGrants = retained.Admissions
-            .Single(item => item.Occurrence == dropped)
-            .Grants
-            .Select(item => item.Grant)
-            .ToArray();
+        var (result, retained) = await MembershipResult("cbi20-09-successor-resolves-nothing");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Code, Is.EqualTo("membership-empty"));
+            Assert.That(result.CutOver, Is.False);
+            Assert.That(result.Retired, Is.Empty);
+            Assert.That(
+                retained.Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True,
+                "Standing the activation down is CBI14's operation, so this one stands nothing down.");
+        });
+    }
+
+    [Test]
+    public async Task C6_the_successor_stands_up_under_the_earlier_barriers()
+    {
+        var (changed, _) = await MembershipResult("cbi20-10-surviving-occurrence-authority-changed");
+        var (conflated, retained) = await MembershipResult("cbi20-12-surviving-actor-reused-by-added-party");
+        var (reused, _) = await MembershipResult("cbi20-05-dropped-actor-reused-by-added-party");
 
         Assert.Multiple(() =>
         {
             Assert.That(
-                drifted.Code,
+                changed.Code,
                 Is.EqualTo("authority-revalidation-mismatch"),
                 "A surviving occurrence may not be re-admitted for different authority.");
             Assert.That(
-                driftedRetained.Lifecycle!.Members.All(item => item.Member.IsReleased),
-                Is.True);
-
-            Assert.That(
-                changed.Successor!.Admissions.Select(item => item.Occurrence),
-                Is.EqualTo(changed.Successor.Lifecycle!.Members.Select(item => item.Occurrence)),
-                "The successor's admissions name exactly the successor's members.");
-            Assert.That(
-                changed.Successor.Admissions.Any(item => item.Occurrence == dropped),
-                Is.False,
-                "A dropped occurrence has no successor member for its authority to follow to.");
-            Assert.That(droppedGrants, Is.Not.Empty);
-            Assert.That(
-                changed.Successor.Grants.Select(item => item.Grant).Intersect(droppedGrants),
-                Is.Empty,
-                "And nothing it held is carried into the successor.");
-        });
-    }
-
-    [Test]
-    public async Task C5_the_actor_mapping_is_checked_across_both_activations()
-    {
-        var (conflated, retained) = await MembershipChangeResult("cbi20-10-added-party-takes-a-live-local-actor");
-        var (shared, _) = await MembershipChangeResult("cbi20-02-shared-party-joins-the-added-member");
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(
                 conflated.Code,
                 Is.EqualTo("local-actor-shared-across-members"),
-                "The retained generation still maps that local Actor to another party, so the conflation is live.");
+                "An addition may not take a surviving participant's receiving-domain Actor.");
             Assert.That(
-                conflated.Successor,
+                conflated.Successor!.Lifecycle,
                 Is.Null,
-                "It is refused before any successor provider is contacted.");
+                "And it contacts no successor provider.");
+            Assert.That(
+                reused.IsReplaced,
+                Is.True,
+                "But it may take the Actor a dropped participant held.");
             Assert.That(
                 retained.Lifecycle!.Members.All(item => item.Member.IsReleased),
                 Is.True);
-
-            // The permitting direction: the party the survivor already holds locally may take the
-            // added member too, under the local Actor it already has.
-            Assert.That(shared.IsChanged, Is.True);
-            Assert.That(
-                shared.Successor!.Admissions
-                    .SelectMany(item => item.Participants)
-                    .Select(item => item.Authority.Observation.Relationships[0].LocalActor)
-                    .Distinct()
-                    .Count(),
-                Is.EqualTo(1),
-                "One party across both successor members means one receiving-domain Actor.");
         });
     }
 
     [Test]
-    public async Task C6_the_release_barrier_covers_the_successor_members_whichever_they_are()
+    public async Task C7_cutover_is_the_boundary_and_the_retained_membership_goes_as_a_whole()
     {
-        var (neverReady, _) = await MembershipChangeResult("cbi20-12-added-member-never-ready");
-        var (changed, _) = await MembershipChangeResult("cbi20-01-position-added-and-dropped");
-        var survivor = neverReady.Successor!.Lifecycle!.Members[0].Member;
+        var (refused, serving) = await MembershipResult("cbi20-14-release-fails-before-cutover");
+        var (replaced, retired) = await MembershipResult("cbi20-03-position-added-and-dropped");
+        var survivor = serving.Lifecycle!.Members[1].Member;
         var attempted = await survivor.InvokeAsync(
             CoolingPortableFixture.SetEnabled,
             CoolingPortableFixture.CommandV1,
@@ -4477,346 +4525,249 @@ public sealed class ComponentBindingIntegrationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(
-                neverReady.Successor.Lifecycle.Members.Count(item => item.Member.IsReleased),
-                Is.Zero,
-                "The addition that never reports Ready releases the survivor with it.");
-            Assert.That(neverReady.Successor.Lifecycle.Members, Has.Count.EqualTo(2));
-            Assert.That(
-                attempted.Category,
-                Is.EqualTo(PortableProtocolCategory.StateViolation),
-                "And the survivor is left holding no open channel of its own.");
-            Assert.That(
-                changed.Successor!.Lifecycle!.Members.All(item => item.Member.IsReleased),
-                Is.True);
-        });
-    }
-
-    [Test]
-    public async Task C7_before_cutover_the_member_a_change_would_drop_is_still_serving()
-    {
-        var (refused, retained) = await MembershipChangeResult("cbi20-13-release-fails-before-cutover");
-        var departing = retained.Lifecycle!.Members
-            .Single(item => item.Occurrence == SecondaryOccurrence(retained));
-        var attempted = await departing.Member.InvokeAsync(
-            CoolingPortableFixture.SetEnabled,
-            CoolingPortableFixture.CommandV1,
-            CoolingPortableFixture.Command("primary", enabled: true),
-            PortableConstraint.Atom(PortableTruth.Satisfied));
-
-        Assert.Multiple(() =>
-        {
             Assert.That(refused.Code, Is.EqualTo("release-failed-before-cutover"));
-            Assert.That(refused.CutOver, Is.False);
             Assert.That(
-                retained.Lifecycle.Members.All(item => item.Member.IsReleased),
+                serving.Lifecycle.Members.All(item => item.Member.IsReleased),
                 Is.True,
-                "Nothing was stood down, so nothing needs restoring.");
+                "A pre-cutover failure leaves the dropped member serving too.");
             Assert.That(
                 attempted.FrameDecision,
                 Is.Not.EqualTo(PortableFrameDecision.None),
-                "The member whose position the change would have dropped is still serving.");
+                "The member whose position the successor drops is still interacting.");
+            Assert.That(
+                retired.Lifecycle!.Members.All(item => item.Member.Stage == PortableCompositionStage.Retired),
+                Is.True,
+                "After cutover the whole retained membership goes, dropped and surviving alike.");
+            Assert.That(replaced.Retired, Has.Count.EqualTo(2));
         });
     }
 
     [Test]
-    public async Task C8_the_dropped_member_is_retired_after_cutover_and_never_before()
+    public async Task C8_a_membership_replacement_produces_an_activation_the_other_slices_accept()
     {
-        var (changed, retained) = await MembershipChangeResult("cbi20-01-position-added-and-dropped");
-        var (refused, untouched) = await MembershipChangeResult("cbi20-12-added-member-never-ready");
-        var (cleanup, _) = await MembershipChangeResult("cbi20-14-dropped-member-cleanup-fails-after-cutover");
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(changed.CutOver, Is.True);
-            Assert.That(
-                retained.Lifecycle!.Members.All(item => item.Member.Stage == PortableCompositionStage.Retired),
-                Is.True,
-                "Every retained member goes, the dropped one with the rest.");
-            Assert.That(changed.Retired, Has.Count.EqualTo(2));
-
-            Assert.That(refused.CutOver, Is.False);
-            Assert.That(
-                untouched.Lifecycle!.Members.Any(item => item.Member.Stage == PortableCompositionStage.Retired),
-                Is.False,
-                "Knowing a position is going is not permission to stand it down early.");
-
-            Assert.That(cleanup.Kind, Is.EqualTo(ComponentGroupMembershipKind.CleanupFailed));
-            Assert.That(cleanup.CutOver, Is.True);
-            Assert.That(cleanup.Reason, Does.Contain("withdraw-refused"));
-            Assert.That(
-                cleanup.Successor!.Lifecycle!.Members.All(item => item.Member.IsReleased),
-                Is.True,
-                "The scope has already cut over, so the successor stays released.");
-        });
-    }
-
-    [Test]
-    public async Task C9_a_membership_change_produces_an_activation_the_other_slices_accept()
-    {
-        var (changed, _) = await MembershipChangeResult("cbi20-01-position-added-and-dropped");
+        var (result, _) = await MembershipResult("cbi20-01-position-added");
+        var successor = result.Successor!;
+        var policy = GroupPolicy(ProviderLocalActor);
         var continued = await ComponentGroupRevalidation.RevalidateAsync(
-            changed.Successor!,
-            MembershipSuccessorRequests(),
-            "revalidate the restructured activation");
+            successor,
+            [
+                new(successor.Admissions[0].Occurrence, [ProviderAuthority(policy, Authority)]),
+                new(successor.Admissions[1].Occurrence, [SupervisorAuthority(policy, AuditAuthority, revoked: false)]),
+                new(successor.Admissions[2].Occurrence, [ObserverRequest(policy)]),
+            ],
+            "revalidate the replaced membership");
 
         Assert.Multiple(() =>
         {
-            Assert.That(changed.IsChanged, Is.True);
             Assert.That(
                 continued.Kind,
                 Is.EqualTo(ComponentGroupRevalidationKind.Continued),
-                "CBI14 accepts the activation a membership change produced.");
+                "CBI14 accepts the activation a membership replacement produced.");
+            Assert.That(
+                continued.Members.Select(item => item.Occurrence),
+                Is.EqualTo(successor.Admissions.Select(item => item.Occurrence)),
+                "And it names exactly the successor's membership, including the addition.");
         });
     }
 
     [Test]
-    public async Task C10_a_membership_change_migrates_no_state_and_invents_no_grant()
+    public async Task C9_the_membership_replacer_adds_no_grant_and_widens_no_scope()
     {
-        var (changed, retained) = await MembershipChangeResult("cbi20-01-position-added-and-dropped");
-        var successorOccurrences = changed.Successor!.Lifecycle!.Members
-            .Select(item => item.Occurrence)
-            .ToArray();
-        var retainedOccurrences = retained.Lifecycle!.Members.Select(item => item.Occurrence).ToArray();
+        var (result, retained) = await MembershipResult("cbi20-03-position-added-and-dropped");
+        var observation = result.Successor!.Lifecycle!.Runtime!.Observation;
+        var admitted = result.Successor.Admissions.SelectMany(item => item.Grants).Count();
 
         Assert.Multiple(() =>
         {
             Assert.That(
-                successorOccurrences.Except(retainedOccurrences),
-                Is.EqualTo(changed.Added),
-                "The change is exactly the positions the successor gained.");
+                observation.RestartScope,
+                Is.EqualTo(retained.Lifecycle!.Runtime!.Observation.RestartScope),
+                "The successor occupies the scope the retained activation held; nothing widens.");
             Assert.That(
-                retainedOccurrences.Except(successorOccurrences),
-                Is.EqualTo(changed.Dropped),
-                "And exactly the ones it lost.");
+                observation.RetainedGeneration,
+                Is.EqualTo(retained.Lifecycle.Runtime.Observation.TargetGeneration));
             Assert.That(
-                retained.Lifecycle.Members.Select(item => item.Member)
-                    .Intersect(changed.Successor.Lifecycle.Members.Select(item => item.Member)),
-                Is.Empty,
-                "No portable member is carried across, not even for a surviving occurrence.");
-            Assert.That(
-                changed.Successor.Grants.Select(item => item.Grant),
-                Is.EqualTo(changed.Successor.Admissions
-                    .SelectMany(item => item.Grants)
-                    .Select(item => item.Grant)
-                    .OrderBy(item => item.Value, StringComparer.Ordinal)),
-                "Every grant the result reports came from an admission in this attempt.");
+                result.Successor.Grants,
+                Has.Count.EqualTo(admitted),
+                "Every grant in force was admitted in this attempt and none besides.");
         });
     }
 
     [Test]
-    public async Task Cbi19_refuses_a_successor_that_changes_the_member_set()
+    public async Task C10_a_membership_replacement_migrates_no_state_and_moves_no_single_member()
     {
-        var (replaced, retained) = await MembershipChangeAsReplacement();
+        var (result, retained) = await MembershipResult("cbi20-02-position-dropped");
 
         Assert.Multiple(() =>
         {
-            Assert.That(replaced.Kind, Is.EqualTo(ComponentGroupReplacementKind.Declined));
-            Assert.That(replaced.Code, Is.EqualTo("membership-change-required"));
-            Assert.That(replaced.Successor, Is.Null);
-            Assert.That(replaced.CutOver, Is.False);
             Assert.That(
-                retained.Lifecycle!.Members.All(item => item.Member.IsReleased),
-                Is.True,
-                "CBI19's stated limit is now a rule it applies rather than a description of how it is called.");
+                result.Successor!.Lifecycle!.Members,
+                Has.Count.EqualTo(1),
+                "The successor holds the positions its generation resolves, and no others.");
+            Assert.That(
+                retained.Lifecycle!.Members.Select(item => item.Member)
+                    .Intersect(result.Successor.Lifecycle.Members.Select(item => item.Member))
+                    .Any(),
+                Is.False,
+                "No portable member is carried across; the successor's are its own.");
+            Assert.That(
+                result.Retired,
+                Has.Count.EqualTo(retained.Lifecycle.Members.Count),
+                "The whole retained generation goes, never one member of it.");
         });
     }
-
-    /// <summary>The same inputs CBI20 accepts, offered to CBI19, which must refuse them.</summary>
-    private static async Task<(ComponentGroupReplacementResult Result, ComponentGroupAuthorityResult Retained)>
-        MembershipChangeAsReplacement()
-    {
-        var (retained, _) = await MembershipRetained(failDroppedCleanup: false);
-        var (successorResolution, members, _, runtimeRequest) = MembershipSuccessor(
-            "cbi20-01-position-added-and-dropped");
-        var result = await ComponentGroupReplacement.ReplaceAsync(
-            successorResolution,
-            retained,
-            members,
-            runtimeRequest,
-            "membership change offered to CBI19");
-        return (result, retained);
-    }
-
-    private static OccurrenceId SecondaryOccurrence(ComponentGroupAuthorityResult retained) =>
-        retained.Lifecycle!.Members
-            .Select(item => item.Occurrence)
-            .Single(item => item.Value.Contains("secondary", StringComparison.Ordinal));
-
-    private static ComponentGroupMemberRequests[] MembershipSuccessorRequests() =>
-    [
-        new(
-            OccurrenceId.Create("occ.def.test.cooling-provider.1"),
-            [ProviderAuthority(GroupPolicy(ProviderLocalActor), Authority)]),
-        new(
-            OccurrenceId.Create("occ.def.test.cooling-tertiary.1"),
-            [ObserverRequest(GroupPolicy(ProviderLocalActor))]),
-    ];
 
     private static async Task<(
         ComponentGroupMembershipResult Result,
         ComponentGroupAuthorityResult Retained)>
-        MembershipChangeResult(string scenario)
+        MembershipResult(string scenario)
     {
         var (retained, _) = await MembershipRetained(
-            scenario == "cbi20-14-dropped-member-cleanup-fails-after-cutover");
-        var (successorResolution, members, dropped, runtimeRequest) = MembershipSuccessor(scenario);
-        var result = await ComponentGroupRestructuring.RestructureAsync(
-            successorResolution,
+            scenario == "cbi20-06-dropped-member-cleanup-fails-after-cutover");
+        var successor = new FakeGenerationResolver().Resolve(RequestFor(MembershipPositions(scenario)));
+        var (members, _) = MembershipMembers(successor, scenario);
+        var result = await ComponentGroupMembership.ReplaceAsync(
+            successor,
             retained,
             members,
-            dropped,
-            runtimeRequest,
-            $"membership change {scenario}");
+            MembershipRuntimeRequest(members, scenario),
+            $"membership replacement {scenario}");
         return (result, retained);
     }
 
-    /// <summary>
-    /// The successor half of a membership change: a generation resolving one surviving position and
-    /// one the retained activation never held.
-    /// </summary>
-    private static (
-        ResolutionOutcome Successor,
-        ComponentGroupParticipant[] Members,
-        OccurrenceId[] Dropped,
-        ActivationRuntimeRequest RuntimeRequest)
-        MembershipSuccessor(string scenario)
+    /// <summary>The positions the successor generation resolves, per scenario.</summary>
+    private static RequirementId[] MembershipPositions(string scenario) => scenario switch
     {
-        // Two vectors need a successor that still resolves the position the caller wants to drop, so
-        // they succeed the pair generation instead of the one that replaces its second position.
-        var succeedsPair = scenario is "cbi20-07-membership-unchanged"
-            or "cbi20-08-dropped-position-still-resolved";
-        var successorResolution = new FakeGenerationResolver()
-            .Resolve(succeedsPair ? PairRequest() : SuccessorRequest());
-        var generation = successorResolution.Generation!;
-        var survivor = generation.ProviderSets.Single(item => item.Requirement == Requirement);
-        var joining = generation.ProviderSets.Single(item =>
-            item.Requirement == (succeedsPair ? SecondaryRequirement : TertiaryRequirement));
-        var handlers = new[]
+        "cbi20-02-position-dropped" or
+        "cbi20-06-dropped-member-cleanup-fails-after-cutover" or
+        "cbi20-08-member-not-resolved" => [Requirement],
+        "cbi20-03-position-added-and-dropped" or
+        "cbi20-05-dropped-actor-reused-by-added-party" or
+        "cbi20-10-surviving-occurrence-authority-changed" or
+        "cbi20-14-release-fails-before-cutover" => [Requirement, TertiaryRequirement],
+        "cbi20-04-membership-unchanged" => [Requirement, SecondaryRequirement],
+        "cbi20-09-successor-resolves-nothing" => [],
+        _ => [Requirement, SecondaryRequirement, TertiaryRequirement],
+    };
+
+    /// <summary>
+    /// The members the caller supplies, which the fixture deliberately lets disagree with the
+    /// generation in two scenarios.
+    /// </summary>
+    private static (ComponentGroupParticipant[] Members, CoolingPortableHandler[] Handlers)
+        MembershipMembers(ResolutionOutcome successor, string scenario)
+    {
+        var supplied = scenario switch
         {
-            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
-            new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+            "cbi20-07-resolved-position-not-supplied" => new[] { Requirement, SecondaryRequirement },
+            "cbi20-08-member-not-resolved" => [Requirement, SecondaryRequirement],
+            _ => MembershipPositions(scenario),
         };
+        var policy = GroupPolicy(
+            ProviderLocalActor,
+            observerActor: scenario is "cbi20-05-dropped-actor-reused-by-added-party" or
+                "cbi20-12-surviving-actor-reused-by-added-party"
+                ? SupervisorLocalActor
+                : null);
+        var handlers = supplied
+            .Select(_ => new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()))
+            .ToArray();
+        var members = new List<ComponentGroupParticipant>();
+        for (var index = 0; index < supplied.Length; index++)
+        {
+            var requirement = supplied[index];
+            var position = successor.Generation?.ProviderSets
+                .SingleOrDefault(item => item.Requirement == requirement);
 
-        // A provider the required contract does not match never reports Ready.
-        var joiningDocument = scenario == "cbi20-12-added-member-never-ready"
-            ? CoolingPortableFixture.Contract with
-            {
-                Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
-            }
-            : CoolingPortableFixture.Contract;
-        var survivorMember = new ComponentGroupMember(
-            Selection(survivor.Members[0]) with { HostEndpoint = "membership-host-primary" },
-            new PortableDirectConversation(new PortableProviderEndpoint(
-                CoolingPortableFixture.Contract, handlers[0], PortableRealization.FixedDirectCall)));
-        var joiningMember = new ComponentGroupMember(
-            Selection(joining.Members[0]) with
-            {
-                Requirement = succeedsPair ? SecondaryRequirement : TertiaryRequirement,
-                HostEndpoint = "membership-host-joining",
-            },
-            new PortableDirectConversation(new PortableProviderEndpoint(
-                joiningDocument, handlers[1], PortableRealization.FixedDirectCall)));
+            // A member the generation does not resolve still has to be nameable, so it borrows the
+            // occurrence the retained activation holds for that position.
+            var occurrence = position is null
+                ? OccurrenceId.Create($"occ.{PositionCatalog.Single(item => item.Requirement == requirement).Provider.Value}.1")
+                : position.Members[0].Occurrence;
+            var definition = position is null
+                ? PositionCatalog.Single(item => item.Requirement == requirement).Provider
+                : position.Members[0].Definition;
+            var selection = new ComponentBindingSelection(
+                requirement,
+                definition,
+                occurrence,
+                CoolingPortableFixture.Component,
+                CoolingPortableFixture.Provider,
+                $"membership-host-{index}",
+                "cooling-provider",
+                CoolingPortableFixture.Contract);
 
-        var policy = scenario == "cbi20-10-added-party-takes-a-live-local-actor"
-            ? GroupPolicy(ProviderLocalActor, observerActor: SupervisorLocalActor)
-            : GroupPolicy(ProviderLocalActor);
-        var survivorRequest = scenario == "cbi20-09-surviving-occurrence-authority-changed"
-            ? ProviderAuthority(policy, Authority) with
-            {
-                Authority =
-                [
-                    ProviderAuthority(policy, Authority).Authority.Single() with
-                    {
-                        Capability = CapabilityId.Create("capability.other"),
-                    },
-                ],
-            }
-            : ProviderAuthority(policy, Authority);
-        var joiningParty = scenario == "cbi20-02-shared-party-joins-the-added-member"
-            ? Participant
-            : Observer;
-        var joiningRequest = joiningParty == Participant
-            ? ProviderAuthority(policy, ReportAuthority) with
-            {
-                Request = AdmissionRequestId.Create("admission.group-joining"),
-                Relationships =
-                [
-                    new(
-                        RelationshipRequestId.Create("relationship.group-joining"),
-                        Participant,
-                        ActorRelationshipKind.ComponentParticipant,
-                        [AuthorityEvidence]),
-                ],
-                Authority =
-                [
-                    new(
-                        ReportAuthority,
-                        RelationshipRequestId.Create("relationship.group-joining"),
-                        ReportCapability,
-                        Target,
-                        ReportOperation,
-                        AuthorityScope,
-                        false),
-                ],
-            }
-            : scenario == "cbi20-11-added-authority-denied"
-                ? ObserverRequest(policy) with
+            // A provider the required contract does not match never reports Ready.
+            var document = scenario == "cbi20-13-added-member-never-ready" &&
+                requirement == TertiaryRequirement
+                ? CoolingPortableFixture.Contract with
                 {
-                    Evidence =
-                    [
-                        SetEvidence(ObserverEvidence, Observer) with
-                        {
-                            State = AdmissionEvidenceState.Revoked,
-                        },
-                    ],
+                    Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
                 }
-                : ObserverRequest(policy);
+                : CoolingPortableFixture.Contract;
+            members.Add(new(
+                new(
+                    selection,
+                    new PortableDirectConversation(new PortableProviderEndpoint(
+                        document,
+                        handlers[index],
+                        PortableRealization.FixedDirectCall))),
+                [MembershipParticipant(requirement, policy, occurrence, scenario)]));
+        }
 
-        ComponentGroupParticipant Participate(ComponentGroupMember member, AuthorityAdmissionRequest request) =>
-            new(member, [new(new(member.Selection.Occurrence, request.Participant), request)]);
+        return (members.ToArray(), handlers);
+    }
 
-        var members = scenario switch
+    private static ComponentParticipantRequest MembershipParticipant(
+        RequirementId requirement,
+        LocalAuthorityPolicy policy,
+        OccurrenceId occurrence,
+        string scenario)
+    {
+        if (requirement == SecondaryRequirement)
         {
-            "cbi20-06-successor-holds-no-member" => Array.Empty<ComponentGroupParticipant>(),
-            "cbi20-08-dropped-position-still-resolved" => [Participate(survivorMember, survivorRequest)],
-            _ => [Participate(survivorMember, survivorRequest), Participate(joiningMember, joiningRequest)],
-        };
-        var retainedSecondary = OccurrenceId.Create($"occ.{SecondaryProvider.Value}.1");
-        var dropped = scenario switch
-        {
-            "cbi20-03-drop-not-declared" => Array.Empty<OccurrenceId>(),
-            "cbi20-04-drop-not-held" => [retainedSecondary, OccurrenceId.Create("occ.never-held")],
-            "cbi20-05-drop-is-a-successor-member" => [survivorMember.Selection.Occurrence],
-            "cbi20-06-successor-holds-no-member" =>
-                [survivorMember.Selection.Occurrence, retainedSecondary],
-            "cbi20-07-membership-unchanged" => Array.Empty<OccurrenceId>(),
-            _ => [retainedSecondary],
-        };
+            return new(new(occurrence, Supervisor), SupervisorAuthority(policy, AuditAuthority, revoked: false));
+        }
 
-        var runtimeRequest = RuntimeRequestFor(
+        if (requirement == TertiaryRequirement)
+        {
+            var observer = ObserverRequest(policy);
+            return new(
+                new(occurrence, Observer),
+                scenario == "cbi20-11-added-member-authority-denied" ? Revoked(observer) : observer);
+        }
+
+        var provider = ProviderAuthority(policy, Authority);
+        return new(
+            new(occurrence, Participant),
+            scenario == "cbi20-10-surviving-occurrence-authority-changed"
+                ? provider with
+                {
+                    Authority = [provider.Authority.Single() with { Capability = CapabilityId.Create("capability.other") }],
+                }
+                : provider);
+    }
+
+    private static ActivationRuntimeRequest MembershipRuntimeRequest(
+        IReadOnlyList<ComponentGroupParticipant> members,
+        string scenario)
+    {
+        var request = RuntimeRequestFor(
             PlanFor(
                 GenerationId.Create("gen.successor"),
                 RestartScopeId.Create("restart.lifecycle"),
                 members.Select(item => item.Member.Selection.Occurrence).ToArray()),
             GenerationId.Create("gen.lifecycle"));
-        if (scenario == "cbi20-13-release-fails-before-cutover")
-        {
-            runtimeRequest = runtimeRequest with
+        return scenario == "cbi20-14-release-fails-before-cutover"
+            ? request with
             {
-                Release = runtimeRequest.Release with
-                {
-                    FailureMoment = ReleaseFailureMoment.BeforeCutover,
-                },
-            };
-        }
-
-        return (successorResolution, members, dropped, runtimeRequest);
+                Release = request.Release with { FailureMoment = ReleaseFailureMoment.BeforeCutover },
+            }
+            : request;
     }
 
     /// <summary>
-    /// The activation being restructured: two members, of which the second's position is the one a
-    /// membership change drops.
+    /// The activation being replaced: two released members, one of which every drop scenario drops.
     /// </summary>
     private static async Task<(ComponentGroupAuthorityResult Retained, CoolingPortableHandler[] Handlers)>
         MembershipRetained(bool failDroppedCleanup)
@@ -4833,7 +4784,8 @@ public sealed class ComponentBindingIntegrationTests
         {
             var conversation = new PortableDirectConversation(new PortableProviderEndpoint(
                 CoolingPortableFixture.Contract, handlers[index], PortableRealization.FixedDirectCall));
-            // Only the departing member's peer refuses, so a cleanup failure is attributable to it.
+
+            // Only the member the successor drops refuses withdrawal, so the failure names it.
             return failDroppedCleanup && index == 1
                 ? new FailingRetirementConversation(conversation)
                 : conversation;
@@ -4842,13 +4794,13 @@ public sealed class ComponentBindingIntegrationTests
         var groupMembers = new[]
         {
             new ComponentGroupMember(
-                Selection(first.Members[0]) with { HostEndpoint = "membership-retained-primary" },
+                Selection(first.Members[0]) with { HostEndpoint = "retained-host-primary" },
                 Conversation(0)),
             new ComponentGroupMember(
                 Selection(second.Members[0]) with
                 {
                     Requirement = SecondaryRequirement,
-                    HostEndpoint = "membership-retained-secondary",
+                    HostEndpoint = "retained-host-secondary",
                 },
                 Conversation(1)),
         };
@@ -4867,45 +4819,9 @@ public sealed class ComponentBindingIntegrationTests
         return (retained, handlers);
     }
 
-    /// <summary>Two requirements again, but the second names a position the pair generation never had.</summary>
-    private static ResolutionRequest SuccessorRequest()
-    {
-        var single = Request(Cardinality.Parse("1..1"));
-        var consumer = single.Definitions.Single(item => item.Definition == Consumer);
-        var provider = single.Definitions.Single(item => item.Definition == Provider);
-        var tertiaryRequirement = consumer.Requirements.Single() with
-        {
-            Requirement = TertiaryRequirement,
-            Contract = TertiaryContract,
-        };
-        var candidate = single.Candidates.Single();
-        return single with
-        {
-            Definitions =
-            [
-                consumer with { Requirements = [consumer.Requirements.Single(), tertiaryRequirement] },
-                provider,
-                provider with
-                {
-                    Definition = TertiaryProvider,
-                    Provides = [new ProvidedContract(TertiaryContract, Version)],
-                },
-            ],
-            Candidates =
-            [
-                candidate,
-                candidate with
-                {
-                    Definition = TertiaryProvider,
-                    Provides = [new ProvidedContract(TertiaryContract, Version)],
-                },
-            ],
-        };
-    }
-
     private static string MembershipToken(ComponentGroupMembershipKind kind) => kind switch
     {
-        ComponentGroupMembershipKind.Restructured => "restructured",
+        ComponentGroupMembershipKind.Replaced => "replaced",
         ComponentGroupMembershipKind.CleanupFailed => "cleanup-failed",
         ComponentGroupMembershipKind.Declined => "declined",
         ComponentGroupMembershipKind.ActivationUnavailable => "activation-unavailable",
@@ -5529,6 +5445,50 @@ public sealed class ComponentBindingIntegrationTests
             Array.Empty<ProviderPreselection>(),
             Array.Empty<PortEnvelope>(),
             Array.Empty<TopologyPolicyInput>());
+    }
+
+    /// <summary>
+    /// One independent requirement per named position, so the generation resolves exactly those and
+    /// a membership can be drawn from any subset of them.
+    /// </summary>
+    private static ResolutionRequest RequestFor(params RequirementId[] requirements)
+    {
+        var single = Request(Cardinality.Parse("1..1"));
+        var consumer = single.Definitions.Single(item => item.Definition == Consumer);
+        var provider = single.Definitions.Single(item => item.Definition == Provider);
+        var template = consumer.Requirements.Single();
+        var candidate = single.Candidates.Single();
+        var chosen = PositionCatalog.Where(item => requirements.Contains(item.Requirement)).ToArray();
+        return single with
+        {
+            Definitions =
+            [
+                consumer with
+                {
+                    Requirements =
+                    [
+                        .. chosen.Select(item => template with
+                        {
+                            Requirement = item.Requirement,
+                            Contract = item.Contract,
+                        }),
+                    ],
+                },
+                .. chosen.Select(item => provider with
+                {
+                    Definition = item.Provider,
+                    Provides = [new ProvidedContract(item.Contract, Version)],
+                }),
+            ],
+            Candidates =
+            [
+                .. chosen.Select(item => candidate with
+                {
+                    Definition = item.Provider,
+                    Provides = [new ProvidedContract(item.Contract, Version)],
+                }),
+            ],
+        };
     }
 
     private static ResolutionRequest PairRequest() => PairRequest([], []);

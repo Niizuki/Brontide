@@ -53,8 +53,8 @@ as a single transaction, so a member the successor does not resolve blocks the o
 those sets without consulting any declaration, because growth removes nobody and so cannot uncover a
 declared dependency. CBI19 replaces the generation in the restart scope with a successor generation,
 re-establishing authority per occurrence and retiring the retained members only after cutover. CBI20
-adds and removes positions across that replacement, refusing a drop the successor generation does not
-make and a party that would take a receiving-domain Actor the retained generation still holds. This
+lets that successor resolve a different set of positions, reading the membership from the generation
+rather than the caller and joining an added position only across the cutover. This
 does not merge the experimental projects,
-support relational activation, child Ports, mediation, or wider
+support relational activation, mediation, or wider
 Provider Sets, or establish real Component interchange.

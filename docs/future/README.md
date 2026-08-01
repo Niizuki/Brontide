@@ -463,46 +463,43 @@ because CM4 requires a pre-cutover failure to leave the retained generation serv
 [`contract-completeness review`](../../component-management/cbi19-contract-completeness-review.md)
 bound it to replacing the generation in one restart scope over protocol-free members.
 
-CBI20 relaxes the last structural constant every slice from CBI12 onward held fixed, and adds and
-removes positions of an activation. Its first finding is about CBI19 rather than about membership:
-CBI19's "it does not add or remove a position", and its review's claim that such a successor is "not
-reachable through this slice", described how CBI19 was called rather than a rule it applied — the
-replacer took the caller's member list, so both halves of a membership change went through
-unannounced. CBI19 now refuses a member-set change, with a test in each stack that goes red when the
-guard is removed.
+CBI20 lifts the last structural constant and lets the successor resolve a different set of positions,
+and its first result is a **defect in CBI19 rather than a new capability**. CBI19 states that its input
+is one entry per successor member and that it adds or removes no position, and it checked neither: a
+caller could hand it a membership that is a strict subset of what the successor generation resolves,
+with a CM3 plan built from that same subset, and get a cutover to a generation whose plan covered fewer
+members than CM2 resolved — the omitted Component retired, and no refusal anywhere. CBI19's vectors are
+structurally unable to catch it, because each one derives the member list, the participant sets, and the
+plan from one declaration, so no vector ever asked whether they agreed. That is the shape Decision 10
+describes, and it appeared identically in both stacks, as PB6's three defects did. **The membership is
+the successor generation's statement, not the caller's**, and CBI19 now refuses an under-supplied,
+over-supplied, or changed one, so its stated limit is checked rather than assumed.
 
-Both questions the item recorded have answers, and the first is answered by dissolving it. **A
-dropped position needs nothing undone**: the question presupposed that authority attached to a
-durable occurrence must be disposed of when the occurrence leaves, but CBI19 already establishes that
-no authority survives an attempt, and every retained member is retired at cutover whether or not its
-position was dropped — so a drop is visible only as the absence of a successor admission, and what
-durability governs is what may be *re-admitted*. **An added position joins only across a cutover**,
-because which positions exist is a property of a CM2 generation, a generation reaches a scope only
-through CM4's Release and cutover, and CM4 models one Release per attempt; there is no in-place entry
-point, and the absent operation is the answer, as it was for leaving. CBI18's in-place growth is not
-a precedent, because growing a participant set changes no position.
-
-Two things neither question anticipated. Addition and removal are deliberately **asymmetrical**: a
-drop must be one the successor generation makes, because removing something live is the composition's
-decision, while an addition is a mapping the caller has always supplied under CBI1. And the case only
-a membership change can pose is **a local Actor freed by a drop and taken by a different party**,
-which is refused by checking CBI13's mapping rules over the retained and successor activations
-together — the two are established against the same binding scope until the cutover completes, so the
-conflation CBI6 refuses inside a set would be live rather than hypothetical. The
-[`CBI20 capability contract`](../../component-management/cbi20-capability-contract.md) and
+The lift itself needed no new authority rule, and that is the second result. CBI19 decided authority
+per occurrence, so **a dropped occurrence has nothing to follow it to** — its grant is not
+re-established, no withdrawal is performed against the receiving domain, and the member is retired with
+the rest of the retained generation — while an added occurrence is admitted afresh. The question the
+item recorded reads as though it needed a rule and needed none; what it needed was for the departure to
+be *visible*, which the derived added, dropped, and surviving sets supply. The second question has an
+answer from the runtime rather than from preference: **an added position joins only across a cutover**,
+because a CM2 generation is one immutable object resolving every position at once and a CM4 attempt
+carries one plan covering every member, so neither can represent a member arriving into a generation
+already serving — which is also the line between CBI18 and CBI20. An emptied membership is refused as
+CBI14's withdrawal reached through the wrong door, and the case only a changed membership can pose is
+that a receiving-domain Actor a **dropped** participant held may be taken by a different party in an
+**added** member, while the same reuse against a *surviving* participant stays the conflation CBI13
+refuses. The [`CBI20 capability contract`](../../component-management/cbi20-capability-contract.md) and
 [`contract-completeness review`](../../component-management/cbi20-contract-completeness-review.md)
-bound it to one protocol-free multi-member activation.
+bound it to one successor generation resolving a different set of positions over protocol-free members.
 
-**Relational Initialisation is the next implementable item.** CBI12 refuses a cyclic group and names
-it as what Relational Initialisation exists for, and every slice since has kept its members
-protocol-free, so it is the one CM3/CM4 stage the integration has never exercised. It has to decide
-whether a declared lifecycle Operation crosses the portable seam at all — CM4 admits exactly one
-declared Operation, capability, input Shape, edge, and peer at that stage, while a portable member's
-ordinary gate stays closed until Release — and what a protocol failure inside a group does to an
-activation whose release barrier is already all-or-none. Child Ports, mediation, wider Provider Sets,
-and real distribution remain future work behind it. PB8's independent reviews remain a separate
-governance prerequisite rather than implementation work; Decision 11 was ruled on and delivered on
-2026-07-30.
+**Relational Initialisation is the next implementable item.** Every slice from CBI12 onward has
+activated protocol-free members only, refusing a cyclic group because a multi-member group is a
+strongly connected component and that is what Relational Initialisation exists for. It has to decide
+what a bounded lifecycle protocol between two members means for the release barrier, whether authority
+for lifecycle traffic is the same admission CBI13 grants for ordinary interaction or a separate one, and
+what a protocol that fails mid-handshake leaves behind. Child Ports, mediation, wider Provider Sets, and
+real distribution remain future work behind it. PB8's independent reviews remain a separate governance
+prerequisite rather than implementation work; Decision 11 was ruled on and delivered on 2026-07-30.
 
 ## Other planned areas
 

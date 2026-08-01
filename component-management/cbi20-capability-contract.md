@@ -1,160 +1,152 @@
-# CBI20 activation membership change capability contract
+# CBI20 membership replacement capability contract
 
 Status: experimental behavioral contract
 
 Designed for: Brontide Architecture 0.8 §18.1, §20.1, and §24, Complete Draft, not ratified
 
-CBI20 changes which positions an activation holds. CBI19 replaces the generation occupying one
-restart scope with a successor that resolves the same positions; a successor that adds or drops one
-is this slice, and it is the last structural constraint every slice from CBI12 onward held fixed.
+CBI20 replaces the generation occupying one restart scope with a successor generation that resolves a
+**different set of positions**: it may resolve a position the retained activation does not hold, and it
+may stop resolving one it does. That is the last structural constant every slice from CBI12 onward has
+held fixed, and CBI19 named it as out of scope rather than deferring it.
 
-**A membership change is a replacement.** Which positions exist is a property of a CM2 generation,
-and a generation is one immutable object resolving every position at once, so a different set of
-positions is a different generation. A generation becomes active in a restart scope only through
-CM4's Release and cutover, and CM4 models one Release per attempt. There is therefore no operation
-that adds a member to a released activation, and none that retires one while its scope keeps
-running — which is what CBI19 established about the other half of the same question. CBI20 offers no
-in-place entry point at all, and that absence is the answer rather than an omission.
+**Pointing this slice at CBI19 found a defect in CBI19 first.** CBI19's C1 says the input is "one entry
+per successor member" and its C10 says it does not add or remove a position, and its implementation
+checked neither: a caller could hand it a membership that is a strict subset of the positions the
+successor generation resolves and get a cutover to a generation whose CM3 plan covers fewer members
+than CM2 resolved. Nothing downstream would notice, because the caller's list was the only statement of
+membership anything read. Its vectors could not have caught it — every one of them builds the member
+list, the participant sets, and the CM3 plan from the same declaration — which is the shape Decision 10
+describes and the way PB7 found the provider-identity defect. CBI19 now refuses a membership the
+successor generation does not resolve, and refuses a changed one, so its stated limit is checked rather
+than assumed. **CBI20 is the door through which a membership may legitimately differ**, and everything
+below is what passing through it requires.
 
-**CBI19's stated limit was not an enforced one.** CBI19 says it "does not add or remove a position",
-and its completeness review says a successor that does so "is not reachable through this slice".
-Reading it to build CBI20 shows the limit described how CBI19 was called, not a rule it applied: its
-replacer takes the caller's member list, admits an occurrence the retained activation does not hold
-as a new member, and simply never visits a retained occurrence the list omits. Both changes went
-through unannounced. CBI19 now refuses a member-set change and names this slice; the correction is
-part of this change.
+## C1 — the membership is read from the successor generation
 
-## C1 — a membership change needs a released activation, a successor for the same scope, and the change named
+The preconditions are CBI19's, unchanged: a released CBI13 activation, a completed successor
+generation, one entry per successor member, and a runtime request whose restart scope is the one the
+retained activation occupies and whose retained generation is the one it made active, with a successor
+generation identity that differs.
 
-The input is a released CBI13 activation, a completed successor generation, one entry per successor
-member, an explicit list of the occurrences the change drops, and a CM4 request whose restart scope
-and retained generation are the ones the retained activation occupies and made active. CBI19's
-scope and generation refusals apply unchanged. Beyond them: a repeated successor occurrence, a
-declared drop the retained activation does not hold, a declared drop that is also a successor member,
-and a retained occurrence the successor member list omits without declaring it are each refused. A
-successor holding no member at all is refused, because a replacement stands a generation up in the
-scope and standing nothing up is CBI14 withdrawal. A member set that neither adds nor drops is
-declined and named as CBI19's.
+The supplied entries must be **exactly** the positions the successor generation resolves, compared as
+requirement and occurrence pairs. A position the generation resolves with no supplied entry is refused;
+a supplied entry naming a position the generation does not resolve is refused. Neither is a drop and
+neither is an addition: both are a caller disagreeing with the generation about what the activation is,
+and the first is how a silent drop would enter. CBI20 differs from CBI19 in permitting that membership
+to differ from the retained activation's, not in trusting the caller about it.
 
-Requiring the drop to be named is what makes an omission fail closed: a member left out of the
-successor list would otherwise be dropped silently, which is the failure a caller cannot see.
+Property: every refusal of the membership itself leaves every retained member released, creates no
+successor member, and reports no membership change, because none was computed.
 
-Property: every refusal before establishment leaves every retained member released, retires nothing,
-and creates no successor member.
+## C2 — the added, dropped, and surviving sets are derived, never declared
 
-## C2 — the successor generation decides what may be dropped; the caller only names it
+The caller states no intent about membership. Added is the successor's occurrences the retained
+activation does not hold; dropped is the retained activation's occurrences the successor does not
+resolve; surviving is the intersection. All three come from the successor generation and from CM4's own
+observation of what the retained activation made active, which is where C1 gets its comparison too, and
+which is why a declared membership change would add nothing but a second opinion to disagree with.
 
-A declared drop must be a position the successor generation does not resolve. A generation that
-still resolves the position is the composition saying the position is still there, so dropping it
-would be the caller narrowing the composition rather than the generation doing so, and it is refused.
+Property: in every outcome in which the membership was accepted, added and surviving together are
+exactly the successor's membership, dropped and surviving together are exactly the retained
+activation's, and nothing is both added and dropped.
 
-Addition is not symmetrical, and deliberately so. CBI1 has always required the caller to supply an
-explicit typed mapping for each resolved position it takes into portable preflight, so a position the
-successor generation resolves and the caller does not map is simply one this activation does not
-cover — nothing is taken away. A drop removes something that is live, so it must be the generation's
-decision.
+## C3 — a dropped position's authority is not re-established, and nothing carries it forward
 
-Property: no admitted membership change drops a position its successor generation still resolves,
-and every successor member is a position that generation resolves.
+A dropped occurrence has no successor member, so there is nothing to admit it against, and CBI19
+already settles what that means: authority follows the occurrence and is re-established in the attempt
+rather than inherited, so a grant not re-established is not in force in the successor. No withdrawal or
+revocation is performed against the receiving domain, because the admission is the composition root's
+own record and the successor's record is what this attempt produced. A withdrawal step here would imply
+the grant had been carried across, which it never is.
 
-## C3 — an added position joins only across a cutover
+The departing member itself is retired with the rest of the retained generation after cutover, by
+CBI19's rule rather than a new one. Re-admitting a dropped position later is another membership
+replacement: no member remains for CBI9 to revise or CBI18 to grow.
 
-There is no path by which a member joins an activation that is already released. CBI18 grows a
-member's *participant set* in place because that changes no position; growing the *member set*
-changes the generation, and a generation reaches a scope through Release and cutover. Releasing one
-newly added member into a live activation would be a Release for that member alone, which is the
-operation CBI12 established CM4 does not model.
+Property: for every dropped occurrence, in every outcome, the successor holds no admission and no grant
+naming an authority request that occurrence was admitted for.
 
-Property: every added member is released only in an outcome that cut over, and no outcome adds a
-member to the retained activation.
+## C4 — an added position joins only across a cutover
 
-## C4 — authority under a membership change
+There is no path by which a member joins an activation that is already released, and the absence is the
+runtime's rather than a preference. A CM2 generation is one immutable object resolving every position at
+once, so a membership holding a position the active generation does not is a different generation; and a
+CM4 attempt carries one plan covering every member, requires a stage outcome for each of them, and makes
+its target generation active in one atomic cutover. Neither model can represent an additional member
+arriving into a generation already serving.
 
-CBI19's rule holds for the occurrences it was written for, and the two new cases fall out of it
-rather than needing rules of their own:
+This is also the line between CBI18 and CBI20. CBI18 grows the **participant sets** of members that
+already exist, which changes no generation and needs no cutover; adding a **member** changes the
+generation and therefore needs one.
 
-- an occurrence both generations hold must be admitted with a request that re-identifies the
-  authority that admitted it;
-- an occurrence only the successor holds is a new member, admitted exactly as CBI13 admits any
-  participant set; and
-- an occurrence only the retained generation holds is dropped: it has no successor member for its
-  authority to follow to, and nothing needs to be revoked, because CBI19 already establishes that no
-  authority survives an attempt. Every retained member is retired at cutover regardless of whether
-  its position was dropped, and every successor member carries its own admission from this attempt.
+Property: no added member is released in any outcome in which cutover did not occur.
 
-The durability an occurrence has is therefore about what may be re-admitted, not about a grant that
-outlives the attempt. A party admitted in a dropped member may be admitted in an added one, but only
-by being admitted there afresh.
+## C5 — an emptied membership is a withdrawal, not a replacement
 
-Property: the successor's admissions name exactly the successor's members, no grant admitted against
-a dropped occurrence appears in the successor, and no successor member is released without its own
-admission in this attempt.
+A successor generation that resolves no position is refused before anything is established. Standing an
+activation down entirely is CBI14's withdrawal, which retires the members and names why; routing it
+through a replacement would cut a scope over to a generation with no member to release, and CBI12's
+release barrier is a barrier over a membership rather than over nothing.
 
-## C5 — the receiving-domain Actor mapping is checked across both activations, not each alone
+Property: the refusal leaves every retained member released and retires none.
 
-CBI13's rule — one participant holds one local Actor, one local Actor is held by one participant — is
-checked over the retained and successor activations together. Between the successor reaching Ready
-and the retained members retiring, both are established against the same binding scope, so a second
-party arriving at a local Actor the retained generation still maps to someone else is a live
-conflation rather than a hypothetical one, which is the reason CBI6 refuses it within a set.
+## C6 — the successor stands up under CBI13's and CBI19's barriers, over its own membership
 
-Only a membership change can pose this: while the positions are the same, the successor maps the same
-parties onto the same local Actors and the check is vacuous. Re-homing a party across a replacement
-is refused for the same reason, and goes through CBI14 retirement and a fresh CBI13 activation.
+The successor activation is a CBI13 activation over the successor's membership: every member's set is
+admitted before any successor provider is contacted, the activation-wide identity and receiving-domain
+Actor rules hold across the successor's members, every member reaches Ready before the single Release,
+and a surviving occurrence must be admitted with the authority that admitted it. A changed membership is
+a fresh opportunity to violate the activation-wide rules against a member that survives, and they are
+checked over the successor because that is the activation they are a property of.
 
-Property: an admitted membership change leaves the union of the retained and successor mappings a
-function and injective, and a conflation is refused before any successor provider is contacted.
+One consequence only a changed membership can reach: a receiving-domain Actor that a **dropped**
+member's participant held may be taken by a different party in an **added** member, because the retained
+activation's mapping ends with the retained activation and the successor's mapping is a function and
+injective within itself. The same reuse against a **surviving** member's participant is the conflation
+CBI13 refuses.
 
-## C6 — the release barrier covers the successor's members, whichever they are
+Property: every admission, identity, or Actor-mapping refusal in the successor contacts no successor
+provider and leaves the retained activation released.
 
-Every successor member — survivors and additions alike — must reach Ready before the single Release.
-The barrier is CBI12's, unchanged: ordinary interaction opens for every successor member at once or
-for none. An addition that never reports Ready releases nobody.
+## C7 — cutover is still the boundary, and the retained membership goes as a whole
 
-Property: after every membership-change outcome, either every successor member is released or none
-is.
+Failure before cutover leaves the retained generation active with every retained member still released
+and still able to interact, including the members whose positions the successor drops. After cutover
+every retained member is retired, gate first, dropped and surviving alike, because CM4 requires a
+pre-cutover failure to leave the retained generation serving and models no way to stand one member down
+while its scope keeps running. A retained member whose peer refuses withdrawal after a successful
+cutover is a named cleanup failure that restores nothing.
 
-## C7 — cutover is still the boundary, and before it the retained activation is untouched
+Property: no retained member is retired in any outcome in which cutover did not occur, and every
+retained member is retired in every outcome in which it did.
 
-Failure before cutover — admission, establishment, a member that never reports Ready, or a Release
-that fails before cutover — discards the successor and leaves the retained generation active with
-every retained member still released and still able to interact, including the members whose
-positions the change would have dropped.
+## C8 — a membership replacement produces an activation the other slices accept
 
-Property: no failure before cutover retires, closes the gate of, or withdraws any retained member.
+A successful replacement returns the successor in the form CBI13 produces, over the successor's
+membership: every member's observations and grants, and the same released members. An added member is an
+ordinary member of it — CBI14 can revalidate it, CBI15 can revise it, CBI18 can extend it, and CBI19 or a
+further CBI20 call can replace it again — and a dropped member is absent from all of them.
 
-## C8 — the retained members, dropped ones included, are retired after cutover and never before
+Property: the result of a replacement is accepted by CBI14 revalidation, which names exactly the
+successor's membership and continues it.
 
-Once the scope has cut over, every retained member is retired, gate first, as CBI19 retires. A member
-whose position the change drops is retired then and not earlier: knowing a position is going is not
-permission to stand it down while a pre-cutover failure must still leave it serving. A retained
-member whose peer refuses withdrawal after cutover is a cleanup failure, named rather than swallowed,
-and the successor stays released because the scope has already cut over.
+## C9 — both composition roots implement independently
 
-Property: no retained member is retired in any outcome in which cutover did not occur, every retained
-member is retired in every outcome in which it did, and no outcome reports both generations serving.
+Reference Studio and Minimal Host own separate membership replacers over their native CM2, CM4, CM5, and
+PB7 types, each delegating the cutover to its own CBI19 replacer rather than restating it. CBI20 is
+additive: CBI12 through CBI18 are unchanged, and CBI19 changes only by enforcing the limit it already
+declared.
 
-## C9 — a membership change produces an activation the other slices accept
+Property: deleting either CBI20 replacer leaves native CM2, CM4, CM5, CBI1-CBI19, and Portable Binding
+behavior unchanged.
 
-A successful change returns the successor in the form CBI13 produces, over its own member set. CBI14
-can revalidate it, CBI15 can revise it, CBI18 can extend it, CBI19 can replace it, and a further
-CBI20 call can change its membership again.
+## C10 — evidence remains bounded
 
-Property: the result of a membership change is accepted by CBI14 revalidation, and revalidating it
-immediately with the same requests continues it.
+CBI20 proves fail-closed replacement of the generation occupying one restart scope by a successor
+generation resolving a different set of positions, over protocol-free members. It does not add or retire
+one member while its scope keeps running, because CM4 models no such operation; it does not migrate
+state to an added member or away from a dropped one, attach a child Port, perform Relational
+Initialisation, mediate, widen a Provider Set, or provide production identity, policy, distribution, or
+security.
 
-## C10 — both composition roots implement independently, and evidence remains bounded
-
-Reference Studio and Minimal Host own separate implementations over their native CM2, CM4, CM5, and
-PB7 types. CBI20 is additive: CBI12 through CBI18 are unchanged, and CBI19 changes only by refusing
-the member-set change it never enforced.
-
-CBI20 proves fail-closed addition and removal of positions across a scoped replacement, over
-protocol-free members. It does not add or remove a member without a cutover, migrate state between a
-dropped member and an added one, attach a child Port, perform Relational Initialisation, mediate,
-widen a Provider Set, or provide production identity, policy, distribution, or security. It models no
-grant that outlives the activation attempt it was admitted in, so a receiving domain that persists
-grants beyond an attempt would need a withdrawal step this slice does not supply.
-
-Property: deleting either CBI20 implementation leaves native CM2, CM4, CM5, CBI1-CBI19, and Portable
-Binding behavior unchanged, and every CBI20 status statement preserves these limits.
+Property: every CBI20 status statement preserves these limits.

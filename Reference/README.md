@@ -120,11 +120,11 @@ the occurrence and is re-established rather than inherited; and the retained mem
 after cutover, because a failure before it must leave them serving. A party already participating in one member may be added
 to another, under the local Actor it already holds; removal and substitution stay CBI15's, and a
 lapse in any retained participant retires the whole activation.
-CBI20 adds and removes positions across that replacement. A member joins or leaves only by a cutover,
-because which positions exist is a property of the generation; a drop the successor generation does
-not make is refused, so removal stays the composition's decision rather than the caller's; and
-CBI13's receiving-domain Actor rules are checked over the retained and successor activations
-together, because both are established at once until the cutover completes.
+CBI20 lets that successor resolve a different set of positions, adding and dropping members across the
+cutover. The membership is read from the successor generation rather than taken from the caller — the
+rule CBI19 declared and never checked — and the added, dropped, and surviving occurrences are derived
+from it. A dropped occurrence's authority is not re-established because there is nothing to admit it
+against, and an added position joins only across the cutover.
 
 ## Build and test
 

@@ -58,8 +58,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi19-scoped-replacement-vectors.json"
           Link="component-management\fixtures\cbi19-scoped-replacement-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\..\component-management\fixtures\cbi20-membership-change-vectors.json"
-          Link="component-management\fixtures\cbi20-membership-change-vectors.json"
+    <None Include="..\..\..\component-management\fixtures\cbi20-membership-replacement-vectors.json"
+          Link="component-management\fixtures\cbi20-membership-replacement-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
