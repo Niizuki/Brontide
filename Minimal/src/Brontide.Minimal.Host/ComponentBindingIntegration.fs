@@ -258,6 +258,129 @@ module ComponentBindingIntegration =
         | _ -> None
 
 [<RequireQualifiedAccess>]
+type ComponentMediatedTranslationKind =
+    | Translated
+    | Declined
+
+type ComponentMediatedSelection =
+    { MediatedRequirement: RequirementId
+      Mediator: ComponentBindingSelection }
+
+type ComponentMediatedTranslationResult =
+    { Kind: ComponentMediatedTranslationKind
+      Member: CompositionMember option
+      MediatedRequirement: RequirementId option
+      Mediation: MediationId option
+      Code: string
+      Reason: string }
+
+/// Carries a CM2 position resolved with mediated exposure into portable preflight, by binding the
+/// Component the Mediation is realized as.
+///
+/// The portable seam refuses mediated exposure because "an erased Mediation still carries provenance,
+/// deputy, and authority obligations", and that refusal is right and is not relaxed here: nothing
+/// mediated is ever presented to it. CM2 requires a policy-bearing Mediation to be realized as a
+/// dedicated Component, so the obligations have a holder, the holder is an ordinary Component, and
+/// binding it erases nothing - the plan's provider fact names the mediator, which is who answers. A
+/// static-host Mediation has no Component to reach and is refused.
+[<RequireQualifiedAccess>]
+module ComponentMediatedBinding =
+    let isTranslated (result: ComponentMediatedTranslationResult) =
+        result.Kind = ComponentMediatedTranslationKind.Translated
+
+    let private decline code reason =
+        { Kind = ComponentMediatedTranslationKind.Declined
+          Member = None
+          MediatedRequirement = None
+          Mediation = None
+          Code = code
+          Reason = reason }
+
+    let translate (resolution: ResolutionOutcome) (selection: ComponentMediatedSelection) =
+        match resolution with
+        | ResolutionOutcome.Resolved(_, generation) ->
+            let matches =
+                generation.ProviderSets
+                |> List.filter (fun item -> item.Requirement = selection.MediatedRequirement)
+            match matches with
+            | [ position ] ->
+                match position.Exposure, position.Mediation with
+                | ProviderExposure.Mediated, Some mediation ->
+                    match mediation.Realization, mediation.Component with
+                    | MediationRealization.DedicatedComponent, Some mediator ->
+                        // The erasure the seam warns about, arriving through the composition root
+                        // instead: a mapping that names one of the mediated members binds past the
+                        // Mediation rather than to it.
+                        if selection.Mediator.Definition <> mediator then
+                            decline
+                                "mediator-not-declared"
+                                (sprintf
+                                    "Mediation '%s' declares Component '%s', and the mapping names '%s'."
+                                    (MediationId.value mediation.Mediation)
+                                    (DefinitionId.value mediator)
+                                    (DefinitionId.value selection.Mediator.Definition))
+                        elif
+                            generation.ProviderSets
+                            |> List.collect _.Members
+                            |> List.exists (fun item ->
+                                item.Definition = mediator
+                                && item.Occurrence = selection.Mediator.Occurrence)
+                            |> not
+                        then
+                            decline
+                                "mediator-not-resolved"
+                                (sprintf
+                                    "The generation resolves no occurrence '%s' for the mediator '%s'."
+                                    (OccurrenceId.value selection.Mediator.Occurrence)
+                                    (DefinitionId.value mediator))
+                        else
+                            // From here it is an ordinary distinct position: the mediator's own.
+                            // Nothing mediated is presented to the seam, and the prepared member is
+                            // indistinguishable from any other.
+                            match ComponentBindingIntegration.prepare resolution selection.Mediator with
+                            | ComponentBindingIntegrationResult.Prepared memberValue ->
+                                { Kind = ComponentMediatedTranslationKind.Translated
+                                  Member = Some memberValue
+                                  MediatedRequirement = Some selection.MediatedRequirement
+                                  Mediation = Some mediation.Mediation
+                                  Code = "mediator-bound"
+                                  Reason =
+                                    sprintf
+                                        "Mediation '%s' of '%s' is bound through its Component '%s'."
+                                        (MediationId.value mediation.Mediation)
+                                        (RequirementId.value selection.MediatedRequirement)
+                                        (DefinitionId.value mediator) }
+                            | ComponentBindingIntegrationResult.Refused failure ->
+                                decline failure.Code failure.Reason
+                    | _ ->
+                        // A static-host Mediation is the composition root's own work over the
+                        // members' direct bindings; there is no Component for a binding to reach.
+                        decline
+                            "mediation-not-a-component"
+                            (sprintf
+                                "Mediation '%s' is realized as %A with no Component, so there is nothing for a binding to reach."
+                                (MediationId.value mediation.Mediation)
+                                mediation.Realization)
+                | exposure, _ ->
+                    decline
+                        "position-not-mediated"
+                        (sprintf
+                            "Requirement '%s' resolves a %A position, which CBI1 translates directly."
+                            (RequirementId.value selection.MediatedRequirement)
+                            exposure)
+            | _ ->
+                decline
+                    "mediated-position-not-resolved"
+                    (sprintf
+                        "The completed generation contains %d provider positions for requirement '%s'."
+                        matches.Length
+                        (RequirementId.value selection.MediatedRequirement))
+        | _ ->
+            decline
+                "resolution-not-complete"
+                "CBI25 translates a position of a completed CM2 generation."
+
+[<RequireQualifiedAccess>]
 type ComponentBindingLifecycleFailureKind =
     | PreparationUnavailable
     | PlanUnsupported

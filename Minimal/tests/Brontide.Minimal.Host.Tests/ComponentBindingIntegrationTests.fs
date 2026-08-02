@@ -1566,10 +1566,19 @@ type ComponentBindingIntegrationTests() =
     let tertiaryContractId = ContractId.create "brontide.fake.cooling-tertiary"
 
     /// The independent positions a membership can be drawn from, one provider each.
+    let mediatedRequirementId = RequirementId.create "req.cooling-mediated"
+    let mediatedProviderId = DefinitionId.create "def.test.cooling-mediated"
+    let mediatedContractId = ContractId.create "brontide.fake.cooling-mediated"
+    let mediatorRequirementId = RequirementId.create "req.cooling-mediator"
+    let mediatorDefinitionId = DefinitionId.create "def.test.cooling-mediator"
+    let mediatorContractId = ContractId.create "brontide.fake.cooling-mediator"
+
     let positionCatalog =
         [ requirementId, provider, contractId
           secondaryRequirementId, secondaryProvider, secondaryContractId
-          tertiaryRequirementId, tertiaryProvider, tertiaryContractId ]
+          tertiaryRequirementId, tertiaryProvider, tertiaryContractId
+          mediatorRequirementId, mediatorDefinitionId, mediatorContractId
+          mediatedRequirementId, mediatedProviderId, mediatedContractId ]
 
     /// One independent requirement per named position, so the generation resolves exactly those and
     /// a membership can be drawn from any subset of them.
@@ -2242,6 +2251,105 @@ type ComponentBindingIntegrationTests() =
                     (sprintf "attached replacement %s" scenario)
             return result, root, List.ofSeq attached
         }
+
+    let mediatedToken kind =
+        match kind with
+        | ComponentMediatedTranslationKind.Translated -> "translated"
+        | ComponentMediatedTranslationKind.Declined -> "declined"
+
+    /// A generation with a mediated position and, separately, a position that resolves the Component
+    /// its Mediation is realized as.
+    let mediatedResolution realization nameComponent declareMediated =
+        let pair = requestForPositions [ mediatorRequirementId; mediatedRequirementId ]
+        let consumerDefinition =
+            pair.Definitions |> List.find (fun item -> item.Definition = consumer)
+        let requirements =
+            consumerDefinition.Requirements
+            |> List.map (fun item ->
+                if item.Requirement = mediatedRequirementId then
+                    { item with
+                        // CM2 records a Mediation on a distinct position and ignores it, so exposure
+                        // and the declaration are two separate facts a caller can disagree with.
+                        Exposure =
+                            if declareMediated then
+                                ProviderExposure.Mediated
+                            else
+                                ProviderExposure.Distinct
+                        Mediation =
+                            Some
+                                { Mediation = MediationId.create "mediation.cooling"
+                                  Kind = MediationKind.Selection
+                                  Realization = realization
+                                  Component = (if nameComponent then Some mediatorDefinitionId else None)
+                                  OwnsMutableMembership = false
+                                  OwnsResidue = false
+                                  OwnsBackpressure = false
+                                  OwnsAuthority = false
+                                  OwnsRecovery = false
+                                  OwnsLifecycle = false } }
+                else
+                    item)
+        { pair with
+            Definitions =
+                { consumerDefinition with Requirements = requirements }
+                :: (pair.Definitions |> List.filter (fun item -> item.Definition <> consumer)) }
+        |> FakeGenerationResolver.resolve
+
+    let mediatedGeneration () =
+        mediatedResolution MediationRealization.DedicatedComponent true true
+
+    let mediatorSelection () =
+        let resolution = mediatedGeneration ()
+        let position =
+            match resolution with
+            | ResolutionOutcome.Resolved(_, generation) ->
+                generation.ProviderSets
+                |> List.find (fun item -> item.Requirement = mediatorRequirementId)
+            | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+        { selection (List.exactlyOne position.Members) with
+            Requirement = mediatorRequirementId
+            HostEndpoint = "mediator-host" }
+
+    let mediatedPositionOf (resolution: ResolutionOutcome) =
+        match resolution with
+        | ResolutionOutcome.Resolved(_, generation) ->
+            generation.ProviderSets
+            |> List.find (fun item -> item.Requirement = mediatedRequirementId)
+        | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+
+    let mediatedTranslation scenario =
+        let resolution =
+            match scenario with
+            | "cbi25-03-mediation-realized-by-the-host" ->
+                mediatedResolution MediationRealization.StaticHost false true
+            | "cbi25-04-dedicated-component-not-named" ->
+                mediatedResolution MediationRealization.DedicatedComponent false true
+            // A host-realized Mediation is the host's work whatever Component it names.
+            | "cbi25-08-static-host-naming-a-component" ->
+                mediatedResolution MediationRealization.StaticHost true true
+            | "cbi25-09-distinct-position-declaring-a-mediation" ->
+                mediatedResolution MediationRealization.DedicatedComponent true false
+            | _ -> mediatedGeneration ()
+        let mediated =
+            match scenario with
+            | "cbi25-02-position-is-not-mediated" -> mediatorRequirementId
+            | "cbi25-07-mediated-requirement-not-resolved" -> RequirementId.create "req.absent"
+            | _ -> mediatedRequirementId
+        let position = mediatedPositionOf resolution
+        let mediator =
+            match scenario with
+            | "cbi25-05-mapping-names-a-mediated-member" ->
+                let memberValue = List.head position.Members
+                { mediatorSelection () with
+                    Definition = memberValue.Definition
+                    Occurrence = memberValue.Occurrence }
+            | "cbi25-06-mediator-occurrence-not-resolved" ->
+                { mediatorSelection () with
+                    Occurrence = OccurrenceId.create "occ.not-resolved" }
+            | _ -> mediatorSelection ()
+        ComponentMediatedBinding.translate
+            resolution
+            { MediatedRequirement = mediated; Mediator = mediator }
 
     /// The positions the successor generation resolves, per scenario.
     let membershipPositions scenario =
@@ -4852,6 +4960,172 @@ type ComponentBindingIntegrationTests() =
                     Is.True,
                     "The retained generation is untouched."))
         }
+
+    [<Test>]
+    member _.``shared CBI25 vectors bind the mediator rather than erasing the Mediation``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi25-mediated-position-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI25 vector identity must be a string"
+                    | value -> value
+                let result = mediatedTranslation scenario
+                let expectedMediation = vector.GetProperty("expectedMediation")
+                multiple (fun () ->
+                    Assert.That(
+                        mediatedToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Member.IsSome,
+                        Is.EqualTo(vector.GetProperty("expectedPrepared").GetBoolean()),
+                        scenario)
+                    Assert.That(
+                        result.Mediation |> Option.map MediationId.value,
+                        Is.EqualTo(
+                            if expectedMediation.ValueKind = JsonValueKind.Null then
+                                None
+                            else
+                                Some(expectedMediation.GetString())),
+                        scenario)
+                    // Nothing mediated ever reaches the seam: what it is handed is distinct or nothing.
+                    Assert.That(
+                        result.Member.IsNone
+                        || result.Member.Value.Requirement.Exposure = Exposure.Distinct,
+                        Is.True,
+                        sprintf "%s: the seam is never handed a mediated requirement." scenario))
+        }
+
+    [<Test>]
+    member _.``C1 the position named must actually be mediated``() =
+        let unmediated = mediatedTranslation "cbi25-02-position-is-not-mediated"
+        let absent = mediatedTranslation "cbi25-07-mediated-requirement-not-resolved"
+        let declared = mediatedTranslation "cbi25-09-distinct-position-declaring-a-mediation"
+        multiple (fun () ->
+            Assert.That(unmediated.Code, Is.EqualTo "position-not-mediated")
+            Assert.That(absent.Code, Is.EqualTo "mediated-position-not-resolved")
+            Assert.That(
+                declared.Code,
+                Is.EqualTo "position-not-mediated",
+                "CM2 records a Mediation on a distinct position and ignores it; so does this.")
+            Assert.That(
+                [ unmediated; absent; declared ]
+                |> List.forall (fun item -> item.Member.IsNone && item.Mediation.IsNone),
+                Is.True,
+                "Every refusal produces no portable member and no Binding Plan."))
+
+    [<Test>]
+    member _.``C2 only a Mediation realized as a Component can be bound``() =
+        let staticHost = mediatedTranslation "cbi25-03-mediation-realized-by-the-host"
+        let named = mediatedTranslation "cbi25-08-static-host-naming-a-component"
+        let unnamed = mediatedTranslation "cbi25-04-dedicated-component-not-named"
+        let bound = mediatedTranslation "cbi25-01-mediator-bound"
+        multiple (fun () ->
+            Assert.That(
+                staticHost.Code,
+                Is.EqualTo "mediation-not-a-component",
+                "A static-host Mediation is the root's own work; there is nothing for a binding to reach.")
+            Assert.That(
+                named.Code,
+                Is.EqualTo "mediation-not-a-component",
+                "And it stays the host's work whatever Component it names.")
+            Assert.That(unnamed.Code, Is.EqualTo "mediation-not-a-component")
+            Assert.That(ComponentMediatedBinding.isTranslated bound, Is.True)
+            Assert.That(
+                bound.Mediation |> Option.map MediationId.value,
+                Is.EqualTo(Some "mediation.cooling")))
+
+    [<Test>]
+    member _.``C3 the mapping must name the declared mediator``() =
+        let memberNamed = mediatedTranslation "cbi25-05-mapping-names-a-mediated-member"
+        let unresolved = mediatedTranslation "cbi25-06-mediator-occurrence-not-resolved"
+        let position = mediatedPositionOf (mediatedGeneration ())
+        multiple (fun () ->
+            Assert.That(
+                memberNamed.Code,
+                Is.EqualTo "mediator-not-declared",
+                "Naming a member binds past the Mediation rather than to it, which is the erasure the seam warns about.")
+            Assert.That(unresolved.Code, Is.EqualTo "mediator-not-resolved")
+            Assert.That(
+                position.Members
+                |> List.exists (fun item -> item.Definition = mediatorDefinitionId),
+                Is.False,
+                "The mediator is not itself a member of the set it fronts."))
+
+    [<Test>]
+    member _.``C4 what is produced is an ordinary distinct member``() =
+        task {
+            let bound = mediatedTranslation "cbi25-01-mediator-bound"
+            let resolution = mediatedGeneration ()
+            let mediator = mediatorSelection ()
+            let! lifecycle =
+                ComponentBindingLifecycle.activate
+                    resolution
+                    mediator
+                    (runtimeRequest (plan [ mediator.Occurrence ]))
+                    (directCooling CoolingFixture.contract)
+            multiple (fun () ->
+                Assert.That(bound.Member.Value.Requirement.Exposure, Is.EqualTo Exposure.Distinct)
+                Assert.That(
+                    lifecycle.Failure.IsNone
+                    && lifecycle.Member |> Option.exists _.IsReleased,
+                    Is.True,
+                    "CBI2 activates it exactly as it activates any other member."))
+        }
+
+    [<Test>]
+    member _.``C5 the mediated requirement is carried as provenance only``() =
+        let mediatedResult = mediatedTranslation "cbi25-01-mediator-bound"
+        let ordinary =
+            ComponentBindingIntegration.prepare (mediatedGeneration ()) (mediatorSelection ())
+        let ordinaryFacts =
+            match ordinary with
+            | ComponentBindingIntegrationResult.Prepared memberValue -> memberValue.ResolutionFacts
+            | outcome -> failwithf "Expected a prepared member, got %A." outcome
+        multiple (fun () ->
+            Assert.That(
+                mediatedResult.MediatedRequirement |> Option.map RequirementId.value,
+                Is.EqualTo(Some(RequirementId.value mediatedRequirementId)))
+            Assert.That(mediatedResult.Mediation.IsSome, Is.True)
+            Assert.That(
+                mediatedResult.Member.Value.ResolutionFacts = ordinaryFacts,
+                Is.True,
+                "The portable member is indistinguishable from one prepared for an ordinary position.")
+            Assert.That(
+                mediatedResult.Member.Value.ResolutionFacts |> Map.containsKey "mediation",
+                Is.False,
+                "Nothing of the Mediation reaches the portable layer."))
+
+    [<Test>]
+    member _.``C6 presenting the mediated requirement itself is still refused``() =
+        let resolution = mediatedGeneration ()
+        let position = mediatedPositionOf resolution
+        let memberValue = List.head position.Members
+        let direct =
+            ComponentBindingIntegration.prepare
+                resolution
+                { mediatorSelection () with
+                    Requirement = mediatedRequirementId
+                    Definition = memberValue.Definition
+                    Occurrence = memberValue.Occurrence }
+        multiple (fun () ->
+            Assert.That(
+                (match direct with
+                 | ComponentBindingIntegrationResult.Refused failure -> failure.Code
+                 | _ -> "prepared"),
+                Is.EqualTo "exposure-unsupported",
+                "CBI25 adds a path that reaches the mediator; it removes no refusal."))
 
     [<Test>]
     member _.``shared CBI12 vectors open ordinary interaction for every member or none``() =

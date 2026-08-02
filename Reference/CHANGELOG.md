@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased - CBI25 mediated-position translation
+
+### Added
+
+- Reference Studio translation of a CM2 position resolved with mediated exposure into portable preflight, by
+  binding the Component the Mediation is realized as.
+- Refusals for a position that is not mediated, a Mediation realized as a static host with or without
+  a named Component, a mapping naming a member of the mediated set instead of the mediator, and a
+  mediator occurrence the generation does not resolve.
+- Shared vectors, a phase-boundary completeness review, and a named test for every contract item.
+
+CBI25's finding is that the portable seam's refusal of mediated exposure was the answer rather than
+the obstacle. It refuses because "an erased Mediation still carries provenance, deputy, and authority
+obligations"; CM2 requires a policy-bearing Mediation to be realized as a dedicated Component, so the
+obligations have a holder and the holder is an ordinary provider. Nothing mediated is presented to the
+seam and no refusal is relaxed. The mediator's authority is deliberately not admitted: whether its
+occurrence's grants may stand for what the Mediation owns is a question about deputies that this slice
+does not answer.
+
 ## Unreleased - CBI24 replacing a generation that offers occupied Ports
 
 ### Added

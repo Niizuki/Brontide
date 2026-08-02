@@ -243,6 +243,121 @@ public static class ComponentBindingIntegration
         Encoding.UTF8.GetByteCount(value) <= maximumTextBytes;
 }
 
+public enum ComponentMediatedTranslationKind
+{
+    Translated,
+    Declined,
+}
+
+public sealed record ComponentMediatedSelection(
+    Cm.RequirementId MediatedRequirement,
+    ComponentBindingSelection Mediator);
+
+public sealed record ComponentMediatedTranslationResult(
+    ComponentMediatedTranslationKind Kind,
+    Portable.PortableCompositionMember? Member,
+    Cm.RequirementId? MediatedRequirement,
+    Cm.MediationId? Mediation,
+    string Code,
+    string Reason)
+{
+    public bool IsTranslated => Kind == ComponentMediatedTranslationKind.Translated;
+}
+
+/// <summary>
+/// Carries a CM2 position resolved with mediated exposure into portable preflight, by binding the
+/// Component the Mediation is realized as.
+/// </summary>
+/// <remarks>
+/// The portable seam refuses mediated exposure because "an erased Mediation still carries provenance,
+/// deputy, and authority obligations", and that refusal is right and is not relaxed here: nothing
+/// mediated is ever presented to it. CM2 requires a policy-bearing Mediation to be realized as a
+/// dedicated Component, so the obligations have a holder, the holder is an ordinary Component, and
+/// binding it erases nothing — the plan's provider fact names the mediator, which is who answers. A
+/// static-host Mediation has no Component to reach and is refused.
+/// </remarks>
+public static class ComponentMediatedBinding
+{
+    public static ComponentMediatedTranslationResult Translate(
+        Cm.ResolutionOutcome resolution,
+        ComponentMediatedSelection selection)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(selection);
+
+        if (resolution.Generation is not { } generation)
+        {
+            return Decline(
+                "resolution-not-complete",
+                "CBI25 translates a position of a completed CM2 generation.");
+        }
+
+        var mediated = generation.ProviderSets
+            .Where(item => item.Requirement == selection.MediatedRequirement)
+            .ToArray();
+        if (mediated.Length != 1)
+        {
+            return Decline(
+                "mediated-position-not-resolved",
+                $"The completed generation contains {mediated.Length} provider positions for requirement '{selection.MediatedRequirement}'.");
+        }
+
+        var position = mediated[0];
+        if (position.Exposure != Cm.ProviderExposure.Mediated || position.Mediation is null)
+        {
+            return Decline(
+                "position-not-mediated",
+                $"Requirement '{selection.MediatedRequirement}' resolves a {position.Exposure} position, which CBI1 translates directly.");
+        }
+
+        var mediation = position.Mediation;
+        if (mediation.Realization != Cm.MediationRealization.DedicatedComponent
+            || mediation.Component is not { } mediator)
+        {
+            // A static-host Mediation is the composition root's own work over the members' direct
+            // bindings; there is no Component for a binding to reach.
+            return Decline(
+                "mediation-not-a-component",
+                $"Mediation '{mediation.Mediation}' is realized as {mediation.Realization} with no Component, so there is nothing for a binding to reach.");
+        }
+
+        // The erasure the seam warns about, arriving through the composition root instead: a mapping
+        // that names one of the mediated members binds past the Mediation rather than to it.
+        if (selection.Mediator.Definition != mediator)
+        {
+            return Decline(
+                "mediator-not-declared",
+                $"Mediation '{mediation.Mediation}' declares Component '{mediator}', and the mapping names '{selection.Mediator.Definition}'.");
+        }
+
+        var resolved = generation.ProviderSets
+            .SelectMany(item => item.Members)
+            .Any(item => item.Definition == mediator && item.Occurrence == selection.Mediator.Occurrence);
+        if (!resolved)
+        {
+            return Decline(
+                "mediator-not-resolved",
+                $"The generation resolves no occurrence '{selection.Mediator.Occurrence}' for the mediator '{mediator}'.");
+        }
+
+        // From here it is an ordinary distinct position: the mediator's own. Nothing mediated is
+        // presented to the seam, and the prepared member is indistinguishable from any other.
+        var prepared = ComponentBindingIntegration.Prepare(resolution, selection.Mediator);
+        return prepared.Member is { } member
+            ? new(
+                ComponentMediatedTranslationKind.Translated,
+                member,
+                selection.MediatedRequirement,
+                mediation.Mediation,
+                "mediator-bound",
+                $"Mediation '{mediation.Mediation}' of '{selection.MediatedRequirement}' is bound through its Component '{mediator}'.")
+            : Decline(prepared.Failure!.Code, prepared.Failure.Reason);
+    }
+
+    private static ComponentMediatedTranslationResult Decline(string code, string reason) =>
+        new(ComponentMediatedTranslationKind.Declined, null, null, null, code, reason);
+}
+
 public enum ComponentBindingLifecycleFailureKind
 {
     PreparationUnavailable,

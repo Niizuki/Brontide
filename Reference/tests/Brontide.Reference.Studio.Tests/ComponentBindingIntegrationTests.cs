@@ -60,6 +60,12 @@ public sealed class ComponentBindingIntegrationTests
     private static readonly RequirementId SecondaryRequirement = RequirementId.Create("req.cooling-secondary");
     private static readonly DefinitionId SecondaryProvider = DefinitionId.Create("def.test.cooling-secondary");
     private static readonly ContractId SecondaryContract = ContractId.Create("brontide.fake.cooling-secondary");
+    private static readonly RequirementId MediatedRequirement = RequirementId.Create("req.cooling-mediated");
+    private static readonly DefinitionId MediatorDefinition = DefinitionId.Create("def.test.cooling-mediator");
+    private static readonly RequirementId MediatorRequirement = RequirementId.Create("req.cooling-mediator");
+    private static readonly ContractId MediatorContract = ContractId.Create("brontide.fake.cooling-mediator");
+    private static readonly DefinitionId MediatedProvider = DefinitionId.Create("def.test.cooling-mediated");
+    private static readonly ContractId MediatedContract = ContractId.Create("brontide.fake.cooling-mediated");
     private static readonly RequirementId TertiaryRequirement = RequirementId.Create("req.cooling-tertiary");
     private static readonly DefinitionId TertiaryProvider = DefinitionId.Create("def.test.cooling-tertiary");
     private static readonly ContractId TertiaryContract = ContractId.Create("brontide.fake.cooling-tertiary");
@@ -71,6 +77,8 @@ public sealed class ComponentBindingIntegrationTests
             (Requirement, Provider, Contract),
             (SecondaryRequirement, SecondaryProvider, SecondaryContract),
             (TertiaryRequirement, TertiaryProvider, TertiaryContract),
+            (MediatorRequirement, MediatorDefinition, MediatorContract),
+            (MediatedRequirement, MediatedProvider, MediatedContract),
         ];
 
     [Test]
@@ -7080,6 +7088,288 @@ public sealed class ComponentBindingIntegrationTests
                 wrongScope: scenario == "cbi24-05-scope-mismatch-refused-before-the-cascade"),
             $"attached replacement {scenario}");
         return (result, root, attached);
+    }
+
+    [Test]
+    public async Task Shared_cbi25_vectors_bind_the_mediator_rather_than_erasing_the_mediation()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi25-mediated-position-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var result = MediatedTranslation(scenario);
+            var expectedMediation = vector.GetProperty("expectedMediation");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(MediatedToken(result.Kind), Is.EqualTo(vector.GetProperty("expectedKind").GetString()), scenario);
+                Assert.That(result.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), scenario);
+                Assert.That(
+                    result.Member is not null,
+                    Is.EqualTo(vector.GetProperty("expectedPrepared").GetBoolean()),
+                    scenario);
+                Assert.That(
+                    result.Mediation?.Value,
+                    Is.EqualTo(expectedMediation.ValueKind == JsonValueKind.Null ? null : expectedMediation.GetString()),
+                    scenario);
+
+                // Nothing mediated ever reaches the seam: what it is handed is distinct or nothing.
+                Assert.That(
+                    result.Member is null ||
+                        result.Member.Requirement.Exposure == PortableExposure.Distinct,
+                    Is.True,
+                    $"{scenario}: the seam is never handed a mediated requirement.");
+            });
+        }
+    }
+
+    [Test]
+    public void C1_the_position_named_must_actually_be_mediated()
+    {
+        var unmediated = MediatedTranslation("cbi25-02-position-is-not-mediated");
+        var absent = MediatedTranslation("cbi25-07-mediated-requirement-not-resolved");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(unmediated.Code, Is.EqualTo("position-not-mediated"));
+            Assert.That(absent.Code, Is.EqualTo("mediated-position-not-resolved"));
+            Assert.That(
+                new[] { unmediated, absent }.All(item => item.Member is null && item.Mediation is null),
+                Is.True,
+                "Every refusal produces no portable member and no Binding Plan.");
+        });
+    }
+
+    [Test]
+    public void C2_only_a_mediation_realized_as_a_component_can_be_bound()
+    {
+        var staticHost = MediatedTranslation("cbi25-03-mediation-realized-by-the-host");
+        var unnamed = MediatedTranslation("cbi25-04-dedicated-component-not-named");
+        var bound = MediatedTranslation("cbi25-01-mediator-bound");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                staticHost.Code,
+                Is.EqualTo("mediation-not-a-component"),
+                "A static-host Mediation is the root's own work; there is nothing for a binding to reach.");
+            Assert.That(unnamed.Code, Is.EqualTo("mediation-not-a-component"));
+            Assert.That(bound.IsTranslated, Is.True);
+            Assert.That(bound.Mediation, Is.EqualTo(MediationId.Create("mediation.cooling")));
+        });
+    }
+
+    [Test]
+    public void C3_the_mapping_must_name_the_declared_mediator()
+    {
+        var member = MediatedTranslation("cbi25-05-mapping-names-a-mediated-member");
+        var unresolved = MediatedTranslation("cbi25-06-mediator-occurrence-not-resolved");
+        var bound = MediatedTranslation("cbi25-01-mediator-bound");
+        var mediatedMembers = MediatedResolution()
+            .Generation!.ProviderSets
+            .Single(item => item.Requirement == MediatedRequirement)
+            .Members
+            .Select(item => item.Definition)
+            .ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                member.Code,
+                Is.EqualTo("mediator-not-declared"),
+                "Naming a member binds past the Mediation rather than to it, which is the erasure the seam warns about.");
+            Assert.That(unresolved.Code, Is.EqualTo("mediator-not-resolved"));
+            Assert.That(
+                mediatedMembers,
+                Does.Not.Contain(MediatorDefinition),
+                "The mediator is not itself a member of the set it fronts.");
+            Assert.That(bound.Member!.Provision.Provider, Is.EqualTo(CoolingPortableFixture.Provider));
+        });
+    }
+
+    [Test]
+    public async Task C4_what_is_produced_is_an_ordinary_distinct_member()
+    {
+        var bound = MediatedTranslation("cbi25-01-mediator-bound");
+        var resolution = MediatedResolution();
+        var lifecycle = await ComponentBindingLifecycle.ActivateAsync(
+            resolution,
+            MediatorSelection(),
+            RuntimeRequest(Plan(MediatorOccurrence(resolution))),
+            DirectCooling(CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(bound.Member!.Requirement.Exposure, Is.EqualTo(PortableExposure.Distinct));
+            Assert.That(
+                bound.Member.Requirement.Cardinality,
+                Is.EqualTo(PortableProviderCardinality.OneToOne));
+            Assert.That(
+                lifecycle.IsActive,
+                Is.True,
+                "CBI2 activates it exactly as it activates any other member.");
+        });
+    }
+
+    [Test]
+    public void C5_the_mediated_requirement_is_carried_as_provenance_only()
+    {
+        var mediatedResult = MediatedTranslation("cbi25-01-mediator-bound");
+        var ordinary = ComponentBindingIntegration.Prepare(MediatedResolution(), MediatorSelection());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(mediatedResult.MediatedRequirement, Is.EqualTo(MediatedRequirement));
+            Assert.That(mediatedResult.Mediation, Is.Not.Null);
+            Assert.That(
+                mediatedResult.Member!.ResolutionFacts,
+                Is.EqualTo(ordinary.Member!.ResolutionFacts),
+                "The portable member is indistinguishable from one prepared for an ordinary position.");
+            Assert.That(
+                mediatedResult.Member.ResolutionFacts.Keys,
+                Does.Not.Contain("mediation"),
+                "Nothing of the Mediation reaches the portable layer.");
+        });
+    }
+
+    [Test]
+    public void C6_presenting_the_mediated_requirement_itself_is_still_refused()
+    {
+        var resolution = MediatedResolution();
+        var mediatedPosition = resolution.Generation!.ProviderSets
+            .Single(item => item.Requirement == MediatedRequirement);
+        var direct = ComponentBindingIntegration.Prepare(
+            resolution,
+            MediatorSelection() with
+            {
+                Requirement = MediatedRequirement,
+                Definition = mediatedPosition.Members[0].Definition,
+                Occurrence = mediatedPosition.Members[0].Occurrence,
+            });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(direct.Member, Is.Null);
+            Assert.That(
+                direct.Failure!.Code,
+                Is.EqualTo("exposure-unsupported"),
+                "CBI25 adds a path that reaches the mediator; it removes no refusal.");
+        });
+    }
+
+    private static string MediatedToken(ComponentMediatedTranslationKind kind) => kind switch
+    {
+        ComponentMediatedTranslationKind.Translated => "translated",
+        ComponentMediatedTranslationKind.Declined => "declined",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
+
+    /// <summary>
+    /// A generation with a mediated position and, separately, a position that resolves the Component
+    /// its Mediation is realized as.
+    /// </summary>
+    private static ResolutionOutcome MediatedResolution(
+        MediationRealization realization = MediationRealization.DedicatedComponent,
+        bool nameComponent = true,
+        bool declareMediated = true)
+    {
+        var pair = RequestFor(MediatorRequirement, MediatedRequirement);
+        var consumer = pair.Definitions.Single(item => item.Definition == Consumer);
+        var requirements = consumer.Requirements
+            .Select(item => item.Requirement == MediatedRequirement
+                ? item with
+                {
+                    // CM2 records a Mediation on a distinct position and ignores it, so exposure and
+                    // the declaration are two separate facts a caller can disagree with.
+                    Exposure = declareMediated ? ProviderExposure.Mediated : ProviderExposure.Distinct,
+                    Mediation = new MediationDeclaration(
+                        MediationId.Create("mediation.cooling"),
+                        MediationKind.Selection,
+                        realization,
+                        nameComponent ? MediatorDefinition : null,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false),
+                }
+                : item)
+            .ToArray();
+        // The mediator is a Component of its own, resolved by its own position, which is what gives
+        // the binding something to reach.
+        return new FakeGenerationResolver().Resolve(pair with
+        {
+            Definitions =
+            [
+                consumer with { Requirements = requirements },
+                .. pair.Definitions.Where(item => item.Definition != Consumer),
+            ],
+        });
+    }
+
+    private static OccurrenceId MediatorOccurrence(ResolutionOutcome resolution) =>
+        resolution.Generation!.ProviderSets
+            .Single(item => item.Requirement == MediatorRequirement)
+            .Members[0]
+            .Occurrence;
+
+    private static ComponentBindingSelection MediatorSelection()
+    {
+        var resolution = MediatedResolution();
+        var position = resolution.Generation!.ProviderSets
+            .Single(item => item.Requirement == MediatorRequirement);
+        return Selection(position.Members[0]) with
+        {
+            Requirement = MediatorRequirement,
+            HostEndpoint = "mediator-host",
+        };
+    }
+
+    private static ComponentMediatedTranslationResult MediatedTranslation(string scenario)
+    {
+        var resolution = scenario switch
+        {
+            "cbi25-03-mediation-realized-by-the-host" =>
+                MediatedResolution(MediationRealization.StaticHost, nameComponent: false),
+            // A host-realized Mediation is the host's work whatever Component it names.
+            "cbi25-08-static-host-naming-a-component" =>
+                MediatedResolution(MediationRealization.StaticHost),
+            "cbi25-09-distinct-position-declaring-a-mediation" =>
+                MediatedResolution(declareMediated: false),
+            "cbi25-04-dedicated-component-not-named" =>
+                MediatedResolution(MediationRealization.DedicatedComponent, nameComponent: false),
+            _ => MediatedResolution(),
+        };
+        var mediated = scenario == "cbi25-02-position-is-not-mediated"
+            ? MediatorRequirement
+            : scenario == "cbi25-07-mediated-requirement-not-resolved"
+                ? RequirementId.Create("req.absent")
+                : MediatedRequirement;
+        var mediatedPosition = resolution.Generation!.ProviderSets
+            .Single(item => item.Requirement == MediatedRequirement);
+        var selection = scenario switch
+        {
+            "cbi25-05-mapping-names-a-mediated-member" => MediatorSelection() with
+            {
+                Definition = mediatedPosition.Members[0].Definition,
+                Occurrence = mediatedPosition.Members[0].Occurrence,
+            },
+            "cbi25-06-mediator-occurrence-not-resolved" => MediatorSelection() with
+            {
+                Occurrence = OccurrenceId.Create("occ.not-resolved"),
+            },
+            _ => MediatorSelection(),
+        };
+        return ComponentMediatedBinding.Translate(resolution, new(mediated, selection));
     }
 
     private static string GroupFailureToken(ComponentGroupActivationFailureKind kind) => kind switch

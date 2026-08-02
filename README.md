@@ -193,6 +193,12 @@ unrelated, so the child keeps running against a generation that no longer exists
 migration: a Port does not move, a child is stood down and stood up again. The cascade runs before the
 cutover, the opposite of CBI19's retained members, because which side of the transaction a thing lives
 on decides when it goes.
+CBI25 carries a mediated position into preflight, and finds the seam's refusal of mediation was the
+answer rather than the obstacle: it refuses an *erased* Mediation because the obligations would lose
+their holder, and CM2 requires a policy-bearing Mediation to be a Component — which is exactly what the
+seam binds. So the mediator is bound and nothing is erased. That is the opposite outcome from Relational
+Initialisation, and the difference is whether the refused thing already has a representation the seam
+holds.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

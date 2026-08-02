@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi25-mediated-position-vectors",
+  "vectors": [
+    {
+      "id": "cbi25-01-mediator-bound",
+      "expectedKind": "translated",
+      "expectedCode": "mediator-bound",
+      "expectedPrepared": true,
+      "expectedMediation": "mediation.cooling"
+    },
+    {
+      "id": "cbi25-02-position-is-not-mediated",
+      "expectedKind": "declined",
+      "expectedCode": "position-not-mediated",
+      "expectedPrepared": false,
+      "expectedMediation": null
+    },
+    {
+      "id": "cbi25-03-mediation-realized-by-the-host",
+      "expectedKind": "declined",
+      "expectedCode": "mediation-not-a-component",
+      "expectedPrepared": false,
+      "expectedMediation": null
+    },
+    {
+      "id": "cbi25-04-dedicated-component-not-named",
+      "expectedKind": "declined",
+      "expectedCode": "mediation-not-a-component",
+      "expectedPrepared": false,
+      "expectedMediation": null
+    },
+    {
+      "id": "cbi25-05-mapping-names-a-mediated-member",
+      "expectedKind": "declined",
+      "expectedCode": "mediator-not-declared",
+      "expectedPrepared": false,
+      "expectedMediation": null
+    },
+    {
+      "id": "cbi25-06-mediator-occurrence-not-resolved",
+      "expectedKind": "declined",
+      "expectedCode": "mediator-not-resolved",
+      "expectedPrepared": false,
+      "expectedMediation": null
+    },
+    {
+      "id": "cbi25-07-mediated-requirement-not-resolved",
+      "expectedKind": "declined",
+      "expectedCode": "mediated-position-not-resolved",
+      "expectedPrepared": false,
+      "expectedMediation": null
+    },
+    {
+      "id": "cbi25-08-static-host-naming-a-component",
+      "expectedKind": "declined",
+      "expectedCode": "mediation-not-a-component",
+      "expectedPrepared": false,
+      "expectedMediation": null
+    },
+    {
+      "id": "cbi25-09-distinct-position-declaring-a-mediation",
+      "expectedKind": "declined",
+      "expectedCode": "position-not-mediated",
+      "expectedPrepared": false,
+      "expectedMediation": null
+    }
+  ]
+}

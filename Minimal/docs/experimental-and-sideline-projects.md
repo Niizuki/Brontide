@@ -43,7 +43,7 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   implementation through bounded JSON Lines provider processes in both host directions. Agreement
   is limited to eight deterministic fake scenarios; CM0-CM6 are complete.
 - `Brontide.Minimal.Host` composes the independent Component Management and Portable Binding
-  experiments for CBI1-CBI24. It maps one completed native CM2 direct `1..1` position into PB7
+  experiments for CBI1-CBI25. It maps one completed native CM2 direct `1..1` position into PB7
   preflight through explicit typed identities, then coordinates one singleton, protocol-free CM4
   plan from PB7 lifecycle evidence and releases the portable gate only after CM4 Active.
   CBI3 additionally requires one explicit occurrence-to-Actor mapping and one exact local CM5
@@ -79,9 +79,10 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   and refuses one that does because the portable seam declares Relational Initialisation out of scope.
   CBI22 attaches one child activation to a runtime-open Port of a released parent, in its own restart
   scope, CBI23 nests those attachments and retires a supplied forest deepest first, and CBI24 stands
-  them down before replacing the generation offering their Ports.
+  them down before replacing the generation offering their Ports, and CBI25 binds the Component a
+  Mediation is realized as.
   It does not merge the projects, perform a lifecycle handshake, detect an attachment it was not given,
-  mediate, or widen Provider Sets, or establish real Component interchange.
+  admit a mediator's authority, or widen Provider Sets, or establish real Component interchange.
 - `Brontide.Minimal.Binding` (`Portable/`) is the Minimal native realization of the
   [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md),
   built against the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).
