@@ -346,6 +346,21 @@ about deputies. Its bounded behavior is recorded in the
 [CBI25 capability contract](./cbi25-capability-contract.md) and completed
 [contract-completeness review](./cbi25-contract-completeness-review.md).
 
+CBI26 admits the authority of the mediator CBI25 binds, and the answer comes from a concept CM5 does
+not have. **CM5 has no deputy**: its relationship kinds are `AttachedDevice`, `ExternalPeer`, and
+`ComponentParticipant`, none of which means *acts on behalf of*, and a `LocalCapabilityGrant` names
+exactly one `Holder` with no beneficiary beside it. A mediator is therefore admitted for **what it does
+itself**, as an ordinary participant against its own occurrence, and **a Mediation declaring that it
+owns authority is refused** rather than approximated — admitting the mediator and letting its narrow
+grants stand for the members' interaction would decide what a deputy is in the least visible place
+available. Only `OwnsAuthority` decides: the other five ownership flags describe what the mediator does
+with the set behind it, which is not a CM5 question. This is CBI21's answer arriving in a different
+model, and the pattern is worth carrying: twice now a capability CM2 or CM3 can declare has had no
+representation in the model that would carry it, and naming the missing concept was worth more than
+approximating the capability. Whether CM5 should gain a deputy is Decision 15. Its bounded behavior is
+recorded in the [CBI26 capability contract](./cbi26-capability-contract.md) and completed
+[contract-completeness review](./cbi26-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -632,6 +647,15 @@ mediated set, a mediator occurrence the generation does not resolve, and a media
 generation does not resolve at all. Each pins the outcome kind and code, whether a portable member was
 produced, and which Mediation identity the result carries, so "nothing mediated reaches the seam" is a
 checked answer. The fixture contains no resolver, mediator, or portable implementation.
+
+### `cbi26-mediator-authority-vectors` sections
+
+`vectors` names one admission and six refusals covering a Mediation that owns authority, a translation
+CBI25 refuses, a denied request, and a request naming another occurrence, together with two admissions
+that survive a Mediation owning lifecycle, recovery, and residue. Each pins the outcome kind and code,
+how many grants the result carries, and whether every grant is held by the mediator's own local Actor,
+so "the mediator is admitted for itself and nothing else" is a checked answer. The fixture contains no
+evaluator, policy, mediator, or portable implementation.
 
 ### `cm0-mice-topology` sections
 

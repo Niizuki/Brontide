@@ -2259,7 +2259,7 @@ type ComponentBindingIntegrationTests() =
 
     /// A generation with a mediated position and, separately, a position that resolves the Component
     /// its Mediation is realized as.
-    let mediatedResolution realization nameComponent declareMediated =
+    let mediatedResolutionOwning' realization nameComponent declareMediated owns =
         let pair = requestForPositions [ mediatorRequirementId; mediatedRequirementId ]
         let consumerDefinition =
             pair.Definitions |> List.find (fun item -> item.Definition = consumer)
@@ -2281,12 +2281,12 @@ type ComponentBindingIntegrationTests() =
                                   Kind = MediationKind.Selection
                                   Realization = realization
                                   Component = (if nameComponent then Some mediatorDefinitionId else None)
-                                  OwnsMutableMembership = false
-                                  OwnsResidue = false
+                                  OwnsMutableMembership = owns = "recovery"
+                                  OwnsResidue = owns = "recovery"
                                   OwnsBackpressure = false
-                                  OwnsAuthority = false
-                                  OwnsRecovery = false
-                                  OwnsLifecycle = false } }
+                                  OwnsAuthority = owns = "authority"
+                                  OwnsRecovery = owns = "recovery"
+                                  OwnsLifecycle = owns = "lifecycle" } }
                 else
                     item)
         { pair with
@@ -2294,6 +2294,12 @@ type ComponentBindingIntegrationTests() =
                 { consumerDefinition with Requirements = requirements }
                 :: (pair.Definitions |> List.filter (fun item -> item.Definition <> consumer)) }
         |> FakeGenerationResolver.resolve
+
+    let mediatedResolution realization nameComponent declareMediated =
+        mediatedResolutionOwning' realization nameComponent declareMediated "none"
+
+    let mediatedResolutionOwning owns =
+        mediatedResolutionOwning' MediationRealization.DedicatedComponent true true owns
 
     let mediatedGeneration () =
         mediatedResolution MediationRealization.DedicatedComponent true true
@@ -2350,6 +2356,47 @@ type ComponentBindingIntegrationTests() =
         ComponentMediatedBinding.translate
             resolution
             { MediatedRequirement = mediated; Mediator = mediator }
+
+    let mediatorToken kind =
+        match kind with
+        | ComponentMediatorAuthorityKind.Admitted -> "admitted"
+        | ComponentMediatorAuthorityKind.Declined -> "declined"
+
+    let mediatorParticipant revoked =
+        let policy = groupPolicy providerLocalActor supervisorLocalActor
+        let baseline = providerAuthority policy authorityId
+        { Mapping =
+            { Occurrence = (mediatorSelection ()).Occurrence
+              Participant = participant }
+          Request = (if revoked then revokedRequest baseline else baseline) }
+
+    let mediatorAuthority scenario =
+        let resolution =
+            match scenario with
+            | "cbi26-02-mediation-owns-authority" -> mediatedResolutionOwning "authority"
+            | "cbi26-03-mediation-owns-lifecycle" -> mediatedResolutionOwning "lifecycle"
+            | "cbi26-04-mediation-owns-recovery-and-residue" -> mediatedResolutionOwning "recovery"
+            | _ -> mediatedGeneration ()
+        let mediator =
+            if scenario = "cbi26-05-translation-refused" then
+                { mediatorSelection () with
+                    Definition = DefinitionId.create "def.test.not-the-mediator" }
+            else
+                mediatorSelection ()
+        let participantRequest =
+            match scenario with
+            | "cbi26-06-authority-denied" -> mediatorParticipant true
+            | "cbi26-07-request-names-another-occurrence" ->
+                { mediatorParticipant false with
+                    Mapping =
+                        { Occurrence = OccurrenceId.create "occ.elsewhere"
+                          Participant = participant } }
+            | _ -> mediatorParticipant false
+        ComponentMediatorAuthority.admit
+            resolution
+            { MediatedRequirement = mediatedRequirementId; Mediator = mediator }
+            [ participantRequest ]
+            (runtimeRequest (plan [ (mediatorSelection ()).Occurrence ]))
 
     /// The positions the successor generation resolves, per scenario.
     let membershipPositions scenario =
@@ -5126,6 +5173,137 @@ type ComponentBindingIntegrationTests() =
                  | _ -> "prepared"),
                 Is.EqualTo "exposure-unsupported",
                 "CBI25 adds a path that reaches the mediator; it removes no refusal."))
+
+    [<Test>]
+    member _.``shared CBI26 vectors admit a mediator for what it does itself``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi26-mediator-authority-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI26 vector identity must be a string"
+                    | value -> value
+                let result = mediatorAuthority scenario
+                let heldByMediator =
+                    not result.Grants.IsEmpty
+                    && result.Grants |> List.forall (fun item -> item.Holder = providerLocalActor)
+                multiple (fun () ->
+                    Assert.That(
+                        mediatorToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Grants.Length,
+                        Is.EqualTo(vector.GetProperty("expectedGrants").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        heldByMediator,
+                        Is.EqualTo(vector.GetProperty("expectedHeldByMediator").GetBoolean()),
+                        scenario)
+                    // No member of the mediated set is ever admitted here.
+                    Assert.That(
+                        result.Admissions |> List.forall (fun item -> item.Participant = participant),
+                        Is.True,
+                        sprintf
+                            "%s: the mediated Provider Set is behind the mediator and outside this admission."
+                            scenario))
+        }
+
+    [<Test>]
+    member _.``C1 the mediator is admitted as an ordinary participant``() =
+        let admitted = mediatorAuthority "cbi26-01-mediator-admitted-for-itself"
+        let submitted = (mediatorParticipant false).Request.Authority
+        multiple (fun () ->
+            Assert.That(ComponentMediatorAuthority.isAdmitted admitted, Is.True)
+            Assert.That(
+                (List.exactlyOne admitted.Admissions).Participant,
+                Is.EqualTo participant,
+                "The mediator is admitted against its own occurrence, as any participant is.")
+            Assert.That(
+                admitted.Grants
+                |> List.map (fun item ->
+                    sprintf "%s/%s" (CapabilityId.value item.Capability) (OperationId.value item.Operation))
+                |> String.concat ", ",
+                Is.EqualTo(
+                    submitted
+                    |> List.map (fun item ->
+                        sprintf "%s/%s" (CapabilityId.value item.Capability) (OperationId.value item.Operation))
+                    |> String.concat ", "),
+                "One grant per narrow tuple submitted, which is exactly CBI3's correspondence.")
+            Assert.That(
+                admitted.Mediation |> Option.map MediationId.value,
+                Is.EqualTo(Some "mediation.cooling")))
+
+    [<Test>]
+    member _.``C2 a Mediation that owns authority is refused``() =
+        let owned = mediatorAuthority "cbi26-02-mediation-owns-authority"
+        multiple (fun () ->
+            Assert.That(owned.Code, Is.EqualTo "mediation-owns-authority")
+            Assert.That(
+                owned.Reason,
+                Does.Contain "on behalf of",
+                "The refusal names the missing relation rather than the request.")
+            Assert.That(owned.Grants, Is.Empty))
+
+    [<Test>]
+    member _.``C3 the other ownership flags are not authority``() =
+        let lifecycle = mediatorAuthority "cbi26-03-mediation-owns-lifecycle"
+        let recovery = mediatorAuthority "cbi26-04-mediation-owns-recovery-and-residue"
+        multiple (fun () ->
+            Assert.That(
+                ComponentMediatorAuthority.isAdmitted lifecycle,
+                Is.True,
+                "Owning a lifecycle says nothing about who may exercise a Capability.")
+            Assert.That(ComponentMediatorAuthority.isAdmitted recovery, Is.True)
+            Assert.That(
+                [ lifecycle; recovery ] |> List.forall (fun item -> item.Grants.Length = 1),
+                Is.True,
+                "The outcome depends on OwnsAuthority alone among the ownership flags."))
+
+    [<Test>]
+    member _.``C4 the mediator's grants are its own``() =
+        let admitted = mediatorAuthority "cbi26-01-mediator-admitted-for-itself"
+        let position = mediatedPositionOf (mediatedGeneration ())
+        multiple (fun () ->
+            Assert.That(
+                admitted.Grants |> List.forall (fun item -> item.Holder = providerLocalActor),
+                Is.True,
+                "Every grant is held by the mediator's local Actor.")
+            Assert.That(admitted.Admissions.Length, Is.EqualTo 1)
+            Assert.That(
+                position.Members,
+                Is.Not.Empty,
+                "The mediated set has members, and none of them was admitted."))
+
+    [<Test>]
+    member _.``C5 nothing widens CM5 and CBI3 is unchanged``() =
+        let foreign = mediatorAuthority "cbi26-07-request-names-another-occurrence"
+        let denied = mediatorAuthority "cbi26-06-authority-denied"
+        let refusedTranslation = mediatorAuthority "cbi26-05-translation-refused"
+        multiple (fun () ->
+            Assert.That(
+                foreign.Code,
+                Is.EqualTo "participant-mapping-invalid",
+                "CBI3's own mapping rule still decides, unrelaxed.")
+            Assert.That(denied.Code, Is.EqualTo "authority-not-admitted")
+            Assert.That(
+                refusedTranslation.Code,
+                Is.EqualTo "mediator-not-declared",
+                "A translation that CBI25 refuses never reaches CM5.")
+            Assert.That(
+                [ foreign; denied; refusedTranslation ]
+                |> List.forall (fun item -> item.Grants.IsEmpty),
+                Is.True))
 
     [<Test>]
     member _.``shared CBI12 vectors open ordinary interaction for every member or none``() =

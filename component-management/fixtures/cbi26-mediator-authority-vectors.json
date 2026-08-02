@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi26-mediator-authority-vectors",
+  "vectors": [
+    {
+      "id": "cbi26-01-mediator-admitted-for-itself",
+      "expectedKind": "admitted",
+      "expectedCode": "mediator-admitted",
+      "expectedGrants": 1,
+      "expectedHeldByMediator": true
+    },
+    {
+      "id": "cbi26-02-mediation-owns-authority",
+      "expectedKind": "declined",
+      "expectedCode": "mediation-owns-authority",
+      "expectedGrants": 0,
+      "expectedHeldByMediator": false
+    },
+    {
+      "id": "cbi26-03-mediation-owns-lifecycle",
+      "expectedKind": "admitted",
+      "expectedCode": "mediator-admitted",
+      "expectedGrants": 1,
+      "expectedHeldByMediator": true
+    },
+    {
+      "id": "cbi26-04-mediation-owns-recovery-and-residue",
+      "expectedKind": "admitted",
+      "expectedCode": "mediator-admitted",
+      "expectedGrants": 1,
+      "expectedHeldByMediator": true
+    },
+    {
+      "id": "cbi26-05-translation-refused",
+      "expectedKind": "declined",
+      "expectedCode": "mediator-not-declared",
+      "expectedGrants": 0,
+      "expectedHeldByMediator": false
+    },
+    {
+      "id": "cbi26-06-authority-denied",
+      "expectedKind": "declined",
+      "expectedCode": "authority-not-admitted",
+      "expectedGrants": 0,
+      "expectedHeldByMediator": false
+    },
+    {
+      "id": "cbi26-07-request-names-another-occurrence",
+      "expectedKind": "declined",
+      "expectedCode": "participant-mapping-invalid",
+      "expectedGrants": 0,
+      "expectedHeldByMediator": false
+    }
+  ]
+}

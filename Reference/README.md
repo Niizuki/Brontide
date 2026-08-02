@@ -147,7 +147,10 @@ transaction rather than inside it. A Port does not migrate; a child is stood dow
 CBI25 carries a mediated position into preflight by binding the Component its Mediation is realized
 as. The seam refuses an erased Mediation because the obligations would lose their holder, and CM2
 gives them one, so nothing is erased and no refusal is relaxed. A static-host Mediation is refused
-whatever Component it names, and the mediator's authority is deliberately not admitted.
+whatever Component it names.
+CBI26 admits that mediator's authority for what it does itself, and refuses a Mediation that
+declares it owns authority: CM5 has no relationship meaning "acts on behalf of" and its grant names
+one holder with no beneficiary, so deputy authority has no representation to approximate.
 
 ## Build and test
 

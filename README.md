@@ -199,6 +199,11 @@ their holder, and CM2 requires a policy-bearing Mediation to be a Component — 
 seam binds. So the mediator is bound and nothing is erased. That is the opposite outcome from Relational
 Initialisation, and the difference is whether the refused thing already has a representation the seam
 holds.
+CBI26 admits that mediator's authority, and finds the limit in the other model: CM5 has no
+relationship meaning "acts on behalf of" and no grant with a beneficiary, so a mediator is admitted for
+what it does itself and a Mediation claiming to own authority is refused rather than approximated.
+Twice now a capability one model can declare has had no representation in the model that would carry
+it, and naming the missing concept has been worth more than building something shaped like it.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

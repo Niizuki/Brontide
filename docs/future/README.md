@@ -645,15 +645,39 @@ a deputy is, and admitting the mediator would answer it invisibly. The
 [`contract-completeness review`](../../component-management/cbi25-contract-completeness-review.md)
 bound it to preflight.
 
-**Admitting a mediator's authority is the next implementable item.** CBI25 binds the mediator and stops
-before CM5, and CM2's Mediation declaration says exactly what makes the question hard: a Mediation may
-own authority, recovery, lifecycle, residue, backpressure, or mutable membership, and CM5 admits narrow
-tuples against an occurrence. It has to decide whether a mediator is admitted for its own interaction
-only, or as a deputy for the members behind it — and CBI3's rule that a grant names a holder suggests
-the first, which would mean a Mediation owning authority cannot be represented at all. Wider Provider
-Sets and real distribution remain future work behind it. PB8's independent reviews remain a separate
-governance prerequisite rather than implementation work; Decision 11 was ruled on and delivered on
-2026-07-30, and Decisions 12, 13, and 14 await rulings.
+CBI26 admits the authority of the mediator CBI25 binds, and the answer comes from a concept CM5 does
+not have. **CM5 has no deputy.** Its relationship kinds are `AttachedDevice`, `ExternalPeer`, and
+`ComponentParticipant`, none of which means *acts on behalf of*, and a `LocalCapabilityGrant` names
+exactly one `Holder` with no beneficiary beside it. So a mediator is admitted for **what it does
+itself** — CBI3's admission, unchanged, against the mediator's own occurrence — and **a Mediation
+declaring that it owns authority is refused**. Admitting the mediator and letting its narrow grants
+stand for the members' interaction would decide what a deputy is in the least visible place available,
+which is the erasure CBI25 avoided at the seam arriving instead at the admission.
+
+Only `OwnsAuthority` decides. The other five ownership flags — mutable membership, residue,
+backpressure, recovery, lifecycle — describe what the mediator does with the set behind it, which is
+not a question about who may exercise a Capability, and two vectors pin that an admission survives
+them.
+
+**This is CBI21's answer arriving in a different model, and the pattern is the thing to carry.** Twice
+now, a capability CM2 or CM3 can declare has turned out to have no representation in the model that
+would have to carry it: Relational Initialisation in the portable seam, deputy authority in CM5.
+Neither was a plumbing problem, and in both cases naming the missing concept was worth more than
+building something shaped like the capability. CBI25 sits between them as the counter-example — a
+refusal that looked the same and was not, because the refused thing did have a representation. The
+[`CBI26 capability contract`](../../component-management/cbi26-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi26-contract-completeness-review.md)
+bound it to the mediator's own authority, and **Decision 15** records the disagreement between CM2 and
+CM5 for their owners.
+
+**Wider Provider Sets are the next implementable item.** CBI1 accepts only cardinality `1..1` and the
+portable seam refuses anything else, saying a Provider Set "needs membership, exposure, and mediation
+semantics this seam does not own". Mediation now has an answer, so the question is what the other two
+need: whether a `1..n` position is n portable members the composition root fans out over, or one
+member the seam cannot express — and CBI25's test is the one to apply, which is whether the refused
+thing has a representation the seam already holds. Real distribution remains future work behind it.
+PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
+Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 15 await rulings.
 
 ## Other planned areas
 
