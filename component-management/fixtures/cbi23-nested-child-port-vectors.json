@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi23-nested-child-port-vectors",
+  "vectors": [
+    {
+      "id": "cbi23-01-grandchild-attached",
+      "expectedKind": "attached",
+      "expectedCode": "child-attached",
+      "expectedDepth": 3,
+      "expectedReleased": 4
+    },
+    {
+      "id": "cbi23-02-grandchild-port-lifecycle-overstated",
+      "expectedKind": "declined",
+      "expectedCode": "port-lifecycle-overstated",
+      "expectedDepth": 2,
+      "expectedReleased": 3
+    },
+    {
+      "id": "cbi23-03-grandchild-scope-is-its-parents",
+      "expectedKind": "declined",
+      "expectedCode": "child-scope-not-distinct",
+      "expectedDepth": 2,
+      "expectedReleased": 3
+    },
+    {
+      "id": "cbi23-04-grandchild-parent-generation-mismatch",
+      "expectedKind": "declined",
+      "expectedCode": "parent-generation-mismatch",
+      "expectedDepth": 2,
+      "expectedReleased": 3
+    },
+    {
+      "id": "cbi23-05-attachment-beneath-a-retired-parent",
+      "expectedKind": "parent-unavailable",
+      "expectedCode": "active-parent-unavailable",
+      "expectedDepth": 2,
+      "expectedReleased": 2
+    }
+  ],
+  "withdrawals": [
+    {
+      "id": "cbi23-06-cascade-deepest-first",
+      "expectedKind": "withdrawn",
+      "expectedCode": "attachments-withdrawn",
+      "expectedRetiredScopes": [
+        "restart.grandchild",
+        "restart.child",
+        "restart.lifecycle"
+      ],
+      "expectedReleasedAfter": 0
+    },
+    {
+      "id": "cbi23-07-cascade-from-the-middle",
+      "expectedKind": "withdrawn",
+      "expectedCode": "attachments-withdrawn",
+      "expectedRetiredScopes": [
+        "restart.grandchild",
+        "restart.child"
+      ],
+      "expectedReleasedAfter": 2
+    },
+    {
+      "id": "cbi23-08-cleanup-fails-in-the-child",
+      "expectedKind": "cleanup-failed",
+      "expectedCode": "attachment-retirement-failed",
+      "expectedRetiredScopes": [
+        "restart.grandchild",
+        "restart.child",
+        "restart.lifecycle"
+      ],
+      "expectedReleasedAfter": 0
+    },
+    {
+      "id": "cbi23-09-duplicate-scope",
+      "expectedKind": "declined",
+      "expectedCode": "scope-not-distinct",
+      "expectedRetiredScopes": [],
+      "expectedReleasedAfter": 4
+    }
+  ]
+}

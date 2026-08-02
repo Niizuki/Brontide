@@ -298,6 +298,22 @@ because a child activation is a second activation rather than a replacement of t
 behavior is recorded in the [CBI22 capability contract](./cbi22-capability-contract.md) and completed
 [contract-completeness review](./cbi22-contract-completeness-review.md).
 
+CBI23 nests those attachments - a child may itself be the parent of another - and then answers what a
+chain forces. Nesting was already reachable and CBI22 said so accurately, so what this slice adds is
+the claim, the vectors, and the ordering. **CM4 models no relationship between a parent and a child
+after attachment**: it requires the parent scope active when the child attaches and preserves it
+through the activation, and nothing records that a scope has children or stands a child down when its
+parent goes. Every earlier slice could take the runtime's shape as the answer to an ordering question;
+here there is no shape to take. The answer comes from what an attachment *is* - a Port of a generation,
+which its occupant cannot outlive - so **a child is retired before the parent whose Port it occupies**,
+and a withdrawal cascades deepest first with the relation derived from each activation's own CM4
+observation. **Depth is not bounded**, because no model bounds it and a number this programme invented
+is what CBI11 refuses for elapsed time. What the contract states rather than implies is the hole: the
+root can only order what it is given, so a child the caller omits is invisible, and every outcome names
+exactly the scopes it retired. Its bounded behavior is recorded in the
+[CBI23 capability contract](./cbi23-capability-contract.md) and completed
+[contract-completeness review](./cbi23-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -554,6 +570,16 @@ not follow the internal Release, a child member that never reports Ready, and a 
 admission. Each pins the outcome kind and code, how many child and parent members are released, and
 how many members the child admitted, so "the parent is untouched" is a checked answer in every
 outcome. The fixture contains no runtime, planner, resolver, or portable implementation.
+
+### `cbi23-nested-child-port-vectors` sections
+
+`vectors` names one grandchild attachment and four refusals at the second level - an overstated Port
+lifecycle, a scope equal to its parent's, a parent generation the scope does not hold, and an
+attachment beneath a parent that has been retired - each pinning how deep the tree got and how many
+members are released. `withdrawals` names two ordered cascades, one from the root and one from the
+middle, a cascade whose middle level fails cleanup, and a set naming one scope twice; each pins the
+exact retirement order, so deepest-first is a checked answer rather than an assumption. The fixture
+contains no runtime, planner, resolver, or portable implementation.
 
 ### `cm0-mice-topology` sections
 

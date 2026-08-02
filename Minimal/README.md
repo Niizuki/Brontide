@@ -108,7 +108,9 @@ The implementation currently provides:
   one that does, because the portable seam declares Relational Initialisation out of scope and reports
   Ready during Interconnection; CBI22 activates a Component CM2 resolved inside a child Port in its
   own restart scope beneath a released parent, reading the Port and its lifecycle from the resolved
-  envelope rather than the caller and leaving the parent active and serving throughout;
+  envelope rather than the caller and leaving the parent active and serving throughout; CBI23 nests
+  those attachments and retires a supplied forest deepest first, because an attachment occupies a
+  Port of a generation and CM4 records no parent-child relationship of its own;
 - a headless host and seven F# test assemblies, including the host-owned CBI1-CBI20 integration
   suite.
 

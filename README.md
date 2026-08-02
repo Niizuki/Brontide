@@ -182,6 +182,11 @@ Provider Set carries were read by nothing, so such a Component was flattened int
 activated in whatever scope the caller named. Which Port an attachment names is the generation's
 statement rather than the caller's, and the parent stays active and serving throughout, because a
 child activation is a second activation rather than a replacement of the first.
+CBI23 nests those attachments, and hits the first ordering question the runtime does not answer: CM4
+records nothing about a parent's children and stands none of them down when the parent goes. The answer
+comes from what an attachment is rather than from a model object — a Port belongs to a generation, so
+its occupant cannot outlive it, and a withdrawal cascades deepest first. What the root cannot see, it
+says: a child the caller does not name is invisible, and every outcome names exactly what it retired.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

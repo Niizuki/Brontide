@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased - CBI23 nested child-Port activation
+
+### Added
+
+- Minimal Host nesting of child activations: a child may itself be the parent of another attachment, with
+  CBI22's rules applied unchanged at each level and no bound on depth.
+- Ordered withdrawal of an attachment forest, deepest first, with the relation derived from each
+  activation's own CM4 observation rather than declared by the caller.
+- A refusal for two activations claiming one restart scope, and a terminating report for a relation
+  that cannot be ordered.
+- Shared nesting and withdrawal vectors, a phase-boundary completeness review, and a named test for
+  every contract item.
+
+CBI23's finding is that CM4 models no relationship between a parent and a child after attachment: it
+requires the parent scope active at attach time and preserves it, and nothing records that a scope has
+children or stands a child down when its parent goes. The ordering is therefore the composition root's,
+derived from what an attachment is - a Port of a generation, which its occupant cannot outlive - and it
+can only order the activations it is given.
+
 ## Unreleased — CBI22 child-Port activation
 
 ### Added

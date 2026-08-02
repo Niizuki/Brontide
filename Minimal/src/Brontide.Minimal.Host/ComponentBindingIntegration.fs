@@ -2844,6 +2844,175 @@ module ComponentChildActivation =
                                       Reason = reason }
         }
 
+[<RequireQualifiedAccess>]
+type ComponentAttachmentWithdrawalKind =
+    | Withdrawn
+    | CleanupFailed
+    | Declined
+
+type ComponentAttachmentRetirement =
+    { Scope: RestartScopeId
+      Members: OccurrenceId list
+      Cleanup: string option }
+
+type ComponentAttachmentWithdrawalResult =
+    { Kind: ComponentAttachmentWithdrawalKind
+      Retired: ComponentAttachmentRetirement list
+      Code: string
+      Reason: string }
+
+/// Stands down a set of attached activations, deepest first.
+///
+/// CM4 requires a child's parent scope to be active when the child attaches and preserves it through
+/// the activation, and that is the whole of the relationship it models: nothing records that a scope
+/// has children, and nothing stands a child down when its parent goes. The ordering is therefore the
+/// composition root's, and it can only order what it is given - a child the caller does not name is
+/// invisible here, which the contract states rather than implies.
+[<RequireQualifiedAccess>]
+module ComponentAttachmentWithdrawal =
+    let isWithdrawn (result: ComponentAttachmentWithdrawalResult) =
+        result.Kind = ComponentAttachmentWithdrawalKind.Withdrawn
+
+    let private decline code reason =
+        { Kind = ComponentAttachmentWithdrawalKind.Declined
+          Retired = []
+          Code = code
+          Reason = reason }
+
+    /// Orders the set by how deep each activation sits within it, or reports that no order exists.
+    ///
+    /// Depth counts only ancestors present in the supplied set, because those are the only ones this
+    /// call can see. An activation whose parent is absent is a root here even when it is attached to
+    /// something the caller left out.
+    let private depths
+        (attachments: (ComponentGroupAuthorityResult * RestartScopeId * RestartScopeId option) list)
+        =
+        let byScope =
+            attachments |> List.map (fun (_, scope, _) -> scope, (scope)) |> Map.ofList
+        let parentOf =
+            attachments |> List.map (fun (_, scope, parent) -> scope, parent) |> Map.ofList
+        let rec walk seen scope depth =
+            if Set.contains scope seen then
+                None
+            else
+                match Map.tryFind scope parentOf |> Option.flatten with
+                | Some parent when Map.containsKey parent byScope ->
+                    walk (Set.add scope seen) parent (depth + 1)
+                | _ -> Some depth
+        let measured =
+            attachments
+            |> List.map (fun (activation, scope, parent) ->
+                walk Set.empty scope 0 |> Option.map (fun depth -> activation, scope, parent, depth))
+        if measured |> List.exists Option.isNone then
+            None
+        else
+            measured
+            |> List.choose id
+            |> List.sortWith (fun (_, leftScope, _, leftDepth) (_, rightScope, _, rightDepth) ->
+                if leftDepth <> rightDepth then
+                    compare rightDepth leftDepth
+                else
+                    String.CompareOrdinal(
+                        RestartScopeId.value leftScope,
+                        RestartScopeId.value rightScope))
+            |> List.map (fun (activation, scope, _, _) -> activation, scope)
+            |> Some
+
+    let withdraw (activations: ComponentGroupAuthorityResult list) retirementReason =
+        task {
+            if String.IsNullOrWhiteSpace retirementReason then
+                invalidArg (nameof retirementReason) "retirement reason is required"
+
+            let observed =
+                activations
+                |> List.map (fun activation ->
+                    if not (ComponentGroupAuthority.isActive activation) then
+                        None
+                    else
+                        activation.Lifecycle
+                        |> Option.bind _.Runtime
+                        |> Option.map (fun runtime ->
+                            activation,
+                            runtime.Observation.RestartScope,
+                            runtime.Observation.Child |> Option.map _.ParentScope))
+            if observed |> List.exists Option.isNone then
+                return
+                    decline
+                        "activation-unavailable"
+                        "CBI23 stands down released CBI13 activations, each carrying its own CM4 observation."
+            else
+                let attachments = observed |> List.choose id
+                let scopes =
+                    attachments |> List.map (fun (_, scope, _) -> RestartScopeId.value scope)
+                match ComponentParticipantAdmission.firstDuplicate scopes with
+                | Some repeated ->
+                    return
+                        decline
+                            "scope-not-distinct"
+                            (sprintf
+                                "Two activations claim restart scope '%s', so which one holds it is undecidable."
+                                repeated)
+                | None ->
+                    match depths attachments with
+                    | None ->
+                        return
+                            decline
+                                "attachment-cycle"
+                                "The attachment relation contains a cycle, so no deepest-first order exists."
+                    | Some ordered ->
+                        // Deepest first: an attachment occupies a Port of a generation, so it cannot
+                        // outlive the generation that offers the Port.
+                        let retired = ResizeArray<ComponentAttachmentRetirement>()
+                        let cleanup = ResizeArray<string>()
+                        for activation, scope in ordered do
+                            let members = ResizeArray<OccurrenceId>()
+                            let failures = ResizeArray<string>()
+                            for outcome in activation.Lifecycle.Value.Members do
+                                let! result =
+                                    ComponentParticipantRevalidation.tryRetire
+                                        outcome.Member
+                                        retirementReason
+                                members.Add outcome.Occurrence
+                                match result with
+                                | Ok _ -> ()
+                                | Error detail ->
+                                    failures.Add(
+                                        sprintf
+                                            "%s: %s"
+                                            (OccurrenceId.value outcome.Occurrence)
+                                            detail)
+                            let detail =
+                                if failures.Count = 0 then
+                                    None
+                                else
+                                    Some(String.Join("; ", failures))
+                            retired.Add
+                                { Scope = scope
+                                  Members = List.ofSeq members
+                                  Cleanup = detail }
+                            match detail with
+                            | Some text ->
+                                cleanup.Add(sprintf "%s: %s" (RestartScopeId.value scope) text)
+                            | None -> ()
+                        if cleanup.Count = 0 then
+                            return
+                                { Kind = ComponentAttachmentWithdrawalKind.Withdrawn
+                                  Retired = List.ofSeq retired
+                                  Code = "attachments-withdrawn"
+                                  Reason =
+                                    sprintf
+                                        "%d attached scopes were retired, deepest first."
+                                        retired.Count }
+                        else
+                            // The cascade continues rather than stopping: restoring an
+                            // already-retired level would claim a state the runtime does not model.
+                            return
+                                { Kind = ComponentAttachmentWithdrawalKind.CleanupFailed
+                                  Retired = List.ofSeq retired
+                                  Code = "attachment-retirement-failed"
+                                  Reason = String.Join("; ", cleanup) }
+        }
+
 type ComponentGroupMemberRequests =
     { Occurrence: OccurrenceId
       Requests: AuthorityAdmissionRequest list }

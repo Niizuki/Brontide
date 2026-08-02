@@ -558,11 +558,39 @@ stays active, released, and serving in every outcome, which every vector checks.
 [`contract-completeness review`](../../component-management/cbi22-contract-completeness-review.md)
 bound it to one child attached to one runtime-open Port of one released parent.
 
-**Nested child Ports are the next implementable item.** CM4 permits a child's own scope to be another
-attachment's parent, and nothing in CBI22 forbids it, but no vector exercises it and the contract does
-not claim it. It has to decide what a parent's retirement means for a child still attached beneath it
-— CBI22 keeps the two independent, which is exactly what a chain makes questionable — and whether the
-depth is bounded. Port migration between generations, mediation, wider Provider Sets, and real
+CBI23 nests those attachments and answers both questions the item recorded. Nesting itself needed no
+code: a child activation is an ordinary CBI13 activation, so passing it as a parent already worked, and
+CBI22's review said exactly that — the one stated limit in four slices that turned out to be accurate.
+What the chain forces is an ordering question, and **CM4 models no relationship between a parent and a
+child after attachment**: it requires the parent scope active when the child attaches and preserves it
+through the activation, and nothing records that a scope has children or stands a child down when its
+parent goes. Every earlier slice could take a runtime object's shape as the answer to an ordering
+question — CBI12's release barrier, CBI17's generation, CBI19's restart scope. Here there is no shape to
+take, and the answer had to come from what an attachment *is*.
+
+**A child is retired before the parent whose Port it occupies**, because an attachment occupies a Port
+of a generation and cannot outlive the generation offering it. A withdrawal therefore cascades
+deepest-first, with the relation derived from each activation's own CM4 observation rather than declared.
+CBI22's independence claim is not contradicted: that one was one-directional, and this is the other
+direction, which only a chain makes askable. **Depth is not bounded**, because no model bounds it and an
+invented number is what CBI11 refuses for elapsed time and interaction counts; a fourth level is
+exercised to show the second was not special.
+
+The hole is stated rather than implied away: **the root can only order what it is given**. A child the
+caller omits is invisible, because deriving the whole forest would need a record of a scope's children
+that neither CM2 nor CM4 keeps, so every outcome names exactly the scopes it retired and what was not
+ordered is visible by absence. A cycle is reported rather than refused, since no sequence of attachments
+can produce one — the guard exists so the ordering terminates, not to catch a caller. The
+[`CBI23 capability contract`](../../component-management/cbi23-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi23-contract-completeness-review.md)
+bound it to a forest the caller supplies.
+
+**Port migration between generations is the next implementable item.** CBI19 and CBI20 replace the
+generation in a scope, and CBI22 attaches a Component to a Port of a generation; nothing yet says what a
+replacement does to the attachments hanging beneath the generation it replaces. It has to decide whether
+a successor generation inherits its predecessor's children, re-offers the Port under a new identity, or
+whether the cascade of CBI23 runs first — and the answer has to survive the fact that CM4 makes cutover
+atomic while an attachment is a separate CM4 attempt. Mediation, wider Provider Sets, and real
 distribution remain future work behind it, and Relational Initialisation waits on Decision 13. PB8's
 independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 and 13 await rulings.
