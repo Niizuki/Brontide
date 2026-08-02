@@ -4281,6 +4281,168 @@ module ComponentGroupMembership =
         }
 
 [<RequireQualifiedAccess>]
+type ComponentAttachedReplacementKind =
+    | Replaced
+    | CleanupFailed
+    | Declined
+
+type ComponentAttachedReplacementResult =
+    { Kind: ComponentAttachedReplacementKind
+      Replacement: ComponentGroupReplacementResult option
+      Cascaded: ComponentAttachmentRetirement list
+      Code: string
+      Reason: string }
+
+/// Replaces the generation occupying one restart scope when child activations are attached to Ports
+/// that generation offers.
+///
+/// CM4 does nothing about them by design: its C2 property preserves the generation and activity state
+/// of every unrelated scope, and a child scope is unrelated, so a cutover rewrites the target scope
+/// and carries the child through untouched - leaving the attachment's recorded parent generation
+/// pointing at one that is no longer active anywhere, with nothing that will ever look again. The
+/// cascade therefore runs before the cutover rather than after it, which is the opposite order from
+/// CBI19's retained members: those are inside the transaction and must keep serving until it
+/// succeeds, while an attachment is outside it, in a scope CM4 will not touch either way.
+[<RequireQualifiedAccess>]
+module ComponentAttachedReplacement =
+    let isReplaced (result: ComponentAttachedReplacementResult) =
+        result.Kind = ComponentAttachedReplacementKind.Replaced
+
+    let private decline code reason =
+        { Kind = ComponentAttachedReplacementKind.Declined
+          Replacement = None
+          Cascaded = []
+          Code = code
+          Reason = reason }
+
+    let replace
+        (successor: ResolutionOutcome)
+        (retained: ComponentGroupAuthorityResult)
+        (members: ComponentGroupParticipant list)
+        (attachments: ComponentGroupAuthorityResult list)
+        (runtimeRequest: ActivationRuntimeRequest)
+        retirementReason
+        =
+        task {
+            if String.IsNullOrWhiteSpace retirementReason then
+                invalidArg (nameof retirementReason) "retirement reason is required"
+
+            match
+                ComponentGroupAuthority.isActive retained,
+                retained.Lifecycle |> Option.bind _.Runtime
+            with
+            | false, _
+            | _, None ->
+                return
+                    decline
+                        "active-authority-unavailable"
+                        "CBI24 replaces the generation one released CBI13 activation made active."
+            | true, Some runtime ->
+                let current = runtime.Observation
+                // The replacement's own preconditions are checked before anything is stood down, so
+                // a request that was never going to cut over does not cost the attachments their
+                // lives.
+                match ComponentGroupReplacement.scope retained runtimeRequest with
+                | Some(code, reason) -> return decline code reason
+                | None ->
+                    // The supplied set is a forest beneath the retained generation, not a flat list
+                    // of its direct children: an attachment that must go takes everything beneath
+                    // it, and CBI23 orders the whole of it.
+                    let suppliedScopes =
+                        attachments
+                        |> List.choose (fun attachment ->
+                            attachment.Lifecycle
+                            |> Option.bind _.Runtime
+                            |> Option.map _.Observation.RestartScope)
+                        |> Set.ofList
+                    let beneath (attachment: ComponentGroupAuthorityResult) =
+                        ComponentGroupAuthority.isActive attachment
+                        && (attachment.Lifecycle
+                            |> Option.bind _.Runtime
+                            |> Option.bind _.Observation.Child
+                            |> Option.exists (fun child ->
+                                (child.ParentGeneration = current.TargetGeneration
+                                 && child.ParentScope = current.RestartScope)
+                                || Set.contains child.ParentScope suppliedScopes))
+                    if attachments |> List.exists (beneath >> not) then
+                        return
+                            decline
+                                "attachment-not-beneath-retained"
+                                (sprintf
+                                    "Every supplied activation must be released and attached either to generation '%s' in scope '%s' or to another scope in the set."
+                                    (GenerationId.value current.TargetGeneration)
+                                    (RestartScopeId.value current.RestartScope))
+                    else
+                        let! cascade =
+                            if attachments.IsEmpty then
+                                task { return None }
+                            else
+                                task {
+                                    let! result =
+                                        ComponentAttachmentWithdrawal.withdraw
+                                            attachments
+                                            retirementReason
+                                    return Some result
+                                }
+                        match cascade with
+                        | Some result when
+                            result.Kind = ComponentAttachmentWithdrawalKind.Declined
+                            ->
+                            return decline result.Code result.Reason
+                        | Some result when
+                            result.Kind = ComponentAttachmentWithdrawalKind.CleanupFailed
+                            ->
+                            // The attachments are down and one peer refused. Replacing on top of
+                            // that would report a cutover whose starting state nobody can describe.
+                            return
+                                { Kind = ComponentAttachedReplacementKind.CleanupFailed
+                                  Replacement = None
+                                  Cascaded = result.Retired
+                                  Code = result.Code
+                                  Reason = result.Reason }
+                        | _ ->
+                            let cascaded =
+                                cascade |> Option.map _.Retired |> Option.defaultValue []
+                            let! replacement =
+                                ComponentGroupReplacement.replace
+                                    successor
+                                    retained
+                                    members
+                                    runtimeRequest
+                                    retirementReason
+                            match replacement.Kind with
+                            | ComponentGroupReplacementKind.Replaced ->
+                                return
+                                    { Kind = ComponentAttachedReplacementKind.Replaced
+                                      Replacement = Some replacement
+                                      Cascaded = cascaded
+                                      Code = "generation-replaced"
+                                      Reason =
+                                        sprintf
+                                            "%d attached scopes were stood down, then the scope cut over to %s."
+                                            cascaded.Length
+                                            (GenerationId.value runtimeRequest.Plan.Generation) }
+                            | ComponentGroupReplacementKind.CleanupFailed ->
+                                return
+                                    { Kind = ComponentAttachedReplacementKind.CleanupFailed
+                                      Replacement = Some replacement
+                                      Cascaded = cascaded
+                                      Code = replacement.Code
+                                      Reason = replacement.Reason }
+                            | _ ->
+                                // The retained generation keeps serving, as CBI19 guarantees, but
+                                // the attachments are already gone and are not restored: standing
+                                // one up again would be a fresh activation against a generation
+                                // this call did not establish.
+                                return
+                                    { Kind = ComponentAttachedReplacementKind.Declined
+                                      Replacement = Some replacement
+                                      Cascaded = cascaded
+                                      Code = replacement.Code
+                                      Reason = replacement.Reason }
+        }
+
+[<RequireQualifiedAccess>]
 type ComponentGroupExtensionKind =
     | Extended
     | Declined

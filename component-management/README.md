@@ -314,6 +314,22 @@ exactly the scopes it retired. Its bounded behavior is recorded in the
 [CBI23 capability contract](./cbi23-capability-contract.md) and completed
 [contract-completeness review](./cbi23-contract-completeness-review.md).
 
+CBI24 replaces a generation when child activations are attached to Ports it offers, and its finding is
+that **a replacement silently orphans them** — CM4's C2 property preserves the generation and activity
+state of every *unrelated* scope, and a child scope is unrelated, so a cutover rewrites the target
+scope and carries the child through untouched while the parent generation its attachment recorded
+stops existing. Nothing ever looks again. There is also **no migration operation**: re-pointing an
+attachment would need CM4 to hold the declaration as mutable state, and it holds it as an input to one
+attempt, so a Port does not migrate — a child is stood down and stood up again. The cascade therefore
+runs **before** the cutover, which is the opposite order from CBI19's retained members, and the
+asymmetry is the point: a retained member is inside the transaction and CM4 requires a pre-cutover
+failure to leave it serving, while an attachment is outside it in a scope CM4 will not touch. A failed
+replacement leaves the parent serving and does not restore the children, because restoring one would
+be a fresh activation this call did not make. What the root cannot do is notice an attachment it was
+not given, which is now Decision 14. Its bounded behavior is recorded in the
+[CBI24 capability contract](./cbi24-capability-contract.md) and completed
+[contract-completeness review](./cbi24-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -580,6 +596,16 @@ members are released. `withdrawals` names two ordered cascades, one from the roo
 middle, a cascade whose middle level fails cleanup, and a set naming one scope twice; each pins the
 exact retirement order, so deepest-first is a checked answer rather than an assumption. The fixture
 contains no runtime, planner, resolver, or portable implementation.
+
+### `cbi24-attached-replacement-vectors` sections
+
+`vectors` names two replacements that stand attachments down first - one attachment and a two-level
+forest - and five refusals covering an activation attached to something else, one that is not an
+attachment at all, a replacement whose scope was never going to cut over, a replacement that fails
+after the cascade has run, and a cascade whose cleanup fails. Each pins how many scopes the cascade
+retired, how many successor members are released, and how many attachment members are still released,
+so "nothing is established while an attachment is up" is a checked answer. The fixture contains no
+runtime, planner, resolver, or portable implementation.
 
 ### `cm0-mice-topology` sections
 

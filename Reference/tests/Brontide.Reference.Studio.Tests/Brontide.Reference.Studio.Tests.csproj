@@ -84,5 +84,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi23-nested-child-port-vectors.json"
           Link="component-management\fixtures\cbi23-nested-child-port-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi24-attached-replacement-vectors.json"
+          Link="component-management\fixtures\cbi24-attached-replacement-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

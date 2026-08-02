@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased - CBI24 replacing a generation that offers occupied Ports
+
+### Added
+
+- Minimal Host replacement of a generation with child activations attached to its Ports: the attachments
+  are stood down first, deepest-first as CBI23 orders them, and only then is the generation replaced.
+- Refusals before anything is retired for an activation that is not attached beneath the retained
+  generation, for one whose own parent the caller left out, and for a replacement whose scope was
+  never going to cut over.
+- Shared vectors, a phase-boundary completeness review, and a named test for every contract item,
+  including one that proves the orphan a caller creates by not presenting its attachments.
+
+CBI24's finding is that a replacement silently orphans every attachment beneath the generation it
+replaces, and CM4 does it deliberately: its C2 property preserves every unrelated scope, and a child
+scope is unrelated. There is also no migration operation - re-pointing an attachment would need CM4 to
+hold the declaration as mutable state, and it holds it as an input to one attempt - so a Port does not
+migrate; a child is stood down and stood up again.
+
 ## Unreleased - CBI23 nested child-Port activation
 
 ### Added

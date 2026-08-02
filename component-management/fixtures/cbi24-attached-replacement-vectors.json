@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi24-attached-replacement-vectors",
+  "vectors": [
+    {
+      "id": "cbi24-01-attachment-stood-down-then-replaced",
+      "expectedKind": "replaced",
+      "expectedCode": "generation-replaced",
+      "expectedCascaded": 1,
+      "expectedSuccessorReleased": 2,
+      "expectedAttachmentsReleased": 0
+    },
+    {
+      "id": "cbi24-02-two-attachments-cascaded-deepest-first",
+      "expectedKind": "replaced",
+      "expectedCode": "generation-replaced",
+      "expectedCascaded": 2,
+      "expectedSuccessorReleased": 2,
+      "expectedAttachmentsReleased": 0
+    },
+    {
+      "id": "cbi24-03-attachment-names-another-parent-generation",
+      "expectedKind": "declined",
+      "expectedCode": "attachment-not-beneath-retained",
+      "expectedCascaded": 0,
+      "expectedSuccessorReleased": 0,
+      "expectedAttachmentsReleased": 2
+    },
+    {
+      "id": "cbi24-04-supplied-activation-is-not-an-attachment",
+      "expectedKind": "declined",
+      "expectedCode": "attachment-not-beneath-retained",
+      "expectedCascaded": 0,
+      "expectedSuccessorReleased": 0,
+      "expectedAttachmentsReleased": 1
+    },
+    {
+      "id": "cbi24-05-scope-mismatch-refused-before-the-cascade",
+      "expectedKind": "declined",
+      "expectedCode": "restart-scope-mismatch",
+      "expectedCascaded": 0,
+      "expectedSuccessorReleased": 0,
+      "expectedAttachmentsReleased": 1
+    },
+    {
+      "id": "cbi24-06-replacement-fails-after-the-cascade",
+      "expectedKind": "declined",
+      "expectedCode": "successor-establishment-refused",
+      "expectedCascaded": 1,
+      "expectedSuccessorReleased": 0,
+      "expectedAttachmentsReleased": 0
+    },
+    {
+      "id": "cbi24-07-cascade-cleanup-fails",
+      "expectedKind": "cleanup-failed",
+      "expectedCode": "attachment-retirement-failed",
+      "expectedCascaded": 1,
+      "expectedSuccessorReleased": 0,
+      "expectedAttachmentsReleased": 0
+    }
+  ]
+}

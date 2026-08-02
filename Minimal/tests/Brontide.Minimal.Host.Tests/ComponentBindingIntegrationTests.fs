@@ -2123,6 +2123,126 @@ type ComponentBindingIntegrationTests() =
             return result, levels
         }
 
+    let attachedToken kind =
+        match kind with
+        | ComponentAttachedReplacementKind.Replaced -> "replaced"
+        | ComponentAttachedReplacementKind.CleanupFailed -> "cleanup-failed"
+        | ComponentAttachedReplacementKind.Declined -> "declined"
+
+    /// A successor generation resolving the same two positions the parent activation holds.
+    let successorFor () =
+        requestForPositions [ requirementId; secondaryRequirementId ] |> FakeGenerationResolver.resolve
+
+    let successorMembers neverReady =
+        let resolution = successorFor ()
+        let providerSets =
+            match resolution with
+            | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+            | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+        let policy = groupPolicy providerLocalActor supervisorLocalActor
+        let substituted =
+            { CoolingFixture.contract with
+                Provider = expectProvider "brontide.fake.substituted" }
+        [ requirementId; secondaryRequirementId ]
+        |> List.mapi (fun index requirement ->
+            let position =
+                providerSets
+                |> List.find (fun item -> item.Requirement = requirement)
+                |> fun item -> List.exactlyOne item.Members
+            { Member =
+                { Selection =
+                    { selection position with
+                        Requirement = requirement
+                        HostEndpoint = sprintf "successor-host-%d" index }
+                  Conversation =
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(
+                            (if neverReady && index = 1 then substituted else CoolingFixture.contract),
+                            CoolingHandler(),
+                            Realization.FixedDirectCall))
+                    :> IPortableProviderConversation }
+              Participants =
+                [ { Mapping =
+                      { Occurrence = position.Occurrence
+                        Participant = (if index = 0 then participant else supervisor) }
+                    Request =
+                      if index = 0 then
+                          providerAuthority policy authorityId
+                      else
+                          supervisorAuthority policy auditAuthorityId false } ] })
+
+    let replacementRequest generation wrongScope =
+        let resolution = successorFor ()
+        let providerSets =
+            match resolution with
+            | ResolutionOutcome.Resolved(_, generation') -> generation'.ProviderSets
+            | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+        let occurrences =
+            [ requirementId; secondaryRequirementId ]
+            |> List.map (fun requirement ->
+                providerSets
+                |> List.find (fun item -> item.Requirement = requirement)
+                |> fun item -> (List.exactlyOne item.Members).Occurrence)
+        let planValue =
+            planFor
+                generation
+                (if wrongScope then RestartScopeId.create "restart.elsewhere" else parentScopeId)
+                occurrences
+        runtimeRequestFor planValue (GenerationId.create "gen.lifecycle")
+
+    let attachedReplacementResult scenario =
+        task {
+            let! root, _ = childParent false
+            let! child =
+                attachLevel
+                    root
+                    parentScopeId
+                    (GenerationId.create "gen.lifecycle")
+                    (childPortId,
+                     childScopeId,
+                     GenerationId.create "gen.child",
+                     PortLifecycleMode.RuntimeOpen,
+                     "child",
+                     scenario = "cbi24-07-cascade-cleanup-fails",
+                     None)
+            let attached = ResizeArray<ComponentGroupAuthorityResult>()
+            attached.Add child.Child.Value
+            if
+                scenario = "cbi24-02-two-attachments-cascaded-deepest-first"
+                || scenario = "cbi24-03-attachment-names-another-parent-generation"
+            then
+                let! grandchild =
+                    attachLevel
+                        child.Child.Value
+                        childScopeId
+                        (GenerationId.create "gen.child")
+                        (grandchildPortId,
+                         grandchildScopeId,
+                         GenerationId.create "gen.grandchild",
+                         PortLifecycleMode.RuntimeOpen,
+                         "grandchild",
+                         false,
+                         None)
+                attached.Add grandchild.Child.Value
+            let supplied =
+                match scenario with
+                // The grandchild is attached to the child, not to the generation being replaced.
+                | "cbi24-03-attachment-names-another-parent-generation" -> [ attached.[1] ]
+                | "cbi24-04-supplied-activation-is-not-an-attachment" -> [ root ]
+                | _ -> List.ofSeq attached
+            let! result =
+                ComponentAttachedReplacement.replace
+                    (successorFor ())
+                    root
+                    (successorMembers (scenario = "cbi24-06-replacement-fails-after-the-cascade"))
+                    supplied
+                    (replacementRequest
+                        (GenerationId.create "gen.successor")
+                        (scenario = "cbi24-05-scope-mismatch-refused-before-the-cascade"))
+                    (sprintf "attached replacement %s" scenario)
+            return result, root, List.ofSeq attached
+        }
+
     /// The positions the successor generation resolves, per scenario.
     let membershipPositions scenario =
         match scenario with
@@ -4484,6 +4604,253 @@ type ComponentBindingIntegrationTests() =
                     (List.item 0 levels).Lifecycle.Value.Runtime.Value.Observation.Child,
                     Is.EqualTo None,
                     "And the root is not itself an attachment."))
+        }
+
+    [<Test>]
+    member _.``shared CBI24 vectors stand attachments down before the cutover``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi24-attached-replacement-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI24 vector identity must be a string"
+                    | value -> value
+                let! result, _, attached = attachedReplacementResult scenario
+                let successorReleased =
+                    result.Replacement
+                    |> Option.bind _.Successor
+                    |> Option.bind _.Lifecycle
+                    |> Option.map (fun lifecycle ->
+                        lifecycle.Members |> List.filter _.Member.IsReleased |> List.length)
+                    |> Option.defaultValue 0
+                let attachmentsReleased =
+                    attached
+                    |> List.sumBy (fun item ->
+                        item.Lifecycle.Value.Members |> List.filter _.Member.IsReleased |> List.length)
+                multiple (fun () ->
+                    Assert.That(
+                        attachedToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Cascaded.Length,
+                        Is.EqualTo(vector.GetProperty("expectedCascaded").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        successorReleased,
+                        Is.EqualTo(vector.GetProperty("expectedSuccessorReleased").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        attachmentsReleased,
+                        Is.EqualTo(vector.GetProperty("expectedAttachmentsReleased").GetInt32()),
+                        scenario)
+                    // Nothing is established while an attachment is still up.
+                    Assert.That(
+                        successorReleased = 0 || attachmentsReleased = 0,
+                        Is.True,
+                        sprintf
+                            "%s: no successor member is released while an attachment is."
+                            scenario)
+                    Assert.That(
+                        result.Cascaded.IsEmpty || attachmentsReleased = 0,
+                        Is.True,
+                        sprintf "%s: a cascade that ran left nothing attached and released." scenario))
+        }
+
+    [<Test>]
+    member _.``C1 the operation takes the generation and its attachments together``() =
+        task {
+            let! foreignGeneration, _, foreignAttached =
+                attachedReplacementResult "cbi24-03-attachment-names-another-parent-generation"
+            let! notAttached, retained, _ =
+                attachedReplacementResult "cbi24-04-supplied-activation-is-not-an-attachment"
+            let! scopeResult, _, _ =
+                attachedReplacementResult "cbi24-05-scope-mismatch-refused-before-the-cascade"
+            multiple (fun () ->
+                Assert.That(foreignGeneration.Code, Is.EqualTo "attachment-not-beneath-retained")
+                Assert.That(notAttached.Code, Is.EqualTo "attachment-not-beneath-retained")
+                Assert.That(
+                    scopeResult.Code,
+                    Is.EqualTo "restart-scope-mismatch",
+                    "A replacement that was never going to cut over does not cost the attachments their lives.")
+                Assert.That(
+                    [ foreignGeneration; notAttached; scopeResult ]
+                    |> List.forall (fun item -> item.Cascaded.IsEmpty),
+                    Is.True,
+                    "Every refusal before the cascade retires nothing.")
+                Assert.That(
+                    foreignAttached
+                    |> List.forall (fun item ->
+                        item.Lifecycle.Value.Members |> List.forall _.Member.IsReleased),
+                    Is.True)
+                Assert.That(
+                    retained.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True))
+        }
+
+    [<Test>]
+    member _.``C2 the attachments are stood down before the cutover``() =
+        task {
+            let! result, retained, attached =
+                attachedReplacementResult "cbi24-02-two-attachments-cascaded-deepest-first"
+            multiple (fun () ->
+                Assert.That(ComponentAttachedReplacement.isReplaced result, Is.True)
+                Assert.That(
+                    result.Cascaded
+                    |> List.map (fun item -> RestartScopeId.value item.Scope)
+                    |> String.concat ", ",
+                    Is.EqualTo "restart.grandchild, restart.child",
+                    "The cascade is CBI23's, deepest first.")
+                Assert.That(
+                    attached
+                    |> List.forall (fun item ->
+                        item.Lifecycle.Value.Members
+                        |> List.forall (fun member' ->
+                            CompositionStage.token member'.Member.Stage = "retired")),
+                    Is.True,
+                    "Every attachment is down before the successor is established.")
+                Assert.That(
+                    result.Replacement.Value.Successor.Value.Lifecycle.Value.Members
+                    |> List.forall _.Member.IsReleased,
+                    Is.True)
+                Assert.That(
+                    retained.Lifecycle.Value.Members
+                    |> List.forall (fun item -> CompositionStage.token item.Member.Stage = "retired"),
+                    Is.True,
+                    "And the retained members go after the cutover, as CBI19 retires them."))
+        }
+
+    [<Test>]
+    member _.``C3 a failed replacement does not restore the attachments``() =
+        task {
+            let! result, retained, attached =
+                attachedReplacementResult "cbi24-06-replacement-fails-after-the-cascade"
+            multiple (fun () ->
+                Assert.That(result.Kind, Is.EqualTo ComponentAttachedReplacementKind.Declined)
+                Assert.That(result.Code, Is.EqualTo "successor-establishment-refused")
+                Assert.That(
+                    result.Cascaded.Length,
+                    Is.EqualTo 1,
+                    "The outcome still names every scope the cascade retired.")
+                Assert.That(
+                    attached
+                    |> List.forall (fun item ->
+                        item.Lifecycle.Value.Members
+                        |> List.forall (fun member' ->
+                            CompositionStage.token member'.Member.Stage = "retired")),
+                    Is.True,
+                    "They are not restored.")
+                Assert.That(
+                    retained.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True,
+                    "The retained generation keeps serving, as CBI19 guarantees."))
+        }
+
+    [<Test>]
+    member _.``C4 a child reattaches to the successor as an ordinary attachment``() =
+        task {
+            let! result, _, _ = attachedReplacementResult "cbi24-01-attachment-stood-down-then-replaced"
+            let successor = result.Replacement.Value.Successor.Value
+            let! beneathSuccessor =
+                attachLevel
+                    successor
+                    parentScopeId
+                    (GenerationId.create "gen.successor")
+                    (childPortId,
+                     childScopeId,
+                     GenerationId.create "gen.child-again",
+                     PortLifecycleMode.RuntimeOpen,
+                     "reattached",
+                     false,
+                     None)
+            let! beneathRetained =
+                attachLevel
+                    successor
+                    parentScopeId
+                    (GenerationId.create "gen.lifecycle")
+                    (childPortId,
+                     RestartScopeId.create "restart.child-stale",
+                     GenerationId.create "gen.child-stale",
+                     PortLifecycleMode.RuntimeOpen,
+                     "stale",
+                     false,
+                     None)
+            multiple (fun () ->
+                Assert.That(
+                    ComponentChildActivation.isAttached beneathSuccessor,
+                    Is.True,
+                    "Standing the child up again is CBI22's attach naming the successor.")
+                Assert.That(
+                    beneathRetained.Code,
+                    Is.EqualTo "parent-generation-mismatch",
+                    "And one naming the generation that was replaced is refused by CBI22's own check."))
+        }
+
+    [<Test>]
+    member _.``C5 an attachment the caller omits is not detected``() =
+        task {
+            let! root, _ = childParent false
+            let! child =
+                attachLevel
+                    root
+                    parentScopeId
+                    (GenerationId.create "gen.lifecycle")
+                    (childPortId,
+                     childScopeId,
+                     GenerationId.create "gen.child",
+                     PortLifecycleMode.RuntimeOpen,
+                     "child",
+                     false,
+                     None)
+            let! orphaning =
+                ComponentGroupReplacement.replace
+                    (successorFor ())
+                    root
+                    (successorMembers false)
+                    (replacementRequest (GenerationId.create "gen.successor") false)
+                    "replacement that was never told about the child"
+            let childActivation = child.Child.Value
+            multiple (fun () ->
+                Assert.That(
+                    ComponentGroupReplacement.isReplaced orphaning,
+                    Is.True,
+                    "CBI19 replaces the generation without being able to see what is attached beneath it.")
+                Assert.That(
+                    childActivation.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True,
+                    "The child is still running, attached to a generation that is no longer active anywhere.")
+                Assert.That(
+                    childActivation.Lifecycle.Value.Runtime.Value.Observation.Child
+                    |> Option.map (fun item -> GenerationId.value item.ParentGeneration),
+                    Is.EqualTo(Some "gen.lifecycle"),
+                    "Its recorded parent generation is the replaced one, and nothing will look again."))
+        }
+
+    [<Test>]
+    member _.``C6 a cascade cleanup failure stops before the cutover``() =
+        task {
+            let! result, retained, _ = attachedReplacementResult "cbi24-07-cascade-cleanup-fails"
+            multiple (fun () ->
+                Assert.That(result.Kind, Is.EqualTo ComponentAttachedReplacementKind.CleanupFailed)
+                Assert.That(result.Reason, Does.Contain "withdraw-refused")
+                Assert.That(
+                    result.Replacement,
+                    Is.EqualTo None,
+                    "Replacing on top of a cascade nobody can describe would report a cutover from an unknown state.")
+                Assert.That(
+                    retained.Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True,
+                    "The retained generation is untouched."))
         }
 
     [<Test>]
