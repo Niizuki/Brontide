@@ -140,6 +140,10 @@ CBI23 nests those attachments and orders their withdrawal. CM4 models no relatio
 parent and a child after attachment, so the ordering is the composition root's: an attachment
 occupies a Port of a generation and cannot outlive it, which makes the cascade deepest-first. Depth
 is unbounded, and the root can only order the activations it is given.
+CBI24 replaces a generation that has attachments beneath it. A replacement orphans them silently,
+because CM4 preserves every unrelated scope and a child's is unrelated, so the cascade runs before
+the cutover — the opposite of CBI19's retained members, since an attachment is outside the
+transaction rather than inside it. A Port does not migrate; a child is stood down and stood up again.
 
 ## Build and test
 

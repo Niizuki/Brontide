@@ -2959,6 +2959,160 @@ public static class ComponentAttachmentWithdrawal
             reason);
 }
 
+public enum ComponentAttachedReplacementKind
+{
+    Replaced,
+    CleanupFailed,
+    Declined,
+}
+
+public sealed record ComponentAttachedReplacementResult(
+    ComponentAttachedReplacementKind Kind,
+    ComponentGroupReplacementResult? Replacement,
+    IReadOnlyList<ComponentAttachmentRetirement> Cascaded,
+    string Code,
+    string Reason)
+{
+    public bool IsReplaced => Kind == ComponentAttachedReplacementKind.Replaced;
+}
+
+/// <summary>
+/// Replaces the generation occupying one restart scope when child activations are attached to Ports
+/// that generation offers.
+/// </summary>
+/// <remarks>
+/// CM4 does nothing about them by design: its C2 property preserves the generation and activity state
+/// of every unrelated scope, and a child scope is unrelated, so a cutover rewrites the target scope
+/// and carries the child through untouched — leaving the attachment's recorded parent generation
+/// pointing at one that is no longer active anywhere, with nothing that will ever look again. The
+/// cascade therefore runs before the cutover rather than after it, which is the opposite order from
+/// CBI19's retained members: those are inside the transaction and must keep serving until it
+/// succeeds, while an attachment is outside it, in a scope CM4 will not touch either way.
+/// </remarks>
+public static class ComponentAttachedReplacement
+{
+    public static async ValueTask<ComponentAttachedReplacementResult> ReplaceAsync(
+        Cm.ResolutionOutcome successor,
+        ComponentGroupAuthorityResult retained,
+        IReadOnlyList<ComponentGroupParticipant> members,
+        IReadOnlyList<ComponentGroupAuthorityResult> attachments,
+        Cm.ActivationRuntimeRequest runtimeRequest,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(successor);
+        ArgumentNullException.ThrowIfNull(retained);
+        ArgumentNullException.ThrowIfNull(members);
+        ArgumentNullException.ThrowIfNull(attachments);
+        ArgumentNullException.ThrowIfNull(runtimeRequest);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (!retained.IsActive || retained.Lifecycle?.Runtime?.Observation is not { } current)
+        {
+            return Decline(
+                "active-authority-unavailable",
+                "CBI24 replaces the generation one released CBI13 activation made active.");
+        }
+
+        // The replacement's own preconditions are checked before anything is stood down, so a
+        // request that was never going to cut over does not cost the attachments their lives.
+        if (ComponentGroupReplacement.Scope(retained, runtimeRequest) is { } invalid)
+        {
+            return Decline(invalid.Code, invalid.Reason);
+        }
+
+        // The supplied set is a forest beneath the retained generation, not a flat list of its
+        // direct children: an attachment that must go takes everything beneath it, and CBI23 orders
+        // the whole of it. So each one is either attached to the generation being replaced or to a
+        // scope that is itself in the set.
+        var supplied = new HashSet<Cm.RestartScopeId>();
+        foreach (var attachment in attachments)
+        {
+            if (attachment.Lifecycle?.Runtime?.Observation.RestartScope is { } scope)
+            {
+                supplied.Add(scope);
+            }
+        }
+
+        foreach (var attachment in attachments)
+        {
+            if (!attachment.IsActive
+                || attachment.Lifecycle?.Runtime?.Observation.Child is not { } child
+                || !((child.ParentGeneration == current.TargetGeneration
+                        && child.ParentScope == current.RestartScope)
+                    || supplied.Contains(child.ParentScope)))
+            {
+                return Decline(
+                    "attachment-not-beneath-retained",
+                    $"Every supplied activation must be released and attached either to generation '{current.TargetGeneration}' in scope '{current.RestartScope}' or to another scope in the set.");
+            }
+        }
+
+        var cascade = attachments.Count == 0
+            ? null
+            : await ComponentAttachmentWithdrawal
+                .WithdrawAsync(attachments, retirementReason, cancellationToken)
+                .ConfigureAwait(false);
+        if (cascade is { Kind: ComponentAttachmentWithdrawalKind.Declined })
+        {
+            return Decline(cascade.Code, cascade.Reason);
+        }
+
+        var cascaded = cascade?.Retired ?? Array.Empty<ComponentAttachmentRetirement>();
+        if (cascade is { Kind: ComponentAttachmentWithdrawalKind.CleanupFailed })
+        {
+            // The attachments are down and one peer refused. Replacing on top of that would report a
+            // cutover whose starting state nobody can describe.
+            return new(
+                ComponentAttachedReplacementKind.CleanupFailed,
+                null,
+                cascaded,
+                cascade.Code,
+                cascade.Reason);
+        }
+
+        var replacement = await ComponentGroupReplacement.ReplaceAsync(
+            successor,
+            retained,
+            members,
+            runtimeRequest,
+            retirementReason,
+            cancellationToken).ConfigureAwait(false);
+        return replacement.Kind switch
+        {
+            ComponentGroupReplacementKind.Replaced => new(
+                ComponentAttachedReplacementKind.Replaced,
+                replacement,
+                cascaded,
+                "generation-replaced",
+                $"{cascaded.Count} attached scopes were stood down, then the scope cut over to {runtimeRequest.Plan.Generation}."),
+            ComponentGroupReplacementKind.CleanupFailed => new(
+                ComponentAttachedReplacementKind.CleanupFailed,
+                replacement,
+                cascaded,
+                replacement.Code,
+                replacement.Reason),
+            // The retained generation keeps serving, as CBI19 guarantees, but the attachments are
+            // already gone and are not restored: standing one up again would be a fresh activation
+            // against a generation this call did not establish.
+            _ => new(
+                ComponentAttachedReplacementKind.Declined,
+                replacement,
+                cascaded,
+                replacement.Code,
+                replacement.Reason),
+        };
+    }
+
+    private static ComponentAttachedReplacementResult Decline(string code, string reason) =>
+        new(
+            ComponentAttachedReplacementKind.Declined,
+            null,
+            Array.Empty<ComponentAttachmentRetirement>(),
+            code,
+            reason);
+}
+
 public sealed record ComponentGroupMemberRequests(
     Cm.OccurrenceId Occurrence,
     IReadOnlyList<Cm.AuthorityAdmissionRequest> Requests);

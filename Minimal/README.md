@@ -110,7 +110,9 @@ The implementation currently provides:
   own restart scope beneath a released parent, reading the Port and its lifecycle from the resolved
   envelope rather than the caller and leaving the parent active and serving throughout; CBI23 nests
   those attachments and retires a supplied forest deepest first, because an attachment occupies a
-  Port of a generation and CM4 records no parent-child relationship of its own;
+  Port of a generation and CM4 records no parent-child relationship of its own; CBI24 replaces a
+  generation with attachments beneath it, standing them down before the cutover because an
+  attachment sits outside the transaction that a retained member sits inside;
 - a headless host and seven F# test assemblies, including the host-owned CBI1-CBI20 integration
   suite.
 

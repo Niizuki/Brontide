@@ -187,6 +187,12 @@ records nothing about a parent's children and stands none of them down when the 
 comes from what an attachment is rather than from a model object — a Port belongs to a generation, so
 its occupant cannot outlive it, and a withdrawal cascades deepest first. What the root cannot see, it
 says: a child the caller does not name is invisible, and every outcome names exactly what it retired.
+CBI24 replaces a generation that has children attached to its Ports, and finds that a replacement
+orphans them silently — CM4 preserves every unrelated scope by design, and a child's scope is
+unrelated, so the child keeps running against a generation that no longer exists. There is no
+migration: a Port does not move, a child is stood down and stood up again. The cascade runs before the
+cutover, the opposite of CBI19's retained members, because which side of the transaction a thing lives
+on decides when it goes.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

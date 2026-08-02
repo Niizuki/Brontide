@@ -585,15 +585,44 @@ can produce one — the guard exists so the ordering terminates, not to catch a 
 [`contract-completeness review`](../../component-management/cbi23-contract-completeness-review.md)
 bound it to a forest the caller supplies.
 
-**Port migration between generations is the next implementable item.** CBI19 and CBI20 replace the
-generation in a scope, and CBI22 attaches a Component to a Port of a generation; nothing yet says what a
-replacement does to the attachments hanging beneath the generation it replaces. It has to decide whether
-a successor generation inherits its predecessor's children, re-offers the Port under a new identity, or
-whether the cascade of CBI23 runs first — and the answer has to survive the fact that CM4 makes cutover
-atomic while an attachment is a separate CM4 attempt. Mediation, wider Provider Sets, and real
-distribution remain future work behind it, and Relational Initialisation waits on Decision 13. PB8's
+CBI24 replaces a generation when child activations are attached to Ports it offers, and the item's own
+name turned out to be optimistic. **There is no migration operation**: re-pointing an attachment at a
+successor would need CM4 to hold the declaration as mutable state, and it holds it as an input to one
+activation attempt. A Port does not migrate — a child is stood down and stood up again, and the
+standing-up is the child's own attachment against a generation that must already exist.
+
+The finding is what happens if nobody does that. **A replacement silently orphans every attachment
+beneath the generation it replaces, and CM4 does it deliberately**: its C2 property preserves the
+generation and activity state of every *unrelated* scope, and a child scope is unrelated, so a cutover
+rewrites the target scope and carries the child through untouched. The child keeps running while the
+parent generation its attachment recorded stops existing anywhere, and nothing looks again — the
+attachment was validated once, at attach time.
+
+So the cascade runs **before** the cutover, which is the opposite order from CBI19's retained members,
+and the asymmetry is the reasoning worth keeping: **which side of the transaction a thing lives on
+decides when it goes.** A retained member is inside it and CM4 requires a pre-cutover failure to leave
+it serving; an attachment is outside it, in a scope CM4 will not touch either way, so leaving it up
+would produce exactly the orphan. A failed replacement therefore leaves the parent serving and does
+*not* restore the children, because restoring one would be a fresh activation this call never made —
+what it owes instead is naming every scope the cascade retired. The supplied set is a forest rather
+than a flat list of direct children, which the first draft got wrong and a two-level vector caught.
+
+What the root cannot do is notice an attachment it was not given. CBI19 and CBI20 stay reachable with
+children attached, and a named test proves the orphan rather than describing it. That hole is now
+**Decision 14**, raised from both directions: CBI23 cannot discover unnamed children to order them,
+and CBI24 cannot detect them to protect them. The
+[`CBI24 capability contract`](../../component-management/cbi24-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi24-contract-completeness-review.md)
+bound it to the attachments the caller supplies.
+
+**Mediation is the next implementable item.** Every slice since CBI1 has refused a mediated exposure,
+because CBI1 accepts only `ProviderExposure.Distinct` with no Mediation declaration, and CM2 resolves
+Mediation as a first-class property of a Provider Set. It has to decide what a Mediation identity means
+at the portable seam — whether the mediator is a provider the host binds to, a transformation the
+Binding Plan records, or something the seam cannot express at all, which is the answer Relational
+Initialisation got. Wider Provider Sets and real distribution remain future work behind it. PB8's
 independent reviews remain a separate governance prerequisite rather than implementation work;
-Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 and 13 await rulings.
+Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12, 13, and 14 await rulings.
 
 ## Other planned areas
 

@@ -1,15 +1,16 @@
 # Portable Binding — open owner decisions
 
-**Status:** Decisions 1 through 11 are **recorded**; **Decisions 12 and 13 are open**, raised
-2026-08-01 by CBI20 and CBI21. Decision 12 blocks nothing; Decision 13 blocks every activation of a
-CM3 group that declares a bounded lifecycle protocol. Decisions 1 and 2 (the PB0 exit blockers) were
+**Status:** Decisions 1 through 11 are **recorded**; **Decisions 12, 13, and 14 are open**, raised
+2026-08-01 by CBI20 and CBI21 and 2026-08-02 by CBI23 and CBI24. Decisions 12 and 14 block nothing;
+Decision 13 blocks every activation of a CM3 group that declares a bounded lifecycle protocol. Decisions 1 and 2 (the PB0 exit blockers) were
 recorded 2026-07-24. Decisions 3 through 10 were raised by evidence in PB4, PB5, or PB6, ran on a
 provisional implementer choice while each phase proceeded, and were recorded 2026-07-28. Four of
 those eight confirm the provisional choice unchanged; four confirm it and create follow-on work,
 tracked under [Work the rulings create](#work-the-rulings-create).
 **Decision 11 was raised later, by PB7, and was recorded on 2026-07-30**: negotiation now compares
 provider identity and the Binding Plan reports the provider that answered. **Decisions 12 and 13 were raised by
-CBI20 and CBI21 on 2026-08-01 and await rulings.** Non-pinned.
+CBI20 and CBI21 on 2026-08-01, and Decision 14 by CBI23 and CBI24 on 2026-08-02; all three await
+rulings.** Non-pinned.
 
 **How to read this file.** Every decision below is written to be answerable without any other
 context: it states what was observed, what was running when the question was raised and why, what the
@@ -35,6 +36,7 @@ reader can see what was rejected and on what grounds.
 | 11 | The plan's provider fact names who was asked, not who answered | PB7 | **Recorded** 2026-07-30 — negotiation compares the provider; the plan reports who answered |
 | 12 | A receiving-domain Actor freed by a dropped member, taken by a different party | CBI20 | **Open** — raised 2026-08-01; Option A running |
 | 13 | Relational Initialisation is declared out of scope, and CM4 needs it | CBI21 | **Open** — raised 2026-08-01; Option A running |
+| 14 | Nothing records that a restart scope has children | CBI23, CBI24 | **Open** - raised 2026-08-02; Option A running |
 
 ---
 
@@ -720,3 +722,56 @@ the cheap option is wrong, since it is the one a later implementer will reach fo
 version 0.1 or about the seam. If the former, B is scheduling; if the latter, CM4's relational stage
 needs a different realisation than Portable Binding, and the integration's answer is A permanently —
 which should then be said in CM4's own contract rather than left as an integration refusal.
+
+---
+
+## Decision 14 — nothing records that a restart scope has children
+
+**Owner:** Component Management / Portable Binding integration owners.
+**Raised by:** CBI23 and CBI24, from opposite directions.
+**Blocks:** nothing today. Both slices work when the caller names its attachments; neither can act
+when the caller does not.
+
+**Context.** CM4 models a child attachment as an input to one activation attempt: it requires the
+parent scope active when the child attaches, preserves the parent through the child's activation, and
+keeps no record afterwards. Its C2 property makes that explicit from the other side — every outcome
+preserves the generation and activity state of every *unrelated* scope, and a child scope is
+unrelated. CM2 records which Port a position was resolved into, but nothing records which scopes are
+attached to a generation.
+
+Two slices have now hit the consequence from opposite directions, which is why it is worth a ruling
+rather than a third work-around:
+
+- **CBI23** orders the withdrawal of an attachment forest deepest-first, and can only order the
+  activations it is given. A child the caller omits is retired never, and its parent is retired
+  anyway.
+- **CBI24** replaces a generation that has attachments beneath it, and can only stand down the
+  attachments it is given. A child the caller omits is silently orphaned: it keeps running, attached
+  to a generation that is no longer active anywhere, and neither CM4 nor the composition root will
+  ever look again.
+
+Both slices state the hole rather than implying completeness, and both report exactly what they were
+given so the omission is visible by absence. Neither can do better with the inputs it has.
+
+| Option | What it is | Pros | Cons |
+| --- | --- | --- | --- |
+| **A. Leave it with the caller** *(running)* | The composition root acts on the attachments it is told about and reports exactly those | No model change; matches CM4, which deliberately keeps a child's scope outside the parent's transaction; the two slices already fail closed on everything they can see | The one failure that matters — forgetting a child — is the one nothing catches, and it produces a Component running against a generation that no longer exists |
+| **B. CM4 records a scope's children** | The runtime tracks attachments per scope, so a replacement can refuse while children are attached and a withdrawal can enumerate them | Makes both slices' holes closable, and makes "no orphan" checkable rather than promised | Changes CM4's shape: a child's scope stops being an unrelated scope, which is the property C2 states, and CM4 becomes stateful across attempts where today every attempt is self-contained |
+| **C. The composition root keeps the registry** | The root records each attachment it makes and consults it on withdrawal and replacement | No CM4 change; the root already performs every attach, so it can see them all | Only covers attachments this root made in this process; a second root, or a restart, sees nothing, so it converts a visible hole into an invisible one |
+| **D. Refuse to replace any generation that offers a Port** | Conservative: a generation with Ports declared cannot be replaced at all | Trivially prevents the orphan | Refuses the legitimate case this slice exists to serve, and CM2 declares Ports on generations that may never have anything attached |
+
+**Recommendation: A, until the registry has a home that outlives a process.** B is the only option
+that makes the guarantee checkable, and it is a change to a contract whose whole shape is
+self-contained attempts — the property that makes CM4 testable. C looks cheap and is the worst of the
+options on offer, because a partial registry reports success while missing exactly the attachments a
+second root made. The question worth putting to owners is whether the guarantee is wanted enough to
+make CM4 stateful across attempts, and that is a Component Management decision rather than an
+integration one.
+
+**Decision:** **Open.** Raised 2026-08-02.
+
+**What would settle it.** A vector cannot: both options produce identical observations for every
+attachment the caller does name, and the difference is only visible for one it does not — which is
+precisely what no test can supply, because supplying it makes it named. It becomes decidable the
+moment anything else needs to enumerate a scope's children — a supervisor, a status projection, or a
+restart that must rebuild the forest — and each of those argues for B.

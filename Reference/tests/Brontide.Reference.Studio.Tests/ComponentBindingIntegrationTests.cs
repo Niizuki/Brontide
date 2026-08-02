@@ -6727,6 +6727,361 @@ public sealed class ComponentBindingIntegrationTests
         return (resolution, Selection(member) with { HostEndpoint = endpoint });
     }
 
+    [Test]
+    public async Task Shared_cbi24_vectors_stand_attachments_down_before_the_cutover()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi24-attached-replacement-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, retained, attached) = await AttachedReplacementResult(scenario);
+            var successorReleased = result.Replacement?.Successor?.Lifecycle?.Members
+                .Count(item => item.Member.IsReleased) ?? 0;
+            var attachmentsReleased = attached
+                .Sum(item => item.Lifecycle!.Members.Count(member => member.Member.IsReleased));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(AttachedToken(result.Kind), Is.EqualTo(vector.GetProperty("expectedKind").GetString()), scenario);
+                Assert.That(result.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), scenario);
+                Assert.That(
+                    result.Cascaded,
+                    Has.Count.EqualTo(vector.GetProperty("expectedCascaded").GetInt32()),
+                    scenario);
+                Assert.That(
+                    successorReleased,
+                    Is.EqualTo(vector.GetProperty("expectedSuccessorReleased").GetInt32()),
+                    scenario);
+                Assert.That(
+                    attachmentsReleased,
+                    Is.EqualTo(vector.GetProperty("expectedAttachmentsReleased").GetInt32()),
+                    scenario);
+
+                // Nothing is established while an attachment is still up.
+                Assert.That(
+                    successorReleased == 0 || attachmentsReleased == 0,
+                    Is.True,
+                    $"{scenario}: no successor member is released while an attachment is.");
+                Assert.That(
+                    result.Cascaded.Count == 0 || attachmentsReleased == 0,
+                    Is.True,
+                    $"{scenario}: a cascade that ran left nothing attached and released.");
+                _ = retained;
+            });
+        }
+    }
+
+    [Test]
+    public async Task C1_the_operation_takes_the_generation_and_its_attachments_together()
+    {
+        var (foreignGeneration, _, foreignAttached) = await AttachedReplacementResult(
+            "cbi24-03-attachment-names-another-parent-generation");
+        var (notAttached, retained, _) = await AttachedReplacementResult(
+            "cbi24-04-supplied-activation-is-not-an-attachment");
+        var (scope, _, _) = await AttachedReplacementResult("cbi24-05-scope-mismatch-refused-before-the-cascade");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(foreignGeneration.Code, Is.EqualTo("attachment-not-beneath-retained"));
+            Assert.That(notAttached.Code, Is.EqualTo("attachment-not-beneath-retained"));
+            Assert.That(
+                scope.Code,
+                Is.EqualTo("restart-scope-mismatch"),
+                "A replacement that was never going to cut over does not cost the attachments their lives.");
+            Assert.That(
+                new[] { foreignGeneration, notAttached, scope }.All(item => item.Cascaded.Count == 0),
+                Is.True,
+                "Every refusal before the cascade retires nothing.");
+            Assert.That(
+                foreignAttached.All(item => item.Lifecycle!.Members.All(member => member.Member.IsReleased)),
+                Is.True);
+            Assert.That(retained.Lifecycle!.Members.All(item => item.Member.IsReleased), Is.True);
+        });
+    }
+
+    [Test]
+    public async Task C2_the_attachments_are_stood_down_before_the_cutover()
+    {
+        var (result, retained, attached) = await AttachedReplacementResult(
+            "cbi24-02-two-attachments-cascaded-deepest-first");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsReplaced, Is.True);
+            Assert.That(
+                result.Cascaded.Select(item => item.Scope.Value),
+                Is.EqualTo(new[] { "restart.grandchild", "restart.child" }),
+                "The cascade is CBI23's, deepest first.");
+            Assert.That(
+                attached.All(item => item.Lifecycle!.Members.All(member =>
+                    member.Member.Stage == PortableCompositionStage.Retired)),
+                Is.True,
+                "Every attachment is down before the successor is established.");
+            Assert.That(
+                result.Replacement!.Successor!.Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True);
+            Assert.That(
+                retained.Lifecycle!.Members.All(item =>
+                    item.Member.Stage == PortableCompositionStage.Retired),
+                Is.True,
+                "And the retained members go after the cutover, as CBI19 retires them.");
+        });
+    }
+
+    [Test]
+    public async Task C3_a_failed_replacement_does_not_restore_the_attachments()
+    {
+        var (result, retained, attached) = await AttachedReplacementResult(
+            "cbi24-06-replacement-fails-after-the-cascade");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentAttachedReplacementKind.Declined));
+            Assert.That(result.Code, Is.EqualTo("successor-establishment-refused"));
+            Assert.That(
+                result.Cascaded,
+                Has.Count.EqualTo(1),
+                "The outcome still names every scope the cascade retired.");
+            Assert.That(
+                attached.All(item => item.Lifecycle!.Members.All(member =>
+                    member.Member.Stage == PortableCompositionStage.Retired)),
+                Is.True,
+                "They are not restored.");
+            Assert.That(
+                retained.Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True,
+                "The retained generation keeps serving, as CBI19 guarantees.");
+        });
+    }
+
+    [Test]
+    public async Task C4_a_child_reattaches_to_the_successor_as_an_ordinary_attachment()
+    {
+        var (result, _, _) = await AttachedReplacementResult("cbi24-01-attachment-stood-down-then-replaced");
+        var successor = result.Replacement!.Successor!;
+        var beneathSuccessor = await AttachLevel(
+            successor,
+            ParentScope,
+            GenerationId.Create("gen.successor"),
+            new AttachSpec(
+                ChildPort,
+                ChildScope,
+                GenerationId.Create("gen.child-again"),
+                PortLifecycleMode.RuntimeOpen,
+                RuntimeOpen: true,
+                Suffix: "reattached"));
+        var beneathRetained = await AttachLevel(
+            successor,
+            ParentScope,
+            GenerationId.Create("gen.lifecycle"),
+            new AttachSpec(
+                ChildPort,
+                RestartScopeId.Create("restart.child-stale"),
+                GenerationId.Create("gen.child-stale"),
+                PortLifecycleMode.RuntimeOpen,
+                RuntimeOpen: true,
+                Suffix: "stale"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                beneathSuccessor.Result.IsAttached,
+                Is.True,
+                "Standing the child up again is CBI22's attach naming the successor.");
+            Assert.That(
+                beneathRetained.Result.Code,
+                Is.EqualTo("parent-generation-mismatch"),
+                "And one naming the generation that was replaced is refused by CBI22's own check.");
+        });
+    }
+
+    [Test]
+    public async Task C5_an_attachment_the_caller_omits_is_not_detected()
+    {
+        var (root, _) = await ChildParent(fail: false);
+        var child = await AttachLevel(
+            root,
+            ParentScope,
+            GenerationId.Create("gen.lifecycle"),
+            new AttachSpec(
+                ChildPort,
+                ChildScope,
+                GenerationId.Create("gen.child"),
+                PortLifecycleMode.RuntimeOpen,
+                RuntimeOpen: true,
+                Suffix: "child"));
+        var orphaning = await ComponentGroupReplacement.ReplaceAsync(
+            SuccessorFor(root),
+            root,
+            SuccessorMembers(root),
+            ReplacementRequest(GenerationId.Create("gen.successor")),
+            "replacement that was never told about the child");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                orphaning.IsReplaced,
+                Is.True,
+                "CBI19 replaces the generation without being able to see what is attached beneath it.");
+            Assert.That(
+                child.Levels[1].Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True,
+                "The child is still running, attached to a generation that is no longer active anywhere.");
+            Assert.That(
+                child.Levels[1].Lifecycle!.Runtime!.Observation.Child!.ParentGeneration,
+                Is.EqualTo(GenerationId.Create("gen.lifecycle")),
+                "Its recorded parent generation is the replaced one, and nothing will look again.");
+        });
+    }
+
+    [Test]
+    public async Task C6_a_cascade_cleanup_failure_stops_before_the_cutover()
+    {
+        var (result, retained, _) = await AttachedReplacementResult("cbi24-07-cascade-cleanup-fails");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentAttachedReplacementKind.CleanupFailed));
+            Assert.That(result.Reason, Does.Contain("withdraw-refused"));
+            Assert.That(
+                result.Replacement,
+                Is.Null,
+                "Replacing on top of a cascade nobody can describe would report a cutover from an unknown state.");
+            Assert.That(
+                retained.Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True,
+                "The retained generation is untouched.");
+        });
+    }
+
+    private static string AttachedToken(ComponentAttachedReplacementKind kind) => kind switch
+    {
+        ComponentAttachedReplacementKind.Replaced => "replaced",
+        ComponentAttachedReplacementKind.CleanupFailed => "cleanup-failed",
+        ComponentAttachedReplacementKind.Declined => "declined",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
+    /// <summary>A successor generation resolving the same two positions the parent activation holds.</summary>
+    private static ResolutionOutcome SuccessorFor(ComponentGroupAuthorityResult parent)
+    {
+        _ = parent;
+        return new FakeGenerationResolver().Resolve(RequestFor(Requirement, SecondaryRequirement));
+    }
+
+    private static ComponentGroupParticipant[] SuccessorMembers(
+        ComponentGroupAuthorityResult parent,
+        bool neverReady = false)
+    {
+        var resolution = SuccessorFor(parent);
+        var policy = GroupPolicy(ProviderLocalActor);
+        var substituted = CoolingPortableFixture.Contract with
+        {
+            Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
+        };
+        return [.. new[] { Requirement, SecondaryRequirement }
+            .Select((requirement, index) => new ComponentGroupParticipant(
+                new(
+                    Selection(resolution.Generation!.ProviderSets
+                        .Single(item => item.Requirement == requirement).Members[0]) with
+                    {
+                        Requirement = requirement,
+                        HostEndpoint = $"successor-host-{index}",
+                    },
+                    new PortableDirectConversation(new PortableProviderEndpoint(
+                        neverReady && index == 1 ? substituted : CoolingPortableFixture.Contract,
+                        new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()),
+                        PortableRealization.FixedDirectCall))),
+                [
+                    new(
+                        new(
+                            resolution.Generation!.ProviderSets
+                                .Single(item => item.Requirement == requirement).Members[0].Occurrence,
+                            index == 0 ? Participant : Supervisor),
+                        index == 0
+                            ? ProviderAuthority(policy, Authority)
+                            : SupervisorAuthority(policy, AuditAuthority, revoked: false)),
+                ]))];
+    }
+
+    private static ActivationRuntimeRequest ReplacementRequest(GenerationId generation, bool wrongScope = false)
+    {
+        var resolution = new FakeGenerationResolver().Resolve(RequestFor(Requirement, SecondaryRequirement));
+        var occurrences = new[] { Requirement, SecondaryRequirement }
+            .Select(requirement => resolution.Generation!.ProviderSets
+                .Single(item => item.Requirement == requirement).Members[0].Occurrence)
+            .ToArray();
+        var plan = PlanFor(
+            generation,
+            wrongScope ? RestartScopeId.Create("restart.elsewhere") : ParentScope,
+            occurrences);
+        return RuntimeRequestFor(plan, GenerationId.Create("gen.lifecycle"));
+    }
+
+    private static async Task<(
+        ComponentAttachedReplacementResult Result,
+        ComponentGroupAuthorityResult Retained,
+        IReadOnlyList<ComponentGroupAuthorityResult> Attached)>
+        AttachedReplacementResult(string scenario)
+    {
+        var (root, _) = await ChildParent(fail: false);
+        var child = await AttachLevel(
+            root,
+            ParentScope,
+            GenerationId.Create("gen.lifecycle"),
+            new AttachSpec(
+                ChildPort,
+                ChildScope,
+                GenerationId.Create("gen.child"),
+                PortLifecycleMode.RuntimeOpen,
+                RuntimeOpen: true,
+                Suffix: "child",
+                FailCleanup: scenario == "cbi24-07-cascade-cleanup-fails"));
+        var attached = new List<ComponentGroupAuthorityResult> { child.Levels[1] };
+        if (scenario is "cbi24-02-two-attachments-cascaded-deepest-first"
+            or "cbi24-03-attachment-names-another-parent-generation")
+        {
+            var grandchild = await AttachLevel(
+                child.Levels[1],
+                ChildScope,
+                GenerationId.Create("gen.child"),
+                new AttachSpec(
+                    GrandchildPort,
+                    GrandchildScope,
+                    GenerationId.Create("gen.grandchild"),
+                    PortLifecycleMode.RuntimeOpen,
+                    RuntimeOpen: true,
+                    Suffix: "grandchild"),
+                child.Levels);
+            attached.Add(grandchild.Levels[2]);
+        }
+
+        var supplied = scenario switch
+        {
+            // The grandchild is attached to the child, not to the generation being replaced.
+            "cbi24-03-attachment-names-another-parent-generation" => new[] { attached[1] },
+            "cbi24-04-supplied-activation-is-not-an-attachment" => [root],
+            _ => [.. attached],
+        };
+        var result = await ComponentAttachedReplacement.ReplaceAsync(
+            SuccessorFor(root),
+            root,
+            SuccessorMembers(root, neverReady: scenario == "cbi24-06-replacement-fails-after-the-cascade"),
+            supplied,
+            ReplacementRequest(
+                GenerationId.Create("gen.successor"),
+                wrongScope: scenario == "cbi24-05-scope-mismatch-refused-before-the-cascade"),
+            $"attached replacement {scenario}");
+        return (result, root, attached);
+    }
+
     private static string GroupFailureToken(ComponentGroupActivationFailureKind kind) => kind switch
     {
         ComponentGroupActivationFailureKind.PlanUnsupported => "plan-unsupported",
