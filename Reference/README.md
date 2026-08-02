@@ -155,7 +155,11 @@ CBI27 carries a position wider than `1..1` into preflight as one ordinary member
 because a Provider Set's members each have a representation the seam holds and the set does not. Doing
 so shows that a CM binding scope holds many bindings while a portable one names a single binding, so
 CBI1's mapping of one onto the other holds only while a position is `1..1` and a scope holds one
-position. A fanned-out set has no activation path yet.
+position.
+CBI28 activates those members. Nothing downstream needed teaching, because every slice from CBI12
+onward is per-occurrence; a wide position supplied half-complete would have passed both plan checks,
+and the generation is now the authority on its membership. A Provider Set's declared minimum is not a
+runtime concept, so one member short of Ready retires the whole activation.
 
 ## Build and test
 

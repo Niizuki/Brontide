@@ -8045,6 +8045,375 @@ public sealed class ComponentBindingIntegrationTests
         return ComponentProviderSetBinding.Translate(resolution, selection);
     }
 
+    [Test]
+    public async Task Shared_cbi28_vectors_activate_a_fanned_out_position()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi28-fanned-out-activation-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, handlers) = await FannedOutActivation(scenario);
+            var expectedFailure = vector.GetProperty("expectedFailureKind");
+            var expectedCode = vector.GetProperty("expectedCode");
+            var members = result.Lifecycle?.Members ?? Array.Empty<ComponentGroupMemberOutcome>();
+            var released = members.Count(item => item.Member.IsReleased);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(
+                    result.IsActive,
+                    Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()),
+                    scenario);
+                Assert.That(
+                    result.Failure is null ? null : GroupAuthorityToken(result.Failure.Kind),
+                    Is.EqualTo(
+                        expectedFailure.ValueKind == JsonValueKind.Null ? null : expectedFailure.GetString()),
+                    scenario);
+                Assert.That(
+                    result.Failure?.Code,
+                    Is.EqualTo(expectedCode.ValueKind == JsonValueKind.Null ? null : expectedCode.GetString()),
+                    scenario);
+                Assert.That(
+                    result.Admissions,
+                    Has.Count.EqualTo(vector.GetProperty("expectedMembersAdmitted").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.Grants,
+                    Has.Count.EqualTo(vector.GetProperty("expectedGrants").GetInt32()),
+                    scenario);
+                Assert.That(released, Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()), scenario);
+                Assert.That(
+                    members.Count(item => item.Member.Stage == PortableCompositionStage.Retired),
+                    Is.EqualTo(vector.GetProperty("expectedRetired").GetInt32()),
+                    scenario);
+                Assert.That(
+                    handlers.Sum(handler => handler.ProviderEffectCount),
+                    Is.EqualTo(vector.GetProperty("expectedProviderEffects").GetInt32()),
+                    scenario);
+
+                // The property over every vector: the barrier is the activation's, so a strict subset
+                // of its members never ends up serving.
+                Assert.That(
+                    released == 0 || released == members.Count,
+                    Is.True,
+                    $"{scenario}: ordinary interaction opens for every member or for none.");
+            });
+        }
+    }
+
+    [Test]
+    public async Task C1_a_member_of_a_wide_position_carries_the_scope_its_caller_named()
+    {
+        var (active, _) = await FannedOutActivation("cbi28-01-wide-position-activated");
+        var (unscoped, _) = await FannedOutActivation("cbi28-04-member-without-a-scope");
+        var (overScoped, _) = await FannedOutActivation("cbi28-05-ordinary-member-with-a-scope");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                active.Lifecycle!.Members.Select(item => item.Member.Fact("bindingScope")),
+                Is.EquivalentTo(new[] { "scope.cooling-0", "scope.cooling-1" }),
+                "Each member of the position holds the scope its caller named.");
+            Assert.That(unscoped.Failure!.Code, Is.EqualTo("member-scope-required"));
+            Assert.That(
+                overScoped.Failure!.Code,
+                Is.EqualTo("member-scope-not-required"),
+                "A 1..1 position's scope is the generation's, so naming one disagrees with the resolution.");
+        });
+    }
+
+    /// <summary>
+    /// The check CBI12 could not make: both of its existing checks compare the caller's member list
+    /// with the caller's plan, so a position supplied half-complete satisfies both.
+    /// </summary>
+    [Test]
+    public async Task C2_a_wide_position_joins_the_activation_whole()
+    {
+        var (partial, handlers) = await FannedOutActivation("cbi28-03-member-missing-from-the-activation");
+        var resolution = WideActivationResolution(withOrdinary: false);
+        var position = resolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var supplied = position.Members[0].Occurrence;
+        var plan = Plan(supplied);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                plan.Groups.SelectMany(group => group.Members).Select(item => item.Occurrence),
+                Is.EquivalentTo(new[] { supplied }),
+                "The caller's plan carries exactly the member the caller selected, which is all CBI12 compares.");
+            Assert.That(position.Members, Has.Count.EqualTo(2), "The generation resolved two.");
+            Assert.That(
+                partial.Failure!.Code,
+                Is.EqualTo("membership-not-resolved"),
+                "Only the resolution can say the position is short a member.");
+            Assert.That(partial.Lifecycle!.Members, Is.Empty);
+            Assert.That(handlers.Sum(handler => handler.ProviderEffectCount), Is.Zero);
+        });
+    }
+
+    [Test]
+    public async Task C3_the_positions_minimum_is_not_a_runtime_concept()
+    {
+        var (failed, _) = await FannedOutActivation("cbi28-07-one-member-never-ready");
+        var spare = WidePosition(WideResolution(Cardinality.Parse("1..2"), preselect: true));
+        var decisions = WideResolution(Cardinality.Parse("1..2"), preselect: true)
+            .Proposed!.Decisions
+            .Where(item => item.Requirement == Requirement)
+            .Select(item => item.Kind)
+            .ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                failed.Lifecycle!.Members.Count(item => item.Member.IsReleased),
+                Is.Zero,
+                "One member short of Ready retires the activation, siblings included.");
+            Assert.That(
+                spare.Cardinality.Minimum,
+                Is.EqualTo(1),
+                "A 1..2 position is satisfied by one provider, and that changes nothing here.");
+            Assert.That(
+                decisions,
+                Does.Contain("required-provider-selected").And.Contain("optional-provider-preselected"),
+                "CM2 knows which member was optional...");
+            Assert.That(
+                spare.Members.Select(item => item.Retained).Distinct(),
+                Has.Exactly(1).Items,
+                "...and the resolved members carry nothing that distinguishes them.");
+            Assert.That(
+                typeof(ActivationGroupMember).GetProperties().Select(property => property.Name),
+                Does.Not.Contain("Optional"),
+                "Nothing about an optional member reaches the plan CM4 activates.");
+        });
+    }
+
+    [Test]
+    public async Task C4_authority_stays_per_member_of_the_position()
+    {
+        var (active, _) = await FannedOutActivation("cbi28-01-wide-position-activated");
+        var (denied, handlers) = await FannedOutActivation("cbi28-08-one-member-denied");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                active.Admissions.Select(item => item.Occurrence),
+                Is.EquivalentTo(
+                    WidePosition(WideActivationResolution(withOrdinary: false))
+                        .Members.Select(item => item.Occurrence)),
+                "Two members of one position are two admissions, each against its own occurrence.");
+            Assert.That(
+                active.Grants.Select(item => item.Holder).Distinct().Count(),
+                Is.EqualTo(2),
+                "Each member's own party holds its own grant.");
+            Assert.That(denied.Failure!.Kind, Is.EqualTo(ComponentGroupAuthorityFailureKind.MemberAuthorityRefused));
+            Assert.That(
+                denied.Lifecycle,
+                Is.Null,
+                "The authority barrier is earlier: a refused member leaves no lifecycle at all.");
+            Assert.That(handlers.Sum(handler => handler.ProviderEffectCount), Is.Zero);
+        });
+    }
+
+    [Test]
+    public async Task C5_a_wide_position_activates_beside_an_ordinary_one()
+    {
+        var (mixed, _) = await FannedOutActivation("cbi28-02-wide-position-beside-an-ordinary-one");
+        var scopes = mixed.Lifecycle!.Members
+            .Select(item => item.Member.Fact("bindingScope"))
+            .ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(mixed.IsActive, Is.True);
+            Assert.That(mixed.Lifecycle.Members, Has.Count.EqualTo(3));
+            Assert.That(
+                scopes,
+                Does.Contain("scope.cooling"),
+                "The ordinary position's member reports the scope the generation recorded.");
+            Assert.That(
+                scopes.Where(scope => scope != "scope.cooling"),
+                Is.EquivalentTo(new[] { "scope.cooling-0", "scope.cooling-1" }));
+        });
+    }
+
+    [Test]
+    public async Task C6_scope_distinctness_is_checked_within_the_position_only()
+    {
+        var (shared, _) = await FannedOutActivation("cbi28-06-members-share-a-scope");
+        var (pair, _) = await GroupAuthorityResult("cbi13-01-two-members-admitted");
+        var pairScopes = pair.Lifecycle!.Members
+            .Select(item => item.Member.Fact("bindingScope"))
+            .Distinct()
+            .ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(shared.Failure!.Code, Is.EqualTo("scope-not-distinct"));
+            Assert.That(
+                pair.IsActive,
+                Is.True,
+                "Two ordinary positions in one CM scope are admitted, which is why the check is not activation-wide.");
+            Assert.That(
+                pairScopes,
+                Has.Length.EqualTo(1),
+                "Both of their members report one portable scope, which is Decision 16.");
+        });
+    }
+
+    [Test]
+    public async Task C7_earlier_slices_are_unchanged_for_every_input_they_accepted()
+    {
+        var (pair, _) = await GroupAuthorityResult("cbi13-01-two-members-admitted");
+        var narrow = Resolve(Cardinality.Parse("1..1"));
+        var direct = ComponentBindingIntegration.Prepare(
+            narrow,
+            Selection(narrow.Generation!.ProviderSets.Single().Members[0]));
+        var translation = WideTranslation("cbi27-01-two-members-fanned-out");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(pair.IsActive, Is.True, "A CBI13 activation of two 1..1 positions is untouched.");
+            Assert.That(direct.IsPrepared, Is.True, "CBI1 is untouched.");
+            Assert.That(translation.IsTranslated, Is.True, "CBI27 is untouched.");
+        });
+    }
+
+    /// <summary>
+    /// A wide `2..2` position, optionally beside an ordinary `1..1` one.
+    /// </summary>
+    private static ResolutionOutcome WideActivationResolution(bool withOrdinary)
+    {
+        var single = Request(Cardinality.Parse("2..2"));
+        var consumer = single.Definitions.Single(item => item.Definition == Consumer);
+        var provider = single.Definitions.Single(item => item.Definition == Provider);
+        var candidate = single.Candidates.Single();
+        var wide = consumer.Requirements.Single();
+        var ordinary = wide with
+        {
+            Requirement = SecondaryRequirement,
+            Contract = SecondaryContract,
+            Cardinality = Cardinality.Parse("1..1"),
+        };
+        return new FakeGenerationResolver().Resolve(single with
+        {
+            Definitions =
+            [
+                consumer with { Requirements = withOrdinary ? [wide, ordinary] : [wide] },
+                provider,
+                provider with { Definition = StandbyProvider },
+                provider with
+                {
+                    Definition = SecondaryProvider,
+                    Provides = [new ProvidedContract(SecondaryContract, Version)],
+                },
+            ],
+            Candidates =
+            [
+                candidate,
+                candidate with { Definition = StandbyProvider },
+                candidate with
+                {
+                    Definition = SecondaryProvider,
+                    Provides = [new ProvidedContract(SecondaryContract, Version)],
+                },
+            ],
+        });
+    }
+
+    private static async Task<(ComponentGroupAuthorityResult Result, CoolingPortableHandler[] Handlers)>
+        FannedOutActivation(string scenario)
+    {
+        var withOrdinary = scenario is "cbi28-02-wide-position-beside-an-ordinary-one"
+            or "cbi28-05-ordinary-member-with-a-scope";
+        var resolution = WideActivationResolution(withOrdinary);
+        var position = resolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var wideMembers = scenario == "cbi28-03-member-missing-from-the-activation"
+            ? position.Members.Take(1).ToArray()
+            : [.. position.Members];
+        var handlers = Enumerable.Range(0, 3)
+            .Select(_ => new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()))
+            .ToArray();
+        var substituted = CoolingPortableFixture.Contract with
+        {
+            Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
+        };
+
+        var members = new List<ComponentGroupMember>();
+        for (var index = 0; index < wideMembers.Length; index++)
+        {
+            // The second member's provider is substituted where the vector needs one member of the
+            // position never to reach Ready.
+            var document = scenario == "cbi28-07-one-member-never-ready" && index == 1
+                ? substituted
+                : CoolingPortableFixture.Contract;
+            var scope = scenario == "cbi28-06-members-share-a-scope"
+                ? PortableBindingScopeId.Parse("scope.cooling-0")
+                : PortableBindingScopeId.Parse($"scope.cooling-{index}");
+            members.Add(new(
+                Selection(wideMembers[index]) with { HostEndpoint = $"fanned-host-{index}" },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    document,
+                    handlers[index],
+                    PortableRealization.FixedDirectCall)),
+                scenario == "cbi28-04-member-without-a-scope" && index == 1 ? null : scope));
+        }
+
+        if (withOrdinary)
+        {
+            var ordinary = resolution.Generation.ProviderSets
+                .Single(item => item.Requirement == SecondaryRequirement);
+            members.Add(new(
+                Selection(ordinary.Members[0]) with
+                {
+                    Requirement = SecondaryRequirement,
+                    HostEndpoint = "fanned-host-ordinary",
+                },
+                new PortableDirectConversation(new PortableProviderEndpoint(
+                    CoolingPortableFixture.Contract,
+                    handlers[2],
+                    PortableRealization.FixedDirectCall)),
+                scenario == "cbi28-05-ordinary-member-with-a-scope"
+                    ? PortableBindingScopeId.Parse("scope.cooling-ordinary")
+                    : null));
+        }
+
+        var policy = GroupPolicy(ProviderLocalActor);
+        var participants = members
+            .Select((member, index) => new ComponentGroupParticipant(
+                member,
+                [FannedOutParticipant(index, member.Selection.Occurrence, policy, scenario)]))
+            .ToArray();
+        var result = await ComponentGroupAuthority.ActivateAsync(
+            resolution,
+            participants,
+            RuntimeRequest(Plan(members.Select(item => item.Selection.Occurrence).ToArray())));
+        return (result, handlers);
+    }
+
+    /// <summary>
+    /// One party per member, because two members of one position are two occurrences and CM5 admits
+    /// against an occurrence.
+    /// </summary>
+    private static ComponentParticipantRequest FannedOutParticipant(
+        int index,
+        OccurrenceId occurrence,
+        LocalAuthorityPolicy policy,
+        string scenario) => index switch
+    {
+        0 => new(new(occurrence, Participant), ProviderAuthority(policy, Authority)),
+        1 => new(
+            new(occurrence, Supervisor),
+            SupervisorAuthority(policy, ReportAuthority, scenario == "cbi28-08-one-member-denied")),
+        _ => new(new(occurrence, Observer), ObserverRequest(policy)),
+    };
+
     private static string GroupFailureToken(ComponentGroupActivationFailureKind kind) => kind switch
     {
         ComponentGroupActivationFailureKind.PlanUnsupported => "plan-unsupported",

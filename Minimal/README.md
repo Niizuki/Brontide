@@ -118,8 +118,10 @@ The implementation currently provides:
   Mediation that owns authority, because CM5 has no deputy relationship and no grant beneficiary;
   CBI27 carries a position wider than `1..1` into preflight as one ordinary member per resolved
   member, the set staying at the composition root, and finds that a CM binding scope holds many
-  bindings while a portable one names a single binding;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI27 integration
+  bindings while a portable one names a single binding; CBI28 activates those members, making the
+  generation the authority on a wide position's membership and establishing that its declared minimum
+  is not a runtime concept;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI28 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

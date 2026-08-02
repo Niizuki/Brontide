@@ -378,6 +378,22 @@ that resolved nothing is reported as its own outcome. Its bounded behavior is re
 [CBI27 capability contract](./cbi27-capability-contract.md) and completed
 [contract-completeness review](./cbi27-contract-completeness-review.md).
 
+CBI28 activates the members CBI27 fans out, and **nothing downstream needed teaching**: a wide
+position's members are distinct occurrences, and every slice from CBI12 onward is per-occurrence, so
+what the activation was missing is the one thing CBI27 found CM2 does not supply — a binding scope per
+member. Its finding is that **a wide position can be supplied half-complete and both existing checks
+pass**, because CBI12 compares the caller's member list with the caller's plan and a caller who omits
+one member and plans from the rest satisfies both; routing a wide position through CBI27 as a whole
+makes the generation the authority instead. **The position's declared minimum is not a runtime
+concept**: `Cardinality.Minimum` makes "keep serving with two of three" look reachable, but CM2 stops
+carrying it after resolution, the required-versus-optional split survives only as a Proposed Stack
+decision rather than a fact about a member, and neither CM3's plan nor CM4's attempt has an optional
+member — so one member short of Ready retires the whole activation, siblings included. Scope
+distinctness is checked within the position and deliberately not across the activation, which is
+Decision 16. Its bounded behavior is recorded in the
+[CBI28 capability contract](./cbi28-capability-contract.md) and completed
+[contract-completeness review](./cbi28-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -686,6 +702,17 @@ the outcome kind and code, the position's declared cardinality, how many members
 many optional positions are unfilled, and **how many distinct binding scopes the produced members
 hold**, so the scope-per-member rule and all-or-none are checked answers rather than silences. The
 fixture contains no resolver, seam, or portable implementation.
+
+### `cbi28-fanned-out-activation-vectors` sections
+
+`vectors` names two activations — a wide position on its own and one beside an ordinary `1..1`
+position — and six refusals covering a member the caller left out of the activation, a wide member
+with no binding scope, an ordinary member that names one, two members sharing a scope, a member of the
+position that never reports Ready, and a member whose authority is denied. Each pins whether the
+activation reached Active, the failure kind and code, how many members were admitted, how many grants
+the result carries, how many members are released and how many retired, and how many provider effects
+occurred, so the whole-position rule and the release barrier over a wide position are both checked
+answers. The fixture contains no runtime, planner, evaluator, or portable implementation.
 
 ### `cm0-mice-topology` sections
 

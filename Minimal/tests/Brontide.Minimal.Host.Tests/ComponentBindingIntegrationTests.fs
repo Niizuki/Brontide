@@ -686,12 +686,14 @@ type ComponentBindingIntegrationTests() =
                 { Selection =
                     { selection (positionFor requirementId) with
                         HostEndpoint = "verification-host-primary" }
+                  Scope = None
                   Conversation = conversationFor (List.item 0 handlers) }
             let secondMember =
                 { Selection =
                     { selection (positionFor secondaryRequirementId) with
                         Requirement = secondaryRequirementId
                         HostEndpoint = "verification-host-secondary" }
+                  Scope = None
                   Conversation =
                     let inner = conversationFor (List.item 1 handlers)
                     if scenario = "cbi16-08-retirement-failure" then
@@ -904,6 +906,7 @@ type ComponentBindingIntegrationTests() =
                     resolution
                     [ { Member =
                           { Selection = firstSelection
+                            Scope = None
                             Conversation = conversationFor 0 }
                         Participants =
                           [ { Mapping =
@@ -912,6 +915,7 @@ type ComponentBindingIntegrationTests() =
                               Request = providerAuthority policy authorityId } ] }
                       { Member =
                           { Selection = secondSelection
+                            Scope = None
                             Conversation = conversationFor 1 }
                         Participants =
                           [ { Mapping =
@@ -1007,6 +1011,7 @@ type ComponentBindingIntegrationTests() =
                     retained
                     [ { Member =
                           { Selection = firstSelection
+                            Scope = None
                             Conversation = conversationFor CoolingFixture.contract 0 }
                         Participants =
                           [ { Mapping =
@@ -1015,6 +1020,7 @@ type ComponentBindingIntegrationTests() =
                               Request = providerRequest } ] }
                       { Member =
                           { Selection = secondSelection
+                            Scope = None
                             Conversation = conversationFor secondDocument 1 }
                         Participants =
                           [ { Mapping =
@@ -1076,6 +1082,7 @@ type ComponentBindingIntegrationTests() =
                     resolution
                     [ { Member =
                           { Selection = firstSelection
+                            Scope = None
                             Conversation = baseConversation (List.item 0 handlers) }
                         Participants =
                           [ { Mapping =
@@ -1084,6 +1091,7 @@ type ComponentBindingIntegrationTests() =
                               Request = List.item 0 admitted } ] }
                       { Member =
                           { Selection = secondSelection
+                            Scope = None
                             Conversation = secondConversation }
                         Participants =
                           [ { Mapping =
@@ -1260,6 +1268,7 @@ type ComponentBindingIntegrationTests() =
                     resolution
                     [ { Member =
                           { Selection = firstSelection
+                            Scope = None
                             Conversation = conversationFor (List.item 0 handlers) }
                         Participants =
                           [ { Mapping =
@@ -1272,6 +1281,7 @@ type ComponentBindingIntegrationTests() =
                               Request = List.item 1 firstParticipants } ] }
                       { Member =
                           { Selection = secondSelection
+                            Scope = None
                             Conversation = conversationFor (List.item 1 handlers) }
                         Participants =
                           [ { Mapping =
@@ -1640,6 +1650,7 @@ type ComponentBindingIntegrationTests() =
                         { selection position with
                             Requirement = requirement
                             HostEndpoint = sprintf "cycle-host-%d" index }
+                      Scope = None
                       Conversation =
                         PortableDirectConversation(
                             PortableProviderEndpoint(
@@ -1785,6 +1796,7 @@ type ComponentBindingIntegrationTests() =
                         { selection position with
                             Requirement = requirement
                             HostEndpoint = sprintf "parent-host-%d" index }
+                      Scope = None
                       Conversation =
                         PortableDirectConversation(
                             PortableProviderEndpoint(
@@ -1912,6 +1924,7 @@ type ComponentBindingIntegrationTests() =
                     parent
                     [ { Member =
                           { Selection = childSelection
+                            Scope = None
                             Conversation =
                               PortableDirectConversation(
                                   PortableProviderEndpoint(
@@ -2039,6 +2052,7 @@ type ComponentBindingIntegrationTests() =
                     parent
                     [ { Member =
                           { Selection = childSelection
+                            Scope = None
                             Conversation = conversation }
                         Participants =
                           [ { Mapping =
@@ -2163,6 +2177,7 @@ type ComponentBindingIntegrationTests() =
                     { selection position with
                         Requirement = requirement
                         HostEndpoint = sprintf "successor-host-%d" index }
+                  Scope = None
                   Conversation =
                     PortableDirectConversation(
                         PortableProviderEndpoint(
@@ -2563,6 +2578,191 @@ type ComponentBindingIntegrationTests() =
             | _ -> supplied
         ComponentProviderSetBinding.translate resolution selectionValue
 
+    /// Two ordinary `1..1` positions, which the pair fixture resolves in one CM binding scope.
+    let fannedOutPair () =
+        task {
+            let resolution = pairRequest () |> FakeGenerationResolver.resolve
+            let providerSets =
+                match resolution with
+                | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            let positionFor requirement =
+                providerSets
+                |> List.find (fun item -> item.Requirement = requirement)
+                |> fun item -> List.exactlyOne item.Members
+            let handlers = [ CoolingHandler(); CoolingHandler() ]
+            let entryFor index requirement endpoint =
+                { Selection =
+                    { selection (positionFor requirement) with
+                        Requirement = requirement
+                        HostEndpoint = endpoint }
+                  Scope = None
+                  Conversation =
+                    PortableDirectConversation(
+                        PortableProviderEndpoint(
+                            CoolingFixture.contract,
+                            List.item index handlers,
+                            Realization.FixedDirectCall))
+                    :> IPortableProviderConversation }
+            let first = entryFor 0 requirementId "pair-host-primary"
+            let second = entryFor 1 secondaryRequirementId "pair-host-secondary"
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let! result =
+                ComponentGroupAuthority.activate
+                    resolution
+                    [ { Member = first
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = first.Selection.Occurrence
+                                  Participant = participant }
+                              Request = providerAuthority policy authorityId } ] }
+                      { Member = second
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = second.Selection.Occurrence
+                                  Participant = supervisor }
+                              Request = supervisorAuthority policy auditAuthorityId false } ] } ]
+                    (runtimeRequest (plan [ first.Selection.Occurrence; second.Selection.Occurrence ]))
+            return result, handlers
+        }
+
+    /// A wide `2..2` position, optionally beside an ordinary `1..1` one.
+    let wideActivationResolution withOrdinary =
+        let single = request (Cardinality.parse "2..2")
+        let consumerDefinition =
+            single.Definitions |> List.find (fun item -> item.Definition = consumer)
+        let providerDefinition =
+            single.Definitions |> List.find (fun item -> item.Definition = provider)
+        let candidate = List.exactlyOne single.Candidates
+        let wide = List.exactlyOne consumerDefinition.Requirements
+        let ordinary =
+            { wide with
+                Requirement = secondaryRequirementId
+                Contract = secondaryContractId
+                Cardinality = Cardinality.parse "1..1" }
+        { single with
+            Definitions =
+                [ { consumerDefinition with
+                      Requirements = (if withOrdinary then [ wide; ordinary ] else [ wide ]) }
+                  providerDefinition
+                  { providerDefinition with Definition = standbyProvider }
+                  { providerDefinition with
+                      Definition = secondaryProvider
+                      Provides = [ { Contract = secondaryContractId; Version = version } ] } ]
+            Candidates =
+                [ candidate
+                  { candidate with Definition = standbyProvider }
+                  { candidate with
+                      Definition = secondaryProvider
+                      Provides = [ { Contract = secondaryContractId; Version = version } ] } ] }
+        |> FakeGenerationResolver.resolve
+
+    /// One party per member, because two members of one position are two occurrences and CM5 admits
+    /// against an occurrence.
+    let fannedOutParticipant index occurrence policy scenario =
+        match index with
+        | 0 ->
+            { Mapping = { Occurrence = occurrence; Participant = participant }
+              Request = providerAuthority policy authorityId }
+        | 1 ->
+            { Mapping = { Occurrence = occurrence; Participant = supervisor }
+              Request =
+                supervisorAuthority
+                    policy
+                    reportAuthorityId
+                    (scenario = "cbi28-08-one-member-denied") }
+        | _ ->
+            { Mapping = { Occurrence = occurrence; Participant = observer }
+              Request = observerRequest policy }
+
+    let fannedOutActivation scenario =
+        task {
+            let withOrdinary =
+                scenario = "cbi28-02-wide-position-beside-an-ordinary-one"
+                || scenario = "cbi28-05-ordinary-member-with-a-scope"
+            let resolution = wideActivationResolution withOrdinary
+            let position = widePosition resolution
+            let wideMembers =
+                if scenario = "cbi28-03-member-missing-from-the-activation" then
+                    position.Members |> List.truncate 1
+                else
+                    position.Members
+            let handlers = [ CoolingHandler(); CoolingHandler(); CoolingHandler() ]
+            let substituted =
+                { CoolingFixture.contract with
+                    Provider = expectProvider "brontide.fake.substituted" }
+            let wideEntries =
+                wideMembers
+                |> List.mapi (fun index memberValue ->
+                    // The second member's provider is substituted where the vector needs one member
+                    // of the position never to reach Ready.
+                    let document =
+                        if scenario = "cbi28-07-one-member-never-ready" && index = 1 then
+                            substituted
+                        else
+                            CoolingFixture.contract
+                    let scope =
+                        if scenario = "cbi28-06-members-share-a-scope" then
+                            namedScope "scope.cooling-0"
+                        else
+                            wideScope index
+                    { Selection =
+                        { selection memberValue with
+                            HostEndpoint = sprintf "fanned-host-%d" index }
+                      Scope =
+                        (if scenario = "cbi28-04-member-without-a-scope" && index = 1 then
+                             None
+                         else
+                             Some scope)
+                      Conversation =
+                        PortableDirectConversation(
+                            PortableProviderEndpoint(
+                                document,
+                                List.item index handlers,
+                                Realization.FixedDirectCall))
+                        :> IPortableProviderConversation })
+            let ordinaryEntries =
+                if not withOrdinary then
+                    []
+                else
+                    let ordinary =
+                        match resolution with
+                        | ResolutionOutcome.Resolved(_, generation) ->
+                            generation.ProviderSets
+                            |> List.find (fun item -> item.Requirement = secondaryRequirementId)
+                        | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+                    [ { Selection =
+                          { selection (List.head ordinary.Members) with
+                              Requirement = secondaryRequirementId
+                              HostEndpoint = "fanned-host-ordinary" }
+                        Scope =
+                          (if scenario = "cbi28-05-ordinary-member-with-a-scope" then
+                               Some(namedScope "scope.cooling-ordinary")
+                           else
+                               None)
+                        Conversation =
+                          PortableDirectConversation(
+                              PortableProviderEndpoint(
+                                  CoolingFixture.contract,
+                                  List.item 2 handlers,
+                                  Realization.FixedDirectCall))
+                          :> IPortableProviderConversation } ]
+            let entries = wideEntries @ ordinaryEntries
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let participants =
+                entries
+                |> List.mapi (fun index entry ->
+                    { Member = entry
+                      Participants =
+                        [ fannedOutParticipant index entry.Selection.Occurrence policy scenario ] })
+            let! result =
+                ComponentGroupAuthority.activate
+                    resolution
+                    participants
+                    (runtimeRequest (plan (entries |> List.map _.Selection.Occurrence)))
+            return result, handlers
+        }
+
     /// The positions the successor generation resolves, per scenario.
     let membershipPositions scenario =
         match scenario with
@@ -2656,6 +2856,7 @@ type ComponentBindingIntegrationTests() =
                     CoolingFixture.contract
             { Member =
                 { Selection = selection
+                  Scope = None
                   Conversation =
                     PortableDirectConversation(
                         PortableProviderEndpoint(document, CoolingHandler(), Realization.FixedDirectCall))
@@ -2717,6 +2918,7 @@ type ComponentBindingIntegrationTests() =
                     resolution
                     [ { Member =
                           { Selection = firstSelection
+                            Scope = None
                             Conversation = conversationFor 0 }
                         Participants =
                           [ { Mapping =
@@ -2725,6 +2927,7 @@ type ComponentBindingIntegrationTests() =
                               Request = providerAuthority policy authorityId } ] }
                       { Member =
                           { Selection = secondSelection
+                            Scope = None
                             Conversation = conversationFor 1 }
                         Participants =
                           [ { Mapping =
@@ -4438,6 +4641,7 @@ type ComponentBindingIntegrationTests() =
                 |> List.mapi (fun index childSelection ->
                     { Member =
                         { Selection = childSelection
+                          Scope = None
                           Conversation =
                             PortableDirectConversation(
                                 PortableProviderEndpoint(
@@ -4503,6 +4707,7 @@ type ComponentBindingIntegrationTests() =
                 ComponentGroupLifecycle.activate
                     resolution
                     [ { Selection = childSelection
+                        Scope = None
                         Conversation = directCooling CoolingFixture.contract } ]
                     (runtimeRequest planValue)
             let! singleton =
@@ -5753,6 +5958,267 @@ type ComponentBindingIntegrationTests() =
             Assert.That(ComponentMediatedBinding.isTranslated mediated, Is.True))
 
     [<Test>]
+    member _.``shared CBI28 vectors activate a fanned-out position``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi28-fanned-out-activation-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI28 vector identity must be a string"
+                    | value -> value
+                let! result, handlers = fannedOutActivation scenario
+                let expectedFailure = vector.GetProperty("expectedFailureKind")
+                let expectedCode = vector.GetProperty("expectedCode")
+                let members =
+                    match result.Lifecycle with
+                    | Some lifecycle -> lifecycle.Members
+                    | None -> []
+                let released = members |> List.filter _.Member.IsReleased |> List.length
+                let retired =
+                    members
+                    |> List.filter (fun item -> CompositionStage.token item.Member.Stage = "retired")
+                    |> List.length
+                multiple (fun () ->
+                    Assert.That(
+                        ComponentGroupAuthority.isActive result,
+                        Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()),
+                        scenario)
+                    Assert.That(
+                        result.Failure |> Option.map (fun failure -> groupAuthorityToken failure.Kind),
+                        Is.EqualTo(
+                            if expectedFailure.ValueKind = JsonValueKind.Null then
+                                None
+                            else
+                                Some(expectedFailure.GetString())),
+                        scenario)
+                    Assert.That(
+                        result.Failure |> Option.map _.Code,
+                        Is.EqualTo(
+                            if expectedCode.ValueKind = JsonValueKind.Null then
+                                None
+                            else
+                                Some(expectedCode.GetString())),
+                        scenario)
+                    Assert.That(
+                        result.Admissions.Length,
+                        Is.EqualTo(vector.GetProperty("expectedMembersAdmitted").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Grants.Length,
+                        Is.EqualTo(vector.GetProperty("expectedGrants").GetInt32()),
+                        scenario)
+                    Assert.That(released, Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()), scenario)
+                    Assert.That(retired, Is.EqualTo(vector.GetProperty("expectedRetired").GetInt32()), scenario)
+                    Assert.That(
+                        handlers |> List.sumBy _.ProviderEffectCount,
+                        Is.EqualTo(vector.GetProperty("expectedProviderEffects").GetInt32()),
+                        scenario)
+                    // The property over every vector: the barrier is the activation's, so a strict
+                    // subset of its members never ends up serving.
+                    Assert.That(
+                        released = 0 || released = members.Length,
+                        Is.True,
+                        sprintf "%s: ordinary interaction opens for every member or for none." scenario))
+        }
+
+    [<Test>]
+    member _.``C1 a member of a wide position carries the scope its caller named``() =
+        task {
+            let! active, _ = fannedOutActivation "cbi28-01-wide-position-activated"
+            let! unscoped, _ = fannedOutActivation "cbi28-04-member-without-a-scope"
+            let! overScoped, _ = fannedOutActivation "cbi28-05-ordinary-member-with-a-scope"
+            let scopes =
+                active.Lifecycle.Value.Members
+                |> List.map (fun item -> defaultArg (item.Member.TryFact "bindingScope") "absent")
+                |> List.sort
+                |> String.concat ", "
+            multiple (fun () ->
+                Assert.That(
+                    scopes,
+                    Is.EqualTo "scope.cooling-0, scope.cooling-1",
+                    "Each member of the position holds the scope its caller named.")
+                Assert.That(unscoped.Failure.Value.Code, Is.EqualTo "member-scope-required")
+                Assert.That(
+                    overScoped.Failure.Value.Code,
+                    Is.EqualTo "member-scope-not-required",
+                    "A 1..1 position's scope is the generation's, so naming one disagrees with the resolution."))
+        }
+
+    /// The check the activation could not make: both of its existing checks compare the caller's
+    /// member list with the caller's plan, so a position supplied half-complete satisfies both.
+    [<Test>]
+    member _.``C2 a wide position joins the activation whole``() =
+        task {
+            let! partial, handlers = fannedOutActivation "cbi28-03-member-missing-from-the-activation"
+            let position = widePosition (wideActivationResolution false)
+            let supplied = (List.head position.Members).Occurrence
+            let planValue = plan [ supplied ]
+            let planned =
+                planValue.Groups
+                |> List.collect (fun group -> group.Members |> List.map _.Occurrence)
+            multiple (fun () ->
+                Assert.That(
+                    planned |> List.map OccurrenceId.value |> String.concat ", ",
+                    Is.EqualTo(OccurrenceId.value supplied),
+                    "The caller's plan carries exactly the member the caller selected, which is all the plan check compares.")
+                Assert.That(position.Members.Length, Is.EqualTo 2, "The generation resolved two.")
+                Assert.That(
+                    partial.Failure.Value.Code,
+                    Is.EqualTo "membership-not-resolved",
+                    "Only the resolution can say the position is short a member.")
+                Assert.That(partial.Lifecycle.Value.Members, Is.Empty)
+                Assert.That(handlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0))
+        }
+
+    [<Test>]
+    member _.``C3 the position's minimum is not a runtime concept``() =
+        task {
+            let! failed, _ = fannedOutActivation "cbi28-07-one-member-never-ready"
+            let spareResolution =
+                wideResolution (Cardinality.parse "1..2") 2 true ProviderExposure.Distinct false
+            let spare = widePosition spareResolution
+            let decisions =
+                match spareResolution with
+                | ResolutionOutcome.Resolved(proposed, _) ->
+                    proposed.Decisions
+                    |> List.filter (fun item -> item.Requirement = Some requirementId)
+                    |> List.map _.Kind
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            multiple (fun () ->
+                Assert.That(
+                    failed.Lifecycle.Value.Members |> List.filter _.Member.IsReleased |> List.length,
+                    Is.EqualTo 0,
+                    "One member short of Ready retires the activation, siblings included.")
+                Assert.That(
+                    spare.Cardinality.Minimum,
+                    Is.EqualTo 1,
+                    "A 1..2 position is satisfied by one provider, and that changes nothing here.")
+                Assert.That(
+                    decisions |> List.contains "required-provider-selected",
+                    Is.True,
+                    "CM2 knows which member was optional...")
+                Assert.That(decisions |> List.contains "optional-provider-preselected", Is.True)
+                Assert.That(
+                    spare.Members |> List.map _.Retained |> List.distinct |> List.length,
+                    Is.EqualTo 1,
+                    "...and the resolved members carry nothing that distinguishes them.")
+                Assert.That(
+                    typeof<ActivationGroupMember>.GetProperties()
+                    |> Array.map _.Name
+                    |> Array.contains "Optional",
+                    Is.False,
+                    "Nothing about an optional member reaches the plan CM4 activates."))
+        }
+
+    [<Test>]
+    member _.``C4 authority stays per member of the position``() =
+        task {
+            let! active, _ = fannedOutActivation "cbi28-01-wide-position-activated"
+            let! denied, handlers = fannedOutActivation "cbi28-08-one-member-denied"
+            let admitted =
+                active.Admissions
+                |> List.map (fun item -> OccurrenceId.value item.Occurrence)
+                |> List.sort
+                |> String.concat ", "
+            let resolved =
+                (widePosition (wideActivationResolution false)).Members
+                |> List.map (fun item -> OccurrenceId.value item.Occurrence)
+                |> List.sort
+                |> String.concat ", "
+            multiple (fun () ->
+                Assert.That(
+                    admitted,
+                    Is.EqualTo resolved,
+                    "Two members of one position are two admissions, each against its own occurrence.")
+                Assert.That(
+                    active.Grants |> List.map _.Holder |> List.distinct |> List.length,
+                    Is.EqualTo 2,
+                    "Each member's own party holds its own grant.")
+                Assert.That(
+                    groupAuthorityToken denied.Failure.Value.Kind,
+                    Is.EqualTo "member-authority-refused")
+                Assert.That(
+                    denied.Lifecycle,
+                    Is.EqualTo None,
+                    "The authority barrier is earlier: a refused member leaves no lifecycle at all.")
+                Assert.That(handlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0))
+        }
+
+    [<Test>]
+    member _.``C5 a wide position activates beside an ordinary one``() =
+        task {
+            let! mixed, _ = fannedOutActivation "cbi28-02-wide-position-beside-an-ordinary-one"
+            let scopes =
+                mixed.Lifecycle.Value.Members
+                |> List.map (fun item -> item.Member.TryFact "bindingScope")
+            multiple (fun () ->
+                Assert.That(ComponentGroupAuthority.isActive mixed, Is.True)
+                Assert.That(mixed.Lifecycle.Value.Members.Length, Is.EqualTo 3)
+                Assert.That(
+                    scopes |> List.contains (Some "scope.cooling"),
+                    Is.True,
+                    "The ordinary position's member reports the scope the generation recorded.")
+                Assert.That(
+                    scopes
+                    |> List.filter (fun scope -> scope <> Some "scope.cooling")
+                    |> List.map (fun scope -> defaultArg scope "absent")
+                    |> List.sort
+                    |> String.concat ", ",
+                    Is.EqualTo "scope.cooling-0, scope.cooling-1"))
+        }
+
+    [<Test>]
+    member _.``C6 scope distinctness is checked within the position only``() =
+        task {
+            let! shared, _ = fannedOutActivation "cbi28-06-members-share-a-scope"
+            let! pair, _ = fannedOutPair ()
+            let pairScopes =
+                pair.Lifecycle.Value.Members
+                |> List.map (fun item -> item.Member.TryFact "bindingScope")
+                |> List.distinct
+            multiple (fun () ->
+                Assert.That(shared.Failure.Value.Code, Is.EqualTo "scope-not-distinct")
+                Assert.That(
+                    ComponentGroupAuthority.isActive pair,
+                    Is.True,
+                    "Two ordinary positions in one CM scope are admitted, which is why the check is not activation-wide.")
+                Assert.That(
+                    pairScopes.Length,
+                    Is.EqualTo 1,
+                    "Both of their members report one portable scope, which is Decision 16."))
+        }
+
+    [<Test>]
+    member _.``C7 earlier slices are unchanged for every input they accepted``() =
+        task {
+            let! pair, _ = fannedOutPair ()
+            let narrow = resolve (Cardinality.parse "1..1")
+            let direct = ComponentBindingIntegration.prepare narrow (selection (memberOf narrow))
+            let translation = wideTranslation "cbi27-01-two-members-fanned-out"
+            multiple (fun () ->
+                Assert.That(
+                    ComponentGroupAuthority.isActive pair,
+                    Is.True,
+                    "A CBI13 activation of two 1..1 positions is untouched.")
+                Assert.That(
+                    (match direct with
+                     | ComponentBindingIntegrationResult.Prepared _ -> true
+                     | _ -> false),
+                    Is.True,
+                    "CBI1 is untouched.")
+                Assert.That(
+                    ComponentProviderSetBinding.isTranslated translation,
+                    Is.True,
+                    "CBI27 is untouched."))
+        }
+
+    [<Test>]
     member _.``shared CBI12 vectors open ordinary interaction for every member or none``() =
         task {
             let path =
@@ -5793,6 +6259,7 @@ type ComponentBindingIntegrationTests() =
                     { Selection =
                         { selection (positionFor requirementId) with
                             HostEndpoint = "group-host-primary" }
+                      Scope = None
                       Conversation =
                         conversationFor CoolingFixture.contract (List.item 0 handlers) }
                 let secondarySelection =
@@ -5805,6 +6272,7 @@ type ComponentBindingIntegrationTests() =
                         HostEndpoint = "group-host-secondary" }
                 let secondary =
                     { Selection = secondarySelection
+                      Scope = None
                       Conversation = conversationFor secondContract (List.item 1 handlers) }
                 let members = [ primary; secondary ]
                 let occurrences = members |> List.map _.Selection.Occurrence
@@ -5919,6 +6387,7 @@ type ComponentBindingIntegrationTests() =
                     { Selection =
                         { selection (positionFor requirementId) with
                             HostEndpoint = "authority-host-primary" }
+                      Scope = None
                       Conversation =
                         conversationFor CoolingFixture.contract (List.item 0 handlers) }
                 let secondMember =
@@ -5926,6 +6395,7 @@ type ComponentBindingIntegrationTests() =
                         { selection (positionFor secondaryRequirementId) with
                             Requirement = secondaryRequirementId
                             HostEndpoint = "authority-host-secondary" }
+                      Scope = None
                       Conversation = conversationFor secondContract (List.item 1 handlers) }
                 // The second member's participant differs by default, so each member admits its own
                 // party.
@@ -6071,12 +6541,14 @@ type ComponentBindingIntegrationTests() =
                     { Selection =
                         { selection (positionFor requirementId) with
                             HostEndpoint = "revision-host-primary" }
+                      Scope = None
                       Conversation = conversationFor (List.item 0 handlers) }
                 let secondMember =
                     { Selection =
                         { selection (positionFor secondaryRequirementId) with
                             Requirement = secondaryRequirementId
                             HostEndpoint = "revision-host-secondary" }
+                      Scope = None
                       Conversation = conversationFor (List.item 1 handlers) }
                 let admitted =
                     [ providerAuthority (groupPolicy providerLocalActor supervisorLocalActor) authorityId
@@ -7219,6 +7691,7 @@ type ComponentBindingIntegrationTests() =
                     { Selection =
                         { selection (positionFor requirementId) with
                             HostEndpoint = "withdrawal-host-primary" }
+                      Scope = None
                       Conversation =
                         baseConversation CoolingFixture.contract (List.item 0 handlers) }
                 let secondMember =
@@ -7226,6 +7699,7 @@ type ComponentBindingIntegrationTests() =
                         { selection (positionFor secondaryRequirementId) with
                             Requirement = secondaryRequirementId
                             HostEndpoint = "withdrawal-host-secondary" }
+                      Scope = None
                       Conversation = secondConversation }
                 let participants =
                     [ providerAuthority (groupPolicy providerLocalActor supervisorLocalActor) authorityId
@@ -7346,11 +7820,13 @@ type ComponentBindingIntegrationTests() =
                 [ { Selection =
                       { selection (positionFor requirementId) with
                           HostEndpoint = "group-host-primary" }
+                    Scope = None
                     Conversation = conversationFor CoolingFixture.contract (List.item 0 handlers) }
                   { Selection =
                       { selection (positionFor secondaryRequirementId) with
                           Requirement = secondaryRequirementId
                           HostEndpoint = "group-host-secondary" }
+                    Scope = None
                     Conversation =
                       conversationFor
                           { CoolingFixture.contract with
@@ -7951,6 +8427,7 @@ type ComponentBindingIntegrationTests() =
                     retained
                     [ { Member =
                           { Selection = primary
+                            Scope = None
                             Conversation = directCooling CoolingFixture.contract }
                         Participants =
                           [ { Mapping =

@@ -211,6 +211,12 @@ the same identity — the CM one holds many bindings and tells them apart by `Bi
 one names a single binding — so CBI1's mapping of one onto the other holds only while a position is
 `1..1` and a scope holds one position, and the second was already false wherever two positions share a
 scope.
+CBI28 activates those members, and needed nothing downstream: every slice from CBI12 onward is
+per-occurrence, so only the missing scope had to be supplied. It closes a hole the lift would have
+opened — a wide position supplied half-complete passes both plan checks, because each compares the
+caller's member list with the caller's plan — and establishes that a Provider Set's declared minimum is
+not a runtime concept, so one member short of Ready retires the whole activation rather than leaving a
+degraded set serving.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary
