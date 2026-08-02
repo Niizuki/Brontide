@@ -330,6 +330,22 @@ not given, which is now Decision 14. Its bounded behavior is recorded in the
 [CBI24 capability contract](./cbi24-capability-contract.md) and completed
 [contract-completeness review](./cbi24-contract-completeness-review.md).
 
+CBI25 carries a position resolved with **mediated exposure** into portable preflight, and its finding
+is that the seam's refusal of mediation was the answer rather than the obstacle. The seam refuses
+because *"an erased Mediation still carries provenance, deputy, and authority obligations"* — read as a
+requirement, that says a correct translation must keep the obligations with a holder, and CM2 supplies
+one: a policy-bearing Mediation must be realized as a **dedicated Component**, and a Component is what
+Portable Binding binds. So the mediated position is translated by **binding the mediator**, the plan's
+provider fact names it because it is who answers, and nothing mediated is ever handed to the seam. A
+**static-host** Mediation is refused whatever Component it names, because the host is the mediator and
+a binding to it reaches nobody. This is the opposite outcome from CBI21, and the difference generalises:
+a seam's refusal says nothing about whether a capability can be integrated until you ask whether the
+refused thing has a representation the seam already holds. The mediator's **authority is deliberately
+not admitted** — whether its occurrence's grants may stand for what the Mediation owns is a question
+about deputies. Its bounded behavior is recorded in the
+[CBI25 capability contract](./cbi25-capability-contract.md) and completed
+[contract-completeness review](./cbi25-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -606,6 +622,16 @@ after the cascade has run, and a cascade whose cleanup fails. Each pins how many
 retired, how many successor members are released, and how many attachment members are still released,
 so "nothing is established while an attachment is up" is a checked answer. The fixture contains no
 runtime, planner, resolver, or portable implementation.
+
+### `cbi25-mediated-position-vectors` sections
+
+`vectors` names one translation and eight refusals covering a position that is not mediated, a
+distinct position that declares a Mediation anyway, a Mediation realized as a static host with and
+without a named Component, a dedicated realization naming none, a mapping that names a member of the
+mediated set, a mediator occurrence the generation does not resolve, and a mediated requirement the
+generation does not resolve at all. Each pins the outcome kind and code, whether a portable member was
+produced, and which Mediation identity the result carries, so "nothing mediated reaches the seam" is a
+checked answer. The fixture contains no resolver, mediator, or portable implementation.
 
 ### `cm0-mice-topology` sections
 

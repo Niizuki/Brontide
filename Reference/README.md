@@ -144,6 +144,10 @@ CBI24 replaces a generation that has attachments beneath it. A replacement orpha
 because CM4 preserves every unrelated scope and a child's is unrelated, so the cascade runs before
 the cutover — the opposite of CBI19's retained members, since an attachment is outside the
 transaction rather than inside it. A Port does not migrate; a child is stood down and stood up again.
+CBI25 carries a mediated position into preflight by binding the Component its Mediation is realized
+as. The seam refuses an erased Mediation because the obligations would lose their holder, and CM2
+gives them one, so nothing is erased and no refusal is relaxed. A static-host Mediation is refused
+whatever Component it names, and the mediator's authority is deliberately not admitted.
 
 ## Build and test
 

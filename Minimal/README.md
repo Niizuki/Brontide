@@ -112,7 +112,9 @@ The implementation currently provides:
   those attachments and retires a supplied forest deepest first, because an attachment occupies a
   Port of a generation and CM4 records no parent-child relationship of its own; CBI24 replaces a
   generation with attachments beneath it, standing them down before the cutover because an
-  attachment sits outside the transaction that a retained member sits inside;
+  attachment sits outside the transaction that a retained member sits inside; CBI25 carries a
+  mediated position into preflight by binding the Component its Mediation is realized as, refusing a
+  static-host Mediation and leaving the mediator's authority unadmitted;
 - a headless host and seven F# test assemblies, including the host-owned CBI1-CBI20 integration
   suite.
 

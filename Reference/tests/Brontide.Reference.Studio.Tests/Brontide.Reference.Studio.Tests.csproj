@@ -87,5 +87,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi24-attached-replacement-vectors.json"
           Link="component-management\fixtures\cbi24-attached-replacement-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi25-mediated-position-vectors.json"
+          Link="component-management\fixtures\cbi25-mediated-position-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

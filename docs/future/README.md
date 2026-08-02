@@ -615,14 +615,45 @@ and CBI24 cannot detect them to protect them. The
 [`contract-completeness review`](../../component-management/cbi24-contract-completeness-review.md)
 bound it to the attachments the caller supplies.
 
-**Mediation is the next implementable item.** Every slice since CBI1 has refused a mediated exposure,
-because CBI1 accepts only `ProviderExposure.Distinct` with no Mediation declaration, and CM2 resolves
-Mediation as a first-class property of a Provider Set. It has to decide what a Mediation identity means
-at the portable seam — whether the mediator is a provider the host binds to, a transformation the
-Binding Plan records, or something the seam cannot express at all, which is the answer Relational
-Initialisation got. Wider Provider Sets and real distribution remain future work behind it. PB8's
-independent reviews remain a separate governance prerequisite rather than implementation work;
-Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12, 13, and 14 await rulings.
+CBI25 carries a position resolved with **mediated exposure** into portable preflight, and its first
+result is that **the seam's refusal was the answer rather than the obstacle**. `PortableExposure.Mediated`
+is refused because *"an erased Mediation still carries provenance, deputy, and authority obligations"*.
+Read as a requirement rather than a wall, that sentence says what a correct translation must do: keep
+the obligations with a holder. CM2 supplies one — a policy-bearing Mediation must be realized as a
+**dedicated Component** — and a Component is exactly what Portable Binding binds. So a mediated position
+is translated by **binding the mediator**: the plan's provider fact names it because it is who answers,
+nothing mediated is ever presented to the seam, and no refusal is relaxed.
+
+**This is the opposite outcome from CBI21, and the difference generalises.** Relational Initialisation
+is unreachable because the seam has no stage, no verb, and no window for it. Mediation is reachable
+because the seam needs nothing new. A refusal in a published seam is therefore not evidence either way
+about whether a capability can be integrated; what decides it is whether the refused thing has a
+representation the seam already holds.
+
+A **static-host** Mediation is refused whatever Component it names, because the host is the mediator and
+a binding to it reaches nobody — the composition root binds the members directly and does the mediation
+as its own work. Two of the slice's refusals exist because the falsification pass demanded them rather
+than because the design anticipated them: a static host *naming* a Component, and a **distinct** position
+that declares a Mediation, which CM2 records and ignores. Without either vector the corresponding check
+could not fail.
+
+The deliberate stop is authority. **The mediator's authority is not admitted here**: CBI3 admits against
+an occurrence and the mediator has one, so admission is mechanically possible — but whether that
+occurrence's grants may stand for the obligations CM2 says the *Mediation* owns is a question about what
+a deputy is, and admitting the mediator would answer it invisibly. The
+[`CBI25 capability contract`](../../component-management/cbi25-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi25-contract-completeness-review.md)
+bound it to preflight.
+
+**Admitting a mediator's authority is the next implementable item.** CBI25 binds the mediator and stops
+before CM5, and CM2's Mediation declaration says exactly what makes the question hard: a Mediation may
+own authority, recovery, lifecycle, residue, backpressure, or mutable membership, and CM5 admits narrow
+tuples against an occurrence. It has to decide whether a mediator is admitted for its own interaction
+only, or as a deputy for the members behind it — and CBI3's rule that a grant names a holder suggests
+the first, which would mean a Mediation owning authority cannot be represented at all. Wider Provider
+Sets and real distribution remain future work behind it. PB8's independent reviews remain a separate
+governance prerequisite rather than implementation work; Decision 11 was ruled on and delivered on
+2026-07-30, and Decisions 12, 13, and 14 await rulings.
 
 ## Other planned areas
 
