@@ -116,7 +116,10 @@ The implementation currently provides:
   mediated position into preflight by binding the Component its Mediation is realized as, refusing a
   static-host Mediation; CBI26 admits that mediator's authority for what it does itself and refuses a
   Mediation that owns authority, because CM5 has no deputy relationship and no grant beneficiary;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI20 integration
+  CBI27 carries a position wider than `1..1` into preflight as one ordinary member per resolved
+  member, the set staying at the composition root, and finds that a CM binding scope holds many
+  bindings while a portable one names a single binding;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI27 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

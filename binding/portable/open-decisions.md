@@ -1,17 +1,17 @@
 # Portable Binding — open owner decisions
 
-**Status:** Decisions 1 through 11 are **recorded**; **Decisions 12 through 15 are open**, raised
-2026-08-01 by CBI20 and CBI21 and 2026-08-02 by CBI23, CBI24, and CBI26. Decisions 12, 14, and 15
-block nothing; Decision 13 blocks every activation of a CM3 group that declares a bounded lifecycle
-protocol. Decisions 1 and 2 (the PB0 exit blockers) were
+**Status:** Decisions 1 through 11 are **recorded**; **Decisions 12 through 16 are open**, raised
+2026-08-01 by CBI20 and CBI21 and 2026-08-02 by CBI23, CBI24, CBI26, and CBI27. Decisions 12, 14, 15,
+and 16 block nothing; Decision 13 blocks every activation of a CM3 group that declares a bounded
+lifecycle protocol. Decisions 1 and 2 (the PB0 exit blockers) were
 recorded 2026-07-24. Decisions 3 through 10 were raised by evidence in PB4, PB5, or PB6, ran on a
 provisional implementer choice while each phase proceeded, and were recorded 2026-07-28. Four of
 those eight confirm the provisional choice unchanged; four confirm it and create follow-on work,
 tracked under [Work the rulings create](#work-the-rulings-create).
 **Decision 11 was raised later, by PB7, and was recorded on 2026-07-30**: negotiation now compares
 provider identity and the Binding Plan reports the provider that answered. **Decisions 12 and 13 were raised by
-CBI20 and CBI21 on 2026-08-01, and Decisions 14 and 15 by CBI23, CBI24, and CBI26 on 2026-08-02; all
-four await rulings.** Non-pinned.
+CBI20 and CBI21 on 2026-08-01, and Decisions 14, 15, and 16 by CBI23, CBI24, CBI26, and CBI27 on
+2026-08-02; all five await rulings.** Non-pinned.
 
 **How to read this file.** Every decision below is written to be answerable without any other
 context: it states what was observed, what was running when the question was raised and why, what the
@@ -39,6 +39,7 @@ reader can see what was rejected and on what grounds.
 | 13 | Relational Initialisation is declared out of scope, and CM4 needs it | CBI21 | **Open** — raised 2026-08-01; Option A running |
 | 14 | Nothing records that a restart scope has children | CBI23, CBI24 | **Open** - raised 2026-08-02; Option A running |
 | 15 | CM2 can declare a Mediation that owns authority; CM5 cannot represent one | CBI26 | **Open** - raised 2026-08-02; Option A running |
+| 16 | A CM binding scope holds many bindings; a portable one names a single binding | CBI27 | **Open** - raised 2026-08-02; Option A running |
 
 ---
 
@@ -822,3 +823,66 @@ downstream limitation would be the wrong direction.
 authority has to actually work — a real arbitration or aggregation mediator whose members cannot hold
 their own grants — because that names what the beneficiary is for. Until then, every option is a
 guess about a shape nobody has had to build.
+
+---
+
+## Decision 16 — a CM binding scope holds many bindings; a portable one names a single binding
+
+**Owner:** Component Management owners, with Portable Binding owners for the seam's reading.
+**Raised by:** CBI27.
+**Blocks:** nothing today. Every member CBI1 prepares is well formed, and the collision is between two
+members of one composition rather than inside either.
+
+**Context.** The two models mean different things by "binding scope", and CBI1 maps one straight onto
+the other.
+
+The portable one is the composition's identity for a position. It *"survives withdrawal, termination,
+and replacement"* where the planId does not, and the seam's `scope-uniqueness` declared silence says
+uniqueness within a composition is the composition's responsibility, because *"a composition that
+reuses a scope has two members claiming one position, which its own resolver is the place to reject"*.
+One member holds one scope, and the handoff's own `laterUse` note expects to be called *"once per
+'1..1' requirement"*.
+
+The CM one is a container. `OccupiedBindingEntry` carries a `BindingId` beside its `BindingScopeId`,
+CM2 looks occupied bindings up by scope **and contract**, and it refuses several occupied bindings in
+one scope only when the requirement's cardinality is `1..1` — which is CM2 saying, in code, that a
+scope holds one binding per member of a wider position and that `BindingId` is what tells them apart.
+
+CBI1 unwraps `providerSet.Scope` into the portable scope, and its C4 states that *"every successful
+member reports the same scope text the resolved Provider Set carried"*. That is a bijection under two
+conditions it does not state: the position is `1..1`, and the scope holds one position. CBI27 breaks
+the first by construction — a wide position has one scope and several members — and takes an explicit
+portable scope per member instead, which is how CBI1 already handles every other portable identity.
+
+**The second condition is already false and nothing noticed.** The multi-member slices from CBI12
+onward resolve two or three positions in one CM binding scope, so their prepared members all report
+`scope.cooling` and reach the seam as several members claiming one position. Both stacks do it
+identically, because every fixture clones one requirement template and no vector ever compared two
+members' scopes. A named test in each stack now pins it.
+
+What makes this a decision rather than a fix is what a correction moves. The `bindingScope` fact is a
+resolution fact, CBI4's canonical profile includes every resolution fact, and the shared fixture pins
+that profile's SHA-256 per scenario. Changing how the portable scope is derived therefore invalidates
+cross-stack pinned evidence and needs a repin, not a slice.
+
+| Option | What it is | Pros | Cons |
+| --- | --- | --- | --- |
+| **A. Leave CBI1's mapping, take the scope explicitly where it cannot work** *(running)* | CBI1 keeps unwrapping the CM scope; CBI27 takes one portable scope per member and refuses collisions within a set | No repin, no digest change, and the case a wide set forces is handled correctly; the remaining collision is between positions the caller chose to put in one CM scope | Two positions in one CM scope still reach the seam as one, so the composition is doing exactly what the seam names as a resolver defect, and CBI1's C4 reads as a general rule when it is a property of `1..1` |
+| **B. Derive the portable scope from the CM scope and the member** | CBI1 composes scope, contract, and occurrence into the portable identity | Faithful to what each model means; makes every member's scope unique by construction, with no caller involvement | Moves every member's `bindingScope` fact, so every CBI4 digest is repinned and the cross-stack comparison evidence is re-established; and the composition root becomes the author of an identity that survives replacement |
+| **C. Take the portable scope explicitly everywhere** | Every `ComponentBindingSelection` carries the portable scope, as it carries the portable Component and provider | Matches CBI1's own C2 discipline exactly — identity correspondence explicit, never inferred from spelling; each stack checks distinctness across a composition | Changes the entry point of all 27 slices in both stacks, and moves the digests as B does unless every fixture happens to supply the old text |
+| **D. Refuse a composition whose members' scopes collide** | The group activation path refuses two members holding one portable scope | Cheap, fails closed, and turns an invisible collision into a visible refusal | Refuses a legal CM resolution: two positions in one CM scope is what a CM scope is for, so the refusal would be the integration objecting to something CM2 permits |
+
+**Recommendation: A now, C when the digests are being repinned for another reason.** B and C both fix
+the concept; C is the honest one, because the portable scope belongs to the composition's identity
+space and every other portable identity in this programme is supplied rather than derived. Neither is
+worth spending a cross-stack repin on by itself, and D trades a latent identity problem for a refusal
+of something CM2 allows. What A costs is precision in CBI1's C4, which this slice's contract now states
+explicitly rather than leaving to a reader.
+
+**Decision:** **Open.** Raised 2026-08-02.
+
+**What would settle it.** Anything that reads a binding by its portable scope. Today nothing does —
+withdrawal, replacement, and the gate all work from a member the caller already holds — so two members
+sharing a scope produce two independent, correct bindings and two replacement records that happen to
+name the same scope. The moment a composition looks a binding up by scope, or a replacement record is
+matched to the position it replaces, the collision stops being latent and B or C becomes forced.

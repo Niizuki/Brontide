@@ -670,14 +670,46 @@ refusal that looked the same and was not, because the refused thing did have a r
 bound it to the mediator's own authority, and **Decision 15** records the disagreement between CM2 and
 CM5 for their owners.
 
-**Wider Provider Sets are the next implementable item.** CBI1 accepts only cardinality `1..1` and the
-portable seam refuses anything else, saying a Provider Set "needs membership, exposure, and mediation
-semantics this seam does not own". Mediation now has an answer, so the question is what the other two
-need: whether a `1..n` position is n portable members the composition root fans out over, or one
-member the seam cannot express — and CBI25's test is the one to apply, which is whether the refused
-thing has a representation the seam already holds. Real distribution remains future work behind it.
-PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
-Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 15 await rulings.
+CBI27 carries a position whose cardinality is **not** `1..1` into portable preflight, and CBI25's test
+answers the question this index recorded: a Provider Set's *members* each have a representation the
+seam already holds — one provider answering one contract — while the *set* has none, since nothing in
+the seam says these bindings answer one requirement together. So a wide position is **n ordinary
+members, and the set stays at the composition root**, which already holds several members as one
+activation. The seam is not widened and its cardinality refusal is untouched.
+
+Its finding is what the fan-out needs and CM2 does not supply. **A CM binding scope and a portable one
+are not the same identity.** The portable scope names one binding — it survives replacement, and the
+seam's own `scope-uniqueness` silence says a composition reusing one has "two members claiming one
+position, which its own resolver is the place to reject". A CM scope is a container: CM2 looks occupied
+bindings up by scope *and contract*, tells them apart by `BindingId`, and refuses several in one scope
+only when the position is `1..1`. CBI1 maps one onto the other, which holds under two conditions it
+never states — the position is `1..1`, and the scope holds one position — and **the second is already
+false**: the multi-member slices resolve two or three positions in one CM scope, so every member of
+those activations reports the same portable scope. Both stacks do it identically and no vector asked,
+because every fixture clones one requirement template. That is the shape Decision 10 describes, and the
+fourth stated limit in this programme that turned out to describe how something was called. A named
+test in each stack pins it; correcting it moves every member's `bindingScope` fact and so every CBI4
+digest the shared fixture pins, which is a repin rather than a slice's work, so it is **Decision 16**.
+
+The rest follows from the two contracts rather than from preference. The membership is the generation's
+statement, as CBI20's is. A refused member leaves **no** member at all, because the seam refuses a wide
+bound "rather than narrowed to a first member" and keeping the ones that worked would be that narrowing
+performed where the seam cannot see it. A position that resolved nothing is reported as its own outcome
+rather than as an empty success. Two things the set states are named rather than approximated: nothing
+here owns whether a `1..3` set still satisfies its minimum after losing a member — the activation's
+answer, retire everything, is stricter than the set requires — and unfilled optional capacity is
+reported rather than fillable. The deliberate stop is that **a fanned-out set has no activation path
+yet**, because the group path prepares each member through CBI1, which refuses a wide position. The
+[`CBI27 capability contract`](../../component-management/cbi27-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi27-contract-completeness-review.md)
+bound it to preflight.
+
+**Activating a fanned-out set is the next implementable item**, and it is the narrower half of a
+question CBI27 leaves whole: the multi-member entry point takes selections and prepares each through
+CBI1, so it must learn either to accept prepared members or to take a wide position itself, and either
+choice touches every slice from CBI12 onward. Real distribution remains future work behind it. PB8's
+independent reviews remain a separate governance prerequisite rather than implementation work;
+Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings.
 
 ## Other planned areas
 

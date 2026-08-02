@@ -361,6 +361,23 @@ approximating the capability. Whether CM5 should gain a deputy is Decision 15. I
 recorded in the [CBI26 capability contract](./cbi26-capability-contract.md) and completed
 [contract-completeness review](./cbi26-contract-completeness-review.md).
 
+CBI27 carries a position whose cardinality is **not** `1..1` into portable preflight, and CBI25's test
+decides how: a Provider Set's *members* each have a representation the seam already holds — one
+provider answering one contract — while the *set* has none, so a wide position becomes **n ordinary
+members and the set stays at the composition root**, which already holds several members as one
+activation. The seam is not widened and its cardinality refusal is untouched. The finding is what the
+fan-out needs and CM2 does not supply: **one binding scope per member**. The portable scope names one
+binding and the seam's own silence tells a composition to reject reuse, while a CM scope is a container
+that holds one binding per member and distinguishes them by `BindingId` — CM2 refuses several in one
+scope only when the position is `1..1`. CBI1's mapping of one onto the other is therefore a bijection
+under two conditions it never states, and **the second is already false**: two positions resolved in
+one CM scope reach the seam as two members reporting one scope, identically in both stacks, which a
+named test pins and Decision 16 raises. The membership is the generation's statement, a refused member
+leaves no member at all because the seam refuses a wide bound rather than narrowing it, and a position
+that resolved nothing is reported as its own outcome. Its bounded behavior is recorded in the
+[CBI27 capability contract](./cbi27-capability-contract.md) and completed
+[contract-completeness review](./cbi27-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -656,6 +673,19 @@ that survive a Mediation owning lifecycle, recovery, and residue. Each pins the 
 how many grants the result carries, and whether every grant is held by the mediator's own local Actor,
 so "the mediator is admitted for itself and nothing else" is a checked answer. The fixture contains no
 evaluator, policy, mediator, or portable implementation.
+
+### `cbi27-wider-provider-set-vectors` sections
+
+`vectors` names three fan-outs — two members, a position with unfilled optional capacity, and a
+preselected optional member — one unfilled position, and twelve refusals covering a `1..1` position, a
+mediated one, a distinct one declaring a Mediation, a member omitted, one the generation does not
+resolve, one supplied twice, two members sharing a binding scope, a mapping that names another
+Component, an endpoint outside the contract's bound, a member naming another requirement, a position
+the generation does not resolve, and a selection supplied for a position that resolved none. Each pins
+the outcome kind and code, the position's declared cardinality, how many members were produced, how
+many optional positions are unfilled, and **how many distinct binding scopes the produced members
+hold**, so the scope-per-member rule and all-or-none are checked answers rather than silences. The
+fixture contains no resolver, seam, or portable implementation.
 
 ### `cm0-mice-topology` sections
 

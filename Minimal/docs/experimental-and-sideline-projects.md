@@ -43,7 +43,7 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   implementation through bounded JSON Lines provider processes in both host directions. Agreement
   is limited to eight deterministic fake scenarios; CM0-CM6 are complete.
 - `Brontide.Minimal.Host` composes the independent Component Management and Portable Binding
-  experiments for CBI1-CBI26. It maps one completed native CM2 direct `1..1` position into PB7
+  experiments for CBI1-CBI27. It maps one completed native CM2 direct `1..1` position into PB7
   preflight through explicit typed identities, then coordinates one singleton, protocol-free CM4
   plan from PB7 lifecycle evidence and releases the portable gate only after CM4 Active.
   CBI3 additionally requires one explicit occurrence-to-Actor mapping and one exact local CM5
@@ -80,10 +80,11 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   CBI22 attaches one child activation to a runtime-open Port of a released parent, in its own restart
   scope, CBI23 nests those attachments and retires a supplied forest deepest first, and CBI24 stands
   them down before replacing the generation offering their Ports, CBI25 binds the Component a
-  Mediation is realized as, and CBI26 admits that mediator's own authority.
+  Mediation is realized as, CBI26 admits that mediator's own authority, and CBI27 carries a position
+  wider than `1..1` into preflight as one ordinary member per resolved member.
   It does not merge the projects, perform a lifecycle handshake, detect an attachment it was not given,
-  admit authority on behalf of a mediated member, or widen Provider Sets, or establish real Component
-  interchange.
+  admit authority on behalf of a mediated member, activate a fanned-out Provider Set, or establish real
+  Component interchange.
 - `Brontide.Minimal.Binding` (`Portable/`) is the Minimal native realization of the
   [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md),
   built against the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).

@@ -51,6 +51,71 @@ module ComponentBindingIntegration =
         not (System.String.IsNullOrWhiteSpace value)
         && Encoding.UTF8.GetByteCount value <= maximumTextBytes
 
+    /// Prepares one resolved member against one binding scope, once the position it belongs to has
+    /// been checked.
+    ///
+    /// The scope arrives as text because this is the parsing seam: CBI1 hands it the CM position's
+    /// scope, while a wide position has one scope for several members and hands it the one its caller
+    /// named for this member.
+    let internal prepareMember
+        (memberValue: ProviderSetMember)
+        (scopeText: string)
+        (selection: ComponentBindingSelection)
+        =
+        if
+            memberValue.Definition <> selection.Definition
+            || memberValue.Occurrence <> selection.Occurrence
+        then
+            refuse
+                ComponentBindingIntegrationFailureKind.SelectionMismatch
+                "selection-mismatch"
+                "The explicit portable mapping does not name the definition and occurrence selected by CM2."
+        elif
+            not (validEndpoint selection.RequiredContract.Limits.MaxTextBytes selection.HostEndpoint)
+            || not (validEndpoint selection.RequiredContract.Limits.MaxTextBytes selection.ProviderEndpoint)
+        then
+            refuse
+                ComponentBindingIntegrationFailureKind.MappingInvalid
+                "endpoint-invalid"
+                (sprintf
+                    "Endpoint designations must be non-empty UTF-8 text within the portable contract's %d-byte text bound."
+                    selection.RequiredContract.Limits.MaxTextBytes)
+        else
+            match Brontide.Minimal.Binding.Portable.BindingScopeId.tryCreate scopeText with
+            | Error(PortableError.Refused fault) ->
+                refuse
+                    ComponentBindingIntegrationFailureKind.PortableHandoffRefused
+                    fault.LocalCode
+                    fault.Message
+            | Error(PortableError.Interrupted failure) ->
+                refuse
+                    ComponentBindingIntegrationFailureKind.PortableHandoffRefused
+                    "portable-process-interrupted"
+                    failure.Message
+            | Ok scope ->
+                let requirement =
+                    ResolvedRequirement.oneToOneProvider
+                        scope
+                        selection.Component
+                        selection.Provider
+                        selection.HostEndpoint
+                let provision =
+                    { Component = selection.Component
+                      Provider = selection.Provider
+                      ProviderEndpoint = selection.ProviderEndpoint }
+                match PortableCompositionHandoff.prepare requirement provision selection.RequiredContract with
+                | Ok preparedMember -> Prepared preparedMember
+                | Error(PortableError.Refused fault) ->
+                    refuse
+                        ComponentBindingIntegrationFailureKind.PortableHandoffRefused
+                        fault.LocalCode
+                        fault.Message
+                | Error(PortableError.Interrupted failure) ->
+                    refuse
+                        ComponentBindingIntegrationFailureKind.PortableHandoffRefused
+                        "portable-process-interrupted"
+                        failure.Message
+
     let prepare resolution selection =
         match resolution with
         | ResolutionOutcome.WiderGenerationRequired _
@@ -98,74 +163,12 @@ module ComponentBindingIntegration =
                             ComponentBindingIntegrationFailureKind.BindingNotDirect
                             "binding-not-direct"
                             "The resolved position does not contain exactly one direct binding observation for its member."
-                    elif
-                        memberValue.Definition <> selection.Definition
-                        || memberValue.Occurrence <> selection.Occurrence
-                    then
-                        refuse
-                            ComponentBindingIntegrationFailureKind.SelectionMismatch
-                            "selection-mismatch"
-                            "The explicit portable mapping does not name the definition and occurrence selected by CM2."
-                    elif
-                        not
-                            (validEndpoint
-                                selection.RequiredContract.Limits.MaxTextBytes
-                                selection.HostEndpoint)
-                        || not
-                            (validEndpoint
-                                selection.RequiredContract.Limits.MaxTextBytes
-                                selection.ProviderEndpoint)
-                    then
-                        refuse
-                            ComponentBindingIntegrationFailureKind.MappingInvalid
-                            "endpoint-invalid"
-                            (sprintf
-                                "Endpoint designations must be non-empty UTF-8 text within the portable contract's %d-byte text bound."
-                                selection.RequiredContract.Limits.MaxTextBytes)
                     else
-                        match
-                            Brontide.Minimal.Binding.Portable.BindingScopeId.tryCreate
-                                (Brontide.Minimal.Experimental.ComponentManagement.BindingScopeId.value
-                                    providerSet.Scope)
-                        with
-                        | Error(PortableError.Refused fault) ->
-                            refuse
-                                ComponentBindingIntegrationFailureKind.PortableHandoffRefused
-                                fault.LocalCode
-                                fault.Message
-                        | Error(PortableError.Interrupted failure) ->
-                            refuse
-                                ComponentBindingIntegrationFailureKind.PortableHandoffRefused
-                                "portable-process-interrupted"
-                                failure.Message
-                        | Ok scope ->
-                            let requirement =
-                                ResolvedRequirement.oneToOneProvider
-                                    scope
-                                    selection.Component
-                                    selection.Provider
-                                    selection.HostEndpoint
-                            let provision =
-                                { Component = selection.Component
-                                  Provider = selection.Provider
-                                  ProviderEndpoint = selection.ProviderEndpoint }
-                            match
-                                PortableCompositionHandoff.prepare
-                                    requirement
-                                    provision
-                                    selection.RequiredContract
-                            with
-                            | Ok memberValue -> Prepared memberValue
-                            | Error(PortableError.Refused fault) ->
-                                refuse
-                                    ComponentBindingIntegrationFailureKind.PortableHandoffRefused
-                                    fault.LocalCode
-                                    fault.Message
-                            | Error(PortableError.Interrupted failure) ->
-                                refuse
-                                    ComponentBindingIntegrationFailureKind.PortableHandoffRefused
-                                    "portable-process-interrupted"
-                                    failure.Message
+                        prepareMember
+                            memberValue
+                            (Brontide.Minimal.Experimental.ComponentManagement.BindingScopeId.value
+                                providerSet.Scope)
+                            selection
             | _ ->
                 refuse
                     ComponentBindingIntegrationFailureKind.RequirementNotResolved
@@ -379,6 +382,253 @@ module ComponentMediatedBinding =
             decline
                 "resolution-not-complete"
                 "CBI25 translates a position of a completed CM2 generation."
+
+type ComponentProviderSetTranslationKind =
+    | Translated
+    | Unfilled
+    | Declined
+
+/// One resolved member of a wide position, with the binding scope its binding will hold.
+type ComponentProviderSetMemberSelection =
+    { Scope: Brontide.Minimal.Binding.Portable.BindingScopeId
+      Selection: ComponentBindingSelection }
+
+type ComponentProviderSetSelection =
+    { Requirement: RequirementId
+      Members: ComponentProviderSetMemberSelection list }
+
+type ComponentProviderSetMemberOutcome =
+    { Occurrence: OccurrenceId
+      Member: CompositionMember }
+
+type ComponentProviderSetTranslationResult =
+    { Kind: ComponentProviderSetTranslationKind
+      Members: ComponentProviderSetMemberOutcome list
+      Requirement: RequirementId option
+      PositionScope: BindingScopeId option
+      Cardinality: Cardinality option
+      UnfilledOptionalPositions: int
+      Code: string
+      Reason: string }
+
+/// Carries a CM2 position whose cardinality is not `1..1` into portable preflight, as one ordinary
+/// member per resolved member of the Provider Set.
+///
+/// A Provider Set's members each have a representation the seam already holds - one provider
+/// answering one contract - and the set does not: nothing in the seam says that these bindings answer
+/// one requirement together. So the set stays here, where several members are already one activation,
+/// and the seam is neither widened nor relaxed. What the fan-out needs and CM2 does not supply is a
+/// binding scope per member: the portable scope names one binding and the seam tells a composition to
+/// reject reuse, while a CM scope is a container holding one binding per member, distinguished by
+/// BindingId. The caller therefore names each member's scope, as it already names every other portable
+/// identity.
+[<RequireQualifiedAccess>]
+module ComponentProviderSetBinding =
+    let isTranslated (result: ComponentProviderSetTranslationResult) =
+        result.Kind = ComponentProviderSetTranslationKind.Translated
+
+    let private decline code reason =
+        { Kind = ComponentProviderSetTranslationKind.Declined
+          Members = []
+          Requirement = None
+          PositionScope = None
+          Cardinality = None
+          UnfilledOptionalPositions = 0
+          Code = code
+          Reason = reason }
+
+    let private ordinal (values: string list) =
+        values |> List.sortWith (fun left right -> String.CompareOrdinal(left, right))
+
+    let private repeated (values: string list) =
+        values
+        |> List.countBy id
+        |> List.filter (fun (_, count) -> count > 1)
+        |> List.map fst
+        |> ordinal
+
+    /// Says how the supplied membership differs from the generation's, or nothing.
+    let private membership (position: ProviderSetObservation) (supplied: ComponentProviderSetMemberSelection list) =
+        let occurrences = supplied |> List.map (fun item -> OccurrenceId.value item.Selection.Occurrence)
+        match repeated occurrences with
+        | [] ->
+            let resolved = position.Members |> List.map (fun item -> OccurrenceId.value item.Occurrence)
+            let missing = resolved |> List.filter (fun item -> not (List.contains item occurrences)) |> ordinal
+            let unexpected = occurrences |> List.filter (fun item -> not (List.contains item resolved)) |> ordinal
+            match missing, unexpected with
+            | [], [] -> None
+            | [], extra ->
+                Some(
+                    sprintf
+                        "The generation resolves no member %s for requirement '%s'."
+                        (String.concat ", " extra)
+                        (RequirementId.value position.Requirement))
+            | absent, _ ->
+                Some(
+                    sprintf
+                        "The generation resolves %s for requirement '%s', and the translation was not given them."
+                        (String.concat ", " absent)
+                        (RequirementId.value position.Requirement))
+        | duplicates ->
+            Some(
+                sprintf
+                    "Member %s is supplied more than once for requirement '%s'."
+                    (String.concat ", " duplicates)
+                    (RequirementId.value position.Requirement))
+
+    let private cardinalityText (cardinality: Cardinality) =
+        match cardinality.Maximum with
+        | Some maximum -> sprintf "%d..%d" cardinality.Minimum maximum
+        | None -> sprintf "%d..*" cardinality.Minimum
+
+    /// Prepares every member or none: keeping the ones that worked would narrow the position here,
+    /// which is exactly what the seam refuses to do when it declines a wide cardinality.
+    let rec private prepareAll
+        (position: ProviderSetObservation)
+        (pending: ComponentProviderSetMemberSelection list)
+        (prepared: ComponentProviderSetMemberOutcome list)
+        =
+        match pending with
+        | [] -> Ok(List.rev prepared)
+        | entry :: rest ->
+            let resolvedMember =
+                position.Members
+                |> List.find (fun item -> item.Occurrence = entry.Selection.Occurrence)
+            match
+                ComponentBindingIntegration.prepareMember
+                    resolvedMember
+                    (Brontide.Minimal.Binding.Portable.BindingScopeId.value entry.Scope)
+                    entry.Selection
+            with
+            | ComponentBindingIntegrationResult.Prepared memberValue ->
+                prepareAll
+                    position
+                    rest
+                    ({ Occurrence = entry.Selection.Occurrence; Member = memberValue } :: prepared)
+            | ComponentBindingIntegrationResult.Refused failure -> Error failure
+
+    let translate (resolution: ResolutionOutcome) (selection: ComponentProviderSetSelection) =
+        match resolution with
+        | ResolutionOutcome.Resolved(_, generation) ->
+            let matches =
+                generation.ProviderSets
+                |> List.filter (fun item -> item.Requirement = selection.Requirement)
+            match matches with
+            | [ position ] ->
+                if position.Cardinality.Minimum = 1 && position.Cardinality.Maximum = Some 1 then
+                    decline
+                        "position-not-wide"
+                        (sprintf
+                            "Requirement '%s' resolves a 1..1 position, which CBI1 translates directly."
+                            (RequirementId.value selection.Requirement))
+                // Exposure and the declaration are two facts: CM2 records a Mediation on a distinct
+                // position and ignores it, so checking only the first leaves the second unchecked.
+                elif position.Exposure <> ProviderExposure.Distinct then
+                    decline
+                        "position-mediated"
+                        (sprintf
+                            "Requirement '%s' resolves a %A position, which CBI25 binds through the Component its Mediation is realized as."
+                            (RequirementId.value selection.Requirement)
+                            position.Exposure)
+                elif position.Mediation.IsSome then
+                    decline
+                        "position-mediated"
+                        (sprintf
+                            "Requirement '%s' is distinct but declares Mediation '%s', and CM2 records it without acting on it."
+                            (RequirementId.value selection.Requirement)
+                            (MediationId.value position.Mediation.Value.Mediation))
+                elif
+                    position.BindingPlans.Length <> position.Members.Length
+                    || position.Members
+                       |> List.exists (fun memberValue ->
+                           position.BindingPlans
+                           |> List.filter (fun plan ->
+                               plan.Member = memberValue.Occurrence
+                               && plan.Direct
+                               && plan.Mediation.IsNone)
+                           |> List.length
+                           <> 1)
+                then
+                    decline
+                        "binding-not-direct"
+                        "The resolved position does not contain exactly one direct binding observation for each of its members."
+                else
+                    match
+                        selection.Members
+                        |> List.filter (fun item -> item.Selection.Requirement <> selection.Requirement)
+                    with
+                    | foreign :: _ ->
+                        decline
+                            "member-requirement-mismatch"
+                            (sprintf
+                                "A member mapping names requirement '%s', and this translation is of '%s'."
+                                (RequirementId.value foreign.Selection.Requirement)
+                                (RequirementId.value selection.Requirement))
+                    | [] ->
+                        match membership position selection.Members with
+                        | Some difference -> decline "membership-not-resolved" difference
+                        | None when position.Members.IsEmpty ->
+                            // Nothing to bind and nothing wrong. Reporting it as an empty translation
+                            // would make it indistinguishable from a position nobody translated.
+                            { Kind = ComponentProviderSetTranslationKind.Unfilled
+                              Members = []
+                              Requirement = Some selection.Requirement
+                              PositionScope = Some position.Scope
+                              Cardinality = Some position.Cardinality
+                              UnfilledOptionalPositions = position.OptionalPositionsUnfilled
+                              Code = "position-resolved-empty"
+                              Reason =
+                                sprintf
+                                    "Requirement '%s' declares %s and resolved no member, so it binds nothing."
+                                    (RequirementId.value selection.Requirement)
+                                    (cardinalityText position.Cardinality) }
+                        | None ->
+                            match
+                                selection.Members
+                                |> List.map (fun item ->
+                                    Brontide.Minimal.Binding.Portable.BindingScopeId.value item.Scope)
+                                |> repeated
+                            with
+                            | shared :: _ ->
+                                decline
+                                    "scope-not-distinct"
+                                    (sprintf
+                                        "Binding scope '%s' is named by more than one member, and a scope that two members hold is two bindings claiming one position."
+                                        shared)
+                            | [] ->
+                                let ordered =
+                                    selection.Members
+                                    |> List.sortWith (fun left right ->
+                                        String.CompareOrdinal(
+                                            OccurrenceId.value left.Selection.Occurrence,
+                                            OccurrenceId.value right.Selection.Occurrence))
+                                match prepareAll position ordered [] with
+                                | Error failure -> decline failure.Code failure.Reason
+                                | Ok prepared ->
+                                    { Kind = ComponentProviderSetTranslationKind.Translated
+                                      Members = prepared
+                                      Requirement = Some selection.Requirement
+                                      PositionScope = Some position.Scope
+                                      Cardinality = Some position.Cardinality
+                                      UnfilledOptionalPositions = position.OptionalPositionsUnfilled
+                                      Code = "position-fanned-out"
+                                      Reason =
+                                        sprintf
+                                            "Requirement '%s' declares %s and resolved %d member(s), each bound in its own scope."
+                                            (RequirementId.value selection.Requirement)
+                                            (cardinalityText position.Cardinality)
+                                            prepared.Length }
+            | _ ->
+                decline
+                    "wide-position-not-resolved"
+                    (sprintf
+                        "The completed generation contains %d provider positions for requirement '%s'."
+                        matches.Length
+                        (RequirementId.value selection.Requirement))
+        | _ ->
+            decline
+                "resolution-not-complete"
+                "CBI27 translates a position of a completed CM2 generation."
 
 [<RequireQualifiedAccess>]
 type ComponentBindingLifecycleFailureKind =

@@ -204,6 +204,13 @@ relationship meaning "acts on behalf of" and no grant with a beneficiary, so a m
 what it does itself and a Mediation claiming to own authority is refused rather than approximated.
 Twice now a capability one model can declare has had no representation in the model that would carry
 it, and naming the missing concept has been worth more than building something shaped like it.
+CBI27 carries a position wider than `1..1` into preflight, as one ordinary member per resolved member:
+a Provider Set's members each have a representation the seam holds, and the set does not, so the set
+stays at the composition root. Fanning it out shows that a CM binding scope and a portable one are not
+the same identity — the CM one holds many bindings and tells them apart by `BindingId`, the portable
+one names a single binding — so CBI1's mapping of one onto the other holds only while a position is
+`1..1` and a scope holds one position, and the second was already false wherever two positions share a
+scope.
 
 The broader topology direction is recorded in
 [Topology Environments and the Guardian Family Design Note 0.1](./docs/future/topology/Brontide-Design-Note-Topology-0.1.md). Ordinary

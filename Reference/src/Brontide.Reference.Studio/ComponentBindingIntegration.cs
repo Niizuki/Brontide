@@ -113,6 +113,23 @@ public static class ComponentBindingIntegration
                 "The resolved position does not contain exactly one direct binding observation for its member.");
         }
 
+        return PrepareMember(member, providerSet.Scope.Value, selection);
+    }
+
+    /// <summary>
+    /// Prepares one resolved member against one binding scope, once the position it belongs to has
+    /// been checked.
+    /// </summary>
+    /// <remarks>
+    /// The scope arrives as text because this is the parsing seam: CBI1 hands it the CM position's
+    /// scope, while a wide position has one scope for several members and hands it the one its caller
+    /// named for this member.
+    /// </remarks>
+    internal static ComponentBindingIntegrationResult PrepareMember(
+        Cm.ProviderSetMember member,
+        string scopeText,
+        ComponentBindingSelection selection)
+    {
         if (member.Definition != selection.Definition || member.Occurrence != selection.Occurrence)
         {
             return Refuse(
@@ -133,7 +150,7 @@ public static class ComponentBindingIntegration
 
         try
         {
-            var scope = Portable.PortableBindingScopeId.Parse(providerSet.Scope.Value);
+            var scope = Portable.PortableBindingScopeId.Parse(scopeText);
             var requirement = Portable.PortableResolvedRequirement.OneToOneProvider(
                 scope,
                 selection.Component,
@@ -356,6 +373,235 @@ public static class ComponentMediatedBinding
 
     private static ComponentMediatedTranslationResult Decline(string code, string reason) =>
         new(ComponentMediatedTranslationKind.Declined, null, null, null, code, reason);
+}
+
+public enum ComponentProviderSetTranslationKind
+{
+    Translated,
+    Unfilled,
+    Declined,
+}
+
+/// <summary>One resolved member of a wide position, with the binding scope its binding will hold.</summary>
+public sealed record ComponentProviderSetMemberSelection(
+    Portable.PortableBindingScopeId Scope,
+    ComponentBindingSelection Selection);
+
+public sealed record ComponentProviderSetSelection(
+    Cm.RequirementId Requirement,
+    IReadOnlyList<ComponentProviderSetMemberSelection> Members);
+
+public sealed record ComponentProviderSetMemberOutcome(
+    Cm.OccurrenceId Occurrence,
+    Portable.PortableCompositionMember Member);
+
+public sealed record ComponentProviderSetTranslationResult(
+    ComponentProviderSetTranslationKind Kind,
+    IReadOnlyList<ComponentProviderSetMemberOutcome> Members,
+    Cm.RequirementId? Requirement,
+    Cm.BindingScopeId? PositionScope,
+    Cm.Cardinality? Cardinality,
+    int UnfilledOptionalPositions,
+    string Code,
+    string Reason)
+{
+    public bool IsTranslated => Kind == ComponentProviderSetTranslationKind.Translated;
+}
+
+/// <summary>
+/// Carries a CM2 position whose cardinality is not <c>1..1</c> into portable preflight, as one
+/// ordinary member per resolved member of the Provider Set.
+/// </summary>
+/// <remarks>
+/// A Provider Set's members each have a representation the seam already holds — one provider
+/// answering one contract — and the set does not: nothing in the seam says that these bindings answer
+/// one requirement together. So the set stays here, where several members are already one activation,
+/// and the seam is neither widened nor relaxed. What the fan-out needs and CM2 does not supply is a
+/// binding scope per member: the portable scope names one binding and the seam tells a composition to
+/// reject reuse, while a CM scope is a container holding one binding per member, distinguished by
+/// BindingId. The caller therefore names each member's scope, as it already names every other portable
+/// identity.
+/// </remarks>
+public static class ComponentProviderSetBinding
+{
+    public static ComponentProviderSetTranslationResult Translate(
+        Cm.ResolutionOutcome resolution,
+        ComponentProviderSetSelection selection)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(selection);
+
+        if (resolution.Generation is not { } generation)
+        {
+            return Decline(
+                "resolution-not-complete",
+                "CBI27 translates a position of a completed CM2 generation.");
+        }
+
+        var matches = generation.ProviderSets
+            .Where(item => item.Requirement == selection.Requirement)
+            .ToArray();
+        if (matches.Length != 1)
+        {
+            return Decline(
+                "wide-position-not-resolved",
+                $"The completed generation contains {matches.Length} provider positions for requirement '{selection.Requirement}'.");
+        }
+
+        var position = matches[0];
+        if (position.Cardinality.Minimum == 1 && position.Cardinality.Maximum == 1)
+        {
+            return Decline(
+                "position-not-wide",
+                $"Requirement '{selection.Requirement}' resolves a 1..1 position, which CBI1 translates directly.");
+        }
+
+        // Exposure and the declaration are two facts: CM2 records a Mediation on a distinct position
+        // and ignores it, so checking only the first would leave the second unchecked.
+        if (position.Exposure != Cm.ProviderExposure.Distinct || position.Mediation is not null)
+        {
+            return Decline(
+                "position-mediated",
+                position.Exposure != Cm.ProviderExposure.Distinct
+                    ? $"Requirement '{selection.Requirement}' resolves a {position.Exposure} position, which CBI25 binds through the Component its Mediation is realized as."
+                    : $"Requirement '{selection.Requirement}' is distinct but declares Mediation '{position.Mediation!.Mediation}', and CM2 records it without acting on it.");
+        }
+
+        var undirected = position.Members
+            .Where(item => position.BindingPlans.Count(plan =>
+                plan.Member == item.Occurrence && plan.Direct && plan.Mediation is null) != 1)
+            .ToArray();
+        if (position.BindingPlans.Count != position.Members.Count || undirected.Length > 0)
+        {
+            return Decline(
+                "binding-not-direct",
+                "The resolved position does not contain exactly one direct binding observation for each of its members.");
+        }
+
+        var foreign = selection.Members
+            .Where(item => item.Selection.Requirement != selection.Requirement)
+            .ToArray();
+        if (foreign.Length > 0)
+        {
+            return Decline(
+                "member-requirement-mismatch",
+                $"A member mapping names requirement '{foreign[0].Selection.Requirement}', and this translation is of '{selection.Requirement}'.");
+        }
+
+        if (Membership(position, selection) is { } membership)
+        {
+            return Decline("membership-not-resolved", membership);
+        }
+
+        if (position.Members.Count == 0)
+        {
+            // Nothing to bind and nothing wrong. Reporting it as an empty translation would make it
+            // indistinguishable from a position nobody translated.
+            return new(
+                ComponentProviderSetTranslationKind.Unfilled,
+                Array.Empty<ComponentProviderSetMemberOutcome>(),
+                selection.Requirement,
+                position.Scope,
+                position.Cardinality,
+                position.OptionalPositionsUnfilled,
+                "position-resolved-empty",
+                $"Requirement '{selection.Requirement}' declares {position.Cardinality} and resolved no member, so it binds nothing.");
+        }
+
+        var scopes = selection.Members
+            .GroupBy(item => item.Scope.Value, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .OrderBy(group => group.Key, StringComparer.Ordinal)
+            .ToArray();
+        if (scopes.Length > 0)
+        {
+            return Decline(
+                "scope-not-distinct",
+                $"Binding scope '{scopes[0].Key}' is named by {scopes[0].Count()} members, and a scope that two members hold is two bindings claiming one position.");
+        }
+
+        var prepared = new List<ComponentProviderSetMemberOutcome>();
+        foreach (var entry in selection.Members
+            .OrderBy(item => item.Selection.Occurrence.Value, StringComparer.Ordinal))
+        {
+            var member = position.Members.Single(item => item.Occurrence == entry.Selection.Occurrence);
+            var preparation = ComponentBindingIntegration.PrepareMember(
+                member,
+                entry.Scope.Value,
+                entry.Selection);
+            if (preparation.Member is not { } portable)
+            {
+                // The seam refuses a wide cardinality rather than narrowing it to a first member, and
+                // keeping the members that happened to work would be that narrowing performed here,
+                // where the seam cannot see it.
+                return Decline(preparation.Failure!.Code, preparation.Failure.Reason);
+            }
+
+            prepared.Add(new(entry.Selection.Occurrence, portable));
+        }
+
+        return new(
+            ComponentProviderSetTranslationKind.Translated,
+            prepared,
+            selection.Requirement,
+            position.Scope,
+            position.Cardinality,
+            position.OptionalPositionsUnfilled,
+            "position-fanned-out",
+            $"Requirement '{selection.Requirement}' declares {position.Cardinality} and resolved {prepared.Count} member(s), each bound in its own scope.");
+    }
+
+    /// <summary>Says how the supplied membership differs from the generation's, or nothing.</summary>
+    private static string? Membership(
+        Cm.ProviderSetObservation position,
+        ComponentProviderSetSelection selection)
+    {
+        var repeated = selection.Members
+            .GroupBy(item => item.Selection.Occurrence.Value, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .ToArray();
+        if (repeated.Length > 0)
+        {
+            return $"Member {string.Join(", ", repeated)} is supplied more than once for requirement '{position.Requirement}'.";
+        }
+
+        var supplied = selection.Members
+            .Select(item => item.Selection.Occurrence)
+            .ToHashSet();
+        var missing = position.Members
+            .Where(item => !supplied.Contains(item.Occurrence))
+            .Select(item => item.Occurrence.Value)
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .ToArray();
+        if (missing.Length > 0)
+        {
+            return $"The generation resolves {string.Join(", ", missing)} for requirement '{position.Requirement}', and the translation was not given them.";
+        }
+
+        var resolved = position.Members.Select(item => item.Occurrence).ToHashSet();
+        var unexpected = selection.Members
+            .Select(item => item.Selection.Occurrence)
+            .Where(item => !resolved.Contains(item))
+            .Select(item => item.Value)
+            .OrderBy(item => item, StringComparer.Ordinal)
+            .ToArray();
+        return unexpected.Length == 0
+            ? null
+            : $"The generation resolves no member {string.Join(", ", unexpected)} for requirement '{position.Requirement}'.";
+    }
+
+    private static ComponentProviderSetTranslationResult Decline(string code, string reason) =>
+        new(
+            ComponentProviderSetTranslationKind.Declined,
+            Array.Empty<ComponentProviderSetMemberOutcome>(),
+            null,
+            null,
+            null,
+            0,
+            code,
+            reason);
 }
 
 public enum ComponentBindingLifecycleFailureKind

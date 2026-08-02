@@ -2398,6 +2398,171 @@ type ComponentBindingIntegrationTests() =
             [ participantRequest ]
             (runtimeRequest (plan [ (mediatorSelection ()).Occurrence ]))
 
+    /// A second provider of the primary contract, so one position can resolve two members.
+    let standbyProvider = DefinitionId.create "def.test.cooling-standby"
+
+    /// One position whose cardinality is not 1..1, drawing on as many candidate providers as it is
+    /// given.
+    ///
+    /// CM2 fills a Provider Set to its declared minimum and then takes explicit preselections up to
+    /// its maximum, so how many members a wide position resolves is a fact about the request rather
+    /// than about the declared bound.
+    let wideResolution cardinality candidates preselect exposure declareMediation =
+        let single = request cardinality
+        let consumerDefinition =
+            single.Definitions |> List.find (fun item -> item.Definition = consumer)
+        let providerDefinition =
+            single.Definitions |> List.find (fun item -> item.Definition = provider)
+        let candidate = List.exactlyOne single.Candidates
+        let requirement =
+            { List.exactlyOne consumerDefinition.Requirements with
+                Exposure = exposure
+                Mediation =
+                    if exposure <> ProviderExposure.Distinct || declareMediation then
+                        Some
+                            { Mediation = MediationId.create "mediation.cooling-wide"
+                              Kind = MediationKind.Selection
+                              Realization = MediationRealization.StaticHost
+                              Component = None
+                              OwnsMutableMembership = false
+                              OwnsResidue = false
+                              OwnsBackpressure = false
+                              OwnsAuthority = false
+                              OwnsRecovery = false
+                              OwnsLifecycle = false }
+                    else
+                        None }
+        { single with
+            Definitions =
+                [ { consumerDefinition with Requirements = [ requirement ] }
+                  providerDefinition
+                  { providerDefinition with Definition = standbyProvider } ]
+            Candidates =
+                match candidates with
+                | 0 -> []
+                | 1 -> [ candidate ]
+                | _ -> [ candidate; { candidate with Definition = standbyProvider } ]
+            PreselectedProviders =
+                if preselect then
+                    [ { Requirement = requirementId; Definition = standbyProvider } ]
+                else
+                    [] }
+        |> FakeGenerationResolver.resolve
+
+    let widePosition (resolution: ResolutionOutcome) =
+        match resolution with
+        | ResolutionOutcome.Resolved(_, generation) ->
+            generation.ProviderSets |> List.find (fun item -> item.Requirement = requirementId)
+        | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+
+    let wideScope index =
+        match
+            Brontide.Minimal.Binding.Portable.BindingScopeId.tryCreate (sprintf "scope.cooling-%d" index)
+        with
+        | Ok scope -> scope
+        | Error failure -> failwithf "Expected a portable binding scope, got %A." failure
+
+    let namedScope name =
+        match Brontide.Minimal.Binding.Portable.BindingScopeId.tryCreate name with
+        | Ok scope -> scope
+        | Error failure -> failwithf "Expected a portable binding scope, got %A." failure
+
+    let wideSelection (resolution: ResolutionOutcome) =
+        { Requirement = requirementId
+          Members =
+            (widePosition resolution).Members
+            |> List.mapi (fun index memberValue ->
+                { Scope = wideScope index
+                  Selection =
+                    { selection memberValue with
+                        HostEndpoint = sprintf "wide-host-%d" index } }) }
+
+    let wideToken kind =
+        match kind with
+        | ComponentProviderSetTranslationKind.Translated -> "translated"
+        | ComponentProviderSetTranslationKind.Unfilled -> "unfilled"
+        | ComponentProviderSetTranslationKind.Declined -> "declined"
+
+    let wideCardinalityText (cardinality: Cardinality) =
+        match cardinality.Maximum with
+        | Some maximum -> sprintf "%d..%d" cardinality.Minimum maximum
+        | None -> sprintf "%d..*" cardinality.Minimum
+
+    let wideTranslation scenario =
+        let resolution =
+            match scenario with
+            | "cbi27-02-optional-capacity-unfilled" ->
+                wideResolution (Cardinality.parse "1..3") 1 false ProviderExposure.Distinct false
+            | "cbi27-03-preselected-optional-member" ->
+                wideResolution (Cardinality.parse "1..2") 2 true ProviderExposure.Distinct false
+            | "cbi27-04-position-resolved-empty"
+            | "cbi27-16-unfilled-position-supplied" ->
+                wideResolution (Cardinality.parse "0..2") 0 false ProviderExposure.Distinct false
+            | "cbi27-05-position-is-one-to-one" -> resolve (Cardinality.parse "1..1")
+            | "cbi27-06-position-mediated" ->
+                wideResolution (Cardinality.parse "2..2") 2 false ProviderExposure.Mediated false
+            | "cbi27-07-distinct-position-declaring-a-mediation" ->
+                wideResolution (Cardinality.parse "2..2") 2 false ProviderExposure.Distinct true
+            | _ -> wideResolution (Cardinality.parse "2..2") 2 false ProviderExposure.Distinct false
+        let supplied = wideSelection resolution
+        let members = supplied.Members
+        let entry index = List.item index members
+        let selectionValue =
+            match scenario with
+            | "cbi27-08-member-not-supplied" -> { supplied with Members = [ entry 0 ] }
+            | "cbi27-09-member-not-resolved" ->
+                { supplied with
+                    Members =
+                        members
+                        @ [ { Scope = namedScope "scope.cooling-extra"
+                              Selection =
+                                { (entry 0).Selection with
+                                    Occurrence = OccurrenceId.create "occ.not-resolved" } } ] }
+            | "cbi27-10-member-supplied-twice" ->
+                { supplied with
+                    Members = [ entry 0; { entry 0 with Scope = namedScope "scope.cooling-again" } ] }
+            | "cbi27-11-members-share-a-binding-scope" ->
+                { supplied with
+                    Members = [ entry 0; { entry 1 with Scope = (entry 0).Scope } ] }
+            | "cbi27-12-member-mapping-mismatched" ->
+                { supplied with
+                    Members =
+                        [ entry 0
+                          { entry 1 with Selection = { (entry 1).Selection with Definition = provider } } ] }
+            | "cbi27-13-member-endpoint-invalid" ->
+                { supplied with
+                    Members =
+                        [ entry 0
+                          { entry 1 with
+                              Selection = { (entry 1).Selection with HostEndpoint = "  " } } ] }
+            | "cbi27-14-member-requirement-mismatched" ->
+                { supplied with
+                    Members =
+                        [ entry 0
+                          { entry 1 with
+                              Selection =
+                                { (entry 1).Selection with Requirement = secondaryRequirementId } } ] }
+            | "cbi27-15-position-not-resolved" ->
+                { supplied with Requirement = RequirementId.create "req.absent" }
+            | "cbi27-16-unfilled-position-supplied" ->
+                { supplied with
+                    Members =
+                        [ { Scope = wideScope 0
+                            Selection =
+                              selection
+                                  { Definition = provider
+                                    Occurrence = OccurrenceId.create "occ.not-resolved"
+                                    Source = None
+                                    Publisher = PublisherId.create "pub.test"
+                                    Package = None
+                                    Retained = false
+                                    Evidence = []
+                                    Authority = []
+                                    FailureDomain = "failure.test"
+                                    AttachmentNode = None } } ] }
+            | _ -> supplied
+        ComponentProviderSetBinding.translate resolution selectionValue
+
     /// The positions the successor generation resolves, per scenario.
     let membershipPositions scenario =
         match scenario with
@@ -5304,6 +5469,288 @@ type ComponentBindingIntegrationTests() =
                 [ foreign; denied; refusedTranslation ]
                 |> List.forall (fun item -> item.Grants.IsEmpty),
                 Is.True))
+
+    [<Test>]
+    member _.``shared CBI27 vectors fan a wide position out``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi27-wider-provider-set-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI27 vector identity must be a string"
+                    | value -> value
+                let result = wideTranslation scenario
+                let expectedCardinality = vector.GetProperty("expectedCardinality")
+                let distinctScopes =
+                    result.Members
+                    |> List.map (fun item ->
+                        Brontide.Minimal.Binding.Portable.BindingScopeId.value item.Member.Scope)
+                    |> List.distinct
+                    |> List.length
+                multiple (fun () ->
+                    Assert.That(
+                        wideToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Members.Length,
+                        Is.EqualTo(vector.GetProperty("expectedMembers").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.UnfilledOptionalPositions,
+                        Is.EqualTo(vector.GetProperty("expectedUnfilled").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        distinctScopes,
+                        Is.EqualTo(vector.GetProperty("expectedDistinctScopes").GetInt32()),
+                        sprintf
+                            "%s: every member of a fanned-out position holds a scope of its own."
+                            scenario)
+                    Assert.That(
+                        result.Cardinality |> Option.map wideCardinalityText,
+                        Is.EqualTo(
+                            if expectedCardinality.ValueKind = JsonValueKind.Null then
+                                None
+                            else
+                                Some(expectedCardinality.GetString())),
+                        scenario)
+                    // The properties over every vector: a position that is not fanned out produces
+                    // nothing at all, and a member that is produced is an ordinary one-to-one binding.
+                    Assert.That(
+                        ComponentProviderSetBinding.isTranslated result || result.Members.IsEmpty,
+                        Is.True,
+                        sprintf "%s: only a translated position produces members." scenario)
+                    Assert.That(
+                        result.Members
+                        |> List.forall (fun item ->
+                            item.Member.Requirement.Cardinality = ProviderCardinality.oneToOne
+                            && item.Member.Requirement.Exposure = Exposure.Distinct
+                            && CompositionStage.token item.Member.Stage = "local-initialisation"
+                            && item.Member.TryPlan.IsNone),
+                        Is.True,
+                        sprintf "%s: nothing of the set reaches the seam." scenario))
+        }
+
+    [<Test>]
+    member _.``C1 a one-to-one position is CBI1's and a mediated one is CBI25's``() =
+        let narrow = wideTranslation "cbi27-05-position-is-one-to-one"
+        let mediated = wideTranslation "cbi27-06-position-mediated"
+        let declared = wideTranslation "cbi27-07-distinct-position-declaring-a-mediation"
+        let absent = wideTranslation "cbi27-15-position-not-resolved"
+        multiple (fun () ->
+            Assert.That(narrow.Code, Is.EqualTo "position-not-wide")
+            Assert.That(mediated.Code, Is.EqualTo "position-mediated")
+            Assert.That(
+                declared.Code,
+                Is.EqualTo "position-mediated",
+                "Exposure and the declaration are two facts, and CM2 records the second without acting on it.")
+            Assert.That(absent.Code, Is.EqualTo "wide-position-not-resolved")
+            Assert.That(
+                [ narrow; mediated; declared; absent ]
+                |> List.forall (fun item -> item.Members.IsEmpty),
+                Is.True))
+
+    [<Test>]
+    member _.``C2 the membership is the generation's statement``() =
+        let resolution =
+            wideResolution (Cardinality.parse "2..2") 2 false ProviderExposure.Distinct false
+        let fanned = wideTranslation "cbi27-01-two-members-fanned-out"
+        let missing = wideTranslation "cbi27-08-member-not-supplied"
+        let unresolved = wideTranslation "cbi27-09-member-not-resolved"
+        let repeated = wideTranslation "cbi27-10-member-supplied-twice"
+        let elsewhere = wideTranslation "cbi27-14-member-requirement-mismatched"
+        let translated =
+            fanned.Members |> List.map (fun item -> OccurrenceId.value item.Occurrence)
+        let resolved =
+            (widePosition resolution).Members
+            |> List.map (fun item -> OccurrenceId.value item.Occurrence)
+        multiple (fun () ->
+            Assert.That(
+                String.concat ", " translated,
+                Is.EqualTo(String.concat ", " resolved),
+                "An admitted translation names exactly the members the generation resolved.")
+            Assert.That(
+                [ missing; unresolved; repeated ]
+                |> List.forall (fun item -> item.Code = "membership-not-resolved"),
+                Is.True,
+                "Omitting, adding, and repeating a member are all the caller disagreeing with the generation.")
+            Assert.That(elsewhere.Code, Is.EqualTo "member-requirement-mismatch"))
+
+    [<Test>]
+    member _.``C3 each member carries its own binding scope``() =
+        let fanned = wideTranslation "cbi27-01-two-members-fanned-out"
+        let shared = wideTranslation "cbi27-11-members-share-a-binding-scope"
+        let scopes = fanned.Members |> List.map (fun item -> item.Member.TryFact "bindingScope")
+        multiple (fun () ->
+            Assert.That(
+                scopes |> List.distinct |> List.length,
+                Is.EqualTo scopes.Length,
+                "The portable scope names one binding, so two members of one set cannot share it.")
+            Assert.That(
+                fanned.PositionScope
+                |> Option.map Brontide.Minimal.Experimental.ComponentManagement.BindingScopeId.value,
+                Is.EqualTo(Some "scope.cooling"),
+                "The CM position's scope is carried as provenance, and no member reports it.")
+            Assert.That(scopes, Does.Not.Contain(Some "scope.cooling"))
+            Assert.That(shared.Code, Is.EqualTo "scope-not-distinct")
+            Assert.That(shared.Members, Is.Empty))
+
+    /// The same collision arrives without a wide set, and this records it rather than fixing it.
+    ///
+    /// CBI1 unwraps the CM position's binding scope into the portable one, which is a bijection only
+    /// while one CM scope holds one position. Two positions resolved in one scope - which is what a CM
+    /// scope is for, since CM2 looks bindings up by scope and contract - therefore reach the seam as
+    /// two members claiming one scope, the case its scope-uniqueness silence tells a composition to
+    /// reject. Correcting it moves every member's bindingScope fact and so every CBI4 digest the
+    /// shared fixture pins, which is Decision 16's question rather than this slice's.
+    [<Test>]
+    member _.``C3 two positions in one CM scope reach the seam as one scope``() =
+        let resolution = pairRequest () |> FakeGenerationResolver.resolve
+        let positions =
+            match resolution with
+            | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+            | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+        let scopes =
+            positions
+            |> List.map (fun position ->
+                let memberValue = List.head position.Members
+                match
+                    ComponentBindingIntegration.prepare
+                        resolution
+                        { selection memberValue with Requirement = position.Requirement }
+                with
+                | ComponentBindingIntegrationResult.Prepared prepared ->
+                    prepared.TryFact "bindingScope"
+                | ComponentBindingIntegrationResult.Refused failure ->
+                    failwithf "Expected a prepared member, got %A." failure)
+        multiple (fun () ->
+            Assert.That(scopes.Length, Is.EqualTo 2)
+            Assert.That(
+                scopes |> List.distinct |> List.length,
+                Is.EqualTo 1,
+                "Both positions were resolved in one CM binding scope, and both members report it."))
+
+    [<Test>]
+    member _.``C4 a refused member leaves no member at all``() =
+        let mismatched = wideTranslation "cbi27-12-member-mapping-mismatched"
+        let endpoint = wideTranslation "cbi27-13-member-endpoint-invalid"
+        multiple (fun () ->
+            Assert.That(mismatched.Code, Is.EqualTo "selection-mismatch")
+            Assert.That(endpoint.Code, Is.EqualTo "endpoint-invalid")
+            Assert.That(
+                [ mismatched; endpoint ] |> List.forall (fun item -> item.Members.IsEmpty),
+                Is.True,
+                "The member that would have worked is not kept: that would be the narrowing the seam refuses, performed here."))
+
+    [<Test>]
+    member _.``C5 the set is not a portable fact``() =
+        let fanned = wideTranslation "cbi27-01-two-members-fanned-out"
+        let wide =
+            { Scope = namedScope "scope.cooling-wide"
+              Component = CoolingFixture.component'
+              RequiredProvider = Some CoolingFixture.provider
+              Cardinality = { Minimum = 1; Maximum = 2 }
+              Exposure = Exposure.Distinct
+              HostEndpoint = "wide-host" }
+        let refusedCode =
+            match
+                PortableCompositionHandoff.prepare
+                    wide
+                    { Component = CoolingFixture.component'
+                      Provider = CoolingFixture.provider
+                      ProviderEndpoint = "cooling-provider" }
+                    CoolingFixture.contract
+            with
+            | Error(PortableError.Refused fault) -> fault.LocalCode
+            | other -> failwithf "Expected a refusal, got %A." other
+        multiple (fun () ->
+            Assert.That(
+                fanned.Members
+                |> List.forall (fun item -> item.Member.TryFact "cardinality" = Some "1..1"),
+                Is.True,
+                "Each member is one provider answering one contract, which is all the seam binds.")
+            Assert.That(
+                refusedCode,
+                Is.EqualTo "cardinality-unsupported",
+                "The seam's own refusal is untouched: nothing wide is ever presented to it."))
+
+    [<Test>]
+    member _.``C6 a position that resolved nothing binds nothing``() =
+        let unfilled = wideTranslation "cbi27-04-position-resolved-empty"
+        let supplied = wideTranslation "cbi27-16-unfilled-position-supplied"
+        multiple (fun () ->
+            Assert.That(unfilled.Kind, Is.EqualTo ComponentProviderSetTranslationKind.Unfilled)
+            Assert.That(unfilled.Code, Is.EqualTo "position-resolved-empty")
+            Assert.That(
+                unfilled.Members,
+                Is.Empty,
+                "Nothing to bind and nothing wrong, reported as neither a translation nor a refusal.")
+            Assert.That(
+                supplied.Code,
+                Is.EqualTo "membership-not-resolved",
+                "A caller that supplies a member for a position that resolved none disagrees with the generation."))
+
+    [<Test>]
+    member _.``C7 what the set carries beyond its members is not carried``() =
+        let spare = wideTranslation "cbi27-02-optional-capacity-unfilled"
+        let filled = wideTranslation "cbi27-03-preselected-optional-member"
+        multiple (fun () ->
+            Assert.That(
+                spare.Cardinality,
+                Is.EqualTo(Some(Cardinality.parse "1..3")))
+            Assert.That(
+                spare.UnfilledOptionalPositions,
+                Is.EqualTo 2,
+                "Spare capacity is reported by the translation, because no member can report it.")
+            Assert.That(
+                (List.exactlyOne spare.Members).Member.ResolutionFacts
+                |> Map.exists (fun _ value -> value = "1..3"),
+                Is.False,
+                "The position's declared bound is not a portable fact.")
+            Assert.That(
+                filled.UnfilledOptionalPositions,
+                Is.EqualTo 0,
+                "A preselected optional member fills the capacity at resolution, not here.")
+            Assert.That(filled.Members.Length, Is.EqualTo 2))
+
+    [<Test>]
+    member _.``C8 CBI1 and CBI25 are unchanged``() =
+        let narrow = resolve (Cardinality.parse "1..1")
+        let direct = ComponentBindingIntegration.prepare narrow (selection (memberOf narrow))
+        let wide = wideResolution (Cardinality.parse "2..2") 2 false ProviderExposure.Distinct false
+        let throughCbi1 =
+            match
+                ComponentBindingIntegration.prepare
+                    wide
+                    (selection (List.head (widePosition wide).Members))
+            with
+            | ComponentBindingIntegrationResult.Refused failure -> failure.Code
+            | other -> failwithf "Expected a refusal, got %A." other
+        let directlyPrepared =
+            match direct with
+            | ComponentBindingIntegrationResult.Prepared _ -> true
+            | _ -> false
+        let mediated =
+            ComponentMediatedBinding.translate
+                (mediatedGeneration ())
+                { MediatedRequirement = mediatedRequirementId; Mediator = mediatorSelection () }
+        multiple (fun () ->
+            Assert.That(directlyPrepared, Is.True)
+            Assert.That(
+                throughCbi1,
+                Is.EqualTo "cardinality-unsupported",
+                "CBI1 still accepts exactly 1..1; CBI27 adds a path rather than widening one.")
+            Assert.That(ComponentMediatedBinding.isTranslated mediated, Is.True))
 
     [<Test>]
     member _.``shared CBI12 vectors open ordinary interaction for every member or none``() =
