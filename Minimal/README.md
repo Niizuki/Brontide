@@ -114,7 +114,8 @@ The implementation currently provides:
   generation with attachments beneath it, standing them down before the cutover because an
   attachment sits outside the transaction that a retained member sits inside; CBI25 carries a
   mediated position into preflight by binding the Component its Mediation is realized as, refusing a
-  static-host Mediation and leaving the mediator's authority unadmitted;
+  static-host Mediation; CBI26 admits that mediator's authority for what it does itself and refuses a
+  Mediation that owns authority, because CM5 has no deputy relationship and no grant beneficiary;
 - a headless host and seven F# test assemblies, including the host-owned CBI1-CBI20 integration
   suite.
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased - CBI26 mediator authority admission
+
+### Added
+
+- Reference Studio admission of the authority of the mediator CBI25 binds, for what the mediator does itself:
+  CBI3's admission, unchanged, against the mediator's own occurrence.
+- A refusal for a Mediation declaring that it owns authority, because CM5 has no relationship meaning
+  "on behalf of" and no grant with a beneficiary.
+- Shared vectors, a phase-boundary completeness review, and a named test for every contract item.
+
+CBI26's finding is that CM5 has no deputy: its relationship kinds are AttachedDevice, ExternalPeer,
+and ComponentParticipant, and a grant names exactly one Holder. A mediator is therefore admitted for
+its own interaction and for nothing else, and only OwnsAuthority among CM2's six ownership flags
+changes the outcome. Whether CM5 should gain a deputy is recorded as Decision 15.
+
 ## Unreleased - CBI25 mediated-position translation
 
 ### Added

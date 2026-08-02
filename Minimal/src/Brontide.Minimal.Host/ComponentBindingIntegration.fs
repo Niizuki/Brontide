@@ -2597,6 +2597,91 @@ module ComponentGroupLifecycle =
                                           Failure = None }
         }
 
+[<RequireQualifiedAccess>]
+type ComponentMediatorAuthorityKind =
+    | Admitted
+    | Declined
+
+type ComponentMediatorAuthorityResult =
+    { Kind: ComponentMediatorAuthorityKind
+      Admissions: ComponentParticipantObservation list
+      Grants: LocalCapabilityGrant list
+      Mediation: MediationId option
+      Code: string
+      Reason: string }
+
+/// Admits the authority of the mediator CBI25 binds, for what the mediator does itself.
+///
+/// CM5 has no deputy. Its relationship kinds are AttachedDevice, ExternalPeer, and
+/// ComponentParticipant, none of which means "acts on behalf of", and its grant names exactly one
+/// Holder with no beneficiary beside it. So a Mediation declaring that it owns authority is refused
+/// rather than approximated: admitting the mediator and letting its own grants stand for the members'
+/// would decide what a deputy is, invisibly. The other ownership flags describe what the mediator
+/// does with the set behind it, which is not a CM5 question at all.
+[<RequireQualifiedAccess>]
+module ComponentMediatorAuthority =
+    let isAdmitted (result: ComponentMediatorAuthorityResult) =
+        result.Kind = ComponentMediatorAuthorityKind.Admitted
+
+    let private decline code reason =
+        { Kind = ComponentMediatorAuthorityKind.Declined
+          Admissions = []
+          Grants = []
+          Mediation = None
+          Code = code
+          Reason = reason }
+
+    let admit
+        (resolution: ResolutionOutcome)
+        (selection: ComponentMediatedSelection)
+        (participants: ComponentParticipantRequest list)
+        (runtimeRequest: ActivationRuntimeRequest)
+        =
+        let translation = ComponentMediatedBinding.translate resolution selection
+        if not (ComponentMediatedBinding.isTranslated translation) then
+            decline translation.Code translation.Reason
+        else
+            let mediation =
+                match resolution with
+                | ResolutionOutcome.Resolved(_, generation) ->
+                    generation.ProviderSets
+                    |> List.find (fun item -> item.Requirement = selection.MediatedRequirement)
+                    |> fun item -> item.Mediation.Value
+                | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            if mediation.OwnsAuthority then
+                // CM5 can say who holds a grant and nothing about whom it is held for, so a Mediation
+                // responsible for the authority of what it fronts has no representation here.
+                decline
+                    "mediation-owns-authority"
+                    (sprintf
+                        "Mediation '%s' declares that it owns authority, and CM5 has no relationship that means 'on behalf of' and no grant with a beneficiary."
+                        (MediationId.value mediation.Mediation))
+            else
+                let admitted =
+                    ComponentParticipantAdmission.admit
+                        selection.Mediator
+                        participants
+                        runtimeRequest
+                match admitted.Failure with
+                | Some failure ->
+                    { Kind = ComponentMediatorAuthorityKind.Declined
+                      Admissions = admitted.Admissions
+                      Grants = []
+                      Mediation = None
+                      Code = failure.Code
+                      Reason = failure.Reason }
+                | None ->
+                    { Kind = ComponentMediatorAuthorityKind.Admitted
+                      Admissions = admitted.Admissions
+                      Grants = admitted.Grants
+                      Mediation = Some mediation.Mediation
+                      Code = "mediator-admitted"
+                      Reason =
+                        sprintf
+                            "Mediation '%s' is fronted by an admitted mediator holding %d grants of its own."
+                            (MediationId.value mediation.Mediation)
+                            admitted.Grants.Length }
+
 type ComponentGroupParticipant =
     { Member: ComponentGroupMember
       Participants: ComponentParticipantRequest list }

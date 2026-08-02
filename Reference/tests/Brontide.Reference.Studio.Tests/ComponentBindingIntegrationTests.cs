@@ -7276,10 +7276,19 @@ public sealed class ComponentBindingIntegrationTests
     /// A generation with a mediated position and, separately, a position that resolves the Component
     /// its Mediation is realized as.
     /// </summary>
+    private enum MediationOwnership
+    {
+        None,
+        Authority,
+        Lifecycle,
+        RecoveryAndResidue,
+    }
+
     private static ResolutionOutcome MediatedResolution(
         MediationRealization realization = MediationRealization.DedicatedComponent,
         bool nameComponent = true,
-        bool declareMediated = true)
+        bool declareMediated = true,
+        MediationOwnership owns = MediationOwnership.None)
     {
         var pair = RequestFor(MediatorRequirement, MediatedRequirement);
         var consumer = pair.Definitions.Single(item => item.Definition == Consumer);
@@ -7295,12 +7304,12 @@ public sealed class ComponentBindingIntegrationTests
                         MediationKind.Selection,
                         realization,
                         nameComponent ? MediatorDefinition : null,
+                        owns == MediationOwnership.RecoveryAndResidue,
+                        owns == MediationOwnership.RecoveryAndResidue,
                         false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false),
+                        owns == MediationOwnership.Authority,
+                        owns == MediationOwnership.RecoveryAndResidue,
+                        owns == MediationOwnership.Lifecycle),
                 }
                 : item)
             .ToArray();
@@ -7370,6 +7379,204 @@ public sealed class ComponentBindingIntegrationTests
             _ => MediatorSelection(),
         };
         return ComponentMediatedBinding.Translate(resolution, new(mediated, selection));
+    }
+
+    [Test]
+    public async Task Shared_cbi26_vectors_admit_a_mediator_for_what_it_does_itself()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi26-mediator-authority-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var result = MediatorAuthority(scenario);
+            var heldByMediator = result.Grants.Count > 0 &&
+                result.Grants.All(item => item.Holder == ProviderLocalActor);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(MediatorToken(result.Kind), Is.EqualTo(vector.GetProperty("expectedKind").GetString()), scenario);
+                Assert.That(result.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), scenario);
+                Assert.That(
+                    result.Grants,
+                    Has.Count.EqualTo(vector.GetProperty("expectedGrants").GetInt32()),
+                    scenario);
+                Assert.That(
+                    heldByMediator,
+                    Is.EqualTo(vector.GetProperty("expectedHeldByMediator").GetBoolean()),
+                    scenario);
+
+                // No member of the mediated set is ever admitted here.
+                Assert.That(
+                    result.Admissions.All(item => item.Participant == Participant),
+                    Is.True,
+                    $"{scenario}: the mediated Provider Set is behind the mediator and outside this admission.");
+            });
+        }
+    }
+
+    [Test]
+    public void C1_the_mediator_is_admitted_as_an_ordinary_participant()
+    {
+        var admitted = MediatorAuthority("cbi26-01-mediator-admitted-for-itself");
+        var submitted = MediatorParticipant().Request.Authority;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(admitted.IsAdmitted, Is.True);
+            Assert.That(
+                admitted.Admissions.Single().Participant,
+                Is.EqualTo(Participant),
+                "The mediator is admitted against its own occurrence, as any participant is.");
+            Assert.That(
+                admitted.Grants.Select(item => (item.Capability, item.Target, item.Operation, item.Scope)),
+                Is.EqualTo(submitted.Select(item => (item.Capability, item.Target, item.Operation, item.Scope))),
+                "One grant per narrow tuple submitted, which is exactly CBI3's correspondence.");
+            Assert.That(admitted.Mediation, Is.EqualTo(MediationId.Create("mediation.cooling")));
+        });
+    }
+
+    [Test]
+    public void C2_a_mediation_that_owns_authority_is_refused()
+    {
+        var owned = MediatorAuthority("cbi26-02-mediation-owns-authority");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(owned.Code, Is.EqualTo("mediation-owns-authority"));
+            Assert.That(
+                owned.Reason,
+                Does.Contain("on behalf of"),
+                "The refusal names the missing relation rather than the request.");
+            Assert.That(owned.Grants, Is.Empty);
+            Assert.That(
+                Enum.GetNames<ActorRelationshipKind>(),
+                Is.EquivalentTo(new[] { "AttachedDevice", "ExternalPeer", "ComponentParticipant" }),
+                "CM5 offers no relationship kind that means acting for someone else.");
+        });
+    }
+
+    [Test]
+    public void C3_the_other_ownership_flags_are_not_authority()
+    {
+        var lifecycle = MediatorAuthority("cbi26-03-mediation-owns-lifecycle");
+        var recovery = MediatorAuthority("cbi26-04-mediation-owns-recovery-and-residue");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                lifecycle.IsAdmitted,
+                Is.True,
+                "Owning a lifecycle says nothing about who may exercise a Capability.");
+            Assert.That(recovery.IsAdmitted, Is.True);
+            Assert.That(
+                new[] { lifecycle, recovery }.All(item => item.Grants.Count == 1),
+                Is.True,
+                "The outcome depends on OwnsAuthority alone among the ownership flags.");
+        });
+    }
+
+    [Test]
+    public void C4_the_mediators_grants_are_its_own()
+    {
+        var admitted = MediatorAuthority("cbi26-01-mediator-admitted-for-itself");
+        var mediatedMembers = MediatedResolution()
+            .Generation!.ProviderSets
+            .Single(item => item.Requirement == MediatedRequirement)
+            .Members;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                admitted.Grants.All(item => item.Holder == ProviderLocalActor),
+                Is.True,
+                "Every grant is held by the mediator's local Actor.");
+            Assert.That(admitted.Admissions, Has.Count.EqualTo(1));
+            Assert.That(
+                mediatedMembers,
+                Is.Not.Empty,
+                "The mediated set has members, and none of them was admitted.");
+        });
+    }
+
+    [Test]
+    public void C5_nothing_widens_cm5_and_cbi3_is_unchanged()
+    {
+        var foreign = MediatorAuthority("cbi26-07-request-names-another-occurrence");
+        var denied = MediatorAuthority("cbi26-06-authority-denied");
+        var refusedTranslation = MediatorAuthority("cbi26-05-translation-refused");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                foreign.Code,
+                Is.EqualTo("participant-mapping-invalid"),
+                "CBI3's own mapping rule still decides, unrelaxed.");
+            Assert.That(denied.Code, Is.EqualTo("authority-not-admitted"));
+            Assert.That(
+                refusedTranslation.Code,
+                Is.EqualTo("mediator-not-declared"),
+                "A translation that CBI25 refuses never reaches CM5.");
+            Assert.That(
+                new[] { foreign, denied, refusedTranslation }.All(item => item.Grants.Count == 0),
+                Is.True);
+        });
+    }
+
+    private static string MediatorToken(ComponentMediatorAuthorityKind kind) => kind switch
+    {
+        ComponentMediatorAuthorityKind.Admitted => "admitted",
+        ComponentMediatorAuthorityKind.Declined => "declined",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
+    private static ComponentParticipantRequest MediatorParticipant(bool revoked = false)
+    {
+        var policy = GroupPolicy(ProviderLocalActor);
+        var request = ProviderAuthority(policy, Authority);
+        return new(
+            new(MediatorSelection().Occurrence, Participant),
+            revoked
+                ? request with
+                {
+                    Evidence = [SetEvidence(AuthorityEvidence, Participant) with { State = AdmissionEvidenceState.Revoked }],
+                }
+                : request);
+    }
+
+    private static ComponentMediatorAuthorityResult MediatorAuthority(string scenario)
+    {
+        var resolution = scenario switch
+        {
+            "cbi26-02-mediation-owns-authority" => MediatedResolution(owns: MediationOwnership.Authority),
+            "cbi26-03-mediation-owns-lifecycle" => MediatedResolution(owns: MediationOwnership.Lifecycle),
+            "cbi26-04-mediation-owns-recovery-and-residue" =>
+                MediatedResolution(owns: MediationOwnership.RecoveryAndResidue),
+            _ => MediatedResolution(),
+        };
+        var mediator = scenario == "cbi26-05-translation-refused"
+            ? MediatorSelection() with { Definition = DefinitionId.Create("def.test.not-the-mediator") }
+            : MediatorSelection();
+        var participant = scenario switch
+        {
+            "cbi26-06-authority-denied" => MediatorParticipant(revoked: true),
+            "cbi26-07-request-names-another-occurrence" => MediatorParticipant() with
+            {
+                Mapping = new(OccurrenceId.Create("occ.elsewhere"), Participant),
+            },
+            _ => MediatorParticipant(),
+        };
+        return ComponentMediatorAuthority.Admit(
+            resolution,
+            new(MediatedRequirement, mediator),
+            [participant],
+            RuntimeRequest(Plan(MediatorSelection().Occurrence)));
     }
 
     private static string GroupFailureToken(ComponentGroupActivationFailureKind kind) => kind switch

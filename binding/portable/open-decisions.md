@@ -1,16 +1,17 @@
 # Portable Binding — open owner decisions
 
-**Status:** Decisions 1 through 11 are **recorded**; **Decisions 12, 13, and 14 are open**, raised
-2026-08-01 by CBI20 and CBI21 and 2026-08-02 by CBI23 and CBI24. Decisions 12 and 14 block nothing;
-Decision 13 blocks every activation of a CM3 group that declares a bounded lifecycle protocol. Decisions 1 and 2 (the PB0 exit blockers) were
+**Status:** Decisions 1 through 11 are **recorded**; **Decisions 12 through 15 are open**, raised
+2026-08-01 by CBI20 and CBI21 and 2026-08-02 by CBI23, CBI24, and CBI26. Decisions 12, 14, and 15
+block nothing; Decision 13 blocks every activation of a CM3 group that declares a bounded lifecycle
+protocol. Decisions 1 and 2 (the PB0 exit blockers) were
 recorded 2026-07-24. Decisions 3 through 10 were raised by evidence in PB4, PB5, or PB6, ran on a
 provisional implementer choice while each phase proceeded, and were recorded 2026-07-28. Four of
 those eight confirm the provisional choice unchanged; four confirm it and create follow-on work,
 tracked under [Work the rulings create](#work-the-rulings-create).
 **Decision 11 was raised later, by PB7, and was recorded on 2026-07-30**: negotiation now compares
 provider identity and the Binding Plan reports the provider that answered. **Decisions 12 and 13 were raised by
-CBI20 and CBI21 on 2026-08-01, and Decision 14 by CBI23 and CBI24 on 2026-08-02; all three await
-rulings.** Non-pinned.
+CBI20 and CBI21 on 2026-08-01, and Decisions 14 and 15 by CBI23, CBI24, and CBI26 on 2026-08-02; all
+four await rulings.** Non-pinned.
 
 **How to read this file.** Every decision below is written to be answerable without any other
 context: it states what was observed, what was running when the question was raised and why, what the
@@ -37,6 +38,7 @@ reader can see what was rejected and on what grounds.
 | 12 | A receiving-domain Actor freed by a dropped member, taken by a different party | CBI20 | **Open** — raised 2026-08-01; Option A running |
 | 13 | Relational Initialisation is declared out of scope, and CM4 needs it | CBI21 | **Open** — raised 2026-08-01; Option A running |
 | 14 | Nothing records that a restart scope has children | CBI23, CBI24 | **Open** - raised 2026-08-02; Option A running |
+| 15 | CM2 can declare a Mediation that owns authority; CM5 cannot represent one | CBI26 | **Open** - raised 2026-08-02; Option A running |
 
 ---
 
@@ -775,3 +777,48 @@ attachment the caller does name, and the difference is only visible for one it d
 precisely what no test can supply, because supplying it makes it named. It becomes decidable the
 moment anything else needs to enumerate a scope's children — a supervisor, a status projection, or a
 restart that must rebuild the forest — and each of those argues for B.
+
+---
+
+## Decision 15 — CM2 can declare a Mediation that owns authority; CM5 cannot represent one
+
+**Owner:** Component Management owners.
+**Raised by:** CBI26.
+**Blocks:** nothing today. A Mediation declaring `OwnsAuthority` is refused, and every other
+Mediation is admitted for what its mediator does itself.
+
+**Context.** CM2's `MediationDeclaration` carries six ownership flags, one of which is
+`OwnsAuthority`: the Mediation is responsible for the authority of the interaction it fronts. CM2
+takes it seriously enough to require any policy-bearing Mediation to be realized as a dedicated
+Component.
+
+CM5 cannot express it. Its `ActorRelationshipKind` offers `AttachedDevice`, `ExternalPeer`, and
+`ComponentParticipant`, none of which means *acts on behalf of*; and `LocalCapabilityGrant` names
+exactly one `Holder`, a local Actor, with no beneficiary beside it. So a mediator is admitted for its
+own interaction and there is no way to say that a grant it holds is exercised for a member behind it.
+
+CBI26 refuses the declaration rather than approximating it, because the approximation — admit the
+mediator, let its narrow grants stand for the members — reads as working and decides what a deputy is
+in the least visible place available. The result is that the two models disagree about what is
+expressible, which is a question for their owners rather than for a composition root.
+
+| Option | What it is | Pros | Cons |
+| --- | --- | --- | --- |
+| **A. Refuse the declaration** *(running)* | A Mediation that owns authority has no integration path; every other Mediation works | Honest about the disagreement; no model changes; the capability that cannot be represented is visibly unavailable rather than silently approximated | CM2 can declare something no downstream model can act on, so a resolution that is valid produces an integration that is refused |
+| **B. CM5 grants gain a beneficiary** | A grant names a holder and, optionally, the Actor it is exercised for | Makes deputy authority representable where it belongs, next to the holder | Every consumer of a grant must decide what a beneficiary means for it, and CBI3's "one grant, one holder" rule — which several slices rest on — becomes "one grant, one holder, and maybe someone else" |
+| **C. A deputy relationship kind** | `ActorRelationshipKind` gains a kind meaning "acts for", and admission records whom | Keeps grants simple; the relation is where CM5 already models who someone is | A relationship is between a participant and the receiving domain, not between two participants, so the kind would carry a second Actor no other kind has |
+| **D. CM2 drops the flag** | `OwnsAuthority` is removed, and a Mediation that would own authority is modelled as the members delegating explicitly | Removes the disagreement at its source; the members' own admissions stay theirs | Loses a distinction CM2 currently makes, and the delegation it replaces has no model either |
+
+**Recommendation: A, until something other than an integration slice needs it.** The disagreement is
+real but nothing yet requires deputy authority to work — every Mediation this programme resolves owns
+nothing. B and C both spend a model change on a capability with no consumer, and B in particular
+weakens a rule that CBI3, CBI6, CBI13, and CBI20 all lean on. D is the cheapest and the most
+destructive: the flag is CM2 saying something true about mediation, and removing it to resolve a
+downstream limitation would be the wrong direction.
+
+**Decision:** **Open.** Raised 2026-08-02.
+
+**What would settle it.** A consumer. The question is decidable the moment a Mediation that owns
+authority has to actually work — a real arbitration or aggregation mediator whose members cannot hold
+their own grants — because that names what the beneficiary is for. Until then, every option is a
+guess about a shape nobody has had to build.

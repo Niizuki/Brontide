@@ -3228,6 +3228,96 @@ public static class ComponentAttachedReplacement
             reason);
 }
 
+public enum ComponentMediatorAuthorityKind
+{
+    Admitted,
+    Declined,
+}
+
+public sealed record ComponentMediatorAuthorityResult(
+    ComponentMediatorAuthorityKind Kind,
+    IReadOnlyList<ComponentParticipantObservation> Admissions,
+    IReadOnlyList<Cm.LocalCapabilityGrant> Grants,
+    Cm.MediationId? Mediation,
+    string Code,
+    string Reason)
+{
+    public bool IsAdmitted => Kind == ComponentMediatorAuthorityKind.Admitted;
+}
+
+/// <summary>
+/// Admits the authority of the mediator CBI25 binds, for what the mediator does itself.
+/// </summary>
+/// <remarks>
+/// CM5 has no deputy. Its relationship kinds are AttachedDevice, ExternalPeer, and
+/// ComponentParticipant, none of which means "acts on behalf of", and its grant names exactly one
+/// Holder with no beneficiary beside it. So a Mediation declaring that it owns authority is refused
+/// rather than approximated: admitting the mediator and letting its own grants stand for the members'
+/// would decide what a deputy is, invisibly. The other ownership flags describe what the mediator
+/// does with the set behind it, which is not a CM5 question at all.
+/// </remarks>
+public static class ComponentMediatorAuthority
+{
+    public static ComponentMediatorAuthorityResult Admit(
+        Cm.ResolutionOutcome resolution,
+        ComponentMediatedSelection selection,
+        IReadOnlyList<ComponentParticipantRequest> participants,
+        Cm.ActivationRuntimeRequest runtimeRequest)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(participants);
+        ArgumentNullException.ThrowIfNull(runtimeRequest);
+
+        var translation = ComponentMediatedBinding.Translate(resolution, selection);
+        if (!translation.IsTranslated)
+        {
+            return Decline(translation.Code, translation.Reason);
+        }
+
+        var mediation = resolution.Generation!.ProviderSets
+            .Single(item => item.Requirement == selection.MediatedRequirement)
+            .Mediation!;
+        if (mediation.OwnsAuthority)
+        {
+            // CM5 can say who holds a grant and nothing about whom it is held for, so a Mediation
+            // responsible for the authority of what it fronts has no representation here.
+            return Decline(
+                "mediation-owns-authority",
+                $"Mediation '{mediation.Mediation}' declares that it owns authority, and CM5 has no relationship that means 'on behalf of' and no grant with a beneficiary.");
+        }
+
+        var admitted = ComponentParticipantAdmission.Admit(
+            selection.Mediator,
+            participants,
+            runtimeRequest);
+        return admitted.Failure is { } refusal
+            ? new(
+                ComponentMediatorAuthorityKind.Declined,
+                admitted.Admissions,
+                Array.Empty<Cm.LocalCapabilityGrant>(),
+                null,
+                refusal.Code,
+                refusal.Reason)
+            : new(
+                ComponentMediatorAuthorityKind.Admitted,
+                admitted.Admissions,
+                admitted.Grants,
+                mediation.Mediation,
+                "mediator-admitted",
+                $"Mediation '{mediation.Mediation}' is fronted by an admitted mediator holding {admitted.Grants.Count} grants of its own.");
+    }
+
+    private static ComponentMediatorAuthorityResult Decline(string code, string reason) =>
+        new(
+            ComponentMediatorAuthorityKind.Declined,
+            Array.Empty<ComponentParticipantObservation>(),
+            Array.Empty<Cm.LocalCapabilityGrant>(),
+            null,
+            code,
+            reason);
+}
+
 public sealed record ComponentGroupMemberRequests(
     Cm.OccurrenceId Occurrence,
     IReadOnlyList<Cm.AuthorityAdmissionRequest> Requests);
