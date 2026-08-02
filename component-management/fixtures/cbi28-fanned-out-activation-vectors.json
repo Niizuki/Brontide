@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi28-fanned-out-activation-vectors",
+  "vectors": [
+    {
+      "id": "cbi28-01-wide-position-activated",
+      "expectedActive": true,
+      "expectedFailureKind": null,
+      "expectedCode": null,
+      "expectedMembersAdmitted": 2,
+      "expectedGrants": 2,
+      "expectedReleased": 2,
+      "expectedRetired": 0,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi28-02-wide-position-beside-an-ordinary-one",
+      "expectedActive": true,
+      "expectedFailureKind": null,
+      "expectedCode": null,
+      "expectedMembersAdmitted": 3,
+      "expectedGrants": 3,
+      "expectedReleased": 3,
+      "expectedRetired": 0,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi28-03-member-missing-from-the-activation",
+      "expectedActive": false,
+      "expectedFailureKind": "activation-refused",
+      "expectedCode": "membership-not-resolved",
+      "expectedMembersAdmitted": 1,
+      "expectedGrants": 1,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi28-04-member-without-a-scope",
+      "expectedActive": false,
+      "expectedFailureKind": "activation-refused",
+      "expectedCode": "member-scope-required",
+      "expectedMembersAdmitted": 2,
+      "expectedGrants": 2,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi28-05-ordinary-member-with-a-scope",
+      "expectedActive": false,
+      "expectedFailureKind": "activation-refused",
+      "expectedCode": "member-scope-not-required",
+      "expectedMembersAdmitted": 3,
+      "expectedGrants": 3,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi28-06-members-share-a-scope",
+      "expectedActive": false,
+      "expectedFailureKind": "activation-refused",
+      "expectedCode": "scope-not-distinct",
+      "expectedMembersAdmitted": 2,
+      "expectedGrants": 2,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi28-07-one-member-never-ready",
+      "expectedActive": false,
+      "expectedFailureKind": "activation-refused",
+      "expectedCode": "provider-mismatch",
+      "expectedMembersAdmitted": 2,
+      "expectedGrants": 2,
+      "expectedReleased": 0,
+      "expectedRetired": 1,
+      "expectedProviderEffects": 0
+    },
+    {
+      "id": "cbi28-08-one-member-denied",
+      "expectedActive": false,
+      "expectedFailureKind": "member-authority-refused",
+      "expectedCode": "authority-not-admitted",
+      "expectedMembersAdmitted": 1,
+      "expectedGrants": 0,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedProviderEffects": 0
+    }
+  ]
+}

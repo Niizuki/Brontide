@@ -2503,9 +2503,19 @@ public static class ComponentDeclarationSuccession
             reason);
 }
 
+/// <summary>
+/// One member of an activation: what to bind, what to bind it through, and — where the generation
+/// cannot say — which binding scope the binding holds.
+/// </summary>
+/// <remarks>
+/// The scope is absent for a member of a `1..1` position, where CM2's position scope names the one
+/// binding it has, and present for a member of a wider one, where CM2 names the position and the
+/// caller names each binding within it.
+/// </remarks>
 public sealed record ComponentGroupMember(
     ComponentBindingSelection Selection,
-    Portable.IPortableProviderConversation Conversation);
+    Portable.IPortableProviderConversation Conversation,
+    Portable.PortableBindingScopeId? Scope = null);
 
 public enum ComponentGroupActivationFailureKind
 {
@@ -2582,21 +2592,17 @@ public static class ComponentGroupLifecycle
                 containment.Reason);
         }
 
-        var prepared = new List<ComponentGroupMemberOutcome>();
-        foreach (var member in ordered)
+        var preparation = PrepareMembers(resolution, ordered);
+        if (preparation.Failure is { } unprepared)
         {
-            var preparation = ComponentBindingIntegration.Prepare(resolution, member.Selection);
-            if (preparation.Member is not { } portable)
-            {
-                return Refuse(
-                    ComponentGroupActivationFailureKind.PreparationUnavailable,
-                    preparation.Failure!.Code,
-                    preparation.Failure.Reason,
-                    member.Selection.Occurrence);
-            }
-
-            prepared.Add(new(member.Selection.Occurrence, portable));
+            return Refuse(
+                ComponentGroupActivationFailureKind.PreparationUnavailable,
+                unprepared.Code,
+                unprepared.Reason,
+                unprepared.Member);
         }
+
+        var prepared = preparation.Members;
 
         var successful = runtimeRequest with
         {
@@ -2690,6 +2696,99 @@ public static class ComponentGroupLifecycle
 
         return new(runtime, prepared, null);
     }
+
+    private sealed record PreparationRefusal(string Code, string Reason, Cm.OccurrenceId? Member);
+
+    private sealed record MemberPreparation(
+        IReadOnlyList<ComponentGroupMemberOutcome> Members,
+        PreparationRefusal? Failure);
+
+    /// <summary>
+    /// Prepares every member of the activation, one position at a time.
+    /// </summary>
+    /// <remarks>
+    /// A wide position goes through CBI27 as a whole rather than member by member, which is what makes
+    /// the generation's membership the authority here: CBI12's plan checks compare the caller's member
+    /// list with the caller's plan, so a position supplied half-complete satisfies both of them and
+    /// only the resolution can say otherwise.
+    /// </remarks>
+    private static MemberPreparation PrepareMembers(
+        Cm.ResolutionOutcome resolution,
+        IReadOnlyList<ComponentGroupMember> ordered)
+    {
+        var prepared = new Dictionary<Cm.OccurrenceId, Portable.PortableCompositionMember>();
+        foreach (var position in ordered
+            .GroupBy(item => item.Selection.Requirement)
+            .OrderBy(group => group.Key.Value, StringComparer.Ordinal))
+        {
+            var resolved = resolution.Generation?.ProviderSets
+                .FirstOrDefault(item => item.Requirement == position.Key);
+            var wide = resolved is not null &&
+                (resolved.Cardinality.Minimum != 1 || resolved.Cardinality.Maximum != 1);
+            if (!wide)
+            {
+                // The generation names the scope of a 1..1 position, so a caller naming one is
+                // disagreeing with the resolution rather than completing it.
+                if (position.FirstOrDefault(item => item.Scope is not null) is { } scoped)
+                {
+                    return Unprepared(
+                        "member-scope-not-required",
+                        $"Requirement '{position.Key}' resolves one binding, whose scope the generation names; member {scoped.Selection.Occurrence} also names '{scoped.Scope}'.",
+                        scoped.Selection.Occurrence);
+                }
+
+                foreach (var member in position)
+                {
+                    var one = ComponentBindingIntegration.Prepare(resolution, member.Selection);
+                    if (one.Member is not { } portable)
+                    {
+                        return Unprepared(
+                            one.Failure!.Code,
+                            one.Failure.Reason,
+                            member.Selection.Occurrence);
+                    }
+
+                    prepared[member.Selection.Occurrence] = portable;
+                }
+
+                continue;
+            }
+
+            if (position.FirstOrDefault(item => item.Scope is null) is { } unscoped)
+            {
+                return Unprepared(
+                    "member-scope-required",
+                    $"Requirement '{position.Key}' resolves {resolved!.Cardinality} and CM2 gives the position one scope, so member {unscoped.Selection.Occurrence} needs a binding scope of its own.",
+                    unscoped.Selection.Occurrence);
+            }
+
+            var translation = ComponentProviderSetBinding.Translate(
+                resolution,
+                new(
+                    position.Key,
+                    [.. position.Select(item => new ComponentProviderSetMemberSelection(
+                        item.Scope!.Value,
+                        item.Selection))]));
+            if (!translation.IsTranslated)
+            {
+                return Unprepared(translation.Code, translation.Reason, null);
+            }
+
+            foreach (var outcome in translation.Members)
+            {
+                prepared[outcome.Occurrence] = outcome.Member;
+            }
+        }
+
+        return new(
+            [.. ordered.Select(item => new ComponentGroupMemberOutcome(
+                item.Selection.Occurrence,
+                prepared[item.Selection.Occurrence]))],
+            null);
+    }
+
+    private static MemberPreparation Unprepared(string code, string reason, Cm.OccurrenceId? member) =>
+        new(Array.Empty<ComponentGroupMemberOutcome>(), new(code, reason, member));
 
     private static async ValueTask<ComponentGroupActivationResult> FailAsync(
         Cm.ActivationRuntimeRequest runtimeRequest,

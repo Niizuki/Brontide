@@ -704,12 +704,46 @@ yet**, because the group path prepares each member through CBI1, which refuses a
 [`contract-completeness review`](../../component-management/cbi27-contract-completeness-review.md)
 bound it to preflight.
 
-**Activating a fanned-out set is the next implementable item**, and it is the narrower half of a
-question CBI27 leaves whole: the multi-member entry point takes selections and prepares each through
-CBI1, so it must learn either to accept prepared members or to take a wide position itself, and either
-choice touches every slice from CBI12 onward. Real distribution remains future work behind it. PB8's
-independent reviews remain a separate governance prerequisite rather than implementation work;
-Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings.
+CBI28 activates the members CBI27 fans out, and the lift needed less than the item expected.
+**Nothing downstream needed teaching**: a wide position's members are distinct occurrences, and every
+slice from CBI12 onward is per-occurrence — CM3 plans occurrences, CM4 stages them, CM5 admits against
+them, CBI16 attributes interaction per member. What the activation was missing is the one thing CBI27
+found CM2 does not supply, a binding scope per member, so an activation member now carries one where
+the generation cannot name it, and the rest follows unchanged.
+
+Its finding is a hole the lift would otherwise have opened. **A wide position can be supplied
+half-complete and both of CBI12's checks pass**, because each compares the caller's member list with
+the caller's CM3 plan — two things the caller supplies — so omitting one member of a three-member
+position and planning from the two that remain satisfies both, and the position comes up short-bound
+with no refusal anywhere. Routing a wide position through CBI27 as a whole makes the generation the
+authority, and the refusal a caller gets is CBI27's own rather than a restatement of it.
+
+**The position's declared minimum is not a runtime concept**, and that is the answer to the question a
+wide set poses that a single member cannot. `Cardinality.Minimum` says a `1..3` position is satisfied
+by one provider, which makes "keep serving with two of three" look reachable; it is not. CM2 uses the
+number at resolution to decide how many members to select and then stops carrying it, the
+required-versus-optional split survives only as a **Proposed Stack decision** — provenance about how
+the generation was formed — rather than as a fact about a member, and neither CM3's plan nor CM4's
+attempt has any notion of an optional member. A runtime that wanted to run a degraded set could not
+tell which members it may lose, so one member short of Ready retires the whole activation, siblings
+included. That is CBI27's C7 exercised rather than asserted, and it is a third instance of the pattern
+CBI21 and CBI26 recorded: a capability one model can declare, with no representation in the model that
+would have to carry it.
+
+Scope distinctness is checked within the position and deliberately **not** across the activation,
+because two ordinary positions resolved in one CM binding scope already reach the seam as two members
+reporting one scope — Decision 16, still open, and now re-pinned by a property here. An activation
+member gaining a binding scope is a breaking change to the Minimal record and a source-compatible
+addition to the Reference one; the migration is to leave it absent, which is every member every earlier
+slice activates. The [`CBI28 capability contract`](../../component-management/cbi28-capability-contract.md)
+and [`contract-completeness review`](../../component-management/cbi28-contract-completeness-review.md)
+bound it to the fake runtime.
+
+**Real distribution is the next area**, and no integration slice is queued ahead of it: the fake
+Component Manager and the portable seam now meet across every structural case the two models share.
+PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
+Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —
+Decision 13 still blocks every activation of a CM3 group that declares a bounded lifecycle protocol.
 
 ## Other planned areas
 

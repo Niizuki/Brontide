@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased - CBI28 fanned-out set activation
+
+### Added
+
+- Reference Studio activation of a wide position's members, each in the binding scope its caller
+  named, beside ordinary `1..1` positions in one attempt under one release barrier.
+- A refusal for a wide position supplied without every member the generation resolved for it, for a
+  wide member with no binding scope, and for a `1..1` member that names one.
+- Shared vectors, a phase-boundary completeness review, and a named test for every contract item.
+
+CBI28's finding is that a wide position could be supplied half-complete and pass both of the existing
+plan checks, because each compares the caller's member list with the caller's CM3 plan. Routing a wide
+position through CBI27 as a whole makes the generation the authority. Its second result is that the
+position's declared minimum is not a runtime concept: CM2 stops carrying it after resolution, the
+required-versus-optional split survives only as a Proposed Stack decision, and neither CM3 nor CM4 has
+an optional member — so one member short of Ready retires the whole activation.
+
+### Changed
+
+- `ComponentGroupMember` takes an optional portable binding scope. Existing callers are unaffected:
+  the parameter defaults to absent, which is correct for every member of a `1..1` position.
+
 ## Unreleased - CBI27 wider Provider Set translation
 
 ### Added

@@ -2535,9 +2535,16 @@ module ComponentDeclarationSuccession =
               Reason =
                 "CBI11 requires one released Active CBI6 result with a completely admitted participant set." }
 
+/// One member of an activation: what to bind, what to bind it through, and - where the generation
+/// cannot say - which binding scope the binding holds.
+///
+/// The scope is None for a member of a `1..1` position, where CM2's position scope names the one
+/// binding it has, and Some for a member of a wider one, where CM2 names the position and the caller
+/// names each binding within it.
 type ComponentGroupMember =
     { Selection: ComponentBindingSelection
-      Conversation: IPortableProviderConversation }
+      Conversation: IPortableProviderConversation
+      Scope: Brontide.Minimal.Binding.Portable.BindingScopeId option }
 
 [<RequireQualifiedAccess>]
 type ComponentGroupActivationFailureKind =
@@ -2587,6 +2594,95 @@ module ComponentGroupLifecycle =
         match error with
         | PortableError.Refused fault -> fault.LocalCode, fault.Message
         | PortableError.Interrupted failure -> "portable-process-interrupted", failure.Message
+
+    /// Prepares every member of the activation, one position at a time.
+    ///
+    /// A wide position goes through CBI27 as a whole rather than member by member, which is what makes
+    /// the generation's membership the authority here: the plan checks above compare the caller's
+    /// member list with the caller's plan, so a position supplied half-complete satisfies both of them
+    /// and only the resolution can say otherwise.
+    let internal prepareMembers (resolution: ResolutionOutcome) (ordered: ComponentGroupMember list) =
+        let positions =
+            match resolution with
+            | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+            | _ -> []
+        let rec ordinaryMembers entries prepared =
+            match entries with
+            | [] -> Ok prepared
+            | (entry: ComponentGroupMember) :: rest ->
+                match ComponentBindingIntegration.prepare resolution entry.Selection with
+                | ComponentBindingIntegrationResult.Prepared portable ->
+                    ordinaryMembers rest (Map.add entry.Selection.Occurrence portable prepared)
+                | ComponentBindingIntegrationResult.Refused failure ->
+                    Error(failure.Code, failure.Reason, Some entry.Selection.Occurrence)
+        let rec byPosition groups prepared =
+            match groups with
+            | [] -> Ok prepared
+            | (requirement: RequirementId, entries: ComponentGroupMember list) :: rest ->
+                let resolved = positions |> List.tryFind (fun item -> item.Requirement = requirement)
+                let wide =
+                    match resolved with
+                    | Some position ->
+                        position.Cardinality.Minimum <> 1 || position.Cardinality.Maximum <> Some 1
+                    | None -> false
+                if not wide then
+                    // The generation names the scope of a 1..1 position, so a caller naming one is
+                    // disagreeing with the resolution rather than completing it.
+                    match entries |> List.tryFind (fun item -> item.Scope.IsSome) with
+                    | Some scoped ->
+                        Error(
+                            "member-scope-not-required",
+                            sprintf
+                                "Requirement '%s' resolves one binding, whose scope the generation names; member %s also names '%s'."
+                                (RequirementId.value requirement)
+                                (OccurrenceId.value scoped.Selection.Occurrence)
+                                (Brontide.Minimal.Binding.Portable.BindingScopeId.value scoped.Scope.Value),
+                            Some scoped.Selection.Occurrence)
+                    | None ->
+                        match ordinaryMembers entries prepared with
+                        | Ok next -> byPosition rest next
+                        | Error failure -> Error failure
+                else
+                    match entries |> List.tryFind (fun item -> item.Scope.IsNone) with
+                    | Some unscoped ->
+                        Error(
+                            "member-scope-required",
+                            sprintf
+                                "Requirement '%s' resolves a wider position and CM2 gives it one scope, so member %s needs a binding scope of its own."
+                                (RequirementId.value requirement)
+                                (OccurrenceId.value unscoped.Selection.Occurrence),
+                            Some unscoped.Selection.Occurrence)
+                    | None ->
+                        let translation =
+                            ComponentProviderSetBinding.translate
+                                resolution
+                                { Requirement = requirement
+                                  Members =
+                                    entries
+                                    |> List.map (fun item ->
+                                        { Scope = item.Scope.Value; Selection = item.Selection }) }
+                        if ComponentProviderSetBinding.isTranslated translation then
+                            translation.Members
+                            |> List.fold
+                                (fun acc item -> Map.add item.Occurrence item.Member acc)
+                                prepared
+                            |> byPosition rest
+                        else
+                            Error(translation.Code, translation.Reason, None)
+        let groups =
+            ordered
+            |> List.groupBy (fun item -> item.Selection.Requirement)
+            |> List.sortWith (fun (left, _) (right, _) ->
+                ordinal (RequirementId.value left) (RequirementId.value right))
+        match byPosition groups Map.empty with
+        | Error failure -> Error failure
+        | Ok prepared ->
+            ordered
+            |> List.map (fun entry ->
+                entry,
+                { Occurrence = entry.Selection.Occurrence
+                  Member = Map.find entry.Selection.Occurrence prepared })
+            |> Ok
 
     let isActive (result: ComponentGroupActivationResult) =
         result.Failure.IsNone
@@ -2704,36 +2800,15 @@ module ComponentGroupLifecycle =
             | Some(code, reason) ->
                 return refuse ComponentGroupActivationFailureKind.PlanUnsupported code reason None
             | None ->
-                let prepared =
-                    ordered
-                    |> List.map (fun entry ->
-                        entry, ComponentBindingIntegration.prepare resolution entry.Selection)
-                let refusedPreparation =
-                    prepared
-                    |> List.tryPick (fun (entry, preparation) ->
-                        match preparation with
-                        | ComponentBindingIntegrationResult.Refused failure ->
-                            Some(entry.Selection.Occurrence, failure)
-                        | _ -> None)
-                match refusedPreparation with
-                | Some(occurrence, failure) ->
+                match prepareMembers resolution ordered with
+                | Error(code, reason, occurrence) ->
                     return
                         refuse
                             ComponentGroupActivationFailureKind.PreparationUnavailable
-                            failure.Code
-                            failure.Reason
-                            (Some occurrence)
-                | None ->
-                    let established =
-                        prepared
-                        |> List.map (fun (entry, preparation) ->
-                            match preparation with
-                            | ComponentBindingIntegrationResult.Prepared portable ->
-                                entry,
-                                { Occurrence = entry.Selection.Occurrence
-                                  Member = portable }
-                            | ComponentBindingIntegrationResult.Refused _ ->
-                                failwith "preparation was already checked")
+                            code
+                            reason
+                            occurrence
+                | Ok established ->
                     let outcomes = established |> List.map snd
                     let successful =
                         { runtimeRequest with
