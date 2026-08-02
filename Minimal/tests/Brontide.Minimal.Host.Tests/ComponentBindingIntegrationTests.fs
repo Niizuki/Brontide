@@ -1920,6 +1920,209 @@ type ComponentBindingIntegrationTests() =
             return result, parent, parentHandlers, childHandlers
         }
 
+    let grandchildPortId = PortId.create "port.grandchild"
+    let grandchildScopeId = RestartScopeId.create "restart.grandchild"
+
+    let withdrawalToken kind =
+        match kind with
+        | ComponentAttachmentWithdrawalKind.Withdrawn -> "withdrawn"
+        | ComponentAttachmentWithdrawalKind.CleanupFailed -> "cleanup-failed"
+        | ComponentAttachmentWithdrawalKind.Declined -> "declined"
+
+    /// One position CM2 resolved inside the named Port, with the named lifecycle.
+    let portPosition port lifecycle endpoint =
+        let single = request (Cardinality.parse "1..1")
+        let consumerDefinition =
+            single.Definitions |> List.find (fun item -> item.Definition = consumer)
+        let contained =
+            { List.exactlyOne consumerDefinition.Requirements with
+                ContainingRegion = Some childRegion
+                ContainingPort = Some port
+                RuntimeAttachment = lifecycle = PortLifecycleMode.RuntimeOpen }
+        let resolution =
+            { single with
+                Definitions =
+                    { consumerDefinition with Requirements = [ contained ] }
+                    :: (single.Definitions |> List.filter (fun item -> item.Definition <> consumer))
+                Ports = [ portEnvelope port contractId lifecycle ] }
+            |> FakeGenerationResolver.resolve
+        let position =
+            match resolution with
+            | ResolutionOutcome.Resolved(_, generation) ->
+                generation.ProviderSets |> List.exactlyOne |> fun item -> List.exactlyOne item.Members
+            | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+        resolution, { selection position with HostEndpoint = endpoint }
+
+    /// One attachment beneath the given parent, with everything it needs derived from the spec.
+    let attachLevel
+        (parent: ComponentGroupAuthorityResult)
+        parentScope
+        parentGeneration
+        (port, scope, generation, lifecycle, suffix, failCleanup, declaredParentGeneration)
+        =
+        task {
+            let resolution, childSelection =
+                portPosition port lifecycle (sprintf "%s-host" suffix)
+            let handler = CoolingHandler()
+            let inner =
+                PortableDirectConversation(
+                    PortableProviderEndpoint(
+                        CoolingFixture.contract,
+                        handler,
+                        Realization.FixedDirectCall))
+                :> IPortableProviderConversation
+            let conversation =
+                if failCleanup then
+                    FailingRetirementConversation inner :> IPortableProviderConversation
+                else
+                    inner
+            let childRelationship = RelationshipRequestId.create (sprintf "relationship.%s" suffix)
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let baseline = providerAuthority policy authorityId
+            let admissionRequest =
+                { baseline with
+                    Request = AdmissionRequestId.create (sprintf "admission.%s" suffix)
+                    Relationships =
+                      [ { Request = childRelationship
+                          ProposedActor = participant
+                          Kind = ActorRelationshipKind.ComponentParticipant
+                          Evidence = [ authorityEvidence ] } ]
+                    Authority =
+                      [ { Request = AuthorityRequestId.create (sprintf "authority.%s" suffix)
+                          Relationship = childRelationship
+                          Capability = capability
+                          Target = authorityTarget
+                          Operation = operation
+                          Scope = authorityScope
+                          Unlimited = false } ] }
+            let planValue = planFor generation scope [ childSelection.Occurrence ]
+            let retainedGeneration =
+                GenerationId.create (sprintf "%s-retained" (GenerationId.value generation))
+            let baseRequest = runtimeRequestFor planValue retainedGeneration
+            let childRequest =
+                { baseRequest with
+                    ActiveScopes =
+                        [ yield
+                              { Scope = scope
+                                Generation = retainedGeneration
+                                Status = RuntimeScopeStatus.ActiveScope }
+                          if scope <> parentScope then
+                              yield
+                                  { Scope = parentScope
+                                    Generation = parentGeneration
+                                    Status = RuntimeScopeStatus.ActiveScope } ]
+                    Child =
+                        Some
+                            { ParentScope = parentScope
+                              ParentGeneration =
+                                defaultArg declaredParentGeneration parentGeneration
+                              Port = port
+                              RuntimeOpen = true
+                              Occupied = false
+                              ReplacementLifecycleDeclared = false
+                              HostAssisted = false
+                              InternalReleaseSequence = 0
+                              ExportReleaseSequence = 2
+                              OuterHostOwnsAdmission = false } }
+            let! result =
+                ComponentChildActivation.attach
+                    resolution
+                    parent
+                    [ { Member =
+                          { Selection = childSelection
+                            Conversation = conversation }
+                        Participants =
+                          [ { Mapping =
+                                { Occurrence = childSelection.Occurrence
+                                  Participant = participant }
+                              Request = admissionRequest } ] } ]
+                    childRequest
+            return result
+        }
+
+    let childSpec failCleanup =
+        childPortId,
+        childScopeId,
+        GenerationId.create "gen.child",
+        PortLifecycleMode.RuntimeOpen,
+        "child",
+        failCleanup,
+        None
+
+    /// A parent, a child beneath it, and a grandchild beneath that.
+    let nestedTree scenario =
+        task {
+            let! root, _ = childParent false
+            let! child = attachLevel root parentScopeId (GenerationId.create "gen.lifecycle") (childSpec false)
+            let childActivation = child.Child.Value
+            if scenario = "cbi23-05-attachment-beneath-a-retired-parent" then
+                for outcome in childActivation.Lifecycle.Value.Members do
+                    let! _ = outcome.Member.Retire "retired before the grandchild attaches"
+                    ()
+            let spec =
+                grandchildPortId,
+                (if scenario = "cbi23-03-grandchild-scope-is-its-parents" then
+                     childScopeId
+                 else
+                     grandchildScopeId),
+                GenerationId.create "gen.grandchild",
+                (if scenario = "cbi23-02-grandchild-port-lifecycle-overstated" then
+                     PortLifecycleMode.ActivationOpen
+                 else
+                     PortLifecycleMode.RuntimeOpen),
+                "grandchild",
+                false,
+                (if scenario = "cbi23-04-grandchild-parent-generation-mismatch" then
+                     Some(GenerationId.create "gen.other")
+                 else
+                     None)
+            let! result =
+                attachLevel childActivation childScopeId (GenerationId.create "gen.child") spec
+            let levels =
+                [ yield root
+                  yield childActivation
+                  match result.Child with
+                  | Some grandchild when ComponentChildActivation.isAttached result -> yield grandchild
+                  | _ -> () ]
+            return result, levels
+        }
+
+    let withdrawalResult scenario =
+        task {
+            let! root, _ = childParent false
+            let! child =
+                attachLevel
+                    root
+                    parentScopeId
+                    (GenerationId.create "gen.lifecycle")
+                    (childSpec (scenario = "cbi23-08-cleanup-fails-in-the-child"))
+            let childActivation = child.Child.Value
+            let! grandchild =
+                attachLevel
+                    childActivation
+                    childScopeId
+                    (GenerationId.create "gen.child")
+                    (grandchildPortId,
+                     grandchildScopeId,
+                     GenerationId.create "gen.grandchild",
+                     PortLifecycleMode.RuntimeOpen,
+                     "grandchild",
+                     false,
+                     None)
+            let levels = [ root; childActivation; grandchild.Child.Value ]
+            let given =
+                match scenario with
+                | "cbi23-07-cascade-from-the-middle" -> [ List.item 1 levels; List.item 2 levels ]
+                | "cbi23-09-duplicate-scope" ->
+                    [ List.item 0 levels; List.item 1 levels; List.item 2 levels; List.item 2 levels ]
+                | _ -> levels
+            let! result =
+                ComponentAttachmentWithdrawal.withdraw
+                    given
+                    (sprintf "attachment withdrawal %s" scenario)
+            return result, levels
+        }
+
     /// The positions the successor generation resolves, per scenario.
     let membershipPositions scenario =
         match scenario with
@@ -3999,6 +4202,288 @@ type ComponentBindingIntegrationTests() =
                         List.contains (CapabilityGrantId.value item.Grant) parentGrants),
                     Is.False,
                     "The parent's grants admit nothing for a child member."))
+        }
+
+    [<Test>]
+    member _.``shared CBI23 vectors nest a child beneath a child``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi23-nested-child-port-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI23 vector identity must be a string"
+                    | value -> value
+                let! result, levels = nestedTree scenario
+                let released =
+                    levels
+                    |> List.sumBy (fun level ->
+                        level.Lifecycle
+                        |> Option.map (fun lifecycle ->
+                            lifecycle.Members |> List.filter _.Member.IsReleased |> List.length)
+                        |> Option.defaultValue 0)
+                multiple (fun () ->
+                    Assert.That(
+                        childToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        levels.Length,
+                        Is.EqualTo(vector.GetProperty("expectedDepth").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        released,
+                        Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                        scenario))
+        }
+
+    [<Test>]
+    member _.``shared CBI23 withdrawals retire an attachment tree deepest first``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi23-nested-child-port-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("withdrawals").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI23 withdrawal identity must be a string"
+                    | value -> value
+                let! result, levels = withdrawalResult scenario
+                let expectedScopes =
+                    vector.GetProperty("expectedRetiredScopes").EnumerateArray()
+                    |> Seq.map (fun item ->
+                        match item.GetString() with
+                        | null -> failwith "CBI23 retired scopes must be strings"
+                        | value -> value)
+                    |> List.ofSeq
+                let releasedAfter =
+                    levels
+                    |> List.sumBy (fun level ->
+                        level.Lifecycle
+                        |> Option.map (fun lifecycle ->
+                            lifecycle.Members |> List.filter _.Member.IsReleased |> List.length)
+                        |> Option.defaultValue 0)
+                multiple (fun () ->
+                    Assert.That(
+                        withdrawalToken result.Kind,
+                        Is.EqualTo(vector.GetProperty("expectedKind").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Code,
+                        Is.EqualTo(vector.GetProperty("expectedCode").GetString()),
+                        scenario)
+                    Assert.That(
+                        result.Retired
+                        |> List.map (fun item -> RestartScopeId.value item.Scope)
+                        |> String.concat ", ",
+                        Is.EqualTo(expectedScopes |> String.concat ", "),
+                        sprintf "%s: the cascade order is deepest first." scenario)
+                    Assert.That(
+                        releasedAfter,
+                        Is.EqualTo(vector.GetProperty("expectedReleasedAfter").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Kind <> ComponentAttachmentWithdrawalKind.Declined
+                        || result.Retired.IsEmpty,
+                        Is.True,
+                        sprintf "%s: a declined withdrawal retires nothing." scenario))
+        }
+
+    [<Test>]
+    member _.``C1 a child activation is an ordinary parent``() =
+        task {
+            let! attached, _ = nestedTree "cbi23-01-grandchild-attached"
+            let! overstated, overstatedLevels = nestedTree "cbi23-02-grandchild-port-lifecycle-overstated"
+            let! scopeResult, _ = nestedTree "cbi23-03-grandchild-scope-is-its-parents"
+            let! generation, _ = nestedTree "cbi23-04-grandchild-parent-generation-mismatch"
+            multiple (fun () ->
+                Assert.That(ComponentChildActivation.isAttached attached, Is.True)
+                Assert.That(
+                    attached.Port |> Option.map PortId.value,
+                    Is.EqualTo(Some(PortId.value grandchildPortId)),
+                    "The grandchild names the Port its own position was resolved into.")
+                Assert.That(
+                    overstated.Code,
+                    Is.EqualTo "port-lifecycle-overstated",
+                    "CBI22's envelope rule applies at the second level unchanged.")
+                Assert.That(scopeResult.Code, Is.EqualTo "child-scope-not-distinct")
+                Assert.That(generation.Code, Is.EqualTo "parent-generation-mismatch")
+                Assert.That(
+                    (List.item 1 overstatedLevels).Lifecycle.Value.Members
+                    |> List.forall _.Member.IsReleased,
+                    Is.True,
+                    "And a refusal at the second level leaves the first child released."))
+        }
+
+    [<Test>]
+    member _.``C2 depth is not bounded by this slice``() =
+        task {
+            let! attached, levels = nestedTree "cbi23-01-grandchild-attached"
+            let! great =
+                attachLevel
+                    (List.item 2 levels)
+                    grandchildScopeId
+                    (GenerationId.create "gen.grandchild")
+                    (PortId.create "port.great-grandchild",
+                     RestartScopeId.create "restart.great-grandchild",
+                     GenerationId.create "gen.great-grandchild",
+                     PortLifecycleMode.RuntimeOpen,
+                     "great",
+                     false,
+                     None)
+            multiple (fun () ->
+                Assert.That(ComponentChildActivation.isAttached attached, Is.True)
+                Assert.That(
+                    ComponentChildActivation.isAttached great,
+                    Is.True,
+                    "A fourth level is admitted on exactly the terms the second was.")
+                Assert.That(great.Code, Is.EqualTo "child-attached")
+                Assert.That(
+                    levels
+                    |> List.forall (fun level ->
+                        level.Lifecycle.Value.Members |> List.forall _.Member.IsReleased),
+                    Is.True))
+        }
+
+    [<Test>]
+    member _.``C3 the attachment relation is derived and checked``() =
+        task {
+            let! duplicate, levels = withdrawalResult "cbi23-09-duplicate-scope"
+            let! cascade, _ = withdrawalResult "cbi23-06-cascade-deepest-first"
+            multiple (fun () ->
+                Assert.That(duplicate.Code, Is.EqualTo "scope-not-distinct")
+                Assert.That(
+                    duplicate.Retired,
+                    Is.Empty,
+                    "Every refusal of the relation itself retires nothing.")
+                Assert.That(
+                    levels
+                    |> List.forall (fun level ->
+                        level.Lifecycle.Value.Members |> List.forall _.Member.IsReleased),
+                    Is.True)
+                // The relation is read from each activation rather than declared: the middle level
+                // knows its parent because CM4 recorded the attachment, not because the caller said so.
+                Assert.That(
+                    cascade.Retired
+                    |> List.map (fun item -> RestartScopeId.value item.Scope)
+                    |> String.concat ", ",
+                    Is.EqualTo "restart.grandchild, restart.child, restart.lifecycle"))
+        }
+
+    [<Test>]
+    member _.``C4 a child is retired before the parent whose Port it occupies``() =
+        task {
+            let! cascade, _ = withdrawalResult "cbi23-06-cascade-deepest-first"
+            let order = cascade.Retired |> List.map (fun item -> RestartScopeId.value item.Scope)
+            multiple (fun () ->
+                Assert.That(ComponentAttachmentWithdrawal.isWithdrawn cascade, Is.True)
+                Assert.That(
+                    List.findIndex ((=) "restart.grandchild") order,
+                    Is.LessThan(List.findIndex ((=) "restart.child") order),
+                    "The grandchild goes before the child whose Port it occupies.")
+                Assert.That(
+                    List.findIndex ((=) "restart.child") order,
+                    Is.LessThan(List.findIndex ((=) "restart.lifecycle") order),
+                    "And the child before the parent whose Port it occupies."))
+        }
+
+    [<Test>]
+    member _.``C5 the root can only order what it is given``() =
+        task {
+            let! partial, levels = withdrawalResult "cbi23-07-cascade-from-the-middle"
+            multiple (fun () ->
+                Assert.That(ComponentAttachmentWithdrawal.isWithdrawn partial, Is.True)
+                Assert.That(
+                    partial.Retired
+                    |> List.map (fun item -> RestartScopeId.value item.Scope)
+                    |> String.concat ", ",
+                    Is.EqualTo "restart.grandchild, restart.child",
+                    "The outcome names exactly the scopes it retired.")
+                Assert.That(
+                    (List.item 0 levels).Lifecycle.Value.Members |> List.forall _.Member.IsReleased,
+                    Is.True,
+                    "A parent the caller did not name is left running, which is visible by absence."))
+        }
+
+    [<Test>]
+    member _.``C6 an attachment beneath a retired parent is refused``() =
+        task {
+            let! refused, levels = nestedTree "cbi23-05-attachment-beneath-a-retired-parent"
+            multiple (fun () ->
+                Assert.That(
+                    refused.Kind,
+                    Is.EqualTo ComponentChildActivationKind.ParentUnavailable)
+                Assert.That(refused.Child, Is.EqualTo None)
+                Assert.That(
+                    (List.item 1 levels).Lifecycle.Value.Members
+                    |> List.forall (fun item ->
+                        CompositionStage.token item.Member.Stage = "retired"),
+                    Is.True,
+                    "Its parent is gone, and CBI22's own precondition is what refuses it."))
+        }
+
+    [<Test>]
+    member _.``C7 a cleanup failure is named and restores nothing``() =
+        task {
+            let! result, levels = withdrawalResult "cbi23-08-cleanup-fails-in-the-child"
+            multiple (fun () ->
+                Assert.That(
+                    result.Kind,
+                    Is.EqualTo ComponentAttachmentWithdrawalKind.CleanupFailed)
+                Assert.That(result.Reason, Does.Contain "withdraw-refused")
+                Assert.That(
+                    result.Retired
+                    |> List.map (fun item -> RestartScopeId.value item.Scope)
+                    |> String.concat ", ",
+                    Is.EqualTo "restart.grandchild, restart.child, restart.lifecycle",
+                    "The cascade continues past the failure rather than stopping.")
+                Assert.That(
+                    result.Retired |> List.filter (fun item -> item.Cleanup.IsSome) |> List.length,
+                    Is.EqualTo 1,
+                    "And the failure is reported against the scope it happened in.")
+                Assert.That(
+                    levels
+                    |> List.exists (fun level ->
+                        level.Lifecycle.Value.Members |> List.exists _.Member.IsReleased),
+                    Is.False,
+                    "Nothing is returned to released."))
+        }
+
+    [<Test>]
+    member _.``C8 nesting adds no grant and leaves the earlier slices alone``() =
+        task {
+            let! _, levels = nestedTree "cbi23-01-grandchild-attached"
+            let grants =
+                levels
+                |> List.collect (fun level ->
+                    level.Grants |> List.map (fun item -> CapabilityGrantId.value item.Grant))
+            multiple (fun () ->
+                Assert.That(
+                    (grants |> List.distinct).Length,
+                    Is.EqualTo grants.Length,
+                    "Each level's authority is its own request, so no grant identity is shared.")
+                Assert.That(
+                    (List.item 2 levels).Lifecycle.Value.Runtime.Value.Observation.Child
+                    |> Option.map (fun item -> RestartScopeId.value item.ParentScope),
+                    Is.EqualTo(Some(RestartScopeId.value childScopeId)),
+                    "The grandchild's attachment names the child's scope, not the root's.")
+                Assert.That(
+                    (List.item 0 levels).Lifecycle.Value.Runtime.Value.Observation.Child,
+                    Is.EqualTo None,
+                    "And the root is not itself an attachment."))
         }
 
     [<Test>]

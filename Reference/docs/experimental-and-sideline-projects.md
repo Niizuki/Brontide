@@ -22,7 +22,7 @@ Graduation into the main showcase would require repeatable GPU execution tests, 
 operational observations, honest fallback behavior, and evidence that the transformation module
 does not need an application-level redesign.
 
-Reference Studio is the composition root for the CBI1-CBI22 integration slices. It references the
+Reference Studio is the composition root for the CBI1-CBI23 integration slices. It references the
 independent Component Management and Portable Binding experiments and maps one completed native
 CM2 direct `1..1` position into PB7 preflight, then coordinates one singleton, protocol-free CM4
 plan from PB7 lifecycle evidence and releases the portable gate only after CM4 Active.
@@ -57,7 +57,8 @@ lets that successor resolve a different set of positions, reading the membership
 rather than the caller and joining an added position only across the cutover. CBI21 activates a
 strongly connected group that declares no lifecycle protocol, and refuses one that does because the
 portable seam declares Relational Initialisation out of scope. CBI22 attaches one child activation
-to a runtime-open Port of a released parent, in its own restart scope. This
+to a runtime-open Port of a released parent, in its own restart scope, and CBI23 nests those
+attachments and retires a supplied forest deepest first. This
 does not merge the experimental projects,
-perform a lifecycle handshake, nest a child beneath a child, mediate, or widen
+perform a lifecycle handshake, migrate a Port between generations, mediate, or widen
 Provider Sets, or establish real Component interchange.

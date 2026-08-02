@@ -136,6 +136,10 @@ released parent. Until it, the Region and Port a Provider Set carries were read 
 such a position was flattened into an ordinary one; both activation paths now refuse it. Which
 Port an attachment names, and what it may claim about that Port's lifecycle, come from the
 resolved envelope rather than the caller, and the parent stays active and serving throughout.
+CBI23 nests those attachments and orders their withdrawal. CM4 models no relationship between a
+parent and a child after attachment, so the ordering is the composition root's: an attachment
+occupies a Port of a generation and cannot outlive it, which makes the cascade deepest-first. Depth
+is unbounded, and the root can only order the activations it is given.
 
 ## Build and test
 

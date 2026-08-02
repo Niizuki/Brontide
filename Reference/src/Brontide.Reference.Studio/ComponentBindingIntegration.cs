@@ -2792,6 +2792,173 @@ public static class ComponentChildActivation
         new(kind, null, null, code, reason);
 }
 
+public enum ComponentAttachmentWithdrawalKind
+{
+    Withdrawn,
+    CleanupFailed,
+    Declined,
+}
+
+public sealed record ComponentAttachmentRetirement(
+    Cm.RestartScopeId Scope,
+    IReadOnlyList<Cm.OccurrenceId> Members,
+    string? Cleanup);
+
+public sealed record ComponentAttachmentWithdrawalResult(
+    ComponentAttachmentWithdrawalKind Kind,
+    IReadOnlyList<ComponentAttachmentRetirement> Retired,
+    string Code,
+    string Reason)
+{
+    public bool IsWithdrawn => Kind == ComponentAttachmentWithdrawalKind.Withdrawn;
+}
+
+/// <summary>
+/// Stands down a set of attached activations, deepest first.
+/// </summary>
+/// <remarks>
+/// CM4 requires a child's parent scope to be active when the child attaches and preserves it through
+/// the activation, and that is the whole of the relationship it models: nothing records that a scope
+/// has children, and nothing stands a child down when its parent goes. The ordering is therefore the
+/// composition root's, and it can only order what it is given — a child the caller does not name is
+/// invisible here, which the contract states rather than implies.
+/// </remarks>
+public static class ComponentAttachmentWithdrawal
+{
+    public static async ValueTask<ComponentAttachmentWithdrawalResult> WithdrawAsync(
+        IReadOnlyList<ComponentGroupAuthorityResult> activations,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(activations);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        var attachments = new List<(ComponentGroupAuthorityResult Activation, Cm.RestartScopeId Scope, Cm.RestartScopeId? Parent)>();
+        foreach (var activation in activations)
+        {
+            if (!activation.IsActive || activation.Lifecycle?.Runtime?.Observation is not { } observation)
+            {
+                return Decline(
+                    "activation-unavailable",
+                    "CBI23 stands down released CBI13 activations, each carrying its own CM4 observation.");
+            }
+
+            attachments.Add((activation, observation.RestartScope, observation.Child?.ParentScope));
+        }
+
+        if (ComponentParticipantAdmission.FirstDuplicate(
+                attachments.Select(item => item.Scope.Value)) is { } repeated)
+        {
+            return Decline(
+                "scope-not-distinct",
+                $"Two activations claim restart scope '{repeated}', so which one holds it is undecidable.");
+        }
+
+        var ordered = Depths(attachments);
+        if (ordered is null)
+        {
+            return Decline(
+                "attachment-cycle",
+                "The attachment relation contains a cycle, so no deepest-first order exists.");
+        }
+
+        // Deepest first: an attachment occupies a Port of a generation, so it cannot outlive the
+        // generation that offers the Port.
+        var retired = new List<ComponentAttachmentRetirement>();
+        var cleanup = new List<string>();
+        foreach (var (activation, scope, _) in ordered)
+        {
+            var members = new List<Cm.OccurrenceId>();
+            var failures = new List<string>();
+            foreach (var outcome in activation.Lifecycle!.Members)
+            {
+                var (_, failure) = await ComponentParticipantRevalidation
+                    .TryRetireAsync(outcome.Member, retirementReason, cancellationToken)
+                    .ConfigureAwait(false);
+                members.Add(outcome.Occurrence);
+                if (failure is not null)
+                {
+                    failures.Add($"{outcome.Occurrence}: {failure}");
+                }
+            }
+
+            var detail = failures.Count == 0 ? null : string.Join("; ", failures);
+            retired.Add(new(scope, members, detail));
+            if (detail is not null)
+            {
+                cleanup.Add($"{scope}: {detail}");
+            }
+        }
+
+        return cleanup.Count == 0
+            ? new(
+                ComponentAttachmentWithdrawalKind.Withdrawn,
+                retired,
+                "attachments-withdrawn",
+                $"{retired.Count} attached scopes were retired, deepest first.")
+            : new(
+                // The cascade continues rather than stopping: restoring an already-retired level
+                // would claim a state the runtime does not model.
+                ComponentAttachmentWithdrawalKind.CleanupFailed,
+                retired,
+                "attachment-retirement-failed",
+                string.Join("; ", cleanup));
+    }
+
+    /// <summary>
+    /// Orders the set by how deep each activation sits within it, or reports that no order exists.
+    /// </summary>
+    /// <remarks>
+    /// Depth counts only ancestors present in the supplied set, because those are the only ones this
+    /// call can see. An activation whose parent is absent is a root here even when it is attached to
+    /// something the caller left out.
+    /// </remarks>
+    private static List<(ComponentGroupAuthorityResult Activation, Cm.RestartScopeId Scope, Cm.RestartScopeId? Parent)>?
+        Depths(
+            List<(ComponentGroupAuthorityResult Activation, Cm.RestartScopeId Scope, Cm.RestartScopeId? Parent)> attachments)
+    {
+        var byScope = attachments.ToDictionary(item => item.Scope);
+        var depths = new Dictionary<Cm.RestartScopeId, int>();
+        foreach (var attachment in attachments)
+        {
+            var seen = new HashSet<Cm.RestartScopeId>();
+            var depth = 0;
+            var current = attachment;
+            while (current.Parent is { } parent && byScope.TryGetValue(parent, out var next))
+            {
+                if (!seen.Add(current.Scope))
+                {
+                    return null;
+                }
+
+                depth++;
+                current = next;
+            }
+
+            if (!seen.Add(current.Scope))
+            {
+                return null;
+            }
+
+            depths[attachment.Scope] = depth;
+        }
+
+        return
+        [
+            .. attachments
+                .OrderByDescending(item => depths[item.Scope])
+                .ThenBy(item => item.Scope.Value, StringComparer.Ordinal),
+        ];
+    }
+
+    private static ComponentAttachmentWithdrawalResult Decline(string code, string reason) =>
+        new(
+            ComponentAttachmentWithdrawalKind.Declined,
+            Array.Empty<ComponentAttachmentRetirement>(),
+            code,
+            reason);
+}
+
 public sealed record ComponentGroupMemberRequests(
     Cm.OccurrenceId Occurrence,
     IReadOnlyList<Cm.AuthorityAdmissionRequest> Requests);

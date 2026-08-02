@@ -6225,6 +6225,508 @@ public sealed class ComponentBindingIntegrationTests
         return (parent, handlers);
     }
 
+    [Test]
+    public async Task Shared_cbi23_vectors_nest_a_child_beneath_a_child()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi23-nested-child-port-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var tree = await NestedTree(scenario);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(ChildToken(tree.Result.Kind), Is.EqualTo(vector.GetProperty("expectedKind").GetString()), scenario);
+                Assert.That(tree.Result.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), scenario);
+                Assert.That(
+                    tree.Depth,
+                    Is.EqualTo(vector.GetProperty("expectedDepth").GetInt32()),
+                    scenario);
+                Assert.That(
+                    tree.ReleasedMembers,
+                    Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()),
+                    scenario);
+
+                // Every level above the one being attached is left exactly as it was.
+                Assert.That(
+                    tree.Levels.SkipLast(1).All(level =>
+                        level.Lifecycle!.Members.All(item => item.Member.IsReleased)),
+                    Is.True,
+                    $"{scenario}: an attachment disturbs no level above it.");
+            });
+        }
+    }
+
+    [Test]
+    public async Task Shared_cbi23_withdrawals_retire_an_attachment_tree_deepest_first()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi23-nested-child-port-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("withdrawals").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, levels) = await WithdrawalResult(scenario);
+            var expectedScopes = vector.GetProperty("expectedRetiredScopes")
+                .EnumerateArray()
+                .Select(item => item.GetString())
+                .ToArray();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(WithdrawalToken(result.Kind), Is.EqualTo(vector.GetProperty("expectedKind").GetString()), scenario);
+                Assert.That(result.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), scenario);
+                Assert.That(
+                    result.Retired.Select(item => item.Scope.Value),
+                    Is.EqualTo(expectedScopes),
+                    $"{scenario}: the cascade order is deepest first.");
+                Assert.That(
+                    levels.Sum(level => level.Lifecycle!.Members.Count(item => item.Member.IsReleased)),
+                    Is.EqualTo(vector.GetProperty("expectedReleasedAfter").GetInt32()),
+                    scenario);
+
+                // A refusal of the relation retires nothing at all.
+                Assert.That(
+                    result.Kind != ComponentAttachmentWithdrawalKind.Declined || result.Retired.Count == 0,
+                    Is.True,
+                    $"{scenario}: a declined withdrawal retires nothing.");
+            });
+        }
+    }
+
+    [Test]
+    public async Task C1_a_child_activation_is_an_ordinary_parent()
+    {
+        var attached = await NestedTree("cbi23-01-grandchild-attached");
+        var overstated = await NestedTree("cbi23-02-grandchild-port-lifecycle-overstated");
+        var scope = await NestedTree("cbi23-03-grandchild-scope-is-its-parents");
+        var generation = await NestedTree("cbi23-04-grandchild-parent-generation-mismatch");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(attached.Result.IsAttached, Is.True);
+            Assert.That(
+                attached.Result.Port,
+                Is.EqualTo(GrandchildPort),
+                "The grandchild names the Port its own position was resolved into.");
+            Assert.That(
+                overstated.Result.Code,
+                Is.EqualTo("port-lifecycle-overstated"),
+                "CBI22's envelope rule applies at the second level unchanged.");
+            Assert.That(scope.Result.Code, Is.EqualTo("child-scope-not-distinct"));
+            Assert.That(generation.Result.Code, Is.EqualTo("parent-generation-mismatch"));
+            Assert.That(
+                new[] { overstated, scope, generation }.All(item =>
+                    item.Levels[1].Lifecycle!.Members.All(member => member.Member.IsReleased)),
+                Is.True,
+                "And a refusal at the second level leaves the first child released.");
+        });
+    }
+
+    [Test]
+    public async Task C2_depth_is_not_bounded_by_this_slice()
+    {
+        var attached = await NestedTree("cbi23-01-grandchild-attached");
+        var greatGrandchild = await AttachLevel(
+            attached.Levels[2],
+            GrandchildScope,
+            GenerationId.Create("gen.grandchild"),
+            new AttachSpec(
+                PortId.Create("port.great-grandchild"),
+                RestartScopeId.Create("restart.great-grandchild"),
+                GenerationId.Create("gen.great-grandchild"),
+                PortLifecycleMode.RuntimeOpen,
+                RuntimeOpen: true,
+                Suffix: "great"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                greatGrandchild.Result.IsAttached,
+                Is.True,
+                "A fourth level is admitted on exactly the terms the second was.");
+            Assert.That(greatGrandchild.Result.Code, Is.EqualTo("child-attached"));
+            Assert.That(
+                attached.Levels.All(level => level.Lifecycle!.Members.All(item => item.Member.IsReleased)),
+                Is.True);
+        });
+    }
+
+    [Test]
+    public async Task C3_the_attachment_relation_is_derived_and_checked()
+    {
+        var (duplicate, levels) = await WithdrawalResult("cbi23-09-duplicate-scope");
+        var (cascade, _) = await WithdrawalResult("cbi23-06-cascade-deepest-first");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(duplicate.Code, Is.EqualTo("scope-not-distinct"));
+            Assert.That(
+                duplicate.Retired,
+                Is.Empty,
+                "Every refusal of the relation itself retires nothing.");
+            Assert.That(
+                levels.All(level => level.Lifecycle!.Members.All(item => item.Member.IsReleased)),
+                Is.True);
+
+            // The relation is read from each activation rather than declared: the middle level knows
+            // its parent because CM4 recorded the attachment, not because the caller said so.
+            Assert.That(
+                cascade.Retired.Select(item => item.Scope.Value),
+                Is.EqualTo(new[] { "restart.grandchild", "restart.child", "restart.lifecycle" }));
+        });
+    }
+
+    [Test]
+    public async Task C4_a_child_is_retired_before_the_parent_whose_port_it_occupies()
+    {
+        var (cascade, _) = await WithdrawalResult("cbi23-06-cascade-deepest-first");
+        var order = cascade.Retired.Select(item => item.Scope.Value).ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(cascade.IsWithdrawn, Is.True);
+            Assert.That(
+                Array.IndexOf(order, "restart.grandchild"),
+                Is.LessThan(Array.IndexOf(order, "restart.child")),
+                "The grandchild goes before the child whose Port it occupies.");
+            Assert.That(
+                Array.IndexOf(order, "restart.child"),
+                Is.LessThan(Array.IndexOf(order, "restart.lifecycle")),
+                "And the child before the parent whose Port it occupies.");
+        });
+    }
+
+    [Test]
+    public async Task C5_the_root_can_only_order_what_it_is_given()
+    {
+        var (partial, levels) = await WithdrawalResult("cbi23-07-cascade-from-the-middle");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(partial.IsWithdrawn, Is.True);
+            Assert.That(
+                partial.Retired.Select(item => item.Scope.Value),
+                Is.EqualTo(new[] { "restart.grandchild", "restart.child" }),
+                "The outcome names exactly the scopes it retired.");
+            Assert.That(
+                levels[0].Lifecycle!.Members.All(item => item.Member.IsReleased),
+                Is.True,
+                "A parent the caller did not name is left running, which is visible by absence.");
+        });
+    }
+
+    [Test]
+    public async Task C6_an_attachment_beneath_a_retired_parent_is_refused()
+    {
+        var refused = await NestedTree("cbi23-05-attachment-beneath-a-retired-parent");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(refused.Result.Kind, Is.EqualTo(ComponentChildActivationKind.ParentUnavailable));
+            Assert.That(refused.Result.Child, Is.Null);
+            Assert.That(
+                refused.Levels[1].Lifecycle!.Members.All(item =>
+                    item.Member.Stage == PortableCompositionStage.Retired),
+                Is.True,
+                "Its parent is gone, and CBI22's own precondition is what refuses it.");
+        });
+    }
+
+    [Test]
+    public async Task C7_a_cleanup_failure_is_named_and_restores_nothing()
+    {
+        var (result, levels) = await WithdrawalResult("cbi23-08-cleanup-fails-in-the-child");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Kind, Is.EqualTo(ComponentAttachmentWithdrawalKind.CleanupFailed));
+            Assert.That(result.Reason, Does.Contain("withdraw-refused"));
+            Assert.That(
+                result.Retired.Select(item => item.Scope.Value),
+                Is.EqualTo(new[] { "restart.grandchild", "restart.child", "restart.lifecycle" }),
+                "The cascade continues past the failure rather than stopping.");
+            Assert.That(
+                result.Retired.Count(item => item.Cleanup is not null),
+                Is.EqualTo(1),
+                "And the failure is reported against the scope it happened in.");
+            Assert.That(
+                levels.SelectMany(level => level.Lifecycle!.Members).Any(item => item.Member.IsReleased),
+                Is.False,
+                "Nothing is returned to released.");
+        });
+    }
+
+    [Test]
+    public async Task C8_nesting_adds_no_grant_and_leaves_the_earlier_slices_alone()
+    {
+        var attached = await NestedTree("cbi23-01-grandchild-attached");
+        var grants = attached.Levels.SelectMany(level => level.Grants.Select(item => item.Grant.Value)).ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                grants.Distinct().Count(),
+                Is.EqualTo(grants.Length),
+                "Each level's authority is its own request, so no grant identity is shared.");
+            Assert.That(
+                attached.Levels[2].Lifecycle!.Runtime!.Observation.Child!.ParentScope,
+                Is.EqualTo(ChildScope),
+                "The grandchild's attachment names the child's scope, not the root's.");
+            Assert.That(
+                attached.Levels[0].Lifecycle!.Runtime!.Observation.Child,
+                Is.Null,
+                "And the root is not itself an attachment.");
+        });
+    }
+
+    private static string WithdrawalToken(ComponentAttachmentWithdrawalKind kind) => kind switch
+    {
+        ComponentAttachmentWithdrawalKind.Withdrawn => "withdrawn",
+        ComponentAttachmentWithdrawalKind.CleanupFailed => "cleanup-failed",
+        ComponentAttachmentWithdrawalKind.Declined => "declined",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
+    private static readonly PortId GrandchildPort = PortId.Create("port.grandchild");
+    private static readonly RestartScopeId GrandchildScope = RestartScopeId.Create("restart.grandchild");
+
+    private sealed record AttachSpec(
+        PortId Port,
+        RestartScopeId Scope,
+        GenerationId Generation,
+        PortLifecycleMode Lifecycle,
+        bool RuntimeOpen,
+        string Suffix,
+        bool FailCleanup = false,
+        GenerationId? DeclaredParentGeneration = null);
+
+    private sealed record AttachedLevel(
+        ComponentChildActivationResult Result,
+        IReadOnlyList<ComponentGroupAuthorityResult> Levels,
+        CoolingPortableHandler[] Handlers)
+    {
+        public int Depth => Levels.Count;
+
+        public int ReleasedMembers =>
+            Levels.Sum(level => level.Lifecycle?.Members.Count(item => item.Member.IsReleased) ?? 0);
+    }
+
+    /// <summary>One attachment beneath the given parent, with everything it needs derived from the spec.</summary>
+    private static async Task<AttachedLevel> AttachLevel(
+        ComponentGroupAuthorityResult parent,
+        RestartScopeId parentScope,
+        GenerationId parentGeneration,
+        AttachSpec spec,
+        IReadOnlyList<ComponentGroupAuthorityResult>? above = null)
+    {
+        var (resolution, selection) = PortPosition(spec.Port, spec.Lifecycle, $"{spec.Suffix}-host");
+        var handler = new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry());
+        var conversation = new PortableDirectConversation(new PortableProviderEndpoint(
+            CoolingPortableFixture.Contract, handler, PortableRealization.FixedDirectCall));
+        var member = new ComponentGroupMember(
+            selection,
+            spec.FailCleanup ? new FailingRetirementConversation(conversation) : conversation);
+        var relationship = RelationshipRequestId.Create($"relationship.{spec.Suffix}");
+        var policy = GroupPolicy(ProviderLocalActor);
+        var request = ProviderAuthority(policy, Authority) with
+        {
+            Request = AdmissionRequestId.Create($"admission.{spec.Suffix}"),
+            Relationships =
+            [
+                new(relationship, Participant, ActorRelationshipKind.ComponentParticipant, [AuthorityEvidence]),
+            ],
+            Authority =
+            [
+                new(
+                    AuthorityRequestId.Create($"authority.{spec.Suffix}"),
+                    relationship,
+                    Capability,
+                    Target,
+                    Operation,
+                    AuthorityScope,
+                    false),
+            ],
+        };
+        var plan = PlanFor(spec.Generation, spec.Scope, selection.Occurrence);
+        var runtimeRequest = RuntimeRequestFor(plan, GenerationId.Create($"{spec.Generation.Value}-retained")) with
+        {
+            ActiveScopes =
+            [
+                new(spec.Scope, GenerationId.Create($"{spec.Generation.Value}-retained"), RuntimeScopeStatus.Active),
+                .. spec.Scope == parentScope
+                    ? Array.Empty<ActiveScopeSnapshot>()
+                    : [new ActiveScopeSnapshot(parentScope, parentGeneration, RuntimeScopeStatus.Active)],
+            ],
+            Child = new ChildActivationDeclaration(
+                parentScope,
+                spec.DeclaredParentGeneration ?? parentGeneration,
+                spec.Port,
+                spec.RuntimeOpen,
+                Occupied: false,
+                ReplacementLifecycleDeclared: false,
+                HostAssisted: false,
+                InternalReleaseSequence: 0,
+                ExportReleaseSequence: 2,
+                OuterHostOwnsAdmission: false),
+        };
+
+        var result = await ComponentChildActivation.AttachAsync(
+            resolution,
+            parent,
+            [new(member, [new(new(selection.Occurrence, Participant), request)])],
+            runtimeRequest);
+        var levels = new List<ComponentGroupAuthorityResult>(above ?? []);
+        if (levels.Count == 0)
+        {
+            levels.Add(parent);
+        }
+
+        if (result.Child is { } child && result.IsAttached)
+        {
+            levels.Add(child);
+        }
+
+        return new(result, levels, [handler]);
+    }
+
+    /// <summary>A parent, a child beneath it, and a grandchild beneath that.</summary>
+    private static async Task<AttachedLevel> NestedTree(string scenario)
+    {
+        var (root, _) = await ChildParent(fail: false);
+        var child = await AttachLevel(
+            root,
+            ParentScope,
+            GenerationId.Create("gen.lifecycle"),
+            new AttachSpec(
+                ChildPort,
+                ChildScope,
+                GenerationId.Create("gen.child"),
+                PortLifecycleMode.RuntimeOpen,
+                RuntimeOpen: true,
+                Suffix: "child"));
+        if (scenario == "cbi23-05-attachment-beneath-a-retired-parent")
+        {
+            foreach (var outcome in child.Levels[1].Lifecycle!.Members)
+            {
+                await outcome.Member.RetireAsync("retired before the grandchild attaches");
+            }
+        }
+
+        var spec = new AttachSpec(
+            GrandchildPort,
+            scenario == "cbi23-03-grandchild-scope-is-its-parents" ? ChildScope : GrandchildScope,
+            GenerationId.Create("gen.grandchild"),
+            scenario == "cbi23-02-grandchild-port-lifecycle-overstated"
+                ? PortLifecycleMode.ActivationOpen
+                : PortLifecycleMode.RuntimeOpen,
+            RuntimeOpen: true,
+            Suffix: "grandchild",
+            DeclaredParentGeneration: scenario == "cbi23-04-grandchild-parent-generation-mismatch"
+                ? GenerationId.Create("gen.other")
+                : null);
+        return await AttachLevel(
+            child.Levels[1],
+            ChildScope,
+            GenerationId.Create("gen.child"),
+            spec,
+            child.Levels);
+    }
+
+    private static async Task<(
+        ComponentAttachmentWithdrawalResult Result,
+        IReadOnlyList<ComponentGroupAuthorityResult> Levels)>
+        WithdrawalResult(string scenario)
+    {
+        var (root, _) = await ChildParent(fail: false);
+        var child = await AttachLevel(
+            root,
+            ParentScope,
+            GenerationId.Create("gen.lifecycle"),
+            new AttachSpec(
+                ChildPort,
+                ChildScope,
+                GenerationId.Create("gen.child"),
+                PortLifecycleMode.RuntimeOpen,
+                RuntimeOpen: true,
+                Suffix: "child",
+                FailCleanup: scenario == "cbi23-08-cleanup-fails-in-the-child"));
+        var grandchild = await AttachLevel(
+            child.Levels[1],
+            ChildScope,
+            GenerationId.Create("gen.child"),
+            new AttachSpec(
+                GrandchildPort,
+                GrandchildScope,
+                GenerationId.Create("gen.grandchild"),
+                PortLifecycleMode.RuntimeOpen,
+                RuntimeOpen: true,
+                Suffix: "grandchild"),
+            child.Levels);
+        var levels = grandchild.Levels;
+
+        var given = scenario switch
+        {
+            "cbi23-07-cascade-from-the-middle" => new[] { levels[1], levels[2] },
+            "cbi23-09-duplicate-scope" => [levels[0], levels[1], levels[2], levels[2]],
+            _ => [levels[0], levels[1], levels[2]],
+        };
+        var result = await ComponentAttachmentWithdrawal.WithdrawAsync(
+            given,
+            $"attachment withdrawal {scenario}");
+        return (result, levels);
+    }
+
+    /// <summary>One position CM2 resolved inside the named Port, with the named lifecycle.</summary>
+    private static (ResolutionOutcome Resolution, ComponentBindingSelection Selection) PortPosition(
+        PortId port,
+        PortLifecycleMode lifecycle,
+        string endpoint)
+    {
+        var single = Request(Cardinality.Parse("1..1"));
+        var consumer = single.Definitions.Single(item => item.Definition == Consumer);
+        var contained = consumer.Requirements.Single() with
+        {
+            ContainingRegion = ChildRegion,
+            ContainingPort = port,
+            RuntimeAttachment = lifecycle == PortLifecycleMode.RuntimeOpen,
+        };
+        var resolution = new FakeGenerationResolver().Resolve(single with
+        {
+            Definitions = [consumer with { Requirements = [contained] }, .. single.Definitions.Skip(1)],
+            Ports =
+            [
+                new PortEnvelope(
+                    ChildRegion,
+                    port,
+                    lifecycle,
+                    [new ProvidedContract(Contract, Version)],
+                    Cardinality.Parse("1..1"),
+                    [],
+                    [],
+                    [],
+                    [],
+                    "isolate",
+                    "scope",
+                    false),
+            ],
+        });
+        var member = resolution.Generation!.ProviderSets.Single().Members.Single();
+        return (resolution, Selection(member) with { HostEndpoint = endpoint });
+    }
+
     private static string GroupFailureToken(ComponentGroupActivationFailureKind kind) => kind switch
     {
         ComponentGroupActivationFailureKind.PlanUnsupported => "plan-unsupported",
