@@ -66,6 +66,8 @@ public sealed class ComponentBindingIntegrationTests
     private static readonly ContractId MediatorContract = ContractId.Create("brontide.fake.cooling-mediator");
     private static readonly DefinitionId MediatedProvider = DefinitionId.Create("def.test.cooling-mediated");
     private static readonly ContractId MediatedContract = ContractId.Create("brontide.fake.cooling-mediated");
+    /// <summary>A second provider of the primary contract, so one position can resolve two members.</summary>
+    private static readonly DefinitionId StandbyProvider = DefinitionId.Create("def.test.cooling-standby");
     private static readonly RequirementId TertiaryRequirement = RequirementId.Create("req.cooling-tertiary");
     private static readonly DefinitionId TertiaryProvider = DefinitionId.Create("def.test.cooling-tertiary");
     private static readonly ContractId TertiaryContract = ContractId.Create("brontide.fake.cooling-tertiary");
@@ -7577,6 +7579,470 @@ public sealed class ComponentBindingIntegrationTests
             new(MediatedRequirement, mediator),
             [participant],
             RuntimeRequest(Plan(MediatorSelection().Occurrence)));
+    }
+
+    [Test]
+    public async Task Shared_cbi27_vectors_fan_a_wide_position_out()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi27-wider-provider-set-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var result = WideTranslation(scenario);
+            var cardinality = vector.GetProperty("expectedCardinality");
+            var distinctScopes = result.Members
+                .Select(item => item.Member.Scope.Value)
+                .Distinct(StringComparer.Ordinal)
+                .Count();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(WideToken(result.Kind), Is.EqualTo(vector.GetProperty("expectedKind").GetString()), scenario);
+                Assert.That(result.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), scenario);
+                Assert.That(
+                    result.Members,
+                    Has.Count.EqualTo(vector.GetProperty("expectedMembers").GetInt32()),
+                    scenario);
+                Assert.That(
+                    result.UnfilledOptionalPositions,
+                    Is.EqualTo(vector.GetProperty("expectedUnfilled").GetInt32()),
+                    scenario);
+                Assert.That(
+                    distinctScopes,
+                    Is.EqualTo(vector.GetProperty("expectedDistinctScopes").GetInt32()),
+                    $"{scenario}: every member of a fanned-out position holds a scope of its own.");
+                Assert.That(
+                    result.Cardinality?.ToString(),
+                    Is.EqualTo(cardinality.ValueKind == JsonValueKind.Null ? null : cardinality.GetString()),
+                    scenario);
+
+                // The properties over every vector: a position that is not fanned out produces
+                // nothing at all, and a member that is produced is an ordinary one-to-one binding.
+                Assert.That(
+                    result.IsTranslated || result.Members.Count == 0,
+                    Is.True,
+                    $"{scenario}: only a translated position produces members.");
+                Assert.That(
+                    result.Members.All(item =>
+                        item.Member.Requirement.Cardinality == PortableProviderCardinality.OneToOne &&
+                        item.Member.Requirement.Exposure == PortableExposure.Distinct &&
+                        item.Member.Stage == PortableCompositionStage.LocalInitialisation &&
+                        item.Member.Plan is null),
+                    Is.True,
+                    $"{scenario}: nothing of the set reaches the seam.");
+            });
+        }
+    }
+
+    [Test]
+    public void C1_a_one_to_one_position_is_cbi1s_and_a_mediated_one_is_cbi25s()
+    {
+        var narrow = WideTranslation("cbi27-05-position-is-one-to-one");
+        var mediated = WideTranslation("cbi27-06-position-mediated");
+        var declared = WideTranslation("cbi27-07-distinct-position-declaring-a-mediation");
+        var absent = WideTranslation("cbi27-15-position-not-resolved");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(narrow.Code, Is.EqualTo("position-not-wide"));
+            Assert.That(mediated.Code, Is.EqualTo("position-mediated"));
+            Assert.That(
+                declared.Code,
+                Is.EqualTo("position-mediated"),
+                "Exposure and the declaration are two facts, and CM2 records the second without acting on it.");
+            Assert.That(absent.Code, Is.EqualTo("wide-position-not-resolved"));
+            Assert.That(
+                new[] { narrow, mediated, declared, absent }.All(item => item.Members.Count == 0),
+                Is.True);
+        });
+    }
+
+    [Test]
+    public void C2_the_membership_is_the_generations_statement()
+    {
+        var resolution = WideResolution(Cardinality.Parse("2..2"));
+        var fanned = WideTranslation("cbi27-01-two-members-fanned-out");
+        var missing = WideTranslation("cbi27-08-member-not-supplied");
+        var unresolved = WideTranslation("cbi27-09-member-not-resolved");
+        var repeated = WideTranslation("cbi27-10-member-supplied-twice");
+        var elsewhere = WideTranslation("cbi27-14-member-requirement-mismatched");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                fanned.Members.Select(item => item.Occurrence),
+                Is.EqualTo(WidePosition(resolution).Members.Select(item => item.Occurrence)),
+                "An admitted translation names exactly the members the generation resolved.");
+            Assert.That(
+                new[] { missing, unresolved, repeated }.All(item => item.Code == "membership-not-resolved"),
+                Is.True,
+                "Omitting, adding, and repeating a member are all the caller disagreeing with the generation.");
+            Assert.That(elsewhere.Code, Is.EqualTo("member-requirement-mismatch"));
+        });
+    }
+
+    [Test]
+    public void C3_each_member_carries_its_own_binding_scope()
+    {
+        var fanned = WideTranslation("cbi27-01-two-members-fanned-out");
+        var shared = WideTranslation("cbi27-11-members-share-a-binding-scope");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                fanned.Members.Select(item => item.Member.Fact("bindingScope")),
+                Is.Unique,
+                "The portable scope names one binding, so two members of one set cannot share it.");
+            Assert.That(
+                fanned.PositionScope,
+                Is.EqualTo(BindingScopeId.Create("scope.cooling")),
+                "The CM position's scope is carried as provenance, and no member reports it.");
+            Assert.That(
+                fanned.Members.Select(item => item.Member.Fact("bindingScope")),
+                Does.Not.Contain("scope.cooling"));
+            Assert.That(shared.Code, Is.EqualTo("scope-not-distinct"));
+            Assert.That(shared.Members, Is.Empty);
+        });
+    }
+
+    /// <summary>
+    /// The same collision arrives without a wide set, and this records it rather than fixing it.
+    /// </summary>
+    /// <remarks>
+    /// CBI1 unwraps the CM position's binding scope into the portable one, which is a bijection only
+    /// while one CM scope holds one position. Two positions resolved in one scope — which is what a CM
+    /// scope is for, since CM2 looks bindings up by scope and contract — therefore reach the seam as
+    /// two members claiming one scope, the case its scope-uniqueness silence tells a composition to
+    /// reject. Correcting it moves every member's bindingScope fact and so every CBI4 digest the
+    /// shared fixture pins, which is Decision 16's question rather than this slice's.
+    /// </remarks>
+    [Test]
+    public void C3_two_positions_in_one_cm_scope_reach_the_seam_as_one_scope()
+    {
+        var resolution = new FakeGenerationResolver().Resolve(PairRequest());
+        var scopes = resolution.Generation!.ProviderSets
+            .Select(position => ComponentBindingIntegration.Prepare(
+                resolution,
+                Selection(position.Members[0]) with { Requirement = position.Requirement }))
+            .Select(item => item.Member!.Fact("bindingScope"))
+            .ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(scopes, Has.Length.EqualTo(2));
+            Assert.That(
+                scopes.Distinct(StringComparer.Ordinal).Count(),
+                Is.EqualTo(1),
+                "Both positions were resolved in one CM binding scope, and both members report it.");
+        });
+    }
+
+    [Test]
+    public void C4_a_refused_member_leaves_no_member_at_all()
+    {
+        var mismatched = WideTranslation("cbi27-12-member-mapping-mismatched");
+        var endpoint = WideTranslation("cbi27-13-member-endpoint-invalid");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(mismatched.Code, Is.EqualTo("selection-mismatch"));
+            Assert.That(endpoint.Code, Is.EqualTo("endpoint-invalid"));
+            Assert.That(
+                new[] { mismatched, endpoint }.All(item => item.Members.Count == 0),
+                Is.True,
+                "The member that would have worked is not kept: that would be the narrowing the seam refuses, performed here.");
+        });
+    }
+
+    [Test]
+    public void C5_the_set_is_not_a_portable_fact()
+    {
+        var fanned = WideTranslation("cbi27-01-two-members-fanned-out");
+        var wide = new PortableResolvedRequirement(
+            PortableBindingScopeId.Parse("scope.cooling-wide"),
+            CoolingPortableFixture.Component,
+            CoolingPortableFixture.Provider,
+            new PortableProviderCardinality(1, 2),
+            PortableExposure.Distinct,
+            "wide-host");
+        var refused = Assert.Throws<PortableFaultException>(() => PortableCompositionHandoff.Prepare(
+            wide,
+            new(CoolingPortableFixture.Component, CoolingPortableFixture.Provider, "cooling-provider"),
+            CoolingPortableFixture.Contract));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(
+                fanned.Members.All(item => item.Member.Fact("cardinality") == "1..1"),
+                Is.True,
+                "Each member is one provider answering one contract, which is all the seam binds.");
+            Assert.That(
+                refused!.LocalCode,
+                Is.EqualTo("cardinality-unsupported"),
+                "The seam's own refusal is untouched: nothing wide is ever presented to it.");
+        });
+    }
+
+    [Test]
+    public void C6_a_position_that_resolved_nothing_binds_nothing()
+    {
+        var unfilled = WideTranslation("cbi27-04-position-resolved-empty");
+        var supplied = WideTranslation("cbi27-16-unfilled-position-supplied");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(unfilled.Kind, Is.EqualTo(ComponentProviderSetTranslationKind.Unfilled));
+            Assert.That(unfilled.Code, Is.EqualTo("position-resolved-empty"));
+            Assert.That(
+                unfilled.Members,
+                Is.Empty,
+                "Nothing to bind and nothing wrong, reported as neither a translation nor a refusal.");
+            Assert.That(
+                supplied.Code,
+                Is.EqualTo("membership-not-resolved"),
+                "A caller that supplies a member for a position that resolved none disagrees with the generation.");
+        });
+    }
+
+    [Test]
+    public void C7_what_the_set_carries_beyond_its_members_is_not_carried()
+    {
+        var spare = WideTranslation("cbi27-02-optional-capacity-unfilled");
+        var filled = WideTranslation("cbi27-03-preselected-optional-member");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(spare.Cardinality, Is.EqualTo(Cardinality.Parse("1..3")));
+            Assert.That(
+                spare.UnfilledOptionalPositions,
+                Is.EqualTo(2),
+                "Spare capacity is reported by the translation, because no member can report it.");
+            Assert.That(
+                spare.Members.Single().Member.ResolutionFacts.Values,
+                Does.Not.Contain("1..3"),
+                "The position's declared bound is not a portable fact.");
+            Assert.That(
+                filled.UnfilledOptionalPositions,
+                Is.EqualTo(0),
+                "A preselected optional member fills the capacity at resolution, not here.");
+            Assert.That(filled.Members, Has.Count.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public void C8_cbi1_and_cbi25_are_unchanged()
+    {
+        var narrow = Resolve(Cardinality.Parse("1..1"));
+        var direct = ComponentBindingIntegration.Prepare(
+            narrow,
+            Selection(narrow.Generation!.ProviderSets.Single().Members[0]));
+        var wide = WideResolution(Cardinality.Parse("2..2"));
+        var throughCbi1 = ComponentBindingIntegration.Prepare(
+            wide,
+            Selection(WidePosition(wide).Members[0]));
+        var mediated = ComponentMediatedBinding.Translate(
+            MediatedResolution(),
+            new(MediatedRequirement, MediatorSelection()));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(direct.IsPrepared, Is.True);
+            Assert.That(
+                throughCbi1.Failure!.Code,
+                Is.EqualTo("cardinality-unsupported"),
+                "CBI1 still accepts exactly 1..1; CBI27 adds a path rather than widening one.");
+            Assert.That(mediated.IsTranslated, Is.True);
+        });
+    }
+
+    private static string WideToken(ComponentProviderSetTranslationKind kind) => kind switch
+    {
+        ComponentProviderSetTranslationKind.Translated => "translated",
+        ComponentProviderSetTranslationKind.Unfilled => "unfilled",
+        ComponentProviderSetTranslationKind.Declined => "declined",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
+
+    /// <summary>
+    /// One position whose cardinality is not 1..1, drawing on as many candidate providers as it is
+    /// given.
+    /// </summary>
+    /// <remarks>
+    /// CM2 fills a Provider Set to its declared minimum and then takes explicit preselections up to
+    /// its maximum, so how many members a wide position resolves is a fact about the request rather
+    /// than about the bound.
+    /// </remarks>
+    private static ResolutionOutcome WideResolution(
+        Cardinality cardinality,
+        int candidates = 2,
+        bool preselect = false,
+        ProviderExposure exposure = ProviderExposure.Distinct,
+        bool declareMediation = false)
+    {
+        var single = Request(cardinality);
+        var consumer = single.Definitions.Single(item => item.Definition == Consumer);
+        var provider = single.Definitions.Single(item => item.Definition == Provider);
+        var candidate = single.Candidates.Single();
+        var requirement = consumer.Requirements.Single() with
+        {
+            Exposure = exposure,
+            Mediation = exposure == ProviderExposure.Mediated || declareMediation
+                ? new MediationDeclaration(
+                    MediationId.Create("mediation.cooling-wide"),
+                    MediationKind.Selection,
+                    MediationRealization.StaticHost,
+                    null,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false)
+                : null,
+        };
+        return new FakeGenerationResolver().Resolve(single with
+        {
+            Definitions =
+            [
+                consumer with { Requirements = [requirement] },
+                provider,
+                provider with { Definition = StandbyProvider },
+            ],
+            Candidates = candidates switch
+            {
+                0 => [],
+                1 => [candidate],
+                _ => [candidate, candidate with { Definition = StandbyProvider }],
+            },
+            PreselectedProviders = preselect
+                ? new[] { new ProviderPreselection(Requirement, StandbyProvider) }
+                : Array.Empty<ProviderPreselection>(),
+        });
+    }
+
+    private static ProviderSetObservation WidePosition(ResolutionOutcome resolution) =>
+        resolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+
+    private static ComponentProviderSetSelection WideSelection(ResolutionOutcome resolution) =>
+        new(
+            Requirement,
+            [.. WidePosition(resolution).Members.Select((member, index) =>
+                new ComponentProviderSetMemberSelection(
+                    PortableBindingScopeId.Parse($"scope.cooling-{index}"),
+                    Selection(member) with { HostEndpoint = $"wide-host-{index}" }))]);
+
+    private static ComponentProviderSetTranslationResult WideTranslation(string scenario)
+    {
+        var resolution = scenario switch
+        {
+            "cbi27-02-optional-capacity-unfilled" =>
+                WideResolution(Cardinality.Parse("1..3"), candidates: 1),
+            "cbi27-03-preselected-optional-member" =>
+                WideResolution(Cardinality.Parse("1..2"), preselect: true),
+            "cbi27-04-position-resolved-empty" or "cbi27-16-unfilled-position-supplied" =>
+                WideResolution(Cardinality.Parse("0..2"), candidates: 0),
+            "cbi27-05-position-is-one-to-one" => Resolve(Cardinality.Parse("1..1")),
+            "cbi27-06-position-mediated" =>
+                WideResolution(Cardinality.Parse("2..2"), exposure: ProviderExposure.Mediated),
+            "cbi27-07-distinct-position-declaring-a-mediation" =>
+                WideResolution(Cardinality.Parse("2..2"), declareMediation: true),
+            _ => WideResolution(Cardinality.Parse("2..2")),
+        };
+        var supplied = WideSelection(resolution);
+        var members = supplied.Members;
+        var selection = scenario switch
+        {
+            "cbi27-08-member-not-supplied" => supplied with { Members = [members[0]] },
+            "cbi27-09-member-not-resolved" => supplied with
+            {
+                Members =
+                [
+                    .. members,
+                    members[0] with
+                    {
+                        Scope = PortableBindingScopeId.Parse("scope.cooling-extra"),
+                        Selection = members[0].Selection with
+                        {
+                            Occurrence = OccurrenceId.Create("occ.not-resolved"),
+                        },
+                    },
+                ],
+            },
+            "cbi27-10-member-supplied-twice" => supplied with
+            {
+                Members =
+                [
+                    members[0],
+                    members[0] with { Scope = PortableBindingScopeId.Parse("scope.cooling-again") },
+                ],
+            },
+            "cbi27-11-members-share-a-binding-scope" => supplied with
+            {
+                Members = [members[0], members[1] with { Scope = members[0].Scope }],
+            },
+            "cbi27-12-member-mapping-mismatched" => supplied with
+            {
+                Members =
+                [
+                    members[0],
+                    members[1] with
+                    {
+                        Selection = members[1].Selection with { Definition = Provider },
+                    },
+                ],
+            },
+            "cbi27-13-member-endpoint-invalid" => supplied with
+            {
+                Members =
+                [
+                    members[0],
+                    members[1] with { Selection = members[1].Selection with { HostEndpoint = "  " } },
+                ],
+            },
+            "cbi27-14-member-requirement-mismatched" => supplied with
+            {
+                Members =
+                [
+                    members[0],
+                    members[1] with
+                    {
+                        Selection = members[1].Selection with { Requirement = SecondaryRequirement },
+                    },
+                ],
+            },
+            "cbi27-16-unfilled-position-supplied" => supplied with
+            {
+                Members =
+                [
+                    new(
+                        PortableBindingScopeId.Parse("scope.cooling-0"),
+                        Selection(new ProviderSetMember(
+                            Provider,
+                            OccurrenceId.Create("occ.not-resolved"),
+                            null,
+                            PublisherId.Create("pub.test"),
+                            null,
+                            false,
+                            [],
+                            [],
+                            "failure.test",
+                            null))),
+                ],
+            },
+            "cbi27-15-position-not-resolved" => supplied with
+            {
+                Requirement = RequirementId.Create("req.absent"),
+            },
+            _ => supplied,
+        };
+        return ComponentProviderSetBinding.Translate(resolution, selection);
     }
 
     private static string GroupFailureToken(ComponentGroupActivationFailureKind kind) => kind switch

@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased - CBI27 wider Provider Set translation
+
+### Added
+
+- Reference Studio translation of a CM2 position whose cardinality is not `1..1` into one ordinary
+  portable member per resolved member, at preflight, with the caller naming each member's binding
+  scope and the Provider Set staying at the composition root.
+- Refusals for a `1..1` or mediated position, a membership that is not the generation's, two members
+  sharing a binding scope, and any member whose preparation fails — which leaves no member at all,
+  because the seam refuses a wide bound rather than narrowing it to a first member.
+- A distinct outcome for an optional position that resolved no members, so "nothing was bound" is not
+  reported as an empty success.
+- Shared vectors, a phase-boundary completeness review, and a named test for every contract item.
+
+CBI27's finding is that a CM binding scope and a portable one are not the same identity: the CM one is
+a container holding one binding per member, distinguished by `BindingId`, while the portable one names
+a single binding and the seam tells a composition to reject reuse. CBI1's mapping of one onto the other
+holds only while a position is `1..1` and a scope holds one position, and the second condition is
+already false wherever two positions are resolved in one CM scope. A named test pins it; correcting it
+would move every member's `bindingScope` fact and so every pinned CBI4 digest, which is Decision 16.
+
+### Changed
+
+- `ComponentBindingIntegration` prepares a member through an internal per-member step shared with the
+  wide path. CBI1's checks, order, and observable behaviour are unchanged.
+
 ## Unreleased - CBI26 mediator authority admission
 
 ### Added
