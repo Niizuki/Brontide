@@ -121,6 +121,9 @@
     <None Include="..\..\..\component-management\fixtures\cbi40-policy-distribution-wire-vectors.json"
           Link="component-management\fixtures\cbi40-policy-distribution-wire-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi41-policy-poll-vectors.json"
+          Link="component-management\fixtures\cbi41-policy-poll-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
@@ -137,6 +140,7 @@
     <Compile Include="ComponentPolicyCheckpointTests.fs" />
     <Compile Include="ComponentPolicyDistributionTests.fs" />
     <Compile Include="ComponentPolicyDistributionWireTests.fs" />
+    <Compile Include="ComponentPolicyPollTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

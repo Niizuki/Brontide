@@ -498,6 +498,18 @@ still crosses CBI39, CBI37, and CBI38. The boundary is recorded in the
 [CBI40 capability contract](./cbi40-capability-contract.md) and completed
 [contract-completeness review](./cbi40-contract-completeness-review.md).
 
+CBI41 drives that attempt from a host-owned bounded poll cycle. It advances until the endpoint
+reports the host current, retries only the failures a fresh attempt can change — the challenge, the
+cursor read, and the network — and backs off deterministically, with progress resetting the failure
+count because backoff exists to back away from a peer that is not answering. Its finding is an
+ordering one: **the recovery floor is handed off after publication and never before**, since a floor
+is a statement about what the host durably holds and a floor retained ahead of its checkpoint claims
+state recovery reads as a rollback that never happened. A refused handoff stops the cycle and reports
+the applied sequence with no matching retained one, because the update is already durable and every
+later advance would move further past a floor the host does not hold. The boundary is recorded in the
+[CBI41 capability contract](./cbi41-capability-contract.md) and completed
+[contract-completeness review](./cbi41-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -834,6 +846,18 @@ Interconnection completes. Each pins the stable activation code, negotiated real
 and retirement state, and provider exit. Both hosts execute every vector, so changing only the
 answering implementation cannot change the result. The fixture contains no process launcher,
 transport, runtime, planner, evaluator, or portable implementation.
+
+### `cbi41-policy-poll` sections
+
+`schedule` is the one canonical budget, base delay, multiplier, delay cap, and attempt timeout both
+roots construct; `backoffMilliseconds` pins the gap for each consecutive-failure count. `vectors`
+names fourteen cycles as an ordered list of per-attempt endpoint behaviours plus the cancellation
+point and whether the floor sink fails, and pins the outcome code, last attempt code, attempt count,
+exact gap sequence, applied and retained sequences, and the registry's final sequence. A vector
+marked `externalWrite` has its source advance the registry mid-attempt, which is the only way CBI39's
+superseded cursor is reachable and the one case excluded from the phase-wide rule that the cycle
+advances nothing it does not report. The fixture contains no scheduler, clock, backoff function,
+transport, or floor store.
 
 ### `cm0-mice-topology` sections
 

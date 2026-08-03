@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased - CBI41 host-owned policy poll scheduler
+
+### Added
+
+- A bounded poll cycle over CBI39 that advances until the endpoint reports the host current, retries
+  only transport, timeout, stale-window, and superseded-cursor outcomes, and ends at the attempt that
+  produced any endpoint-authentication or registry refusal.
+- A deterministic capped exponential backoff computed from consecutive failures, so progress resets
+  it, with the elapsed-time seam supplied as an injected function rather than read from an ambient
+  clock.
+- A recovery-floor sink offered each newly published floor after its checkpoint is durable, and an
+  explicit advanced-but-unretained outcome when the sink refuses.
+- Shared vectors, a shared schedule, and named C1-C7 cycle, backoff, termination, ordering,
+  handoff, cancellation, and cross-stack evidence.
+
 ## Unreleased - CBI40 portable policy-distribution wire
 
 ### Added
