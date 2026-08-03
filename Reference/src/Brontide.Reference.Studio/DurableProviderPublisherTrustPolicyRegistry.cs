@@ -23,6 +23,16 @@ public sealed record ProviderPublisherTrustPolicyRecoveryFloor
         ProviderPublisherTrustPolicyAuthorityId authorityIdentity,
         VerifiedProviderPublisherTrustPolicySnapshot? current) =>
         new(authorityIdentity, current?.Sequence ?? 0, current?.Policy.Identity);
+
+    /// <summary>
+    /// Rebuilds a floor from a durable record. A stored floor names a policy identity without the
+    /// policy behind it, so it cannot be reissued from a snapshot the way a live one is.
+    /// </summary>
+    internal static ProviderPublisherTrustPolicyRecoveryFloor Restore(
+        ProviderPublisherTrustPolicyAuthorityId authorityIdentity,
+        long sequence,
+        ProviderPublisherTrustPolicyId? policyIdentity) =>
+        new(authorityIdentity, sequence, policyIdentity);
 }
 
 public sealed record DurableProviderPublisherTrustPolicyResult(

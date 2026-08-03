@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
@@ -124,6 +124,9 @@
     <None Include="..\..\..\component-management\fixtures\cbi41-policy-poll-vectors.json"
           Link="component-management\fixtures\cbi41-policy-poll-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi42-floor-custody-vectors.json"
+          Link="component-management\fixtures\cbi42-floor-custody-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
@@ -141,6 +144,7 @@
     <Compile Include="ComponentPolicyDistributionTests.fs" />
     <Compile Include="ComponentPolicyDistributionWireTests.fs" />
     <Compile Include="ComponentPolicyPollTests.fs" />
+    <Compile Include="ComponentPolicyFloorCustodyTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

@@ -111,8 +111,14 @@ current instant. One call performs one cycle and returns; scheduling the next on
 belong to your delay implementation and your host. Persist each floor the sink receives in storage
 independent of the checkpoint file and feed the latest one back to
 `DurableProviderPublisherTrustPolicyRegistry.Open` on the next start — a `policy-poll-floor-unretained`
-result means an update is durable that your floor does not yet cover, so re-establish the floor from
-the recovered registry before polling again.
+result means an update is durable that your floor does not yet cover.
+
+CBI42 is the store to persist it in. Call `ProviderPublisherTrustPolicyCustody.Open` with the
+checkpoint path, a floor path, and the pinned authority; it establishes the floor store on a first
+start, refuses a checkpoint whose store is missing or unreadable, and opens the durable registry
+under the stored floor. Pass the returned `Floors` straight to `PollAsync` as its sink. Put the floor
+somewhere the checkpoint's writer cannot reach — its integrity tag detects corruption, not tampering
+— and do not write a recovered floor back to it: the store is advanced by handoffs only, on purpose.
 
 ## Fake Component Management CM1
 
