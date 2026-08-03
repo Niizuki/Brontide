@@ -460,6 +460,13 @@ separate facts. The boundary is recorded in the
 [CBI34 capability contract](./cbi34-capability-contract.md) and completed
 [contract-completeness review](./cbi34-contract-completeness-review.md).
 
+CBI35 evaluates the detached CBI34 verified publisher key against one immutable, content-addressed
+host policy snapshot. Admitted, revoked, unknown, unverified, and malformed-policy outcomes remain
+distinct; only admitted evidence yields an authorization scoped to the exact policy, key, content,
+and payload. Evaluation has no acquisition effects and always leaves admission unattempted. The
+boundary is recorded in the [CBI35 capability contract](./cbi35-capability-contract.md) and completed
+[contract-completeness review](./cbi35-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.

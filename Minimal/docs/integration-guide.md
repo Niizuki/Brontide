@@ -63,6 +63,13 @@ SHA-256 digest of the exact SubjectPublicKeyInfo bytes, then call
 value, but `TrustCode` remains `publisher-trust-not-evaluated` and `AdmissionCode` remains
 `admission-not-attempted`; host policy must decide whether to proceed to CBI33.
 
+Create a canonical `ProviderPublisherTrustPolicy`, derive its identity with
+`ProviderPublisherTrustPolicyIdentity.compute`, and pass that immutable snapshot plus the CBI34
+verified value to `ProviderPublisherTrustEvaluator.evaluate`. Only `publisher-trusted` carries a
+`TrustedProviderPublisherAuthorization`; require its content identity and payload digest to match
+the acquisition request before explicitly invoking CBI33. Revoked and unknown are distinct, and the
+evaluator never opens a source or attempts admission.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each
