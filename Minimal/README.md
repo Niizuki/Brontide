@@ -126,8 +126,10 @@ The implementation currently provides:
   behind the negotiated portable contract; CBI31 verifies and admits a local executable under an
   allowed root and exact launch policy; CBI32 transactionally stages the complete declared file set
   under a canonical content address, detects corrupt reuse, leases activation through CBI31, and
-  removes only the exact inactive set;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI32 integration
+  removes only the exact inactive set; CBI33 reads that set from a named injected source under exact
+  member lengths and a total-byte limit while keeping transport, publisher evidence, and local
+  admission separate;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI33 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

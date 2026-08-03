@@ -1,0 +1,78 @@
+{
+  "vectors": [
+    {
+      "id": "cbi33-01-reference-success",
+      "provider": "reference",
+      "mutation": "none",
+      "transportCode": "transport-completed",
+      "admissionCode": "staged",
+      "staged": true
+    },
+    {
+      "id": "cbi33-02-minimal-success",
+      "provider": "minimal",
+      "mutation": "none",
+      "transportCode": "transport-completed",
+      "admissionCode": "staged",
+      "staged": true
+    },
+    {
+      "id": "cbi33-03-source-mismatch",
+      "provider": "reference",
+      "mutation": "source-mismatch",
+      "transportCode": "acquisition-source-mismatch",
+      "admissionCode": "admission-not-attempted",
+      "staged": false
+    },
+    {
+      "id": "cbi33-04-member-unavailable",
+      "provider": "reference",
+      "mutation": "missing",
+      "transportCode": "acquisition-member-unavailable",
+      "admissionCode": "admission-not-attempted",
+      "staged": false
+    },
+    {
+      "id": "cbi33-05-short-stream",
+      "provider": "reference",
+      "mutation": "short",
+      "transportCode": "acquisition-length-mismatch",
+      "admissionCode": "admission-not-attempted",
+      "staged": false
+    },
+    {
+      "id": "cbi33-06-overlong-stream",
+      "provider": "reference",
+      "mutation": "long",
+      "transportCode": "acquisition-length-mismatch",
+      "admissionCode": "admission-not-attempted",
+      "staged": false
+    },
+    {
+      "id": "cbi33-07-transport-failure",
+      "provider": "reference",
+      "mutation": "read-failure",
+      "transportCode": "acquisition-transport-failed",
+      "admissionCode": "admission-not-attempted",
+      "staged": false
+    },
+    {
+      "id": "cbi33-08-integrity-refused",
+      "provider": "reference",
+      "mutation": "digest",
+      "transportCode": "transport-completed",
+      "admissionCode": "artifact-set-integrity-failed",
+      "staged": false
+    },
+    {
+      "id": "cbi33-09-invalid-budget",
+      "provider": "reference",
+      "mutation": "budget",
+      "transportCode": "acquisition-invalid",
+      "admissionCode": "admission-not-attempted",
+      "staged": false
+    }
+  ],
+  "publisherEvidenceCode": "publisher-evidence-not-evaluated",
+  "sourceIdentity": "fixture://brontide/provider-output"
+}

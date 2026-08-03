@@ -168,8 +168,10 @@ process. Both provider implementations substitute behind the contract, process l
 and retirement terminates the provider. CBI31 admits a verified local executable under an allowed
 root and exact launch policy. CBI32 stages its complete declared file set transactionally under a
 canonical content address, detects corrupt reuse, leases activation through CBI31, and removes only
-the exact inactive set. Remote acquisition, publisher evidence, durable cross-process coordination,
-and production isolation remain future work.
+the exact inactive set. CBI33 reads that set from a named injected source under exact member lengths
+and a total-byte limit while keeping transport, publisher evidence, and local admission separate.
+Network protocols, authenticated publisher evidence, trust policy, durable cross-process
+coordination, and production isolation remain future work.
 
 ## Build and test
 

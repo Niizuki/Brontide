@@ -783,6 +783,17 @@ bound the result to already-present host-controlled sources and a process-local 
 bounded attributable acquisition stream into that transaction is next; remote transport success,
 publisher evidence, signature verification, and local admission must remain distinct observations.
 
+CBI33 implements that byte-bounded acquisition seam without claiming a network protocol. Each
+request names an expected source, exact member lengths, and a checked total limit; each member is
+opened once in canonical order into private transaction state. Results keep source attribution,
+transport completion, publisher evidence, and CBI32 admission distinct, including delivery that
+completes before digest admission fails. The
+[`CBI33 capability contract`](../../component-management/cbi33-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi33-contract-completeness-review.md)
+bound the synchronous injected source to bytes rather than time and explicitly leave publisher
+authentication and trust absent. Verifiable publisher evidence over the canonical manifest is next;
+cryptographic validity, host trust, and local admission must remain separate observations.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

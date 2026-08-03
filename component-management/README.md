@@ -444,6 +444,14 @@ retention scheduler, garbage collection, sandbox, or Dataset deletion surface. T
 is recorded in the [CBI32 capability contract](./cbi32-capability-contract.md) and completed
 [contract-completeness review](./cbi32-contract-completeness-review.md).
 
+CBI33 feeds that transaction from an injected, named source through exact per-member lengths and a
+checked total-byte limit. It requests members in canonical order, removes private transfer state on
+every outcome, and reports source attribution, transport, publisher evidence, and CBI32 admission as
+separate observations. A delivered digest mismatch is therefore transport completion followed by
+local integrity refusal, while publisher evidence remains explicitly unevaluated. The boundary is
+recorded in the [CBI33 capability contract](./cbi33-capability-contract.md) and completed
+[contract-completeness review](./cbi33-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.

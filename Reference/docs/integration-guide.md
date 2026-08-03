@@ -50,6 +50,13 @@ returned owner before calling `Remove`. One store instance owns the in-memory le
 not add cross-process locking, crash recovery, remote acquisition, publisher evidence, or garbage
 collection.
 
+To acquire that declaration from a stream source, add exact byte lengths, an expected
+`ProviderArtifactSourceId`, and a total limit in `ProviderArtifactAcquisitionRequest`, then call
+`ProviderArtifactAcquirer.Acquire`. The source is opened once per member in canonical order. Inspect
+`TransportCode`, `PublisherEvidenceCode`, and `AdmissionCode` independently; only `IsStaged` exposes
+a value suitable for the existing CBI32 activation lifecycle. This synchronous seam bounds bytes,
+not time, and does not authenticate the named source or implement a network protocol.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.LoadSourceEvidence`, then construct each
