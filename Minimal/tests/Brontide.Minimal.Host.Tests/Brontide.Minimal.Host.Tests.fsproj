@@ -100,6 +100,9 @@
     <None Include="..\..\..\component-management\fixtures\cbi33-attributable-acquisition-vectors.json"
           Link="component-management\fixtures\cbi33-attributable-acquisition-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi34-publisher-evidence-vectors.json"
+          Link="component-management\fixtures\cbi34-publisher-evidence-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
@@ -109,6 +112,7 @@
   <ItemGroup>
     <Compile Include="ComponentBindingIntegrationTests.fs" />
     <Compile Include="ComponentArtifactAcquisitionTests.fs" />
+    <Compile Include="ComponentPublisherEvidenceTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

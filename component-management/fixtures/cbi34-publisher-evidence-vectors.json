@@ -1,0 +1,27 @@
+{
+  "canonicalManifest": {
+    "identity": "9C1C41D4A429CFF858159F6CDA71210254B793985FFB92F691B2668CB9363155",
+    "files": [
+      { "path": "data/config.json", "sha256": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", "length": 29 },
+      { "path": "bin/provider.exe", "sha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "length": 17 }
+    ],
+    "executablePath": "bin/provider.exe",
+    "arguments": ["--portable", "--mode=test"],
+    "payloadSha256": "3359A7FBE7DA21BA55A652A85E4F5C758C695D45967B748B5BA86AC82CBCF7EE"
+  },
+  "vectors": [
+    { "id": "cbi34-01-valid", "mutation": "none", "code": "publisher-evidence-valid", "verified": true },
+    { "id": "cbi34-02-not-provided", "mutation": "absent", "code": "publisher-evidence-not-provided", "verified": false },
+    { "id": "cbi34-03-unsupported", "mutation": "algorithm", "code": "publisher-evidence-unsupported", "verified": false },
+    { "id": "cbi34-04-malformed-key", "mutation": "key", "code": "publisher-evidence-malformed", "verified": false },
+    { "id": "cbi34-05-key-id-mismatch", "mutation": "key-id", "code": "publisher-evidence-malformed", "verified": false },
+    { "id": "cbi34-06-signature-changed", "mutation": "signature", "code": "publisher-evidence-invalid", "verified": false },
+    { "id": "cbi34-07-path-changed", "mutation": "path", "code": "publisher-evidence-invalid", "verified": false },
+    { "id": "cbi34-08-digest-changed", "mutation": "digest", "code": "publisher-evidence-invalid", "verified": false },
+    { "id": "cbi34-09-length-changed", "mutation": "length", "code": "publisher-evidence-invalid", "verified": false },
+    { "id": "cbi34-10-executable-changed", "mutation": "executable", "code": "publisher-evidence-invalid", "verified": false },
+    { "id": "cbi34-11-arguments-changed", "mutation": "arguments", "code": "publisher-evidence-invalid", "verified": false }
+  ],
+  "trustCode": "publisher-trust-not-evaluated",
+  "admissionCode": "admission-not-attempted"
+}

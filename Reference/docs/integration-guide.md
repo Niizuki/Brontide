@@ -57,6 +57,13 @@ To acquire that declaration from a stream source, add exact byte lengths, an exp
 a value suitable for the existing CBI32 activation lifecycle. This synchronous seam bounds bytes,
 not time, and does not authenticate the named source or implement a network protocol.
 
+For detached publisher-key evidence, sign `ProviderArtifactPublisherManifest.Encode(request)` with
+ECDSA P-256/SHA-256 using an RFC 3279 DER signature. Set `ProviderPublisherKeyId` to the uppercase
+SHA-256 digest of the exact SubjectPublicKeyInfo bytes, then call
+`ProviderArtifactPublisherEvidenceVerifier.Verify`. A valid result supplies a detached verified
+value, but `TrustCode` remains `publisher-trust-not-evaluated` and `AdmissionCode` remains
+`admission-not-attempted`; host policy must decide whether to proceed to CBI33.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.LoadSourceEvidence`, then construct each

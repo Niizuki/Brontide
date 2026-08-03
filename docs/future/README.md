@@ -794,6 +794,16 @@ bound the synchronous injected source to bytes rather than time and explicitly l
 authentication and trust absent. Verifiable publisher evidence over the canonical manifest is next;
 cryptographic validity, host trust, and local admission must remain separate observations.
 
+CBI34 implements that evidence boundary with detached ECDSA P-256/SHA-256 signatures. A golden
+length-prefixed payload binds the CBI32 content identity, ordered member paths, digests and CBI33
+lengths, executable, and arguments; source and byte budget remain host transport policy. The exact
+SPKI digest identifies the signing key, while every result keeps host trust and artifact admission
+unevaluated. The [`CBI34 capability contract`](../../component-management/cbi34-capability-contract.md)
+and [`contract-completeness review`](../../component-management/cbi34-contract-completeness-review.md)
+bound the proof to private-key possession: there is no publisher-name binding, freshness, trusted-key
+registry, rotation, or revocation. Explicit host trust policy over verified publisher keys is next;
+key admission and revocation must remain distinct from signature validity and CBI32 admission.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

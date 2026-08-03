@@ -128,8 +128,9 @@ The implementation currently provides:
   under a canonical content address, detects corrupt reuse, leases activation through CBI31, and
   removes only the exact inactive set; CBI33 reads that set from a named injected source under exact
   member lengths and a total-byte limit while keeping transport, publisher evidence, and local
-  admission separate;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI33 integration
+  admission separate; CBI34 verifies detached ECDSA P-256 evidence over the canonical acquisition
+  manifest while leaving publisher trust and admission explicitly undecided;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI34 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range
