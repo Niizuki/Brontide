@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi29-fanned-out-child-port-vectors",
+  "vectors": [
+    {
+      "id": "cbi29-01-wide-child-attached",
+      "expectedKind": "attached",
+      "expectedCode": "child-attached",
+      "expectedChildMembers": 2,
+      "expectedAdmitted": 2,
+      "expectedGrants": 2,
+      "expectedReleased": 2,
+      "expectedRetired": 0,
+      "expectedParentReleased": 2
+    },
+    {
+      "id": "cbi29-02-member-omitted",
+      "expectedKind": "declined",
+      "expectedCode": "membership-not-resolved",
+      "expectedChildMembers": 0,
+      "expectedAdmitted": 1,
+      "expectedGrants": 1,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedParentReleased": 2
+    },
+    {
+      "id": "cbi29-03-member-without-portable-scope",
+      "expectedKind": "declined",
+      "expectedCode": "member-scope-required",
+      "expectedChildMembers": 0,
+      "expectedAdmitted": 2,
+      "expectedGrants": 2,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedParentReleased": 2
+    },
+    {
+      "id": "cbi29-04-portable-scope-reused",
+      "expectedKind": "declined",
+      "expectedCode": "scope-not-distinct",
+      "expectedChildMembers": 0,
+      "expectedAdmitted": 2,
+      "expectedGrants": 2,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedParentReleased": 2
+    },
+    {
+      "id": "cbi29-05-member-never-ready",
+      "expectedKind": "declined",
+      "expectedCode": "child-establishment-refused",
+      "expectedChildMembers": 2,
+      "expectedAdmitted": 2,
+      "expectedGrants": 2,
+      "expectedReleased": 0,
+      "expectedRetired": 1,
+      "expectedParentReleased": 2
+    },
+    {
+      "id": "cbi29-06-member-authority-denied",
+      "expectedKind": "declined",
+      "expectedCode": "authority-not-admitted",
+      "expectedChildMembers": 0,
+      "expectedAdmitted": 1,
+      "expectedGrants": 0,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedParentReleased": 2
+    },
+    {
+      "id": "cbi29-07-attachment-names-another-port",
+      "expectedKind": "declined",
+      "expectedCode": "port-not-resolved",
+      "expectedChildMembers": 0,
+      "expectedAdmitted": 0,
+      "expectedGrants": 0,
+      "expectedReleased": 0,
+      "expectedRetired": 0,
+      "expectedParentReleased": 2
+    }
+  ]
+}

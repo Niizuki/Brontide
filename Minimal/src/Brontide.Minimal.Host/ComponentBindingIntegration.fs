@@ -3286,7 +3286,10 @@ module ComponentChildActivation =
     /// that does not exist yet.
     let private childFailureCode (activation: ComponentGroupAuthorityResult) =
         match activation.Lifecycle |> Option.bind _.Failure with
-        | Some failure when failure.Kind = ComponentGroupActivationFailureKind.PlanUnsupported ->
+        | Some failure when
+            failure.Kind = ComponentGroupActivationFailureKind.PlanUnsupported
+            || failure.Kind = ComponentGroupActivationFailureKind.PreparationUnavailable
+            ->
             failure.Code
         | _ ->
             match activation.Lifecycle |> Option.bind _.Runtime with

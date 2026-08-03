@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased - CBI29 fanned-out child-Port activation
+
+### Added
+
+- Reference Studio evidence that CBI22, CBI27, and CBI28 compose for a complete wide position in one
+  child Port, with distinct member binding scopes and one child restart scope.
+- Shared vectors, a phase-boundary completeness review, and named C1-C6 properties covering
+  containment, whole-position membership, scope separation, child-wide barriers, and parent
+  preservation.
+
+### Fixed
+
+- Child activation now preserves structural plan and preparation refusal codes instead of reporting
+  them as a generic provider-establishment refusal.
+
 ## Unreleased - CBI28 fanned-out set activation
 
 ### Added

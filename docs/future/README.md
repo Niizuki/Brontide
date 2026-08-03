@@ -739,6 +739,17 @@ slice activates. The [`CBI28 capability contract`](../../component-management/cb
 and [`contract-completeness review`](../../component-management/cbi28-contract-completeness-review.md)
 bound it to the fake runtime.
 
+CBI29 closes CBI28's explicitly bounded child-Port combination. A complete wide position now enters
+CBI22's existing child path, where CBI27 still translates the generation's whole membership and CBI28
+still applies one authority and Release barrier across it. Each portable member scope remains distinct
+from the child's one restart scope, and every outcome leaves the released parent unchanged. No new
+activation surface was needed. The exercise did expose a classification defect: the child wrapper
+turned CBI28 preparation refusals into `child-establishment-refused`; both roots now preserve plan and
+preparation codes while reserving that generic code for provider/runtime establishment failures. The
+[`CBI29 capability contract`](../../component-management/cbi29-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi29-contract-completeness-review.md)
+bound the result to one wide position in one runtime-open child Port.
+
 **Real distribution is the next area**, and no integration slice is queued ahead of it: the fake
 Component Manager and the portable seam now meet across every structural case the two models share.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
