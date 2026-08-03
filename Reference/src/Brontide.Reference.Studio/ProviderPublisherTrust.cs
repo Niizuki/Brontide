@@ -74,11 +74,31 @@ public static class ProviderPublisherTrustPolicyIdentity
     }
 }
 
-public sealed record TrustedProviderPublisherAuthorization(
-    ProviderPublisherTrustPolicyId PolicyIdentity,
-    ProviderPublisherKeyId PublisherKeyId,
-    ProviderArtifactSetId ContentIdentity,
-    string PayloadSha256);
+public sealed record TrustedProviderPublisherAuthorization
+{
+    private TrustedProviderPublisherAuthorization(
+        ProviderPublisherTrustPolicyId policyIdentity,
+        ProviderPublisherKeyId publisherKeyId,
+        ProviderArtifactSetId contentIdentity,
+        string payloadSha256)
+    {
+        PolicyIdentity = policyIdentity;
+        PublisherKeyId = publisherKeyId;
+        ContentIdentity = contentIdentity;
+        PayloadSha256 = payloadSha256;
+    }
+
+    public ProviderPublisherTrustPolicyId PolicyIdentity { get; }
+    public ProviderPublisherKeyId PublisherKeyId { get; }
+    public ProviderArtifactSetId ContentIdentity { get; }
+    public string PayloadSha256 { get; }
+
+    internal static TrustedProviderPublisherAuthorization Issue(
+        ProviderPublisherTrustPolicyId policyIdentity,
+        ProviderPublisherKeyId publisherKeyId,
+        ProviderArtifactSetId contentIdentity,
+        string payloadSha256) => new(policyIdentity, publisherKeyId, contentIdentity, payloadSha256);
+}
 
 public sealed record ProviderPublisherTrustResult
 {
@@ -179,7 +199,7 @@ public static class ProviderPublisherTrustEvaluator
                 evidence.ContentIdentity);
         }
 
-        return ProviderPublisherTrustResult.Trusted(new(
+        return ProviderPublisherTrustResult.Trusted(TrustedProviderPublisherAuthorization.Issue(
             policy.Identity,
             evidence.PublisherKeyId,
             evidence.ContentIdentity,

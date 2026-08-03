@@ -467,6 +467,13 @@ and payload. Evaluation has no acquisition effects and always leaves admission u
 boundary is recorded in the [CBI35 capability contract](./cbi35-capability-contract.md) and completed
 [contract-completeness review](./cbi35-contract-completeness-review.md).
 
+CBI36 composes the CBI35 authorization with CBI33 only after validating and snapshotting the complete
+request and matching both its CBI32 identity and CBI34 payload digest. Missing or mismatched trust
+never reads the source; successful trust preserves later transport and CBI32 admission outcomes.
+The authorization is issuer-controlled rather than publicly constructible. The boundary is recorded
+in the [CBI36 capability contract](./cbi36-capability-contract.md) and completed
+[contract-completeness review](./cbi36-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.

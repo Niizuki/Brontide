@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased - CBI36 trust-gated acquisition
+
+### Changed
+
+- `TrustedProviderPublisherAuthorization` is now issued only by
+  `ProviderPublisherTrustEvaluator`; callers must replace direct construction with a successful
+  CBI35 evaluation.
+
+### Added
+
+- Trust-gated CBI33 acquisition that matches exact content and canonical payload before source
+  access while preserving independent trust, transport, and admission observations.
+- Shared vectors and named C1-C6 evidence for issuer control, validation order, exact matching,
+  zero-access refusals, CBI33/CBI32 composition, and cross-stack agreement.
+
 ## Unreleased - CBI35 publisher trust policy
 
 ### Added

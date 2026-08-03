@@ -70,6 +70,12 @@ verified value to `ProviderPublisherTrustEvaluator.evaluate`. Only `publisher-tr
 the acquisition request before explicitly invoking CBI33. Revoked and unknown are distinct, and the
 evaluator never opens a source or attempts admission.
 
+To enforce that decision, create `TrustedProviderArtifactAcquirer` around the existing CBI33
+acquirer and call `Acquire` with the request, source, and CBI35 authorization. The gate validates the
+immutable request, then matches both content identity and canonical publisher-payload digest before
+CBI33 can inspect the source. `TrustedProviderPublisherAuthorization` can no longer be constructed
+directly; obtain it from a successful `ProviderPublisherTrustEvaluator.evaluate` result.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each

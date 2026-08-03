@@ -813,6 +813,16 @@ bound the result to caller-supplied snapshots with no provenance, distribution, 
 lineage, or retroactive cancellation. Trust-gated CBI33 acquisition is next: a matching authorization
 must be required before any source is opened, without folding policy loading or networking into it.
 
+CBI36 implements that trust-gated composition. Authorization is issuer-controlled, and the gate
+validates one immutable acquisition request and matches its exact content identity and canonical
+publisher payload before CBI33 may inspect the source. Trust success remains separate from later
+source, transport, integrity, and admission outcomes. The
+[`CBI36 capability contract`](../../component-management/cbi36-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi36-contract-completeness-review.md)
+bound it to a same-process host-selected policy snapshot. Trust-policy provenance and monotonic
+updates are next: newer revocations must have explicit authority and supersession semantics before
+the stack claims production remote distribution.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

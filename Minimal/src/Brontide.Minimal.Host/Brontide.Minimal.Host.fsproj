@@ -22,6 +22,7 @@
     <Compile Include="ProviderArtifactAcquirer.fs" />
     <Compile Include="ProviderPublisherEvidence.fs" />
     <Compile Include="ProviderPublisherTrust.fs" />
+    <Compile Include="TrustedProviderArtifactAcquirer.fs" />
     <Compile Include="ComponentBindingIntegration.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
