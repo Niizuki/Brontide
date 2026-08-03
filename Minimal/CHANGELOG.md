@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased - CBI31 verified local provider activation
+
+### Added
+
+- A Minimal Host local-artifact owner that verifies an executable SHA-256 digest, applies
+  allowed-root and exact argument-vector policy, and launches the existing portable realization in
+  a dedicated no-shell process.
+- Shared vectors and named C1-C5 evidence for acquisition refusal, launch policy, isolation,
+  CBI30 composition, cross-stack substitution, retirement, and forced cleanup.
+
 ## Unreleased - CBI30 process-boundary activation
 
 ### Added

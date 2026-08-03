@@ -1,0 +1,60 @@
+{
+  "contract": "CBI31",
+  "vectors": [
+    {
+      "id": "cbi31-01-reference-artifact",
+      "provider": "reference",
+      "digest": "actual",
+      "path": "actual",
+      "arguments": ["--portable"],
+      "allowedArguments": ["--portable"],
+      "expectedCode": "active",
+      "expectedLaunched": true,
+      "expectedIsolation": "dedicated-process"
+    },
+    {
+      "id": "cbi31-02-minimal-artifact",
+      "provider": "minimal",
+      "digest": "actual",
+      "path": "actual",
+      "arguments": ["--portable"],
+      "allowedArguments": ["--portable"],
+      "expectedCode": "active",
+      "expectedLaunched": true,
+      "expectedIsolation": "dedicated-process"
+    },
+    {
+      "id": "cbi31-03-missing-artifact",
+      "provider": "reference",
+      "digest": "actual",
+      "path": "missing",
+      "arguments": ["--portable"],
+      "allowedArguments": ["--portable"],
+      "expectedCode": "artifact-unavailable",
+      "expectedLaunched": false,
+      "expectedIsolation": null
+    },
+    {
+      "id": "cbi31-04-integrity-refused",
+      "provider": "minimal",
+      "digest": "incorrect",
+      "path": "actual",
+      "arguments": ["--portable"],
+      "allowedArguments": ["--portable"],
+      "expectedCode": "artifact-integrity-failed",
+      "expectedLaunched": false,
+      "expectedIsolation": null
+    },
+    {
+      "id": "cbi31-05-arguments-refused",
+      "provider": "reference",
+      "digest": "actual",
+      "path": "actual",
+      "arguments": ["--catalog"],
+      "allowedArguments": ["--portable"],
+      "expectedCode": "launch-policy-refused",
+      "expectedLaunched": false,
+      "expectedIsolation": null
+    }
+  ]
+}

@@ -34,6 +34,13 @@ cleanup, replay, redaction, and threat assumptions.
 Ordinary tests skip real Brontide Reference Stack launch when `BRONTIDE_REFERENCE_PROVIDER` is absent. Use the root
 `build/verify-interchange.ps1` command for the required two-way process evidence.
 
+For a host-controlled local executable, call
+`LocalProviderArtifactActivator.acquireAndLaunch` in Minimal Host instead of constructing a process
+directly. Supply the canonical source path, expected uppercase SHA-256 digest, parsed argument list,
+allowed root, and exact admitted argument list. `Launched` exposes the existing portable
+conversation and owns process-tree cleanup. `dedicated-process` is an isolation observation, not a
+sandbox claim; CBI31 does not secure mutable or link-controlled source directories.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each

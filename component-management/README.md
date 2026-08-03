@@ -420,6 +420,18 @@ future work. The bounded behavior is recorded in the
 [CBI30 capability contract](./cbi30-capability-contract.md) and completed
 [contract-completeness review](./cbi30-contract-completeness-review.md).
 
+CBI31 gives that process an explicit local artifact and lifecycle owner. Each composition root now
+accepts one already-present executable with an expected SHA-256 digest, verifies its bytes, applies
+canonical allowed-root containment and an exact argument-vector policy, then starts a dedicated
+no-shell process with redirected standard streams. The owner supplies the existing CBI30 portable
+conversation, observes Release and retirement, and terminates unfinished process trees during
+cleanup. Refusals distinguish unavailable artifacts, integrity failure, launch-policy denial, and
+operating-system start failure. This remains a host-controlled local-source slice: it is not a
+content-addressed store, package installer, link-integrity boundary, security sandbox, or trust
+service. The bounded behavior is recorded in the
+[CBI31 capability contract](./cbi31-capability-contract.md) and completed
+[contract-completeness review](./cbi31-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
