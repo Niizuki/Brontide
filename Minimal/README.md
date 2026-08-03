@@ -134,8 +134,9 @@ The implementation currently provides:
   artifact admission unattempted; CBI36 requires the exact authorization before CBI33 source access
   while preserving later transport and admission outcomes; CBI37 verifies host-pinned signed policy
   updates, enforces a monotonic predecessor chain, and supersedes old authorizations for future
-  acquisition;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI37 integration
+  acquisition; CBI38 atomically checkpoints and re-verifies the complete signed update chain and
+  detects rollback against an independently retained recovery floor;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI38 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

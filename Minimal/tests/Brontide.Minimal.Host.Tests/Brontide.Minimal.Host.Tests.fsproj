@@ -112,6 +112,9 @@
     <None Include="..\..\..\component-management\fixtures\cbi37-policy-update-vectors.json"
           Link="component-management\fixtures\cbi37-policy-update-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi38-policy-checkpoint-vectors.json"
+          Link="component-management\fixtures\cbi38-policy-checkpoint-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
@@ -125,6 +128,7 @@
     <Compile Include="ComponentPublisherTrustTests.fs" />
     <Compile Include="ComponentTrustedAcquisitionTests.fs" />
     <Compile Include="ComponentPolicyUpdateTests.fs" />
+    <Compile Include="ComponentPolicyCheckpointTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased - CBI38 durable trust-policy checkpoint
+
+### Added
+
+- A bounded canonical checkpoint containing the complete signed CBI37 update chain, with atomic
+  publication before live registry advancement and full verifier replay during recovery.
+- An issuer-controlled recovery floor that detects missing, older, and same-sequence conflicting
+  checkpoint state, plus recovered governed acquisition.
+- Shared vectors and named C1-C6 corruption, provenance, crash-residue, rollback, write-failure, and
+  cross-stack evidence.
+
 ## Unreleased - CBI37 authoritative trust-policy updates
 
 ### Added
