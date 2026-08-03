@@ -1,0 +1,11 @@
+{
+  "vectors": [
+    { "id": "cbi36-01-trusted", "mutation": "none", "trustCode": "publisher-trusted", "transportCode": "transport-completed", "admissionCode": "staged", "staged": true, "identityReads": 1, "openCount": 1 },
+    { "id": "cbi36-02-missing", "mutation": "missing", "trustCode": "publisher-trust-required", "transportCode": "transport-not-attempted", "admissionCode": "admission-not-attempted", "staged": false, "identityReads": 0, "openCount": 0 },
+    { "id": "cbi36-03-content", "mutation": "content", "trustCode": "publisher-authorization-content-mismatch", "transportCode": "transport-not-attempted", "admissionCode": "admission-not-attempted", "staged": false, "identityReads": 0, "openCount": 0 },
+    { "id": "cbi36-04-payload", "mutation": "payload", "trustCode": "publisher-authorization-payload-mismatch", "transportCode": "transport-not-attempted", "admissionCode": "admission-not-attempted", "staged": false, "identityReads": 0, "openCount": 0 },
+    { "id": "cbi36-05-invalid-request", "mutation": "invalid", "trustCode": "publisher-trust-not-evaluated", "transportCode": "acquisition-invalid", "admissionCode": "admission-not-attempted", "staged": false, "identityReads": 0, "openCount": 0 },
+    { "id": "cbi36-06-source", "mutation": "source", "trustCode": "publisher-trusted", "transportCode": "acquisition-source-mismatch", "admissionCode": "admission-not-attempted", "staged": false, "identityReads": 1, "openCount": 0 },
+    { "id": "cbi36-07-integrity", "mutation": "integrity", "trustCode": "publisher-trusted", "transportCode": "transport-completed", "admissionCode": "artifact-set-integrity-failed", "staged": false, "identityReads": 1, "openCount": 1 }
+  ]
+}

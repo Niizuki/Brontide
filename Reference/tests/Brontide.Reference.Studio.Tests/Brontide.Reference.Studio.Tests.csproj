@@ -120,5 +120,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi35-publisher-trust-vectors.json"
           Link="component-management\fixtures\cbi35-publisher-trust-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi36-trusted-acquisition-vectors.json"
+          Link="component-management\fixtures\cbi36-trusted-acquisition-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

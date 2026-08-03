@@ -131,8 +131,9 @@ The implementation currently provides:
   admission separate; CBI34 verifies detached ECDSA P-256 evidence over the canonical acquisition
   manifest while leaving publisher trust and admission explicitly undecided; CBI35 evaluates that
   verified key against a canonical host policy with explicit admission and revocation while keeping
-  artifact admission unattempted;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI35 integration
+  artifact admission unattempted; CBI36 requires the exact authorization before CBI33 source access
+  while preserving later transport and admission outcomes;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI36 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

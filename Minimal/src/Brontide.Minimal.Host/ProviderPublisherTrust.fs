@@ -58,10 +58,21 @@ module ProviderPublisherTrustPolicyIdentity =
         output.ToArray() |> SHA256.HashData |> Convert.ToHexString |> ProviderPublisherTrustPolicyId.create
 
 type TrustedProviderPublisherAuthorization =
-    { PolicyIdentity: ProviderPublisherTrustPolicyId
-      PublisherKeyId: ProviderPublisherKeyId
-      ContentIdentity: ProviderArtifactSetId
-      PayloadSha256: string }
+    private
+    | TrustedProviderPublisherAuthorization of
+        ProviderPublisherTrustPolicyId * ProviderPublisherKeyId * ProviderArtifactSetId * string
+    member this.PolicyIdentity =
+        let (TrustedProviderPublisherAuthorization(policy, _, _, _)) = this
+        policy
+    member this.PublisherKeyId =
+        let (TrustedProviderPublisherAuthorization(_, key, _, _)) = this
+        key
+    member this.ContentIdentity =
+        let (TrustedProviderPublisherAuthorization(_, _, content, _)) = this
+        content
+    member this.PayloadSha256 =
+        let (TrustedProviderPublisherAuthorization(_, _, _, payload)) = this
+        payload
 
 type ProviderPublisherTrustResult =
     { Code: string
@@ -108,11 +119,12 @@ module ProviderPublisherTrustEvaluator =
                     refused "publisher-key-revoked" evidenceCode policy
                         (Some verified.PublisherKeyId) (Some verified.ContentIdentity)
                 | Some _ ->
-                    let authorization: TrustedProviderPublisherAuthorization =
-                        { PolicyIdentity = policy.Identity
-                          PublisherKeyId = verified.PublisherKeyId
-                          ContentIdentity = verified.ContentIdentity
-                          PayloadSha256 = verified.PayloadSha256 }
+                    let authorization =
+                        TrustedProviderPublisherAuthorization(
+                            policy.Identity,
+                            verified.PublisherKeyId,
+                            verified.ContentIdentity,
+                            verified.PayloadSha256)
                     { Code = "publisher-trusted"
                       EvidenceCode = evidenceCode
                       PolicyIdentity = policy.Identity
