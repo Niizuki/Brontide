@@ -87,6 +87,14 @@ recovery floor. Retain each returned floor separately only after a successful up
 re-verifies the full signed chain and can create the same governed acquisition gate; the checkpoint
 does not itself provide secure floor custody or multi-process coordination.
 
+For one remote synchronization attempt, create
+`ProviderPublisherTrustPolicyDistributionClient` with that durable registry and the separately
+configured distribution-endpoint SPKI identity. Implement
+`IProviderPublisherTrustPolicyDistributionSource` for the chosen transport and pass the host clock,
+a timeout no greater than one minute, and cancellation to `SynchronizeAsync`. The endpoint signs the
+CBI39 response manifest; the optional update still needs its independent CBI37 authority signature.
+The source abstraction is not an HTTP/TLS profile and the client performs no retries.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each

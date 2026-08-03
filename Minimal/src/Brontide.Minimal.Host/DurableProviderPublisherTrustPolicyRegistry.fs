@@ -164,6 +164,8 @@ type DurableProviderPublisherTrustPolicyRegistry private (
 
     member _.Current = registry.Current
 
+    member _.Floor = floor ()
+
     member _.Apply(update: ProviderPublisherTrustPolicyUpdate) =
         if isNull (box update) then nullArg (nameof update)
         lock syncRoot (fun () ->

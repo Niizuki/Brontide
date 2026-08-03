@@ -841,6 +841,15 @@ bound the implementation to one process and writer and do not claim secure floor
 fresh, bounded remote policy distribution is the next boundary; authority rotation and a platform
 rollback anchor remain separate deployment/security work.
 
+CBI39 implements one authenticated, fresh, bounded distribution attempt. A host-pinned P-256
+endpoint key signs the cryptographic challenge, exact CBI38 cursor, short validity interval, and
+complete optional CBI37 update digest; the client makes one cancellable source call and never retries.
+The [`CBI39 capability contract`](../../component-management/cbi39-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi39-contract-completeness-review.md)
+keep endpoint authentication separate from policy authority and durable publication. A portable wire
+codec and concrete bounded network transport adapter are next; scheduling, retry/backoff, endpoint
+rotation, secure clock, and platform rollback anchoring remain separate work.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

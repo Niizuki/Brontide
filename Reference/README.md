@@ -179,7 +179,10 @@ monotonic predecessor chain, and supersedes old authorizations for future acquis
 protocols and distribution remain future work. CBI38 atomically checkpoints and recovers that full
 signed policy chain, detects rollback against an independently retained recovery floor, and keeps
 failed publication from advancing live state. Secure floor custody, durable cross-process
-coordination, and production isolation remain future work.
+coordination, and production isolation remain future work. CBI39 adds one authenticated, fresh,
+challenge- and cursor-bound asynchronous distribution attempt with explicit size, timeout,
+cancellation, and no-retry bounds. A portable wire codec and concrete network transport remain
+future work.
 
 ## Build and test
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased - CBI39 authenticated policy distribution
+
+### Added
+
+- A single-attempt asynchronous distribution client with a host-pinned P-256 endpoint key, fresh
+  cryptographic challenge, exact local cursor binding, and signed short-lived response envelope.
+- Explicit response-size, entry-count, timeout, cancellation, and no-retry bounds before an optional
+  update enters the durable CBI38 registry.
+- Shared vectors and named C1-C6 authentication, replay, freshness, bounds, durability, and
+  cross-stack evidence.
+
 ## Unreleased - CBI38 durable trust-policy checkpoint
 
 ### Added
