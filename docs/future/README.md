@@ -924,6 +924,33 @@ bound it to one host-local store under one writer. **Custody in a domain the che
 cannot reach** — a platform rollback anchor, a sealed key, or an attested counter — is the next
 boundary, and is the one thing this slice repeatedly had to decline.
 
+CBI43 does not attempt that boundary, because it is a deployment property rather than a software one,
+and instead runs the distribution programme **as one path rather than as pairs**. A polled,
+floor-guarded trust policy authorizes publisher evidence over an acquisition request; the governed
+acquisition stages a content-addressed set; the store launches its executable as a provider process
+under a removal lease; and CBI30 activates a portable member across that process to Release. It adds
+no capability, and it reclassifies no refusal — every failure keeps the code its slice produced and
+gains only an origin, because a composition that renamed them would delete the programme's most
+useful diagnostic at the point a host reads it.
+
+Its finding came from breaking its own trust gate. Removing CBI43's trust check **opens no source**:
+the governed acquirer refuses a missing authorization on its own. What it destroys is the reason —
+"the policy revoked this publisher" becomes "trust was required". **That step earns its place by
+preserving attribution, not by adding a barrier**, and the contract now says so rather than implying
+a second safety check that does not exist. The other correction was in the composition's own first
+draft, which guessed a transport code and so reported a delivered-then-rejected set as a transport
+failure instead of CBI32 refusing admission; the shared vector caught it.
+
+What the composition did *not* find is worth recording too: no defect in the slices themselves. Six
+phases of pairwise work had already fitted them to contracts that composed. The evidence is a
+ladder — policy applied, authorized, source opened, staged, launched, released — required to be a
+true-prefix in **every** vector, so a stage reached past its own refusal fails anywhere, together
+with residue checks that no refusal leaves a staged set, a live process, or an advanced floor. The
+[`CBI43 capability contract`](../../component-management/cbi43-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi43-contract-completeness-review.md)
+bound it to one provider and one member, and record that nothing revalidates the policy between
+acquisition and launch. Custody in a privileged domain remains the named next boundary.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

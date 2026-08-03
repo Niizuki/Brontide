@@ -118,6 +118,12 @@ under the stored floor. Pass the returned store's `Sink` straight to `PollAsync`
 somewhere the checkpoint's writer cannot reach — its integrity tag detects corruption, not tampering
 — and do not write a recovered floor back to it: the store is advanced by handoffs only, on purpose.
 
+CBI43 wires the stages together. `ProviderDistributionChain.run` takes the durable registry, a
+content-addressed store, a transaction root, the acquisition request with its publisher evidence and
+allowed arguments, and the source; it answers a launched provider or a refusal that carries the
+originating slice in `RefusedBy`. Dispose the returned provider to release the removal lease, then
+remove the staged set. Nothing revalidates the policy between acquisition and launch.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each

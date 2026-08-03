@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased - CBI43 end-to-end distribution chain
+
+### Added
+
+- A composition that runs publisher evidence, host trust policy, governed acquisition,
+  content-addressed staging, and provider launch as one path, preserving each slice's own refusal
+  code and recording which slice produced it.
+- Shared vectors covering one complete run and one refusal per stage, with the ladder required to be
+  a true-prefix and residue checks for staged sets, live processes, and the retained floor.
+
+### Notes
+
+- The chain's trust step preserves attribution rather than adding a barrier: the governed acquirer
+  already refuses a missing authorization, but without this step the reason is lost.
+- Nothing revalidates the trust policy between acquisition and launch.
+
 ## Unreleased - CBI42 durable recovery-floor custody
 
 ### Added

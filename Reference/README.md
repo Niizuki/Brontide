@@ -188,7 +188,9 @@ recovery-floor handoff ordered after checkpoint publication. CBI42 gives that fl
 a monotone, integrity-checked host-local store, established before the checkpoint it guards, read
 back at the next start, and never advanced by a recovered checkpoint. Custody in a domain the
 checkpoint's writer cannot reach, endpoint rotation, a real scheduling host, and platform security
-anchors remain future work.
+anchors remain future work. CBI43 runs the whole chain as one path — polled policy, publisher
+evidence, governed acquisition, content-addressed staging, provider launch, and CBI30 activation —
+keeping each stage's own refusal code and origin.
 
 ## Build and test
 
