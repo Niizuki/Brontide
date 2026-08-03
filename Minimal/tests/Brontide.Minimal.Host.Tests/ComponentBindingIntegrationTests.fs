@@ -2763,6 +2763,121 @@ type ComponentBindingIntegrationTests() =
             return result, handlers
         }
 
+    let wideChildResolution () =
+        let single = request (Cardinality.parse "2..2")
+        let consumerDefinition =
+            single.Definitions |> List.find (fun item -> item.Definition = consumer)
+        let providerDefinition =
+            single.Definitions |> List.find (fun item -> item.Definition = provider)
+        let candidate = List.exactlyOne single.Candidates
+        let contained =
+            { List.exactlyOne consumerDefinition.Requirements with
+                ContainingRegion = Some childRegion
+                ContainingPort = Some childPortId
+                RuntimeAttachment = true }
+        { single with
+            Definitions =
+                [ { consumerDefinition with Requirements = [ contained ] }
+                  providerDefinition
+                  { providerDefinition with Definition = standbyProvider } ]
+            Candidates = [ candidate; { candidate with Definition = standbyProvider } ]
+            Ports =
+                [ { portEnvelope childPortId contractId PortLifecycleMode.RuntimeOpen with
+                      Cardinality = Cardinality.parse "2..2" } ] }
+        |> FakeGenerationResolver.resolve
+
+    let wideChildActivation scenario =
+        task {
+            let! parent, parentHandlers = childParent false
+            let resolution = wideChildResolution ()
+            let position = widePosition resolution
+            let selected =
+                if scenario = "cbi29-02-member-omitted" then
+                    position.Members |> List.truncate 1
+                else
+                    position.Members
+            let childHandlers = selected |> List.map (fun _ -> CoolingHandler())
+            let substituted =
+                { CoolingFixture.contract with
+                    Provider = expectProvider "brontide.fake.substituted" }
+            let entries =
+                selected
+                |> List.mapi (fun index memberValue ->
+                    let document =
+                        if scenario = "cbi29-05-member-never-ready" && index = 1 then
+                            substituted
+                        else
+                            CoolingFixture.contract
+                    { Selection =
+                        { selection memberValue with
+                            HostEndpoint = sprintf "wide-child-host-%d" index }
+                      Scope =
+                        if scenario = "cbi29-03-member-without-portable-scope" && index = 1 then
+                            None
+                        else
+                            Some(
+                                namedScope (
+                                    if scenario = "cbi29-04-portable-scope-reused" then
+                                        "scope.child-member-0"
+                                    else
+                                        sprintf "scope.child-member-%d" index))
+                      Conversation =
+                        PortableDirectConversation(
+                            PortableProviderEndpoint(
+                                document,
+                                List.item index childHandlers,
+                                Realization.FixedDirectCall))
+                        :> IPortableProviderConversation })
+            let policy = groupPolicy providerLocalActor supervisorLocalActor
+            let participants =
+                entries
+                |> List.mapi (fun index entry ->
+                    { Member = entry
+                      Participants =
+                        [ fannedOutParticipant
+                              index
+                              entry.Selection.Occurrence
+                              policy
+                              (if scenario = "cbi29-06-member-authority-denied" then
+                                   "cbi28-08-one-member-denied"
+                               else
+                                   scenario) ] })
+            let planValue =
+                planFor
+                    (GenerationId.create "gen.child-wide")
+                    childScopeId
+                    (entries |> List.map _.Selection.Occurrence)
+            let baseRequest = runtimeRequestFor planValue (GenerationId.create "gen.child-retained")
+            let requestValue =
+                { baseRequest with
+                    ActiveScopes =
+                        [ { Scope = childScopeId
+                            Generation = GenerationId.create "gen.child-retained"
+                            Status = RuntimeScopeStatus.ActiveScope }
+                          { Scope = parentScopeId
+                            Generation = GenerationId.create "gen.lifecycle"
+                            Status = RuntimeScopeStatus.ActiveScope } ]
+                    Child =
+                        Some
+                            { ParentScope = parentScopeId
+                              ParentGeneration = GenerationId.create "gen.lifecycle"
+                              Port =
+                                if scenario = "cbi29-07-attachment-names-another-port" then
+                                    PortId.create "port.other"
+                                else
+                                    childPortId
+                              RuntimeOpen = true
+                              Occupied = false
+                              ReplacementLifecycleDeclared = false
+                              HostAssisted = false
+                              InternalReleaseSequence = 0
+                              ExportReleaseSequence = 2
+                              OuterHostOwnsAdmission = false } }
+            let! result =
+                ComponentChildActivation.attach resolution parent participants requestValue
+            return result, parent, parentHandlers, childHandlers
+        }
+
     /// The positions the successor generation resolves, per scenario.
     let membershipPositions scenario =
         match scenario with
@@ -6216,6 +6331,143 @@ type ComponentBindingIntegrationTests() =
                     ComponentProviderSetBinding.isTranslated translation,
                     Is.True,
                     "CBI27 is untouched."))
+        }
+
+    [<Test>]
+    member _.``shared CBI29 vectors activate a fanned-out position inside a child Port``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi29-fanned-out-child-port-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI29 vector identity must be a string"
+                    | value -> value
+                let! result, parent, parentHandlers, _ = wideChildActivation scenario
+                let members =
+                    result.Child
+                    |> Option.bind _.Lifecycle
+                    |> Option.map _.Members
+                    |> Option.defaultValue []
+                let released = members |> List.filter _.Member.IsReleased |> List.length
+                let retired =
+                    members
+                    |> List.filter (fun item -> CompositionStage.token item.Member.Stage = "retired")
+                    |> List.length
+                multiple (fun () ->
+                    Assert.That(childToken result.Kind, Is.EqualTo(vector.GetProperty("expectedKind").GetString()), scenario)
+                    Assert.That(result.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), scenario)
+                    Assert.That(members.Length, Is.EqualTo(vector.GetProperty("expectedChildMembers").GetInt32()), scenario)
+                    Assert.That(
+                        result.Child |> Option.map (fun value -> value.Admissions.Length) |> Option.defaultValue 0,
+                        Is.EqualTo(vector.GetProperty("expectedAdmitted").GetInt32()),
+                        scenario)
+                    Assert.That(
+                        result.Child |> Option.map (fun value -> value.Grants.Length) |> Option.defaultValue 0,
+                        Is.EqualTo(vector.GetProperty("expectedGrants").GetInt32()),
+                        scenario)
+                    Assert.That(released, Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()), scenario)
+                    Assert.That(retired, Is.EqualTo(vector.GetProperty("expectedRetired").GetInt32()), scenario)
+                    Assert.That(
+                        parent.Lifecycle.Value.Members |> List.filter _.Member.IsReleased |> List.length,
+                        Is.EqualTo(vector.GetProperty("expectedParentReleased").GetInt32()),
+                        scenario)
+                    Assert.That(released = 0 || released = members.Length, Is.True, scenario)
+                    Assert.That(parentHandlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0, scenario))
+        }
+
+    [<Test>]
+    member _.``CBI29 C1 every member is contained in the attached Port``() =
+        task {
+            let! attached, _, _, _ = wideChildActivation "cbi29-01-wide-child-attached"
+            let! foreign, _, _, foreignHandlers =
+                wideChildActivation "cbi29-07-attachment-names-another-port"
+            multiple (fun () ->
+                Assert.That(attached.Port |> Option.map PortId.value, Is.EqualTo(Some(PortId.value childPortId)))
+                Assert.That(attached.Child.Value.Admissions.Length, Is.EqualTo 2)
+                Assert.That(foreign.Code, Is.EqualTo "port-not-resolved")
+                Assert.That(foreign.Child, Is.EqualTo None, "Containment is checked before authority is evaluated.")
+                Assert.That(foreignHandlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0))
+        }
+
+    [<Test>]
+    member _.``CBI29 C2 the whole position enters the child activation``() =
+        task {
+            let! partial, _, _, handlers = wideChildActivation "cbi29-02-member-omitted"
+            multiple (fun () ->
+                Assert.That(partial.Code, Is.EqualTo "membership-not-resolved")
+                Assert.That(partial.Child.Value.Admissions.Length, Is.EqualTo 1)
+                Assert.That(partial.Child.Value.Lifecycle.Value.Members, Is.Empty)
+                Assert.That(handlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0))
+        }
+
+    [<Test>]
+    member _.``CBI29 C3 member scopes are distinct from the child restart scope``() =
+        task {
+            let! attached, _, _, _ = wideChildActivation "cbi29-01-wide-child-attached"
+            let! missing, _, _, _ = wideChildActivation "cbi29-03-member-without-portable-scope"
+            let! shared, _, _, _ = wideChildActivation "cbi29-04-portable-scope-reused"
+            let scopes =
+                attached.Child.Value.Lifecycle.Value.Members
+                |> List.map (fun item -> item.Member.TryFact "bindingScope")
+            multiple (fun () ->
+                Assert.That(
+                    scopes |> List.choose id |> List.sort |> String.concat ", ",
+                    Is.EqualTo "scope.child-member-0, scope.child-member-1")
+                Assert.That(scopes |> List.contains (Some(RestartScopeId.value childScopeId)), Is.False)
+                Assert.That(
+                    attached.Child.Value.Lifecycle.Value.Runtime.Value.Observation.RestartScope,
+                    Is.EqualTo childScopeId)
+                Assert.That(missing.Code, Is.EqualTo "member-scope-required")
+                Assert.That(shared.Code, Is.EqualTo "scope-not-distinct"))
+        }
+
+    [<Test>]
+    member _.``CBI29 C4 authority and Release are child-wide barriers``() =
+        task {
+            let! denied, _, _, deniedHandlers = wideChildActivation "cbi29-06-member-authority-denied"
+            let! notReady, _, _, notReadyHandlers = wideChildActivation "cbi29-05-member-never-ready"
+            multiple (fun () ->
+                Assert.That(denied.Code, Is.EqualTo "authority-not-admitted")
+                Assert.That(denied.Child.Value.Lifecycle, Is.EqualTo None)
+                Assert.That(deniedHandlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0)
+                Assert.That(notReady.Code, Is.EqualTo "child-establishment-refused")
+                Assert.That(
+                    notReady.Child.Value.Lifecycle.Value.Members |> List.filter _.Member.IsReleased |> List.length,
+                    Is.EqualTo 0)
+                Assert.That(notReadyHandlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0))
+        }
+
+    [<Test>]
+    member _.``CBI29 C5 the released parent is untouched``() =
+        task {
+            for scenario in
+                [ "cbi29-01-wide-child-attached"
+                  "cbi29-02-member-omitted"
+                  "cbi29-05-member-never-ready"
+                  "cbi29-06-member-authority-denied" ] do
+                let! _, parent, parentHandlers, _ = wideChildActivation scenario
+                multiple (fun () ->
+                    Assert.That(ComponentGroupAuthority.isActive parent, Is.True, scenario)
+                    Assert.That(parent.Lifecycle.Value.Members |> List.forall _.Member.IsReleased, Is.True, scenario)
+                    Assert.That(parentHandlers |> List.sumBy _.ProviderEffectCount, Is.EqualTo 0, scenario))
+        }
+
+    [<Test>]
+    member _.``CBI29 C6 existing child and wide paths remain unchanged``() =
+        task {
+            let! ordinaryChild, _, _, _ = childActivationResult "cbi22-01-child-attached"
+            let! wideRoot, _ = fannedOutActivation "cbi28-01-wide-position-activated"
+            let! wideChild, _, _, _ = wideChildActivation "cbi29-01-wide-child-attached"
+            multiple (fun () ->
+                Assert.That(ComponentChildActivation.isAttached ordinaryChild, Is.True)
+                Assert.That(ComponentGroupAuthority.isActive wideRoot, Is.True)
+                Assert.That(ComponentChildActivation.isAttached wideChild, Is.True))
         }
 
     [<Test>]

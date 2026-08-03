@@ -120,8 +120,9 @@ The implementation currently provides:
   member, the set staying at the composition root, and finds that a CM binding scope holds many
   bindings while a portable one names a single binding; CBI28 activates those members, making the
   generation the authority on a wide position's membership and establishing that its declared minimum
-  is not a runtime concept;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI28 integration
+  is not a runtime concept; CBI29 activates that complete wide position inside one child Port while
+  preserving the child-wide barriers, separate scope concepts, and released parent;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI29 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

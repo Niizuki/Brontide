@@ -3230,7 +3230,8 @@ public static class ComponentChildActivation
     private static string ChildFailureCode(ComponentGroupAuthorityResult activation)
     {
         if (activation.Lifecycle?.Failure is
-            { Kind: ComponentGroupActivationFailureKind.PlanUnsupported } refusal)
+            { Kind: ComponentGroupActivationFailureKind.PlanUnsupported or
+                    ComponentGroupActivationFailureKind.PreparationUnavailable } refusal)
         {
             return refusal.Code;
         }

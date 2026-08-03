@@ -394,6 +394,17 @@ Decision 16. Its bounded behavior is recorded in the
 [CBI28 capability contract](./cbi28-capability-contract.md) and completed
 [contract-completeness review](./cbi28-contract-completeness-review.md).
 
+CBI29 closes CBI28's child-Port bound and establishes that CBI22, CBI27, and CBI28 compose without a
+new activation path. The generation still owns the complete membership and Port placement, every
+member still owns a distinct portable binding scope, and the child still owns one restart scope
+distinct from its parent's. Authority and Release remain barriers across the entire child, while
+every success and refusal leaves the released parent unchanged. The exercise found one classification
+defect: the child wrapper preserved unsupported-plan codes but hid preparation refusals behind
+`child-establishment-refused`. Both roots now preserve structural plan and preparation codes while
+retaining the child-level code for genuine provider/runtime establishment failure. The bounded
+behavior is recorded in the [CBI29 capability contract](./cbi29-capability-contract.md) and completed
+[contract-completeness review](./cbi29-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -713,6 +724,15 @@ activation reached Active, the failure kind and code, how many members were admi
 the result carries, how many members are released and how many retired, and how many provider effects
 occurred, so the whole-position rule and the release barrier over a wide position are both checked
 answers. The fixture contains no runtime, planner, evaluator, or portable implementation.
+
+### `cbi29-fanned-out-child-port-vectors` sections
+
+`vectors` names one successful wide child and six refusals: an omitted member, a member without a
+portable scope, two members reusing one scope, a member that never reports Ready, denied member
+authority, and an attachment naming another Port. Each pins the child outcome and code, child member,
+admission, grant, release, and retirement counts, plus the released parent count, so containment,
+whole-position activation, scope separation, child-wide barriers, and parent preservation are all
+checked answers. The fixture contains no runtime, planner, evaluator, or portable implementation.
 
 ### `cm0-mice-topology` sections
 

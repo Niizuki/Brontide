@@ -160,6 +160,9 @@ CBI28 activates those members. Nothing downstream needed teaching, because every
 onward is per-occurrence; a wide position supplied half-complete would have passed both plan checks,
 and the generation is now the authority on its membership. A Provider Set's declared minimum is not a
 runtime concept, so one member short of Ready retires the whole activation.
+CBI29 activates that complete wide position inside one child Port through the existing CBI22 path.
+The member binding scopes remain distinct from the child restart scope, the barriers remain
+child-wide, and every outcome leaves the released parent unchanged.
 
 ## Build and test
 

@@ -43,7 +43,7 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   implementation through bounded JSON Lines provider processes in both host directions. Agreement
   is limited to eight deterministic fake scenarios; CM0-CM6 are complete.
 - `Brontide.Minimal.Host` composes the independent Component Management and Portable Binding
-  experiments for CBI1-CBI28. It maps one completed native CM2 direct `1..1` position into PB7
+  experiments for CBI1-CBI29. It maps one completed native CM2 direct `1..1` position into PB7
   preflight through explicit typed identities, then coordinates one singleton, protocol-free CM4
   plan from PB7 lifecycle evidence and releases the portable gate only after CM4 Active.
   CBI3 additionally requires one explicit occurrence-to-Actor mapping and one exact local CM5
@@ -81,8 +81,9 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   scope, CBI23 nests those attachments and retires a supplied forest deepest first, and CBI24 stands
   them down before replacing the generation offering their Ports, CBI25 binds the Component a
   Mediation is realized as, CBI26 admits that mediator's own authority, CBI27 carries a position
-  wider than `1..1` into preflight as one ordinary member per resolved member, and CBI28 activates
-  those members under one release barrier.
+  wider than `1..1` into preflight as one ordinary member per resolved member, CBI28 activates
+  those members under one release barrier, and CBI29 runs that complete wide position through one
+  child Port while leaving its released parent unchanged.
   It does not merge the projects, perform a lifecycle handshake, detect an attachment it was not given,
   admit authority on behalf of a mediated member, keep a Provider Set serving when one member is lost,
   or establish real Component interchange.

@@ -8414,6 +8414,256 @@ public sealed class ComponentBindingIntegrationTests
         _ => new(new(occurrence, Observer), ObserverRequest(policy)),
     };
 
+    [Test]
+    public async Task Shared_cbi29_vectors_activate_a_fanned_out_position_inside_a_child_port()
+    {
+        using var fixture = JsonDocument.Parse(
+            await File.ReadAllTextAsync(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi29-fanned-out-child-port-vectors.json")));
+
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var scenario = vector.GetProperty("id").GetString()!;
+            var (result, parent, handlers) = await WideChildActivation(scenario);
+            var childMembers = result.Child?.Lifecycle?.Members ?? Array.Empty<ComponentGroupMemberOutcome>();
+            var released = childMembers.Count(item => item.Member.IsReleased);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(ChildToken(result.Kind), Is.EqualTo(vector.GetProperty("expectedKind").GetString()), scenario);
+                Assert.That(result.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), scenario);
+                Assert.That(childMembers, Has.Count.EqualTo(vector.GetProperty("expectedChildMembers").GetInt32()), scenario);
+                Assert.That(result.Child?.Admissions.Count ?? 0, Is.EqualTo(vector.GetProperty("expectedAdmitted").GetInt32()), scenario);
+                Assert.That(result.Child?.Grants.Count ?? 0, Is.EqualTo(vector.GetProperty("expectedGrants").GetInt32()), scenario);
+                Assert.That(released, Is.EqualTo(vector.GetProperty("expectedReleased").GetInt32()), scenario);
+                Assert.That(
+                    childMembers.Count(item => item.Member.Stage == PortableCompositionStage.Retired),
+                    Is.EqualTo(vector.GetProperty("expectedRetired").GetInt32()),
+                    scenario);
+                Assert.That(
+                    parent.Lifecycle!.Members.Count(item => item.Member.IsReleased),
+                    Is.EqualTo(vector.GetProperty("expectedParentReleased").GetInt32()),
+                    scenario);
+                Assert.That(released == 0 || released == childMembers.Count, Is.True, scenario);
+                Assert.That(handlers.Parent.Sum(item => item.ProviderEffectCount), Is.Zero, scenario);
+            });
+        }
+    }
+
+    [Test]
+    public async Task Cbi29_C1_every_member_is_contained_in_the_attached_port()
+    {
+        var (attached, _, _) = await WideChildActivation("cbi29-01-wide-child-attached");
+        var (foreign, _, foreignHandlers) = await WideChildActivation("cbi29-07-attachment-names-another-port");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(attached.Port, Is.EqualTo(ChildPort));
+            Assert.That(attached.Child!.Admissions, Has.Count.EqualTo(2));
+            Assert.That(foreign.Code, Is.EqualTo("port-not-resolved"));
+            Assert.That(foreign.Child, Is.Null, "Containment is checked before authority is evaluated.");
+            Assert.That(foreignHandlers.Child.Sum(item => item.ProviderEffectCount), Is.Zero);
+        });
+    }
+
+    [Test]
+    public async Task Cbi29_C2_the_whole_position_enters_the_child_activation()
+    {
+        var (partial, _, handlers) = await WideChildActivation("cbi29-02-member-omitted");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(partial.Code, Is.EqualTo("membership-not-resolved"));
+            Assert.That(partial.Child!.Admissions, Has.Count.EqualTo(1));
+            Assert.That(partial.Child.Lifecycle!.Members, Is.Empty);
+            Assert.That(handlers.Child.Sum(item => item.ProviderEffectCount), Is.Zero);
+        });
+    }
+
+    [Test]
+    public async Task Cbi29_C3_member_scopes_are_distinct_from_the_child_restart_scope()
+    {
+        var (attached, _, _) = await WideChildActivation("cbi29-01-wide-child-attached");
+        var (missing, _, _) = await WideChildActivation("cbi29-03-member-without-portable-scope");
+        var (shared, _, _) = await WideChildActivation("cbi29-04-portable-scope-reused");
+        var scopes = attached.Child!.Lifecycle!.Members
+            .Select(item => item.Member.Fact("bindingScope"))
+            .ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(scopes, Is.EquivalentTo(new[] { "scope.child-member-0", "scope.child-member-1" }));
+            Assert.That(scopes, Does.Not.Contain(ChildScope.Value));
+            Assert.That(attached.Child.Lifecycle.Runtime!.Observation.RestartScope, Is.EqualTo(ChildScope));
+            Assert.That(missing.Code, Is.EqualTo("member-scope-required"));
+            Assert.That(shared.Code, Is.EqualTo("scope-not-distinct"));
+        });
+    }
+
+    [Test]
+    public async Task Cbi29_C4_authority_and_release_are_child_wide_barriers()
+    {
+        var (denied, _, deniedHandlers) = await WideChildActivation("cbi29-06-member-authority-denied");
+        var (notReady, _, notReadyHandlers) = await WideChildActivation("cbi29-05-member-never-ready");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(denied.Code, Is.EqualTo("authority-not-admitted"));
+            Assert.That(denied.Child!.Lifecycle, Is.Null);
+            Assert.That(deniedHandlers.Child.Sum(item => item.ProviderEffectCount), Is.Zero);
+            Assert.That(notReady.Code, Is.EqualTo("child-establishment-refused"));
+            Assert.That(notReady.Child!.Lifecycle!.Members.Count(item => item.Member.IsReleased), Is.Zero);
+            Assert.That(notReadyHandlers.Child.Sum(item => item.ProviderEffectCount), Is.Zero);
+        });
+    }
+
+    [Test]
+    public async Task Cbi29_C5_the_released_parent_is_untouched()
+    {
+        foreach (var scenario in new[]
+        {
+            "cbi29-01-wide-child-attached",
+            "cbi29-02-member-omitted",
+            "cbi29-05-member-never-ready",
+            "cbi29-06-member-authority-denied",
+        })
+        {
+            var (_, parent, handlers) = await WideChildActivation(scenario);
+            Assert.Multiple(() =>
+            {
+                Assert.That(parent.IsActive, Is.True, scenario);
+                Assert.That(parent.Lifecycle!.Members.All(item => item.Member.IsReleased), Is.True, scenario);
+                Assert.That(handlers.Parent.Sum(item => item.ProviderEffectCount), Is.Zero, scenario);
+            });
+        }
+    }
+
+    [Test]
+    public async Task Cbi29_C6_existing_child_and_wide_paths_remain_unchanged()
+    {
+        var (ordinaryChild, _, _) = await ChildActivationResult("cbi22-01-child-attached");
+        var (wideRoot, _) = await FannedOutActivation("cbi28-01-wide-position-activated");
+        var (wideChild, _, _) = await WideChildActivation("cbi29-01-wide-child-attached");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ordinaryChild.IsAttached, Is.True);
+            Assert.That(wideRoot.IsActive, Is.True);
+            Assert.That(wideChild.IsAttached, Is.True);
+        });
+    }
+
+    private static ResolutionOutcome WideChildResolution()
+    {
+        var single = Request(Cardinality.Parse("2..2"));
+        var consumer = single.Definitions.Single(item => item.Definition == Consumer);
+        var provider = single.Definitions.Single(item => item.Definition == Provider);
+        var candidate = single.Candidates.Single();
+        var contained = consumer.Requirements.Single() with
+        {
+            ContainingRegion = ChildRegion,
+            ContainingPort = ChildPort,
+            RuntimeAttachment = true,
+        };
+        return new FakeGenerationResolver().Resolve(single with
+        {
+            Definitions =
+            [
+                consumer with { Requirements = [contained] },
+                provider,
+                provider with { Definition = StandbyProvider },
+            ],
+            Candidates = [candidate, candidate with { Definition = StandbyProvider }],
+            Ports =
+            [
+                new PortEnvelope(
+                    ChildRegion,
+                    ChildPort,
+                    PortLifecycleMode.RuntimeOpen,
+                    [new ProvidedContract(Contract, Version)],
+                    Cardinality.Parse("2..2"),
+                    [], [], [], [],
+                    "isolate",
+                    "scope",
+                    false),
+            ],
+        });
+    }
+
+    private static async Task<(
+        ComponentChildActivationResult Result,
+        ComponentGroupAuthorityResult Parent,
+        (CoolingPortableHandler[] Parent, CoolingPortableHandler[] Child) Handlers)>
+        WideChildActivation(string scenario)
+    {
+        var (parent, parentHandlers) = await ChildParent(fail: false);
+        var resolution = WideChildResolution();
+        var position = resolution.Generation!.ProviderSets.Single(item => item.Requirement == Requirement);
+        var selected = scenario == "cbi29-02-member-omitted"
+            ? position.Members.Take(1).ToArray()
+            : position.Members.ToArray();
+        var childHandlers = selected
+            .Select(_ => new CoolingPortableHandler(CoolingPortableFixture.CreateNativeRegistry()))
+            .ToArray();
+        var substituted = CoolingPortableFixture.Contract with
+        {
+            Provider = PortableProviderReference.Parse("brontide.fake.substituted", 1),
+        };
+        var members = selected.Select((member, index) => new ComponentGroupMember(
+            Selection(member) with { HostEndpoint = $"wide-child-host-{index}" },
+            new PortableDirectConversation(new PortableProviderEndpoint(
+                scenario == "cbi29-05-member-never-ready" && index == 1
+                    ? substituted
+                    : CoolingPortableFixture.Contract,
+                childHandlers[index],
+                PortableRealization.FixedDirectCall)),
+            scenario == "cbi29-03-member-without-portable-scope" && index == 1
+                ? null
+                : PortableBindingScopeId.Parse(
+                    scenario == "cbi29-04-portable-scope-reused"
+                        ? "scope.child-member-0"
+                        : $"scope.child-member-{index}"))).ToArray();
+        var policy = GroupPolicy(ProviderLocalActor);
+        var participants = members.Select((member, index) => new ComponentGroupParticipant(
+            member,
+            [FannedOutParticipant(
+                index,
+                member.Selection.Occurrence,
+                policy,
+                scenario == "cbi29-06-member-authority-denied"
+                    ? "cbi28-08-one-member-denied"
+                    : scenario)])).ToArray();
+        var plan = PlanFor(
+            GenerationId.Create("gen.child-wide"),
+            ChildScope,
+            members.Select(item => item.Selection.Occurrence).ToArray());
+        var request = RuntimeRequestFor(plan, GenerationId.Create("gen.child-retained")) with
+        {
+            ActiveScopes =
+            [
+                new(ChildScope, GenerationId.Create("gen.child-retained"), RuntimeScopeStatus.Active),
+                new(ParentScope, GenerationId.Create("gen.lifecycle"), RuntimeScopeStatus.Active),
+            ],
+            Child = new(
+                ParentScope,
+                GenerationId.Create("gen.lifecycle"),
+                scenario == "cbi29-07-attachment-names-another-port" ? PortId.Create("port.other") : ChildPort,
+                RuntimeOpen: true,
+                Occupied: false,
+                ReplacementLifecycleDeclared: false,
+                HostAssisted: false,
+                InternalReleaseSequence: 0,
+                ExportReleaseSequence: 2,
+                OuterHostOwnsAdmission: false),
+        };
+        var result = await ComponentChildActivation.AttachAsync(resolution, parent, participants, request);
+        return (result, parent, (parentHandlers, childHandlers));
+    }
+
     private static string GroupFailureToken(ComponentGroupActivationFailureKind kind) => kind switch
     {
         ComponentGroupActivationFailureKind.PlanUnsupported => "plan-unsupported",
