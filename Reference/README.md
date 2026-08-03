@@ -171,8 +171,10 @@ canonical content address, detects corrupt reuse, leases activation through CBI3
 the exact inactive set. CBI33 reads that set from a named injected source under exact member lengths
 and a total-byte limit while keeping transport, publisher evidence, and local admission separate.
 CBI34 verifies detached ECDSA P-256 evidence over the canonical acquisition manifest while leaving
-publisher trust and admission explicitly undecided. Network protocols, trusted-key and revocation
-policy, durable cross-process coordination, and production isolation remain future work.
+publisher trust and admission explicitly undecided. CBI35 evaluates that verified key against a
+canonical host policy with explicit admission and revocation while still leaving artifact admission
+unattempted. Network protocols, policy provenance and distribution, durable cross-process
+coordination, and production isolation remain future work.
 
 ## Build and test
 

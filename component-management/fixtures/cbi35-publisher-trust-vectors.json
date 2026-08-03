@@ -1,0 +1,23 @@
+{
+  "canonicalPolicy": {
+    "identity": "B81369D3AA1C55739072310B9F36A7325A9A13490B896A2035A198A56385D70A",
+    "entries": [
+      { "publisherKeyId": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", "disposition": "revoked" },
+      { "publisherKeyId": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "disposition": "admitted" }
+    ]
+  },
+  "verifiedEvidence": {
+    "contentIdentity": "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+    "payloadSha256": "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+  },
+  "vectors": [
+    { "id": "cbi35-01-admitted", "key": "A", "mutation": "none", "code": "publisher-trusted", "authorized": true },
+    { "id": "cbi35-02-revoked", "key": "B", "mutation": "none", "code": "publisher-key-revoked", "authorized": false },
+    { "id": "cbi35-03-unknown", "key": "C", "mutation": "none", "code": "publisher-key-unknown", "authorized": false },
+    { "id": "cbi35-04-unverified", "key": "A", "mutation": "unverified", "code": "publisher-evidence-not-verified", "authorized": false },
+    { "id": "cbi35-05-identity-mismatch", "key": "A", "mutation": "identity", "code": "publisher-trust-policy-invalid", "authorized": false },
+    { "id": "cbi35-06-duplicate", "key": "A", "mutation": "duplicate", "code": "publisher-trust-policy-invalid", "authorized": false },
+    { "id": "cbi35-07-empty", "key": "A", "mutation": "empty", "code": "publisher-trust-policy-invalid", "authorized": false }
+  ],
+  "admissionCode": "admission-not-attempted"
+}

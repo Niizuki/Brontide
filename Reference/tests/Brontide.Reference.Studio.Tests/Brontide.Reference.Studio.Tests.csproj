@@ -117,5 +117,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi34-publisher-evidence-vectors.json"
           Link="component-management\fixtures\cbi34-publisher-evidence-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi35-publisher-trust-vectors.json"
+          Link="component-management\fixtures\cbi35-publisher-trust-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

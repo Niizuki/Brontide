@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased - CBI35 publisher trust policy
+
+### Added
+
+- Deterministic host trust evaluation of CBI34-verified publisher keys against canonical immutable
+  policy snapshots, with explicit admitted, revoked, unknown, unverified, and invalid-policy results.
+- Shared vectors and named C1-C6 evidence that keep trust authorization scoped and separate from
+  artifact acquisition and admission.
+
 ## Unreleased - CBI34 publisher evidence verification
 
 ### Added

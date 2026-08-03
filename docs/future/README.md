@@ -804,6 +804,15 @@ bound the proof to private-key possession: there is no publisher-name binding, f
 registry, rotation, or revocation. Explicit host trust policy over verified publisher keys is next;
 key admission and revocation must remain distinct from signature validity and CBI32 admission.
 
+CBI35 implements that trust-decision boundary over one immutable canonical policy snapshot. Exact
+publisher-key identities are admitted or revoked explicitly; unknown and unverified keys remain
+distinct, and successful authorization is scoped to the policy, key, content identity, and payload
+digest without opening a source. The [`CBI35 capability contract`](../../component-management/cbi35-capability-contract.md)
+and [`contract-completeness review`](../../component-management/cbi35-contract-completeness-review.md)
+bound the result to caller-supplied snapshots with no provenance, distribution, freshness, key
+lineage, or retroactive cancellation. Trust-gated CBI33 acquisition is next: a matching authorization
+must be required before any source is opened, without folding policy loading or networking into it.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
