@@ -850,6 +850,15 @@ keep endpoint authentication separate from policy authority and durable publicat
 codec and concrete bounded network transport adapter are next; scheduling, retry/backoff, endpoint
 rotation, secure clock, and platform rollback anchoring remain separate work.
 
+CBI40 implements the portable wire and concrete transport seam. Both roots share exact golden binary
+request/current/update images, reject malformed or extended state, and issue one HTTPS POST through
+an injected `HttpClient`; exact final URI/status/media metadata, absent content encoding, cancellation,
+and independent declared/streamed 1 MiB bounds precede CBI39 authentication. The
+[`CBI40 capability contract`](../../component-management/cbi40-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi40-contract-completeness-review.md)
+keep handler TLS/DNS/proxy policy host-owned. A polling scheduler with bounded retry/backoff and
+durable success-floor handoff is next; endpoint rotation and platform anchors remain separate work.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

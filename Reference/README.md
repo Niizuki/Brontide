@@ -181,8 +181,9 @@ signed policy chain, detects rollback against an independently retained recovery
 failed publication from advancing live state. Secure floor custody, durable cross-process
 coordination, and production isolation remain future work. CBI39 adds one authenticated, fresh,
 challenge- and cursor-bound asynchronous distribution attempt with explicit size, timeout,
-cancellation, and no-retry bounds. A portable wire codec and concrete network transport remain
-future work.
+cancellation, and no-retry bounds. CBI40 supplies its portable strict binary codec and one exact
+bounded HTTPS POST adapter. Poll scheduling, retry/backoff, endpoint rotation, and platform security
+anchors remain future work.
 
 ## Build and test
 

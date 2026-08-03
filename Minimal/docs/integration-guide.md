@@ -95,6 +95,13 @@ a timeout no greater than one minute, and cancellation to `SynchronizeAsync`. Th
 CBI39 response manifest; the optional update still needs its independent CBI37 authority signature.
 The source abstraction is not an HTTP/TLS profile and the client performs no retries.
 
+CBI40 supplies that concrete source for HTTPS. Create
+`HttpProviderPublisherTrustPolicyDistributionSource` with a long-lived host-configured `HttpClient`
+and one absolute HTTPS endpoint, then pass it to the CBI39 client. The source sends the canonical
+CBI40 binary request and accepts only the exact response status, final URI, media type, unencoded
+body, and 1 MiB stream bound. Configure certificate, redirect, DNS, and proxy policy on the injected
+handler; the source does not own or dispose the client and still performs no retry.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each

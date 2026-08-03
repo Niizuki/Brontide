@@ -26,6 +26,7 @@
     <Compile Include="ProviderPublisherTrustPolicyRegistry.fs" />
     <Compile Include="DurableProviderPublisherTrustPolicyRegistry.fs" />
     <Compile Include="ProviderPublisherTrustPolicyDistribution.fs" />
+    <Compile Include="ProviderPublisherTrustPolicyDistributionWire.fs" />
     <Compile Include="ComponentBindingIntegration.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

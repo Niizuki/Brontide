@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi40-policy-distribution-wire",
+  "vectors": [
+    { "mutation": "request", "code": "request-roundtrip", "update": false, "sha256": "BD5346C6093516FE228BF566C628D10B6C57F62CE986F95B4010684E18828ACA" },
+    { "mutation": "current", "code": "response-current", "update": false, "sha256": "E8D2FA6A028882C08A16A03D462154FF80D8331212675D6A1D72A3857F314037" },
+    { "mutation": "update", "code": "response-update", "update": true, "sha256": "DDDACF25F9B89AF640619530381DAF3A4642DE394113807A8F980CB7F7E5C8AC" },
+    { "mutation": "truncated", "code": "wire-invalid", "update": false },
+    { "mutation": "trailing", "code": "wire-invalid", "update": false },
+    { "mutation": "marker", "code": "wire-invalid", "update": false },
+    { "mutation": "utf8", "code": "wire-invalid", "update": false },
+    { "mutation": "status", "code": "transport-invalid", "update": false },
+    { "mutation": "content-type", "code": "transport-invalid", "update": false },
+    { "mutation": "redirect", "code": "transport-invalid", "update": false },
+    { "mutation": "declared-oversize", "code": "transport-invalid", "update": false },
+    { "mutation": "streamed-oversize", "code": "transport-invalid", "update": false },
+    { "mutation": "success", "code": "transport-success", "update": false },
+    { "mutation": "canceled", "code": "transport-canceled", "update": false },
+    { "mutation": "content-encoding", "code": "transport-invalid", "update": false }
+  ]
+}

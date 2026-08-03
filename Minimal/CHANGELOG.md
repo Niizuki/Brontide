@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased - CBI40 portable policy-distribution wire
+
+### Added
+
+- A strict versioned big-endian request/response codec preserving the complete CBI39 envelope and
+  optional CBI37 update under exact UTF-8, count, size, and EOF rules.
+- A concrete single-POST HTTPS source with exact endpoint, status, media type, no-content-encoding,
+  cancellation, and independent declared/streamed 1 MiB bounds.
+- Shared vectors, golden wire digests, and named C1-C6 codec, transport, composition, and cross-stack
+  evidence.
+
 ## Unreleased - CBI39 authenticated policy distribution
 
 ### Added
