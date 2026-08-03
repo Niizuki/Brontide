@@ -176,7 +176,9 @@ canonical host policy with explicit admission and revocation while still leaving
 unattempted. CBI36 requires that exact authorization before CBI33 source access and preserves later
 transport and admission outcomes. CBI37 verifies host-pinned signed policy updates, enforces a
 monotonic predecessor chain, and supersedes old authorizations for future acquisition. Network
-protocols, durable policy state and distribution, durable cross-process
+protocols and distribution remain future work. CBI38 atomically checkpoints and recovers that full
+signed policy chain, detects rollback against an independently retained recovery floor, and keeps
+failed publication from advancing live state. Secure floor custody, durable cross-process
 coordination, and production isolation remain future work.
 
 ## Build and test

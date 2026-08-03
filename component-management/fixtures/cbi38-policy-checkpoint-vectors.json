@@ -1,0 +1,11 @@
+{
+  "vectors": [
+    { "id": "cbi38-01-empty", "mutation": "empty", "code": "policy-checkpoint-empty", "sequence": 0 },
+    { "id": "cbi38-02-recovered", "mutation": "recovered", "code": "policy-checkpoint-recovered", "sequence": 2 },
+    { "id": "cbi38-03-truncated", "mutation": "truncated", "code": "policy-checkpoint-corrupt", "sequence": 0 },
+    { "id": "cbi38-04-trailing", "mutation": "trailing", "code": "policy-checkpoint-corrupt", "sequence": 0 },
+    { "id": "cbi38-05-invalid-chain", "mutation": "signature", "code": "policy-checkpoint-invalid-chain", "sequence": 0 },
+    { "id": "cbi38-06-missing-rollback", "mutation": "missing-rollback", "code": "policy-checkpoint-rollback-detected", "sequence": 0 },
+    { "id": "cbi38-07-old-rollback", "mutation": "old-rollback", "code": "policy-checkpoint-rollback-detected", "sequence": 0 }
+  ]
+}

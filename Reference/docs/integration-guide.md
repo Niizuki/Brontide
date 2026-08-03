@@ -82,7 +82,11 @@ configuration and apply signed `ProviderPublisherTrustPolicyUpdate` values to
 `ProviderPublisherTrustPolicyRegistry`. Bootstrap is sequence 1 without a predecessor; successors
 increment once and name the current policy. Wrap CBI36 with `GovernedProviderArtifactAcquirer` so an
 authorization issued under a superseded snapshot is refused before source access. Registry state is
-process-local and must not be presented as durable anti-rollback storage.
+process-local unless it is wrapped by `DurableProviderPublisherTrustPolicyRegistry`. Open that
+registry with a host-owned checkpoint path, the authority pin, and the last independently retained
+recovery floor. Retain each returned floor separately only after a successful update. Recovery
+re-verifies the full signed chain and can create the same governed acquisition gate; the checkpoint
+does not itself provide secure floor custody or multi-process coordination.
 
 ## Fake Component Management CM1
 

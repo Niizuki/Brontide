@@ -110,6 +110,7 @@ type ProviderPublisherTrustPolicyRegistry(authorityIdentity: ProviderPublisherTr
             | :? ArgumentException -> Error "policy-update-malformed"
 
     member _.Current = lock syncRoot (fun () -> current)
+    member internal _.AuthorityIdentity = authorityIdentity
 
     member _.Apply(update: ProviderPublisherTrustPolicyUpdate) =
         if isNull (box update) then nullArg (nameof update)

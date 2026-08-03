@@ -832,6 +832,15 @@ bound the state to one process and one immutable authority pin. Durable atomic c
 authority, sequence, and current policy identity must survive crashes and detect rollback before
 production remote policy distribution is claimed.
 
+CBI38 implements that durable checkpoint boundary. The complete signed CBI37 chain is encoded under
+strict bounds, published before live advancement, and re-verified on recovery. An independently
+retained authority, sequence, and policy-identity floor detects missing, older, or conflicting state.
+The [`CBI38 capability contract`](../../component-management/cbi38-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi38-contract-completeness-review.md)
+bound the implementation to one process and writer and do not claim secure floor custody. Authenticated,
+fresh, bounded remote policy distribution is the next boundary; authority rotation and a platform
+rollback anchor remain separate deployment/security work.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

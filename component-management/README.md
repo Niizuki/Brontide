@@ -480,6 +480,12 @@ snapshot; governed acquisition rejects authorizations from any superseded snapsh
 access. The boundary is recorded in the [CBI37 capability contract](./cbi37-capability-contract.md)
 and completed [contract-completeness review](./cbi37-contract-completeness-review.md).
 
+CBI38 persists the complete signed CBI37 chain in one bounded canonical checkpoint, re-verifies it on
+recovery, and publishes updates before advancing live state. An independently retained authority,
+sequence, and policy-identity floor detects missing, older, or conflicting checkpoint rollback. The
+boundary is recorded in the [CBI38 capability contract](./cbi38-capability-contract.md) and completed
+[contract-completeness review](./cbi38-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.

@@ -111,6 +111,8 @@ public sealed class ProviderPublisherTrustPolicyRegistry
     public ProviderPublisherTrustPolicyRegistry(ProviderPublisherTrustPolicyAuthorityId authorityIdentity) =>
         _authorityIdentity = authorityIdentity;
 
+    internal ProviderPublisherTrustPolicyAuthorityId AuthorityIdentity => _authorityIdentity;
+
     public VerifiedProviderPublisherTrustPolicySnapshot? Current
     {
         get { lock (_sync) return _current; }
