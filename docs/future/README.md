@@ -859,6 +859,40 @@ and independent declared/streamed 1 MiB bounds precede CBI39 authentication. The
 keep handler TLS/DNS/proxy policy host-owned. A polling scheduler with bounded retry/backoff and
 durable success-floor handoff is next; endpoint rotation and platform anchors remain separate work.
 
+CBI41 implements that scheduler as one bounded, host-driven poll cycle rather than a service. It
+advances until the endpoint reports the host current, and **retries only what a fresh attempt can
+change** — a new challenge, a freshly read cursor, and the network — so transport failure, timeout, a
+stale window, and a superseded cursor are retried while every endpoint-authentication outcome and
+every registry refusal ends the cycle at the attempt that produced it. Repeating a request the pinned
+key just failed to authenticate cannot change the answer and would only send more traffic to an
+unauthenticated peer. Backoff is a function of *consecutive failures* rather than the attempt index,
+so **progress resets it**, and the gap sequence carries no jitter — which is what lets fourteen
+shared vectors pin an exact gap sequence across two independent realizations, and which costs
+nothing, because the cycle asks for a duration and the host decides how to wait it.
+
+Its finding is an ordering one, and it runs opposite to CBI38's own rule. CBI38 publishes its
+checkpoint *before* advancing live state; CBI41 hands off the recovery floor *after* publication and
+never before. **A floor is a statement about what the host durably holds, so it cannot precede the
+thing it describes**: a floor retained ahead of its checkpoint and interrupted by a crash claims a
+state no checkpoint records, and recovery reads that as `policy-checkpoint-rollback-detected` — a
+refusal to open a checkpoint nothing rolled back. A lagging floor under-detects for one update and
+self-heals on the next recovery; a leading floor denies service and does not. The sink observes the
+ordering rather than being told it, by reopening the checkpoint as the floor arrives. A refused
+handoff therefore stops the cycle and reports the applied sequence with no matching retained one:
+the update is durable and cannot be undone, and every later advance would move further past a floor
+the host does not hold.
+
+The slice also records a disagreement between two earlier ones rather than resolving it. CBI39
+declares a superseded cursor, reachable only when something advances the registry mid-attempt, while
+CBI38 bounds itself to one process and one writer — so the category exists in one slice and is
+excluded by the next. The shared vector provokes it by writing from the fake source, deliberately
+outside CBI38's bound, because a declared category with no reachable path is the defect PB6 found
+three of. The [`CBI41 capability contract`](../../component-management/cbi41-capability-contract.md)
+and [`contract-completeness review`](../../component-management/cbi41-contract-completeness-review.md)
+keep scheduling, timers, offline policy, and floor custody outside the slice. Durable custody of the
+handed-off floor, consumed by `Open` on the following start, is the next boundary; endpoint and
+authority key rotation and a platform rollback anchor remain separate security work.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

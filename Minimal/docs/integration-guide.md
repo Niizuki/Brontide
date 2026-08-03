@@ -102,6 +102,16 @@ CBI40 binary request and accepts only the exact response status, final URI, medi
 body, and 1 MiB stream bound. Configure certificate, redirect, DNS, and proxy policy on the injected
 handler; the source does not own or dispose the client and still performs no retry.
 
+CBI41 is where retry lives. Build a schedule with `ProviderPublisherTrustPolicyPollSchedule.create`
+from an attempt budget, base delay, multiplier, delay cap, and per-attempt timeout, then call
+`ProviderPublisherTrustPolicyPoller.PollAsync` with the source, a floor-sink function, a delay
+function returning the instant each gap ended, and the current instant. One call performs one cycle
+and returns; scheduling the next one, and any jitter, belong to your delay function and your host.
+Persist each floor the sink receives in storage independent of the checkpoint file and feed the
+latest one back to `DurableProviderPublisherTrustPolicyRegistry.Open` on the next start — a
+`policy-poll-floor-unretained` result means an update is durable that your floor does not yet cover,
+so re-establish the floor from the recovered registry before polling again.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each

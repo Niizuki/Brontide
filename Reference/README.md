@@ -182,8 +182,10 @@ failed publication from advancing live state. Secure floor custody, durable cros
 coordination, and production isolation remain future work. CBI39 adds one authenticated, fresh,
 challenge- and cursor-bound asynchronous distribution attempt with explicit size, timeout,
 cancellation, and no-retry bounds. CBI40 supplies its portable strict binary codec and one exact
-bounded HTTPS POST adapter. Poll scheduling, retry/backoff, endpoint rotation, and platform security
-anchors remain future work.
+bounded HTTPS POST adapter. CBI41 drives that attempt from a bounded host-owned poll cycle with
+deterministic capped backoff, retry confined to the outcomes a fresh attempt can change, and a
+recovery-floor handoff ordered after checkpoint publication. Durable floor custody, endpoint
+rotation, a real scheduling host, and platform security anchors remain future work.
 
 ## Build and test
 
