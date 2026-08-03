@@ -20,6 +20,18 @@ type private Cbi30Observation =
       Retired: bool
       ProviderExited: bool }
 
+type private Cbi32Observation =
+    { StageCode: string
+      Staged: bool
+      Reused: bool
+      ActiveRemovalCode: string
+      Active: bool
+      Released: bool
+      Retired: bool
+      ProviderExited: bool
+      RemovalCode: string
+      Residue: bool }
+
 type private FailingRetirementConversation(inner: IPortableProviderConversation) =
     interface IPortableProviderConversation with
         member _.Realization = inner.Realization
@@ -423,6 +435,160 @@ type ComponentBindingIntegrationTests() =
                     released,
                     retired,
                     exited
+        }
+
+    let cbi32DeleteTree path =
+        let rec remove attempt =
+            if Directory.Exists path then
+                try
+                    Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
+                    |> Seq.iter (fun file -> File.SetAttributes(file, FileAttributes.Normal))
+                    Directory.Delete(path, true)
+                with
+                | :? IOException when attempt < 9 ->
+                    Threading.Thread.Sleep 25
+                    remove (attempt + 1)
+                | :? UnauthorizedAccessException when attempt < 9 ->
+                    Threading.Thread.Sleep 25
+                    remove (attempt + 1)
+        remove 0
+
+    let cbi32Declaration (provider: string) (sourceRoot: string) (mutation: string) : ProviderArtifactSet =
+        let fileName (path: string) =
+            match Path.GetFileName path |> Option.ofObj with
+            | Some value -> value
+            | None -> failwith "CBI32 source member must have a file name."
+        let providerPath = cbi31ProviderPath provider
+        let providerRoot =
+            match Path.GetDirectoryName providerPath |> Option.ofObj with
+            | Some value -> value
+            | None -> failwith "CBI32 provider path must have a parent directory."
+        Directory.CreateDirectory sourceRoot |> ignore
+        Directory.EnumerateFiles providerRoot
+        |> Seq.sort
+        |> Seq.iter (fun source -> File.Copy(source, Path.Combine(sourceRoot, fileName source)))
+        let mutable files =
+            Directory.EnumerateFiles sourceRoot
+            |> Seq.map (fun path ->
+                { RelativePath = fileName path
+                  Sha256 = cbi31Digest path })
+            |> Seq.sortBy _.RelativePath
+            |> Seq.toList
+        match mutation with
+        | "missing-member" ->
+            files <- files @ [ { RelativePath = "missing-member.dll"; Sha256 = String('0', 64) } ]
+        | "member-integrity" ->
+            files <- { files.Head with Sha256 = String('0', 64) } :: files.Tail
+        | "traversal" ->
+            files <- files @ [ { RelativePath = "../escape.dll"; Sha256 = String('0', 64) } ]
+        | _ -> ()
+        let executable = fileName providerPath
+        let arguments = [ "--portable" ]
+        let mutable identity = ProviderArtifactSetIdentity.compute files executable arguments
+        if mutation = "identity" then
+            identity <- ProviderArtifactSetId.create (String('0', 64))
+        { Identity = identity
+          SourceRoot = sourceRoot
+          Files = files
+          ExecutablePath = executable
+          Arguments = arguments }
+
+    let cbi32Vector identity =
+        let path =
+            Path.Combine(
+                TestContext.CurrentContext.TestDirectory,
+                "component-management",
+                "fixtures",
+                "cbi32-content-addressed-staging-vectors.json")
+        use fixture = JsonDocument.Parse(File.ReadAllText path)
+        fixture.RootElement.GetProperty("vectors").EnumerateArray()
+        |> Seq.find (fun vector -> vector.GetProperty("id").GetString() = identity)
+        |> _.Clone()
+
+    let cbi32Run (vector: JsonElement) =
+        task {
+            let testRoot = Path.Combine(Path.GetTempPath(), $"brontide-cbi32-{Guid.NewGuid():N}")
+            let sourceRoot = Path.Combine(testRoot, "source")
+            let storeRoot = Path.Combine(testRoot, "store")
+            try
+                let requiredString (name: string) : string =
+                    match vector.GetProperty(name).GetString() |> Option.ofObj with
+                    | Some value -> value
+                    | None -> failwithf "CBI32 property '%s' must be a string." name
+                let declaration =
+                    cbi32Declaration (requiredString "provider") sourceRoot (requiredString "mutation")
+                let store = ContentAddressedProviderStore storeRoot
+                match store.Stage declaration with
+                | ProviderArtifactStagingResult.Refused failure ->
+                    let removal = store.Remove declaration.Identity
+                    return
+                        { StageCode = failure.Code
+                          Staged = false
+                          Reused = false
+                          ActiveRemovalCode = "not-launched"
+                          Active = false
+                          Released = false
+                          Retired = false
+                          ProviderExited = true
+                          RemovalCode = removal.Code
+                          Residue = Directory.EnumerateFileSystemEntries(storeRoot) |> Seq.isEmpty |> not }
+                | ProviderArtifactStagingResult.Staged staged ->
+                    let restaged =
+                        match store.Stage declaration with
+                        | ProviderArtifactStagingResult.Staged value -> value
+                        | ProviderArtifactStagingResult.Refused failure ->
+                            failwithf "CBI32 restaging failed: %s" failure.Code
+                    if vector.GetProperty("removeSourceBeforeActivation").GetBoolean() then
+                        cbi32DeleteTree sourceRoot
+                    match store.Activate(staged, [ "--portable" ]) with
+                    | StagedProviderActivation.Refused failure ->
+                        return failwithf "CBI32 activation failed: %s" failure.Code
+                    | StagedProviderActivation.Launched owner ->
+                        let activeRemoval = store.Remove declaration.Identity
+                        let resolution, selected, occurrence = prepared ()
+                        let! result =
+                            ComponentBindingLifecycle.activate
+                                resolution
+                                selected
+                                (runtimeRequest (plan [ occurrence ]))
+                                owner.Conversation
+                        let memberValue = result.Member
+                        let active =
+                            result.Failure.IsNone
+                            && result.Runtime
+                               |> Option.exists (fun runtime -> runtime.Kind = ActivationRuntimeOutcomeKind.Active)
+                            && memberValue |> Option.exists _.IsReleased
+                        let released = memberValue |> Option.exists _.IsReleased
+                        let! retired =
+                            task {
+                                if active then
+                                    let! retirement = memberValue.Value.Retire "CBI32 staged activation completed."
+                                    return
+                                        match retirement with
+                                        | Ok record ->
+                                            CompositionStage.token memberValue.Value.Stage = "retired"
+                                            && record.ReplacementPermitted
+                                        | Error _ -> false
+                                else
+                                    return false
+                            }
+                        memberValue |> Option.iter _.Close()
+                        let exited = owner.WaitForExit(TimeSpan.FromSeconds 5.0)
+                        owner.Dispose()
+                        let removal = store.Remove declaration.Identity
+                        return
+                            { StageCode = "staged"
+                              Staged = true
+                              Reused = restaged.Reused
+                              ActiveRemovalCode = activeRemoval.Code
+                              Active = active
+                              Released = released
+                              Retired = retired
+                              ProviderExited = exited
+                              RemovalCode = removal.Code
+                              Residue = Directory.EnumerateFileSystemEntries(storeRoot) |> Seq.isEmpty |> not }
+            finally
+                cbi32DeleteTree testRoot
         }
 
     let expectProvider name =
@@ -6952,6 +7118,193 @@ type ComponentBindingIntegrationTests() =
         | LocalProviderActivation.Launched owner ->
             owner.Dispose()
             Assert.That(owner.HasExited, Is.True)
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``shared CBI32 vectors stage activate and remove content addressed sets``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi32-content-addressed-staging-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario = vector.GetProperty("id").GetString()
+                let! observation = cbi32Run vector
+                multiple (fun () ->
+                    Assert.That(observation.StageCode, Is.EqualTo(vector.GetProperty("expectedStageCode").GetString()), scenario)
+                    Assert.That(observation.Staged, Is.EqualTo(vector.GetProperty("expectedStaged").GetBoolean()), scenario)
+                    Assert.That(observation.Active, Is.EqualTo(vector.GetProperty("expectedActivated").GetBoolean()), scenario)
+                    Assert.That(observation.RemovalCode, Is.EqualTo(vector.GetProperty("expectedRemovalCode").GetString()), scenario)
+                    Assert.That(observation.Residue, Is.False, scenario)
+                    Assert.That(observation.Active, Is.EqualTo observation.Released, scenario)
+                    Assert.That(observation.Active, Is.EqualTo observation.Retired, scenario))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI32 C1 manifest is canonical and complete``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi32-content-addressed-staging-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            let canonical = fixture.RootElement.GetProperty("canonicalManifest")
+            let requiredString (element: JsonElement) (name: string) : string =
+                match element.GetProperty(name).GetString() |> Option.ofObj with
+                | Some value -> value
+                | None -> failwithf "CBI32 canonical property '%s' must be a string." name
+            let files =
+                canonical.GetProperty("files").EnumerateArray()
+                |> Seq.map (fun file ->
+                    { RelativePath = requiredString file "path"
+                      Sha256 = requiredString file "sha256" })
+                |> Seq.toList
+            let arguments =
+                canonical.GetProperty("arguments").EnumerateArray()
+                |> Seq.map (fun value ->
+                    match value.GetString() |> Option.ofObj with
+                    | Some text -> text
+                    | None -> failwith "CBI32 canonical arguments must be strings.")
+                |> Seq.toList
+            let computed =
+                ProviderArtifactSetIdentity.compute
+                    files
+                    (requiredString canonical "executablePath")
+                    arguments
+            let! identity = cbi32Run (cbi32Vector "cbi32-05-identity-refused")
+            let! traversal = cbi32Run (cbi32Vector "cbi32-06-traversal-refused")
+            multiple (fun () ->
+                Assert.That(
+                    ProviderArtifactSetId.value computed,
+                    Is.EqualTo(requiredString canonical "expectedIdentity"))
+                Assert.That(identity.StageCode, Is.EqualTo "artifact-set-invalid")
+                Assert.That(traversal.StageCode, Is.EqualTo "artifact-set-invalid")
+                Assert.That(identity.Staged || traversal.Staged, Is.False))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI32 C2 staging is verified and transactional``() =
+        task {
+            let! missing = cbi32Run (cbi32Vector "cbi32-03-member-unavailable")
+            let! changed = cbi32Run (cbi32Vector "cbi32-04-member-integrity-refused")
+            multiple (fun () ->
+                Assert.That(missing.StageCode, Is.EqualTo "artifact-set-unavailable")
+                Assert.That(changed.StageCode, Is.EqualTo "artifact-set-integrity-failed")
+                Assert.That(missing.Residue || changed.Residue, Is.False))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI32 C3 content identity reuses verified state and detects corruption``() =
+        let testRoot = Path.Combine(Path.GetTempPath(), $"brontide-cbi32-{Guid.NewGuid():N}")
+        try
+            let declaration = cbi32Declaration "minimal" (Path.Combine(testRoot, "source")) "none"
+            let sourceBefore = declaration.Files |> List.map (fun file -> file.RelativePath, file.Sha256)
+            let store = ContentAddressedProviderStore(Path.Combine(testRoot, "store"))
+            let first =
+                match store.Stage declaration with
+                | ProviderArtifactStagingResult.Staged value -> value
+                | ProviderArtifactStagingResult.Refused failure -> failwithf "Stage failed: %s" failure.Code
+            let second =
+                match store.Stage declaration with
+                | ProviderArtifactStagingResult.Staged value -> value
+                | ProviderArtifactStagingResult.Refused failure -> failwithf "Restage failed: %s" failure.Code
+            let stagedPaths =
+                Directory.EnumerateFiles(first.RootPath, "*", SearchOption.AllDirectories)
+                |> Seq.map (fun path -> Path.GetRelativePath(first.RootPath, path))
+                |> Seq.sort
+                |> Seq.toList
+            let sourceAfter =
+                declaration.Files
+                |> List.map (fun file -> file.RelativePath, cbi31Digest (Path.Combine(declaration.SourceRoot, file.RelativePath)))
+            let stagedFile = Path.Combine(first.RootPath, declaration.Files.Head.RelativePath)
+            File.SetAttributes(stagedFile, FileAttributes.Normal)
+            File.WriteAllText(stagedFile, "corrupt")
+            let corrupt = store.Stage declaration
+            multiple (fun () ->
+                Assert.That(second.Reused, Is.True)
+                Assert.That((stagedPaths = (declaration.Files |> List.map _.RelativePath |> List.sort)), Is.True)
+                Assert.That((sourceAfter = sourceBefore), Is.True)
+                match corrupt with
+                | ProviderArtifactStagingResult.Refused failure ->
+                    Assert.That(failure.Code, Is.EqualTo "staged-artifact-integrity-failed")
+                | ProviderArtifactStagingResult.Staged _ -> Assert.Fail("Corrupt staged content was reused."))
+        finally
+            cbi32DeleteTree testRoot
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI32 C4 staging is inactive and composes with CBI31``() =
+        task {
+            let testRoot = Path.Combine(Path.GetTempPath(), $"brontide-cbi32-{Guid.NewGuid():N}")
+            try
+                let declaration = cbi32Declaration "minimal" (Path.Combine(testRoot, "source")) "none"
+                let store = ContentAddressedProviderStore(Path.Combine(testRoot, "store"))
+                match store.Stage declaration with
+                | ProviderArtifactStagingResult.Refused failure -> failwithf "Stage failed: %s" failure.Code
+                | ProviderArtifactStagingResult.Staged _ -> ()
+                Assert.That((store.Remove declaration.Identity).Code, Is.EqualTo "removed")
+            finally
+                cbi32DeleteTree testRoot
+            let! observation = cbi32Run (cbi32Vector "cbi32-02-minimal-staged-activation")
+            multiple (fun () ->
+                Assert.That(observation.Staged, Is.True)
+                Assert.That(observation.Active, Is.True)
+                Assert.That(observation.Released, Is.True)
+                Assert.That(observation.ProviderExited, Is.True))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI32 C5 removal respects active leases and exact ownership``() =
+        task {
+            let testRoot = Path.Combine(Path.GetTempPath(), $"brontide-cbi32-{Guid.NewGuid():N}")
+            try
+                let store = ContentAddressedProviderStore(Path.Combine(testRoot, "store"))
+                let first = cbi32Declaration "minimal" (Path.Combine(testRoot, "source-a")) "none"
+                let secondBase = cbi32Declaration "minimal" (Path.Combine(testRoot, "source-b")) "none"
+                let secondArguments = [ "--portable"; "--second" ]
+                let second =
+                    { secondBase with
+                        Identity =
+                            ProviderArtifactSetIdentity.compute
+                                secondBase.Files
+                                secondBase.ExecutablePath
+                                secondArguments
+                        Arguments = secondArguments }
+                match store.Stage first with
+                | ProviderArtifactStagingResult.Refused failure -> failwithf "First stage failed: %s" failure.Code
+                | ProviderArtifactStagingResult.Staged _ -> ()
+                let stagedSecond =
+                    match store.Stage second with
+                    | ProviderArtifactStagingResult.Refused failure -> failwithf "Second stage failed: %s" failure.Code
+                    | ProviderArtifactStagingResult.Staged value -> value
+                Assert.That((store.Remove first.Identity).Code, Is.EqualTo "removed")
+                Assert.That(Directory.Exists stagedSecond.RootPath, Is.True)
+            finally
+                cbi32DeleteTree testRoot
+            let! observation = cbi32Run (cbi32Vector "cbi32-01-reference-staged-activation")
+            multiple (fun () ->
+                Assert.That(observation.ActiveRemovalCode, Is.EqualTo "artifact-set-in-use")
+                Assert.That(observation.RemovalCode, Is.EqualTo "removed")
+                Assert.That(observation.Residue, Is.False))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI32 C6 both roots agree on portable observations``() =
+        task {
+            let! reference = cbi32Run (cbi32Vector "cbi32-01-reference-staged-activation")
+            let! minimal = cbi32Run (cbi32Vector "cbi32-02-minimal-staged-activation")
+            Assert.That(reference, Is.EqualTo minimal)
+        }
 
     [<Test>]
     member _.``shared CBI12 vectors open ordinary interaction for every member or none``() =

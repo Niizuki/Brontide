@@ -165,7 +165,11 @@ The member binding scopes remain distinct from the child restart scope, the barr
 child-wide, and every outcome leaves the released parent unchanged.
 CBI30 runs the direct CBI2 activation through the negotiated portable realization in a real provider
 process. Both provider implementations substitute behind the contract, process loss is explicit,
-and retirement terminates the provider; artifact and cross-domain distribution remain future work.
+and retirement terminates the provider. CBI31 admits a verified local executable under an allowed
+root and exact launch policy. CBI32 stages its complete declared file set transactionally under a
+canonical content address, detects corrupt reuse, leases activation through CBI31, and removes only
+the exact inactive set. Remote acquisition, publisher evidence, durable cross-process coordination,
+and production isolation remain future work.
 
 ## Build and test
 

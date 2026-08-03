@@ -773,6 +773,16 @@ untrusted-source boundary, and no content-addressed staging, multi-file package,
 sandbox, or trust service exists. Content-addressed staging and removal for a declared multi-file
 artifact set is the next physical-distribution boundary.
 
+CBI32 implements that boundary for one host-local store owner. A canonical manifest identity covers
+the complete relative-path/digest set plus executable and argument metadata; verified bytes are
+published atomically from a private sibling transaction, identical content is reverified and reused,
+activation holds a removal lease through CBI31, and exact removal preserves sibling identities and
+source content. The [`CBI32 capability contract`](../../component-management/cbi32-capability-contract.md)
+and [`contract-completeness review`](../../component-management/cbi32-contract-completeness-review.md)
+bound the result to already-present host-controlled sources and a process-local lease table. A
+bounded attributable acquisition stream into that transaction is next; remote transport success,
+publisher evidence, signature verification, and local admission must remain distinct observations.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

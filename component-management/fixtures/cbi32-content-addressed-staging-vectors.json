@@ -1,0 +1,74 @@
+{
+  "contract": "CBI32",
+  "canonicalManifest": {
+    "files": [
+      { "path": "data/config.json", "sha256": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" },
+      { "path": "bin/provider.exe", "sha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" }
+    ],
+    "executablePath": "bin/provider.exe",
+    "arguments": ["--portable", "--mode=test"],
+    "expectedIdentity": "9C1C41D4A429CFF858159F6CDA71210254B793985FFB92F691B2668CB9363155"
+  },
+  "vectors": [
+    {
+      "id": "cbi32-01-reference-staged-activation",
+      "provider": "reference",
+      "mutation": "none",
+      "removeSourceBeforeActivation": true,
+      "expectedStageCode": "staged",
+      "expectedStaged": true,
+      "expectedActivated": true,
+      "expectedRemovalCode": "removed"
+    },
+    {
+      "id": "cbi32-02-minimal-staged-activation",
+      "provider": "minimal",
+      "mutation": "none",
+      "removeSourceBeforeActivation": false,
+      "expectedStageCode": "staged",
+      "expectedStaged": true,
+      "expectedActivated": true,
+      "expectedRemovalCode": "removed"
+    },
+    {
+      "id": "cbi32-03-member-unavailable",
+      "provider": "reference",
+      "mutation": "missing-member",
+      "removeSourceBeforeActivation": false,
+      "expectedStageCode": "artifact-set-unavailable",
+      "expectedStaged": false,
+      "expectedActivated": false,
+      "expectedRemovalCode": "artifact-set-not-staged"
+    },
+    {
+      "id": "cbi32-04-member-integrity-refused",
+      "provider": "minimal",
+      "mutation": "member-integrity",
+      "removeSourceBeforeActivation": false,
+      "expectedStageCode": "artifact-set-integrity-failed",
+      "expectedStaged": false,
+      "expectedActivated": false,
+      "expectedRemovalCode": "artifact-set-not-staged"
+    },
+    {
+      "id": "cbi32-05-identity-refused",
+      "provider": "reference",
+      "mutation": "identity",
+      "removeSourceBeforeActivation": false,
+      "expectedStageCode": "artifact-set-invalid",
+      "expectedStaged": false,
+      "expectedActivated": false,
+      "expectedRemovalCode": "artifact-set-not-staged"
+    },
+    {
+      "id": "cbi32-06-traversal-refused",
+      "provider": "minimal",
+      "mutation": "traversal",
+      "removeSourceBeforeActivation": false,
+      "expectedStageCode": "artifact-set-invalid",
+      "expectedStaged": false,
+      "expectedActivated": false,
+      "expectedRemovalCode": "artifact-set-not-staged"
+    }
+  ]
+}
