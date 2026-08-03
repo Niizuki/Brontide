@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased - CBI34 publisher evidence verification
+
+### Added
+
+- Canonical Minimal Host publisher-manifest encoding and detached ECDSA P-256/SHA-256 evidence
+  verification with strongly typed public-key identities and detached verified results.
+- Shared vectors, a neutral golden payload digest, and named C1-C6 evidence separating signature
+  validity from source attribution, host trust, transport, and CBI32 admission.
+
 ## Unreleased - CBI33 attributable provider acquisition
 
 ### Added

@@ -170,8 +170,9 @@ root and exact launch policy. CBI32 stages its complete declared file set transa
 canonical content address, detects corrupt reuse, leases activation through CBI31, and removes only
 the exact inactive set. CBI33 reads that set from a named injected source under exact member lengths
 and a total-byte limit while keeping transport, publisher evidence, and local admission separate.
-Network protocols, authenticated publisher evidence, trust policy, durable cross-process
-coordination, and production isolation remain future work.
+CBI34 verifies detached ECDSA P-256 evidence over the canonical acquisition manifest while leaving
+publisher trust and admission explicitly undecided. Network protocols, trusted-key and revocation
+policy, durable cross-process coordination, and production isolation remain future work.
 
 ## Build and test
 

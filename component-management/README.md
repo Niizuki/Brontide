@@ -452,6 +452,14 @@ local integrity refusal, while publisher evidence remains explicitly unevaluated
 recorded in the [CBI33 capability contract](./cbi33-capability-contract.md) and completed
 [contract-completeness review](./cbi33-contract-completeness-review.md).
 
+CBI34 verifies detached `ECDSA-P256-SHA256` publisher-key evidence over a canonical CBI33 manifest.
+The signed payload covers the content identity, ordered paths, digests, exact lengths, executable,
+and arguments; source and byte budget remain unsigned host transport policy. Results expose
+cryptographic validity, publisher key identity, trust-not-evaluated, and admission-not-attempted as
+separate facts. The boundary is recorded in the
+[CBI34 capability contract](./cbi34-capability-contract.md) and completed
+[contract-completeness review](./cbi34-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.

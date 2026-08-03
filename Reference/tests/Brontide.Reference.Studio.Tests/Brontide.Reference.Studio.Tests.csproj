@@ -114,5 +114,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi33-attributable-acquisition-vectors.json"
           Link="component-management\fixtures\cbi33-attributable-acquisition-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi34-publisher-evidence-vectors.json"
+          Link="component-management\fixtures\cbi34-publisher-evidence-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
