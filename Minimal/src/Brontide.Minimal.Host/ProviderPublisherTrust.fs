@@ -96,22 +96,25 @@ module ProviderPublisherTrustEvaluator =
           Authorization = None
           AdmissionCode = "admission-not-attempted" }
 
+    let internal tryValidate (policy: ProviderPublisherTrustPolicy) =
+        let entries = policy.Entries |> List.ofSeq
+        if not (List.isEmpty entries)
+           && (entries |> List.map _.PublisherKeyId |> List.distinct |> List.length) = entries.Length
+           && ProviderPublisherTrustPolicyIdentity.compute entries = policy.Identity then Some { policy with Entries = entries }
+        else None
+
     let evaluate (policy: ProviderPublisherTrustPolicy) (evidence: VerifiedProviderPublisherEvidence option) =
         let evidenceCode = if Option.isSome evidence then "publisher-evidence-valid" else "publisher-evidence-not-verified"
-        let entries = policy.Entries |> List.ofSeq
-        let structurallyValid =
-            not (List.isEmpty entries)
-            && (entries |> List.map _.PublisherKeyId |> List.distinct |> List.length) = entries.Length
-            && ProviderPublisherTrustPolicyIdentity.compute entries = policy.Identity
-        if not structurallyValid then
+        match tryValidate policy with
+        | None ->
             refused "publisher-trust-policy-invalid" evidenceCode policy
                 (evidence |> Option.map _.PublisherKeyId)
                 (evidence |> Option.map _.ContentIdentity)
-        else
+        | Some snapshot ->
             match evidence with
             | None -> refused "publisher-evidence-not-verified" evidenceCode policy None None
             | Some verified ->
-                match entries |> List.tryFind (fun entry -> entry.PublisherKeyId = verified.PublisherKeyId) with
+                match snapshot.Entries |> List.tryFind (fun entry -> entry.PublisherKeyId = verified.PublisherKeyId) with
                 | None ->
                     refused "publisher-key-unknown" evidenceCode policy
                         (Some verified.PublisherKeyId) (Some verified.ContentIdentity)

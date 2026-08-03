@@ -823,6 +823,15 @@ bound it to a same-process host-selected policy snapshot. Trust-policy provenanc
 updates are next: newer revocations must have explicit authority and supersession semantics before
 the stack claims production remote distribution.
 
+CBI37 implements authoritative policy provenance and monotonic supersession in process. One exact
+P-256 authority SPKI is pinned out of band; signed snapshots form a strict sequence/predecessor chain,
+and governed acquisition rejects authorizations from older snapshots before source access. The
+[`CBI37 capability contract`](../../component-management/cbi37-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi37-contract-completeness-review.md)
+bound the state to one process and one immutable authority pin. Durable atomic checkpointing is next:
+authority, sequence, and current policy identity must survive crashes and detect rollback before
+production remote policy distribution is claimed.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

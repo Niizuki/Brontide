@@ -1,0 +1,19 @@
+{
+  "golden": {
+    "initialPolicyIdentity": "F25151A3B5A77A511ECD6ACE0B16C357CC52343542BE0EE5D8A9AF92475CBFE7",
+    "successorPolicyIdentity": "8F8740761F2FB6BFBBC2A36D9373636BE17189832421B6706D98F91AB05AD047",
+    "initialPayloadSha256": "3ACCE850654D439BE78BC173635BA62CB924FE539E002BF6C5F8FE0C6D30BB47",
+    "successorPayloadSha256": "E3DC80A43B44216EEA8421EE650ED0EC103A94401A42B20AEADA2B30B65EBEC3"
+  },
+  "vectors": [
+    { "id": "cbi37-01-bootstrap", "mutation": "none", "code": "policy-update-applied", "sequence": 1, "changed": true },
+    { "id": "cbi37-02-successor", "mutation": "successor", "code": "policy-update-applied", "sequence": 2, "changed": true },
+    { "id": "cbi37-03-authority", "mutation": "authority", "code": "policy-update-authority-mismatch", "sequence": 1, "changed": false },
+    { "id": "cbi37-04-signature", "mutation": "signature", "code": "policy-update-signature-invalid", "sequence": 1, "changed": false },
+    { "id": "cbi37-05-unsupported", "mutation": "algorithm", "code": "policy-update-unsupported", "sequence": 1, "changed": false },
+    { "id": "cbi37-06-replay", "mutation": "replay", "code": "policy-update-sequence-invalid", "sequence": 1, "changed": false },
+    { "id": "cbi37-07-gap", "mutation": "gap", "code": "policy-update-sequence-invalid", "sequence": 1, "changed": false },
+    { "id": "cbi37-08-fork", "mutation": "fork", "code": "policy-update-predecessor-mismatch", "sequence": 1, "changed": false },
+    { "id": "cbi37-09-policy", "mutation": "policy", "code": "policy-update-policy-invalid", "sequence": 1, "changed": false }
+  ]
+}

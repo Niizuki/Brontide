@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased - CBI37 authoritative trust-policy updates
+
+### Added
+
+- A host-pinned ECDSA P-256 policy authority, canonical signed update payload, and process-local
+  registry accepting only a strict sequence/predecessor chain.
+- A governed acquisition gate that rejects missing or superseded current-policy authorization before
+  source access while preserving CBI36 behavior for the current snapshot.
+- Shared vectors, golden payload digests, and named C1-C6 provenance, monotonicity, atomicity,
+  supersession, and cross-stack evidence.
+
 ## Unreleased - CBI36 trust-gated acquisition
 
 ### Changed
