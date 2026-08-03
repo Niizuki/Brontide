@@ -141,5 +141,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi42-floor-custody-vectors.json"
           Link="component-management\fixtures\cbi42-floor-custody-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi43-distribution-chain-vectors.json"
+          Link="component-management\fixtures\cbi43-distribution-chain-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

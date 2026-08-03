@@ -11,6 +11,20 @@ open Brontide.Minimal.Binding.Portable
 open Brontide.Minimal.Experimental.ComponentManagement
 open Brontide.Minimal.Host
 
+type private Cbi43Observation =
+    { Code: string
+      RefusedBy: string option
+      PolicyApplied: bool
+      Authorized: bool
+      SourceOpened: bool
+      Staged: bool
+      Launched: bool
+      Released: bool
+      StoredFloor: int64
+      StagedSetRemains: bool
+      ProviderRunning: bool
+      ExecutableInsideStore: bool }
+
 type private Cbi30Observation =
     { Active: bool
       Code: string
@@ -9935,4 +9949,298 @@ type ComponentBindingIntegrationTests() =
                     result.Retired.Length,
                     Is.EqualTo retained.Lifecycle.Value.Members.Length,
                     "The whole retained generation goes, never one member of it."))
+        }
+
+    // CBI43 runs the distribution slices as one path. The harness lives beside the CBI30 helpers
+    // because it needs the same prepared resolution, plan, and runtime request.
+    member private _.Cbi43Run(mutation: string) =
+        task {
+            let root = Path.Combine(Path.GetTempPath(), $"brontide-cbi43-{Guid.NewGuid():N}")
+            Directory.CreateDirectory root |> ignore
+            let mutable provider: StagedProviderProcess option = None
+            try
+                use authority = ECDsa.Create ECCurve.NamedCurves.nistP256
+                use publisher = ECDsa.Create ECCurve.NamedCurves.nistP256
+                use endpointKey = ECDsa.Create ECCurve.NamedCurves.nistP256
+                let digestOf (key: ECDsa) = key.ExportSubjectPublicKeyInfo() |> SHA256.HashData |> Convert.ToHexString
+                let authorityIdentity = digestOf authority |> ProviderPublisherTrustPolicyAuthorityId.create
+                let endpointIdentity =
+                    digestOf endpointKey |> ProviderPublisherTrustPolicyDistributionEndpointId.create
+
+                let executable =
+                    match Environment.GetEnvironmentVariable "BRONTIDE_MINIMAL_PROVIDER" |> Option.ofObj with
+                    | Some path when File.Exists path -> Path.GetFullPath path
+                    | _ ->
+                        Assert.Ignore "BRONTIDE_MINIMAL_PROVIDER does not name a built provider endpoint."
+                        failwith "The cross-process test was ignored."
+                let named (value: string | null) =
+                    match value with null -> failwith "A provider path component was missing." | present -> present
+                let providerRoot = Path.GetDirectoryName executable |> named
+                let bytes =
+                    Directory.EnumerateFiles providerRoot
+                    |> Seq.sort
+                    |> Seq.map (fun path -> Path.GetFileName path |> named, File.ReadAllBytes path)
+                    |> Map.ofSeq
+                let mutable files =
+                    bytes
+                    |> Map.toList
+                    |> List.map (fun (path, content) ->
+                        { RelativePath = path
+                          Sha256 = SHA256.HashData content |> Convert.ToHexString
+                          Length = int64 content.LongLength }: ProviderArtifactAcquisitionFile)
+                if mutation = "delivered-digest-mismatch" then
+                    files <- { files.Head with Sha256 = String('0', 64) } :: files.Tail
+                let expectedSource = ProviderArtifactSourceId.create "fixture://brontide/provider-output"
+                let artifactFiles =
+                    files |> List.map (fun file ->
+                        { RelativePath = file.RelativePath; Sha256 = file.Sha256 }: ProviderArtifactFile)
+                let executableName = Path.GetFileName executable |> named
+                let request: ProviderArtifactAcquisitionRequest =
+                    { ExpectedSource = expectedSource
+                      Identity = ProviderArtifactSetIdentity.compute artifactFiles executableName [ "--portable" ]
+                      Files = files
+                      ExecutablePath = executableName
+                      Arguments = [ "--portable" ]
+                      MaxTotalBytes = files |> List.sumBy _.Length }
+                let opens = ref 0
+                let source =
+                    { new IProviderArtifactSource with
+                        member _.Identity = expectedSource
+                        member _.OpenRead relativePath =
+                            opens.Value <- opens.Value + 1
+                            bytes
+                            |> Map.tryFind relativePath
+                            |> Option.map (fun content -> new MemoryStream(content, false) :> Stream) }
+
+                let publisherKey = digestOf publisher |> ProviderPublisherKeyId.create
+                let evidence: ProviderPublisherEvidence =
+                    { PublisherKeyId = publisherKey
+                      Algorithm = "ECDSA-P256-SHA256"
+                      PublicKeySpkiBase64 = publisher.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                      SignatureBase64 =
+                        publisher.SignData(
+                            ProviderArtifactPublisherManifest.encode request,
+                            HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
+                        |> Convert.ToBase64String }
+                let admitted =
+                    if mutation = "publisher-unknown" then ProviderPublisherKeyId.create (String('7', 64))
+                    else publisherKey
+                let entries =
+                    [ { PublisherKeyId = admitted
+                        Disposition = if mutation = "publisher-revoked" then Revoked else Admitted } ]
+                let policy = { Identity = ProviderPublisherTrustPolicyIdentity.compute entries; Entries = entries }
+                let update =
+                    { Sequence = 1L; PreviousPolicyIdentity = None; Policy = policy
+                      Algorithm = "ECDSA-P256-SHA256"
+                      AuthorityPublicKeySpkiBase64 = authority.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                      SignatureBase64 =
+                        authority.SignData(
+                            ProviderPublisherTrustPolicyUpdateManifest.encode 1L None policy.Identity,
+                            HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
+                        |> Convert.ToBase64String }
+
+                // 1. Custody, then one poll that either delivers the policy or does not.
+                let custodyCode, _, registry, floors =
+                    ProviderPublisherTrustPolicyCustody.open'
+                        (Path.Combine(root, "policy.checkpoint")) (Path.Combine(root, "policy.floor"))
+                        authorityIdentity
+                Assert.That(custodyCode, Is.EqualTo "policy-floor-opened")
+                let now = DateTimeOffset.FromUnixTimeSeconds 1800000000L
+                let served = ref 0
+                let pollSource =
+                    { new IProviderPublisherTrustPolicyDistributionSource with
+                        member _.FetchAsync(distribution, _) =
+                            let selected =
+                                if mutation <> "policy-undelivered" && served.Value = 0 then Some update else None
+                            served.Value <- served.Value + 1
+                            let issued, expires = now.ToUnixTimeSeconds(), now.AddMinutes(1.0).ToUnixTimeSeconds()
+                            let signature =
+                                endpointKey.SignData(
+                                    ProviderPublisherTrustPolicyDistributionManifest.encode distribution.Challenge
+                                        distribution.CurrentSequence distribution.CurrentPolicyIdentity issued
+                                        expires selected,
+                                    HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
+                            Task.FromResult
+                                { Challenge = distribution.Challenge
+                                  CurrentSequence = distribution.CurrentSequence
+                                  CurrentPolicyIdentity = distribution.CurrentPolicyIdentity
+                                  IssuedAtUnixSeconds = issued; ExpiresAtUnixSeconds = expires
+                                  Update = selected; Algorithm = "ECDSA-P256-SHA256"
+                                  EndpointPublicKeySpkiBase64 =
+                                    endpointKey.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                                  SignatureBase64 = Convert.ToBase64String signature } }
+                let schedule =
+                    ProviderPublisherTrustPolicyPollSchedule.create 4 (TimeSpan.FromSeconds 1.0) 2
+                        (TimeSpan.FromSeconds 4.0) (TimeSpan.FromSeconds 1.0)
+                let delay: ProviderPublisherTrustPolicyPollDelay =
+                    fun instant duration _ -> Task.FromResult(instant + duration)
+                let poller = ProviderPublisherTrustPolicyPoller(registry.Value, endpointIdentity, schedule)
+                let! poll = poller.PollAsync(pollSource, floors.Value.Sink, delay, now, Threading.CancellationToken.None)
+                Assert.That(poll.Code, Is.EqualTo "policy-poll-current")
+                let policyApplied = registry.Value.Current.IsSome
+
+                // 2-5. Evidence, trust, governed acquisition, staging, and launch.
+                let storeRoot = Path.GetFullPath(Path.Combine(root, "store"))
+                let store = ContentAddressedProviderStore storeRoot
+                let chainRequest: ProviderDistributionChainRequest =
+                    { Acquisition = request
+                      Evidence = if mutation = "evidence-unsigned" then None else Some evidence
+                      AllowedArguments =
+                        if mutation = "launch-refused" then [ "--not-allowed" ] else [ "--portable" ] }
+                let chain =
+                    ProviderDistributionChain.run registry.Value store (Path.Combine(root, "transactions"))
+                        chainRequest source
+                provider <- chain.Provider
+                let executableInsideStore =
+                    chain.StagedExecutablePath
+                    |> Option.exists (fun path ->
+                        path.StartsWith(storeRoot + string Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                        && File.Exists path)
+
+                let mutable released = false
+                let mutable outcome = chain.Code
+                let mutable refusedBy = Some chain.RefusedBy
+                let mutable stoppedEarly = false
+                match provider with
+                | None -> ()
+                | Some launched ->
+                    // 6. CBI30 activation across the launched provider's own conversation.
+                    if mutation = "provider-lost" then
+                        launched.Dispose()
+                        stoppedEarly <- true
+                    let resolution, selected, occurrence = prepared ()
+                    let! result =
+                        ComponentBindingLifecycle.activate resolution selected
+                            (runtimeRequest (plan [ occurrence ])) launched.Conversation
+                    released <- result.Member |> Option.exists _.IsReleased
+                    let active =
+                        result.Failure.IsNone
+                        && result.Runtime
+                           |> Option.exists (fun runtime -> runtime.Kind = ActivationRuntimeOutcomeKind.Active)
+                        && released
+                    outcome <- result.Failure |> Option.map _.Code |> Option.defaultValue "active"
+                    refusedBy <- if active then None else Some "cbi30"
+                    if active then
+                        let! _ = result.Member.Value.Retire "CBI43 chain completed."
+                        ()
+
+                // The question is whether the chain leaves a process behind once it has returned, so
+                // the exit is observed after teardown rather than during it.
+                let mutable running = false
+                match provider with
+                | Some launched ->
+                    if not stoppedEarly then
+                        running <- not (launched.WaitForExit(TimeSpan.FromSeconds 5.0))
+                        launched.Dispose()
+                    store.Remove chain.StagedIdentity.Value |> ignore
+                    provider <- None
+                | None -> ()
+
+                return
+                    { Code = outcome
+                      RefusedBy = refusedBy
+                      PolicyApplied = policyApplied
+                      Authorized = chain.Authorized
+                      SourceOpened = opens.Value > 0
+                      Staged = chain.Staged
+                      Launched = chain.IsLaunched
+                      Released = released
+                      StoredFloor = floors.Value.Stored.Sequence
+                      StagedSetRemains =
+                        Directory.Exists storeRoot
+                        && (Directory.EnumerateDirectories storeRoot |> Seq.isEmpty |> not)
+                      ProviderRunning = running
+                      ExecutableInsideStore = executableInsideStore }
+            finally
+                provider |> Option.iter _.Dispose()
+                try Directory.Delete(root, true) with _ -> ()
+        }
+
+    member private _.Cbi43Fixture() =
+        JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            TestContext.CurrentContext.TestDirectory, "component-management", "fixtures",
+            "cbi43-distribution-chain-vectors.json")))
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member this.``shared CBI43 vectors run the distribution chain end to end``() =
+        task {
+            use document = this.Cbi43Fixture()
+            let optional (value: string | null) = match value with null -> None | present -> Some present
+            for vector in document.RootElement.GetProperty("vectors").EnumerateArray() do
+                let label = vector.GetProperty("mutation").GetString() |> optional |> Option.defaultValue ""
+                let! actual = this.Cbi43Run label
+                multiple (fun () ->
+                    Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("code").GetString()), label)
+                    Assert.That(actual.RefusedBy,
+                        Is.EqualTo(vector.GetProperty("refusedBy").GetString() |> optional), label)
+                    Assert.That(actual.PolicyApplied,
+                        Is.EqualTo(vector.GetProperty("policyApplied").GetBoolean()), label)
+                    Assert.That(actual.Authorized,
+                        Is.EqualTo(vector.GetProperty("authorized").GetBoolean()), label)
+                    Assert.That(actual.SourceOpened,
+                        Is.EqualTo(vector.GetProperty("sourceOpened").GetBoolean()), label)
+                    Assert.That(actual.Staged, Is.EqualTo(vector.GetProperty("staged").GetBoolean()), label)
+                    Assert.That(actual.Launched, Is.EqualTo(vector.GetProperty("launched").GetBoolean()), label)
+                    Assert.That(actual.Released, Is.EqualTo(vector.GetProperty("released").GetBoolean()), label)
+                    Assert.That(actual.StoredFloor,
+                        Is.EqualTo(vector.GetProperty("storedFloor").GetInt64()), label)
+                    Assert.That(actual.StagedSetRemains,
+                        Is.EqualTo(vector.GetProperty("stagedSetRemains").GetBoolean()), label)
+                    Assert.That(actual.ProviderRunning,
+                        Is.EqualTo(vector.GetProperty("providerRunning").GetBoolean()), label)
+
+                    // Phase-wide properties, over every vector rather than per case.
+                    let ladder =
+                        [ actual.PolicyApplied; actual.Authorized; actual.SourceOpened
+                          actual.Staged; actual.Launched; actual.Released ]
+                    Assert.That(ladder |> List.skipWhile id |> List.exists id, Is.False,
+                        $"{label}: the ladder must be a true-prefix")
+                    Assert.That(actual.StagedSetRemains, Is.False, label)
+                    Assert.That(actual.ProviderRunning, Is.False, label)
+                    if not actual.SourceOpened then Assert.That(actual.Staged, Is.False, label))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member this.``CBI43 C1 the chain composes from polled policy to released member``() =
+        task {
+            let! actual = this.Cbi43Run "complete"
+            multiple (fun () ->
+                Assert.That(actual.Code, Is.EqualTo "active")
+                Assert.That(actual.Released, Is.True)
+                Assert.That(actual.PolicyApplied, Is.True)
+                Assert.That(actual.Launched, Is.True)
+                // The executable ran from inside the content-addressed store rather than from the
+                // source the caller named, so activation used the bytes the publisher signed.
+                Assert.That(actual.ExecutableInsideStore, Is.True))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member this.``CBI43 C3 a policy that never applied opens no source``() =
+        task {
+            for mutation in [ "policy-undelivered"; "publisher-revoked"; "publisher-unknown"; "evidence-unsigned" ] do
+                let! actual = this.Cbi43Run mutation
+                multiple (fun () ->
+                    Assert.That(actual.SourceOpened, Is.False, mutation)
+                    Assert.That(actual.Staged, Is.False, mutation)
+                    Assert.That(actual.Launched, Is.False, mutation))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member this.``CBI43 C4 a refusal leaves no staged set process or advanced floor``() =
+        task {
+            use document = this.Cbi43Fixture()
+            let optional (value: string | null) = match value with null -> None | present -> Some present
+            for vector in document.RootElement.GetProperty("vectors").EnumerateArray() do
+                if not (vector.GetProperty("released").GetBoolean()) then
+                    let label = vector.GetProperty("mutation").GetString() |> optional |> Option.defaultValue ""
+                    let! actual = this.Cbi43Run label
+                    multiple (fun () ->
+                        Assert.That(actual.StagedSetRemains, Is.False, label)
+                        Assert.That(actual.ProviderRunning, Is.False, label)
+                        Assert.That(actual.StoredFloor,
+                            Is.EqualTo(if actual.PolicyApplied then 1L else 0L), label))
         }

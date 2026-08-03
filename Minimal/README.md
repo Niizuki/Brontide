@@ -141,8 +141,10 @@ The implementation currently provides:
   HTTPS POST source; CBI41 drives that attempt from a bounded host-owned poll cycle with
   deterministic capped backoff and a recovery-floor handoff ordered after checkpoint publication;
   CBI42 gives that floor a monotone, integrity-checked durable store, established before the
-  checkpoint it guards and never advanced by a recovered one;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI42 integration
+  checkpoint it guards and never advanced by a recovered one; CBI43 runs the whole chain as one path
+  from polled policy through governed acquisition and provider launch to CBI30 activation, keeping
+  each stage's own refusal code and origin;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI43 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

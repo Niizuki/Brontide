@@ -522,6 +522,17 @@ corruption and truncation and explicitly not an adversary who can write the file
 recorded in the [CBI42 capability contract](./cbi42-capability-contract.md) and completed
 [contract-completeness review](./cbi42-contract-completeness-review.md).
 
+CBI43 runs the distribution slices as one path rather than as pairs: a polled, floor-guarded trust
+policy authorizes publisher evidence over an acquisition request, the governed acquisition stages a
+content-addressed set, the store launches its executable as a provider process under a removal lease,
+and CBI30 activates a portable member across it to Release. It adds no capability and reclassifies no
+refusal — each one keeps the code and the origin of the slice that made it. Its finding came from
+breaking its own trust gate: removing it opens no source, because the governed acquirer refuses a
+missing authorization anyway, but it turns "the policy revoked this publisher" into "trust was
+required". **That step earns its place by preserving attribution, not by adding a barrier.** The
+boundary is recorded in the [CBI43 capability contract](./cbi43-capability-contract.md) and completed
+[contract-completeness review](./cbi43-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -883,6 +894,15 @@ bracket the operation under test, which for a `cycle` vector is the restart rath
 `tamperOffset` names the byte a vector alters; the one vector that carries it alters a byte the
 parser accepts, so only the integrity tag can refuse it. The fixture contains no store, encoder,
 registry, or clock.
+
+### `cbi43-distribution-chain` sections
+
+`vectors` names one complete run and seven refusals, one per stage of the chain. Each pins the
+refusing code and the slice that produced it, the six ladder observations — policy applied,
+authorized, source opened, staged, launched, released — and the residue checks: the retained floor,
+whether a staged set remains, and whether a provider process is still running. The ladder is required
+to be a true-prefix in every vector, so a stage reached past its own refusal is a failure anywhere.
+The fixture contains no acquirer, store, launcher, evaluator, or runtime.
 
 ### `cm0-mice-topology` sections
 
