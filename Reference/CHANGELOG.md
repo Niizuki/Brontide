@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased - CBI33 attributable provider acquisition
+
+### Added
+
+- A Reference Studio byte-bounded acquisition owner that reads a complete provider output from a
+  strongly identified injected source and submits private completed bytes to CBI32 staging.
+- Separate transport, publisher-evidence, and local-admission observations plus shared vectors and
+  named C1-C6 evidence for limits, source mismatch, stream failures, integrity refusal, lifecycle
+  composition, and cross-stack agreement.
+
 ## Unreleased - CBI32 content-addressed provider staging
 
 ### Added
