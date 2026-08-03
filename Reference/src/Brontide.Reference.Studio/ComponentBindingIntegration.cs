@@ -700,7 +700,7 @@ public static class ComponentBindingLifecycle
             var failedRuntime = new Cm.FakeActivationRuntime().Activate(failedRequest);
             return Refuse(
                 ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused,
-                exception is Portable.PortableFaultException fault ? fault.LocalCode : "portable-interconnection-failed",
+                PortableInterconnectionCode(exception),
                 exception.Message,
                 failedRuntime,
                 member);
@@ -746,6 +746,19 @@ public static class ComponentBindingLifecycle
                 member);
         }
     }
+
+    /// <summary>Projects portable semantic and process failures into the composition boundary.</summary>
+    /// <remarks>
+    /// Process categories remain observable on the portable plan, but CBI needs one stable failure
+    /// code across transports and both stack representations. A foreign exception still receives
+    /// the generic fallback; an explicitly classified process loss does not.
+    /// </remarks>
+    internal static string PortableInterconnectionCode(Exception exception) => exception switch
+    {
+        Portable.PortableFaultException fault => fault.LocalCode,
+        Portable.PortableProcessFailureException => "portable-process-interrupted",
+        _ => "portable-interconnection-failed",
+    };
 
     internal static bool TrySupportedGroup(
         Cm.ActivationGroupPlan plan,
@@ -2640,9 +2653,7 @@ public static class ComponentGroupLifecycle
                     prepared,
                     member.Selection.Occurrence,
                     Cm.ActivationStage.Interconnection,
-                    exception is Portable.PortableFaultException fault
-                        ? fault.LocalCode
-                        : "portable-interconnection-failed",
+                    ComponentBindingLifecycle.PortableInterconnectionCode(exception),
                     exception.Message,
                     cancellationToken).ConfigureAwait(false);
             }

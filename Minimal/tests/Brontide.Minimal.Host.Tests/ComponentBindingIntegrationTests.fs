@@ -1,6 +1,7 @@
 namespace Brontide.Minimal.Host.Tests
 
 open System
+open System.Diagnostics
 open System.IO
 open System.Text.Json
 open System.Threading.Tasks
@@ -8,6 +9,15 @@ open NUnit.Framework
 open Brontide.Minimal.Binding.Portable
 open Brontide.Minimal.Experimental.ComponentManagement
 open Brontide.Minimal.Host
+
+type private Cbi30Observation =
+    { Active: bool
+      Code: string
+      Realization: string option
+      AnsweringProvider: string option
+      Released: bool
+      Retired: bool
+      ProviderExited: bool }
 
 type private FailingRetirementConversation(inner: IPortableProviderConversation) =
     interface IPortableProviderConversation with
@@ -211,6 +221,100 @@ type ComponentBindingIntegrationTests() =
         PortableDirectConversation(
             PortableProviderEndpoint(document, CoolingHandler(), Realization.FixedDirectCall))
         :> IPortableProviderConversation
+
+    let startCbi30Provider providerName =
+        let variable =
+            match providerName with
+            | "reference" -> "BRONTIDE_REFERENCE_PROVIDER"
+            | "minimal" -> "BRONTIDE_MINIMAL_PROVIDER"
+            | value -> invalidArg (nameof providerName) (sprintf "Unknown provider '%s'." value)
+        match Environment.GetEnvironmentVariable variable |> Option.ofObj with
+        | Some path when File.Exists path ->
+            let info = ProcessStartInfo(path, "--portable")
+            info.RedirectStandardInput <- true
+            info.RedirectStandardOutput <- true
+            info.RedirectStandardError <- true
+            info.UseShellExecute <- false
+            info.CreateNoWindow <- true
+            match Process.Start info |> Option.ofObj with
+            | Some providerProcess -> providerProcess
+            | None -> failwith "The CBI30 provider process did not start."
+        | _ ->
+            Assert.Ignore(sprintf "%s does not name a built provider endpoint." variable)
+            failwith "The cross-process test was ignored."
+
+    let cbi30Conversation (providerProcess: Process) =
+        PortableProcessConversation(
+            PortableStreamDuplex(
+                providerProcess.StandardOutput.BaseStream,
+                providerProcess.StandardInput.BaseStream,
+                PortableLimits.declared,
+                false),
+            PortableLimits.declared)
+        :> IPortableProviderConversation
+
+    let stopCbi30Provider (providerProcess: Process) =
+        if not providerProcess.HasExited then
+            providerProcess.Kill true
+        providerProcess.WaitForExit()
+
+    let cbi30Run providerName interruptBeforeInterconnection =
+        task {
+            use providerProcess = startCbi30Provider providerName
+            let conversation = cbi30Conversation providerProcess
+            try
+                if interruptBeforeInterconnection then
+                    providerProcess.Kill true
+                    providerProcess.WaitForExit()
+
+                let resolution, selected, occurrence = prepared ()
+                let! result =
+                    ComponentBindingLifecycle.activate
+                        resolution
+                        selected
+                        (runtimeRequest (plan [ occurrence ]))
+                        conversation
+                let memberValue = result.Member
+                let active =
+                    result.Failure.IsNone
+                    && result.Runtime
+                       |> Option.exists (fun runtime -> runtime.Kind = ActivationRuntimeOutcomeKind.Active)
+                    && memberValue |> Option.exists _.IsReleased
+                let realization =
+                    memberValue
+                    |> Option.bind _.TryPlan
+                    |> Option.map (BindingPlan.realization >> Realization.token)
+                let answeringProvider =
+                    memberValue
+                    |> Option.bind _.AnsweringProvider
+                    |> Option.map PortableProviderRef.text
+                let released = memberValue |> Option.exists _.IsReleased
+                let! retired =
+                    task {
+                        if active then
+                            let! retirement = memberValue.Value.Retire "CBI30 process activation completed."
+                            return
+                                match retirement with
+                                | Ok record ->
+                                    CompositionStage.token memberValue.Value.Stage = "retired"
+                                    && record.ReplacementPermitted
+                                | Error _ -> false
+                        else
+                            return false
+                    }
+                memberValue |> Option.iter _.Close()
+                let exited = providerProcess.HasExited || providerProcess.WaitForExit 5000
+                return
+                    { Active = active
+                      Code = result.Failure |> Option.map _.Code |> Option.defaultValue "active"
+                      Realization = realization
+                      AnsweringProvider = answeringProvider
+                      Released = released
+                      Retired = retired
+                      ProviderExited = exited }
+            finally
+                stopCbi30Provider providerProcess
+        }
 
     let expectProvider name =
         match PortableProviderRef.tryCreate name 1 with
@@ -6468,6 +6572,113 @@ type ComponentBindingIntegrationTests() =
                 Assert.That(ComponentChildActivation.isAttached ordinaryChild, Is.True)
                 Assert.That(ComponentGroupAuthority.isActive wideRoot, Is.True)
                 Assert.That(ComponentChildActivation.isAttached wideChild, Is.True))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``shared CBI30 vectors activate through real provider processes``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi30-process-activation-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario =
+                    match vector.GetProperty("id").GetString() with
+                    | null -> failwith "CBI30 vector identity must be a string"
+                    | value -> value
+                let providerName =
+                    match vector.GetProperty("provider").GetString() with
+                    | null -> failwith "CBI30 provider identity must be a string"
+                    | value -> value
+                let! observation =
+                    cbi30Run
+                        providerName
+                        (vector.GetProperty("interruptBeforeInterconnection").GetBoolean())
+                let expectedRealization = vector.GetProperty("expectedRealization")
+                multiple (fun () ->
+                    Assert.That(observation.Active, Is.EqualTo(vector.GetProperty("expectedActive").GetBoolean()), scenario)
+                    Assert.That(observation.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), scenario)
+                    Assert.That(
+                        observation.Realization,
+                        Is.EqualTo(
+                            if expectedRealization.ValueKind = JsonValueKind.Null then
+                                None
+                            else
+                                Some(expectedRealization.GetString())),
+                        scenario)
+                    Assert.That(observation.Released, Is.EqualTo(vector.GetProperty("expectedReleased").GetBoolean()), scenario)
+                    Assert.That(observation.Retired, Is.EqualTo(vector.GetProperty("expectedRetired").GetBoolean()), scenario)
+                    Assert.That(
+                        observation.ProviderExited,
+                        Is.EqualTo(vector.GetProperty("expectedProviderExited").GetBoolean()),
+                        scenario)
+                    Assert.That(observation.Active, Is.EqualTo observation.Released, scenario))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI30 C1 activation crosses a real process boundary``() =
+        task {
+            let! observation = cbi30Run "minimal" false
+            multiple (fun () ->
+                Assert.That(observation.Active, Is.True)
+                Assert.That(observation.Released, Is.True)
+                Assert.That(observation.Code, Is.EqualTo "active"))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI30 C2 either stack provider is substitutable at the process seam``() =
+        task {
+            let! reference = cbi30Run "reference" false
+            let! minimal = cbi30Run "minimal" false
+            multiple (fun () ->
+                Assert.That(reference.Active, Is.EqualTo minimal.Active)
+                Assert.That(reference.Code, Is.EqualTo minimal.Code)
+                Assert.That(reference.Realization, Is.EqualTo minimal.Realization)
+                Assert.That(reference.AnsweringProvider, Is.EqualTo minimal.AnsweringProvider)
+                Assert.That(reference.Released, Is.EqualTo minimal.Released)
+                Assert.That(reference.Retired, Is.EqualTo minimal.Retired)
+                Assert.That(reference.ProviderExited, Is.True)
+                Assert.That(minimal.ProviderExited, Is.True))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI30 C3 the negotiated realization and answering provider are observable``() =
+        task {
+            let! observation = cbi30Run "reference" false
+            multiple (fun () ->
+                Assert.That(observation.Realization, Is.EqualTo(Some "negotiated-process"))
+                Assert.That(
+                    observation.AnsweringProvider,
+                    Is.EqualTo(Some(PortableProviderRef.text CoolingFixture.provider))))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI30 C4 process loss is an explicit pre-Release refusal``() =
+        task {
+            let! observation = cbi30Run "minimal" true
+            multiple (fun () ->
+                Assert.That(observation.Code, Is.EqualTo "portable-process-interrupted")
+                Assert.That(observation.Active, Is.False)
+                Assert.That(observation.Released, Is.False)
+                Assert.That(observation.Realization, Is.EqualTo None))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI30 C5 retirement closes the process lifecycle``() =
+        task {
+            let! observation = cbi30Run "minimal" false
+            multiple (fun () ->
+                Assert.That(observation.Retired, Is.True)
+                Assert.That(observation.ProviderExited, Is.True))
         }
 
     [<Test>]

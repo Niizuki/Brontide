@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi30-process-activation-vectors",
+  "vectors": [
+    {
+      "id": "cbi30-01-reference-provider-active",
+      "provider": "reference",
+      "interruptBeforeInterconnection": false,
+      "expectedActive": true,
+      "expectedCode": "active",
+      "expectedRealization": "negotiated-process",
+      "expectedReleased": true,
+      "expectedRetired": true,
+      "expectedProviderExited": true
+    },
+    {
+      "id": "cbi30-02-minimal-provider-active",
+      "provider": "minimal",
+      "interruptBeforeInterconnection": false,
+      "expectedActive": true,
+      "expectedCode": "active",
+      "expectedRealization": "negotiated-process",
+      "expectedReleased": true,
+      "expectedRetired": true,
+      "expectedProviderExited": true
+    },
+    {
+      "id": "cbi30-03-provider-lost-before-interconnection",
+      "provider": "reference",
+      "interruptBeforeInterconnection": true,
+      "expectedActive": false,
+      "expectedCode": "portable-process-interrupted",
+      "expectedRealization": null,
+      "expectedReleased": false,
+      "expectedRetired": false,
+      "expectedProviderExited": true
+    }
+  ]
+}
