@@ -893,6 +893,37 @@ keep scheduling, timers, offline policy, and floor custody outside the slice. Du
 handed-off floor, consumed by `Open` on the following start, is the next boundary; endpoint and
 authority key rotation and a platform rollback anchor remain separate security work.
 
+CBI42 supplies that custody and closes the loop: a floor is retained after publication, survives the
+process, and is what the next start hands to CBI38. Its finding is what *not* to do with a recovered
+checkpoint. CBI38's `Open` returns a floor derived from the chain it has just replayed, and writing
+that back is the obvious move — it would even repair the crash-window lag CBI41 recorded. It is
+exactly wrong. **A checkpoint that can raise its own guard makes the guard follow whatever the
+checkpoint says**: a forged chain reaching further than the true one would be adopted as the floor
+and would then refuse every genuine successor, wedging the host at the forgery with no way back that
+does not involve deleting the guard. The floor advances only by a handoff from a publication this
+host performed, which also **narrows CBI41's note that the lag "self-heals on the next recovery"** —
+the in-memory floor does, for that process; the durable floor does not.
+
+A second question had no answer until the shape changed. A missing store could mean "nothing has
+happened yet" or "the guard was deleted", and nothing about the store distinguishes them. So the
+store is **established at zero before the checkpoint it guards exists**, absence afterwards means
+the guard was removed, and a checkpoint with no store is refused. That ordering also avoids
+reintroducing the false alarm CBI41 argues against: a crash between the first publication and the
+first handoff leaves a store at zero beneath a checkpoint at one, and zero never trips rollback
+detection.
+
+Writing the slice also caught one of its own checks doing nothing. Three corruption vectors — a
+flipped version marker, a truncation, a trailing byte — are all refused by structural parsing
+*before* the integrity tag is consulted, so a store that never checked its tag passed every one of
+them, which a deliberate defect demonstrated. A fourth vector alters a byte the parser accepts,
+yielding a well-formed but different sequence that only the tag can refuse. What the tag does not do
+is stated rather than implied: it detects corruption, not an adversary who can write the file and
+recompute it. The [`CBI42 capability contract`](../../component-management/cbi42-capability-contract.md)
+and [`contract-completeness review`](../../component-management/cbi42-contract-completeness-review.md)
+bound it to one host-local store under one writer. **Custody in a domain the checkpoint's writer
+cannot reach** — a platform rollback anchor, a sealed key, or an attested counter — is the next
+boundary, and is the one thing this slice repeatedly had to decline.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

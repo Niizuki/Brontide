@@ -510,6 +510,18 @@ later advance would move further past a floor the host does not hold. The bounda
 [CBI41 capability contract](./cbi41-capability-contract.md) and completed
 [contract-completeness review](./cbi41-contract-completeness-review.md).
 
+CBI42 gives that floor durable custody and closes the loop, and its finding is what *not* to do with
+a recovered checkpoint. CBI38's `Open` returns a floor derived from the chain it just replayed, and
+writing that back would even repair CBI41's crash-window lag — but **a checkpoint that can raise its
+own guard makes the guard follow whatever the checkpoint says**, so a forged chain reaching further
+than the true one would become the floor and then refuse every genuine successor. The floor advances
+only by a handoff. A second question had no answer until the shape changed: a missing store could
+mean "nothing has happened yet" or "the guard was deleted", so the store is **established before the
+checkpoint it guards exists**, and a checkpoint with no store is refused. The integrity tag detects
+corruption and truncation and explicitly not an adversary who can write the file. The boundary is
+recorded in the [CBI42 capability contract](./cbi42-capability-contract.md) and completed
+[contract-completeness review](./cbi42-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -858,6 +870,19 @@ marked `externalWrite` has its source advance the registry mid-attempt, which is
 superseded cursor is reachable and the one case excluded from the phase-wide rule that the cycle
 advances nothing it does not report. The fixture contains no scheduler, clock, backoff function,
 transport, or floor store.
+
+### `cbi42-floor-custody` sections
+
+`goldenImage` pins the canonical stored record — authority, sequence, policy identity, byte count,
+and SHA-256 — so both roots must encode a floor identically. `vectors` names twenty cases across
+three kinds: `retain` exercises the store alone, `start` exercises the composition that reads it back
+and opens the checkpoint, and `cycle` runs a CBI41 poll through the real store and then restarts.
+Each pins the outcome code, the CBI38 code when one was reached, whether a registry opened, the
+stored sequence before and after, and whether the stored bytes changed — where "before" and "after"
+bracket the operation under test, which for a `cycle` vector is the restart rather than the poll.
+`tamperOffset` names the byte a vector alters; the one vector that carries it alters a byte the
+parser accepts, so only the integrity tag can refuse it. The fixture contains no store, encoder,
+registry, or clock.
 
 ### `cm0-mice-topology` sections
 

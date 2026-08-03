@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased - CBI42 durable recovery-floor custody
+
+### Added
+
+- A durable host-local recovery-floor store with a canonical record, a SHA-256 integrity tag, atomic
+  publication, and monotone idempotent retention, exposing a sink the CBI41 cycle consumes directly.
+- A custody composition that establishes the store before any checkpoint exists, refuses a checkpoint
+  whose store is absent or unreadable, and opens the durable registry under the stored floor.
+- Shared vectors, a golden record image, and named C1-C7 encoding, establishment, refusal, ordering,
+  retention, end-to-end, and cross-stack evidence.
+
+### Notes
+
+- The floor is advanced only by a handoff, never by a recovered checkpoint, so a chain cannot raise
+  the guard that would refuse it.
+- The integrity tag detects corruption and truncation. It is not a defence against an adversary who
+  can write the store, and custody in a separate privilege domain remains future work.
+
 ## Unreleased - CBI41 host-owned policy poll scheduler
 
 ### Added

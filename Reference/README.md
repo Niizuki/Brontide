@@ -184,8 +184,11 @@ challenge- and cursor-bound asynchronous distribution attempt with explicit size
 cancellation, and no-retry bounds. CBI40 supplies its portable strict binary codec and one exact
 bounded HTTPS POST adapter. CBI41 drives that attempt from a bounded host-owned poll cycle with
 deterministic capped backoff, retry confined to the outcomes a fresh attempt can change, and a
-recovery-floor handoff ordered after checkpoint publication. Durable floor custody, endpoint
-rotation, a real scheduling host, and platform security anchors remain future work.
+recovery-floor handoff ordered after checkpoint publication. CBI42 gives that floor durable custody:
+a monotone, integrity-checked host-local store, established before the checkpoint it guards, read
+back at the next start, and never advanced by a recovered checkpoint. Custody in a domain the
+checkpoint's writer cannot reach, endpoint rotation, a real scheduling host, and platform security
+anchors remain future work.
 
 ## Build and test
 

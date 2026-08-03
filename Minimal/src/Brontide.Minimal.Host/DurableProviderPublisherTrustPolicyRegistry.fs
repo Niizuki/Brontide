@@ -19,6 +19,12 @@ type ProviderPublisherTrustPolicyRecoveryFloor =
         let (ProviderPublisherTrustPolicyRecoveryFloor(_, _, policy)) = this
         policy
 
+    /// Rebuilds a floor from a durable record. A stored floor names a policy identity without the
+    /// policy behind it, so it cannot be reissued the way a live one is, and this stays internal so
+    /// a floor remains something issued rather than something a caller can make.
+    static member internal Restore(authority, sequence, policyIdentity) =
+        ProviderPublisherTrustPolicyRecoveryFloor(authority, sequence, policyIdentity)
+
 type DurableProviderPublisherTrustPolicyUpdateResult =
     { Code: string
       Current: VerifiedProviderPublisherTrustPolicySnapshot option

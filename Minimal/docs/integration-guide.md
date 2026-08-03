@@ -109,8 +109,14 @@ function returning the instant each gap ended, and the current instant. One call
 and returns; scheduling the next one, and any jitter, belong to your delay function and your host.
 Persist each floor the sink receives in storage independent of the checkpoint file and feed the
 latest one back to `DurableProviderPublisherTrustPolicyRegistry.Open` on the next start — a
-`policy-poll-floor-unretained` result means an update is durable that your floor does not yet cover,
-so re-establish the floor from the recovered registry before polling again.
+`policy-poll-floor-unretained` result means an update is durable that your floor does not yet cover.
+
+CBI42 is the store to persist it in. Call `ProviderPublisherTrustPolicyCustody.open'` with the
+checkpoint path, a floor path, and the pinned authority; it establishes the floor store on a first
+start, refuses a checkpoint whose store is missing or unreadable, and opens the durable registry
+under the stored floor. Pass the returned store's `Sink` straight to `PollAsync`. Put the floor
+somewhere the checkpoint's writer cannot reach — its integrity tag detects corruption, not tampering
+— and do not write a recovered floor back to it: the store is advanced by handoffs only, on purpose.
 
 ## Fake Component Management CM1
 

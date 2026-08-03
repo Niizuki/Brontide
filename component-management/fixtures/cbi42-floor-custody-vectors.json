@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi42-floor-custody",
+  "goldenImage": {
+    "authorityIdentity": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "sequence": 7,
+    "policyIdentity": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "bytes": 189,
+    "sha256": "0A09D504F947A4EC63673ED080E01BB24B85221DDF9200C210C89E60143663DA"
+  },
+  "vectors": [
+    {
+      "mutation": "establish",
+      "kind": "retain",
+      "code": "policy-floor-established",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 0,
+      "storedSequenceAfter": 0,
+      "storeChanged": true
+    },
+    {
+      "mutation": "retain-first",
+      "kind": "retain",
+      "code": "policy-floor-retained",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 0,
+      "storedSequenceAfter": 1,
+      "storeChanged": true
+    },
+    {
+      "mutation": "retain-advance",
+      "kind": "retain",
+      "code": "policy-floor-retained",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 1,
+      "storedSequenceAfter": 2,
+      "storeChanged": true
+    },
+    {
+      "mutation": "retain-identical",
+      "kind": "retain",
+      "code": "policy-floor-unchanged",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 1,
+      "storedSequenceAfter": 1,
+      "storeChanged": false
+    },
+    {
+      "mutation": "retain-regressed",
+      "kind": "retain",
+      "code": "policy-floor-regressed",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 2,
+      "storedSequenceAfter": 2,
+      "storeChanged": false
+    },
+    {
+      "mutation": "retain-forked",
+      "kind": "retain",
+      "code": "policy-floor-regressed",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 1,
+      "storedSequenceAfter": 1,
+      "storeChanged": false
+    },
+    {
+      "mutation": "retain-foreign-authority",
+      "kind": "retain",
+      "code": "policy-floor-authority-mismatch",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 1,
+      "storedSequenceAfter": 1,
+      "storeChanged": false
+    },
+    {
+      "mutation": "start-fresh",
+      "kind": "start",
+      "code": "policy-floor-opened",
+      "checkpointCode": "policy-checkpoint-empty",
+      "opened": true,
+      "storedSequenceBefore": 0,
+      "storedSequenceAfter": 0,
+      "storeChanged": true
+    },
+    {
+      "mutation": "start-recovered",
+      "kind": "start",
+      "code": "policy-floor-opened",
+      "checkpointCode": "policy-checkpoint-recovered",
+      "opened": true,
+      "storedSequenceBefore": 2,
+      "storedSequenceAfter": 2,
+      "storeChanged": false
+    },
+    {
+      "mutation": "start-lagging-floor",
+      "kind": "start",
+      "code": "policy-floor-opened",
+      "checkpointCode": "policy-checkpoint-recovered",
+      "opened": true,
+      "storedSequenceBefore": 1,
+      "storedSequenceAfter": 1,
+      "storeChanged": false
+    },
+    {
+      "mutation": "start-rolled-back",
+      "kind": "start",
+      "code": "policy-checkpoint-rollback-detected",
+      "checkpointCode": "policy-checkpoint-rollback-detected",
+      "opened": false,
+      "storedSequenceBefore": 2,
+      "storedSequenceAfter": 2,
+      "storeChanged": false
+    },
+    {
+      "mutation": "start-checkpoint-removed",
+      "kind": "start",
+      "code": "policy-checkpoint-rollback-detected",
+      "checkpointCode": "policy-checkpoint-rollback-detected",
+      "opened": false,
+      "storedSequenceBefore": 2,
+      "storedSequenceAfter": 2,
+      "storeChanged": false
+    },
+    {
+      "mutation": "start-guard-removed",
+      "kind": "start",
+      "code": "policy-floor-missing",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 0,
+      "storedSequenceAfter": 0,
+      "storeChanged": false
+    },
+    {
+      "mutation": "start-corrupt-store",
+      "kind": "start",
+      "code": "policy-floor-corrupt",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 0,
+      "storedSequenceAfter": 0,
+      "storeChanged": false
+    },
+    {
+      "mutation": "start-tampered-sequence",
+      "kind": "start",
+      "tamperOffset": 84,
+      "code": "policy-floor-corrupt",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 0,
+      "storedSequenceAfter": 0,
+      "storeChanged": false
+    },
+    {
+      "mutation": "start-truncated-store",
+      "kind": "start",
+      "code": "policy-floor-corrupt",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 0,
+      "storedSequenceAfter": 0,
+      "storeChanged": false
+    },
+    {
+      "mutation": "start-trailing-store",
+      "kind": "start",
+      "code": "policy-floor-corrupt",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 0,
+      "storedSequenceAfter": 0,
+      "storeChanged": false
+    },
+    {
+      "mutation": "start-foreign-store",
+      "kind": "start",
+      "code": "policy-floor-authority-mismatch",
+      "checkpointCode": null,
+      "opened": false,
+      "storedSequenceBefore": 2,
+      "storedSequenceAfter": 2,
+      "storeChanged": false
+    },
+    {
+      "mutation": "cycle-then-restart",
+      "kind": "cycle",
+      "code": "policy-floor-opened",
+      "checkpointCode": "policy-checkpoint-recovered",
+      "opened": true,
+      "storedSequenceBefore": 0,
+      "storedSequenceAfter": 2,
+      "storeChanged": false
+    },
+    {
+      "mutation": "cycle-then-rollback",
+      "kind": "cycle",
+      "code": "policy-checkpoint-rollback-detected",
+      "checkpointCode": "policy-checkpoint-rollback-detected",
+      "opened": false,
+      "storedSequenceBefore": 0,
+      "storedSequenceAfter": 2,
+      "storeChanged": false
+    }
+  ]
+}
