@@ -486,6 +486,12 @@ sequence, and policy-identity floor detects missing, older, or conflicting check
 boundary is recorded in the [CBI38 capability contract](./cbi38-capability-contract.md) and completed
 [contract-completeness review](./cbi38-contract-completeness-review.md).
 
+CBI39 makes one bounded asynchronous distribution attempt, authenticates a challenge-, cursor-, and
+freshness-bound response under one host-pinned endpoint key, and offers its optional single update
+only to the durable CBI38 registry. The boundary is recorded in the
+[CBI39 capability contract](./cbi39-capability-contract.md) and completed
+[contract-completeness review](./cbi39-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.

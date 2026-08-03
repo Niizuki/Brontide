@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi39-policy-distribution",
+  "vectors": [
+    { "mutation": "current", "code": "policy-distribution-current", "sequence": 0 },
+    { "mutation": "update", "code": "policy-distribution-applied", "sequence": 1 },
+    { "mutation": "endpoint", "code": "policy-distribution-endpoint-mismatch", "sequence": 0 },
+    { "mutation": "signature", "code": "policy-distribution-signature-invalid", "sequence": 0 },
+    { "mutation": "challenge", "code": "policy-distribution-challenge-mismatch", "sequence": 0 },
+    { "mutation": "cursor", "code": "policy-distribution-cursor-mismatch", "sequence": 0 },
+    { "mutation": "expired", "code": "policy-distribution-stale", "sequence": 0 },
+    { "mutation": "future", "code": "policy-distribution-stale", "sequence": 0 },
+    { "mutation": "oversized", "code": "policy-distribution-response-invalid", "sequence": 0 },
+    { "mutation": "policy-signature", "code": "policy-update-signature-invalid", "sequence": 0 },
+    { "mutation": "transport", "code": "policy-distribution-transport-failed", "sequence": 0 },
+    { "mutation": "timeout", "code": "policy-distribution-timeout", "sequence": 0 },
+    { "mutation": "canceled", "code": "policy-distribution-canceled", "sequence": 0 }
+  ]
+}
