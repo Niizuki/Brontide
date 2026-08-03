@@ -41,6 +41,14 @@ allowed root, and exact admitted argument list. `Launched` exposes the existing 
 conversation and owns process-tree cleanup. `dedicated-process` is an isolation observation, not a
 sandbox claim; CBI31 does not secure mutable or link-controlled source directories.
 
+For a complete local provider output, construct a `ProviderArtifactSet` from safe relative paths and
+uppercase member digests, derive its `ProviderArtifactSetId` with
+`ProviderArtifactSetIdentity.compute`, and call `ContentAddressedProviderStore.Stage`. Staging is
+inactive. `Activate` leases the staged set and enters the existing CBI31 lifecycle; dispose the
+returned owner before calling `Remove`. One store instance owns the in-memory lease state. CBI32 does
+not add cross-process locking, crash recovery, remote acquisition, publisher evidence, or garbage
+collection.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each

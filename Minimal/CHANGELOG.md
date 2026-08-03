@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased - CBI32 content-addressed provider staging
+
+### Added
+
+- A Minimal Host content-addressed store for canonical multi-file provider manifests, with verified
+  transactional publication, corruption-detecting reuse, CBI31 activation leases, and exact
+  removal.
+- Shared vectors, a neutral golden identity, and named C1-C6 evidence covering invalid manifests,
+  partial-state cleanup, source independence, inactive staging, sibling preservation, and
+  cross-stack observations.
+
 ## Unreleased - CBI31 verified local provider activation
 
 ### Added

@@ -432,6 +432,18 @@ service. The bounded behavior is recorded in the
 [CBI31 capability contract](./cbi31-capability-contract.md) and completed
 [contract-completeness review](./cbi31-contract-completeness-review.md).
 
+CBI32 moves that local artifact into a host-owned content-addressed staging transaction. A canonical
+manifest covers ordered safe relative paths, member digests, the executable designation, and parsed
+arguments; a neutral golden digest pins the encoding across both roots. Each member is copied and
+rehashed before a same-filesystem directory move publishes the set. Reuse verifies exact paths and
+bytes, staging remains inactive, and explicit activation leases the set through CBI31. Removal is
+refused while leased and otherwise deletes only the addressed directory, preserving sibling sets
+and every source file. This remains one process-local store over an already-present host-controlled
+source: it has no remote acquisition, publisher authentication, crash recovery, durable locking,
+retention scheduler, garbage collection, sandbox, or Dataset deletion surface. The bounded behavior
+is recorded in the [CBI32 capability contract](./cbi32-capability-contract.md) and completed
+[contract-completeness review](./cbi32-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.

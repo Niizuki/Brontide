@@ -18,6 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LocalProviderArtifactActivation.fs" />
+    <Compile Include="ContentAddressedProviderStore.fs" />
     <Compile Include="ComponentBindingIntegration.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

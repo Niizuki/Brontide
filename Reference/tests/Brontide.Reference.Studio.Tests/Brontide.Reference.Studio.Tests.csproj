@@ -108,5 +108,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi31-local-artifact-activation-vectors.json"
           Link="component-management\fixtures\cbi31-local-artifact-activation-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi32-content-addressed-staging-vectors.json"
+          Link="component-management\fixtures\cbi32-content-addressed-staging-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
