@@ -77,6 +77,13 @@ validates the request, then matches both content identity and canonical publishe
 before CBI33 can inspect the source. `TrustedProviderPublisherAuthorization` can no longer be
 constructed directly; obtain it from a successful `ProviderPublisherTrustEvaluator.Evaluate` result.
 
+For authoritative policy changes, pin `ProviderPublisherTrustPolicyAuthorityId` from trusted host
+configuration and apply signed `ProviderPublisherTrustPolicyUpdate` values to
+`ProviderPublisherTrustPolicyRegistry`. Bootstrap is sequence 1 without a predecessor; successors
+increment once and name the current policy. Wrap CBI36 with `GovernedProviderArtifactAcquirer` so an
+authorization issued under a superseded snapshot is refused before source access. Registry state is
+process-local and must not be presented as durable anti-rollback storage.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.LoadSourceEvidence`, then construct each

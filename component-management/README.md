@@ -474,6 +474,12 @@ The authorization is issuer-controlled rather than publicly constructible. The b
 in the [CBI36 capability contract](./cbi36-capability-contract.md) and completed
 [contract-completeness review](./cbi36-contract-completeness-review.md).
 
+CBI37 pins one exact P-256 policy-authority key, verifies signed policy snapshots, and applies only a
+strict sequence/predecessor chain. The process-local registry publishes an issuer-controlled current
+snapshot; governed acquisition rejects authorizations from any superseded snapshot before source
+access. The boundary is recorded in the [CBI37 capability contract](./cbi37-capability-contract.md)
+and completed [contract-completeness review](./cbi37-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.

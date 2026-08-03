@@ -174,7 +174,9 @@ CBI34 verifies detached ECDSA P-256 evidence over the canonical acquisition mani
 publisher trust and admission explicitly undecided. CBI35 evaluates that verified key against a
 canonical host policy with explicit admission and revocation while still leaving artifact admission
 unattempted. CBI36 requires that exact authorization before CBI33 source access and preserves later
-transport and admission outcomes. Network protocols, policy provenance and distribution, durable cross-process
+transport and admission outcomes. CBI37 verifies host-pinned signed policy updates, enforces a
+monotonic predecessor chain, and supersedes old authorizations for future acquisition. Network
+protocols, durable policy state and distribution, durable cross-process
 coordination, and production isolation remain future work.
 
 ## Build and test

@@ -147,13 +147,11 @@ public sealed record ProviderPublisherTrustResult
 
 public static class ProviderPublisherTrustEvaluator
 {
-    public static ProviderPublisherTrustResult Evaluate(
+    internal static bool TrySnapshot(
         ProviderPublisherTrustPolicy policy,
-        VerifiedProviderPublisherEvidence? evidence)
+        out ProviderPublisherTrustPolicy snapshot)
     {
-        ArgumentNullException.ThrowIfNull(policy);
         var entries = policy.Entries?.ToArray();
-        var evidenceCode = evidence is null ? "publisher-evidence-not-verified" : "publisher-evidence-valid";
         if (entries is null
             || entries.Length == 0
             || entries.Any(entry => entry is null
@@ -161,6 +159,22 @@ public static class ProviderPublisherTrustEvaluator
                 || !Enum.IsDefined(entry.Disposition))
             || entries.Select(entry => entry.PublisherKeyId).Distinct().Count() != entries.Length
             || ProviderPublisherTrustPolicyIdentity.Compute(entries) != policy.Identity)
+        {
+            snapshot = policy;
+            return false;
+        }
+
+        snapshot = policy with { Entries = Array.AsReadOnly(entries) };
+        return true;
+    }
+
+    public static ProviderPublisherTrustResult Evaluate(
+        ProviderPublisherTrustPolicy policy,
+        VerifiedProviderPublisherEvidence? evidence)
+    {
+        ArgumentNullException.ThrowIfNull(policy);
+        var evidenceCode = evidence is null ? "publisher-evidence-not-verified" : "publisher-evidence-valid";
+        if (!TrySnapshot(policy, out var snapshot))
         {
             return ProviderPublisherTrustResult.Refused(
                 "publisher-trust-policy-invalid",
@@ -178,7 +192,7 @@ public static class ProviderPublisherTrustEvaluator
                 policy.Identity);
         }
 
-        var entry = entries.SingleOrDefault(candidate => candidate.PublisherKeyId == evidence.PublisherKeyId);
+        var entry = snapshot.Entries.SingleOrDefault(candidate => candidate.PublisherKeyId == evidence.PublisherKeyId);
         if (entry is null)
         {
             return ProviderPublisherTrustResult.Refused(
