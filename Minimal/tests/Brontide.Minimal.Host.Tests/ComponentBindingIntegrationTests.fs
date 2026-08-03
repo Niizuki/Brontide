@@ -3,6 +3,7 @@ namespace Brontide.Minimal.Host.Tests
 open System
 open System.Diagnostics
 open System.IO
+open System.Security.Cryptography
 open System.Text.Json
 open System.Threading.Tasks
 open NUnit.Framework
@@ -314,6 +315,114 @@ type ComponentBindingIntegrationTests() =
                       ProviderExited = exited }
             finally
                 stopCbi30Provider providerProcess
+        }
+
+    let cbi31ProviderPath providerName =
+        let variable =
+            match providerName with
+            | "reference" -> "BRONTIDE_REFERENCE_PROVIDER"
+            | "minimal" -> "BRONTIDE_MINIMAL_PROVIDER"
+            | value -> invalidArg (nameof providerName) (sprintf "Unknown provider '%s'." value)
+        match Environment.GetEnvironmentVariable variable |> Option.ofObj with
+        | Some path when File.Exists path -> Path.GetFullPath path
+        | _ ->
+            Assert.Ignore(sprintf "%s does not name a built provider endpoint." variable)
+            failwith "The cross-process test was ignored."
+
+    let cbi31Digest path =
+        use stream = File.OpenRead path
+        SHA256.HashData stream |> Convert.ToHexString
+
+    let cbi31Vector identity =
+        let path =
+            Path.Combine(
+                TestContext.CurrentContext.TestDirectory,
+                "component-management",
+                "fixtures",
+                "cbi31-local-artifact-activation-vectors.json")
+        use fixture = JsonDocument.Parse(File.ReadAllText path)
+        fixture.RootElement.GetProperty("vectors").EnumerateArray()
+        |> Seq.find (fun vector -> vector.GetProperty("id").GetString() = identity)
+        |> _.Clone()
+
+    let cbi31Run (vector: JsonElement) =
+        task {
+            let requiredString (name: string) : string =
+                match vector.GetProperty(name).GetString() |> Option.ofObj with
+                | None -> failwithf "CBI31 property '%s' must be a string." name
+                | Some value -> value
+            let providerPath = cbi31ProviderPath (requiredString "provider")
+            let requestedPath =
+                if requiredString "path" = "missing" then
+                    providerPath + ".missing"
+                else
+                    providerPath
+            let digest =
+                if requiredString "digest" = "incorrect" then
+                    String('0', 64)
+                else
+                    cbi31Digest providerPath
+            let strings (name: string) =
+                vector.GetProperty(name).EnumerateArray()
+                |> Seq.map (fun value ->
+                    match value.GetString() |> Option.ofObj with
+                    | None -> failwithf "CBI31 property '%s' must contain strings." name
+                    | Some text -> text)
+                |> Seq.toList
+            let allowedRoot =
+                match Path.GetDirectoryName providerPath with
+                | null -> failwith "CBI31 provider path must have a parent directory."
+                | value -> value
+            let activation =
+                LocalProviderArtifactActivator.acquireAndLaunch
+                    { Identity = requiredString "id"
+                      SourcePath = requestedPath
+                      Sha256 = digest
+                      Arguments = strings "arguments" }
+                    { AllowedRoot = allowedRoot
+                      AllowedArguments = strings "allowedArguments" }
+            match activation with
+            | LocalProviderActivation.Refused failure ->
+                return failure.Code, false, None, false, false, false, true
+            | LocalProviderActivation.Launched owner ->
+                use owner = owner
+                let resolution, selected, occurrence = prepared ()
+                let! result =
+                    ComponentBindingLifecycle.activate
+                        resolution
+                        selected
+                        (runtimeRequest (plan [ occurrence ]))
+                        owner.Conversation
+                let memberValue = result.Member
+                let active =
+                    result.Failure.IsNone
+                    && result.Runtime
+                       |> Option.exists (fun runtime -> runtime.Kind = ActivationRuntimeOutcomeKind.Active)
+                    && memberValue |> Option.exists _.IsReleased
+                let released = memberValue |> Option.exists _.IsReleased
+                let! retired =
+                    task {
+                        if active then
+                            let! retirement = memberValue.Value.Retire "CBI31 artifact activation completed."
+                            return
+                                match retirement with
+                                | Ok record ->
+                                    CompositionStage.token memberValue.Value.Stage = "retired"
+                                    && record.ReplacementPermitted
+                                | Error _ -> false
+                        else
+                            return false
+                    }
+                memberValue |> Option.iter _.Close()
+                let exited = owner.WaitForExit(TimeSpan.FromSeconds 5.0)
+                return
+                    result.Failure |> Option.map _.Code |> Option.defaultValue "active",
+                    true,
+                    Some owner.Isolation,
+                    active,
+                    released,
+                    retired,
+                    exited
         }
 
     let expectProvider name =
@@ -6680,6 +6789,169 @@ type ComponentBindingIntegrationTests() =
                 Assert.That(observation.Retired, Is.True)
                 Assert.That(observation.ProviderExited, Is.True))
         }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``shared CBI31 vectors verify policy and activate local artifacts``() =
+        task {
+            let path =
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "component-management",
+                    "fixtures",
+                    "cbi31-local-artifact-activation-vectors.json")
+            use fixture = JsonDocument.Parse(File.ReadAllText path)
+            for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+                let scenario = vector.GetProperty("id").GetString()
+                let! code, launched, isolation, active, released, retired, exited = cbi31Run vector
+                let expectedIsolation = vector.GetProperty("expectedIsolation")
+                multiple (fun () ->
+                    Assert.That(code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), scenario)
+                    Assert.That(launched, Is.EqualTo(vector.GetProperty("expectedLaunched").GetBoolean()), scenario)
+                    Assert.That(
+                        isolation,
+                        Is.EqualTo(
+                            if expectedIsolation.ValueKind = JsonValueKind.Null then None
+                            else Some(expectedIsolation.GetString())),
+                        scenario)
+                    Assert.That(active, Is.EqualTo launched, scenario)
+                    Assert.That(released, Is.EqualTo launched, scenario)
+                    Assert.That(retired, Is.EqualTo launched, scenario)
+                    Assert.That(exited, Is.True, scenario))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI31 C1 acquisition verifies an immutable local artifact``() =
+        task {
+            let! missing = cbi31Run (cbi31Vector "cbi31-03-missing-artifact")
+            let! changed = cbi31Run (cbi31Vector "cbi31-04-integrity-refused")
+            let missingCode, missingLaunched, _, _, _, _, _ = missing
+            let changedCode, changedLaunched, _, _, _, _, _ = changed
+            multiple (fun () ->
+                Assert.That(missingCode, Is.EqualTo "artifact-unavailable")
+                Assert.That(changedCode, Is.EqualTo "artifact-integrity-failed")
+                Assert.That(missingLaunched || changedLaunched, Is.False))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI31 C2 launch policy is explicit and precedes execution``() =
+        task {
+            let! arguments = cbi31Run (cbi31Vector "cbi31-05-arguments-refused")
+            let argumentsCode, argumentsLaunched, _, _, _, _, _ = arguments
+            let providerPath = cbi31ProviderPath "minimal"
+            let providerRoot =
+                match Path.GetDirectoryName providerPath |> Option.ofObj with
+                | Some value -> value
+                | None -> failwith "CBI31 provider path must have a parent directory."
+            let outsideRoot =
+                LocalProviderArtifactActivator.acquireAndLaunch
+                    { Identity = "outside-root"
+                      SourcePath = providerPath
+                      Sha256 = cbi31Digest providerPath
+                      Arguments = [ "--portable" ] }
+                    { AllowedRoot = Path.Combine(providerRoot, "allowed")
+                      AllowedArguments = [ "--portable" ] }
+            multiple (fun () ->
+                Assert.That(argumentsCode, Is.EqualTo "launch-policy-refused")
+                Assert.That(argumentsLaunched, Is.False)
+                match outsideRoot with
+                | LocalProviderActivation.Refused failure ->
+                    Assert.That(failure.Code, Is.EqualTo "launch-policy-refused")
+                | LocalProviderActivation.Launched owner ->
+                    owner.Dispose()
+                    Assert.Fail("The outside-root artifact was launched."))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI31 C3 launch isolation is observable and bounded``() =
+        let providerPath = cbi31ProviderPath "minimal"
+        let providerRoot =
+            match Path.GetDirectoryName providerPath |> Option.ofObj with
+            | Some value -> value
+            | None -> failwith "CBI31 provider path must have a parent directory."
+        let activation =
+            LocalProviderArtifactActivator.acquireAndLaunch
+                { Identity = "isolation"
+                  SourcePath = providerPath
+                  Sha256 = cbi31Digest providerPath
+                  Arguments = [ "--portable" ] }
+                { AllowedRoot = providerRoot
+                  AllowedArguments = [ "--portable" ] }
+        match activation with
+        | LocalProviderActivation.Refused failure -> Assert.Fail(sprintf "Launch failed: %s" failure.Code)
+        | LocalProviderActivation.Launched owner ->
+            use owner = owner
+            multiple (fun () ->
+                Assert.That(owner.Isolation, Is.EqualTo "dedicated-process")
+                Assert.That(owner.UsesShell, Is.False)
+                Assert.That(owner.RedirectsStandardStreams, Is.True))
+        let nonExecutable = Path.Combine(Path.GetTempPath(), $"brontide-cbi31-{Guid.NewGuid():N}.txt")
+        try
+            File.WriteAllText(nonExecutable, "not an executable")
+            let refused =
+                LocalProviderArtifactActivator.acquireAndLaunch
+                    { Identity = "not-executable"
+                      SourcePath = nonExecutable
+                      Sha256 = cbi31Digest nonExecutable
+                      Arguments = [ "--portable" ] }
+                    { AllowedRoot = Path.GetTempPath()
+                      AllowedArguments = [ "--portable" ] }
+            match refused with
+            | LocalProviderActivation.Refused failure ->
+                Assert.That(failure.Code, Is.EqualTo "provider-process-start-failed")
+            | LocalProviderActivation.Launched owner ->
+                owner.Dispose()
+                Assert.Fail("A non-executable artifact was launched.")
+        finally
+            File.Delete nonExecutable
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI31 C4 owner composes with CBI30 and owns retirement cleanup``() =
+        task {
+            let! _, launched, _, active, released, retired, exited =
+                cbi31Run (cbi31Vector "cbi31-02-minimal-artifact")
+            multiple (fun () ->
+                Assert.That(launched, Is.True)
+                Assert.That(active, Is.True)
+                Assert.That(released, Is.True)
+                Assert.That(retired, Is.True)
+                Assert.That(exited, Is.True))
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI31 C5 both roots agree on portable observations``() =
+        task {
+            let! reference = cbi31Run (cbi31Vector "cbi31-01-reference-artifact")
+            let! minimal = cbi31Run (cbi31Vector "cbi31-02-minimal-artifact")
+            Assert.That(reference, Is.EqualTo minimal)
+        }
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI31 C4 owner cleanup terminates an unfinished process``() =
+        let providerPath = cbi31ProviderPath "minimal"
+        let allowedRoot =
+            match Path.GetDirectoryName providerPath |> Option.ofObj with
+            | Some value -> value
+            | None -> failwith "CBI31 provider path must have a parent directory."
+        let activation =
+            LocalProviderArtifactActivator.acquireAndLaunch
+                { Identity = "cleanup"
+                  SourcePath = providerPath
+                  Sha256 = cbi31Digest providerPath
+                  Arguments = [ "--portable" ] }
+                { AllowedRoot = allowedRoot
+                  AllowedArguments = [ "--portable" ] }
+        match activation with
+        | LocalProviderActivation.Refused failure -> Assert.Fail(sprintf "Launch failed: %s" failure.Code)
+        | LocalProviderActivation.Launched owner ->
+            owner.Dispose()
+            Assert.That(owner.HasExited, Is.True)
 
     [<Test>]
     member _.``shared CBI12 vectors open ordinary interaction for every member or none``() =

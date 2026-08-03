@@ -17,6 +17,7 @@
     <ProjectReference Include="..\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LocalProviderArtifactActivation.fs" />
     <Compile Include="ComponentBindingIntegration.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

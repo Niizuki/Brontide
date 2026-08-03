@@ -762,6 +762,17 @@ sandbox policy, cross-domain identity, retry, or recovery exists. The
 bound that distinction. Physical distribution and production integration are the next area, with no
 integration slice queued ahead of them.
 
+CBI31 closes the first local physical-distribution slice. Both composition roots verify the
+SHA-256 digest of one already-present provider executable, require canonical allowed-root and exact
+argument-vector policy, launch it as a dedicated no-shell child with redirected streams, and own
+cleanup through CBI30 retirement or forced disposal. The
+[`CBI31 capability contract`](../../component-management/cbi31-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi31-contract-completeness-review.md)
+keep the claim narrow: the source is host-controlled, verification and execution are not an atomic
+untrusted-source boundary, and no content-addressed staging, multi-file package, removal policy,
+sandbox, or trust service exists. Content-addressed staging and removal for a declared multi-file
+artifact set is the next physical-distribution boundary.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
