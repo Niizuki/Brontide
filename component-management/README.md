@@ -492,6 +492,12 @@ only to the durable CBI38 registry. The boundary is recorded in the
 [CBI39 capability contract](./cbi39-capability-contract.md) and completed
 [contract-completeness review](./cbi39-contract-completeness-review.md).
 
+CBI40 defines one canonical strict binary request/response wire and a concrete single-POST HTTPS
+source with exact endpoint/media metadata and independent 1 MiB streaming bounds. The decoded result
+still crosses CBI39, CBI37, and CBI38. The boundary is recorded in the
+[CBI40 capability contract](./cbi40-capability-contract.md) and completed
+[contract-completeness review](./cbi40-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.

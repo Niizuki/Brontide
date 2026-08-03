@@ -137,8 +137,9 @@ The implementation currently provides:
   acquisition; CBI38 atomically checkpoints and re-verifies the complete signed update chain and
   detects rollback against an independently retained recovery floor; CBI39 authenticates one fresh,
   challenge- and cursor-bound distribution response under explicit size and time bounds before its
-  optional update enters CBI38;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI39 integration
+  optional update enters CBI38; CBI40 supplies its canonical strict binary wire and one exact bounded
+  HTTPS POST source;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI40 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range
