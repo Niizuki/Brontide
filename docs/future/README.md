@@ -750,8 +750,20 @@ preparation codes while reserving that generic code for provider/runtime establi
 [`contract-completeness review`](../../component-management/cbi29-contract-completeness-review.md)
 bound the result to one wide position in one runtime-open child Port.
 
-**Real distribution is the next area**, and no integration slice is queued ahead of it: the fake
-Component Manager and the portable seam now meet across every structural case the two models share.
+CBI30 begins the **real-distribution area** with its narrowest executable boundary: CBI2 now runs
+against the negotiated Portable Binding realization in a real provider process, and each host runs
+against both stacks' provider executable. The result proves process isolation and cross-stack
+substitution, preserves CM4 Release and portable retirement, and exposes process loss as
+`portable-process-interrupted`. It deliberately does not call this production distribution: the
+manager remains fake and host-local, and no artifact acquisition, verification, staging, launch or
+sandbox policy, cross-domain identity, retry, or recovery exists. The
+[`CBI30 capability contract`](../../component-management/cbi30-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi30-contract-completeness-review.md)
+bound that distinction. Physical distribution and production integration are the next area, with no
+integration slice queued ahead of them.
+
+The fake Component Manager and the portable seam now meet across every structural case the two models
+share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —
 Decision 13 still blocks every activation of a CM3 group that declares a bounded lifecycle protocol.

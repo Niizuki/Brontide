@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased - CBI30 process-boundary activation
+
+### Added
+
+- Minimal Host activation through the negotiated Portable Binding realization against both the
+  Minimal and Reference provider executables over real operating-system process boundaries.
+- Shared vectors, named C1-C5 properties, a phase-boundary completeness review, and mandatory
+  cross-process execution in the repository completion gate.
+
 ## Unreleased - CBI29 fanned-out child-Port activation
 
 ### Added

@@ -121,8 +121,10 @@ The implementation currently provides:
   bindings while a portable one names a single binding; CBI28 activates those members, making the
   generation the authority on a wide position's membership and establishing that its declared minimum
   is not a runtime concept; CBI29 activates that complete wide position inside one child Port while
-  preserving the child-wide barriers, separate scope concepts, and released parent;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI29 integration
+  preserving the child-wide barriers, separate scope concepts, and released parent; CBI30 runs the
+  direct CBI2 activation through a real provider process and substitutes either stack's provider
+  behind the negotiated portable contract;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI30 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

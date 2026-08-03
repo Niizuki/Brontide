@@ -59,6 +59,16 @@ Invoke-Checked { dotnet test $minimalSolution --no-build }
 $env:BRONTIDE_MINIMAL_PROVIDER = Join-Path $repositoryRoot 'Minimal\src\Brontide.Minimal.Interchange.Provider\bin\Debug\net10.0\Brontide.Minimal.Interchange.Provider.exe'
 $env:BRONTIDE_REFERENCE_PROVIDER = Join-Path $repositoryRoot 'Reference\src\Brontide.Reference.Interchange.Provider\bin\Debug\net10.0\Brontide.Reference.Interchange.Provider.exe'
 
+# CBI30 is owned by the composition roots, not the portable suites. Re-run their process category
+# after both provider paths exist so the ordinary solution runs above cannot turn this evidence into
+# environment-dependent skips.
+Invoke-Checked {
+    dotnet test (Join-Path $repositoryRoot 'Reference\tests\Brontide.Reference.Studio.Tests\Brontide.Reference.Studio.Tests.csproj') --no-build --filter 'Category=CrossProcess'
+}
+Invoke-Checked {
+    dotnet test (Join-Path $repositoryRoot 'Minimal\tests\Brontide.Minimal.Host.Tests\Brontide.Minimal.Host.Tests.fsproj') --no-build --filter 'Category=CrossProcess'
+}
+
 # CM6 lives in the Component Management suites rather than the interchange suites because each
 # host computes its own native CM5 baseline before crossing to the other stack's provider process.
 # The ordinary solution runs above prove the offline surface; these filtered runs make skips

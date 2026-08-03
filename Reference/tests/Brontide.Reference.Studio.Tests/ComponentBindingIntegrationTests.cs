@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace Brontide.Reference.Studio.Tests;
 
 [TestFixture]
-public sealed class ComponentBindingIntegrationTests
+public sealed partial class ComponentBindingIntegrationTests
 {
     private static readonly DefinitionId Consumer = DefinitionId.Create("def.test.cooling-consumer");
     private static readonly DefinitionId Provider = DefinitionId.Create("def.test.cooling-provider");

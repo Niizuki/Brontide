@@ -163,6 +163,9 @@ runtime concept, so one member short of Ready retires the whole activation.
 CBI29 activates that complete wide position inside one child Port through the existing CBI22 path.
 The member binding scopes remain distinct from the child restart scope, the barriers remain
 child-wide, and every outcome leaves the released parent unchanged.
+CBI30 runs the direct CBI2 activation through the negotiated portable realization in a real provider
+process. Both provider implementations substitute behind the contract, process loss is explicit,
+and retirement terminates the provider; artifact and cross-domain distribution remain future work.
 
 ## Build and test
 

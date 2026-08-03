@@ -102,5 +102,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi29-fanned-out-child-port-vectors.json"
           Link="component-management\fixtures\cbi29-fanned-out-child-port-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi30-process-activation-vectors.json"
+          Link="component-management\fixtures\cbi30-process-activation-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

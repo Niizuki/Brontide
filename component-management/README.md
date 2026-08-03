@@ -405,6 +405,21 @@ retaining the child-level code for genuine provider/runtime establishment failur
 behavior is recorded in the [CBI29 capability contract](./cbi29-capability-contract.md) and completed
 [contract-completeness review](./cbi29-contract-completeness-review.md).
 
+CBI30 takes the first bounded step into real distribution by running CBI2 Interconnection against
+the existing negotiated Portable Binding realization over a real operating-system process boundary.
+Each composition root activates against both provider executables, so process isolation and
+cross-stack substitution are executed together rather than inferred from separate suites. The
+frozen plan records `negotiated-process`; CM4 Release still gates the member; retirement sends
+withdrawal and termination and observes provider exit. The exercise found a Reference-only
+classification defect: declared portable process loss fell through to
+`portable-interconnection-failed`, while Minimal already returned `portable-process-interrupted`.
+The Reference singleton and group paths now preserve the stable process classification. This is not
+a distribution standard: the manager is still fake and host-local, and artifact acquisition,
+verification, launch/isolation policy, cross-domain identity, trust, retry, and recovery remain
+future work. The bounded behavior is recorded in the
+[CBI30 capability contract](./cbi30-capability-contract.md) and completed
+[contract-completeness review](./cbi30-contract-completeness-review.md).
+
 ## Format
 
 Every fixture file is UTF-8 JSON with `schemaVersion` 1 and a discriminating `fixture` name.
@@ -733,6 +748,14 @@ authority, and an attachment naming another Port. Each pins the child outcome an
 admission, grant, release, and retirement counts, plus the released parent count, so containment,
 whole-position activation, scope separation, child-wide barriers, and parent preservation are all
 checked answers. The fixture contains no runtime, planner, evaluator, or portable implementation.
+
+### `cbi30-process-activation-vectors` sections
+
+`vectors` names activation against each stack's provider executable and provider loss before
+Interconnection completes. Each pins the stable activation code, negotiated realization, Release
+and retirement state, and provider exit. Both hosts execute every vector, so changing only the
+answering implementation cannot change the result. The fixture contains no process launcher,
+transport, runtime, planner, evaluator, or portable implementation.
 
 ### `cm0-mice-topology` sections
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased - CBI30 process-boundary activation
+
+### Added
+
+- Reference Studio activation through the negotiated Portable Binding realization against both the
+  Reference and Minimal provider executables over real operating-system process boundaries.
+- Shared vectors, named C1-C5 properties, a phase-boundary completeness review, and mandatory
+  cross-process execution in the repository completion gate.
+
+### Fixed
+
+- Portable process loss during Component Interconnection now reports
+  `portable-process-interrupted` instead of the generic `portable-interconnection-failed`, in both
+  singleton and group activation paths.
+
 ## Unreleased - CBI29 fanned-out child-Port activation
 
 ### Added
