@@ -44,6 +44,18 @@ type private Cbi44Observation =
       LaunchAdmitsPublisher: bool
       StagedIsRequested: bool }
 
+type private Cbi45Observation =
+    { Code: string
+      RefusedBy: string option
+      Revalidated: bool
+      Continued: bool
+      PolicyChanged: bool
+      MemberReleased: bool
+      ProviderRunning: bool
+      StagedSetRemains: bool
+      ServingPolicyIsCurrent: bool
+      DecisionMatchesStagedIdentity: bool }
+
 type private Cbi30Observation =
     { Active: bool
       Code: string
@@ -10641,3 +10653,207 @@ type ComponentBindingIntegrationTests() =
                 Assert.That(actual.Launched, Is.False)
                 Assert.That(actual.RefusedBy, Is.EqualTo(Some "cbi31")))
         }
+
+    member private _.Cbi45Run(mutation: string, repeat: bool) =
+        task {
+            let root = Path.Combine(Path.GetTempPath(), $"brontide-cbi45-{Guid.NewGuid():N}")
+            Directory.CreateDirectory root |> ignore
+            let mutable provider: StagedProviderProcess option = None
+            try
+                use authority = ECDsa.Create ECCurve.NamedCurves.nistP256
+                use publisher = ECDsa.Create ECCurve.NamedCurves.nistP256
+                let digestOf (key: ECDsa) =
+                    key.ExportSubjectPublicKeyInfo() |> SHA256.HashData |> Convert.ToHexString
+                let authorityIdentity = digestOf authority |> ProviderPublisherTrustPolicyAuthorityId.create
+                let executable =
+                    match Environment.GetEnvironmentVariable "BRONTIDE_MINIMAL_PROVIDER" |> Option.ofObj with
+                    | Some path when File.Exists path -> Path.GetFullPath path
+                    | _ ->
+                        Assert.Ignore "BRONTIDE_MINIMAL_PROVIDER does not name a built provider endpoint."
+                        failwith "The cross-process test was ignored."
+                let named (value: string | null) =
+                    match value with null -> failwith "A provider path component was missing." | present -> present
+                let providerRoot = Path.GetDirectoryName executable |> named
+                let bytes =
+                    Directory.EnumerateFiles providerRoot
+                    |> Seq.sort
+                    |> Seq.map (fun path -> Path.GetFileName path |> named, File.ReadAllBytes path)
+                    |> Map.ofSeq
+                let files =
+                    bytes |> Map.toList |> List.map (fun (path, content) ->
+                        { RelativePath = path
+                          Sha256 = SHA256.HashData content |> Convert.ToHexString
+                          Length = int64 content.LongLength }: ProviderArtifactAcquisitionFile)
+                let expectedSource = ProviderArtifactSourceId.create "fixture://brontide/provider-output"
+                let executableName = Path.GetFileName executable |> named
+                let artifacts =
+                    files |> List.map (fun file ->
+                        { RelativePath = file.RelativePath; Sha256 = file.Sha256 }: ProviderArtifactFile)
+                let request: ProviderArtifactAcquisitionRequest =
+                    { ExpectedSource = expectedSource
+                      Identity = ProviderArtifactSetIdentity.compute artifacts executableName [ "--portable" ]
+                      Files = files; ExecutablePath = executableName; Arguments = [ "--portable" ]
+                      MaxTotalBytes = files |> List.sumBy _.Length }
+                let publisherKey = digestOf publisher |> ProviderPublisherKeyId.create
+                let evidence: ProviderPublisherEvidence =
+                    { PublisherKeyId = publisherKey
+                      Algorithm = "ECDSA-P256-SHA256"
+                      PublicKeySpkiBase64 = publisher.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                      SignatureBase64 =
+                        publisher.SignData(
+                            ProviderArtifactPublisherManifest.encode request,
+                            HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
+                        |> Convert.ToBase64String }
+                let policyOf entries: ProviderPublisherTrustPolicy =
+                    { Identity = ProviderPublisherTrustPolicyIdentity.compute entries; Entries = entries }
+                let otherPublisher = ProviderPublisherKeyId.create (String('B', 64))
+                let initial =
+                    policyOf
+                        [ { PublisherKeyId = publisherKey; Disposition = Admitted }
+                          { PublisherKeyId = otherPublisher; Disposition = Admitted } ]
+                let successor =
+                    match mutation with
+                    | "publisher-revoked" ->
+                        policyOf [ { PublisherKeyId = publisherKey; Disposition = Revoked } ]
+                    | "publisher-removed" ->
+                        policyOf [ { PublisherKeyId = otherPublisher; Disposition = Admitted } ]
+                    | "unrelated-revocation" ->
+                        policyOf
+                            [ { PublisherKeyId = publisherKey; Disposition = Admitted }
+                              { PublisherKeyId = otherPublisher; Disposition = Revoked } ]
+                    | _ -> initial
+                let signUpdate sequence previous (policy: ProviderPublisherTrustPolicy) =
+                    { Sequence = sequence; PreviousPolicyIdentity = previous; Policy = policy
+                      Algorithm = "ECDSA-P256-SHA256"
+                      AuthorityPublicKeySpkiBase64 =
+                        authority.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                      SignatureBase64 =
+                        authority.SignData(
+                            ProviderPublisherTrustPolicyUpdateManifest.encode sequence previous policy.Identity,
+                            HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
+                        |> Convert.ToBase64String }: ProviderPublisherTrustPolicyUpdate
+                let openedCode, openedRegistry, _ =
+                    DurableProviderPublisherTrustPolicyRegistry.Open(
+                        Path.Combine(root, "policy.checkpoint"), authorityIdentity, None)
+                Assert.That(openedCode, Is.EqualTo "policy-checkpoint-empty")
+                let registry = openedRegistry.Value
+                Assert.That(registry.Apply(signUpdate 1L None initial).IsApplied, Is.True)
+                let source =
+                    { new IProviderArtifactSource with
+                        member _.Identity = expectedSource
+                        member _.OpenRead relativePath =
+                            bytes |> Map.tryFind relativePath
+                            |> Option.map (fun content -> new MemoryStream(content, false) :> Stream) }
+                let storeRoot = Path.GetFullPath(Path.Combine(root, "store"))
+                let store = ContentAddressedProviderStore storeRoot
+                let chain =
+                    ProviderDistributionChain.run registry store (Path.Combine(root, "transactions"))
+                        { Acquisition = request; Evidence = Some evidence; AllowedArguments = [ "--portable" ] }
+                        source
+                provider <- chain.Provider
+                let launched = chain.Provider.Value
+                let resolution, selected, occurrence = prepared ()
+                let! activation =
+                    ProviderServingTrustRevalidation.activate chain resolution selected
+                        (runtimeRequest (plan [ occurrence ]))
+                Assert.That(activation.IsServing, Is.True)
+                if mutation <> "unchanged" then
+                    Assert.That(
+                        registry.Apply(signUpdate 2L (Some initial.Identity) successor).IsApplied,
+                        Is.True)
+                let! result =
+                    ProviderServingTrustRevalidation.revalidate registry store activation
+                        "publisher trust lapsed"
+                if repeat then
+                    let! repeated =
+                        ProviderServingTrustRevalidation.revalidate registry store activation
+                            "publisher trust still lapsed"
+                    multiple (fun () ->
+                        Assert.That(repeated.Code, Is.EqualTo "serving-activation-unavailable")
+                        Assert.That(repeated.Revalidated, Is.False))
+                let current = registry.Current.Value
+                let observation =
+                    { Code = result.Code
+                      RefusedBy = if result.RefusedBy = "none" then None else Some result.RefusedBy
+                      Revalidated = result.Revalidated; Continued = result.Continued
+                      PolicyChanged = result.ServingPolicyIdentity <> chain.LaunchPolicyIdentity
+                      MemberReleased = activation.MemberReleased
+                      ProviderRunning = not launched.HasExited
+                      StagedSetRemains =
+                        Directory.Exists storeRoot
+                        && (Directory.EnumerateDirectories storeRoot |> Seq.isEmpty |> not)
+                      ServingPolicyIsCurrent =
+                        result.ServingPolicyIdentity |> Option.forall ((=) current.Policy.Identity)
+                      DecisionMatchesStagedIdentity =
+                        match result.Authorization, chain.StagedIdentity with
+                        | Some authorization, Some staged -> authorization.ContentIdentity = staged
+                        | None, _ -> true
+                        | _ -> false }
+                if result.Continued then
+                    do! activation.Retire "CBI45 test completed."
+                if not launched.HasExited then launched.Dispose()
+                store.Remove chain.StagedIdentity.Value |> ignore
+                provider <- None
+                return observation
+            finally
+                provider |> Option.iter _.Dispose()
+                try Directory.Delete(root, true) with _ -> ()
+        }
+
+    member private _.Cbi45Fixture() =
+        JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            TestContext.CurrentContext.TestDirectory, "component-management", "fixtures",
+            "cbi45-serving-revalidation-vectors.json")))
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member this.``CBI45 C6 both roots execute the shared serving vectors``() =
+        task {
+            use document = this.Cbi45Fixture()
+            let optional (value: string | null) = match value with null -> None | present -> Some present
+            for vector in document.RootElement.GetProperty("vectors").EnumerateArray() do
+                let label = vector.GetProperty("mutation").GetString() |> optional |> Option.defaultValue ""
+                let! actual = this.Cbi45Run(label, false)
+                multiple (fun () ->
+                    Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("code").GetString()), label)
+                    Assert.That(actual.RefusedBy,
+                        Is.EqualTo(vector.GetProperty("refusedBy").GetString() |> optional), label)
+                    Assert.That(actual.Revalidated, Is.EqualTo(vector.GetProperty("revalidated").GetBoolean()), label)
+                    Assert.That(actual.Continued, Is.EqualTo(vector.GetProperty("continued").GetBoolean()), label)
+                    Assert.That(actual.PolicyChanged, Is.EqualTo(vector.GetProperty("policyChanged").GetBoolean()), label)
+                    Assert.That(actual.MemberReleased, Is.EqualTo(vector.GetProperty("memberReleased").GetBoolean()), label)
+                    Assert.That(actual.ProviderRunning, Is.EqualTo(vector.GetProperty("providerRunning").GetBoolean()), label)
+                    Assert.That(actual.StagedSetRemains, Is.EqualTo(vector.GetProperty("stagedSetRemains").GetBoolean()), label)
+                    Assert.That(actual.ServingPolicyIsCurrent, Is.True, label)
+                    Assert.That(actual.DecisionMatchesStagedIdentity, Is.True, label))
+        }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI45 C1 the serving decision is current``() = task {
+        let! actual = this.Cbi45Run("unchanged", false)
+        Assert.That(actual.Revalidated, Is.True) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI45 C2 lapsed trust stops service``() = task {
+        for mutation in [ "publisher-revoked"; "publisher-removed" ] do
+            let! actual = this.Cbi45Run(mutation, false)
+            multiple (fun () ->
+                Assert.That(actual.Continued, Is.False, mutation)
+                Assert.That(actual.MemberReleased, Is.False, mutation)
+                Assert.That(actual.ProviderRunning, Is.False, mutation)
+                Assert.That(actual.StagedSetRemains, Is.False, mutation)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI45 C3 an unrelated policy change preserves service``() = task {
+        let! actual = this.Cbi45Run("unrelated-revocation", false)
+        Assert.That(actual.Continued, Is.True) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI45 C4 retained verified evidence is evaluated``() = task {
+        let! actual = this.Cbi45Run("unchanged", false)
+        Assert.That(actual.DecisionMatchesStagedIdentity, Is.True) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI45 C5 a withdrawn activation cannot be revalidated twice``() = task {
+        let! actual = this.Cbi45Run("publisher-revoked", true)
+        Assert.That(actual.Continued, Is.False) }

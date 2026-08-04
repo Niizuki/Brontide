@@ -192,8 +192,10 @@ anchors remain future work. CBI43 runs the whole chain as one path — polled po
 evidence, governed acquisition, content-addressed staging, provider launch, and CBI30 activation —
 keeping each stage's own refusal code and origin. CBI44 makes the launch take its own trust decision
 against the policy in force, so a publisher revoked between acquisition and launch does not run,
-while a policy that changed and still admits it does. Revalidation of a member that is already
-serving remains future work.
+while a policy that changed and still admits it does. CBI45 retains the verified launch evidence,
+binds the provider conversation to an opaque serving activation, and takes one explicit current-policy
+decision after Release; lapsed trust retires the member and terminates the concrete provider. Cadence
+and fan-out across a serving set remain future work.
 
 ## Build and test
 

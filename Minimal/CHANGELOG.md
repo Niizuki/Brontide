@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased - CBI45 serving trust revalidation
+
+### Added
+
+- One explicit current-policy decision for a provider and portable member already serving, bound in
+  an opaque activation so a caller cannot pair one provider's publisher evidence with another member.
+- Trust withdrawal preserves CBI35's refusal, retires the member, terminates the provider, releases
+  its store lease, and reports graceful-retirement or removal failure separately.
+- Shared four-vector evidence for unchanged policy, unrelated change, revocation, and removal.
+
+### Changed
+
+- **Breaking:** `ProviderDistributionChainResult` gains `PolicyAuthorityIdentity` and
+  `VerifiedEvidence`. Callers constructing the F# record literally must supply both fields; callers
+  that only read results are unaffected, and `ProviderDistributionChain.run` fills them itself.
+
 ## Unreleased - CBI44 launch-time trust revalidation
 
 ### Added

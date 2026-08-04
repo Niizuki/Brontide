@@ -21,6 +21,10 @@ type ProviderDistributionChainResult =
       /// It may differ from the acquisition policy without refusing anything: what must still hold
       /// is the decision, not the snapshot that produced it.
       LaunchPolicyIdentity: ProviderPublisherTrustPolicyId option
+      /// The authority whose policy governed both trust decisions.
+      PolicyAuthorityIdentity: ProviderPublisherTrustPolicyAuthorityId option
+      /// The evidence verified inside the chain and retained for serving revalidation.
+      VerifiedEvidence: VerifiedProviderPublisherEvidence option
       Provider: StagedProviderProcess option
       StagedIdentity: ProviderArtifactSetId option
       /// The verified path the launched provider actually ran from, inside the store.
@@ -40,6 +44,8 @@ module ProviderDistributionChain =
           Revalidated = revalidated
           AcquisitionPolicyIdentity = acquisitionPolicy
           LaunchPolicyIdentity = launchPolicy
+          PolicyAuthorityIdentity = None
+          VerifiedEvidence = None
           Provider = None; StagedIdentity = None; StagedExecutablePath = None }
 
     let run
@@ -114,6 +120,8 @@ module ProviderDistributionChain =
                                   Staged = true; Revalidated = true
                                   AcquisitionPolicyIdentity = authorizingPolicy
                                   LaunchPolicyIdentity = launchPolicy
+                                  PolicyAuthorityIdentity = Some registry.AuthorityIdentity
+                                  VerifiedEvidence = Some verified
                                   Provider = Some provider
                                   StagedIdentity = Some staged.Identity
                                   StagedExecutablePath =

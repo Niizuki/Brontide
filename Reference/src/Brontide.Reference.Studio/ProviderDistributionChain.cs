@@ -15,6 +15,8 @@ public sealed record ProviderDistributionChainResult
         bool revalidated,
         ProviderPublisherTrustPolicyId? acquisitionPolicyIdentity,
         ProviderPublisherTrustPolicyId? launchPolicyIdentity,
+        ProviderPublisherTrustPolicyAuthorityId? policyAuthorityIdentity,
+        VerifiedProviderPublisherEvidence? verifiedEvidence,
         StagedProviderProcess? provider,
         ProviderArtifactSetId? stagedIdentity,
         string? stagedExecutablePath)
@@ -26,6 +28,8 @@ public sealed record ProviderDistributionChainResult
         Revalidated = revalidated;
         AcquisitionPolicyIdentity = acquisitionPolicyIdentity;
         LaunchPolicyIdentity = launchPolicyIdentity;
+        PolicyAuthorityIdentity = policyAuthorityIdentity;
+        VerifiedEvidence = verifiedEvidence;
         Provider = provider;
         StagedIdentity = stagedIdentity;
         StagedExecutablePath = stagedExecutablePath;
@@ -52,6 +56,12 @@ public sealed record ProviderDistributionChainResult
     /// </summary>
     public ProviderPublisherTrustPolicyId? LaunchPolicyIdentity { get; }
 
+    /// <summary>The authority whose policy governed both trust decisions.</summary>
+    public ProviderPublisherTrustPolicyAuthorityId? PolicyAuthorityIdentity { get; }
+
+    /// <summary>The evidence verified inside the chain and retained for later serving revalidation.</summary>
+    public VerifiedProviderPublisherEvidence? VerifiedEvidence { get; }
+
     public StagedProviderProcess? Provider { get; }
     public ProviderArtifactSetId? StagedIdentity { get; }
 
@@ -65,18 +75,22 @@ public sealed record ProviderDistributionChainResult
         bool revalidated = false,
         ProviderPublisherTrustPolicyId? acquisitionPolicyIdentity = null,
         ProviderPublisherTrustPolicyId? launchPolicyIdentity = null,
+        ProviderPublisherTrustPolicyAuthorityId? policyAuthorityIdentity = null,
+        VerifiedProviderPublisherEvidence? verifiedEvidence = null,
         ProviderArtifactSetId? stagedIdentity = null) =>
         new(code, refusedBy, authorized, staged, revalidated, acquisitionPolicyIdentity, launchPolicyIdentity,
-            null, stagedIdentity, null);
+            policyAuthorityIdentity, verifiedEvidence, null, stagedIdentity, null);
 
     internal static ProviderDistributionChainResult Launched(
         StagedProviderProcess provider,
         ProviderPublisherTrustPolicyId acquisitionPolicyIdentity,
         ProviderPublisherTrustPolicyId launchPolicyIdentity,
+        ProviderPublisherTrustPolicyAuthorityId policyAuthorityIdentity,
+        VerifiedProviderPublisherEvidence verifiedEvidence,
         ProviderArtifactSetId stagedIdentity,
         string executablePath) =>
         new("provider-launched", "none", true, true, true, acquisitionPolicyIdentity, launchPolicyIdentity,
-            provider, stagedIdentity, executablePath);
+            policyAuthorityIdentity, verifiedEvidence, provider, stagedIdentity, executablePath);
 }
 
 /// <summary>
@@ -168,6 +182,8 @@ public static class ProviderDistributionChain
             activation.Owner,
             authorizingPolicy,
             relaunch.Authorization.PolicyIdentity,
+            registry.AuthorityIdentity,
+            evidence.Verified,
             acquired.Staged.Identity,
             Path.GetFullPath(Path.Combine(acquired.Staged.RootPath, acquired.Staged.ExecutablePath)));
     }

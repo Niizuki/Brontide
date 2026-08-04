@@ -145,8 +145,9 @@ The implementation currently provides:
   from polled policy through governed acquisition and provider launch to CBI30 activation, keeping
   each stage's own refusal code and origin; CBI44 makes the launch take its own trust decision
   against the policy in force, refusing a publisher revoked between acquisition and launch while
-  admitting one a changed policy still names;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI44 integration
+  admitting one a changed policy still names; CBI45 binds that launched provider to an opaque serving
+  activation and takes one explicit current-policy decision after Release, terminating lapsed service;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI45 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range
