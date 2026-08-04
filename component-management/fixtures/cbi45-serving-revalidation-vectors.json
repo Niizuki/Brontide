@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi45-serving-revalidation",
+  "vectors": [
+    {
+      "mutation": "unchanged",
+      "code": "publisher-trust-current",
+      "refusedBy": null,
+      "revalidated": true,
+      "continued": true,
+      "policyChanged": false,
+      "memberReleased": true,
+      "providerRunning": true,
+      "stagedSetRemains": true
+    },
+    {
+      "mutation": "unrelated-revocation",
+      "code": "publisher-trust-current",
+      "refusedBy": null,
+      "revalidated": true,
+      "continued": true,
+      "policyChanged": true,
+      "memberReleased": true,
+      "providerRunning": true,
+      "stagedSetRemains": true
+    },
+    {
+      "mutation": "publisher-revoked",
+      "code": "publisher-key-revoked",
+      "refusedBy": "cbi35",
+      "revalidated": true,
+      "continued": false,
+      "policyChanged": true,
+      "memberReleased": false,
+      "providerRunning": false,
+      "stagedSetRemains": false
+    },
+    {
+      "mutation": "publisher-removed",
+      "code": "publisher-key-unknown",
+      "refusedBy": "cbi35",
+      "revalidated": true,
+      "continued": false,
+      "policyChanged": true,
+      "memberReleased": false,
+      "providerRunning": false,
+      "stagedSetRemains": false
+    }
+  ]
+}

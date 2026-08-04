@@ -984,6 +984,19 @@ serving**, which is CBI5's shape applied to trust rather than to authority.
 
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
+
+CBI45 closes CBI44's final named window with one explicit serving revalidation. The chain now retains
+the verified publisher evidence and policy authority that actually governed launch, and each root
+binds its lifecycle to that chain in an opaque serving activation rather than accepting two caller-
+paired results. A current policy that still admits the publisher preserves service even when its
+identity changed; revocation or removal retires the member, terminates the concrete provider, releases
+the store lease, and attempts staged-set removal while preserving CBI35's refusal and reporting any
+cleanup failure separately. The
+[`CBI45 capability contract`](../../component-management/cbi45-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi45-contract-completeness-review.md)
+bound it to one host-driven call over one member. Host invocation policy and fan-out across a serving
+set are next; key rotation, privileged floor custody, and production isolation remain separate work.
+
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —
 Decision 13 still blocks every activation of a CM3 group that declares a bounded lifecycle protocol.

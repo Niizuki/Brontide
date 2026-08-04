@@ -170,6 +170,8 @@ type DurableProviderPublisherTrustPolicyRegistry private (
 
     member _.Current = registry.Current
 
+    member _.AuthorityIdentity = registry.AuthorityIdentity
+
     member _.Floor = floor ()
 
     member _.Apply(update: ProviderPublisherTrustPolicyUpdate) =

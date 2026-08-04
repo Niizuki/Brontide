@@ -67,6 +67,8 @@ public sealed class DurableProviderPublisherTrustPolicyRegistry
 
     public VerifiedProviderPublisherTrustPolicySnapshot? Current => _registry.Current;
 
+    public ProviderPublisherTrustPolicyAuthorityId AuthorityIdentity => _registry.AuthorityIdentity;
+
     public ProviderPublisherTrustPolicyRecoveryFloor Floor =>
         ProviderPublisherTrustPolicyRecoveryFloor.Issue(_registry.AuthorityIdentity, _registry.Current);
 

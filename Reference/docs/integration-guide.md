@@ -132,7 +132,14 @@ then, so a publisher revoked between acquisition and launch does not run. `Acqui
 and `LaunchPolicyIdentity` report the two decisions, and they may differ without refusing anything —
 what has to hold is the decision, not the snapshot. Read `Revalidated` to tell a refusal that
 happened before the launch decision from one that happened after it; the refusal codes are CBI35's
-either way. Nothing revalidates after Release.
+either way.
+
+CBI45 revalidates after Release. Call `ProviderServingTrustRevalidation.ActivateAsync` to bind the
+launched chain result to the lifecycle created over that provider's own conversation; keep the opaque
+`ProviderServingActivation`, then pass it with the durable registry and store to `RevalidateAsync`.
+`publisher-trust-current` leaves service alone. A CBI35 revocation or unknown-key refusal retires the
+member, terminates the provider, releases its lease, and attempts removal. Inspect `RetirementCode`
+for cleanup failure. The call has no timer or fan-out policy.
 
 ## Fake Component Management CM1
 
