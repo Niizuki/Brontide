@@ -144,5 +144,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi43-distribution-chain-vectors.json"
           Link="component-management\fixtures\cbi43-distribution-chain-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi44-launch-revalidation-vectors.json"
+          Link="component-management\fixtures\cbi44-launch-revalidation-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

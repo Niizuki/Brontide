@@ -13,6 +13,14 @@ type ProviderDistributionChainResult =
       RefusedBy: string
       Authorized: bool
       Staged: bool
+      /// The launch decision was taken against the policy in force and admitted the publisher.
+      Revalidated: bool
+      /// The policy that authorized acquisition, absent when trust was never evaluated.
+      AcquisitionPolicyIdentity: ProviderPublisherTrustPolicyId option
+      /// The policy the launch decision was taken against, absent when the chain never reached it.
+      /// It may differ from the acquisition policy without refusing anything: what must still hold
+      /// is the decision, not the snapshot that produced it.
+      LaunchPolicyIdentity: ProviderPublisherTrustPolicyId option
       Provider: StagedProviderProcess option
       StagedIdentity: ProviderArtifactSetId option
       /// The verified path the launched provider actually ran from, inside the store.
@@ -20,13 +28,18 @@ type ProviderDistributionChainResult =
     member this.IsLaunched = this.Provider.IsSome
 
 /// Runs the distribution slices as one path: publisher evidence, host trust policy, governed
-/// acquisition, content-addressed staging, and a launched provider process holding a removal lease.
-/// It adds no capability of its own and reclassifies no refusal - each one keeps the code and the
-/// origin of the slice that made it.
+/// acquisition, content-addressed staging, a launch decision against the policy in force, and a
+/// launched provider process holding a removal lease. It reclassifies no refusal - each one keeps
+/// the code and the origin of the slice that made it.
 [<RequireQualifiedAccess>]
 module ProviderDistributionChain =
-    let private refused code refusedBy authorized staged =
+    /// The three flags are consecutive ladder stages in order - authorized, staged, revalidated -
+    /// so a call site reads as how far the chain got before it refused.
+    let private refused code refusedBy authorized staged revalidated acquisitionPolicy launchPolicy =
         { Code = code; RefusedBy = refusedBy; Authorized = authorized; Staged = staged
+          Revalidated = revalidated
+          AcquisitionPolicyIdentity = acquisitionPolicy
+          LaunchPolicyIdentity = launchPolicy
           Provider = None; StagedIdentity = None; StagedExecutablePath = None }
 
     let run
@@ -42,11 +55,11 @@ module ProviderDistributionChain =
         // A policy that never arrived authorizes nothing, and the chain stops before any evidence is
         // weighed or any source is opened.
         match registry.Current with
-        | None -> refused "publisher-trust-policy-unavailable" "cbi37" false false
+        | None -> refused "publisher-trust-policy-unavailable" "cbi37" false false false None None
         | Some current ->
             let evidence = ProviderArtifactPublisherEvidenceVerifier.verify request.Acquisition request.Evidence
             match evidence.Verified with
-            | None -> refused evidence.Code "cbi34" false false
+            | None -> refused evidence.Code "cbi34" false false false None None
             | Some verified ->
                 // This gate is about attribution rather than protection: the governed acquirer
                 // refuses a missing authorization anyway, but it reports "trust required" where the
@@ -54,8 +67,9 @@ module ProviderDistributionChain =
                 // a host the real reason.
                 let trust = ProviderPublisherTrustEvaluator.evaluate current.Policy (Some verified)
                 match trust.Authorization with
-                | None -> refused trust.Code "cbi35" false false
+                | None -> refused trust.Code "cbi35" false false false None None
                 | Some authorization ->
+                    let authorizingPolicy = Some authorization.PolicyIdentity
                     let acquirer =
                         TrustedProviderArtifactAcquirer(ProviderArtifactAcquirer(store, transactionRoot))
                     let acquired = registry.Govern(acquirer).Acquire(request.Acquisition, source, Some authorization)
@@ -68,18 +82,39 @@ module ProviderDistributionChain =
                         refused
                             (if delivered then acquired.AdmissionCode else acquired.TransportCode)
                             (if delivered then "cbi32" else "cbi33")
-                            true false
+                            true false false authorizingPolicy None
                     | Some staged ->
-                        // Activation re-verifies the staged bytes under their content address, so the
-                        // executable that runs is the one the publisher signed rather than a path the
-                        // caller named.
-                        match store.Activate(staged, request.AllowedArguments) with
-                        | StagedProviderActivation.Refused failure ->
+                        // The launch is a second effect and takes its own decision rather than
+                        // spending the one that authorized acquisition. The registry advances and
+                        // never clears, so a policy present before acquisition is present now; what
+                        // may have changed is what it says. Comparing the two policy identities
+                        // instead would refuse every update that left this publisher alone.
+                        let atLaunch = registry.Current |> Option.defaultValue current
+                        let relaunch = ProviderPublisherTrustEvaluator.evaluate atLaunch.Policy (Some verified)
+                        match relaunch.Authorization with
+                        | None ->
+                            // Decided before the store touches the artifact, so a lapsed publisher is
+                            // never reported as whatever the staged bytes happened to look like.
+                            // Removing them is residue hygiene rather than a security act: they are
+                            // content-addressed, and integrity is not what lapsed.
                             store.Remove staged.Identity |> ignore
-                            refused failure.Code "cbi31" true true
-                        | StagedProviderActivation.Launched provider ->
-                            { Code = "provider-launched"; RefusedBy = "none"; Authorized = true
-                              Staged = true; Provider = Some provider
-                              StagedIdentity = Some staged.Identity
-                              StagedExecutablePath =
-                                Path.GetFullPath(Path.Combine(staged.RootPath, staged.ExecutablePath)) |> Some }
+                            refused relaunch.Code "cbi35" true true false authorizingPolicy
+                                (Some atLaunch.Policy.Identity)
+                        | Some launchAuthorization ->
+                            let launchPolicy = Some launchAuthorization.PolicyIdentity
+                            // Activation re-verifies the staged bytes under their content address, so
+                            // the executable that runs is the one the publisher signed rather than a
+                            // path the caller named.
+                            match store.Activate(staged, request.AllowedArguments) with
+                            | StagedProviderActivation.Refused failure ->
+                                store.Remove staged.Identity |> ignore
+                                refused failure.Code "cbi31" true true true authorizingPolicy launchPolicy
+                            | StagedProviderActivation.Launched provider ->
+                                { Code = "provider-launched"; RefusedBy = "none"; Authorized = true
+                                  Staged = true; Revalidated = true
+                                  AcquisitionPolicyIdentity = authorizingPolicy
+                                  LaunchPolicyIdentity = launchPolicy
+                                  Provider = Some provider
+                                  StagedIdentity = Some staged.Identity
+                                  StagedExecutablePath =
+                                    Path.GetFullPath(Path.Combine(staged.RootPath, staged.ExecutablePath)) |> Some }

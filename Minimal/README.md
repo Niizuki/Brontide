@@ -143,8 +143,10 @@ The implementation currently provides:
   CBI42 gives that floor a monotone, integrity-checked durable store, established before the
   checkpoint it guards and never advanced by a recovered one; CBI43 runs the whole chain as one path
   from polled policy through governed acquisition and provider launch to CBI30 activation, keeping
-  each stage's own refusal code and origin;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI43 integration
+  each stage's own refusal code and origin; CBI44 makes the launch take its own trust decision
+  against the policy in force, refusing a publisher revoked between acquisition and launch while
+  admitting one a changed policy still names;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI44 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

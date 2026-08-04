@@ -190,7 +190,10 @@ back at the next start, and never advanced by a recovered checkpoint. Custody in
 checkpoint's writer cannot reach, endpoint rotation, a real scheduling host, and platform security
 anchors remain future work. CBI43 runs the whole chain as one path — polled policy, publisher
 evidence, governed acquisition, content-addressed staging, provider launch, and CBI30 activation —
-keeping each stage's own refusal code and origin.
+keeping each stage's own refusal code and origin. CBI44 makes the launch take its own trust decision
+against the policy in force, so a publisher revoked between acquisition and launch does not run,
+while a policy that changed and still admits it does. Revalidation of a member that is already
+serving remains future work.
 
 ## Build and test
 

@@ -904,6 +904,20 @@ whether a staged set remains, and whether a provider process is still running. T
 to be a true-prefix in every vector, so a stage reached past its own refusal is a failure anywhere.
 The fixture contains no acquirer, store, launcher, evaluator, or runtime.
 
+### `cbi44-launch-revalidation` sections
+
+`vectors` names six chains: one complete run, two lapses discovered at launch, an unrelated policy
+update that must not refuse, an acquisition-time revocation reporting the same code as the
+launch-time one, and a launch refused after the trust decision had already passed. Each pins the
+refusing code and the slice that produced it, the seven ladder observations — policy applied,
+authorized, source opened, staged, revalidated, launched, released — and whether the launch decision
+named a different policy than the acquisition one, plus the registry's live sequence, the retained
+floor, and the residue checks. `launchPolicyChanged` is null exactly when the chain never reached a
+launch decision. A vector whose `registrySequence` exceeds its `storedFloor` had its successor
+applied mid-chain rather than by a poll, so no floor was handed off — CBI41's lagging floor, pinned
+here so it cannot be mistaken for residue. The fixture contains no acquirer, store, launcher,
+evaluator, registry, or runtime.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations

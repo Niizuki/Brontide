@@ -951,6 +951,37 @@ with residue checks that no refusal leaves a staged set, a live process, or an a
 bound it to one provider and one member, and record that nothing revalidates the policy between
 acquisition and launch. Custody in a privileged domain remains the named next boundary.
 
+CBI44 closes the window CBI43 named, and its finding is about the step CBI43 already had rather than
+the one it adds. **The launch takes its own trust decision.** The verified publisher evidence is
+evaluated again against the policy the registry holds when the executable is about to run, so a
+publisher revoked or dropped between acquisition and launch does not run — and the refusal is
+CBI35's, unchanged, because the ladder rather than the code is what says where it was decided.
+
+**The decision is compared, not the snapshot**, and that is the choice a second vector had to force.
+Refusing because the policy identity moved is what the word *revalidate* suggests, it passes five of
+the six vectors, and it would refuse every benign update a polling host receives. Only
+`unrelated-revocation` — an update that revokes some other publisher — separates the two designs, and
+without it two independent implementations would have agreed on the wrong one, because the contract
+would have been silent rather than ambiguous. That is Decision 10's shape, arriving before the defect
+instead of after it.
+
+Its other result **corrects CBI43's reading of itself by symmetry**. CBI43 recorded that its
+acquisition trust step earns its place by preserving attribution and not by adding a barrier, since
+the governed acquirer refuses a missing authorization anyway. The launch step looks identical at the
+call site and is the opposite: deleting it launches a revoked publisher's executable and reports
+`active`. Two steps that read the same and differ completely in what they are for, and the only way
+to tell which is which is to remove each and look — which both stacks did.
+
+Two checks a reader would expect are **absent on purpose**. A guard that the launch decision names the
+artifact the store staged cannot fail, because the evidence, the request, and the staged identity all
+derive from one object and CBI36 already refuses a mismatch, so it is a property rather than a refusal
+code — PB6's three unreachable categories are why. And the ordering of the trust decision before the
+store's reverification is stated rather than pinned, because no reachable input makes them disagree.
+The [`CBI44 capability contract`](../../component-management/cbi44-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi44-contract-completeness-review.md)
+bound it to one chain call, and name the next boundary: **revalidation for a member that is already
+serving**, which is CBI5's shape applied to trust rather than to authority.
+
 The fake Component Manager and the portable seam now meet across every structural case the two models
 share and across one real process boundary.
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

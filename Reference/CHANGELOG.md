@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased - CBI44 launch-time trust revalidation
+
+### Added
+
+- The distribution chain takes a second trust decision before the store activates a staged set,
+  evaluating the verified publisher evidence against the policy the registry holds at that moment,
+  so a publisher revoked or dropped between acquisition and launch does not run.
+- `ProviderDistributionChainResult` reports `Revalidated`, `AcquisitionPolicyIdentity`, and
+  `LaunchPolicyIdentity`. Existing members are unchanged, so the addition is source compatible.
+- Shared vectors covering the complete run, both launch-time lapses, an unrelated policy update, an
+  acquisition-time refusal with the same code, and a post-decision launch refusal, with the ladder
+  extended to seven observations and still required to be a true-prefix.
+
+### Notes
+
+- The decision is compared, not the snapshot: a policy that changed and still admits the publisher
+  launches, because refusing on a moved policy identity would refuse every benign update.
+- The refusal codes stay CBI35's. Only the ladder says whether a revocation was seen at acquisition
+  or at launch.
+- Unlike CBI43's acquisition trust step, this one is a barrier: removing it launches a revoked
+  publisher's executable.
+- Nothing revalidates after Release.
+
 ## Unreleased - CBI43 end-to-end distribution chain
 
 ### Added

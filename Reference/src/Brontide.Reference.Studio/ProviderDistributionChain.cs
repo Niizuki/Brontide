@@ -12,6 +12,9 @@ public sealed record ProviderDistributionChainResult
         string refusedBy,
         bool authorized,
         bool staged,
+        bool revalidated,
+        ProviderPublisherTrustPolicyId? acquisitionPolicyIdentity,
+        ProviderPublisherTrustPolicyId? launchPolicyIdentity,
         StagedProviderProcess? provider,
         ProviderArtifactSetId? stagedIdentity,
         string? stagedExecutablePath)
@@ -20,6 +23,9 @@ public sealed record ProviderDistributionChainResult
         RefusedBy = refusedBy;
         Authorized = authorized;
         Staged = staged;
+        Revalidated = revalidated;
+        AcquisitionPolicyIdentity = acquisitionPolicyIdentity;
+        LaunchPolicyIdentity = launchPolicyIdentity;
         Provider = provider;
         StagedIdentity = stagedIdentity;
         StagedExecutablePath = stagedExecutablePath;
@@ -32,6 +38,20 @@ public sealed record ProviderDistributionChainResult
 
     public bool Authorized { get; }
     public bool Staged { get; }
+
+    /// <summary>The launch decision was taken against the policy in force and admitted the publisher.</summary>
+    public bool Revalidated { get; }
+
+    /// <summary>The policy that authorized acquisition, absent when trust was never evaluated.</summary>
+    public ProviderPublisherTrustPolicyId? AcquisitionPolicyIdentity { get; }
+
+    /// <summary>
+    /// The policy the launch decision was taken against, absent when the chain never reached it.
+    /// It may differ from the acquisition policy without refusing anything: what must still hold is
+    /// the decision, not the snapshot that produced it.
+    /// </summary>
+    public ProviderPublisherTrustPolicyId? LaunchPolicyIdentity { get; }
+
     public StagedProviderProcess? Provider { get; }
     public ProviderArtifactSetId? StagedIdentity { get; }
 
@@ -42,19 +62,28 @@ public sealed record ProviderDistributionChainResult
 
     internal static ProviderDistributionChainResult Refused(
         string code, string refusedBy, bool authorized = false, bool staged = false,
+        bool revalidated = false,
+        ProviderPublisherTrustPolicyId? acquisitionPolicyIdentity = null,
+        ProviderPublisherTrustPolicyId? launchPolicyIdentity = null,
         ProviderArtifactSetId? stagedIdentity = null) =>
-        new(code, refusedBy, authorized, staged, null, stagedIdentity, null);
+        new(code, refusedBy, authorized, staged, revalidated, acquisitionPolicyIdentity, launchPolicyIdentity,
+            null, stagedIdentity, null);
 
     internal static ProviderDistributionChainResult Launched(
-        StagedProviderProcess provider, ProviderArtifactSetId stagedIdentity, string executablePath) =>
-        new("provider-launched", "none", true, true, provider, stagedIdentity, executablePath);
+        StagedProviderProcess provider,
+        ProviderPublisherTrustPolicyId acquisitionPolicyIdentity,
+        ProviderPublisherTrustPolicyId launchPolicyIdentity,
+        ProviderArtifactSetId stagedIdentity,
+        string executablePath) =>
+        new("provider-launched", "none", true, true, true, acquisitionPolicyIdentity, launchPolicyIdentity,
+            provider, stagedIdentity, executablePath);
 }
 
 /// <summary>
 /// Runs the distribution slices as one path: publisher evidence, host trust policy, governed
-/// acquisition, content-addressed staging, and a launched provider process holding a removal lease.
-/// It adds no capability of its own and reclassifies no refusal — each one keeps the code and the
-/// origin of the slice that made it.
+/// acquisition, content-addressed staging, a launch decision against the policy in force, and a
+/// launched provider process holding a removal lease. It reclassifies no refusal — each one keeps
+/// the code and the origin of the slice that made it.
 /// </summary>
 public static class ProviderDistributionChain
 {
@@ -88,6 +117,7 @@ public static class ProviderDistributionChain
         if (trust.Authorization is null)
             return ProviderDistributionChainResult.Refused(trust.Code, "cbi35");
 
+        var authorizingPolicy = trust.Authorization.PolicyIdentity;
         var acquired = registry
             .Govern(new TrustedProviderArtifactAcquirer(new ProviderArtifactAcquirer(store, transactionRoot)))
             .Acquire(request.Acquisition, source, trust.Authorization);
@@ -100,7 +130,26 @@ public static class ProviderDistributionChain
             return ProviderDistributionChainResult.Refused(
                 delivered ? acquired.AdmissionCode : acquired.TransportCode,
                 delivered ? "cbi32" : "cbi33",
-                authorized: true);
+                authorized: true,
+                acquisitionPolicyIdentity: authorizingPolicy);
+        }
+
+        // The launch is a second effect and takes its own decision rather than spending the one that
+        // authorized acquisition. The registry advances and never clears, so a policy present before
+        // acquisition is present now; what may have changed is what it says. Comparing the two policy
+        // identities instead would refuse every update that left this publisher alone.
+        var atLaunch = registry.Current ?? current;
+        var relaunch = ProviderPublisherTrustEvaluator.Evaluate(atLaunch.Policy, evidence.Verified);
+        if (relaunch.Authorization is null)
+        {
+            // Decided before the store touches the artifact, so a lapsed publisher is never reported
+            // as whatever the staged bytes happened to look like. Removing them is residue hygiene
+            // rather than a security act: they are content-addressed, and integrity is not what lapsed.
+            store.Remove(acquired.Staged.Identity);
+            return ProviderDistributionChainResult.Refused(
+                relaunch.Code, "cbi35", authorized: true, staged: true,
+                acquisitionPolicyIdentity: authorizingPolicy,
+                launchPolicyIdentity: atLaunch.Policy.Identity);
         }
 
         // Activation re-verifies the staged bytes under their content address, so the executable that
@@ -110,11 +159,15 @@ public static class ProviderDistributionChain
         {
             store.Remove(acquired.Staged.Identity);
             return ProviderDistributionChainResult.Refused(
-                activation.Failure!.Code, "cbi31", authorized: true, staged: true);
+                activation.Failure!.Code, "cbi31", authorized: true, staged: true, revalidated: true,
+                acquisitionPolicyIdentity: authorizingPolicy,
+                launchPolicyIdentity: relaunch.Authorization.PolicyIdentity);
         }
 
         return ProviderDistributionChainResult.Launched(
             activation.Owner,
+            authorizingPolicy,
+            relaunch.Authorization.PolicyIdentity,
             acquired.Staged.Identity,
             Path.GetFullPath(Path.Combine(acquired.Staged.RootPath, acquired.Staged.ExecutablePath)));
     }
