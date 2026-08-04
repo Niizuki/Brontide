@@ -122,7 +122,15 @@ CBI43 wires the stages together. `ProviderDistributionChain.run` takes the durab
 content-addressed store, a transaction root, the acquisition request with its publisher evidence and
 allowed arguments, and the source; it answers a launched provider or a refusal that carries the
 originating slice in `RefusedBy`. Dispose the returned provider to release the removal lease, then
-remove the staged set. Nothing revalidates the policy between acquisition and launch.
+remove the staged set.
+
+CBI44 makes the launch take its own trust decision inside that call. Before the store activates the
+staged set, the verified publisher evidence is evaluated again against the policy the registry holds
+then, so a publisher revoked between acquisition and launch does not run. `AcquisitionPolicyIdentity`
+and `LaunchPolicyIdentity` report the two decisions, and they may differ without refusing anything —
+what has to hold is the decision, not the snapshot. Read `Revalidated` to tell a refusal that
+happened before the launch decision from one that happened after it; the refusal codes are CBI35's
+either way. Nothing revalidates after Release.
 
 ## Fake Component Management CM1
 
