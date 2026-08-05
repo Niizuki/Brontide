@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased - CBI55 external restart-effect reconciliation
+
+### Added
+
+- A durable exact-attempt effect record and provider-held operating-system lease with an atomic,
+  bounded process receipt.
+- Successor-fenced reconciliation that proves no provider remains or terminates the exact matching
+  orphan before selecting CBI53 retry, with shared C1-C8 and real child-process evidence.
+
+### Notes
+
+- CBI55 is cooperative host-local cleanup, not provider adoption, distributed ownership,
+  exactly-once execution, hostile-process attestation, or proof about detached external effects.
+
 ## Unreleased - CBI54 cross-process provider restart ownership
 
 ### Added

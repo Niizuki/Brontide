@@ -292,7 +292,7 @@ type ContentAddressedProviderStore(rootPath: string) =
                             "artifact-set-stage-failed"
                             $"Artifact set '{ProviderArtifactSetId.value declaration.Identity}' could not be staged transactionally.")
 
-    member _.Activate(staged: StagedProviderArtifactSet, allowedArguments: string list) =
+    member private _.ActivateCore(staged: StagedProviderArtifactSet, allowedArguments: string list, environment: Map<string, string>) =
         lock syncRoot (fun () ->
             let declaration: ProviderArtifactSet =
                 { Identity = staged.Identity
@@ -306,7 +306,7 @@ type ContentAddressedProviderStore(rootPath: string) =
             | ProviderArtifactStagingResult.Staged verified ->
                 let executable = staged.Files |> List.find (fun file -> file.RelativePath = staged.ExecutablePath)
                 match
-                    LocalProviderArtifactActivator.acquireAndLaunch
+                    LocalProviderArtifactActivator.acquireAndLaunchWithEnvironment environment
                         { Identity = ProviderArtifactSetId.value staged.Identity
                           SourcePath = combineRelative staged.RootPath staged.ExecutablePath
                           Sha256 = executable.Sha256
@@ -329,6 +329,12 @@ type ContentAddressedProviderStore(rootPath: string) =
                                 if current <= 1 then leases.Remove staged.Identity |> ignore
                                 else leases[staged.Identity] <- current - 1)
                     StagedProviderActivation.Launched(new StagedProviderProcess(owner, verified, release)))
+
+    member this.Activate(staged: StagedProviderArtifactSet, allowedArguments: string list) =
+        this.ActivateCore(staged, allowedArguments, Map.empty)
+
+    member internal this.ActivateWithEnvironment(staged, allowedArguments, environment) =
+        this.ActivateCore(staged, allowedArguments, environment)
 
     member _.Remove(identity: ProviderArtifactSetId) =
         lock syncRoot (fun () ->

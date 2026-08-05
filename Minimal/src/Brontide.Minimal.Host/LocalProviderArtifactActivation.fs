@@ -78,7 +78,7 @@ module LocalProviderArtifactActivator =
         && not (relative.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
         && not (relative.StartsWith($"..{Path.AltDirectorySeparatorChar}", StringComparison.Ordinal))
 
-    let acquireAndLaunch (artifact: LocalProviderArtifact) (policy: LocalProviderLaunchPolicy) =
+    let private launch (environment: Map<string, string>) (artifact: LocalProviderArtifact) (policy: LocalProviderLaunchPolicy) =
         let sourcePath = Path.GetFullPath artifact.SourcePath
         if not (File.Exists sourcePath) || File.GetAttributes(sourcePath).HasFlag FileAttributes.Directory then
             refuse
@@ -116,6 +116,7 @@ module LocalProviderArtifactActivator =
                     info.UseShellExecute <- false
                     info.CreateNoWindow <- true
                     artifact.Arguments |> List.iter info.ArgumentList.Add
+                    environment |> Map.iter (fun key value -> info.Environment[key] <- value)
                     let providerProcess = new Process(StartInfo = info)
                     try
                         if providerProcess.Start() then
@@ -133,3 +134,8 @@ module LocalProviderArtifactActivator =
                         refuse
                             "provider-process-start-failed"
                             $"Artifact '{artifact.Identity}' could not be started."
+
+    let acquireAndLaunch artifact policy = launch Map.empty artifact policy
+
+    let internal acquireAndLaunchWithEnvironment environment artifact policy =
+        launch environment artifact policy

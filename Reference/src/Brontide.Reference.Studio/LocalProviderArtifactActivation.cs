@@ -118,7 +118,13 @@ public static class LocalProviderArtifactActivator
 {
     public static LocalProviderActivation AcquireAndLaunch(
         LocalProviderArtifact artifact,
-        LocalProviderLaunchPolicy policy)
+        LocalProviderLaunchPolicy policy) =>
+        AcquireAndLaunch(artifact, policy, null);
+
+    internal static LocalProviderActivation AcquireAndLaunch(
+        LocalProviderArtifact artifact,
+        LocalProviderLaunchPolicy policy,
+        IReadOnlyDictionary<string, string>? environment)
     {
         ArgumentNullException.ThrowIfNull(artifact);
         ArgumentNullException.ThrowIfNull(policy);
@@ -182,6 +188,11 @@ public static class LocalProviderArtifactActivator
         foreach (var argument in artifact.Arguments)
         {
             startInfo.ArgumentList.Add(argument);
+        }
+        if (environment is not null)
+        {
+            foreach (var item in environment)
+                startInfo.Environment[item.Key] = item.Value;
         }
 
         var process = new Process { StartInfo = startInfo };

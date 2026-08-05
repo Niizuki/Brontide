@@ -1,0 +1,9 @@
+{
+  "format": "CBI55",
+  "vectors": [
+    { "name": "free-lease", "effect": "exact-prior-fence", "expectedCode": "restart-effect-no-live-provider", "expectedPhase": "ready", "expectedRetries": 1 },
+    { "name": "missing-effect", "effect": "missing", "expectedCode": "restart-effect-missing", "expectedPhase": "in-flight", "expectedRetries": 0 },
+    { "name": "current-fence", "effect": "exact-current-fence", "expectedCode": "restart-effect-successor-fence-required", "expectedPhase": "in-flight", "expectedRetries": 0 },
+    { "name": "attempt-mismatch", "effect": "wrong-attempt", "expectedCode": "restart-effect-attempt-mismatch", "expectedPhase": "in-flight", "expectedRetries": 0 }
+  ]
+}

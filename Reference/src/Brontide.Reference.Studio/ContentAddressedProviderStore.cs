@@ -260,7 +260,19 @@ public sealed class ContentAddressedProviderStore
 
     public StagedProviderActivation Activate(
         StagedProviderArtifactSet staged,
-        IReadOnlyList<string> allowedArguments)
+        IReadOnlyList<string> allowedArguments) =>
+        Activate(staged, allowedArguments, null);
+
+    internal StagedProviderActivation ActivateWithEnvironment(
+        StagedProviderArtifactSet staged,
+        IReadOnlyList<string> allowedArguments,
+        IReadOnlyDictionary<string, string> environment) =>
+        Activate(staged, allowedArguments, environment);
+
+    private StagedProviderActivation Activate(
+        StagedProviderArtifactSet staged,
+        IReadOnlyList<string> allowedArguments,
+        IReadOnlyDictionary<string, string>? environment)
     {
         ArgumentNullException.ThrowIfNull(staged);
         ArgumentNullException.ThrowIfNull(allowedArguments);
@@ -285,7 +297,8 @@ public sealed class ContentAddressedProviderStore
                     CombineRelative(staged.RootPath, staged.ExecutablePath),
                     executable.Sha256,
                     staged.Arguments),
-                new LocalProviderLaunchPolicy(staged.RootPath, allowedArguments));
+                new LocalProviderLaunchPolicy(staged.RootPath, allowedArguments),
+                environment);
             if (!activation.IsLaunched)
             {
                 return StagedProviderActivation.Refused(activation.Failure!.Code, activation.Failure.Reason);

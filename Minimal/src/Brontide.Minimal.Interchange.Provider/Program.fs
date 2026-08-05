@@ -2,7 +2,10 @@ module Brontide.Minimal.Interchange.Provider.Program
 
 open System
 open System.Collections.Generic
+open System.Diagnostics
 open System.IO
+open System.Security.Cryptography
+open System.Text.Json
 open Brontide.Minimal.Binding
 open Brontide.Minimal.Binding.Portable
 open Brontide.Minimal.Experimental.ComponentManagement
@@ -42,8 +45,57 @@ let private runComponentManagement () =
     |> fun work -> work.GetAwaiter().GetResult()
     0
 
-[<EntryPoint>]
-let main arguments =
+let private acquireRestartEffectLease () =
+    let environment name = Environment.GetEnvironmentVariable name |> Option.ofObj
+    match environment "BRONTIDE_RESTART_EFFECT_LEASE",
+          environment "BRONTIDE_RESTART_EFFECT_RECEIPT",
+          environment "BRONTIDE_RESTART_EFFECT_TOKEN",
+          environment "BRONTIDE_RESTART_EFFECT_STAGED_IDENTITY" with
+    | None, None, None, None -> Ok None
+    | Some leasePath, Some receiptPath, Some token, Some stagedIdentity
+        when not (String.IsNullOrWhiteSpace leasePath)
+             && not (String.IsNullOrWhiteSpace receiptPath)
+             && not (String.IsNullOrWhiteSpace token)
+             && token.Length <= 128 && token = token.Trim()
+             && stagedIdentity.Length = 64 ->
+        try
+            let lease = new FileStream(Path.GetFullPath leasePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read)
+            try
+                use currentProcess = Process.GetCurrentProcess()
+                use output = new MemoryStream()
+                use writer = new Utf8JsonWriter(output)
+                writer.WriteStartObject()
+                writer.WriteString("format", "CBI55")
+                writer.WriteString("token", token)
+                writer.WriteString("stagedIdentity", stagedIdentity)
+                writer.WriteNumber("processId", Environment.ProcessId)
+                writer.WriteNumber("processStartUtcTicks", currentProcess.StartTime.ToUniversalTime().Ticks)
+                let executableName =
+                    Environment.ProcessPath
+                    |> Option.ofObj
+                    |> Option.bind (Path.GetFileName >> Option.ofObj)
+                    |> Option.defaultValue ""
+                if String.IsNullOrWhiteSpace executableName then invalidOp "The provider executable name is unavailable."
+                writer.WriteString("executableName", executableName)
+                writer.WriteEndObject()
+                writer.Flush()
+                let record = output.ToArray()
+                let temporary = Path.GetFullPath(receiptPath) + ".tmp"
+                use receipt = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough)
+                receipt.Write(record, 0, record.Length)
+                let tag = SHA256.HashData record
+                receipt.Write(tag, 0, tag.Length)
+                receipt.Flush true
+                receipt.Dispose()
+                File.Move(temporary, Path.GetFullPath receiptPath, true)
+                Ok(Some lease)
+            with error ->
+                lease.Dispose()
+                raise error
+        with :? IOException | :? UnauthorizedAccessException | :? InvalidOperationException | :? NotSupportedException -> Error 76
+    | _ -> Error 76
+
+let private run arguments =
     let crashAfterActivation = arguments |> Array.contains "--crash-after-activation"
     let rejectProtocol = arguments |> Array.contains "--reject-protocol"
     let ownershipProbePrefix = "--probe-exclusive-file="
@@ -128,3 +180,12 @@ let main arguments =
             crashAfterActivation
             rejectProtocol
             invoke
+
+[<EntryPoint>]
+let main arguments =
+    match acquireRestartEffectLease () with
+    | Error code -> code
+    | Ok None -> run arguments
+    | Ok(Some lease) ->
+        use _ = lease
+        run arguments
