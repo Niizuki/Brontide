@@ -17,7 +17,9 @@ type ProviderServingTrustRevalidationResult =
 type ProviderServingActivation =
     private
         { Chain: ProviderDistributionChainResult
-          Lifecycle: ComponentBindingLifecycleResult option }
+          Lifecycle: ComponentBindingLifecycleResult option
+          Occurrence: OccurrenceId }
+    member this.OccurrenceId = this.Occurrence
     member this.IsServing =
         this.Chain.Provider |> Option.exists (fun provider -> not provider.HasExited)
         && this.Lifecycle |> Option.exists (fun lifecycle ->
@@ -51,15 +53,16 @@ module ProviderServingTrustRevalidation =
             | Some provider when chain.Revalidated ->
                 let! lifecycle =
                     ComponentBindingLifecycle.activate resolution selection request provider.Conversation
-                return { Chain = chain; Lifecycle = Some lifecycle }
-            | _ -> return { Chain = chain; Lifecycle = None }
+                return { Chain = chain; Lifecycle = Some lifecycle; Occurrence = selection.Occurrence }
+            | _ -> return { Chain = chain; Lifecycle = None; Occurrence = selection.Occurrence }
         }
 
-    let revalidate
+    let private revalidateCore
         (registry: DurableProviderPublisherTrustPolicyRegistry)
         (store: ContentAddressedProviderStore)
         (activation: ProviderServingActivation)
         retirementReason
+        removeStagedSet
         =
         task {
             if isNull (box registry) then nullArg (nameof registry)
@@ -106,9 +109,10 @@ module ProviderServingTrustRevalidation =
                         let mutable retirementCode =
                             match retired with Ok _ -> "retired" | Error _ -> "retirement-failed"
                         provider.Dispose()
-                        let removal = store.Remove stagedIdentity
-                        if not removal.Removed && removal.Code <> "artifact-set-not-staged" then
-                            retirementCode <- $"{retirementCode};{removal.Code}"
+                        if removeStagedSet then
+                            let removal = store.Remove stagedIdentity
+                            if not removal.Removed && removal.Code <> "artifact-set-not-staged" then
+                                retirementCode <- $"{retirementCode};{removal.Code}"
                         return
                             { Code = trust.Code; RefusedBy = "cbi35"
                               Revalidated = true; Continued = false
@@ -122,4 +126,108 @@ module ProviderServingTrustRevalidation =
                       LaunchPolicyIdentity = chain.LaunchPolicyIdentity
                       ServingPolicyIdentity = None; Authorization = None
                       RetirementCode = "retirement-not-attempted" }
+        }
+
+    let revalidate registry store activation retirementReason =
+        revalidateCore registry store activation retirementReason true
+
+    let internal revalidateForSweep registry store activation retirementReason =
+        revalidateCore registry store activation retirementReason false
+
+type ProviderServingTrustSweepMember =
+    { Occurrence: OccurrenceId
+      Result: ProviderServingTrustRevalidationResult }
+
+type ProviderServingTrustSweepResult =
+    { Code: string
+      RefusedBy: string
+      Members: ProviderServingTrustSweepMember list
+      ContinuedCount: int
+      WithdrawnCount: int }
+
+/// Applies one deterministic, bounded host-owned trust sweep. Invocation cadence remains external.
+[<RequireQualifiedAccess>]
+module ProviderServingTrustSweep =
+    [<Literal>]
+    let MaximumMembers = 64
+
+    let run
+        (registry: DurableProviderPublisherTrustPolicyRegistry)
+        (store: ContentAddressedProviderStore)
+        (activations: ProviderServingActivation list)
+        retirementReason
+        =
+        task {
+            if String.IsNullOrWhiteSpace retirementReason then
+                invalidArg (nameof retirementReason) "retirement reason is required"
+
+            let distinct =
+                activations
+                |> List.map _.OccurrenceId
+                |> List.distinct
+                |> List.length
+
+            if List.isEmpty activations
+               || List.length activations > MaximumMembers
+               || activations |> List.exists (fun activation -> not activation.IsServing)
+               || distinct <> List.length activations then
+                return
+                    { Code = "serving-trust-sweep-invalid"; RefusedBy = "preflight"
+                      Members = []; ContinuedCount = 0; WithdrawnCount = 0 }
+            else
+                if isNull (box registry) then nullArg (nameof registry)
+                if isNull (box store) then nullArg (nameof store)
+
+                let ordered =
+                    activations
+                    |> List.sortWith (fun left right ->
+                        String.CompareOrdinal(
+                            OccurrenceId.value left.OccurrenceId,
+                            OccurrenceId.value right.OccurrenceId))
+                let members = ResizeArray<ProviderServingTrustSweepMember>()
+                for activation in ordered do
+                    let! result =
+                        ProviderServingTrustRevalidation.revalidateForSweep registry store activation retirementReason
+                    members.Add { Occurrence = activation.OccurrenceId; Result = result }
+                let grouped =
+                    ordered
+                    |> List.choose (fun activation ->
+                        activation.Chain.StagedIdentity
+                        |> Option.map (fun staged -> staged, activation.OccurrenceId))
+                    |> List.groupBy fst
+                for stagedIdentity, groupedMembers in grouped do
+                    let occurrences = groupedMembers |> List.map snd |> Set.ofList
+                    let mustRetain =
+                        members
+                        |> Seq.exists (fun memberValue ->
+                            Set.contains memberValue.Occurrence occurrences
+                            && (memberValue.Result.Continued || not memberValue.Result.Revalidated))
+                    if not mustRetain then
+                        let removal = store.Remove stagedIdentity
+                        if not removal.Removed && removal.Code <> "artifact-set-not-staged" then
+                            for index in 0 .. members.Count - 1 do
+                                let memberValue = members[index]
+                                if Set.contains memberValue.Occurrence occurrences
+                                   && not memberValue.Result.Continued then
+                                    members[index] <-
+                                        { memberValue with
+                                            Result =
+                                                { memberValue.Result with
+                                                    RetirementCode =
+                                                        $"{memberValue.Result.RetirementCode};{removal.Code}" } }
+                let observations = List.ofSeq members
+                let continued = observations |> List.sumBy (fun memberValue -> if memberValue.Result.Continued then 1 else 0)
+                let code =
+                    if observations |> List.exists (fun memberValue -> not memberValue.Result.Revalidated) then
+                        "serving-trust-sweep-incomplete"
+                    elif observations |> List.exists (fun memberValue ->
+                        not memberValue.Result.Continued && memberValue.Result.RetirementCode <> "retired") then
+                        "serving-trust-sweep-cleanup-incomplete"
+                    elif continued = observations.Length then
+                        "serving-trust-sweep-current"
+                    else
+                        "serving-trust-sweep-withdrawn"
+                return
+                    { Code = code; RefusedBy = "none"; Members = observations
+                      ContinuedCount = continued; WithdrawnCount = observations.Length - continued }
         }

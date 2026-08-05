@@ -141,6 +141,12 @@ launched chain result to the lifecycle created over that provider's own conversa
 member, terminates the provider, releases its lease, and attempts removal. Inspect `RetirementCode`
 for cleanup failure. The call has no timer or fan-out policy.
 
+CBI46 supplies the explicit fan-out call. Pass 1-64 opaque activations to
+`ProviderServingTrustSweep.RunAsync`; it preflights the complete set, orders by `Occurrence`, and
+returns one CBI45 result per member plus aggregate counts. Invalid sets have no effect. The sweep
+owns staged-set removal so an identity shared with a continuing member remains staged. Callers still
+own cadence, writer serialization, retry, and restart policy.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.LoadSourceEvidence`, then construct each

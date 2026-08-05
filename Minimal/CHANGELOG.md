@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased - CBI46 serving trust sweep
+
+### Added
+
+- One explicit host-owned sweep over 1-64 opaque serving activations, ordered by typed occurrence
+  identity with whole-set preflight and one CBI45 observation per admitted member.
+- Aggregate current, withdrawn, cleanup-incomplete, and post-preflight-incomplete outcomes plus shared
+  four-vector evidence in both roots.
+
+### Changed
+
+- Serving activations expose the occurrence identity bound during activation. Sweep cleanup retains a
+  staged artifact while any swept activation using the same content identity continues.
+
 ## Unreleased - CBI45 serving trust revalidation
 
 ### Added

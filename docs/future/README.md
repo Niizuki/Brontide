@@ -995,7 +995,17 @@ cleanup failure separately. The
 [`CBI45 capability contract`](../../component-management/cbi45-capability-contract.md) and
 [`contract-completeness review`](../../component-management/cbi45-contract-completeness-review.md)
 bound it to one host-driven call over one member. Host invocation policy and fan-out across a serving
-set are next; key rotation, privileged floor custody, and production isolation remain separate work.
+set were its next boundary.
+
+CBI46 now supplies that boundary as one caller-triggered sweep over 1-64 opaque serving activations.
+Both roots preflight the whole set, sort by typed occurrence identity, invoke CBI45 for every member,
+and report complete per-member observations plus an aggregate. The completeness pass found that
+naive CBI45 composition could remove a staged identity still used by a continuing sibling; sweep-
+owned cleanup now removes shared bytes only when no swept member using them continues. The
+[`CBI46 capability contract`](../../component-management/cbi46-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi46-contract-completeness-review.md)
+bound it to one explicit sequential call. Scheduling, durable retry/resumption, restart policy, key
+rotation, privileged floor custody, and production isolation remain separate work.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

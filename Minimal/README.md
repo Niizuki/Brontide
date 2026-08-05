@@ -147,7 +147,9 @@ The implementation currently provides:
   against the policy in force, refusing a publisher revoked between acquisition and launch while
   admitting one a changed policy still names; CBI45 binds that launched provider to an opaque serving
   activation and takes one explicit current-policy decision after Release, terminating lapsed service;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI45 integration
+  CBI46 performs one bounded, deterministic host-owned sweep across a serving set and preserves a
+  shared staged identity while any swept sibling continues;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI46 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

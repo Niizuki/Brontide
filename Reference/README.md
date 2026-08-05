@@ -195,7 +195,9 @@ against the policy in force, so a publisher revoked between acquisition and laun
 while a policy that changed and still admits it does. CBI45 retains the verified launch evidence,
 binds the provider conversation to an opaque serving activation, and takes one explicit current-policy
 decision after Release; lapsed trust retires the member and terminates the concrete provider. Cadence
-and fan-out across a serving set remain future work.
+remains future work. CBI46 adds one explicit host-owned sweep over 1-64 serving activations, with
+whole-set preflight, deterministic occurrence order, complete sibling observations, and shared-set
+cleanup that keeps bytes while any swept sibling continues.
 
 ## Build and test
 
