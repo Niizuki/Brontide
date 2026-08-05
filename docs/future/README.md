@@ -1082,7 +1082,15 @@ orphan and then proving it free. Missing, corrupt, mismatched, unavailable, or s
 leaves the journal in-flight. The
 [`CBI55 capability contract`](../../component-management/cbi55-capability-contract.md) and
 [`contract-completeness review`](../../component-management/cbi55-contract-completeness-review.md)
-bound the claim to one cooperative host and provider lifetime. Endpoint and authority-key rotation
+bound the claim to one cooperative host and provider lifetime.
+
+CBI56 now supplies cooperative distribution-endpoint key rotation. The current CBI39 endpoint signs
+one exact generation-plus-one successor, the host durably stages it, and only a complete CBI39
+synchronization authenticated by that successor activates it. Ordinary polling remains pinned to
+the active key, and the anchor is integrity-checked and externally floor-aware. The
+[`CBI56 capability contract`](../../component-management/cbi56-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi56-contract-completeness-review.md)
+bound the claim to response-authentication key rotation on one host. Policy-authority-key rotation
 is the next integration/security work; distributed ownership, detached-effect custody, privileged
 floor custody, and production isolation remain separate work.
 

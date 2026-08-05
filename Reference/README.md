@@ -225,6 +225,10 @@ that interrupted provider lifetime externally reconcilable: a durable record pre
 provider holds a token-specific operating-system lease and writes an exact process receipt, and a
 strictly later owner selects retry only after proving the lease free or terminating the exact orphan
 and then proving it free. Missing, corrupt, or mismatched evidence leaves the attempt in-flight.
+CBI56 adds a separate durable CBI39 endpoint-key anchor: the active endpoint may sign one exact
+successor, but that successor becomes active only after authenticating a complete CBI39
+synchronization. Staging never widens ordinary polling, and externally retained floors detect
+rollback of the active generation.
 
 ## Build and test
 

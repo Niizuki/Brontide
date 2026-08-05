@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased - CBI56 distribution-endpoint key rotation
+
+### Added
+
+- A durable, integrity-checked active CBI39 endpoint anchor with current-key-signed successor
+  staging, native successor confirmation, and external rollback-floor support.
+- Independent C1-C8 tests and shared refusal/staging vectors with the Minimal stack.
+
+### Notes
+
+- CBI56 rotates the CBI39 response-authentication key only. Policy-authority rotation, endpoint URI
+  discovery, TLS policy, failover, and privileged floor custody remain separate work.
+
 ## Unreleased - CBI55 external restart-effect reconciliation
 
 ### Added
