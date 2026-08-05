@@ -46,10 +46,30 @@ let private runComponentManagement () =
 let main arguments =
     let crashAfterActivation = arguments |> Array.contains "--crash-after-activation"
     let rejectProtocol = arguments |> Array.contains "--reject-protocol"
+    let ownershipProbePrefix = "--probe-exclusive-file="
+    let ownershipHoldPrefix = "--hold-exclusive-file="
 
-    if arguments |> Array.contains "--component-management" then
+    match arguments |> Array.tryFind (fun argument ->
+        argument.StartsWith(ownershipHoldPrefix, StringComparison.Ordinal)
+        || argument.StartsWith(ownershipProbePrefix, StringComparison.Ordinal)) with
+    | Some argument when argument.StartsWith(ownershipHoldPrefix, StringComparison.Ordinal) ->
+        use _ = new FileStream(
+            argument[ownershipHoldPrefix.Length..], FileMode.OpenOrCreate,
+            FileAccess.ReadWrite, FileShare.Read)
+        Console.Out.WriteLine "held"
+        Console.Out.Flush()
+        Console.In.ReadLine() |> ignore
+        0
+    | Some argument ->
+        try
+            use _ = new FileStream(
+                argument[ownershipProbePrefix.Length..], FileMode.OpenOrCreate,
+                FileAccess.ReadWrite, FileShare.Read)
+            0
+        with :? IOException -> 74
+    | None when arguments |> Array.contains "--component-management" ->
         runComponentManagement ()
-    elif arguments |> Array.contains "--portable" then
+    | None when arguments |> Array.contains "--portable" ->
         let prefix = "--portable-fail-after-first="
         match arguments |> Array.tryFind (fun argument -> argument.StartsWith(prefix, StringComparison.Ordinal)) with
         | Some argument ->
@@ -58,7 +78,7 @@ let main arguments =
                 runPortable arguments
             with :? IOException -> 73
         | None -> runPortable arguments
-    elif arguments |> Array.contains "--catalog" then
+    | None when arguments |> Array.contains "--catalog" ->
         let catalog = Dictionary<string, CatalogItem>(StringComparer.Ordinal)
 
         let invoke (invocation: CatalogInvocation) =
@@ -79,7 +99,7 @@ let main arguments =
                     CatalogProviderReply.failure "missing-items" missing
 
         CatalogProviderEndpoint.run invoke
-    else
+    | None ->
         let mutable state = Cooling.initial "primary" 20.0M 20.0M
 
         let invoke (loop, enabled, failureMode) =

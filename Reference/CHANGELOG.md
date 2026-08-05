@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased - CBI54 cross-process provider restart ownership
+
+### Added
+
+- Host-local operating-system lock ownership for one durable CBI53 restart lineage, with distinct
+  typed owner and lease identities and a monotone integrity-checked fencing epoch.
+- Fail-closed inspection, stale-lease rejection, process-loss recovery, shared C1-C8 vectors, and
+  real child-process exclusion evidence.
+
+### Notes
+
+- CBI54 coordinates cooperating processes on one host and shared filesystem. It does not provide a
+  distributed lease or reconcile whether an interrupted external provider effect occurred.
+
 ## Unreleased - CBI51 provider restart policy
 
 ### Added

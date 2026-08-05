@@ -217,6 +217,10 @@ and logical runtime, and admits at most one successful successor while preservin
 on refusal. CBI53 makes the bounded restart history durable: one journal is tied to the occurrence
 and retained staged identity, records an attempt in-flight before CBI52 effects, resumes committed
 history without replay, and requires explicit retry or abandonment after an interrupted attempt.
+CBI54 adds host-local cross-process ownership in front of that journal: an operating-system lock
+excludes competing processes, an integrity-checked durable epoch fences every successor owner, and
+only the current live lease may enter CBI53 recovery. Process loss releases exclusivity without
+turning the retained record into proof that an interrupted provider effect completed.
 
 ## Build and test
 

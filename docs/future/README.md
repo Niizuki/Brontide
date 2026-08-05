@@ -1065,9 +1065,16 @@ retained staged identity, and bounded policy; committed failures drive the next 
 in-flight record precedes CBI52 effects, and interrupted work remains indeterminate until explicit
 retry or abandonment. The shared vectors pin the portable history model in both roots. The
 [`CBI53 capability contract`](../../component-management/cbi53-capability-contract.md) includes the
-phase's contract-completeness review. Cross-process restart ownership is the next supervision work;
-endpoint and authority-key rotation, privileged floor custody, and production isolation remain
-separate security work.
+phase's contract-completeness review.
+
+CBI54 now supplies host-local cross-process restart ownership. A live operating-system file lock
+excludes competing host processes, while an atomically published integrity-checked epoch fences
+successor leases even when caller identities are reused. Process death releases exclusivity without
+erasing the prior epoch or claiming that an interrupted CBI53 attempt had no provider effect. The
+[`CBI54 capability contract`](../../component-management/cbi54-capability-contract.md) includes the
+phase's contract-completeness review. External reconciliation of interrupted provider effects is the
+next supervision work; distributed ownership, endpoint and authority-key rotation, privileged floor
+custody, and production isolation remain separate work.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

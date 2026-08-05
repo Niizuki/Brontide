@@ -39,6 +39,7 @@
     <Compile Include="ProviderRestartPolicy.fs" />
     <Compile Include="ProviderRestartEnforcement.fs" />
     <Compile Include="DurableProviderRestartAttemptJournal.fs" />
+    <Compile Include="DurableProviderRestartOwnership.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

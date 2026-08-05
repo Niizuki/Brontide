@@ -3,6 +3,38 @@ using Brontide.Reference.Experimental.Binding.Portable;
 using Brontide.Reference.Experimental.ComponentManagement;
 using Brontide.Reference.Vocabularies.Cooling;
 
+const string ownershipProbePrefix = "--probe-exclusive-file=";
+const string ownershipHoldPrefix = "--hold-exclusive-file=";
+var ownershipHold = args.FirstOrDefault(argument =>
+    argument.StartsWith(ownershipHoldPrefix, StringComparison.Ordinal));
+if (ownershipHold is not null)
+{
+    using var held = new FileStream(
+        ownershipHold[ownershipHoldPrefix.Length..], FileMode.OpenOrCreate,
+        FileAccess.ReadWrite, FileShare.Read);
+    await Console.Out.WriteLineAsync("held");
+    await Console.Out.FlushAsync();
+    await Console.In.ReadLineAsync();
+    return 0;
+}
+
+var ownershipProbe = args.FirstOrDefault(argument =>
+    argument.StartsWith(ownershipProbePrefix, StringComparison.Ordinal));
+if (ownershipProbe is not null)
+{
+    try
+    {
+        using var held = new FileStream(
+            ownershipProbe[ownershipProbePrefix.Length..], FileMode.OpenOrCreate,
+            FileAccess.ReadWrite, FileShare.Read);
+        return 0;
+    }
+    catch (IOException)
+    {
+        return 74;
+    }
+}
+
 if (args.Contains("--component-management", StringComparer.Ordinal))
 {
     await FakeAuthorityComparisonEndpoint.RunAsync(

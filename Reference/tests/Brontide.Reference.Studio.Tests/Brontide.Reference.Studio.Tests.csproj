@@ -174,5 +174,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi53-durable-restart-attempt-vectors.json"
           Link="component-management\fixtures\cbi53-durable-restart-attempt-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi54-restart-ownership-vectors.json"
+          Link="component-management\fixtures\cbi54-restart-ownership-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

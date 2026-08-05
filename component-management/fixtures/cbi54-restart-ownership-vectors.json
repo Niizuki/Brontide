@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "vectors": [
+    { "name": "successor-owner", "actions": ["acquire:owner-a:lease-a", "release", "acquire:owner-b:lease-b"], "expectedCode": "restart-ownership-acquired", "expectedEpoch": 2, "expectedOwner": "owner-b", "expectedLease": "lease-b", "expectedLive": true },
+    { "name": "reused-identities-advance", "actions": ["acquire:owner-a:lease-a", "release", "acquire:owner-a:lease-a"], "expectedCode": "restart-ownership-acquired", "expectedEpoch": 2, "expectedOwner": "owner-a", "expectedLease": "lease-a", "expectedLive": true },
+    { "name": "released-observation", "actions": ["acquire:owner-a:lease-a", "release", "inspect"], "expectedCode": "restart-ownership-observed", "expectedEpoch": 1, "expectedOwner": "owner-a", "expectedLease": "lease-a", "expectedLive": false }
+  ]
+}
