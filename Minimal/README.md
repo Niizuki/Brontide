@@ -168,8 +168,11 @@ The implementation currently provides:
   token-specific lifetime lease and receipt, and lets only a later owner prove absence or terminate
   the exact orphan before selecting retry while uncertainty stays in-flight;
   CBI56 durably stages an active-endpoint-signed CBI39 successor and activates it only after native
-  distribution confirmation, while ordinary polling remains pinned to the active key;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI56 integration
+  distribution confirmation, while ordinary polling remains pinned to the active key; CBI57 rotates
+  the policy authority as one durable link in the retained CBI38 chain, carrying the predecessor's
+  authorization and the successor's countersignature, so recovery re-verifies every update against
+  the authority in force at its position while the out-of-band pin never moves;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI57 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

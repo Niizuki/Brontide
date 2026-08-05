@@ -1090,9 +1090,42 @@ synchronization authenticated by that successor activates it. Ordinary polling r
 the active key, and the anchor is integrity-checked and externally floor-aware. The
 [`CBI56 capability contract`](../../component-management/cbi56-capability-contract.md) and
 [`contract-completeness review`](../../component-management/cbi56-contract-completeness-review.md)
-bound the claim to response-authentication key rotation on one host. Policy-authority-key rotation
-is the next integration/security work; distributed ownership, detached-effect custody, privileged
-floor custody, and production isolation remain separate work.
+bound the claim to response-authentication key rotation on one host.
+
+CBI57 rotates the other key — the CBI37 authority that signs publisher-trust policy — and its result
+is that **the shape CBI56 just established is the wrong one here, for a reason that generalises**.
+CBI56 keeps its successor in a separate anchor and proves possession by completing one live
+synchronization under the staged key, because an endpoint key authenticates a response that is judged
+once and leaves nothing behind. A policy-authority key signs the record CBI38 replays on *every*
+start, so its rotation is a fact about history rather than about now: a successor recorded beside the
+chain leaves recovery unable to verify the updates the predecessor signed, and trusting them
+unverified is exactly what that replay exists to prevent. **The rotation is therefore a link in the
+same retained chain the policy updates form**, and recovery re-verifies each update against the
+authority in force at its own position.
+
+The same difference removes a phase rather than adding one. **Possession of an authority key is
+proven by a signature, which is all an authority key ever does**, so the successor's countersignature
+over the same manifest is the proof, and CBI57 has no staged successor to announce, confirm, or
+abandon — the absent phase is the contract, as it was for CBI17's synchronous succession, and a named
+test asserts the absence. What the pin buys is that it never moves: CBI43's chain records the trust
+root rather than the signing key, so CBI44's launch decision and CBI45's serving revalidation compare
+an identity a rotation cannot disturb, and both roots run a serving member across a rotation *and* an
+update signed by the successor to show it. Had the verified snapshot begun naming the signing key,
+every rotation would have retired every serving member — CBI44's decision-versus-identity finding
+arriving one level up.
+
+Writing the slice also caught one of its own tests proving nothing: the first C7 draft compared the
+current policy snapshot before and after a rotation, which no implementation could fail, because a
+rotation does not touch it. It was replaced by the *next* snapshot still naming the pin, which a
+wrong implementation moves. The retained record advances its format marker only when a rotation
+exists, so a host that never rotates keeps the bytes CBI38 wrote. The
+[`CBI57 capability contract`](../../component-management/cbi57-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi57-contract-completeness-review.md)
+bound it to host-local cooperative rotation of the signing key and record what it does not reach: the
+pin itself, remediation of a compromised predecessor — which can still sign an alternative successor
+at its own generation, refused only by a retained floor — and how rotation statements reach a host.
+Distributed ownership, detached-effect custody, privileged floor custody, and production isolation
+remain separate work.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

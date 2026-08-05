@@ -1,0 +1,18 @@
+{
+  "format": "CBI57",
+  "note": "Each vector starts from a checkpoint pinned to authority A holding one update signed by A, then applies the described rotation statement.",
+  "vectors": [
+    { "name": "valid-successor", "generation": 1, "policySequence": 1, "policyIdentity": "current", "previous": "A", "next": "B", "evidence": "valid", "code": "policy-authority-rotation-applied" },
+    { "name": "non-positive-generation", "generation": 0, "policySequence": 1, "policyIdentity": "current", "previous": "A", "next": "B", "evidence": "valid", "code": "policy-authority-generation-invalid" },
+    { "name": "generation-gap", "generation": 2, "policySequence": 1, "policyIdentity": "current", "previous": "A", "next": "B", "evidence": "valid", "code": "policy-authority-generation-invalid" },
+    { "name": "predecessor-mismatch", "generation": 1, "policySequence": 1, "policyIdentity": "current", "previous": "C", "next": "B", "evidence": "valid", "code": "policy-authority-predecessor-mismatch" },
+    { "name": "self-rotation", "generation": 1, "policySequence": 1, "policyIdentity": "current", "previous": "A", "next": "A", "evidence": "valid", "code": "policy-authority-self-refused" },
+    { "name": "chain-sequence-mismatch", "generation": 1, "policySequence": 0, "policyIdentity": "none", "previous": "A", "next": "B", "evidence": "valid", "code": "policy-authority-chain-mismatch" },
+    { "name": "chain-policy-mismatch", "generation": 1, "policySequence": 1, "policyIdentity": "other", "previous": "A", "next": "B", "evidence": "valid", "code": "policy-authority-chain-mismatch" },
+    { "name": "unsupported-algorithm", "generation": 1, "policySequence": 1, "policyIdentity": "current", "previous": "A", "next": "B", "evidence": "algorithm", "code": "policy-authority-evidence-invalid" },
+    { "name": "predecessor-key-mismatch", "generation": 1, "policySequence": 1, "policyIdentity": "current", "previous": "A", "next": "B", "evidence": "wrong-predecessor-key", "code": "policy-authority-key-mismatch" },
+    { "name": "successor-key-mismatch", "generation": 1, "policySequence": 1, "policyIdentity": "current", "previous": "A", "next": "B", "evidence": "wrong-successor-key", "code": "policy-authority-key-mismatch" },
+    { "name": "predecessor-signature-invalid", "generation": 1, "policySequence": 1, "policyIdentity": "current", "previous": "A", "next": "B", "evidence": "wrong-predecessor-signer", "code": "policy-authority-signature-invalid" },
+    { "name": "successor-unproven", "generation": 1, "policySequence": 1, "policyIdentity": "current", "previous": "A", "next": "B", "evidence": "wrong-successor-signer", "code": "policy-authority-successor-unproven" }
+  ]
+}

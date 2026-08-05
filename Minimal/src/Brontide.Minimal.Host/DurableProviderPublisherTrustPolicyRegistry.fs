@@ -25,17 +25,53 @@ type ProviderPublisherTrustPolicyRecoveryFloor =
     static member internal Restore(authority, sequence, policyIdentity) =
         ProviderPublisherTrustPolicyRecoveryFloor(authority, sequence, policyIdentity)
 
+/// Guards the authority generation the retained chain reaches. It is deliberately separate from the
+/// policy recovery floor: the two describe different monotone facts and have different custodians.
+type ProviderPolicyAuthorityFloor =
+    private
+    | ProviderPolicyAuthorityFloor of int64 * ProviderPublisherTrustPolicyAuthorityId
+    member this.Generation =
+        let (ProviderPolicyAuthorityFloor(generation, _)) = this
+        generation
+    member this.ActiveAuthority =
+        let (ProviderPolicyAuthorityFloor(_, authority)) = this
+        authority
+
+    static member internal Issue(generation, activeAuthority) =
+        ProviderPolicyAuthorityFloor(generation, activeAuthority)
+
+    static member Restore(generation, activeAuthority) =
+        if generation < 0L then
+            invalidArg (nameof generation) "A valid policy authority floor is required."
+        ProviderPolicyAuthorityFloor(generation, activeAuthority)
+
 type DurableProviderPublisherTrustPolicyUpdateResult =
     { Code: string
       Current: VerifiedProviderPublisherTrustPolicySnapshot option
       Floor: ProviderPublisherTrustPolicyRecoveryFloor }
     member this.IsApplied = this.Code = "policy-update-applied"
 
+type DurableProviderPolicyAuthorityRotationResult =
+    { Code: string
+      Generation: int64
+      ActiveAuthority: ProviderPublisherTrustPolicyAuthorityId
+      Floor: ProviderPolicyAuthorityFloor }
+    member this.IsApplied = this.Code = "policy-authority-rotation-applied"
+
+/// One retained link: either a policy update or the authority rotation that decides who may sign the
+/// updates after it. Both live in one record because recovery has to re-verify each update against the
+/// authority in force at its own position, which only their shared order states.
+type internal ProviderPolicyChainLink =
+    | PolicyUpdateLink of ProviderPublisherTrustPolicyUpdate
+    | AuthorityRotationLink of ProviderPolicyAuthorityRotationStatement
+
 [<RequireQualifiedAccess>]
 module private ProviderPublisherTrustCheckpointCodec =
     let maxBytes = 1024 * 1024
-    let maxUpdates = 4096
+    let maxLinks = 4096
     let maxEntries = 4096
+    let updateTag = 0
+    let rotationTag = 1
 
     let private writeInt32 (output: Stream) value =
         let bytes = Array.zeroCreate<byte> 4
@@ -54,32 +90,58 @@ module private ProviderPublisherTrustCheckpointCodec =
         try if File.Exists path then File.Delete path
         with :? IOException | :? UnauthorizedAccessException -> ()
 
-    let write path authority (updates: ProviderPublisherTrustPolicyUpdate list) =
+    let private writeRotation memory (rotation: ProviderPolicyAuthorityRotationStatement) =
+        writeInt64 memory rotation.Generation
+        writeInt64 memory rotation.PolicySequence
+        writeInt32 memory (if rotation.PolicyIdentity.IsSome then 1 else 0)
+        rotation.PolicyIdentity |> Option.iter (ProviderPublisherTrustPolicyId.value >> writeString memory)
+        writeString memory (ProviderPublisherTrustPolicyAuthorityId.value rotation.PreviousAuthority)
+        writeString memory (ProviderPublisherTrustPolicyAuthorityId.value rotation.NextAuthority)
+        writeString memory rotation.Algorithm
+        writeString memory rotation.PreviousAuthorityPublicKeySpkiBase64
+        writeString memory rotation.NextAuthorityPublicKeySpkiBase64
+        writeString memory rotation.PreviousSignatureBase64
+        writeString memory rotation.NextSignatureBase64
+
+    /// Writes the CBI38 record while the chain holds only updates and the tagged CBI57 record once it
+    /// holds a rotation, so a host that never rotates keeps a record shape earlier evidence pins and an
+    /// existing checkpoint stays readable.
+    let write path authority (links: ProviderPolicyChainLink list) =
         let temporary = path + ".tmp"
+        let entriesOf link =
+            match link with
+            | PolicyUpdateLink update -> update.Policy.Entries.Length
+            | AuthorityRotationLink _ -> 0
         try
-            if updates.Length > maxUpdates || (updates |> List.exists (fun update -> update.Policy.Entries.Length > maxEntries)) then
+            if links.Length > maxLinks || (links |> List.exists (fun link -> entriesOf link > maxEntries)) then
                 false
             else
+                let rotated = links |> List.exists (function AuthorityRotationLink _ -> true | _ -> false)
                 match Path.GetDirectoryName path with
                 | null -> invalidArg (nameof path) "A checkpoint path must have a parent directory."
                 | parent -> Directory.CreateDirectory parent |> ignore
                 use memory = new MemoryStream()
-                writeString memory "CBI38"
+                writeString memory (if rotated then "CBI57" else "CBI38")
                 writeString memory (ProviderPublisherTrustPolicyAuthorityId.value authority)
-                writeInt32 memory updates.Length
-                for update in updates do
-                    writeInt64 memory update.Sequence
-                    writeInt32 memory (if update.PreviousPolicyIdentity.IsSome then 1 else 0)
-                    update.PreviousPolicyIdentity |> Option.iter (ProviderPublisherTrustPolicyId.value >> writeString memory)
-                    writeString memory (ProviderPublisherTrustPolicyId.value update.Policy.Identity)
-                    let entries = update.Policy.Entries |> List.sortBy (fun entry -> ProviderPublisherKeyId.value entry.PublisherKeyId)
-                    writeInt32 memory entries.Length
-                    for entry in entries do
-                        writeString memory (ProviderPublisherKeyId.value entry.PublisherKeyId)
-                        writeString memory (if entry.Disposition = Admitted then "admitted" else "revoked")
-                    writeString memory update.Algorithm
-                    writeString memory update.AuthorityPublicKeySpkiBase64
-                    writeString memory update.SignatureBase64
+                writeInt32 memory links.Length
+                for link in links do
+                    if rotated then
+                        writeInt32 memory (match link with PolicyUpdateLink _ -> updateTag | _ -> rotationTag)
+                    match link with
+                    | AuthorityRotationLink rotation -> writeRotation memory rotation
+                    | PolicyUpdateLink update ->
+                        writeInt64 memory update.Sequence
+                        writeInt32 memory (if update.PreviousPolicyIdentity.IsSome then 1 else 0)
+                        update.PreviousPolicyIdentity |> Option.iter (ProviderPublisherTrustPolicyId.value >> writeString memory)
+                        writeString memory (ProviderPublisherTrustPolicyId.value update.Policy.Identity)
+                        let entries = update.Policy.Entries |> List.sortBy (fun entry -> ProviderPublisherKeyId.value entry.PublisherKeyId)
+                        writeInt32 memory entries.Length
+                        for entry in entries do
+                            writeString memory (ProviderPublisherKeyId.value entry.PublisherKeyId)
+                            writeString memory (if entry.Disposition = Admitted then "admitted" else "revoked")
+                        writeString memory update.Algorithm
+                        writeString memory update.AuthorityPublicKeySpkiBase64
+                        writeString memory update.SignatureBase64
                 if memory.Length > int64 maxBytes then false
                 else
                     use output = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough)
@@ -120,31 +182,54 @@ module private ProviderPublisherTrustCheckpointCodec =
                     let value = UTF8Encoding(false, true).GetString(bytes, offset, length)
                     offset <- offset + length
                     value
-                if string () <> "CBI38" then Error "corrupt"
+                let format = string ()
+                if format <> "CBI38" && format <> "CBI57" then Error "corrupt"
                 else
+                    let tagged = format = "CBI57"
                     let authority = string () |> ProviderPublisherTrustPolicyAuthorityId.create
                     let count = int32 ()
-                    if count < 0 || count > maxUpdates then Error "corrupt"
+                    if count < 0 || count > maxLinks then Error "corrupt"
                     else
-                        let updates = ResizeArray<ProviderPublisherTrustPolicyUpdate>()
+                        let links = ResizeArray<ProviderPolicyChainLink>()
                         for _ in 1..count do
-                            let sequence = int64 ()
-                            let presence = int32 ()
-                            if presence <> 0 && presence <> 1 then raise (InvalidDataException())
-                            let previous = if presence = 1 then Some(string () |> ProviderPublisherTrustPolicyId.create) else None
-                            let identity = string () |> ProviderPublisherTrustPolicyId.create
-                            let entryCount = int32 ()
-                            if entryCount < 0 || entryCount > maxEntries then raise (InvalidDataException())
-                            let entries =
-                                [ for _ in 1..entryCount do
-                                    let key = string () |> ProviderPublisherKeyId.create
-                                    let disposition = match string () with "admitted" -> Admitted | "revoked" -> Revoked | _ -> raise (InvalidDataException())
-                                    { PublisherKeyId = key; Disposition = disposition } ]
-                            updates.Add
-                                { Sequence = sequence; PreviousPolicyIdentity = previous
-                                  Policy = { Identity = identity; Entries = entries }
-                                  Algorithm = string (); AuthorityPublicKeySpkiBase64 = string (); SignatureBase64 = string () }
-                        if offset <> bytes.Length then Error "corrupt" else Ok(authority, List.ofSeq updates)
+                            let tag = if tagged then int32 () else updateTag
+                            if tag <> updateTag && tag <> rotationTag then raise (InvalidDataException())
+                            if tag = rotationTag then
+                                let generation = int64 ()
+                                let policySequence = int64 ()
+                                let presence = int32 ()
+                                if presence <> 0 && presence <> 1 then raise (InvalidDataException())
+                                let policyIdentity =
+                                    if presence = 1 then Some(string () |> ProviderPublisherTrustPolicyId.create) else None
+                                let previousAuthority = string () |> ProviderPublisherTrustPolicyAuthorityId.create
+                                let nextAuthority = string () |> ProviderPublisherTrustPolicyAuthorityId.create
+                                links.Add(AuthorityRotationLink
+                                    { Generation = generation; PolicySequence = policySequence
+                                      PolicyIdentity = policyIdentity
+                                      PreviousAuthority = previousAuthority; NextAuthority = nextAuthority
+                                      Algorithm = string ()
+                                      PreviousAuthorityPublicKeySpkiBase64 = string ()
+                                      NextAuthorityPublicKeySpkiBase64 = string ()
+                                      PreviousSignatureBase64 = string ()
+                                      NextSignatureBase64 = string () })
+                            else
+                                let sequence = int64 ()
+                                let presence = int32 ()
+                                if presence <> 0 && presence <> 1 then raise (InvalidDataException())
+                                let previous = if presence = 1 then Some(string () |> ProviderPublisherTrustPolicyId.create) else None
+                                let identity = string () |> ProviderPublisherTrustPolicyId.create
+                                let entryCount = int32 ()
+                                if entryCount < 0 || entryCount > maxEntries then raise (InvalidDataException())
+                                let entries =
+                                    [ for _ in 1..entryCount do
+                                        let key = string () |> ProviderPublisherKeyId.create
+                                        let disposition = match string () with "admitted" -> Admitted | "revoked" -> Revoked | _ -> raise (InvalidDataException())
+                                        { PublisherKeyId = key; Disposition = disposition } ]
+                                links.Add(PolicyUpdateLink
+                                    { Sequence = sequence; PreviousPolicyIdentity = previous
+                                      Policy = { Identity = identity; Entries = entries }
+                                      Algorithm = string (); AuthorityPublicKeySpkiBase64 = string (); SignatureBase64 = string () })
+                        if offset <> bytes.Length then Error "corrupt" else Ok(authority, List.ofSeq links)
         with
         | :? IOException
         | :? UnauthorizedAccessException
@@ -154,12 +239,25 @@ module private ProviderPublisherTrustCheckpointCodec =
 
     let removeTemporary path = tryDelete (path + ".tmp")
 
+[<RequireQualifiedAccess>]
+module private ProviderPolicyChainReplay =
+    /// Replays a retained chain in stored order, so each update is verified against the authority the
+    /// preceding rotations put in force rather than against the pin alone.
+    let run pin (stored: ProviderPolicyChainLink list) =
+        let replayed = ProviderPublisherTrustPolicyRegistry pin
+        let complete =
+            stored
+            |> List.forall (function
+                | PolicyUpdateLink update -> (replayed.Apply update).IsApplied
+                | AuthorityRotationLink rotation -> (replayed.Rotate rotation).IsApplied)
+        replayed, complete
+
 type DurableProviderPublisherTrustPolicyRegistry private (
     path: string,
     registry: ProviderPublisherTrustPolicyRegistry,
-    initialUpdates: ProviderPublisherTrustPolicyUpdate list) =
+    initialLinks: ProviderPolicyChainLink list) =
     let syncRoot = obj ()
-    let mutable updates = initialUpdates
+    let mutable links = initialLinks
 
     let floor () =
         let current = registry.Current
@@ -168,31 +266,70 @@ type DurableProviderPublisherTrustPolicyRegistry private (
             current |> Option.map _.Sequence |> Option.defaultValue 0L,
             current |> Option.map _.Policy.Identity)
 
+    let authorityFloor () =
+        ProviderPolicyAuthorityFloor.Issue(registry.AuthorityGeneration, registry.ActiveAuthorityIdentity)
+
+    let replay = ProviderPolicyChainReplay.run
+
     member _.Current = registry.Current
 
     member _.AuthorityIdentity = registry.AuthorityIdentity
 
+    member _.ActiveAuthorityIdentity = registry.ActiveAuthorityIdentity
+
+    member _.AuthorityGeneration = registry.AuthorityGeneration
+
     member _.Floor = floor ()
+
+    member _.AuthorityFloor = authorityFloor ()
 
     member _.Apply(update: ProviderPublisherTrustPolicyUpdate) =
         if isNull (box update) then nullArg (nameof update)
         lock syncRoot (fun () ->
-            let shadow = ProviderPublisherTrustPolicyRegistry registry.AuthorityIdentity
-            updates |> List.iter (shadow.Apply >> ignore)
+            let shadow, _ = replay registry.AuthorityIdentity links
             let validation = shadow.Apply update
             if not validation.IsApplied then
                 { Code = validation.Code; Current = registry.Current; Floor = floor () }
             else
                 let normalizedPolicy = ProviderPublisherTrustEvaluator.tryValidate update.Policy |> Option.get
                 let normalized = { update with Policy = normalizedPolicy }
-                let successor = updates @ [ normalized ]
+                let successor = links @ [ PolicyUpdateLink normalized ]
                 if not (ProviderPublisherTrustCheckpointCodec.write path registry.AuthorityIdentity successor) then
                     { Code = "policy-checkpoint-write-failed"; Current = registry.Current; Floor = floor () }
                 else
                     let applied = registry.Apply normalized
                     if not applied.IsApplied then invalidOp "A published checkpoint must apply to its unchanged live registry."
-                    updates <- successor
+                    links <- successor
                     { Code = applied.Code; Current = applied.Current; Floor = floor () })
+
+    /// Publishes one authority transition and only then advances the live authority, in the order CBI38
+    /// applies to a policy update: a live authority no checkpoint records would be forgotten by the next
+    /// recovery, which is the direction that loses work rather than the one that repeats it.
+    member _.Rotate(statement: ProviderPolicyAuthorityRotationStatement) =
+        if isNull (box statement) then nullArg (nameof statement)
+        lock syncRoot (fun () ->
+            let shadow, _ = replay registry.AuthorityIdentity links
+            let validation = shadow.Rotate statement
+            if not validation.IsApplied then
+                { Code = validation.Code
+                  Generation = registry.AuthorityGeneration
+                  ActiveAuthority = registry.ActiveAuthorityIdentity
+                  Floor = authorityFloor () }
+            else
+                let successor = links @ [ AuthorityRotationLink statement ]
+                if not (ProviderPublisherTrustCheckpointCodec.write path registry.AuthorityIdentity successor) then
+                    { Code = "policy-checkpoint-write-failed"
+                      Generation = registry.AuthorityGeneration
+                      ActiveAuthority = registry.ActiveAuthorityIdentity
+                      Floor = authorityFloor () }
+                else
+                    let applied = registry.Rotate statement
+                    if not applied.IsApplied then invalidOp "A published rotation must apply to its unchanged live registry."
+                    links <- successor
+                    { Code = applied.Code
+                      Generation = applied.Generation
+                      ActiveAuthority = applied.ActiveAuthority
+                      Floor = authorityFloor () })
 
     member _.Govern(acquirer: TrustedProviderArtifactAcquirer) = GovernedProviderArtifactAcquirer(registry, acquirer)
 
@@ -200,28 +337,40 @@ type DurableProviderPublisherTrustPolicyRegistry private (
         path: string,
         authority: ProviderPublisherTrustPolicyAuthorityId,
         recoveryFloor: ProviderPublisherTrustPolicyRecoveryFloor option) =
+        let code, registry, floor, _ =
+            DurableProviderPublisherTrustPolicyRegistry.Open(path, authority, recoveryFloor, None)
+        code, registry, floor
+
+    static member Open(
+        path: string,
+        authority: ProviderPublisherTrustPolicyAuthorityId,
+        recoveryFloor: ProviderPublisherTrustPolicyRecoveryFloor option,
+        authorityFloor: ProviderPolicyAuthorityFloor option) =
         if String.IsNullOrWhiteSpace path then invalidArg (nameof path) "A checkpoint path is required."
         let fullPath = Path.GetFullPath path
         match recoveryFloor with
         | Some value when value.AuthorityIdentity <> authority ->
-            "policy-checkpoint-authority-mismatch", None, None
+            "policy-checkpoint-authority-mismatch", None, None, None
         | _ ->
             ProviderPublisherTrustCheckpointCodec.removeTemporary fullPath
             if not (File.Exists fullPath) then
-                match recoveryFloor with
-                | Some value when value.Sequence > 0L -> "policy-checkpoint-rollback-detected", None, None
+                match recoveryFloor, authorityFloor with
+                | Some value, _ when value.Sequence > 0L -> "policy-checkpoint-rollback-detected", None, None, None
+                | _, Some value when value.Generation > 0L || value.ActiveAuthority <> authority ->
+                    "policy-authority-rollback-detected", None, None, None
                 | _ ->
                     let durable = DurableProviderPublisherTrustPolicyRegistry(fullPath, ProviderPublisherTrustPolicyRegistry authority, [])
-                    "policy-checkpoint-empty", Some durable, Some(durable |> fun value ->
-                        ProviderPublisherTrustPolicyRecoveryFloor(authority, 0L, None))
+                    "policy-checkpoint-empty", Some durable,
+                    Some(ProviderPublisherTrustPolicyRecoveryFloor(authority, 0L, None)),
+                    Some durable.AuthorityFloor
             else
                 match ProviderPublisherTrustCheckpointCodec.read fullPath with
-                | Error _ -> "policy-checkpoint-corrupt", None, None
-                | Ok(storedAuthority, _) when storedAuthority <> authority -> "policy-checkpoint-authority-mismatch", None, None
-                | Ok(_, storedUpdates) ->
-                    let recovered = ProviderPublisherTrustPolicyRegistry authority
-                    let valid = storedUpdates |> List.forall (fun update -> (recovered.Apply update).IsApplied)
-                    if not valid then "policy-checkpoint-invalid-chain", None, None
+                | Error _ -> "policy-checkpoint-corrupt", None, None, None
+                | Ok(storedAuthority, _) when storedAuthority <> authority ->
+                    "policy-checkpoint-authority-mismatch", None, None, None
+                | Ok(_, storedLinks) ->
+                    let recovered, complete = ProviderPolicyChainReplay.run authority storedLinks
+                    if not complete then "policy-checkpoint-invalid-chain", None, None, None
                     else
                         let rollback =
                             match recoveryFloor, recovered.Current with
@@ -230,12 +379,20 @@ type DurableProviderPublisherTrustPolicyRegistry private (
                                 current.Sequence < floor.Sequence
                                 || (current.Sequence = floor.Sequence && Some current.Policy.Identity <> floor.PolicyIdentity)
                             | None, _ -> false
-                        if rollback then "policy-checkpoint-rollback-detected", None, None
+                        let authorityRollback =
+                            authorityFloor
+                            |> Option.exists (fun value ->
+                                recovered.AuthorityGeneration < value.Generation
+                                || (recovered.AuthorityGeneration = value.Generation
+                                    && recovered.ActiveAuthorityIdentity <> value.ActiveAuthority))
+                        if rollback then "policy-checkpoint-rollback-detected", None, None, None
+                        elif authorityRollback then "policy-authority-rollback-detected", None, None, None
                         else
-                            let durable = DurableProviderPublisherTrustPolicyRegistry(fullPath, recovered, storedUpdates)
-                            "policy-checkpoint-recovered", Some durable, Some(durable |> fun _ ->
-                                let current = recovered.Current
-                                ProviderPublisherTrustPolicyRecoveryFloor(
-                                    authority,
-                                    current |> Option.map _.Sequence |> Option.defaultValue 0L,
-                                    current |> Option.map _.Policy.Identity))
+                            let durable = DurableProviderPublisherTrustPolicyRegistry(fullPath, recovered, storedLinks)
+                            let current = recovered.Current
+                            "policy-checkpoint-recovered", Some durable,
+                            Some(ProviderPublisherTrustPolicyRecoveryFloor(
+                                authority,
+                                current |> Option.map _.Sequence |> Option.defaultValue 0L,
+                                current |> Option.map _.Policy.Identity)),
+                            Some durable.AuthorityFloor
