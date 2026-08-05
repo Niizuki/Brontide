@@ -220,7 +220,11 @@ history without replay, and requires explicit retry or abandonment after an inte
 CBI54 adds host-local cross-process ownership in front of that journal: an operating-system lock
 excludes competing processes, an integrity-checked durable epoch fences every successor owner, and
 only the current live lease may enter CBI53 recovery. Process loss releases exclusivity without
-turning the retained record into proof that an interrupted provider effect completed.
+turning the retained record into proof that an interrupted provider effect completed. CBI55 makes
+that interrupted provider lifetime externally reconcilable: a durable record precedes launch, the
+provider holds a token-specific operating-system lease and writes an exact process receipt, and a
+strictly later owner selects retry only after proving the lease free or terminating the exact orphan
+and then proving it free. Missing, corrupt, or mismatched evidence leaves the attempt in-flight.
 
 ## Build and test
 

@@ -1072,9 +1072,19 @@ excludes competing host processes, while an atomically published integrity-check
 successor leases even when caller identities are reused. Process death releases exclusivity without
 erasing the prior epoch or claiming that an interrupted CBI53 attempt had no provider effect. The
 [`CBI54 capability contract`](../../component-management/cbi54-capability-contract.md) includes the
-phase's contract-completeness review. External reconciliation of interrupted provider effects is the
-next supervision work; distributed ownership, endpoint and authority-key rotation, privileged floor
-custody, and production isolation remain separate work.
+phase's contract-completeness review.
+
+CBI55 now supplies external reconciliation of that interrupted provider effect. A durable record
+binds the exact CBI53 attempt to its CBI54 fence before launch; the cooperating provider holds a
+token-specific operating-system lease and publishes a bounded process receipt. A strictly later
+owner may select retry only after proving the lease free, or after matching and terminating the exact
+orphan and then proving it free. Missing, corrupt, mismatched, unavailable, or still-busy evidence
+leaves the journal in-flight. The
+[`CBI55 capability contract`](../../component-management/cbi55-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi55-contract-completeness-review.md)
+bound the claim to one cooperative host and provider lifetime. Endpoint and authority-key rotation
+is the next integration/security work; distributed ownership, detached-effect custody, privileged
+floor custody, and production isolation remain separate work.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

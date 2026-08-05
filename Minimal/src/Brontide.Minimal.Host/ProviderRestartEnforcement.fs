@@ -23,7 +23,7 @@ module ProviderRestartEnforcement =
           LifecycleReconstructed = lifecycleReconstructed
           LogicalGenerationPreserved = logicalGenerationPreserved }
 
-    let run
+    let private runCore environment
         (policy: ProviderRestartPolicy)
         (registry: DurableProviderPublisherTrustPolicyRegistry)
         (store: ContentAddressedProviderStore)
@@ -60,7 +60,10 @@ module ProviderRestartEnforcement =
                             return result "provider-restart-activation-unavailable" "state" decision None false false false
                         | Some priorProvider, Some priorLifecycle ->
                             let staged = priorProvider.StagedArtifacts
-                            match store.Activate(staged, staged.Arguments) with
+                            match
+                                if Map.isEmpty environment then store.Activate(staged, staged.Arguments)
+                                else store.ActivateWithEnvironment(staged, staged.Arguments, environment)
+                            with
                             | StagedProviderActivation.Refused failure ->
                                 return result failure.Code "cbi31" decision None false false false
                             | StagedProviderActivation.Launched provider ->
@@ -94,3 +97,9 @@ module ProviderRestartEnforcement =
                         launchedProvider |> Option.iter (fun provider -> provider.Dispose())
                     activation.FinishRestart completed
     }
+
+    let run policy registry store activation cause currentCyclePolicyIdentity now attemptCount lastAttempt =
+        runCore Map.empty policy registry store activation cause currentCyclePolicyIdentity now attemptCount lastAttempt
+
+    let internal runWithEffectEnvironment environment policy registry store activation cause currentCyclePolicyIdentity now attemptCount lastAttempt =
+        runCore environment policy registry store activation cause currentCyclePolicyIdentity now attemptCount lastAttempt

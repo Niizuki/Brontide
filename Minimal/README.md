@@ -164,7 +164,10 @@ The implementation currently provides:
   restart effects, and requires explicit retry or abandonment after interruption; CBI54 places a
   host-local operating-system lock and durable monotone fencing epoch in front of that journal, so
   only the current live cross-process lease may enter recovery while process loss preserves history;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI54 integration
+  CBI55 durably names the exact provider effect before launch, makes the cooperating provider hold a
+  token-specific lifetime lease and receipt, and lets only a later owner prove absence or terminate
+  the exact orphan before selecting retry while uncertainty stays in-flight;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI55 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

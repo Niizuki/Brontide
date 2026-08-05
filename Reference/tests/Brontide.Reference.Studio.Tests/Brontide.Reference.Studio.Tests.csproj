@@ -177,5 +177,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi54-restart-ownership-vectors.json"
           Link="component-management\fixtures\cbi54-restart-ownership-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi55-restart-effect-reconciliation-vectors.json"
+          Link="component-management\fixtures\cbi55-restart-effect-reconciliation-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

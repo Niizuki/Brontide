@@ -2,6 +2,69 @@ using Brontide.Reference.Experimental.Binding;
 using Brontide.Reference.Experimental.Binding.Portable;
 using Brontide.Reference.Experimental.ComponentManagement;
 using Brontide.Reference.Vocabularies.Cooling;
+using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text.Json;
+
+static FileStream? AcquireRestartEffectLease()
+{
+    var leasePath = Environment.GetEnvironmentVariable("BRONTIDE_RESTART_EFFECT_LEASE");
+    var receiptPath = Environment.GetEnvironmentVariable("BRONTIDE_RESTART_EFFECT_RECEIPT");
+    var token = Environment.GetEnvironmentVariable("BRONTIDE_RESTART_EFFECT_TOKEN");
+    var stagedIdentity = Environment.GetEnvironmentVariable("BRONTIDE_RESTART_EFFECT_STAGED_IDENTITY");
+    if (leasePath is null && receiptPath is null && token is null && stagedIdentity is null) return null;
+    if (string.IsNullOrWhiteSpace(leasePath) || string.IsNullOrWhiteSpace(receiptPath)
+        || string.IsNullOrWhiteSpace(token) || token.Length > 128 || token != token.Trim()
+        || stagedIdentity is null || stagedIdentity.Length != 64)
+        throw new InvalidOperationException("The restart effect environment is incomplete.");
+
+    var lease = new FileStream(Path.GetFullPath(leasePath), FileMode.OpenOrCreate,
+        FileAccess.ReadWrite, FileShare.Read);
+    try
+    {
+        using var process = Process.GetCurrentProcess();
+        var executableName = Path.GetFileName(Environment.ProcessPath);
+        if (string.IsNullOrWhiteSpace(executableName))
+            throw new InvalidOperationException("The provider executable name is unavailable.");
+        using var output = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(output))
+        {
+            writer.WriteStartObject();
+            writer.WriteString("format", "CBI55");
+            writer.WriteString("token", token);
+            writer.WriteString("stagedIdentity", stagedIdentity);
+            writer.WriteNumber("processId", Environment.ProcessId);
+            writer.WriteNumber("processStartUtcTicks", process.StartTime.ToUniversalTime().Ticks);
+            writer.WriteString("executableName", executableName);
+            writer.WriteEndObject();
+        }
+        var record = output.ToArray();
+        var temporary = Path.GetFullPath(receiptPath) + ".tmp";
+        using (var receipt = new FileStream(temporary, FileMode.Create, FileAccess.Write,
+                   FileShare.None, 4096, FileOptions.WriteThrough))
+        {
+            receipt.Write(record);
+            receipt.Write(SHA256.HashData(record));
+            receipt.Flush(flushToDisk: true);
+        }
+        File.Move(temporary, Path.GetFullPath(receiptPath), overwrite: true);
+        return lease;
+    }
+    catch
+    {
+        lease.Dispose();
+        throw;
+    }
+}
+
+FileStream? restartEffectLease;
+try { restartEffectLease = AcquireRestartEffectLease(); }
+catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
+    or InvalidOperationException or NotSupportedException)
+{
+    return 76;
+}
+using var heldRestartEffectLease = restartEffectLease;
 
 const string ownershipProbePrefix = "--probe-exclusive-file=";
 const string ownershipHoldPrefix = "--hold-exclusive-file=";

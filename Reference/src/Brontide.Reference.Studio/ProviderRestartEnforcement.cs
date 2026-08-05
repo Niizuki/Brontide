@@ -23,7 +23,35 @@ public static class ProviderRestartEnforcement
         ProviderPublisherTrustPolicyId currentCyclePolicyIdentity,
         DateTimeOffset now,
         int attemptCount,
-        DateTimeOffset? lastAttempt)
+        DateTimeOffset? lastAttempt) =>
+        await RunCoreAsync(policy, registry, store, activation, cause, currentCyclePolicyIdentity,
+            now, attemptCount, lastAttempt, null).ConfigureAwait(false);
+
+    internal static async ValueTask<ProviderRestartEnforcementResult> RunWithEffectEnvironmentAsync(
+        ProviderRestartPolicy policy,
+        DurableProviderPublisherTrustPolicyRegistry registry,
+        ContentAddressedProviderStore store,
+        ProviderServingActivation activation,
+        ProviderRestartCause cause,
+        ProviderPublisherTrustPolicyId currentCyclePolicyIdentity,
+        DateTimeOffset now,
+        int attemptCount,
+        DateTimeOffset? lastAttempt,
+        IReadOnlyDictionary<string, string> environment) =>
+        await RunCoreAsync(policy, registry, store, activation, cause, currentCyclePolicyIdentity,
+            now, attemptCount, lastAttempt, environment).ConfigureAwait(false);
+
+    private static async ValueTask<ProviderRestartEnforcementResult> RunCoreAsync(
+        ProviderRestartPolicy policy,
+        DurableProviderPublisherTrustPolicyRegistry registry,
+        ContentAddressedProviderStore store,
+        ProviderServingActivation activation,
+        ProviderRestartCause cause,
+        ProviderPublisherTrustPolicyId currentCyclePolicyIdentity,
+        DateTimeOffset now,
+        int attemptCount,
+        DateTimeOffset? lastAttempt,
+        IReadOnlyDictionary<string, string>? environment)
     {
         ArgumentNullException.ThrowIfNull(policy);
         ArgumentNullException.ThrowIfNull(registry);
@@ -53,7 +81,9 @@ public static class ProviderRestartEnforcement
                 return Result("provider-restart-activation-unavailable", "state", decision);
 
             var staged = priorProvider.StagedArtifacts;
-            var launched = store.Activate(staged, staged.Arguments);
+            var launched = environment is null
+                ? store.Activate(staged, staged.Arguments)
+                : store.ActivateWithEnvironment(staged, staged.Arguments, environment);
             if (launched.Owner is not { } provider)
                 return Result(launched.Failure!.Code, "cbi31", decision);
             launchedProvider = provider;
