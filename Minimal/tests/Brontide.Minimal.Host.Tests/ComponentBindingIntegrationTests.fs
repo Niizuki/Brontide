@@ -11110,9 +11110,11 @@ type ComponentBindingIntegrationTests() =
             let named (value: string | null) =
                 match value with null -> failwith "A provider path component was missing." | present -> present
             let providerRoot = Path.GetDirectoryName executable |> named
+            let integrityProbePath = "cbi52-integrity-probe.bin"
             let bytes =
                 Directory.EnumerateFiles providerRoot |> Seq.sort
                 |> Seq.map (fun path -> Path.GetFileName path |> named, File.ReadAllBytes path) |> Map.ofSeq
+                |> Map.add integrityProbePath [| 0x43uy; 0x42uy; 0x49uy; 0x35uy; 0x32uy |]
             let files = bytes |> Map.toList |> List.map (fun (path, content) ->
                 { RelativePath = path; Sha256 = SHA256.HashData content |> Convert.ToHexString
                   Length = int64 content.LongLength }: ProviderArtifactAcquisitionFile)
@@ -11180,8 +11182,12 @@ type ComponentBindingIntegrationTests() =
                                 (Some "policy-distribution-timeout") [ activation ] "offline grace ended"
             Assert.That(stopped.Code, Is.EqualTo "offline-enforcement-stopped")
             if scenario = "restart-enforce-artifact-mutated" then
-                File.SetAttributes(chain.StagedExecutablePath.Value, FileAttributes.Normal)
-                do! File.AppendAllTextAsync(chain.StagedExecutablePath.Value, "mutated")
+                // Corrupt an inert signed member so whole-set verification is independent of
+                // Windows executable-image lock release timing.
+                let stagedRoot = Path.GetDirectoryName(chain.StagedExecutablePath.Value) |> named
+                let integrityProbe = Path.Combine(stagedRoot, integrityProbePath)
+                File.SetAttributes(integrityProbe, FileAttributes.Normal)
+                do! File.AppendAllTextAsync(integrityProbe, "mutated")
             let cause = if scenario = "restart-enforce-policy-refused" then ProviderRestartCause.OperatorRetirement
                         else ProviderRestartCause.OfflineAvailability
             let policy = ProviderRestartPolicy.create 3 (TimeSpan.FromMinutes 1.0)

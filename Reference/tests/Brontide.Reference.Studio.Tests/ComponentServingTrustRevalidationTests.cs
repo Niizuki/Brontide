@@ -221,7 +221,9 @@ public sealed partial class ComponentBindingIntegrationTests
             using var publisher = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var authorityId = ProviderPublisherTrustPolicyAuthorityId.Create(
                 Convert.ToHexString(SHA256.HashData(authority.ExportSubjectPublicKeyInfo())));
-            var (request, source) = Cbi33Input("reference", "none");
+            const string integrityProbePath = "cbi52-integrity-probe.bin";
+            var (request, source) = Cbi33Input(
+                "reference", "none", integrityProbePath, [0x43, 0x42, 0x49, 0x35, 0x32]);
             var launchArguments = scenario == "restart-enforce-lifecycle-refused"
                 ? new[] { "--portable", $"--portable-fail-after-first={Path.Combine(root, "restart.marker")}" }
                 : new[] { "--portable" };
@@ -259,8 +261,12 @@ public sealed partial class ComponentBindingIntegrationTests
 
             if (scenario == "restart-enforce-artifact-mutated")
             {
-                File.SetAttributes(chain.StagedExecutablePath!, FileAttributes.Normal);
-                await File.AppendAllTextAsync(chain.StagedExecutablePath!, "mutated");
+                // Corrupt an inert signed member: CBI52 verifies the whole retained set, while the
+                // fixture remains independent of Windows executable-image lock release timing.
+                var stagedRoot = Path.GetDirectoryName(chain.StagedExecutablePath!)!;
+                var integrityProbe = Path.Combine(stagedRoot, integrityProbePath);
+                File.SetAttributes(integrityProbe, FileAttributes.Normal);
+                await File.AppendAllTextAsync(integrityProbe, "mutated");
             }
 
             var cause = scenario == "restart-enforce-policy-refused"
