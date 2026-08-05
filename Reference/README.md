@@ -194,10 +194,12 @@ keeping each stage's own refusal code and origin. CBI44 makes the launch take it
 against the policy in force, so a publisher revoked between acquisition and launch does not run,
 while a policy that changed and still admits it does. CBI45 retains the verified launch evidence,
 binds the provider conversation to an opaque serving activation, and takes one explicit current-policy
-decision after Release; lapsed trust retires the member and terminates the concrete provider. Cadence
-remains future work. CBI46 adds one explicit host-owned sweep over 1-64 serving activations, with
+decision after Release; lapsed trust retires the member and terminates the concrete provider. CBI46
+adds one explicit host-owned sweep over 1-64 serving activations, with
 whole-set preflight, deterministic occurrence order, complete sibling observations, and shared-set
-cleanup that keeps bytes while any swept sibling continues.
+cleanup that keeps bytes while any swept sibling continues. CBI47 composes CBI41 and CBI46 into one
+bounded, injected-time host cadence: policy is current before the serving set is snapped, successful
+withdrawal continues, and invalid, incomplete, canceled, or non-current work stops visibly.
 
 ## Build and test
 

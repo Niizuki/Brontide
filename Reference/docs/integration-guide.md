@@ -145,7 +145,15 @@ CBI46 supplies the explicit fan-out call. Pass 1-64 opaque activations to
 `ProviderServingTrustSweep.RunAsync`; it preflights the complete set, orders by `Occurrence`, and
 returns one CBI45 result per member plus aggregate counts. Invalid sets have no effect. The sweep
 owns staged-set removal so an identity shared with a continuing member remains staged. Callers still
-own cadence, writer serialization, retry, and restart policy.
+own writer serialization, durable retry, and restart policy.
+
+CBI47 supplies one bounded cadence. Build a `ProviderPublisherTrustPolicyCycle` around the CBI41
+poller and a `ProviderServingTrustSweepCycle` around the source of current opaque activations, then
+pass both through `ProviderServingTrustCycle` to `ProviderServingTrustCadence.RunAsync`. The first
+cycle is immediate; later cycles use only the injected delay. A current policy is required before the
+serving set is snapped. Empty sets are successful no-ops, successful withdrawals continue, and any
+non-current poll or incomplete sweep stops before another gap. The result is an observation of this
+run, not a durable schedule or restart instruction.
 
 ## Fake Component Management CM1
 

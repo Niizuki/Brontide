@@ -32,6 +32,7 @@
     <Compile Include="ProviderDistributionChain.fs" />
     <Compile Include="ComponentBindingIntegration.fs" />
     <Compile Include="ProviderServingTrustRevalidation.fs" />
+    <Compile Include="ProviderServingTrustCadence.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

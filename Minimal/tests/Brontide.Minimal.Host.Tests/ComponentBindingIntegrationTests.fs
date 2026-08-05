@@ -5,6 +5,7 @@ open System.Diagnostics
 open System.IO
 open System.Security.Cryptography
 open System.Text.Json
+open System.Threading
 open System.Threading.Tasks
 open NUnit.Framework
 open Brontide.Minimal.Binding.Portable
@@ -11093,3 +11094,172 @@ type ComponentBindingIntegrationTests() =
                 Assert.That(actual.Order, Is.EqualTo(box expectedOrder), name)
                 Assert.That(actual.Continued, Is.EqualTo(vector.GetProperty("continued").GetInt32()), name)
                 Assert.That(actual.Withdrawn, Is.EqualTo(vector.GetProperty("withdrawn").GetInt32()), name)) }
+
+    [<Test>]
+    member _.``CBI47 C1 cadence is bounded and explicit``() =
+        let schedule = ProviderServingTrustCadenceSchedule.create 2 (TimeSpan.FromSeconds 5.0)
+        multiple (fun () ->
+            Assert.That(schedule.MaximumCycles, Is.EqualTo 2)
+            Assert.That(schedule.Interval, Is.EqualTo(TimeSpan.FromSeconds 5.0))
+            Assert.Throws<ArgumentException>(Action(fun () ->
+                ProviderServingTrustCadenceSchedule.create 0 (TimeSpan.FromSeconds 5.0) |> ignore))
+            |> ignore)
+
+    member private _.Cbi47Poll code : ProviderPublisherTrustPolicyPollResult =
+        { Code = code
+          LastAttemptCode = None
+          Attempts = 0
+          Delays = []
+          AppliedSequences = []
+          RetainedSequences = []
+          Current = None
+          Floor = Unchecked.defaultof<ProviderPublisherTrustPolicyRecoveryFloor> }
+
+    member private this.Cbi47CycleResult code : ProviderServingTrustCycleResult =
+        { Code = code
+          Poll = this.Cbi47Poll "policy-poll-current"
+          Sweep = None
+          ServingCount = 0 }
+
+    member private this.Cbi47Run(codes: string list, cancellation: string, ?maximumCycles: int) = task {
+        use source = new CancellationTokenSource()
+        if cancellation = "before-first" then source.Cancel()
+        let pending = Collections.Generic.Queue<string>(codes)
+        let cycle: ProviderServingTrustCycle =
+            fun _ _ -> Task.FromResult(this.Cbi47CycleResult(pending.Dequeue()))
+        let delay: ProviderServingTrustCadenceDelay =
+            fun now duration cancellationToken -> task {
+                if cancellation = "during-gap" then
+                    source.Cancel()
+                    cancellationToken.ThrowIfCancellationRequested()
+                return now + duration
+            }
+        let schedule =
+            ProviderServingTrustCadenceSchedule.create
+                (defaultArg maximumCycles 2) (TimeSpan.FromSeconds 5.0)
+        return! ProviderServingTrustCadence.run schedule cycle delay
+            (DateTimeOffset(2026, 8, 5, 8, 0, 0, TimeSpan.Zero)) source.Token
+    }
+
+    [<Test>]
+    member this.``CBI47 C2 the first cycle is immediate and later cycles use injected time``() = task {
+        let! result = this.Cbi47Run(
+            [ "provider-trust-cycle-current"; "provider-trust-cycle-current" ], "none")
+        multiple (fun () ->
+            Assert.That(result.Cycles |> List.map _.Instant, Is.EqualTo(box [
+                DateTimeOffset(2026, 8, 5, 8, 0, 0, TimeSpan.Zero)
+                DateTimeOffset(2026, 8, 5, 8, 0, 5, TimeSpan.Zero) ]))
+            Assert.That(result.Gaps, Is.EqualTo(box [ TimeSpan.FromSeconds 5.0 ]))) }
+
+    [<Test>]
+    member this.``CBI47 C3 current policy precedes any serving sweep``() = task {
+        let mutable servingCalls = 0
+        let policy: ProviderPublisherTrustPolicyCycle =
+            fun _ _ -> Task.FromResult(this.Cbi47Poll "policy-poll-refused")
+        let serving: ProviderServingTrustSweepCycle =
+            fun _ ->
+                servingCalls <- servingCalls + 1
+                Task.FromResult None
+        let! result =
+            (ProviderServingTrustCycle.create policy serving)
+                DateTimeOffset.UnixEpoch CancellationToken.None
+        multiple (fun () ->
+            Assert.That(result.Code, Is.EqualTo "provider-trust-cycle-stopped")
+            Assert.That(servingCalls, Is.Zero)) }
+
+    [<Test>]
+    member this.``CBI47 C4 the current serving set is swept once``() = task {
+        let mutable servingCalls = 0
+        let policy: ProviderPublisherTrustPolicyCycle =
+            fun _ _ -> Task.FromResult(this.Cbi47Poll "policy-poll-current")
+        let serving: ProviderServingTrustSweepCycle =
+            fun _ ->
+                servingCalls <- servingCalls + 1
+                Task.FromResult None
+        let! result =
+            (ProviderServingTrustCycle.create policy serving)
+                DateTimeOffset.UnixEpoch CancellationToken.None
+        multiple (fun () ->
+            Assert.That(result.Code, Is.EqualTo "provider-trust-cycle-current")
+            Assert.That(result.ServingCount, Is.Zero)
+            Assert.That(servingCalls, Is.EqualTo 1)) }
+
+    [<Test>]
+    member this.``CBI47 C5 successful withdrawal does not stop cadence``() = task {
+        let! result = this.Cbi47Run(
+            [ "provider-trust-cycle-withdrawn"; "provider-trust-cycle-current" ], "none")
+        Assert.That(result.Code, Is.EqualTo "provider-trust-cadence-complete") }
+
+    [<Test>]
+    member this.``CBI47 C6 an invalid or incomplete sweep stops before another gap``() = task {
+        for sweepCode in
+            [ "serving-trust-sweep-invalid"
+              "serving-trust-sweep-incomplete"
+              "serving-trust-sweep-cleanup-incomplete" ] do
+            let policy: ProviderPublisherTrustPolicyCycle =
+                fun _ _ -> Task.FromResult(this.Cbi47Poll "policy-poll-current")
+            let serving: ProviderServingTrustSweepCycle =
+                fun _ -> Task.FromResult(Some {
+                    Code = sweepCode; RefusedBy = "test"; Members = []
+                    ContinuedCount = 0; WithdrawnCount = 0 })
+            let! cycle =
+                (ProviderServingTrustCycle.create policy serving)
+                    DateTimeOffset.UnixEpoch CancellationToken.None
+            Assert.That(cycle.Code, Is.EqualTo("provider-trust-cycle-stopped"), sweepCode)
+
+        let! result = this.Cbi47Run(
+            [ "provider-trust-cycle-current"; "provider-trust-cycle-stopped" ],
+            "none", maximumCycles = 3)
+        multiple (fun () ->
+            Assert.That(result.Code, Is.EqualTo "provider-trust-cadence-stopped")
+            Assert.That(result.Cycles, Has.Length.EqualTo 2)
+            Assert.That(result.Gaps, Has.Length.EqualTo 1)) }
+
+    [<Test>]
+    member this.``CBI47 C7 cancellation has an exact boundary``() = task {
+        let! before = this.Cbi47Run([ "provider-trust-cycle-current" ], "before-first")
+        let! during = this.Cbi47Run(
+            [ "provider-trust-cycle-current"; "provider-trust-cycle-current" ], "during-gap")
+        multiple (fun () ->
+            Assert.That(before.Code, Is.EqualTo "provider-trust-cadence-canceled")
+            Assert.That(before.Cycles, Is.Empty)
+            Assert.That(during.Code, Is.EqualTo "provider-trust-cadence-canceled")
+            Assert.That(during.Cycles, Has.Length.EqualTo 1)
+            Assert.That(during.Gaps, Is.Empty)) }
+
+    [<Test>]
+    member this.``CBI47 C8 minimal executes the shared cadence vectors``() = task {
+        use document = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            TestContext.CurrentContext.TestDirectory, "component-management", "fixtures",
+            "cbi47-provider-trust-cadence-vectors.json")))
+        let schedule = document.RootElement.GetProperty "schedule"
+        let maximumCycles = schedule.GetProperty("maximumCycles").GetInt32()
+        let interval = TimeSpan.FromSeconds(float (schedule.GetProperty("intervalSeconds").GetInt32()))
+        Assert.That(
+            (ProviderServingTrustCadenceSchedule.create maximumCycles interval).MaximumCycles,
+            Is.EqualTo maximumCycles)
+        let textValue (value: JsonElement) = value.GetString() |> Option.ofObj |> Option.defaultValue ""
+        for vector in document.RootElement.GetProperty("vectors").EnumerateArray() do
+            let name = vector.GetProperty("name") |> textValue
+            let codes =
+                vector.GetProperty("cycleCodes").EnumerateArray()
+                |> Seq.map textValue |> Seq.toList
+            let! result = this.Cbi47Run(codes, vector.GetProperty("cancel") |> textValue)
+            let expectedGaps =
+                vector.GetProperty("expectedGapsSeconds").EnumerateArray()
+                |> Seq.map _.GetInt32() |> Seq.toList
+            multiple (fun () ->
+                Assert.That(result.Code,
+                    Is.EqualTo(vector.GetProperty("expectedCode") |> textValue), name)
+                Assert.That(result.Cycles,
+                    Has.Length.EqualTo(vector.GetProperty("expectedCycles").GetInt32()), name)
+                Assert.That(result.Cycles |> List.map _.Result.Code,
+                    Is.EqualTo(box (
+                        vector.GetProperty("expectedCycleCodes").EnumerateArray()
+                        |> Seq.map textValue |> Seq.toList)), name)
+                Assert.That(result.Cycles |> List.map _.Instant,
+                    Is.EqualTo(box (
+                        vector.GetProperty("expectedCycleInstants").EnumerateArray()
+                        |> Seq.map _.GetDateTimeOffset() |> Seq.toList)), name)
+                Assert.That(result.Gaps |> List.map (fun gap -> int gap.TotalSeconds),
+                    Is.EqualTo(box expectedGaps), name)) }
