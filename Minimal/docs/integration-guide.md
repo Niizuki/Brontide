@@ -178,6 +178,13 @@ any fail-closed stop decision retires and terminates every admitted activation i
 order and returns one observation per member. Staged artifacts remain: this is availability
 enforcement, not trust revocation, and the coordinator never restarts a provider.
 
+CBI51 decides whether that later restart may be attempted. Create `ProviderRestartPolicy` with a
+maximum attempt count and delay, then call `Evaluate` with the stopped activation, a typed cause, the
+exact policy identity established by the latest successful current cycle, injected time, and attempt
+history. `provider-restart-ready` carries a fresh authorization for the activation's retained content;
+waiting, exhausted, terminal-cause, stale-proof, trust, and malformed-history outcomes deny. The
+policy is effect-free and does not recreate the process or portable lifecycle.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each

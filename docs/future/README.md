@@ -1041,9 +1041,18 @@ terminate every admitted provider in typed occurrence order. Preflight refusal h
 member outcome does not hide siblings, and availability enforcement deliberately retains staged
 artifacts because it is not a publisher-trust withdrawal. The
 [`CBI50 capability contract`](../../component-management/cbi50-capability-contract.md) includes the
-phase's contract-completeness review. Provider restart policy is the next host work; cross-process
-ownership, endpoint and authority-key rotation, privileged floor custody, and production isolation
-remain separate security work.
+phase's contract-completeness review.
+
+CBI51 now supplies the provider restart policy. Restart eligibility requires a stopped activation,
+an availability or unexpected-exit cause, an exact identity proving that a successful current cycle
+observed the registry's present policy, and a fresh publisher authorization for the retained content.
+The effect-free decision applies a bounded attempt count and deterministic retry delay; trust
+withdrawal, operator retirement, stale current proof, malformed history, and exhausted attempts deny
+restart. The [`CBI51 capability contract`](../../component-management/cbi51-capability-contract.md)
+includes the phase's contract-completeness review. Restart enforcement—reconstructing the provider
+process and portable lifecycle from verified retained state—is the next host work; durable attempt
+history, cross-process ownership, endpoint and authority-key rotation, privileged floor custody, and
+production isolation remain separate security work.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

@@ -11006,7 +11006,50 @@ type ComponentBindingIntegrationTests() =
                     | _ -> List.ofSeq activations
                 if scenario = "unavailable-member" || scenario = "offline-unavailable" then
                     do! activations[1].Retire "make unavailable before sweep"
-                if scenario.StartsWith("offline-", StringComparison.Ordinal) then
+                if scenario.StartsWith("restart-", StringComparison.Ordinal) then
+                    let instant = DateTimeOffset(2026, 8, 5, 9, 0, 0, TimeSpan.Zero)
+                    if scenario <> "restart-still-serving" then
+                        let! stopped =
+                            ProviderOfflineServiceEnforcement.run
+                                (ProviderTrustOfflinePolicy.create (TimeSpan.FromMinutes 5.0) (TimeSpan.FromMinutes 1.0))
+                                instant (Some(instant.AddMinutes -5.0)) "policy-poll-exhausted"
+                                (Some "policy-distribution-timeout") (List.ofSeq activations) "offline grace ended"
+                        Assert.That(stopped.Code, Is.EqualTo "offline-enforcement-stopped")
+                    if scenario = "restart-trust-refused" then
+                        let successor =
+                            evidence |> List.mapi (fun index item ->
+                                { PublisherKeyId = item.PublisherKeyId
+                                  Disposition = if index = 0 then Revoked else Admitted }) |> policyOf
+                        Assert.That(registry.Apply(signUpdate 2L (Some initial.Identity) successor).IsApplied, Is.True)
+                    let currentBefore = registry.Current.Value.Policy.Identity
+                    let proof =
+                        if scenario = "restart-cycle-mismatch" then
+                            policyOf [ { PublisherKeyId = ProviderPublisherKeyId.create (String('B', 64)); Disposition = Admitted } ]
+                            |> _.Identity
+                        else currentBefore
+                    let cause =
+                        if scenario = "restart-cause-refused" then ProviderRestartCause.OperatorRetirement
+                        else ProviderRestartCause.OfflineAvailability
+                    let attempts =
+                        if scenario = "restart-exhausted" then 3
+                        elif scenario = "restart-waiting" || scenario = "restart-invalid-observation" then 1
+                        else 0
+                    let lastAttempt =
+                        if scenario = "restart-waiting" then Some(instant.AddSeconds -30.0)
+                        elif scenario = "restart-exhausted" then Some(instant.AddMinutes -1.0)
+                        else None
+                    let decision =
+                        (ProviderRestartPolicy.create 3 (TimeSpan.FromMinutes 1.0)).Evaluate(
+                            registry, activations[0], cause, proof, instant, attempts, lastAttempt)
+                    Assert.That(registry.Current.Value.Policy.Identity, Is.EqualTo currentBefore)
+                    return
+                        { Code = decision.Code; RefusedBy = decision.RefusedBy
+                          Order = decision.RetryAt |> Option.map (fun value -> [ value.ToString("O") ]) |> Option.defaultValue []
+                          MemberCodes = [ if decision.Authorization.IsSome then "authorized" else "none" ]
+                          Continued = (if decision.MayRestart then 1 else 0); Withdrawn = 0
+                          FirstServing = activations[0].IsServing; SecondServing = activations[1].IsServing
+                          StagedSetRemains = Directory.Exists storeRoot && (Directory.EnumerateDirectories storeRoot |> Seq.isEmpty |> not) }
+                elif scenario.StartsWith("offline-", StringComparison.Ordinal) then
                     let baseline = DateTimeOffset(2026, 8, 5, 8, 0, 0, TimeSpan.Zero)
                     let now = if scenario = "offline-expired" then baseline.AddMinutes 5.0 else baseline.AddMinutes 2.0
                     let pollCode = if scenario = "offline-integrity-refusal" then "policy-poll-refused" else "policy-poll-exhausted"
@@ -11161,6 +11204,57 @@ type ComponentBindingIntegrationTests() =
             let! actual = this.Cbi46Run name
             let expectedOrder = vector.GetProperty("expectedOrder").EnumerateArray() |> Seq.map textValue |> Seq.toList
             multiple (fun () -> Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("expectedCode") |> textValue), name); Assert.That(actual.Order, Is.EqualTo(box expectedOrder), name); Assert.That(actual.Withdrawn, Is.EqualTo(vector.GetProperty("stopped").GetInt32()), name); Assert.That(actual.FirstServing, Is.EqualTo(vector.GetProperty("serving").GetBoolean()), name); Assert.That(actual.StagedSetRemains, Is.EqualTo(vector.GetProperty("stagedSetRemains").GetBoolean()), name)) }
+
+    [<Test>]
+    member this.``CBI51 C1 restart policy is explicit and bounded``() = task {
+        multiple (fun () ->
+            Assert.Throws<ArgumentException>(Action(fun () -> ProviderRestartPolicy.create 0 (TimeSpan.FromMinutes 1.0) |> ignore)) |> ignore
+            Assert.Throws<ArgumentException>(Action(fun () -> ProviderRestartPolicy.create 9 (TimeSpan.FromMinutes 1.0) |> ignore)) |> ignore
+            Assert.Throws<ArgumentException>(Action(fun () -> ProviderRestartPolicy.create 3 TimeSpan.Zero |> ignore)) |> ignore)
+        let! ready = this.Cbi46Run "restart-ready"
+        Assert.That(ready.Continued, Is.EqualTo 1) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI51 C2 a current cycle proof is required``() = task {
+        let! actual = this.Cbi46Run "restart-cycle-mismatch"
+        multiple (fun () -> Assert.That(actual.Code, Is.EqualTo "provider-restart-current-proof-required"); Assert.That(actual.Continued, Is.Zero)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI51 C3 only recoverable stop causes are eligible``() = task {
+        let! refused = this.Cbi46Run "restart-cause-refused"
+        let! serving = this.Cbi46Run "restart-still-serving"
+        multiple (fun () -> Assert.That(refused.Code, Is.EqualTo "provider-restart-cause-refused"); Assert.That(serving.Code, Is.EqualTo "provider-restart-not-required")) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI51 C4 publisher trust is decided again``() = task {
+        let! ready = this.Cbi46Run "restart-ready"
+        let! refused = this.Cbi46Run "restart-trust-refused"
+        multiple (fun () -> Assert.That(ready.MemberCodes, Is.EqualTo(box [ "authorized" ])); Assert.That(refused.Code, Is.EqualTo "publisher-key-revoked"); Assert.That(refused.RefusedBy, Is.EqualTo "cbi35")) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI51 C5 attempt delay and exhaustion are deterministic``() = task {
+        let! waiting = this.Cbi46Run "restart-waiting"
+        let! exhausted = this.Cbi46Run "restart-exhausted"
+        multiple (fun () -> Assert.That(waiting.Code, Is.EqualTo "provider-restart-waiting"); Assert.That(List.length waiting.Order, Is.EqualTo 1); Assert.That(exhausted.Code, Is.EqualTo "provider-restart-exhausted")) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI51 C6 policy has zero provider and artifact effects``() = task {
+        let! actual = this.Cbi46Run "restart-ready"
+        multiple (fun () -> Assert.That(actual.FirstServing, Is.False); Assert.That(actual.StagedSetRemains, Is.True)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI51 C7 invalid observations fail closed``() = task {
+        let! actual = this.Cbi46Run "restart-invalid-observation"
+        multiple (fun () -> Assert.That(actual.Code, Is.EqualTo "provider-restart-observation-invalid"); Assert.That(actual.Continued, Is.Zero); Assert.That(actual.Order, Is.Empty)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI51 C8 minimal executes the shared restart model``() = task {
+        use fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "component-management", "fixtures", "cbi51-provider-restart-policy-vectors.json")))
+        let textValue (value: JsonElement) = value.GetString() |> Option.ofObj |> Option.defaultValue ""
+        for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+            let name = vector.GetProperty("name") |> textValue
+            let! actual = this.Cbi46Run name
+            multiple (fun () -> Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("expectedCode") |> textValue), name); Assert.That(actual.RefusedBy, Is.EqualTo(vector.GetProperty("refusedBy") |> textValue), name); Assert.That(actual.Continued = 1, Is.EqualTo(vector.GetProperty("mayRestart").GetBoolean()), name)) }
 
     [<Test>]
     member _.``CBI47 C1 cadence is bounded and explicit``() =

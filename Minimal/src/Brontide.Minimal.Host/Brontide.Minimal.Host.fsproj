@@ -36,6 +36,7 @@
     <Compile Include="DurableProviderTrustCadenceJournal.fs" />
     <Compile Include="ProviderTrustOfflinePolicy.fs" />
     <Compile Include="ProviderOfflineServiceEnforcement.fs" />
+    <Compile Include="ProviderRestartPolicy.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

@@ -105,6 +105,52 @@ public sealed partial class ComponentBindingIntegrationTests
                 await activations[1].RetireAsync("make unavailable before sweep");
             }
 
+            if (scenario.StartsWith("restart-", StringComparison.Ordinal))
+            {
+                var instant = new DateTimeOffset(2026, 8, 5, 9, 0, 0, TimeSpan.Zero);
+                if (scenario != "restart-still-serving")
+                {
+                    var stopped = await ProviderOfflineServiceEnforcement.RunAsync(
+                        ProviderTrustOfflinePolicy.Create(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(1)),
+                        instant, instant.AddMinutes(-5), "policy-poll-exhausted",
+                        "policy-distribution-timeout", activations, "offline grace ended");
+                    Assert.That(stopped.Code, Is.EqualTo("offline-enforcement-stopped"));
+                }
+                if (scenario == "restart-trust-refused")
+                {
+                    var successor = Cbi44Policy(
+                        Cbi44Entry(evidence[0].PublisherKeyId, revoked: true),
+                        Cbi44Entry(evidence[1].PublisherKeyId, revoked: false));
+                    Assert.That(registry.Apply(Cbi37Sign(authority, 2, initial.Identity, successor)).IsApplied, Is.True);
+                }
+
+                var currentBefore = registry.Current!.Policy.Identity;
+                var proof = scenario == "restart-cycle-mismatch"
+                    ? Cbi44Policy(Cbi44Entry(Cbi44OtherPublisher, revoked: false)).Identity
+                    : currentBefore;
+                var cause = scenario == "restart-cause-refused"
+                    ? ProviderRestartCause.OperatorRetirement
+                    : ProviderRestartCause.OfflineAvailability;
+                var attempts = scenario == "restart-exhausted" ? 3
+                    : scenario is "restart-waiting" or "restart-invalid-observation" ? 1 : 0;
+                DateTimeOffset? lastAttempt = scenario switch
+                {
+                    "restart-waiting" => instant.AddSeconds(-30),
+                    "restart-exhausted" => instant.AddMinutes(-1),
+                    _ => null,
+                };
+                var decision = ProviderRestartPolicy.Create(3, TimeSpan.FromMinutes(1)).Evaluate(
+                    registry, activations[0], cause, proof, instant, attempts, lastAttempt);
+                Assert.That(registry.Current!.Policy.Identity, Is.EqualTo(currentBefore));
+                return new(
+                    decision.Code, decision.RefusedBy,
+                    decision.RetryAt is null ? [] : [decision.RetryAt.Value.ToString("O")],
+                    [decision.Authorization is null ? "none" : "authorized"],
+                    decision.MayRestart ? 1 : 0, 0,
+                    activations[0].IsServing, activations[1].IsServing,
+                    Directory.Exists(storeRoot) && Directory.EnumerateDirectories(storeRoot).Any());
+            }
+
             if (scenario.StartsWith("offline-", StringComparison.Ordinal))
             {
                 var baseline = new DateTimeOffset(2026, 8, 5, 8, 0, 0, TimeSpan.Zero);
@@ -310,6 +356,70 @@ public sealed partial class ComponentBindingIntegrationTests
         using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "component-management", "fixtures", "cbi50-offline-service-enforcement-vectors.json")));
         Assert.That(fixture.RootElement.GetProperty("maximumMembers").GetInt32(), Is.EqualTo(ProviderOfflineServiceEnforcement.MaximumMembers));
         foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray()) { var name = vector.GetProperty("name").GetString()!; var actual = await Cbi46RunAsync(name); Assert.Multiple(() => { Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), name); Assert.That(actual.Order, Is.EqualTo(vector.GetProperty("expectedOrder").EnumerateArray().Select(value => value.GetString()).ToArray()), name); Assert.That(actual.Withdrawn, Is.EqualTo(vector.GetProperty("stopped").GetInt32()), name); Assert.That(actual.FirstServing, Is.EqualTo(vector.GetProperty("serving").GetBoolean()), name); Assert.That(actual.StagedSetRemains, Is.EqualTo(vector.GetProperty("stagedSetRemains").GetBoolean()), name); }); }
+    }
+
+    [Test]
+    public async Task Cbi51_C1_restart_policy_is_explicit_and_bounded()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => ProviderRestartPolicy.Create(0, TimeSpan.FromMinutes(1)));
+            Assert.Throws<ArgumentOutOfRangeException>(() => ProviderRestartPolicy.Create(9, TimeSpan.FromMinutes(1)));
+            Assert.Throws<ArgumentOutOfRangeException>(() => ProviderRestartPolicy.Create(3, TimeSpan.Zero));
+        });
+        Assert.That((await Cbi46RunAsync("restart-ready")).Continued, Is.EqualTo(1));
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi51_C2_a_current_cycle_proof_is_required()
+    {
+        var actual = await Cbi46RunAsync("restart-cycle-mismatch");
+        Assert.Multiple(() => { Assert.That(actual.Code, Is.EqualTo("provider-restart-current-proof-required")); Assert.That(actual.Continued, Is.Zero); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi51_C3_only_recoverable_stop_causes_are_eligible()
+    {
+        var refused = await Cbi46RunAsync("restart-cause-refused");
+        var serving = await Cbi46RunAsync("restart-still-serving");
+        Assert.Multiple(() => { Assert.That(refused.Code, Is.EqualTo("provider-restart-cause-refused")); Assert.That(serving.Code, Is.EqualTo("provider-restart-not-required")); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi51_C4_publisher_trust_is_decided_again()
+    {
+        var ready = await Cbi46RunAsync("restart-ready");
+        var refused = await Cbi46RunAsync("restart-trust-refused");
+        Assert.Multiple(() => { Assert.That(ready.MemberCodes, Is.EqualTo(new[] { "authorized" })); Assert.That(refused.Code, Is.EqualTo("publisher-key-revoked")); Assert.That(refused.RefusedBy, Is.EqualTo("cbi35")); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi51_C5_attempt_delay_and_exhaustion_are_deterministic()
+    {
+        var waiting = await Cbi46RunAsync("restart-waiting");
+        var exhausted = await Cbi46RunAsync("restart-exhausted");
+        Assert.Multiple(() => { Assert.That(waiting.Code, Is.EqualTo("provider-restart-waiting")); Assert.That(waiting.Order, Has.Length.EqualTo(1)); Assert.That(exhausted.Code, Is.EqualTo("provider-restart-exhausted")); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi51_C6_policy_has_zero_provider_and_artifact_effects()
+    {
+        var actual = await Cbi46RunAsync("restart-ready");
+        Assert.Multiple(() => { Assert.That(actual.FirstServing, Is.False); Assert.That(actual.StagedSetRemains, Is.True); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi51_C7_invalid_observations_fail_closed()
+    {
+        var actual = await Cbi46RunAsync("restart-invalid-observation");
+        Assert.Multiple(() => { Assert.That(actual.Code, Is.EqualTo("provider-restart-observation-invalid")); Assert.That(actual.Continued, Is.Zero); Assert.That(actual.Order, Is.Empty); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi51_C8_reference_executes_the_shared_restart_model()
+    {
+        using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "component-management", "fixtures", "cbi51-provider-restart-policy-vectors.json")));
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray()) { var name = vector.GetProperty("name").GetString()!; var actual = await Cbi46RunAsync(name); Assert.Multiple(() => { Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), name); Assert.That(actual.RefusedBy, Is.EqualTo(vector.GetProperty("refusedBy").GetString()), name); Assert.That(actual.Continued == 1, Is.EqualTo(vector.GetProperty("mayRestart").GetBoolean()), name); }); }
     }
 
     private sealed record Cbi45Observation(

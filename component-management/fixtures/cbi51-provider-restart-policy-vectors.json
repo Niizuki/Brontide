@@ -1,0 +1,14 @@
+{
+  "maximumAttempts": 3,
+  "delaySeconds": 60,
+  "vectors": [
+    { "name": "restart-ready", "expectedCode": "provider-restart-ready", "refusedBy": "none", "mayRestart": true },
+    { "name": "restart-waiting", "expectedCode": "provider-restart-waiting", "refusedBy": "none", "mayRestart": false },
+    { "name": "restart-exhausted", "expectedCode": "provider-restart-exhausted", "refusedBy": "budget", "mayRestart": false },
+    { "name": "restart-trust-refused", "expectedCode": "publisher-key-revoked", "refusedBy": "cbi35", "mayRestart": false },
+    { "name": "restart-cause-refused", "expectedCode": "provider-restart-cause-refused", "refusedBy": "cause", "mayRestart": false },
+    { "name": "restart-still-serving", "expectedCode": "provider-restart-not-required", "refusedBy": "state", "mayRestart": false },
+    { "name": "restart-cycle-mismatch", "expectedCode": "provider-restart-current-proof-required", "refusedBy": "current-cycle", "mayRestart": false },
+    { "name": "restart-invalid-observation", "expectedCode": "provider-restart-observation-invalid", "refusedBy": "preflight", "mayRestart": false }
+  ]
+}
