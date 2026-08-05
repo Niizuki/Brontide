@@ -92,13 +92,20 @@ public sealed partial class ComponentBindingIntegrationTests
 
     private static (ProviderArtifactAcquisitionRequest Request, MemoryArtifactSource Source) Cbi33Input(
         string provider,
-        string mutation)
+        string mutation,
+        string? extraRelativePath = null,
+        byte[]? extraContent = null)
     {
         var providerPath = Cbi31ProviderPath(provider);
         var providerRoot = Path.GetDirectoryName(providerPath)!;
         var bytes = Directory.EnumerateFiles(providerRoot)
             .OrderBy(path => path, StringComparer.Ordinal)
             .ToDictionary(path => Path.GetFileName(path)!, File.ReadAllBytes, StringComparer.Ordinal);
+        if (extraRelativePath is not null)
+        {
+            ArgumentNullException.ThrowIfNull(extraContent);
+            bytes.Add(extraRelativePath, extraContent);
+        }
         var files = bytes.Select(pair => new ProviderArtifactAcquisitionFile(
                 pair.Key,
                 Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pair.Value)),

@@ -1058,9 +1058,16 @@ same occurrence while carrying forward the prior logical runtime. One activation
 one successful successor, and refusal or failed reconstruction releases the claim and preserves the
 retained content. The
 [`CBI52 capability contract`](../../component-management/cbi52-capability-contract.md) includes the
-phase's contract-completeness review. Durable attempt history and cross-process restart ownership are
-the next supervision work; endpoint and authority-key rotation, privileged floor custody, and
-production isolation remain separate security work.
+phase's contract-completeness review.
+
+CBI53 now makes the restart-attempt history durable. A host-local journal is bound to one occurrence,
+retained staged identity, and bounded policy; committed failures drive the next CBI51 decision, an
+in-flight record precedes CBI52 effects, and interrupted work remains indeterminate until explicit
+retry or abandonment. The shared vectors pin the portable history model in both roots. The
+[`CBI53 capability contract`](../../component-management/cbi53-capability-contract.md) includes the
+phase's contract-completeness review. Cross-process restart ownership is the next supervision work;
+endpoint and authority-key rotation, privileged floor custody, and production isolation remain
+separate security work.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —
