@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased - CBI50 offline service enforcement
+
+### Added
+
+- One bounded host coordinator that evaluates CBI49 against the exact supplied serving snapshot and
+  enforces every stop decision in deterministic typed-occurrence order.
+- Complete per-member retirement and provider-stop observations, zero-effect preflight refusal, and
+  shared C1-C8 vectors executed independently by both stacks.
+
+### Notes
+
+- Offline availability enforcement retains staged artifacts and never authorizes restart. Provider
+  restart selection remains separate host work.
+
 ## Unreleased - CBI49 provider trust offline and reconciliation policy
 
 ### Added

@@ -1033,9 +1033,17 @@ no-effect selects retry, accounted effects select abandonment, and unknown or mi
 leaves the journal inert. The
 [`CBI49 capability contract`](../../component-management/cbi49-capability-contract.md) and
 [`contract-completeness review`](../../component-management/cbi49-contract-completeness-review.md)
-bound the decision as effect-free. Host enforcement when grace expires and provider restart policy
-are the next host work; cross-process ownership, endpoint and authority-key rotation, privileged floor
-custody, and production isolation remain separate security work.
+bound the decision as effect-free.
+
+CBI50 now enforces that decision over one exact, bounded serving snapshot. Eligible grace is
+effect-free; expiry, integrity refusal, missing baseline, and invalid offline observations retire and
+terminate every admitted provider in typed occurrence order. Preflight refusal has zero effect, one
+member outcome does not hide siblings, and availability enforcement deliberately retains staged
+artifacts because it is not a publisher-trust withdrawal. The
+[`CBI50 capability contract`](../../component-management/cbi50-capability-contract.md) includes the
+phase's contract-completeness review. Provider restart policy is the next host work; cross-process
+ownership, endpoint and authority-key rotation, privileged floor custody, and production isolation
+remain separate security work.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

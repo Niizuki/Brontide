@@ -168,6 +168,101 @@ public sealed record ProviderServingTrustSweepResult(
     int ContinuedCount,
     int WithdrawnCount);
 
+public sealed record ProviderOfflineServiceEnforcementMember(
+    Brontide.Reference.Experimental.ComponentManagement.OccurrenceId Occurrence,
+    string RetirementCode,
+    bool ProviderStopped);
+
+public sealed record ProviderOfflineServiceEnforcementResult(
+    string Code,
+    string RefusedBy,
+    ProviderTrustOfflineDecision? Decision,
+    IReadOnlyList<ProviderOfflineServiceEnforcementMember> Members,
+    int AdmittedCount,
+    int StoppedCount);
+
+/// <summary>
+/// Applies one offline-policy decision to the exact supplied serving set. Availability withdrawal
+/// stops service but deliberately retains staged artifacts for the separate restart policy.
+/// </summary>
+public static class ProviderOfflineServiceEnforcement
+{
+    public const int MaximumMembers = 64;
+
+    public static async ValueTask<ProviderOfflineServiceEnforcementResult> RunAsync(
+        ProviderTrustOfflinePolicy policy,
+        DateTimeOffset now,
+        DateTimeOffset? lastCurrent,
+        string pollCode,
+        string? lastAttemptCode,
+        IReadOnlyList<ProviderServingActivation> activations,
+        string retirementReason)
+    {
+        ArgumentNullException.ThrowIfNull(policy);
+        ArgumentNullException.ThrowIfNull(activations);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (activations.Count > MaximumMembers
+            || activations.Any(activation => activation is null || !activation.IsServing)
+            || activations.Select(activation => activation.Occurrence).Distinct().Count() != activations.Count)
+        {
+            return new("offline-enforcement-invalid", "preflight", null,
+                Array.Empty<ProviderOfflineServiceEnforcementMember>(), 0, 0);
+        }
+
+        var decision = policy.Evaluate(now, lastCurrent, pollCode, lastAttemptCode, activations.Count);
+        if (decision.Code == "offline-existing-service")
+            return new("offline-enforcement-continuing", "none", decision,
+                Array.Empty<ProviderOfflineServiceEnforcementMember>(), activations.Count, 0);
+        if (decision.Code == "offline-idle")
+            return new("offline-enforcement-idle", "none", decision,
+                Array.Empty<ProviderOfflineServiceEnforcementMember>(), 0, 0);
+
+        var members = new List<ProviderOfflineServiceEnforcementMember>(activations.Count);
+        foreach (var activation in activations.OrderBy(
+                     activation => activation.Occurrence.Value, StringComparer.Ordinal))
+        {
+            var retirementCode = "retirement-not-attempted";
+            if (activation.Lifecycle?.Member is { IsReleased: true } member)
+            {
+                try
+                {
+                    await member.RetireAsync(retirementReason, CancellationToken.None).ConfigureAwait(false);
+                    retirementCode = "retired";
+                }
+                catch (Exception)
+                {
+                    retirementCode = "retirement-failed";
+                }
+            }
+
+            var providerStopped = activation.Chain.Provider?.HasExited != false;
+            if (activation.Chain.Provider is { HasExited: false } provider)
+            {
+                try
+                {
+                    await provider.DisposeAsync().ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    // Observe the concrete process after disposal: an exception does not prove that
+                    // termination failed, and a successful return does not replace that observation.
+                }
+                providerStopped = provider.HasExited;
+            }
+            members.Add(new(activation.Occurrence, retirementCode, providerStopped));
+        }
+
+        var stopped = members.Count(member => member.ProviderStopped);
+        var code = stopped != members.Count
+            ? "offline-enforcement-incomplete"
+            : members.Any(member => member.RetirementCode != "retired")
+                ? "offline-enforcement-cleanup-incomplete"
+                : "offline-enforcement-stopped";
+        return new(code, "none", decision, members, activations.Count, stopped);
+    }
+}
+
 /// <summary>
 /// Applies one deterministic, bounded host-owned trust sweep. Invocation cadence remains external.
 /// </summary>

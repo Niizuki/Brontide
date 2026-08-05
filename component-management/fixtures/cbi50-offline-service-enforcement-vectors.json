@@ -1,0 +1,10 @@
+{
+  "maximumMembers": 64,
+  "vectors": [
+    { "name": "offline-within-grace", "expectedCode": "offline-enforcement-continuing", "expectedOrder": [], "stopped": 0, "serving": true, "stagedSetRemains": true },
+    { "name": "offline-expired", "expectedCode": "offline-enforcement-stopped", "expectedOrder": ["occ.def.test.cooling-provider.1", "occ.def.test.cooling-provider.2"], "stopped": 2, "serving": false, "stagedSetRemains": true },
+    { "name": "offline-integrity-refusal", "expectedCode": "offline-enforcement-stopped", "expectedOrder": ["occ.def.test.cooling-provider.1", "occ.def.test.cooling-provider.2"], "stopped": 2, "serving": false, "stagedSetRemains": true },
+    { "name": "offline-duplicate", "expectedCode": "offline-enforcement-invalid", "expectedOrder": [], "stopped": 0, "serving": true, "stagedSetRemains": true },
+    { "name": "offline-unavailable", "expectedCode": "offline-enforcement-invalid", "expectedOrder": [], "stopped": 0, "serving": true, "stagedSetRemains": true }
+  ]
+}

@@ -171,6 +171,13 @@ supervision; this policy does not terminate providers itself. For an in-flight C
 `ProviderTrustCadenceReconciliation.apply`. Unknown or mismatched evidence preserves the journal;
 confirmed no-effect selects retry, while accounted effects select abandonment.
 
+CBI50 connects the offline decision to serving effects. Call
+`ProviderOfflineServiceEnforcement.run` with the policy inputs, the exact current activation
+snapshot, and a retirement reason. A within-grace result leaves every provider untouched. Expiry or
+any fail-closed stop decision retires and terminates every admitted activation in typed occurrence
+order and returns one observation per member. Staged artifacts remain: this is availability
+enforcement, not trust revocation, and the coordinator never restarts a provider.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each

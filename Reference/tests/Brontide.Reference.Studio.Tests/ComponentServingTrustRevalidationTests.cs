@@ -95,13 +95,32 @@ public sealed partial class ComponentBindingIntegrationTests
 
             IReadOnlyList<ProviderServingActivation> input = scenario switch
             {
-                "reverse-all-current" => [activations[1], activations[0]],
-                "duplicate-occurrence" => [activations[0], activations[0]],
+                "reverse-all-current" or "offline-expired" or "offline-integrity-refusal" =>
+                    [activations[1], activations[0]],
+                "duplicate-occurrence" or "offline-duplicate" => [activations[0], activations[0]],
                 _ => activations,
             };
-            if (scenario == "unavailable-member")
+            if (scenario is "unavailable-member" or "offline-unavailable")
             {
                 await activations[1].RetireAsync("make unavailable before sweep");
+            }
+
+            if (scenario.StartsWith("offline-", StringComparison.Ordinal))
+            {
+                var baseline = new DateTimeOffset(2026, 8, 5, 8, 0, 0, TimeSpan.Zero);
+                var now = scenario == "offline-expired" ? baseline.AddMinutes(5) : baseline.AddMinutes(2);
+                var pollCode = scenario == "offline-integrity-refusal"
+                    ? "policy-poll-refused" : "policy-poll-exhausted";
+                var offline = await ProviderOfflineServiceEnforcement.RunAsync(
+                    ProviderTrustOfflinePolicy.Create(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(1)),
+                    now, baseline, pollCode, "policy-distribution-timeout", input, "offline grace ended");
+                return new(
+                    offline.Code, offline.RefusedBy,
+                    offline.Members.Select(member => member.Occurrence.Value).ToArray(),
+                    offline.Members.Select(member => member.RetirementCode).ToArray(),
+                    offline.AdmittedCount - offline.StoppedCount, offline.StoppedCount,
+                    activations[0].IsServing, activations[1].IsServing,
+                    Directory.Exists(storeRoot) && Directory.EnumerateDirectories(storeRoot).Any());
             }
 
             var result = await ProviderServingTrustSweep.RunAsync(
@@ -232,6 +251,65 @@ public sealed partial class ComponentBindingIntegrationTests
                 Assert.That(actual.Withdrawn, Is.EqualTo(vector.GetProperty("withdrawn").GetInt32()), name);
             });
         }
+    }
+
+    [Test]
+    public async Task Cbi50_C1_one_snapshot_determines_decision_and_effects()
+    {
+        var policy = ProviderTrustOfflinePolicy.Create(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(1));
+        var now = DateTimeOffset.UtcNow;
+        var result = await ProviderOfflineServiceEnforcement.RunAsync(policy, now,
+            now, "policy-poll-exhausted", "policy-distribution-timeout",
+            Array.Empty<ProviderServingActivation>(), "offline grace ended");
+        Assert.Multiple(() => { Assert.That(result.AdmittedCount, Is.Zero); Assert.That(result.Decision!.Code, Is.EqualTo("offline-idle")); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi50_C2_permitted_continuation_is_effect_free()
+    {
+        var actual = await Cbi46RunAsync("offline-within-grace");
+        Assert.Multiple(() => { Assert.That(actual.Code, Is.EqualTo("offline-enforcement-continuing")); Assert.That(actual.FirstServing, Is.True); Assert.That(actual.Order, Is.Empty); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi50_C3_every_stop_decision_reaches_every_member()
+    {
+        foreach (var scenario in new[] { "offline-expired", "offline-integrity-refusal" }) { var actual = await Cbi46RunAsync(scenario); Assert.Multiple(() => { Assert.That(actual.Withdrawn, Is.EqualTo(2), scenario); Assert.That(actual.FirstServing, Is.False, scenario); Assert.That(actual.SecondServing, Is.False, scenario); }); }
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi50_C4_typed_occurrence_identity_determines_order()
+    {
+        var actual = await Cbi46RunAsync("offline-expired");
+        Assert.That(actual.Order, Is.EqualTo(new[] { "occ.def.test.cooling-provider.1", "occ.def.test.cooling-provider.2" }));
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi50_C5_one_outcome_does_not_hide_siblings()
+    {
+        var actual = await Cbi46RunAsync("offline-expired");
+        Assert.That(actual.MemberCodes, Has.Length.EqualTo(2));
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi50_C6_availability_stop_retains_staged_artifacts()
+    {
+        var actual = await Cbi46RunAsync("offline-expired");
+        Assert.That(actual.StagedSetRemains, Is.True);
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi50_C7_preflight_refusal_has_zero_effect()
+    {
+        foreach (var scenario in new[] { "offline-duplicate", "offline-unavailable" }) { var actual = await Cbi46RunAsync(scenario); Assert.Multiple(() => { Assert.That(actual.Code, Is.EqualTo("offline-enforcement-invalid"), scenario); Assert.That(actual.FirstServing, Is.True, scenario); Assert.That(actual.Order, Is.Empty, scenario); }); }
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi50_C8_reference_executes_the_shared_enforcement_model()
+    {
+        using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "component-management", "fixtures", "cbi50-offline-service-enforcement-vectors.json")));
+        Assert.That(fixture.RootElement.GetProperty("maximumMembers").GetInt32(), Is.EqualTo(ProviderOfflineServiceEnforcement.MaximumMembers));
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray()) { var name = vector.GetProperty("name").GetString()!; var actual = await Cbi46RunAsync(name); Assert.Multiple(() => { Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), name); Assert.That(actual.Order, Is.EqualTo(vector.GetProperty("expectedOrder").EnumerateArray().Select(value => value.GetString()).ToArray()), name); Assert.That(actual.Withdrawn, Is.EqualTo(vector.GetProperty("stopped").GetInt32()), name); Assert.That(actual.FirstServing, Is.EqualTo(vector.GetProperty("serving").GetBoolean()), name); Assert.That(actual.StagedSetRemains, Is.EqualTo(vector.GetProperty("stagedSetRemains").GetBoolean()), name); }); }
     }
 
     private sealed record Cbi45Observation(

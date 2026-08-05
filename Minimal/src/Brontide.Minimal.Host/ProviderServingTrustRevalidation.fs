@@ -20,6 +20,8 @@ type ProviderServingActivation =
           Lifecycle: ComponentBindingLifecycleResult option
           Occurrence: OccurrenceId }
     member this.OccurrenceId = this.Occurrence
+    member internal this.DistributionChain = this.Chain
+    member internal this.BindingLifecycle = this.Lifecycle
     member this.IsServing =
         this.Chain.Provider |> Option.exists (fun provider -> not provider.HasExited)
         && this.Lifecycle |> Option.exists (fun lifecycle ->
