@@ -152,7 +152,9 @@ The implementation currently provides:
   current serving-set sweep into one bounded injected-time cadence with explicit stop and cancellation
   observations; CBI48 gives that cadence a host-local durable journal, resumes committed cycles
   without replay, and makes an interrupted effect explicitly indeterminate until retry or abandonment;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI48 integration
+  CBI49 supplies bounded existing-service-only offline policy and requires exact matching host
+  evidence before retrying or abandoning an interrupted cycle;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI49 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

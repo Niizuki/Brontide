@@ -202,7 +202,10 @@ bounded, injected-time host cadence: policy is current before the serving set is
 withdrawal continues, and invalid, incomplete, canceled, or non-current work stops visibly. CBI48
 adds a host-local durable run journal: committed cycles resume without replay, each effectful cycle is
 recorded in-flight before invocation, and a crash during that cycle requires explicit retry or
-abandonment rather than being mistaken for either success or no effect.
+abandonment rather than being mistaken for either success or no effect. CBI49 adds an explicit host
+availability policy: only exhausted transport failure or timeout can preserve existing service
+within a bounded, non-sliding grace interval, no offline outcome permits a provider start, and an
+interrupted journal changes only under exact matching reconciliation evidence.
 
 ## Build and test
 

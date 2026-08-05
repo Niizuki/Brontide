@@ -145,6 +145,9 @@
     <None Include="..\..\..\component-management\fixtures\cbi48-durable-cadence-vectors.json"
           Link="component-management\fixtures\cbi48-durable-cadence-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi49-offline-reconciliation-vectors.json"
+          Link="component-management\fixtures\cbi49-offline-reconciliation-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
@@ -154,6 +157,7 @@
   <ItemGroup>
     <Compile Include="ComponentBindingIntegrationTests.fs" />
     <Compile Include="ComponentProviderTrustCadenceRecoveryTests.fs" />
+    <Compile Include="ComponentProviderTrustOfflinePolicyTests.fs" />
     <Compile Include="ComponentArtifactAcquisitionTests.fs" />
     <Compile Include="ComponentPublisherEvidenceTests.fs" />
     <Compile Include="ComponentPublisherTrustTests.fs" />
