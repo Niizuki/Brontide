@@ -161,6 +161,16 @@ continue from the next uncommitted index, terminal journals are inert, and
 `durable-cadence-indeterminate` requires external reconciliation before calling `ResolveInterrupted`
 with `Retry` or `Abandon`. Retry is an explicit replay decision, not an exactly-once guarantee.
 
+CBI49 makes those host decisions explicit. Create `ProviderTrustOfflinePolicy` with a grace and retry
+interval, then call `Evaluate` with injected `now`, the last cycle instant that established current
+policy, the CBI41 poll and last-attempt codes, and the current serving count. Only an exhausted
+transport failure or timeout can produce `offline-existing-service`, and that result never permits a
+provider start. `offline-grace-expired` and `offline-service-stop-required` are instructions for host
+supervision; this policy does not terminate providers itself. For an in-flight CBI48 journal, pass
+`ProviderTrustCadenceReconciliationEvidence` naming its exact run, index, and instant to
+`ProviderTrustCadenceReconciliation.apply`. Unknown or mismatched evidence preserves the journal;
+confirmed no-effect selects retry, while accounted effects select abandonment.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each

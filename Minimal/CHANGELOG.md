@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased - CBI49 provider trust offline and reconciliation policy
+
+### Added
+
+- One explicit host availability policy with bounded offline grace and retry intervals, derived from
+  the last cycle that established current policy and restricted to exhausted transport failure or
+  timeout.
+- Existing-service-only offline decisions that never authorize acquisition, launch, admission, or
+  restart, plus exact retry deadlines that cannot slide across repeated failures.
+- Reconciliation of a CBI48 interruption through exact run/index/instant evidence: confirmed
+  no-effect selects retry, accounted effects select abandonment, and unknown evidence stays inert.
+- Shared offline and reconciliation vectors with named C1-C8 tests in both roots.
+
+### Notes
+
+- CBI49 reports when existing service must stop but does not terminate it. It neither manufactures
+  reconciliation evidence nor decides provider restart.
+
 ## Unreleased - CBI48 durable provider trust cadence resumption
 
 ### Added

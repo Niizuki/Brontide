@@ -1022,9 +1022,20 @@ indeterminate because policy publication, floor retention, withdrawal, and clean
 transaction with the journal. Retry or abandonment therefore requires an explicit reconciliation
 decision. The [`CBI48 capability contract`](../../component-management/cbi48-capability-contract.md)
 and [`contract-completeness review`](../../component-management/cbi48-contract-completeness-review.md)
-bound that claim. Offline/reconciliation policy and provider restart policy are the next host work;
-cross-process ownership, endpoint and authority-key rotation, privileged floor custody, and production
-isolation remain separate security work.
+bound that claim.
+
+CBI49 now supplies the offline and reconciliation decision boundary. A host chooses a bounded grace
+and retry interval; only an exhausted transport failure or timeout can preserve providers that are
+already serving, the deadline remains anchored to the last cycle that established current policy,
+and no offline outcome authorizes acquisition, launch, admission, or restart. An interrupted CBI48
+cycle accepts only reconciliation evidence naming its exact run, index, and instant: confirmed
+no-effect selects retry, accounted effects select abandonment, and unknown or mismatched evidence
+leaves the journal inert. The
+[`CBI49 capability contract`](../../component-management/cbi49-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi49-contract-completeness-review.md)
+bound the decision as effect-free. Host enforcement when grace expires and provider restart policy
+are the next host work; cross-process ownership, endpoint and authority-key rotation, privileged floor
+custody, and production isolation remain separate security work.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

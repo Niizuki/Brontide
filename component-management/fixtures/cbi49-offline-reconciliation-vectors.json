@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "graceSeconds": 300,
+    "retrySeconds": 60,
+    "lastCurrent": "2026-08-05T08:00:00+00:00"
+  },
+  "offlineVectors": [
+    {
+      "id": "transport-within-grace",
+      "now": "2026-08-05T08:02:00+00:00",
+      "pollCode": "policy-poll-exhausted",
+      "lastAttemptCode": "policy-distribution-transport-failed",
+      "servingCount": 2,
+      "expectedCode": "offline-existing-service",
+      "continueExisting": true,
+      "mayStart": false,
+      "deadline": "2026-08-05T08:05:00+00:00",
+      "retryAt": "2026-08-05T08:03:00+00:00"
+    },
+    {
+      "id": "timeout-clamped-to-deadline",
+      "now": "2026-08-05T08:04:30+00:00",
+      "pollCode": "policy-poll-exhausted",
+      "lastAttemptCode": "policy-distribution-timeout",
+      "servingCount": 1,
+      "expectedCode": "offline-existing-service",
+      "continueExisting": true,
+      "mayStart": false,
+      "deadline": "2026-08-05T08:05:00+00:00",
+      "retryAt": "2026-08-05T08:05:00+00:00"
+    },
+    {
+      "id": "deadline-expired",
+      "now": "2026-08-05T08:05:00+00:00",
+      "pollCode": "policy-poll-exhausted",
+      "lastAttemptCode": "policy-distribution-timeout",
+      "servingCount": 3,
+      "expectedCode": "offline-grace-expired",
+      "continueExisting": false,
+      "mayStart": false,
+      "deadline": "2026-08-05T08:05:00+00:00",
+      "retryAt": null
+    },
+    {
+      "id": "no-current-baseline",
+      "now": "2026-08-05T08:01:00+00:00",
+      "lastCurrent": null,
+      "pollCode": "policy-poll-exhausted",
+      "lastAttemptCode": "policy-distribution-transport-failed",
+      "servingCount": 1,
+      "expectedCode": "offline-service-stop-required",
+      "continueExisting": false,
+      "mayStart": false,
+      "deadline": null,
+      "retryAt": null
+    },
+    {
+      "id": "authentication-refusal",
+      "now": "2026-08-05T08:01:00+00:00",
+      "pollCode": "policy-poll-refused",
+      "lastAttemptCode": "policy-distribution-endpoint-signature-invalid",
+      "servingCount": 1,
+      "expectedCode": "offline-service-stop-required",
+      "continueExisting": false,
+      "mayStart": false,
+      "deadline": "2026-08-05T08:05:00+00:00",
+      "retryAt": null
+    },
+    {
+      "id": "stale-not-availability",
+      "now": "2026-08-05T08:01:00+00:00",
+      "pollCode": "policy-poll-exhausted",
+      "lastAttemptCode": "policy-distribution-stale",
+      "servingCount": 1,
+      "expectedCode": "offline-service-stop-required",
+      "continueExisting": false,
+      "mayStart": false,
+      "deadline": "2026-08-05T08:05:00+00:00",
+      "retryAt": null
+    },
+    {
+      "id": "empty-serving-set",
+      "now": "2026-08-05T08:02:00+00:00",
+      "pollCode": "policy-poll-exhausted",
+      "lastAttemptCode": "policy-distribution-transport-failed",
+      "servingCount": 0,
+      "expectedCode": "offline-idle",
+      "continueExisting": false,
+      "mayStart": false,
+      "deadline": "2026-08-05T08:05:00+00:00",
+      "retryAt": "2026-08-05T08:03:00+00:00"
+    }
+  ],
+  "reconciliationVectors": [
+    {
+      "id": "confirmed-no-effects",
+      "verdict": "no-effects-confirmed",
+      "expectedCode": "cadence-reconciliation-retry-ready",
+      "expectedPhase": "ready",
+      "interruptions": 1,
+      "retries": 1
+    },
+    {
+      "id": "accounted-effects",
+      "verdict": "effects-accounted-for",
+      "expectedCode": "cadence-reconciliation-abandoned",
+      "expectedPhase": "terminal",
+      "interruptions": 1,
+      "retries": 0
+    },
+    {
+      "id": "unknown-effects",
+      "verdict": "unknown",
+      "expectedCode": "cadence-reconciliation-deferred",
+      "expectedPhase": "in-flight",
+      "interruptions": 0,
+      "retries": 0
+    },
+    {
+      "id": "mismatched-attempt",
+      "verdict": "no-effects-confirmed",
+      "attemptIndex": 1,
+      "expectedCode": "cadence-reconciliation-mismatch",
+      "expectedPhase": "in-flight",
+      "interruptions": 0,
+      "retries": 0
+    }
+  ]
+}

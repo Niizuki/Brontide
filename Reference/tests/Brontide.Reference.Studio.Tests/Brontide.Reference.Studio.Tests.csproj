@@ -159,5 +159,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi48-durable-cadence-vectors.json"
           Link="component-management\fixtures\cbi48-durable-cadence-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi49-offline-reconciliation-vectors.json"
+          Link="component-management\fixtures\cbi49-offline-reconciliation-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
