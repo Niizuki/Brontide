@@ -150,8 +150,9 @@ The implementation currently provides:
   CBI46 performs one bounded, deterministic host-owned sweep across a serving set and preserves a
   shared staged identity while any swept sibling continues; CBI47 composes policy polling and the
   current serving-set sweep into one bounded injected-time cadence with explicit stop and cancellation
-  observations;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI47 integration
+  observations; CBI48 gives that cadence a host-local durable journal, resumes committed cycles
+  without replay, and makes an interrupted effect explicitly indeterminate until retry or abandonment;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI48 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

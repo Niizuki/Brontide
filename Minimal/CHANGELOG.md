@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased - CBI48 durable provider trust cadence resumption
+
+### Added
+
+- One integrity-checked, atomically replaced host-local journal for a distinctly identified bounded
+  cadence run, with ordered cycle, gap, interruption, and retry observations.
+- Record-before-effect recovery: committed cycles resume from their next clean boundary, while an
+  interrupted cycle opens as indeterminate until the host explicitly chooses retry or abandonment.
+- Shared six-vector recovery evidence and named C1-C8 tests in both roots.
+
+### Notes
+
+- The journal does not claim exactly-once execution, choose whether replay is safe, coordinate
+  multiple owners, decide offline or provider restart policy, or provide adversary-resistant custody.
+
 ## Unreleased - CBI47 provider trust cadence
 
 ### Added
