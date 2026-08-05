@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi48-durable-cadence",
+  "runId": "cadence-run.test.1",
+  "schedule": {
+    "maximumCycles": 2,
+    "intervalSeconds": 5,
+    "startInstant": "2026-08-05T08:00:00+00:00"
+  },
+  "vectors": [
+    {
+      "name": "complete-two-cycles",
+      "actions": ["cycle:provider-trust-cycle-current", "gap", "cycle:provider-trust-cycle-withdrawn"],
+      "expectedCode": "durable-cadence-complete",
+      "expectedPhase": "terminal",
+      "expectedCycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-withdrawn"],
+      "expectedCycleInstants": ["2026-08-05T08:00:00+00:00", "2026-08-05T08:00:05+00:00"],
+      "expectedGapsSeconds": [5],
+      "expectedNextCycle": 2,
+      "expectedInterruptions": 0,
+      "expectedRetries": 0
+    },
+    {
+      "name": "stopped-first-cycle",
+      "actions": ["cycle:provider-trust-cycle-stopped"],
+      "expectedCode": "durable-cadence-stopped",
+      "expectedPhase": "terminal",
+      "expectedCycleCodes": ["provider-trust-cycle-stopped"],
+      "expectedCycleInstants": ["2026-08-05T08:00:00+00:00"],
+      "expectedGapsSeconds": [],
+      "expectedNextCycle": 1,
+      "expectedInterruptions": 0,
+      "expectedRetries": 0
+    },
+    {
+      "name": "interrupted-cycle-retried",
+      "actions": ["crash", "reopen", "retry", "cycle:provider-trust-cycle-current", "gap", "cycle:provider-trust-cycle-current"],
+      "expectedCode": "durable-cadence-complete",
+      "expectedPhase": "terminal",
+      "expectedCycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-current"],
+      "expectedCycleInstants": ["2026-08-05T08:00:00+00:00", "2026-08-05T08:00:05+00:00"],
+      "expectedGapsSeconds": [5],
+      "expectedNextCycle": 2,
+      "expectedInterruptions": 1,
+      "expectedRetries": 1
+    },
+    {
+      "name": "interrupted-first-cycle-abandoned",
+      "actions": ["crash", "reopen", "abandon"],
+      "expectedCode": "durable-cadence-abandoned",
+      "expectedPhase": "terminal",
+      "expectedCycleCodes": [],
+      "expectedCycleInstants": [],
+      "expectedGapsSeconds": [],
+      "expectedNextCycle": 0,
+      "expectedInterruptions": 1,
+      "expectedRetries": 0
+    },
+    {
+      "name": "interrupted-after-gap-abandoned",
+      "actions": ["cycle:provider-trust-cycle-current", "gap", "crash", "reopen", "abandon"],
+      "expectedCode": "durable-cadence-abandoned",
+      "expectedPhase": "terminal",
+      "expectedCycleCodes": ["provider-trust-cycle-current"],
+      "expectedCycleInstants": ["2026-08-05T08:00:00+00:00"],
+      "expectedGapsSeconds": [5],
+      "expectedNextCycle": 1,
+      "expectedInterruptions": 1,
+      "expectedRetries": 0
+    },
+    {
+      "name": "canceled-cycle-is-terminal",
+      "actions": ["cycle:provider-trust-cycle-canceled", "reopen"],
+      "expectedCode": "durable-cadence-canceled",
+      "expectedPhase": "terminal",
+      "expectedCycleCodes": ["provider-trust-cycle-canceled"],
+      "expectedCycleInstants": ["2026-08-05T08:00:00+00:00"],
+      "expectedGapsSeconds": [],
+      "expectedNextCycle": 1,
+      "expectedInterruptions": 0,
+      "expectedRetries": 0
+    }
+  ]
+}

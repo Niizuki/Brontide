@@ -33,6 +33,7 @@
     <Compile Include="ComponentBindingIntegration.fs" />
     <Compile Include="ProviderServingTrustRevalidation.fs" />
     <Compile Include="ProviderServingTrustCadence.fs" />
+    <Compile Include="DurableProviderTrustCadenceJournal.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

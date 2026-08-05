@@ -1013,8 +1013,18 @@ withdrawal continues, and cancellation, non-current policy, or an invalid/incomp
 visibly. The [`CBI47 capability contract`](../../component-management/cbi47-capability-contract.md)
 and [`contract-completeness review`](../../component-management/cbi47-contract-completeness-review.md)
 keep this distinct from a daemon or durable schedule. Durable retry/resumption and offline/restart
-policy are the next host boundary; endpoint and authority-key rotation, privileged floor custody, and
-production isolation remain separate security work.
+policy were its next host boundary.
+
+CBI48 now provides durable resumption for one bounded, single-owner cadence run. Both roots atomically
+persist a distinct run identity, schedule, prepared instant, ordered observations, and an in-flight
+marker before each effectful cycle. Committed cycles resume without replay; an interrupted cycle is
+indeterminate because policy publication, floor retention, withdrawal, and cleanup cannot be one
+transaction with the journal. Retry or abandonment therefore requires an explicit reconciliation
+decision. The [`CBI48 capability contract`](../../component-management/cbi48-capability-contract.md)
+and [`contract-completeness review`](../../component-management/cbi48-contract-completeness-review.md)
+bound that claim. Offline/reconciliation policy and provider restart policy are the next host work;
+cross-process ownership, endpoint and authority-key rotation, privileged floor custody, and production
+isolation remain separate security work.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

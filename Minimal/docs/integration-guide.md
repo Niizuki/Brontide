@@ -153,6 +153,14 @@ serving set is snapped. Empty sets are successful no-ops, successful withdrawals
 non-current poll or incomplete sweep stops before another gap. The result is an observation of this
 run, not a durable schedule or restart instruction.
 
+CBI48 persists one bounded run. Create a distinct `ProviderTrustCadenceRunId`, then call
+`DurableProviderTrustCadenceJournal.Establish` with the CBI47 schedule and start instant. Drive one
+recoverable step with `ProviderTrustCadenceRecovery.advance`; it writes in-flight before calling the
+cycle and commits the returned code afterward. On restart, call `Open`. Ready or waiting journals
+continue from the next uncommitted index, terminal journals are inert, and
+`durable-cadence-indeterminate` requires external reconciliation before calling `ResolveInterrupted`
+with `Retry` or `Abandon`. Retry is an explicit replay decision, not an exactly-once guarantee.
+
 ## Fake Component Management CM1
 
 Load `cm1-source-evidence.json` with `Cm1FixtureLoader.loadSourceEvidence`, then create each

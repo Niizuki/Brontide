@@ -199,7 +199,10 @@ adds one explicit host-owned sweep over 1-64 serving activations, with
 whole-set preflight, deterministic occurrence order, complete sibling observations, and shared-set
 cleanup that keeps bytes while any swept sibling continues. CBI47 composes CBI41 and CBI46 into one
 bounded, injected-time host cadence: policy is current before the serving set is snapped, successful
-withdrawal continues, and invalid, incomplete, canceled, or non-current work stops visibly.
+withdrawal continues, and invalid, incomplete, canceled, or non-current work stops visibly. CBI48
+adds a host-local durable run journal: committed cycles resume without replay, each effectful cycle is
+recorded in-flight before invocation, and a crash during that cycle requires explicit retry or
+abandonment rather than being mistaken for either success or no effect.
 
 ## Build and test
 
