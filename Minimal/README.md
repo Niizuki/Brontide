@@ -161,8 +161,10 @@ The implementation currently provides:
   reconstructs a fresh portable member under the same occurrence and logical runtime, with
   single-flight successor ownership and fail-closed rollback; CBI53 persists the bounded attempt
   history against the occurrence and retained staged identity, writes an in-flight marker before
-  restart effects, and requires explicit retry or abandonment after interruption;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI53 integration
+  restart effects, and requires explicit retry or abandonment after interruption; CBI54 places a
+  host-local operating-system lock and durable monotone fencing epoch in front of that journal, so
+  only the current live cross-process lease may enter recovery while process loss preserves history;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI54 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range
