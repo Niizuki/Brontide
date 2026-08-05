@@ -2,6 +2,7 @@ module Brontide.Minimal.Interchange.Provider.Program
 
 open System
 open System.Collections.Generic
+open System.IO
 open Brontide.Minimal.Binding
 open Brontide.Minimal.Binding.Portable
 open Brontide.Minimal.Experimental.ComponentManagement
@@ -49,7 +50,14 @@ let main arguments =
     if arguments |> Array.contains "--component-management" then
         runComponentManagement ()
     elif arguments |> Array.contains "--portable" then
-        runPortable arguments
+        let prefix = "--portable-fail-after-first="
+        match arguments |> Array.tryFind (fun argument -> argument.StartsWith(prefix, StringComparison.Ordinal)) with
+        | Some argument ->
+            try
+                use _ = new FileStream(argument[prefix.Length..], FileMode.CreateNew, FileAccess.Write, FileShare.None)
+                runPortable arguments
+            with :? IOException -> 73
+        | None -> runPortable arguments
     elif arguments |> Array.contains "--catalog" then
         let catalog = Dictionary<string, CatalogItem>(StringComparer.Ordinal)
 

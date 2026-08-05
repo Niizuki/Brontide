@@ -18,6 +18,23 @@ if (args.Contains("--component-management", StringComparer.Ordinal))
 // cross-stack baseline until the Minimal side implements the portable contract.
 if (args.Contains("--portable", StringComparer.Ordinal))
 {
+    const string failAfterFirstPrefix = "--portable-fail-after-first=";
+    var failAfterFirst = args.FirstOrDefault(argument =>
+        argument.StartsWith(failAfterFirstPrefix, StringComparison.Ordinal));
+    if (failAfterFirst is not null)
+    {
+        try
+        {
+            await using var marker = new FileStream(
+                failAfterFirst[failAfterFirstPrefix.Length..], FileMode.CreateNew,
+                FileAccess.Write, FileShare.None);
+        }
+        catch (IOException)
+        {
+            return 73;
+        }
+    }
+
     var portableCatalog = args.Contains("--catalog", StringComparer.Ordinal);
     var portableEndpoint = new PortableProviderEndpoint(
         portableCatalog ? CatalogPortableFixture.Contract : CoolingPortableFixture.Contract,

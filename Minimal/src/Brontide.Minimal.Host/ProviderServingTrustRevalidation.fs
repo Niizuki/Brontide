@@ -18,10 +18,33 @@ type ProviderServingActivation =
     private
         { Chain: ProviderDistributionChainResult
           Lifecycle: ComponentBindingLifecycleResult option
-          Occurrence: OccurrenceId }
+          Occurrence: OccurrenceId
+          Resolution: ResolutionOutcome
+          Selection: ComponentBindingSelection
+          Request: ActivationRuntimeRequest
+          mutable RestartState: int }
     member this.OccurrenceId = this.Occurrence
     member internal this.DistributionChain = this.Chain
     member internal this.BindingLifecycle = this.Lifecycle
+    member internal this.RetainedResolution = this.Resolution
+    member internal this.RetainedSelection = this.Selection
+    member internal this.RetainedRequest = this.Request
+    member internal this.BeginRestart() =
+        lock this (fun () ->
+            match this.RestartState with
+            | 0 -> this.RestartState <- 1; "restart-claimed"
+            | 1 -> "provider-restart-in-progress"
+            | _ -> "provider-restart-already-completed")
+    member internal this.FinishRestart completed =
+        lock this (fun () -> this.RestartState <- if completed then 2 else 0)
+    member internal this.Restarted(chain, lifecycle) =
+        { Chain = chain
+          Lifecycle = Some lifecycle
+          Occurrence = this.Occurrence
+          Resolution = this.Resolution
+          Selection = this.Selection
+          Request = this.Request
+          RestartState = 0 }
     member this.IsServing =
         this.Chain.Provider |> Option.exists (fun provider -> not provider.HasExited)
         && this.Lifecycle |> Option.exists (fun lifecycle ->
@@ -55,8 +78,13 @@ module ProviderServingTrustRevalidation =
             | Some provider when chain.Revalidated ->
                 let! lifecycle =
                     ComponentBindingLifecycle.activate resolution selection request provider.Conversation
-                return { Chain = chain; Lifecycle = Some lifecycle; Occurrence = selection.Occurrence }
-            | _ -> return { Chain = chain; Lifecycle = None; Occurrence = selection.Occurrence }
+                return
+                    { Chain = chain; Lifecycle = Some lifecycle; Occurrence = selection.Occurrence
+                      Resolution = resolution; Selection = selection; Request = request; RestartState = 0 }
+            | _ ->
+                return
+                    { Chain = chain; Lifecycle = None; Occurrence = selection.Occurrence
+                      Resolution = resolution; Selection = selection; Request = request; RestartState = 0 }
         }
 
     let private revalidateCore

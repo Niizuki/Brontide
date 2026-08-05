@@ -82,10 +82,14 @@ type ProviderArtifactRemoval =
     { Code: string
       Removed: bool }
 
-type StagedProviderProcess internal (inner: LocalProviderProcess, release: unit -> unit) =
+type StagedProviderProcess internal (
+    inner: LocalProviderProcess,
+    stagedArtifacts: StagedProviderArtifactSet,
+    release: unit -> unit) =
     let mutable disposed = false
 
     member _.Conversation = inner.Conversation
+    member internal _.StagedArtifacts = stagedArtifacts
     member _.Isolation = inner.Isolation
     member _.HasExited = inner.HasExited
     member _.WaitForExit(timeout: TimeSpan) = inner.WaitForExit timeout
@@ -299,7 +303,7 @@ type ContentAddressedProviderStore(rootPath: string) =
             match verifyExisting declaration (expectedRoot staged.Identity) staged.Reused with
             | ProviderArtifactStagingResult.Refused failure ->
                 StagedProviderActivation.Refused failure
-            | ProviderArtifactStagingResult.Staged _ ->
+            | ProviderArtifactStagingResult.Staged verified ->
                 let executable = staged.Files |> List.find (fun file -> file.RelativePath = staged.ExecutablePath)
                 match
                     LocalProviderArtifactActivator.acquireAndLaunch
@@ -324,7 +328,7 @@ type ContentAddressedProviderStore(rootPath: string) =
                             if leases.TryGetValue(staged.Identity, &current) then
                                 if current <= 1 then leases.Remove staged.Identity |> ignore
                                 else leases[staged.Identity] <- current - 1)
-                    StagedProviderActivation.Launched(new StagedProviderProcess(owner, release)))
+                    StagedProviderActivation.Launched(new StagedProviderProcess(owner, verified, release)))
 
     member _.Remove(identity: ProviderArtifactSetId) =
         lock syncRoot (fun () ->

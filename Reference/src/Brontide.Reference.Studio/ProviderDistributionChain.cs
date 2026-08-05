@@ -91,6 +91,15 @@ public sealed record ProviderDistributionChainResult
         string executablePath) =>
         new("provider-launched", "none", true, true, true, acquisitionPolicyIdentity, launchPolicyIdentity,
             policyAuthorityIdentity, verifiedEvidence, provider, stagedIdentity, executablePath);
+
+    internal static ProviderDistributionChainResult Restarted(
+        ProviderDistributionChainResult prior,
+        StagedProviderProcess provider,
+        ProviderPublisherTrustPolicyId launchPolicyIdentity) =>
+        new("provider-restarted", "none", true, true, true,
+            prior.AcquisitionPolicyIdentity, launchPolicyIdentity,
+            prior.PolicyAuthorityIdentity, prior.VerifiedEvidence, provider,
+            prior.StagedIdentity, prior.StagedExecutablePath);
 }
 
 /// <summary>

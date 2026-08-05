@@ -747,6 +747,77 @@ public static class ComponentBindingLifecycle
         }
     }
 
+    /// <summary>
+    /// Repairs the provider connection inside an existing logical generation. This creates a fresh
+    /// portable member but deliberately carries the prior CM4 runtime observation forward rather
+    /// than replaying the generation cutover.
+    /// </summary>
+    internal static async ValueTask<ComponentBindingLifecycleResult> RestartAsync(
+        ComponentBindingLifecycleResult prior,
+        Cm.ResolutionOutcome resolution,
+        ComponentBindingSelection selection,
+        Cm.ActivationRuntimeRequest retainedRequest,
+        Portable.IPortableProviderConversation conversation)
+    {
+        if (prior.Runtime?.IsActive != true || prior.Member is null
+            || !TrySupportedGroup(retainedRequest.Plan, selection.Occurrence, out _))
+        {
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.PlanUnsupported,
+                "restart-recipe-unavailable",
+                "A provider restart requires one prior active logical runtime and its exact singleton recipe.");
+        }
+
+        var preparation = ComponentBindingIntegration.Prepare(resolution, selection);
+        if (preparation.Member is not { } member)
+        {
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.PreparationUnavailable,
+                "preparation-unavailable",
+                "Provider restart could not prepare a fresh portable member.",
+                prior.Runtime);
+        }
+
+        try
+        {
+            await member.InterconnectAsync(conversation, CancellationToken.None).ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused,
+                PortableInterconnectionCode(exception),
+                exception.Message,
+                prior.Runtime,
+                member);
+        }
+
+        if (!member.IsReady)
+        {
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused,
+                "ready-missing",
+                "Portable restart Interconnection completed without a Ready lifecycle state.",
+                prior.Runtime,
+                member);
+        }
+
+        try
+        {
+            member.Release();
+            return new(prior.Runtime, member, null);
+        }
+        catch (Portable.PortableFaultException fault)
+        {
+            return Refuse(
+                ComponentBindingLifecycleFailureKind.PortableReleaseRefused,
+                fault.LocalCode,
+                fault.Message,
+                prior.Runtime,
+                member);
+        }
+    }
+
     /// <summary>Projects portable semantic and process failures into the composition boundary.</summary>
     /// <remarks>
     /// Process categories remain observable on the portable plan, but CBI needs one stable failure

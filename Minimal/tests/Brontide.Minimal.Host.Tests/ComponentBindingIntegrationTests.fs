@@ -68,6 +68,17 @@ type private Cbi46Observation =
       SecondServing: bool
       StagedSetRemains: bool }
 
+type private Cbi52Observation =
+    { Code: string
+      RefusedBy: string
+      Occurrence: string option
+      OldServing: bool
+      NewServing: bool
+      StagedSetRemains: bool
+      SameLogicalRuntime: bool
+      ProviderStarted: bool
+      LifecycleReconstructed: bool }
+
 type private Cbi30Observation =
     { Active: bool
       Code: string
@@ -11082,6 +11093,124 @@ type ComponentBindingIntegrationTests() =
                 try Directory.Delete(root, true) with _ -> ()
         }
 
+    member private _.Cbi52Run(scenario: string) = task {
+        let root = Path.Combine(Path.GetTempPath(), $"brontide-cbi52-{Guid.NewGuid():N}")
+        Directory.CreateDirectory root |> ignore
+        let mutable successor: ProviderServingActivation option = None
+        let mutable initialProvider: StagedProviderProcess option = None
+        try
+            use authority = ECDsa.Create ECCurve.NamedCurves.nistP256
+            use publisher = ECDsa.Create ECCurve.NamedCurves.nistP256
+            let digestOf (key: ECDsa) = key.ExportSubjectPublicKeyInfo() |> SHA256.HashData |> Convert.ToHexString
+            let authorityIdentity = digestOf authority |> ProviderPublisherTrustPolicyAuthorityId.create
+            let executable =
+                match Environment.GetEnvironmentVariable "BRONTIDE_MINIMAL_PROVIDER" |> Option.ofObj with
+                | Some path when File.Exists path -> Path.GetFullPath path
+                | _ -> Assert.Ignore "BRONTIDE_MINIMAL_PROVIDER does not name a built provider endpoint."; failwith "ignored"
+            let named (value: string | null) =
+                match value with null -> failwith "A provider path component was missing." | present -> present
+            let providerRoot = Path.GetDirectoryName executable |> named
+            let bytes =
+                Directory.EnumerateFiles providerRoot |> Seq.sort
+                |> Seq.map (fun path -> Path.GetFileName path |> named, File.ReadAllBytes path) |> Map.ofSeq
+            let files = bytes |> Map.toList |> List.map (fun (path, content) ->
+                { RelativePath = path; Sha256 = SHA256.HashData content |> Convert.ToHexString
+                  Length = int64 content.LongLength }: ProviderArtifactAcquisitionFile)
+            let expectedSource = ProviderArtifactSourceId.create "fixture://brontide/provider-output"
+            let executableName = Path.GetFileName executable |> named
+            let restartMarker = Path.Combine(root, "restart.marker")
+            let launchArguments =
+                if scenario = "restart-enforce-lifecycle-refused" then
+                    [ "--portable"; $"--portable-fail-after-first={restartMarker}" ]
+                else [ "--portable" ]
+            let artifacts = files |> List.map (fun file ->
+                { RelativePath = file.RelativePath; Sha256 = file.Sha256 }: ProviderArtifactFile)
+            let request: ProviderArtifactAcquisitionRequest =
+                { ExpectedSource = expectedSource
+                  Identity = ProviderArtifactSetIdentity.compute artifacts executableName launchArguments
+                  Files = files; ExecutablePath = executableName; Arguments = launchArguments
+                  MaxTotalBytes = files |> List.sumBy _.Length }
+            let evidence: ProviderPublisherEvidence =
+                { PublisherKeyId = digestOf publisher |> ProviderPublisherKeyId.create
+                  Algorithm = "ECDSA-P256-SHA256"
+                  PublicKeySpkiBase64 = publisher.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                  SignatureBase64 =
+                    publisher.SignData(ProviderArtifactPublisherManifest.encode request,
+                        HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
+                    |> Convert.ToBase64String }
+            let entries = [ { PublisherKeyId = evidence.PublisherKeyId; Disposition = Admitted } ]
+            let initial: ProviderPublisherTrustPolicy =
+                { Identity = ProviderPublisherTrustPolicyIdentity.compute entries; Entries = entries }
+            let update: ProviderPublisherTrustPolicyUpdate =
+                { Sequence = 1L; PreviousPolicyIdentity = None; Policy = initial
+                  Algorithm = "ECDSA-P256-SHA256"
+                  AuthorityPublicKeySpkiBase64 = authority.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                  SignatureBase64 =
+                    authority.SignData(ProviderPublisherTrustPolicyUpdateManifest.encode 1L None initial.Identity,
+                        HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
+                    |> Convert.ToBase64String }
+            let _, openedRegistry, _ = DurableProviderPublisherTrustPolicyRegistry.Open(
+                Path.Combine(root, "policy.checkpoint"), authorityIdentity, None)
+            let registry = openedRegistry.Value
+            Assert.That(registry.Apply(update).IsApplied, Is.True)
+            let source =
+                { new IProviderArtifactSource with
+                    member _.Identity = expectedSource
+                    member _.OpenRead relativePath =
+                        (bytes |> Map.tryFind relativePath
+                         |> Option.map (fun content -> new MemoryStream(content, false) :> Stream)) }
+            let storeRoot = Path.GetFullPath(Path.Combine(root, "store"))
+            let store = ContentAddressedProviderStore storeRoot
+            let chain = ProviderDistributionChain.run registry store (Path.Combine(root, "transactions"))
+                            { Acquisition = request; Evidence = Some evidence; AllowedArguments = launchArguments } source
+            initialProvider <- chain.Provider
+            let resolution = pairRequestFor [] [] |> FakeGenerationResolver.resolve
+            let providerSets = match resolution with
+                               | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                               | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+            let selected =
+                providerSets |> List.find (fun item -> item.Requirement = requirementId)
+                |> _.Members |> List.exactlyOne |> selection
+            let! activation = ProviderServingTrustRevalidation.activate chain resolution selected
+                                (runtimeRequest (plan [ selected.Occurrence ]))
+            let instant = DateTimeOffset(2026, 8, 5, 9, 0, 0, TimeSpan.Zero)
+            let! stopped = ProviderOfflineServiceEnforcement.run
+                                (ProviderTrustOfflinePolicy.create (TimeSpan.FromMinutes 5.0) (TimeSpan.FromMinutes 1.0))
+                                instant (Some(instant.AddMinutes -5.0)) "policy-poll-exhausted"
+                                (Some "policy-distribution-timeout") [ activation ] "offline grace ended"
+            Assert.That(stopped.Code, Is.EqualTo "offline-enforcement-stopped")
+            if scenario = "restart-enforce-artifact-mutated" then
+                File.SetAttributes(chain.StagedExecutablePath.Value, FileAttributes.Normal)
+                do! File.AppendAllTextAsync(chain.StagedExecutablePath.Value, "mutated")
+            let cause = if scenario = "restart-enforce-policy-refused" then ProviderRestartCause.OperatorRetirement
+                        else ProviderRestartCause.OfflineAvailability
+            let policy = ProviderRestartPolicy.create 3 (TimeSpan.FromMinutes 1.0)
+            let! first = ProviderRestartEnforcement.run policy registry store activation cause initial.Identity instant 0 None
+            successor <- first.Activation
+            let! result = if scenario = "restart-enforce-repeated" then
+                              ProviderRestartEnforcement.run policy registry store activation cause initial.Identity instant 0 None
+                          else Task.FromResult first
+            let observation =
+                { Code = result.Code; RefusedBy = result.RefusedBy
+                  Occurrence = successor |> Option.map (fun value -> OccurrenceId.value value.OccurrenceId)
+                  OldServing = activation.IsServing; NewServing = successor |> Option.exists _.IsServing
+                  StagedSetRemains = Directory.Exists storeRoot && (Directory.EnumerateDirectories storeRoot |> Seq.isEmpty |> not)
+                  SameLogicalRuntime = successor.IsNone || result.LogicalGenerationPreserved
+                  ProviderStarted = result.ProviderStarted || successor.IsSome
+                  LifecycleReconstructed = result.LifecycleReconstructed || successor.IsSome }
+            match successor with
+            | Some value ->
+                let! _ = ProviderOfflineServiceEnforcement.run
+                            (ProviderTrustOfflinePolicy.create (TimeSpan.FromMinutes 5.0) (TimeSpan.FromMinutes 1.0))
+                            instant (Some(instant.AddMinutes -5.0)) "policy-poll-exhausted"
+                            (Some "policy-distribution-timeout") [ value ] "CBI52 test completed"
+                ()
+            | None -> ()
+            return observation
+        finally
+            match initialProvider with | Some value when not value.HasExited -> value.Dispose() | _ -> ()
+            try Directory.Delete(root, true) with _ -> () }
+
     [<Test>]
     member _.``CBI46 C1 the serving set is bounded and valid before effects``() = task {
         let registry = Unchecked.defaultof<DurableProviderPublisherTrustPolicyRegistry>
@@ -11255,6 +11384,51 @@ type ComponentBindingIntegrationTests() =
             let name = vector.GetProperty("name") |> textValue
             let! actual = this.Cbi46Run name
             multiple (fun () -> Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("expectedCode") |> textValue), name); Assert.That(actual.RefusedBy, Is.EqualTo(vector.GetProperty("refusedBy") |> textValue), name); Assert.That(actual.Continued = 1, Is.EqualTo(vector.GetProperty("mayRestart").GetBoolean()), name)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI52 C1 eligibility is rechecked before effects``() = task {
+        let! actual = this.Cbi52Run "restart-enforce-policy-refused"
+        multiple (fun () -> Assert.That(actual.Code, Is.EqualTo "provider-restart-cause-refused"); Assert.That(actual.ProviderStarted, Is.False)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI52 C2 reconstruction uses the opaque retained recipe``() = task {
+        let! actual = this.Cbi52Run "restart-enforce-completed"
+        Assert.That(actual.Occurrence, Is.EqualTo(Some "occ.def.test.cooling-provider.1")) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI52 C3 retained artifacts are verified again before launch``() = task {
+        let! actual = this.Cbi52Run "restart-enforce-artifact-mutated"
+        multiple (fun () -> Assert.That(actual.Code, Is.EqualTo "staged-artifact-integrity-failed"); Assert.That(actual.ProviderStarted, Is.False)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI52 C4 restart repairs one logical generation``() = task {
+        let! actual = this.Cbi52Run "restart-enforce-completed"
+        multiple (fun () -> Assert.That(actual.SameLogicalRuntime, Is.True); Assert.That(actual.LifecycleReconstructed, Is.True)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI52 C5 incomplete reconstruction fails closed``() = task {
+        let! actual = this.Cbi52Run "restart-enforce-lifecycle-refused"
+        multiple (fun () -> Assert.That(actual.ProviderStarted, Is.True); Assert.That(actual.NewServing, Is.False)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI52 C6 one stopped activation has one successful successor``() = task {
+        let! actual = this.Cbi52Run "restart-enforce-repeated"
+        multiple (fun () -> Assert.That(actual.Code, Is.EqualTo "provider-restart-already-completed"); Assert.That(actual.NewServing, Is.True)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI52 C7 refusal and failed launch preserve retained content``() = task {
+        for scenario in [ "restart-enforce-policy-refused"; "restart-enforce-artifact-mutated" ] do
+            let! actual = this.Cbi52Run scenario
+            Assert.That(actual.StagedSetRemains, Is.True, scenario) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI52 C8 minimal executes the shared enforcement model``() = task {
+        use fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "component-management", "fixtures", "cbi52-provider-restart-enforcement-vectors.json")))
+        let textValue (value: JsonElement) = value.GetString() |> Option.ofObj |> Option.defaultValue ""
+        for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+            let name = vector.GetProperty("name") |> textValue
+            let! actual = this.Cbi52Run name
+            multiple (fun () -> Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("expectedCode") |> textValue), name); Assert.That(actual.RefusedBy, Is.EqualTo(vector.GetProperty("refusedBy") |> textValue), name); Assert.That(actual.OldServing, Is.EqualTo(vector.GetProperty("oldServing").GetBoolean()), name); Assert.That(actual.NewServing, Is.EqualTo(vector.GetProperty("newServing").GetBoolean()), name); Assert.That(actual.StagedSetRemains, Is.EqualTo(vector.GetProperty("stagedSetRemains").GetBoolean()), name)) }
 
     [<Test>]
     member _.``CBI47 C1 cadence is bounded and explicit``() =

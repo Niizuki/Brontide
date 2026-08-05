@@ -1,0 +1,9 @@
+{
+  "vectors": [
+    { "name": "restart-enforce-completed", "expectedCode": "provider-restart-completed", "refusedBy": "none", "oldServing": false, "newServing": true, "stagedSetRemains": true },
+    { "name": "restart-enforce-policy-refused", "expectedCode": "provider-restart-cause-refused", "refusedBy": "cause", "oldServing": false, "newServing": false, "stagedSetRemains": true },
+    { "name": "restart-enforce-artifact-mutated", "expectedCode": "staged-artifact-integrity-failed", "refusedBy": "cbi31", "oldServing": false, "newServing": false, "stagedSetRemains": true },
+    { "name": "restart-enforce-lifecycle-refused", "expectedCode": "portable-process-interrupted", "refusedBy": "cbi2", "oldServing": false, "newServing": false, "stagedSetRemains": true },
+    { "name": "restart-enforce-repeated", "expectedCode": "provider-restart-already-completed", "refusedBy": "claim", "oldServing": false, "newServing": true, "stagedSetRemains": true }
+  ]
+}

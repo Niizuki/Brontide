@@ -17,6 +17,17 @@ public sealed partial class ComponentBindingIntegrationTests
         bool SecondServing,
         bool StagedSetRemains);
 
+    private sealed record Cbi52Observation(
+        string Code,
+        string RefusedBy,
+        string? Occurrence,
+        bool OldServing,
+        bool NewServing,
+        bool StagedSetRemains,
+        bool SameLogicalRuntime,
+        bool ProviderStarted,
+        bool LifecycleReconstructed);
+
     private static async Task<Cbi46Observation> Cbi46RunAsync(string scenario)
     {
         var root = Path.Combine(Path.GetTempPath(), $"brontide-cbi46-{Guid.NewGuid():N}");
@@ -193,6 +204,97 @@ public sealed partial class ComponentBindingIntegrationTests
             {
                 if (!provider.HasExited) await provider.DisposeAsync();
             }
+            Cbi32DeleteTree(root);
+        }
+    }
+
+    private static async Task<Cbi52Observation> Cbi52RunAsync(string scenario)
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"brontide-cbi52-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        ProviderServingActivation? original = null;
+        ProviderServingActivation? successor = null;
+        StagedProviderProcess? initialProvider = null;
+        try
+        {
+            using var authority = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            using var publisher = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            var authorityId = ProviderPublisherTrustPolicyAuthorityId.Create(
+                Convert.ToHexString(SHA256.HashData(authority.ExportSubjectPublicKeyInfo())));
+            var (request, source) = Cbi33Input("reference", "none");
+            var launchArguments = scenario == "restart-enforce-lifecycle-refused"
+                ? new[] { "--portable", $"--portable-fail-after-first={Path.Combine(root, "restart.marker")}" }
+                : new[] { "--portable" };
+            request = request with
+            {
+                Identity = ProviderArtifactSetIdentity.Compute(
+                    request.Files.Select(file => new ProviderArtifactFile(file.RelativePath, file.Sha256)),
+                    request.ExecutablePath,
+                    launchArguments),
+                Arguments = launchArguments,
+            };
+            var evidence = Cbi43Evidence(publisher, request);
+            var initial = Cbi44Policy(Cbi44Entry(evidence.PublisherKeyId, revoked: false));
+            var custody = ProviderPublisherTrustPolicyCustody.Open(
+                Path.Combine(root, "policy.checkpoint"), Path.Combine(root, "policy.floor"), authorityId);
+            var registry = custody.Registry!;
+            Assert.That(registry.Apply(Cbi37Sign(authority, 1, null, initial)).IsApplied, Is.True);
+            var storeRoot = Path.Combine(root, "store");
+            var store = new ContentAddressedProviderStore(storeRoot);
+            var chain = ProviderDistributionChain.Run(
+                registry, store, Path.Combine(root, "transactions"),
+                new(request, evidence, launchArguments), source);
+            initialProvider = chain.Provider!;
+
+            var resolution = new FakeGenerationResolver().Resolve(RequestFor(Requirement));
+            var selection = Selection(resolution.Generation!.ProviderSets.Single().Members.Single());
+            original = await ProviderServingTrustRevalidation.ActivateAsync(
+                chain, resolution, selection, RuntimeRequest(Plan(selection.Occurrence)));
+            var instant = new DateTimeOffset(2026, 8, 5, 9, 0, 0, TimeSpan.Zero);
+            var stopped = await ProviderOfflineServiceEnforcement.RunAsync(
+                ProviderTrustOfflinePolicy.Create(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(1)),
+                instant, instant.AddMinutes(-5), "policy-poll-exhausted",
+                "policy-distribution-timeout", [original], "offline grace ended");
+            Assert.That(stopped.Code, Is.EqualTo("offline-enforcement-stopped"));
+
+            if (scenario == "restart-enforce-artifact-mutated")
+            {
+                File.SetAttributes(chain.StagedExecutablePath!, FileAttributes.Normal);
+                await File.AppendAllTextAsync(chain.StagedExecutablePath!, "mutated");
+            }
+
+            var cause = scenario == "restart-enforce-policy-refused"
+                ? ProviderRestartCause.OperatorRetirement
+                : ProviderRestartCause.OfflineAvailability;
+            var result = await ProviderRestartEnforcement.RunAsync(
+                ProviderRestartPolicy.Create(3, TimeSpan.FromMinutes(1)),
+                registry, store, original, cause, initial.Identity, instant, 0, null);
+            successor = result.Activation;
+            if (scenario == "restart-enforce-repeated")
+            {
+                result = await ProviderRestartEnforcement.RunAsync(
+                    ProviderRestartPolicy.Create(3, TimeSpan.FromMinutes(1)),
+                    registry, store, original, cause, initial.Identity, instant, 0, null);
+            }
+
+            return new(
+                result.Code, result.RefusedBy, successor?.Occurrence.Value,
+                original.IsServing, successor?.IsServing == true,
+                Directory.Exists(storeRoot) && Directory.EnumerateDirectories(storeRoot).Any(),
+                successor is null || result.LogicalGenerationPreserved,
+                result.ProviderStarted || successor is not null,
+                result.LifecycleReconstructed || successor is not null);
+        }
+        finally
+        {
+            if (successor?.IsServing == true)
+                await successor.RetireAsync("CBI52 test completed");
+            if (successor is not null)
+                await successor.DisposeAsync();
+            if (original is not null)
+                await original.DisposeAsync();
+            if (initialProvider is { HasExited: false })
+                await initialProvider.DisposeAsync();
             Cbi32DeleteTree(root);
         }
     }
@@ -420,6 +522,67 @@ public sealed partial class ComponentBindingIntegrationTests
     {
         using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "component-management", "fixtures", "cbi51-provider-restart-policy-vectors.json")));
         foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray()) { var name = vector.GetProperty("name").GetString()!; var actual = await Cbi46RunAsync(name); Assert.Multiple(() => { Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), name); Assert.That(actual.RefusedBy, Is.EqualTo(vector.GetProperty("refusedBy").GetString()), name); Assert.That(actual.Continued == 1, Is.EqualTo(vector.GetProperty("mayRestart").GetBoolean()), name); }); }
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi52_C1_eligibility_is_rechecked_before_effects()
+    {
+        var actual = await Cbi52RunAsync("restart-enforce-policy-refused");
+        Assert.Multiple(() => { Assert.That(actual.Code, Is.EqualTo("provider-restart-cause-refused")); Assert.That(actual.ProviderStarted, Is.False); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi52_C2_reconstruction_uses_the_opaque_retained_recipe()
+    {
+        var actual = await Cbi52RunAsync("restart-enforce-completed");
+        Assert.That(actual.Occurrence, Is.EqualTo("occ.def.test.cooling-provider.1"));
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi52_C3_retained_artifacts_are_verified_again_before_launch()
+    {
+        var actual = await Cbi52RunAsync("restart-enforce-artifact-mutated");
+        Assert.Multiple(() => { Assert.That(actual.Code, Is.EqualTo("staged-artifact-integrity-failed")); Assert.That(actual.ProviderStarted, Is.False); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi52_C4_restart_repairs_one_logical_generation()
+    {
+        var actual = await Cbi52RunAsync("restart-enforce-completed");
+        Assert.Multiple(() => { Assert.That(actual.SameLogicalRuntime, Is.True); Assert.That(actual.LifecycleReconstructed, Is.True); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi52_C5_incomplete_reconstruction_fails_closed()
+    {
+        var actual = await Cbi52RunAsync("restart-enforce-lifecycle-refused");
+        Assert.Multiple(() => { Assert.That(actual.ProviderStarted, Is.True); Assert.That(actual.NewServing, Is.False); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi52_C6_one_stopped_activation_has_one_successful_successor()
+    {
+        var actual = await Cbi52RunAsync("restart-enforce-repeated");
+        Assert.Multiple(() => { Assert.That(actual.Code, Is.EqualTo("provider-restart-already-completed")); Assert.That(actual.NewServing, Is.True); });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi52_C7_refusal_and_failed_launch_preserve_retained_content()
+    {
+        foreach (var scenario in new[] { "restart-enforce-policy-refused", "restart-enforce-artifact-mutated" })
+            Assert.That((await Cbi52RunAsync(scenario)).StagedSetRemains, Is.True, scenario);
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi52_C8_reference_executes_the_shared_enforcement_model()
+    {
+        using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "component-management", "fixtures", "cbi52-provider-restart-enforcement-vectors.json")));
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var name = vector.GetProperty("name").GetString()!;
+            var actual = await Cbi52RunAsync(name);
+            Assert.Multiple(() => { Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), name); Assert.That(actual.RefusedBy, Is.EqualTo(vector.GetProperty("refusedBy").GetString()), name); Assert.That(actual.OldServing, Is.EqualTo(vector.GetProperty("oldServing").GetBoolean()), name); Assert.That(actual.NewServing, Is.EqualTo(vector.GetProperty("newServing").GetBoolean()), name); Assert.That(actual.StagedSetRemains, Is.EqualTo(vector.GetProperty("stagedSetRemains").GetBoolean()), name); });
+        }
     }
 
     private sealed record Cbi45Observation(

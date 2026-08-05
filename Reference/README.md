@@ -210,7 +210,11 @@ decision to one exact 0-64-member serving snapshot: permitted grace is effect-fr
 decision retires and terminates the complete set in typed occurrence order without deleting staged
 artifacts or authorizing restart. CBI51 makes restart eligibility explicit and effect-free: only
 availability or unexpected-exit stops can proceed, and only under an exact current-cycle policy
-identity, a fresh authorization for the retained content, and a bounded retry budget.
+identity, a fresh authorization for the retained content, and a bounded retry budget. CBI52 enforces
+one ready decision from the stopped activation's opaque retained recipe: it re-verifies the complete
+staged set, launches a new provider, reconstructs a fresh portable member under the same occurrence
+and logical runtime, and admits at most one successful successor while preserving retained content
+on refusal.
 
 ## Build and test
 
