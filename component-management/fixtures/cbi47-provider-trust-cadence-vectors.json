@@ -1,0 +1,69 @@
+{
+  "schedule": {
+    "maximumCycles": 2,
+    "intervalSeconds": 5,
+    "startInstant": "2026-08-05T08:00:00+00:00"
+  },
+  "vectors": [
+    {
+      "name": "two-current-cycles",
+      "cycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-current"],
+      "cancel": "none",
+      "expectedCode": "provider-trust-cadence-complete",
+      "expectedCycles": 2,
+      "expectedCycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-current"],
+      "expectedCycleInstants": ["2026-08-05T08:00:00+00:00", "2026-08-05T08:00:05+00:00"],
+      "expectedGapsSeconds": [5]
+    },
+    {
+      "name": "withdrawal-continues",
+      "cycleCodes": ["provider-trust-cycle-withdrawn", "provider-trust-cycle-current"],
+      "cancel": "none",
+      "expectedCode": "provider-trust-cadence-complete",
+      "expectedCycles": 2,
+      "expectedCycleCodes": ["provider-trust-cycle-withdrawn", "provider-trust-cycle-current"],
+      "expectedCycleInstants": ["2026-08-05T08:00:00+00:00", "2026-08-05T08:00:05+00:00"],
+      "expectedGapsSeconds": [5]
+    },
+    {
+      "name": "policy-stops-immediately",
+      "cycleCodes": ["provider-trust-cycle-stopped", "provider-trust-cycle-current"],
+      "cancel": "none",
+      "expectedCode": "provider-trust-cadence-stopped",
+      "expectedCycles": 1,
+      "expectedCycleCodes": ["provider-trust-cycle-stopped"],
+      "expectedCycleInstants": ["2026-08-05T08:00:00+00:00"],
+      "expectedGapsSeconds": []
+    },
+    {
+      "name": "second-cycle-stops",
+      "cycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-stopped"],
+      "cancel": "none",
+      "expectedCode": "provider-trust-cadence-stopped",
+      "expectedCycles": 2,
+      "expectedCycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-stopped"],
+      "expectedCycleInstants": ["2026-08-05T08:00:00+00:00", "2026-08-05T08:00:05+00:00"],
+      "expectedGapsSeconds": [5]
+    },
+    {
+      "name": "canceled-before-first",
+      "cycleCodes": ["provider-trust-cycle-current"],
+      "cancel": "before-first",
+      "expectedCode": "provider-trust-cadence-canceled",
+      "expectedCycles": 0,
+      "expectedCycleCodes": [],
+      "expectedCycleInstants": [],
+      "expectedGapsSeconds": []
+    },
+    {
+      "name": "canceled-during-gap",
+      "cycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-current"],
+      "cancel": "during-gap",
+      "expectedCode": "provider-trust-cadence-canceled",
+      "expectedCycles": 1,
+      "expectedCycleCodes": ["provider-trust-cycle-current"],
+      "expectedCycleInstants": ["2026-08-05T08:00:00+00:00"],
+      "expectedGapsSeconds": []
+    }
+  ]
+}

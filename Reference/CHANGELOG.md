@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased - CBI47 provider trust cadence
+
+### Added
+
+- One bounded host-owned cadence that immediately polls current publisher policy, snapshots and
+  sweeps the current serving set, then repeats through an injected delay for at most 64 cycles.
+- Explicit complete, stopped, and canceled observations, with successful trust withdrawal allowed
+  to continue and shared six-vector evidence executed independently in both roots.
+
+### Notes
+
+- The cadence is deterministic in-process orchestration, not a daemon, durable retry queue,
+  crash-resumption protocol, offline policy, or restart controller.
+
 ## Unreleased - CBI46 serving trust sweep
 
 ### Added
