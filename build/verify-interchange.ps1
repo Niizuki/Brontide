@@ -59,7 +59,7 @@ Invoke-Checked { dotnet test $minimalSolution --no-build --filter 'Category!=Cro
 $env:BRONTIDE_MINIMAL_PROVIDER = Join-Path $repositoryRoot 'Minimal\src\Brontide.Minimal.Interchange.Provider\bin\Debug\net10.0\Brontide.Minimal.Interchange.Provider.exe'
 $env:BRONTIDE_REFERENCE_PROVIDER = Join-Path $repositoryRoot 'Reference\src\Brontide.Reference.Interchange.Provider\bin\Debug\net10.0\Brontide.Reference.Interchange.Provider.exe'
 
-# CBI30, CBI54, and CBI55 are owned by the composition roots, not the portable suites. Re-run their process
+# CBI30, CBI54, CBI55, and CBI57 are owned by the composition roots, not the portable suites. Re-run their process
 # category after both provider paths exist so the ordinary solution runs above cannot turn this
 # evidence into environment-dependent skips.
 Invoke-Checked {

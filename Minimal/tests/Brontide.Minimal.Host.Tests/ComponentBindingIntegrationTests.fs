@@ -10684,6 +10684,7 @@ type ComponentBindingIntegrationTests() =
             let mutable provider: StagedProviderProcess option = None
             try
                 use authority = ECDsa.Create ECCurve.NamedCurves.nistP256
+                use nextAuthority = ECDsa.Create ECCurve.NamedCurves.nistP256
                 use publisher = ECDsa.Create ECCurve.NamedCurves.nistP256
                 let digestOf (key: ECDsa) =
                     key.ExportSubjectPublicKeyInfo() |> SHA256.HashData |> Convert.ToHexString
@@ -10740,21 +10741,38 @@ type ComponentBindingIntegrationTests() =
                         policyOf [ { PublisherKeyId = publisherKey; Disposition = Revoked } ]
                     | "publisher-removed" ->
                         policyOf [ { PublisherKeyId = otherPublisher; Disposition = Admitted } ]
-                    | "unrelated-revocation" ->
+                    | "unrelated-revocation"
+                    | "authority-rotated" ->
                         policyOf
                             [ { PublisherKeyId = publisherKey; Disposition = Admitted }
                               { PublisherKeyId = otherPublisher; Disposition = Revoked } ]
                     | _ -> initial
-                let signUpdate sequence previous (policy: ProviderPublisherTrustPolicy) =
+                let signUpdateWith (key: ECDsa) sequence previous (policy: ProviderPublisherTrustPolicy) =
                     { Sequence = sequence; PreviousPolicyIdentity = previous; Policy = policy
                       Algorithm = "ECDSA-P256-SHA256"
-                      AuthorityPublicKeySpkiBase64 =
-                        authority.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                      AuthorityPublicKeySpkiBase64 = key.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
                       SignatureBase64 =
-                        authority.SignData(
+                        key.SignData(
                             ProviderPublisherTrustPolicyUpdateManifest.encode sequence previous policy.Identity,
                             HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
                         |> Convert.ToBase64String }: ProviderPublisherTrustPolicyUpdate
+                let signUpdate = signUpdateWith authority
+                let signRotation (next: ECDsa) generation policySequence policyIdentity =
+                    let nextIdentity = digestOf next |> ProviderPublisherTrustPolicyAuthorityId.create
+                    let manifest =
+                        ProviderPolicyAuthorityRotationManifest.encode generation policySequence
+                            policyIdentity authorityIdentity nextIdentity
+                    let sign (key: ECDsa) =
+                        key.SignData(manifest, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
+                        |> Convert.ToBase64String
+                    { Generation = generation; PolicySequence = policySequence; PolicyIdentity = policyIdentity
+                      PreviousAuthority = authorityIdentity; NextAuthority = nextIdentity
+                      Algorithm = "ECDSA-P256-SHA256"
+                      PreviousAuthorityPublicKeySpkiBase64 =
+                        authority.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                      NextAuthorityPublicKeySpkiBase64 = next.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                      PreviousSignatureBase64 = sign authority
+                      NextSignatureBase64 = sign next }: ProviderPolicyAuthorityRotationStatement
                 let openedCode, openedRegistry, _ =
                     DurableProviderPublisherTrustPolicyRegistry.Open(
                         Path.Combine(root, "policy.checkpoint"), authorityIdentity, None)
@@ -10781,8 +10799,18 @@ type ComponentBindingIntegrationTests() =
                         (runtimeRequest (plan [ occurrence ]))
                 Assert.That(activation.IsServing, Is.True)
                 if mutation <> "unchanged" then
+                    // A rotated authority signs the successor policy itself, so this vector proves both
+                    // that the successor governs ordinary updates and that neither the rotation nor the
+                    // update it signs disturbs a released member.
+                    let signer =
+                        if mutation = "authority-rotated" then
+                            Assert.That(
+                                registry.Rotate(signRotation nextAuthority 1L 1L (Some initial.Identity)).IsApplied,
+                                Is.True)
+                            nextAuthority
+                        else authority
                     Assert.That(
-                        registry.Apply(signUpdate 2L (Some initial.Identity) successor).IsApplied,
+                        registry.Apply(signUpdateWith signer 2L (Some initial.Identity) successor).IsApplied,
                         Is.True)
                 let! result =
                     ProviderServingTrustRevalidation.revalidate registry store activation
@@ -10880,6 +10908,15 @@ type ComponentBindingIntegrationTests() =
     member this.``CBI45 C5 a withdrawn activation cannot be revalidated twice``() = task {
         let! actual = this.Cbi45Run("publisher-revoked", true)
         Assert.That(actual.Continued, Is.False) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI57 C7 a serving member survives a rotation and an update signed by the successor``() = task {
+        let! actual = this.Cbi45Run("authority-rotated", false)
+        multiple (fun () ->
+            Assert.That(actual.Code, Is.EqualTo "publisher-trust-current")
+            Assert.That(actual.Continued, Is.True)
+            Assert.That(actual.ProviderRunning, Is.True)
+            Assert.That(actual.PolicyChanged, Is.True)) }
 
     member private _.Cbi46Run(scenario: string) =
         task {

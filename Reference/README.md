@@ -228,7 +228,11 @@ and then proving it free. Missing, corrupt, or mismatched evidence leaves the at
 CBI56 adds a separate durable CBI39 endpoint-key anchor: the active endpoint may sign one exact
 successor, but that successor becomes active only after authenticating a complete CBI39
 synchronization. Staging never widens ordinary polling, and externally retained floors detect
-rollback of the active generation.
+rollback of the active generation. CBI57 rotates the other key, the authority that signs policy
+itself, and does it inside the retained CBI38 chain rather than beside it: a transition is one
+durable link carrying the predecessor's authorization and the successor's countersignature, recovery
+re-verifies every retained update against the authority in force at its position, and the
+out-of-band pin never moves, so a rotation retires no serving member.
 
 ## Build and test
 

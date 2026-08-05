@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased - CBI57 policy-authority key rotation
+
+### Added
+
+- Authority rotation inside the retained CBI38 chain: `ProviderPolicyAuthorityRotationStatement`,
+  its canonical manifest, `Rotate` on both the live and durable registries, and
+  `ActiveAuthorityIdentity`/`AuthorityGeneration`, with recovery replaying updates against the
+  authority in force at each position.
+- `ProviderPolicyAuthorityFloor` and an optional `authorityFloor` argument to
+  `DurableProviderPublisherTrustPolicyRegistry.Open`, reported alongside the recovered registry.
+- Independent C1-C8 tests and shared rotation vectors with the Minimal stack.
+
+### Changed
+
+- `DurableProviderPublisherTrustPolicyResult` gains an optional `AuthorityFloor` member. The
+  parameter is defaulted, so existing construction and deconstruction of the first three members
+  compile unchanged; consumers that need the new floor read it from `Open`.
+- The checkpoint record keeps the CBI38 shape until a rotation is retained and then advances to a
+  tagged CBI57 record. Checkpoints written before this change open unchanged.
+
+### Notes
+
+- CBI57 rotates the key that signs publisher-trust policy. The out-of-band pin never moves, and
+  remediation of a compromised predecessor, rotation transport, and privileged floor custody remain
+  separate work.
+
 ## Unreleased - CBI56 distribution-endpoint key rotation
 
 ### Added

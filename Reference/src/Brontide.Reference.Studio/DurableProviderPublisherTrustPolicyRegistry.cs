@@ -35,10 +35,42 @@ public sealed record ProviderPublisherTrustPolicyRecoveryFloor
         new(authorityIdentity, sequence, policyIdentity);
 }
 
+/// <summary>
+/// Guards the authority generation the retained chain reaches. It is deliberately separate from the
+/// policy recovery floor: the two describe different monotone facts and have different custodians.
+/// </summary>
+public sealed record ProviderPolicyAuthorityFloor
+{
+    private ProviderPolicyAuthorityFloor(
+        long generation,
+        ProviderPublisherTrustPolicyAuthorityId activeAuthority)
+    {
+        Generation = generation;
+        ActiveAuthority = activeAuthority;
+    }
+
+    public long Generation { get; }
+    public ProviderPublisherTrustPolicyAuthorityId ActiveAuthority { get; }
+
+    internal static ProviderPolicyAuthorityFloor Issue(
+        long generation,
+        ProviderPublisherTrustPolicyAuthorityId activeAuthority) => new(generation, activeAuthority);
+
+    public static ProviderPolicyAuthorityFloor Restore(
+        long generation,
+        ProviderPublisherTrustPolicyAuthorityId activeAuthority)
+    {
+        if (generation < 0 || activeAuthority.Value is null)
+            throw new ArgumentException("A valid policy authority floor is required.");
+        return new(generation, activeAuthority);
+    }
+}
+
 public sealed record DurableProviderPublisherTrustPolicyResult(
     string Code,
     DurableProviderPublisherTrustPolicyRegistry? Registry,
-    ProviderPublisherTrustPolicyRecoveryFloor? Floor);
+    ProviderPublisherTrustPolicyRecoveryFloor? Floor,
+    ProviderPolicyAuthorityFloor? AuthorityFloor = null);
 
 public sealed record DurableProviderPublisherTrustPolicyUpdateResult(
     string Code,
@@ -48,34 +80,73 @@ public sealed record DurableProviderPublisherTrustPolicyUpdateResult(
     public bool IsApplied => Code == "policy-update-applied";
 }
 
+public sealed record DurableProviderPolicyAuthorityRotationResult(
+    string Code,
+    long Generation,
+    ProviderPublisherTrustPolicyAuthorityId ActiveAuthority,
+    ProviderPolicyAuthorityFloor Floor)
+{
+    public bool IsApplied => Code == "policy-authority-rotation-applied";
+}
+
+/// <summary>
+/// One retained link: either a policy update or the authority rotation that decides who may sign the
+/// updates after it. Both live in one record because recovery has to re-verify each update against
+/// the authority in force at its own position, which only their shared order states.
+/// </summary>
+internal sealed class ProviderPolicyChainLink
+{
+    private ProviderPolicyChainLink(
+        ProviderPublisherTrustPolicyUpdate? update,
+        ProviderPolicyAuthorityRotationStatement? rotation)
+    {
+        Update = update;
+        Rotation = rotation;
+    }
+
+    internal ProviderPublisherTrustPolicyUpdate? Update { get; }
+    internal ProviderPolicyAuthorityRotationStatement? Rotation { get; }
+
+    internal static ProviderPolicyChainLink Of(ProviderPublisherTrustPolicyUpdate update) => new(update, null);
+    internal static ProviderPolicyChainLink Of(ProviderPolicyAuthorityRotationStatement rotation) => new(null, rotation);
+}
+
 public sealed class DurableProviderPublisherTrustPolicyRegistry
 {
     private readonly object _sync = new();
     private readonly string _path;
     private readonly ProviderPublisherTrustPolicyRegistry _registry;
-    private readonly List<ProviderPublisherTrustPolicyUpdate> _updates;
+    private readonly List<ProviderPolicyChainLink> _links;
 
     private DurableProviderPublisherTrustPolicyRegistry(
         string path,
         ProviderPublisherTrustPolicyRegistry registry,
-        List<ProviderPublisherTrustPolicyUpdate> updates)
+        List<ProviderPolicyChainLink> links)
     {
         _path = path;
         _registry = registry;
-        _updates = updates;
+        _links = links;
     }
 
     public VerifiedProviderPublisherTrustPolicySnapshot? Current => _registry.Current;
 
     public ProviderPublisherTrustPolicyAuthorityId AuthorityIdentity => _registry.AuthorityIdentity;
 
+    public ProviderPublisherTrustPolicyAuthorityId ActiveAuthorityIdentity => _registry.ActiveAuthorityIdentity;
+
+    public long AuthorityGeneration => _registry.AuthorityGeneration;
+
     public ProviderPublisherTrustPolicyRecoveryFloor Floor =>
         ProviderPublisherTrustPolicyRecoveryFloor.Issue(_registry.AuthorityIdentity, _registry.Current);
+
+    public ProviderPolicyAuthorityFloor AuthorityFloor =>
+        ProviderPolicyAuthorityFloor.Issue(_registry.AuthorityGeneration, _registry.ActiveAuthorityIdentity);
 
     public static DurableProviderPublisherTrustPolicyResult Open(
         string path,
         ProviderPublisherTrustPolicyAuthorityId authorityIdentity,
-        ProviderPublisherTrustPolicyRecoveryFloor? floor = null)
+        ProviderPublisherTrustPolicyRecoveryFloor? floor = null,
+        ProviderPolicyAuthorityFloor? authorityFloor = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         path = Path.GetFullPath(path);
@@ -87,28 +158,33 @@ public sealed class DurableProviderPublisherTrustPolicyRegistry
         {
             if (floor is not null && floor.Sequence > 0)
                 return new("policy-checkpoint-rollback-detected", null, null);
+            if (authorityFloor is not null && (authorityFloor.Generation > 0
+                || authorityFloor.ActiveAuthority != authorityIdentity))
+                return new("policy-authority-rollback-detected", null, null);
             var emptyRegistry = new ProviderPublisherTrustPolicyRegistry(authorityIdentity);
             var empty = new DurableProviderPublisherTrustPolicyRegistry(path, emptyRegistry, []);
             return new("policy-checkpoint-empty", empty,
-                ProviderPublisherTrustPolicyRecoveryFloor.Issue(authorityIdentity, null));
+                ProviderPublisherTrustPolicyRecoveryFloor.Issue(authorityIdentity, null),
+                empty.AuthorityFloor);
         }
 
-        if (!CheckpointCodec.TryRead(path, out var storedAuthority, out var updates))
+        if (!CheckpointCodec.TryRead(path, out var storedAuthority, out var links))
             return new("policy-checkpoint-corrupt", null, null);
         if (storedAuthority != authorityIdentity)
             return new("policy-checkpoint-authority-mismatch", null, null);
-        var registry = new ProviderPublisherTrustPolicyRegistry(authorityIdentity);
-        foreach (var update in updates)
-        {
-            var applied = registry.Apply(update);
-            if (!applied.IsApplied) return new("policy-checkpoint-invalid-chain", null, null);
-        }
+        if (!TryReplay(authorityIdentity, links, out var registry))
+            return new("policy-checkpoint-invalid-chain", null, null);
         var current = registry.Current;
         if (floor is not null && IsRollback(current, floor))
             return new("policy-checkpoint-rollback-detected", null, null);
-        var durable = new DurableProviderPublisherTrustPolicyRegistry(path, registry, updates);
+        if (authorityFloor is not null && (registry.AuthorityGeneration < authorityFloor.Generation
+            || (registry.AuthorityGeneration == authorityFloor.Generation
+                && registry.ActiveAuthorityIdentity != authorityFloor.ActiveAuthority)))
+            return new("policy-authority-rollback-detected", null, null);
+        var durable = new DurableProviderPublisherTrustPolicyRegistry(path, registry, links);
         return new("policy-checkpoint-recovered", durable,
-            ProviderPublisherTrustPolicyRecoveryFloor.Issue(authorityIdentity, current));
+            ProviderPublisherTrustPolicyRecoveryFloor.Issue(authorityIdentity, current),
+            durable.AuthorityFloor);
     }
 
     public DurableProviderPublisherTrustPolicyUpdateResult Apply(ProviderPublisherTrustPolicyUpdate update)
@@ -116,26 +192,71 @@ public sealed class DurableProviderPublisherTrustPolicyRegistry
         ArgumentNullException.ThrowIfNull(update);
         lock (_sync)
         {
-            var shadow = new ProviderPublisherTrustPolicyRegistry(_registry.AuthorityIdentity);
-            foreach (var existing in _updates) shadow.Apply(existing);
-            var validation = shadow.Apply(update);
             var floor = ProviderPublisherTrustPolicyRecoveryFloor.Issue(_registry.AuthorityIdentity, _registry.Current);
+            TryReplay(_registry.AuthorityIdentity, _links, out var shadow);
+            var validation = shadow.Apply(update);
             if (!validation.IsApplied) return new(validation.Code, _registry.Current, floor);
             ProviderPublisherTrustEvaluator.TrySnapshot(update.Policy, out var policy);
             var snapshot = update with { Policy = policy };
-            var successor = new List<ProviderPublisherTrustPolicyUpdate>(_updates) { snapshot };
+            var successor = new List<ProviderPolicyChainLink>(_links) { ProviderPolicyChainLink.Of(snapshot) };
             if (!CheckpointCodec.TryWrite(_path, _registry.AuthorityIdentity, successor))
                 return new("policy-checkpoint-write-failed", _registry.Current, floor);
             var applied = _registry.Apply(snapshot);
             if (!applied.IsApplied) throw new InvalidOperationException("A published checkpoint must apply to its unchanged live registry.");
-            _updates.Add(snapshot);
+            _links.Add(ProviderPolicyChainLink.Of(snapshot));
             return new(applied.Code, applied.Current,
                 ProviderPublisherTrustPolicyRecoveryFloor.Issue(_registry.AuthorityIdentity, applied.Current));
         }
     }
 
+    /// <summary>
+    /// Publishes one authority transition and only then advances the live authority, in the order
+    /// CBI38 applies to a policy update: a live authority no checkpoint records would be forgotten by
+    /// the next recovery, which is the direction that loses work rather than the one that repeats it.
+    /// </summary>
+    public DurableProviderPolicyAuthorityRotationResult Rotate(ProviderPolicyAuthorityRotationStatement statement)
+    {
+        ArgumentNullException.ThrowIfNull(statement);
+        lock (_sync)
+        {
+            var floor = AuthorityFloor;
+            TryReplay(_registry.AuthorityIdentity, _links, out var shadow);
+            var validation = shadow.Rotate(statement);
+            if (!validation.IsApplied)
+                return new(validation.Code, _registry.AuthorityGeneration, _registry.ActiveAuthorityIdentity, floor);
+            var successor = new List<ProviderPolicyChainLink>(_links) { ProviderPolicyChainLink.Of(statement) };
+            if (!CheckpointCodec.TryWrite(_path, _registry.AuthorityIdentity, successor))
+                return new("policy-checkpoint-write-failed", _registry.AuthorityGeneration,
+                    _registry.ActiveAuthorityIdentity, floor);
+            var applied = _registry.Rotate(statement);
+            if (!applied.IsApplied) throw new InvalidOperationException("A published rotation must apply to its unchanged live registry.");
+            _links.Add(ProviderPolicyChainLink.Of(statement));
+            return new(applied.Code, applied.Generation, applied.ActiveAuthority, AuthorityFloor);
+        }
+    }
+
     public GovernedProviderArtifactAcquirer Govern(TrustedProviderArtifactAcquirer acquirer) =>
         new(_registry, acquirer);
+
+    /// <summary>
+    /// Replays the retained chain in stored order, so each update is verified against the authority
+    /// the preceding rotations put in force rather than against the pin alone.
+    /// </summary>
+    private static bool TryReplay(
+        ProviderPublisherTrustPolicyAuthorityId pin,
+        IReadOnlyList<ProviderPolicyChainLink> links,
+        out ProviderPublisherTrustPolicyRegistry registry)
+    {
+        registry = new(pin);
+        foreach (var link in links)
+        {
+            var applied = link.Update is not null
+                ? registry.Apply(link.Update).IsApplied
+                : registry.Rotate(link.Rotation!).IsApplied;
+            if (!applied) return false;
+        }
+        return true;
+    }
 
     private static bool IsRollback(
         VerifiedProviderPublisherTrustPolicySnapshot? current,
@@ -154,27 +275,39 @@ public sealed class DurableProviderPublisherTrustPolicyRegistry
     private static class CheckpointCodec
     {
         private const int MaxBytes = 1024 * 1024;
-        private const int MaxUpdates = 4096;
+        private const int MaxLinks = 4096;
         private const int MaxEntries = 4096;
+        private const int UpdateTag = 0;
+        private const int RotationTag = 1;
 
+        /// <summary>
+        /// Writes the CBI38 record while the chain holds only updates and the tagged CBI57 record once
+        /// it holds a rotation, so a host that never rotates keeps a record shape earlier evidence
+        /// pins and an existing checkpoint stays readable.
+        /// </summary>
         internal static bool TryWrite(
             string path,
             ProviderPublisherTrustPolicyAuthorityId authority,
-            IReadOnlyList<ProviderPublisherTrustPolicyUpdate> updates)
+            IReadOnlyList<ProviderPolicyChainLink> links)
         {
             var temporary = path + ".tmp";
             try
             {
-                if (updates.Count > MaxUpdates || updates.Any(update => update.Policy.Entries.Count > MaxEntries))
+                if (links.Count > MaxLinks
+                    || links.Any(link => link.Update?.Policy.Entries.Count > MaxEntries))
                     return false;
+                var rotated = links.Any(link => link.Rotation is not null);
                 var parent = Path.GetDirectoryName(path)!;
                 Directory.CreateDirectory(parent);
                 using var memory = new MemoryStream();
-                Write(memory, "CBI38");
+                Write(memory, rotated ? "CBI57" : "CBI38");
                 Write(memory, authority.Value);
-                Write(memory, updates.Count);
-                foreach (var update in updates)
+                Write(memory, links.Count);
+                foreach (var link in links)
                 {
+                    if (rotated) Write(memory, link.Rotation is null ? UpdateTag : RotationTag);
+                    if (link.Rotation is { } rotation) { WriteRotation(memory, rotation); continue; }
+                    var update = link.Update!;
                     Write(memory, update.Sequence);
                     Write(memory, update.PreviousPolicyIdentity.HasValue ? 1 : 0);
                     if (update.PreviousPolicyIdentity.HasValue) Write(memory, update.PreviousPolicyIdentity.Value.Value);
@@ -211,21 +344,30 @@ public sealed class DurableProviderPublisherTrustPolicyRegistry
         internal static bool TryRead(
             string path,
             out ProviderPublisherTrustPolicyAuthorityId authority,
-            out List<ProviderPublisherTrustPolicyUpdate> updates)
+            out List<ProviderPolicyChainLink> links)
         {
             authority = default;
-            updates = [];
+            links = [];
             try
             {
                 var bytes = File.ReadAllBytes(path);
                 if (bytes.Length == 0 || bytes.Length > MaxBytes) return false;
                 var reader = new Reader(bytes);
-                if (reader.String() != "CBI38") return false;
+                var format = reader.String();
+                if (format is not "CBI38" and not "CBI57") return false;
+                var tagged = format == "CBI57";
                 authority = ProviderPublisherTrustPolicyAuthorityId.Create(reader.String());
                 var count = reader.Int32();
-                if (count < 0 || count > MaxUpdates) return false;
+                if (count < 0 || count > MaxLinks) return false;
                 for (var index = 0; index < count; index++)
                 {
+                    var tag = tagged ? reader.Int32() : UpdateTag;
+                    if (tag is not UpdateTag and not RotationTag) return false;
+                    if (tag == RotationTag)
+                    {
+                        links.Add(ProviderPolicyChainLink.Of(ReadRotation(ref reader)));
+                        continue;
+                    }
                     var sequence = reader.Int64();
                     var hasPrevious = reader.Int32();
                     if (hasPrevious is not 0 and not 1) return false;
@@ -245,7 +387,8 @@ public sealed class DurableProviderPublisherTrustPolicyRegistry
                             _ => throw new InvalidDataException(),
                         });
                     }
-                    updates.Add(new(sequence, previous, new(identity, entries), reader.String(), reader.String(), reader.String()));
+                    links.Add(ProviderPolicyChainLink.Of(new ProviderPublisherTrustPolicyUpdate(
+                        sequence, previous, new(identity, entries), reader.String(), reader.String(), reader.String())));
                 }
                 return reader.End;
             }
@@ -253,9 +396,38 @@ public sealed class DurableProviderPublisherTrustPolicyRegistry
                 or InvalidDataException or ArgumentException or DecoderFallbackException)
             {
                 authority = default;
-                updates = [];
+                links = [];
                 return false;
             }
+        }
+
+        private static void WriteRotation(Stream output, ProviderPolicyAuthorityRotationStatement rotation)
+        {
+            Write(output, rotation.Generation);
+            Write(output, rotation.PolicySequence);
+            Write(output, rotation.PolicyIdentity.HasValue ? 1 : 0);
+            if (rotation.PolicyIdentity.HasValue) Write(output, rotation.PolicyIdentity.Value.Value);
+            Write(output, rotation.PreviousAuthority.Value);
+            Write(output, rotation.NextAuthority.Value);
+            Write(output, rotation.Algorithm);
+            Write(output, rotation.PreviousAuthorityPublicKeySpkiBase64);
+            Write(output, rotation.NextAuthorityPublicKeySpkiBase64);
+            Write(output, rotation.PreviousSignatureBase64);
+            Write(output, rotation.NextSignatureBase64);
+        }
+
+        private static ProviderPolicyAuthorityRotationStatement ReadRotation(ref Reader reader)
+        {
+            var generation = reader.Int64();
+            var policySequence = reader.Int64();
+            var hasPolicy = reader.Int32();
+            if (hasPolicy is not 0 and not 1) throw new InvalidDataException();
+            ProviderPublisherTrustPolicyId? policyIdentity = hasPolicy == 1
+                ? ProviderPublisherTrustPolicyId.Create(reader.String()) : null;
+            var previous = ProviderPublisherTrustPolicyAuthorityId.Create(reader.String());
+            var next = ProviderPublisherTrustPolicyAuthorityId.Create(reader.String());
+            return new(generation, policySequence, policyIdentity, previous, next,
+                reader.String(), reader.String(), reader.String(), reader.String(), reader.String());
         }
 
         private static void Write(Stream output, int value)

@@ -55,6 +55,54 @@ module ProviderPublisherTrustPolicyUpdateManifest =
     let digest sequence previous policyIdentity =
         encode sequence previous policyIdentity |> SHA256.HashData |> Convert.ToHexString
 
+/// One CBI57 authority transition. It carries both signatures because the predecessor authorizes the
+/// transition and the successor proves its own key exists; a statement is meaningless without both.
+type ProviderPolicyAuthorityRotationStatement =
+    { Generation: int64
+      PolicySequence: int64
+      PolicyIdentity: ProviderPublisherTrustPolicyId option
+      PreviousAuthority: ProviderPublisherTrustPolicyAuthorityId
+      NextAuthority: ProviderPublisherTrustPolicyAuthorityId
+      Algorithm: string
+      PreviousAuthorityPublicKeySpkiBase64: string
+      NextAuthorityPublicKeySpkiBase64: string
+      PreviousSignatureBase64: string
+      NextSignatureBase64: string }
+
+[<RequireQualifiedAccess>]
+module ProviderPolicyAuthorityRotationManifest =
+    let private appendInt32 (output: Stream) value =
+        let bytes = Array.zeroCreate<byte> sizeof<int>
+        BinaryPrimitives.WriteInt32BigEndian(bytes.AsSpan(), value)
+        output.Write bytes
+    let private appendInt64 (output: Stream) value =
+        let bytes = Array.zeroCreate<byte> sizeof<int64>
+        BinaryPrimitives.WriteInt64BigEndian(bytes.AsSpan(), value)
+        output.Write bytes
+    let private appendString output (value: string) =
+        let bytes = Encoding.UTF8.GetBytes value
+        appendInt32 output bytes.Length
+        output.Write bytes
+
+    let encode generation policySequence policyIdentity previousAuthority nextAuthority =
+        if generation <= 0L || policySequence < 0L then
+            invalidArg (nameof generation) "A valid policy authority transition is required."
+        use output = new MemoryStream()
+        appendString output "CBI57"
+        appendInt64 output generation
+        appendInt64 output policySequence
+        appendInt32 output (if Option.isSome policyIdentity then 1 else 0)
+        policyIdentity |> Option.iter (ProviderPublisherTrustPolicyId.value >> appendString output)
+        appendString output (ProviderPublisherTrustPolicyAuthorityId.value previousAuthority)
+        appendString output (ProviderPublisherTrustPolicyAuthorityId.value nextAuthority)
+        output.ToArray()
+
+type ProviderPolicyAuthorityRotationResult =
+    { Code: string
+      Generation: int64
+      ActiveAuthority: ProviderPublisherTrustPolicyAuthorityId }
+    member this.IsApplied = this.Code = "policy-authority-rotation-applied"
+
 type VerifiedProviderPublisherTrustPolicySnapshot =
     private
     | VerifiedProviderPublisherTrustPolicySnapshot of
@@ -77,6 +125,59 @@ type ProviderPublisherTrustPolicyUpdateResult =
 type ProviderPublisherTrustPolicyRegistry(authorityIdentity: ProviderPublisherTrustPolicyAuthorityId) =
     let syncRoot = obj ()
     let mutable current: VerifiedProviderPublisherTrustPolicySnapshot option = None
+    let mutable activeAuthority = authorityIdentity
+    let mutable authorityGeneration = 0L
+
+    let identify (publicKey: byte array) =
+        SHA256.HashData publicKey |> Convert.ToHexString |> ProviderPublisherTrustPolicyAuthorityId.create
+
+    /// Imports P-256 key material and reports whether the signature holds. `None` distinguishes key
+    /// material that is not exactly P-256 SPKI from a signature that simply does not verify.
+    let tryVerify (publicKey: byte array) (manifest: byte array) (signatureBase64: string) =
+        let signature = Convert.FromBase64String signatureBase64
+        use verifier = ECDsa.Create()
+        let mutable bytesRead = 0
+        verifier.ImportSubjectPublicKeyInfo(publicKey.AsSpan(), &bytesRead)
+        let curveOid = verifier.ExportParameters(false).Curve.Oid.Value |> Option.ofObj
+        if bytesRead <> publicKey.Length || verifier.KeySize <> 256 || curveOid <> Some "1.2.840.10045.3.1.7" then None
+        else
+            Some(verifier.VerifyData(
+                manifest, signature, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence))
+
+    let validateRotation (statement: ProviderPolicyAuthorityRotationStatement) =
+        if statement.Generation <> authorityGeneration + 1L then Some "policy-authority-generation-invalid"
+        elif statement.PreviousAuthority <> activeAuthority then Some "policy-authority-predecessor-mismatch"
+        elif statement.NextAuthority = statement.PreviousAuthority then Some "policy-authority-self-refused"
+        elif statement.PolicySequence <> (current |> Option.map _.Sequence |> Option.defaultValue 0L)
+            || statement.PolicyIdentity <> (current |> Option.map _.Policy.Identity) then
+            Some "policy-authority-chain-mismatch"
+        elif statement.Algorithm <> "ECDSA-P256-SHA256"
+            || String.IsNullOrWhiteSpace statement.PreviousAuthorityPublicKeySpkiBase64
+            || String.IsNullOrWhiteSpace statement.NextAuthorityPublicKeySpkiBase64
+            || String.IsNullOrWhiteSpace statement.PreviousSignatureBase64
+            || String.IsNullOrWhiteSpace statement.NextSignatureBase64 then
+            Some "policy-authority-evidence-invalid"
+        else
+            try
+                let previousKey = Convert.FromBase64String statement.PreviousAuthorityPublicKeySpkiBase64
+                let nextKey = Convert.FromBase64String statement.NextAuthorityPublicKeySpkiBase64
+                if identify previousKey <> statement.PreviousAuthority
+                    || identify nextKey <> statement.NextAuthority then Some "policy-authority-key-mismatch"
+                else
+                    let manifest =
+                        ProviderPolicyAuthorityRotationManifest.encode statement.Generation
+                            statement.PolicySequence statement.PolicyIdentity
+                            statement.PreviousAuthority statement.NextAuthority
+                    match tryVerify previousKey manifest statement.PreviousSignatureBase64,
+                          tryVerify nextKey manifest statement.NextSignatureBase64 with
+                    | None, _ | _, None -> Some "policy-authority-evidence-invalid"
+                    | Some false, _ -> Some "policy-authority-signature-invalid"
+                    | Some true, Some false -> Some "policy-authority-successor-unproven"
+                    | Some true, Some true -> None
+            with
+            | :? FormatException
+            | :? CryptographicException
+            | :? ArgumentException -> Some "policy-authority-evidence-invalid"
 
     let validate (update: ProviderPublisherTrustPolicyUpdate) =
         match ProviderPublisherTrustEvaluator.tryValidate update.Policy with
@@ -87,9 +188,7 @@ type ProviderPublisherTrustPolicyRegistry(authorityIdentity: ProviderPublisherTr
             try
                 let publicKey = Convert.FromBase64String update.AuthorityPublicKeySpkiBase64
                 let signature = Convert.FromBase64String update.SignatureBase64
-                let suppliedAuthority =
-                    SHA256.HashData publicKey |> Convert.ToHexString |> ProviderPublisherTrustPolicyAuthorityId.create
-                if suppliedAuthority <> authorityIdentity then Error "policy-update-authority-mismatch"
+                if identify publicKey <> activeAuthority then Error "policy-update-authority-mismatch"
                 else
                     use verifier = ECDsa.Create()
                     let mutable bytesRead = 0
@@ -110,7 +209,26 @@ type ProviderPublisherTrustPolicyRegistry(authorityIdentity: ProviderPublisherTr
             | :? ArgumentException -> Error "policy-update-malformed"
 
     member _.Current = lock syncRoot (fun () -> current)
+
+    /// The out-of-band pin. It never moves, which is what lets a chain recorded against it stay
+    /// comparable across an authority rotation.
     member internal _.AuthorityIdentity = authorityIdentity
+
+    /// The authority that may sign the next policy update, which a rotation moves.
+    member _.ActiveAuthorityIdentity = lock syncRoot (fun () -> activeAuthority)
+    member _.AuthorityGeneration = lock syncRoot (fun () -> authorityGeneration)
+
+    member _.Rotate(statement: ProviderPolicyAuthorityRotationStatement) =
+        if isNull (box statement) then nullArg (nameof statement)
+        lock syncRoot (fun () ->
+            match validateRotation statement with
+            | Some code -> { Code = code; Generation = authorityGeneration; ActiveAuthority = activeAuthority }
+            | None ->
+                activeAuthority <- statement.NextAuthority
+                authorityGeneration <- statement.Generation
+                { Code = "policy-authority-rotation-applied"
+                  Generation = authorityGeneration
+                  ActiveAuthority = activeAuthority })
 
     member _.Apply(update: ProviderPublisherTrustPolicyUpdate) =
         if isNull (box update) then nullArg (nameof update)
@@ -129,6 +247,9 @@ type ProviderPublisherTrustPolicyRegistry(authorityIdentity: ProviderPublisherTr
                 match chainCode with
                 | Some code -> { Code = code; Current = current }
                 | None ->
+                    // The snapshot names the pin rather than the signing key: it is the trust root the
+                    // policy was verified under, and every downstream comparison of it must survive a
+                    // rotation.
                     let snapshot = VerifiedProviderPublisherTrustPolicySnapshot(authorityIdentity, update.Sequence, policy)
                     current <- Some snapshot
                     { Code = "policy-update-applied"; Current = current })
