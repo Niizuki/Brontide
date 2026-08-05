@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased - CBI51 provider restart policy
+
+### Added
+
+- One bounded, effect-free restart policy requiring an exact current-cycle policy identity and a
+  fresh publisher authorization for the stopped activation's retained content.
+- Typed stop-cause eligibility, deterministic attempt delay and exhaustion, fail-closed observation
+  validation, and shared C1-C8 vectors executed independently by both stacks.
+
+### Notes
+
+- CBI51 decides eligibility but launches nothing. Provider and lifecycle reconstruction remains the
+  next host enforcement boundary.
+
 ## Unreleased - CBI50 offline service enforcement
 
 ### Added

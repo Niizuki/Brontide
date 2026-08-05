@@ -155,8 +155,10 @@ The implementation currently provides:
   CBI49 supplies bounded existing-service-only offline policy and requires exact matching host
   evidence before retrying or abandoning an interrupted cycle; CBI50 evaluates that policy against
   one exact serving snapshot and enforces every stop decision across the complete, deterministically
-  ordered set while retaining staged artifacts;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI50 integration
+  ordered set while retaining staged artifacts; CBI51 requires exact current-cycle proof and fresh
+  publisher authorization before a recoverable stop becomes restart-eligible, with a bounded delay
+  and attempt budget;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI51 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

@@ -208,7 +208,9 @@ within a bounded, non-sliding grace interval, no offline outcome permits a provi
 interrupted journal changes only under exact matching reconciliation evidence. CBI50 binds that
 decision to one exact 0-64-member serving snapshot: permitted grace is effect-free, while every stop
 decision retires and terminates the complete set in typed occurrence order without deleting staged
-artifacts or authorizing restart.
+artifacts or authorizing restart. CBI51 makes restart eligibility explicit and effect-free: only
+availability or unexpected-exit stops can proceed, and only under an exact current-cycle policy
+identity, a fresh authorization for the retained content, and a bounded retry budget.
 
 ## Build and test
 
