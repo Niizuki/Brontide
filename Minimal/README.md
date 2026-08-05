@@ -167,7 +167,9 @@ The implementation currently provides:
   CBI55 durably names the exact provider effect before launch, makes the cooperating provider hold a
   token-specific lifetime lease and receipt, and lets only a later owner prove absence or terminate
   the exact orphan before selecting retry while uncertainty stays in-flight;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI55 integration
+  CBI56 durably stages an active-endpoint-signed CBI39 successor and activates it only after native
+  distribution confirmation, while ordinary polling remains pinned to the active key;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI56 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

@@ -166,6 +166,9 @@
     <None Include="..\..\..\component-management\fixtures\cbi55-restart-effect-reconciliation-vectors.json"
           Link="component-management\fixtures\cbi55-restart-effect-reconciliation-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi56-distribution-endpoint-rotation-vectors.json"
+          Link="component-management\fixtures\cbi56-distribution-endpoint-rotation-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
@@ -186,6 +189,7 @@
     <Compile Include="ComponentPolicyUpdateTests.fs" />
     <Compile Include="ComponentPolicyCheckpointTests.fs" />
     <Compile Include="ComponentPolicyDistributionTests.fs" />
+    <Compile Include="ComponentDistributionEndpointRotationTests.fs" />
     <Compile Include="ComponentPolicyDistributionWireTests.fs" />
     <Compile Include="ComponentPolicyPollTests.fs" />
     <Compile Include="ComponentPolicyFloorCustodyTests.fs" />

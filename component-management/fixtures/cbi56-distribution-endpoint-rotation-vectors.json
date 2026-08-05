@@ -1,0 +1,11 @@
+{
+  "format": "CBI56",
+  "vectors": [
+    { "name": "valid-successor", "generation": 1, "previous": "A", "next": "B", "evidence": "valid", "code": "endpoint-rotation-staged" },
+    { "name": "generation-gap", "generation": 2, "previous": "A", "next": "B", "evidence": "valid", "code": "endpoint-rotation-generation-invalid" },
+    { "name": "predecessor-mismatch", "generation": 1, "previous": "C", "next": "B", "evidence": "valid", "code": "endpoint-rotation-predecessor-mismatch" },
+    { "name": "self-rotation", "generation": 1, "previous": "A", "next": "A", "evidence": "valid", "code": "endpoint-rotation-self-refused" },
+    { "name": "wrong-signer", "generation": 1, "previous": "A", "next": "B", "evidence": "wrong-signer", "code": "endpoint-rotation-signature-invalid" },
+    { "name": "wrong-public-key", "generation": 1, "previous": "A", "next": "B", "evidence": "wrong-public-key", "code": "endpoint-rotation-key-mismatch" }
+  ]
+}
