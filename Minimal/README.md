@@ -157,8 +157,10 @@ The implementation currently provides:
   one exact serving snapshot and enforces every stop decision across the complete, deterministically
   ordered set while retaining staged artifacts; CBI51 requires exact current-cycle proof and fresh
   publisher authorization before a recoverable stop becomes restart-eligible, with a bounded delay
-  and attempt budget;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI51 integration
+  and attempt budget; CBI52 re-verifies the retained staged set, launches a new provider, and
+  reconstructs a fresh portable member under the same occurrence and logical runtime, with
+  single-flight successor ownership and fail-closed rollback;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI52 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

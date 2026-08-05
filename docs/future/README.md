@@ -1049,9 +1049,17 @@ observed the registry's present policy, and a fresh publisher authorization for 
 The effect-free decision applies a bounded attempt count and deterministic retry delay; trust
 withdrawal, operator retirement, stale current proof, malformed history, and exhausted attempts deny
 restart. The [`CBI51 capability contract`](../../component-management/cbi51-capability-contract.md)
-includes the phase's contract-completeness review. Restart enforcement—reconstructing the provider
-process and portable lifecycle from verified retained state—is the next host work; durable attempt
-history, cross-process ownership, endpoint and authority-key rotation, privileged floor custody, and
+includes the phase's contract-completeness review.
+
+CBI52 now enforces one ready restart decision. The stopped activation owns the retained recipe;
+enforcement rechecks CBI51, re-verifies the complete staged artifact set, launches a new dedicated
+provider, and prepares, interconnects, observes Ready, and releases a fresh portable member for the
+same occurrence while carrying forward the prior logical runtime. One activation can yield at most
+one successful successor, and refusal or failed reconstruction releases the claim and preserves the
+retained content. The
+[`CBI52 capability contract`](../../component-management/cbi52-capability-contract.md) includes the
+phase's contract-completeness review. Durable attempt history and cross-process restart ownership are
+the next supervision work; endpoint and authority-key rotation, privileged floor custody, and
 production isolation remain separate security work.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;

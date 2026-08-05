@@ -37,6 +37,14 @@ type ProviderDistributionChainResult =
 /// the code and the origin of the slice that made it.
 [<RequireQualifiedAccess>]
 module ProviderDistributionChain =
+    let internal restarted prior provider launchPolicyIdentity =
+        { prior with
+            Code = "provider-restarted"
+            RefusedBy = "none"
+            Revalidated = true
+            LaunchPolicyIdentity = Some launchPolicyIdentity
+            Provider = Some provider }
+
     /// The three flags are consecutive ladder stages in order - authorized, staged, revalidated -
     /// so a call site reads as how far the chain got before it refused.
     let private refused code refusedBy authorized staged revalidated acquisitionPolicy launchPolicy =

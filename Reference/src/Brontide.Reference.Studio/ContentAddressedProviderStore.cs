@@ -137,11 +137,17 @@ public sealed class StagedProviderProcess : IAsyncDisposable
     private readonly Action _release;
     private bool _disposed;
 
-    internal StagedProviderProcess(LocalProviderProcess inner, Action release)
+    internal StagedProviderProcess(
+        LocalProviderProcess inner,
+        StagedProviderArtifactSet stagedArtifacts,
+        Action release)
     {
         _inner = inner;
+        StagedArtifacts = stagedArtifacts;
         _release = release;
     }
+
+    internal StagedProviderArtifactSet StagedArtifacts { get; }
 
     public Experimental.Binding.Portable.IPortableProviderConversation Conversation => _inner.Conversation;
 
@@ -287,7 +293,7 @@ public sealed class ContentAddressedProviderStore
 
             _leases[staged.Identity] = _leases.GetValueOrDefault(staged.Identity) + 1;
             return StagedProviderActivation.Launched(
-                new StagedProviderProcess(activation.Owner!, () => Release(staged.Identity)));
+                new StagedProviderProcess(activation.Owner!, verification.Staged!, () => Release(staged.Identity)));
         }
     }
 

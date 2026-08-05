@@ -12,18 +12,30 @@ public sealed record ProviderServingTrustRevalidationResult(
 
 public sealed class ProviderServingActivation : IAsyncDisposable
 {
+    private readonly object _restartSync = new();
+    private int _restartState;
+
     internal ProviderServingActivation(
         ProviderDistributionChainResult chain,
         ComponentBindingLifecycleResult? lifecycle,
-        Brontide.Reference.Experimental.ComponentManagement.OccurrenceId occurrence)
+        Brontide.Reference.Experimental.ComponentManagement.OccurrenceId occurrence,
+        Brontide.Reference.Experimental.ComponentManagement.ResolutionOutcome resolution,
+        ComponentBindingSelection selection,
+        Brontide.Reference.Experimental.ComponentManagement.ActivationRuntimeRequest request)
     {
         Chain = chain;
         Lifecycle = lifecycle;
         Occurrence = occurrence;
+        Resolution = resolution;
+        Selection = selection;
+        Request = request;
     }
 
     internal ProviderDistributionChainResult Chain { get; }
     internal ComponentBindingLifecycleResult? Lifecycle { get; }
+    internal Brontide.Reference.Experimental.ComponentManagement.ResolutionOutcome Resolution { get; }
+    internal ComponentBindingSelection Selection { get; }
+    internal Brontide.Reference.Experimental.ComponentManagement.ActivationRuntimeRequest Request { get; }
 
     public Brontide.Reference.Experimental.ComponentManagement.OccurrenceId Occurrence { get; }
 
@@ -31,6 +43,33 @@ public sealed class ProviderServingActivation : IAsyncDisposable
         Chain.Provider is { HasExited: false } && Lifecycle?.IsActive == true;
 
     public bool MemberReleased => Lifecycle?.Member?.IsReleased == true;
+
+    internal string BeginRestart()
+    {
+        lock (_restartSync)
+        {
+            return _restartState switch
+            {
+                0 => Claim(),
+                1 => "provider-restart-in-progress",
+                _ => "provider-restart-already-completed",
+            };
+        }
+
+        string Claim()
+        {
+            _restartState = 1;
+            return "restart-claimed";
+        }
+    }
+
+    internal void FinishRestart(bool completed)
+    {
+        lock (_restartSync)
+        {
+            _restartState = completed ? 2 : 0;
+        }
+    }
 
     public async ValueTask RetireAsync(string reason, CancellationToken cancellationToken = default)
     {
@@ -66,12 +105,12 @@ public static class ProviderServingTrustRevalidation
         ArgumentNullException.ThrowIfNull(chain);
         if (chain.Provider is not { } provider || !chain.Revalidated)
         {
-            return new(chain, null, selection.Occurrence);
+            return new(chain, null, selection.Occurrence, resolution, selection, request);
         }
 
         var lifecycle = await ComponentBindingLifecycle.ActivateAsync(
             resolution, selection, request, provider.Conversation, cancellationToken).ConfigureAwait(false);
-        return new(chain, lifecycle, selection.Occurrence);
+        return new(chain, lifecycle, selection.Occurrence, resolution, selection, request);
     }
 
     public static async ValueTask<ProviderServingTrustRevalidationResult> RevalidateAsync(

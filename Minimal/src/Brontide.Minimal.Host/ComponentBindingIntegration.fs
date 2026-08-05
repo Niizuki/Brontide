@@ -795,6 +795,55 @@ module ComponentBindingLifecycle =
                                             (Some memberValue)
         }
 
+    /// Repairs the provider connection inside an existing logical generation. A fresh portable
+    /// member is created while the prior CM4 runtime observation is carried forward rather than
+    /// replaying the generation cutover.
+    let internal restart
+        (prior: ComponentBindingLifecycleResult)
+        resolution
+        (selection: ComponentBindingSelection)
+        (retainedRequest: ActivationRuntimeRequest)
+        conversation = task {
+        match prior.Runtime, prior.Member, trySupportedGroup retainedRequest.Plan selection.Occurrence with
+        | Some runtime, Some _, Some _ when runtime.Kind = ActivationRuntimeOutcomeKind.Active ->
+            match ComponentBindingIntegration.prepare resolution selection with
+            | ComponentBindingIntegrationResult.Refused _ ->
+                return
+                    refuse ComponentBindingLifecycleFailureKind.PreparationUnavailable
+                        "preparation-unavailable"
+                        "Provider restart could not prepare a fresh portable member."
+                        (Some runtime) None
+            | ComponentBindingIntegrationResult.Prepared memberValue ->
+                let! interconnected = memberValue.Interconnect conversation
+                match interconnected with
+                | Error error ->
+                    let code, reason = portableError error
+                    return
+                        refuse ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused
+                            code reason (Some runtime) (Some memberValue)
+                | Ok() when not memberValue.IsReady ->
+                    return
+                        refuse ComponentBindingLifecycleFailureKind.PortableInterconnectionRefused
+                            "ready-missing"
+                            "Portable restart Interconnection completed without a Ready lifecycle state."
+                            (Some runtime) (Some memberValue)
+                | Ok() ->
+                    match memberValue.Release() with
+                    | Ok() ->
+                        return { Runtime = Some runtime; Member = Some memberValue; Failure = None }
+                    | Error error ->
+                        let code, reason = portableError error
+                        return
+                            refuse ComponentBindingLifecycleFailureKind.PortableReleaseRefused
+                                code reason (Some runtime) (Some memberValue)
+        | _ ->
+            return
+                refuse ComponentBindingLifecycleFailureKind.PlanUnsupported
+                    "restart-recipe-unavailable"
+                    "A provider restart requires one prior active logical runtime and its exact singleton recipe."
+                    None None
+    }
+
 type ComponentAuthorityMapping =
     { Occurrence: OccurrenceId
       Participant: ActorId }
