@@ -205,7 +205,10 @@ recorded in-flight before invocation, and a crash during that cycle requires exp
 abandonment rather than being mistaken for either success or no effect. CBI49 adds an explicit host
 availability policy: only exhausted transport failure or timeout can preserve existing service
 within a bounded, non-sliding grace interval, no offline outcome permits a provider start, and an
-interrupted journal changes only under exact matching reconciliation evidence.
+interrupted journal changes only under exact matching reconciliation evidence. CBI50 binds that
+decision to one exact 0-64-member serving snapshot: permitted grace is effect-free, while every stop
+decision retires and terminates the complete set in typed occurrence order without deleting staged
+artifacts or authorizing restart.
 
 ## Build and test
 

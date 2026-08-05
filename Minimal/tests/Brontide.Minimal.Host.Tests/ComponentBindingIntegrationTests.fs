@@ -11000,21 +11000,36 @@ type ComponentBindingIntegrationTests() =
 
                 let input =
                     match scenario with
-                    | "reverse-all-current" -> [ activations[1]; activations[0] ]
-                    | "duplicate-occurrence" -> [ activations[0]; activations[0] ]
+                    | "reverse-all-current" | "offline-expired" | "offline-integrity-refusal" ->
+                        [ activations[1]; activations[0] ]
+                    | "duplicate-occurrence" | "offline-duplicate" -> [ activations[0]; activations[0] ]
                     | _ -> List.ofSeq activations
-                if scenario = "unavailable-member" then
+                if scenario = "unavailable-member" || scenario = "offline-unavailable" then
                     do! activations[1].Retire "make unavailable before sweep"
-                let! result = ProviderServingTrustSweep.run registry store input "publisher trust lapsed"
-                return
-                    { Code = result.Code; RefusedBy = result.RefusedBy
-                      Order = result.Members |> List.map (fun item -> OccurrenceId.value item.Occurrence)
-                      MemberCodes = result.Members |> List.map (fun item -> item.Result.Code)
-                      Continued = result.ContinuedCount; Withdrawn = result.WithdrawnCount
-                      FirstServing = activations[0].IsServing; SecondServing = activations[1].IsServing
-                      StagedSetRemains =
-                        Directory.Exists storeRoot
-                        && (Directory.EnumerateDirectories storeRoot |> Seq.isEmpty |> not) }
+                if scenario.StartsWith("offline-", StringComparison.Ordinal) then
+                    let baseline = DateTimeOffset(2026, 8, 5, 8, 0, 0, TimeSpan.Zero)
+                    let now = if scenario = "offline-expired" then baseline.AddMinutes 5.0 else baseline.AddMinutes 2.0
+                    let pollCode = if scenario = "offline-integrity-refusal" then "policy-poll-refused" else "policy-poll-exhausted"
+                    let policy = ProviderTrustOfflinePolicy.create (TimeSpan.FromMinutes 5.0) (TimeSpan.FromMinutes 1.0)
+                    let! result =
+                        ProviderOfflineServiceEnforcement.run policy now (Some baseline) pollCode
+                            (Some "policy-distribution-timeout") input "offline grace ended"
+                    return
+                        { Code = result.Code; RefusedBy = result.RefusedBy
+                          Order = result.Members |> List.map (fun item -> OccurrenceId.value item.Occurrence)
+                          MemberCodes = result.Members |> List.map _.RetirementCode
+                          Continued = result.AdmittedCount - result.StoppedCount; Withdrawn = result.StoppedCount
+                          FirstServing = activations[0].IsServing; SecondServing = activations[1].IsServing
+                          StagedSetRemains = Directory.Exists storeRoot && (Directory.EnumerateDirectories storeRoot |> Seq.isEmpty |> not) }
+                else
+                    let! result = ProviderServingTrustSweep.run registry store input "publisher trust lapsed"
+                    return
+                        { Code = result.Code; RefusedBy = result.RefusedBy
+                          Order = result.Members |> List.map (fun item -> OccurrenceId.value item.Occurrence)
+                          MemberCodes = result.Members |> List.map (fun item -> item.Result.Code)
+                          Continued = result.ContinuedCount; Withdrawn = result.WithdrawnCount
+                          FirstServing = activations[0].IsServing; SecondServing = activations[1].IsServing
+                          StagedSetRemains = Directory.Exists storeRoot && (Directory.EnumerateDirectories storeRoot |> Seq.isEmpty |> not) }
             finally
                 for activation in activations do
                     if activation.IsServing then
@@ -11094,6 +11109,58 @@ type ComponentBindingIntegrationTests() =
                 Assert.That(actual.Order, Is.EqualTo(box expectedOrder), name)
                 Assert.That(actual.Continued, Is.EqualTo(vector.GetProperty("continued").GetInt32()), name)
                 Assert.That(actual.Withdrawn, Is.EqualTo(vector.GetProperty("withdrawn").GetInt32()), name)) }
+
+    [<Test>]
+    member _.``CBI50 C1 one snapshot determines decision and effects``() = task {
+        let policy = ProviderTrustOfflinePolicy.create (TimeSpan.FromMinutes 5.0) (TimeSpan.FromMinutes 1.0)
+        let now = DateTimeOffset.UtcNow
+        let! result =
+            ProviderOfflineServiceEnforcement.run policy now (Some now) "policy-poll-exhausted"
+                (Some "policy-distribution-timeout") [] "offline grace ended"
+        multiple (fun () -> Assert.That(result.AdmittedCount, Is.Zero); Assert.That(result.Decision.Value.Code, Is.EqualTo "offline-idle")) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI50 C2 permitted continuation is effect free``() = task {
+        let! actual = this.Cbi46Run "offline-within-grace"
+        multiple (fun () -> Assert.That(actual.Code, Is.EqualTo "offline-enforcement-continuing"); Assert.That(actual.FirstServing, Is.True); Assert.That(actual.Order, Is.Empty)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI50 C3 every stop decision reaches every member``() = task {
+        for scenario in [ "offline-expired"; "offline-integrity-refusal" ] do
+            let! actual = this.Cbi46Run scenario
+            multiple (fun () -> Assert.That(actual.Withdrawn, Is.EqualTo(2), scenario); Assert.That(actual.FirstServing, Is.False, scenario); Assert.That(actual.SecondServing, Is.False, scenario)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI50 C4 typed occurrence identity determines order``() = task {
+        let! actual = this.Cbi46Run "offline-expired"
+        Assert.That(actual.Order, Is.EqualTo(box [ "occ.def.test.cooling-provider.1"; "occ.def.test.cooling-provider.2" ])) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI50 C5 one outcome does not hide siblings``() = task {
+        let! actual = this.Cbi46Run "offline-expired"
+        Assert.That(List.length actual.MemberCodes, Is.EqualTo 2) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI50 C6 availability stop retains staged artifacts``() = task {
+        let! actual = this.Cbi46Run "offline-expired"
+        Assert.That(actual.StagedSetRemains, Is.True) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI50 C7 preflight refusal has zero effect``() = task {
+        for scenario in [ "offline-duplicate"; "offline-unavailable" ] do
+            let! actual = this.Cbi46Run scenario
+            multiple (fun () -> Assert.That(actual.Code, Is.EqualTo("offline-enforcement-invalid"), scenario); Assert.That(actual.FirstServing, Is.True, scenario); Assert.That(actual.Order, Is.Empty, scenario)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI50 C8 minimal executes the shared enforcement model``() = task {
+        use fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(TestContext.CurrentContext.TestDirectory, "component-management", "fixtures", "cbi50-offline-service-enforcement-vectors.json")))
+        Assert.That(fixture.RootElement.GetProperty("maximumMembers").GetInt32(), Is.EqualTo ProviderOfflineServiceEnforcement.MaximumMembers)
+        let textValue (value: JsonElement) = value.GetString() |> Option.ofObj |> Option.defaultValue ""
+        for vector in fixture.RootElement.GetProperty("vectors").EnumerateArray() do
+            let name = vector.GetProperty("name") |> textValue
+            let! actual = this.Cbi46Run name
+            let expectedOrder = vector.GetProperty("expectedOrder").EnumerateArray() |> Seq.map textValue |> Seq.toList
+            multiple (fun () -> Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("expectedCode") |> textValue), name); Assert.That(actual.Order, Is.EqualTo(box expectedOrder), name); Assert.That(actual.Withdrawn, Is.EqualTo(vector.GetProperty("stopped").GetInt32()), name); Assert.That(actual.FirstServing, Is.EqualTo(vector.GetProperty("serving").GetBoolean()), name); Assert.That(actual.StagedSetRemains, Is.EqualTo(vector.GetProperty("stagedSetRemains").GetBoolean()), name)) }
 
     [<Test>]
     member _.``CBI47 C1 cadence is bounded and explicit``() =

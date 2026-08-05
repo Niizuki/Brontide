@@ -162,5 +162,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi49-offline-reconciliation-vectors.json"
           Link="component-management\fixtures\cbi49-offline-reconciliation-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi50-offline-service-enforcement-vectors.json"
+          Link="component-management\fixtures\cbi50-offline-service-enforcement-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
