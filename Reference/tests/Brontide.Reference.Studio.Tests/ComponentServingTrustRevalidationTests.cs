@@ -1,10 +1,239 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using Brontide.Reference.Experimental.ComponentManagement;
 
 namespace Brontide.Reference.Studio.Tests;
 
 public sealed partial class ComponentBindingIntegrationTests
 {
+    private sealed record Cbi46Observation(
+        string Code,
+        string RefusedBy,
+        string[] Order,
+        string[] MemberCodes,
+        int Continued,
+        int Withdrawn,
+        bool FirstServing,
+        bool SecondServing,
+        bool StagedSetRemains);
+
+    private static async Task<Cbi46Observation> Cbi46RunAsync(string scenario)
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"brontide-cbi46-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        var providers = new List<StagedProviderProcess>();
+        var activations = new List<ProviderServingActivation>();
+        try
+        {
+            using var authority = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            using var firstPublisher = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            using var secondPublisher = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            var authorityId = ProviderPublisherTrustPolicyAuthorityId.Create(
+                Convert.ToHexString(SHA256.HashData(authority.ExportSubjectPublicKeyInfo())));
+            var (request, source) = Cbi33Input("reference", "none");
+            var evidence = new[]
+            {
+                Cbi43Evidence(firstPublisher, request),
+                Cbi43Evidence(secondPublisher, request),
+            };
+            var initial = Cbi44Policy(evidence
+                .Select(item => Cbi44Entry(item.PublisherKeyId, revoked: false)).ToArray());
+            var custody = ProviderPublisherTrustPolicyCustody.Open(
+                Path.Combine(root, "policy.checkpoint"), Path.Combine(root, "policy.floor"), authorityId);
+            Assert.That(custody.IsOpened, Is.True);
+            var registry = custody.Registry!;
+            Assert.That(registry.Apply(Cbi37Sign(authority, 1, null, initial)).IsApplied, Is.True);
+            var storeRoot = Path.Combine(root, "store");
+            var store = new ContentAddressedProviderStore(storeRoot);
+            var chains = evidence.Select((item, index) => ProviderDistributionChain.Run(
+                registry, store, Path.Combine(root, $"transactions-{index}"),
+                new(request, item, ["--portable"]), source)).ToArray();
+            providers.AddRange(chains.Select(chain => chain.Provider!));
+
+            var pair = RequestFor(Requirement, SecondaryRequirement);
+            var consumer = pair.Definitions.Single(item => item.Definition == Consumer);
+            var resolution = new FakeGenerationResolver().Resolve(pair with
+            {
+                Definitions = pair.Definitions.Select(item => item.Definition switch
+                {
+                    var definition when definition == Consumer => item with
+                    {
+                        Requirements = consumer.Requirements
+                            .Select(requirement => requirement with { Contract = Contract }).ToArray(),
+                    },
+                    var definition when definition == SecondaryProvider => item with
+                    {
+                        Provides = [new ProvidedContract(Contract, Version)],
+                    },
+                    _ => item,
+                }).ToArray(),
+                Candidates = pair.Candidates.Select(item => item.Definition == SecondaryProvider
+                    ? item with { Provides = [new ProvidedContract(Contract, Version)] }
+                    : item).ToArray(),
+            });
+            var selections = new[] { Requirement, SecondaryRequirement }
+                .Select(requirement => Selection(resolution.Generation!.ProviderSets
+                    .Single(set => set.Requirement == requirement).Members.Single()) with
+                {
+                    Requirement = requirement,
+                }).ToArray();
+            for (var index = 0; index < chains.Length; index++)
+            {
+                var occurrence = selections[index].Occurrence;
+                activations.Add(await ProviderServingTrustRevalidation.ActivateAsync(
+                    chains[index], resolution, selections[index], RuntimeRequest(Plan(occurrence))));
+                Assert.That(activations[index].IsServing, Is.True);
+            }
+
+            if (scenario is "first-withdrawn-second-current" or "all-withdrawn")
+            {
+                var successor = Cbi44Policy(
+                    Cbi44Entry(evidence[0].PublisherKeyId, revoked: true),
+                    Cbi44Entry(evidence[1].PublisherKeyId, revoked: scenario == "all-withdrawn"));
+                Assert.That(registry.Apply(Cbi37Sign(authority, 2, initial.Identity, successor)).IsApplied, Is.True);
+            }
+
+            IReadOnlyList<ProviderServingActivation> input = scenario switch
+            {
+                "reverse-all-current" => [activations[1], activations[0]],
+                "duplicate-occurrence" => [activations[0], activations[0]],
+                _ => activations,
+            };
+            if (scenario == "unavailable-member")
+            {
+                await activations[1].RetireAsync("make unavailable before sweep");
+            }
+
+            var result = await ProviderServingTrustSweep.RunAsync(
+                registry, store, input, "publisher trust lapsed");
+            return new(
+                result.Code,
+                result.RefusedBy,
+                result.Members.Select(member => member.Occurrence.Value).ToArray(),
+                result.Members.Select(member => member.Result.Code).ToArray(),
+                result.ContinuedCount,
+                result.WithdrawnCount,
+                activations[0].IsServing,
+                activations[1].IsServing,
+                Directory.Exists(storeRoot) && Directory.EnumerateDirectories(storeRoot).Any());
+        }
+        finally
+        {
+            foreach (var activation in activations)
+            {
+                if (activation.IsServing) await activation.RetireAsync("CBI46 test completed");
+                await activation.DisposeAsync();
+            }
+            foreach (var provider in providers)
+            {
+                if (!provider.HasExited) await provider.DisposeAsync();
+            }
+            Cbi32DeleteTree(root);
+        }
+    }
+
+    [Test]
+    public async Task Cbi46_C1_the_serving_set_is_bounded_and_valid_before_effects()
+    {
+        var result = await ProviderServingTrustSweep.RunAsync(
+            null!, null!, Array.Empty<ProviderServingActivation>(), "publisher trust lapsed");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Code, Is.EqualTo("serving-trust-sweep-invalid"));
+            Assert.That(result.RefusedBy, Is.EqualTo("preflight"));
+            Assert.That(result.Members, Is.Empty);
+        });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi46_C2_typed_occurrence_identity_determines_order()
+    {
+        var actual = await Cbi46RunAsync("reverse-all-current");
+        Assert.That(actual.Order, Is.EqualTo(new[]
+        {
+            "occ.def.test.cooling-provider.1",
+            "occ.def.test.cooling-provider.2",
+        }));
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi46_C3_every_admitted_member_receives_one_current_decision()
+    {
+        var actual = await Cbi46RunAsync("reverse-all-current");
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.MemberCodes, Is.EqualTo(new[] { "publisher-trust-current", "publisher-trust-current" }));
+            Assert.That(actual.Continued, Is.EqualTo(2));
+        });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi46_C4_trust_withdrawal_reaches_every_affected_member()
+    {
+        var actual = await Cbi46RunAsync("all-withdrawn");
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.Withdrawn, Is.EqualTo(2));
+            Assert.That(actual.FirstServing, Is.False);
+            Assert.That(actual.SecondServing, Is.False);
+            Assert.That(actual.StagedSetRemains, Is.False);
+        });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi46_C5_one_members_outcome_does_not_hide_its_sibling()
+    {
+        var actual = await Cbi46RunAsync("first-withdrawn-second-current");
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.Code, Is.EqualTo("serving-trust-sweep-withdrawn"));
+            Assert.That(actual.Continued, Is.EqualTo(1));
+            Assert.That(actual.Withdrawn, Is.EqualTo(1));
+            Assert.That(actual.StagedSetRemains, Is.True,
+                "a staged set shared with a continuing sibling must remain available");
+        });
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi46_C6_preflight_refusal_has_zero_effect()
+    {
+        foreach (var scenario in new[] { "duplicate-occurrence", "unavailable-member" })
+        {
+            var actual = await Cbi46RunAsync(scenario);
+            Assert.Multiple(() =>
+            {
+                Assert.That(actual.Code, Is.EqualTo("serving-trust-sweep-invalid"), scenario);
+                Assert.That(actual.Order, Is.Empty, scenario);
+                Assert.That(actual.FirstServing, Is.True, scenario);
+                Assert.That(actual.StagedSetRemains, Is.True, scenario);
+            });
+        }
+    }
+
+    [Test, Category("CrossProcess")]
+    public async Task Cbi46_C7_reference_executes_the_shared_sweep_vectors()
+    {
+        using var fixture = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            TestContext.CurrentContext.TestDirectory, "component-management", "fixtures",
+            "cbi46-serving-trust-sweep-vectors.json")));
+        Assert.That(fixture.RootElement.GetProperty("maximumMembers").GetInt32(),
+            Is.EqualTo(ProviderServingTrustSweep.MaximumMembers));
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var name = vector.GetProperty("name").GetString()!;
+            var actual = await Cbi46RunAsync(name);
+            Assert.Multiple(() =>
+            {
+                Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("expectedCode").GetString()), name);
+                Assert.That(actual.Order, Is.EqualTo(vector.GetProperty("expectedOrder").EnumerateArray()
+                    .Select(value => value.GetString()).ToArray()), name);
+                Assert.That(actual.Continued, Is.EqualTo(vector.GetProperty("continued").GetInt32()), name);
+                Assert.That(actual.Withdrawn, Is.EqualTo(vector.GetProperty("withdrawn").GetInt32()), name);
+            });
+        }
+    }
+
     private sealed record Cbi45Observation(
         string Code,
         string? RefusedBy,

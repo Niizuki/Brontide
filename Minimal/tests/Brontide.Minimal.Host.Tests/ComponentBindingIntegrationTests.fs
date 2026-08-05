@@ -56,6 +56,17 @@ type private Cbi45Observation =
       ServingPolicyIsCurrent: bool
       DecisionMatchesStagedIdentity: bool }
 
+type private Cbi46Observation =
+    { Code: string
+      RefusedBy: string
+      Order: string list
+      MemberCodes: string list
+      Continued: int
+      Withdrawn: int
+      FirstServing: bool
+      SecondServing: bool
+      StagedSetRemains: bool }
+
 type private Cbi30Observation =
     { Active: bool
       Code: string
@@ -10857,3 +10868,228 @@ type ComponentBindingIntegrationTests() =
     member this.``CBI45 C5 a withdrawn activation cannot be revalidated twice``() = task {
         let! actual = this.Cbi45Run("publisher-revoked", true)
         Assert.That(actual.Continued, Is.False) }
+
+    member private _.Cbi46Run(scenario: string) =
+        task {
+            let root = Path.Combine(Path.GetTempPath(), $"brontide-cbi46-{Guid.NewGuid():N}")
+            Directory.CreateDirectory root |> ignore
+            let providers = ResizeArray<StagedProviderProcess>()
+            let activations = ResizeArray<ProviderServingActivation>()
+            try
+                use authority = ECDsa.Create ECCurve.NamedCurves.nistP256
+                use firstPublisher = ECDsa.Create ECCurve.NamedCurves.nistP256
+                use secondPublisher = ECDsa.Create ECCurve.NamedCurves.nistP256
+                let digestOf (key: ECDsa) =
+                    key.ExportSubjectPublicKeyInfo() |> SHA256.HashData |> Convert.ToHexString
+                let authorityIdentity = digestOf authority |> ProviderPublisherTrustPolicyAuthorityId.create
+                let executable =
+                    match Environment.GetEnvironmentVariable "BRONTIDE_MINIMAL_PROVIDER" |> Option.ofObj with
+                    | Some path when File.Exists path -> Path.GetFullPath path
+                    | _ ->
+                        Assert.Ignore "BRONTIDE_MINIMAL_PROVIDER does not name a built provider endpoint."
+                        failwith "The cross-process test was ignored."
+                let named (value: string | null) =
+                    match value with null -> failwith "A provider path component was missing." | present -> present
+                let providerRoot = Path.GetDirectoryName executable |> named
+                let bytes =
+                    Directory.EnumerateFiles providerRoot
+                    |> Seq.sort
+                    |> Seq.map (fun path -> Path.GetFileName path |> named, File.ReadAllBytes path)
+                    |> Map.ofSeq
+                let files =
+                    bytes |> Map.toList |> List.map (fun (path, content) ->
+                        { RelativePath = path
+                          Sha256 = SHA256.HashData content |> Convert.ToHexString
+                          Length = int64 content.LongLength }: ProviderArtifactAcquisitionFile)
+                let expectedSource = ProviderArtifactSourceId.create "fixture://brontide/provider-output"
+                let executableName = Path.GetFileName executable |> named
+                let artifacts = files |> List.map (fun file ->
+                    { RelativePath = file.RelativePath; Sha256 = file.Sha256 }: ProviderArtifactFile)
+                let request: ProviderArtifactAcquisitionRequest =
+                    { ExpectedSource = expectedSource
+                      Identity = ProviderArtifactSetIdentity.compute artifacts executableName [ "--portable" ]
+                      Files = files; ExecutablePath = executableName; Arguments = [ "--portable" ]
+                      MaxTotalBytes = files |> List.sumBy _.Length }
+                let evidenceFor (publisher: ECDsa) =
+                    { PublisherKeyId = digestOf publisher |> ProviderPublisherKeyId.create
+                      Algorithm = "ECDSA-P256-SHA256"
+                      PublicKeySpkiBase64 = publisher.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                      SignatureBase64 =
+                        publisher.SignData(
+                            ProviderArtifactPublisherManifest.encode request,
+                            HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
+                        |> Convert.ToBase64String }: ProviderPublisherEvidence
+                let evidence = [ evidenceFor firstPublisher; evidenceFor secondPublisher ]
+                let policyOf entries: ProviderPublisherTrustPolicy =
+                    { Identity = ProviderPublisherTrustPolicyIdentity.compute entries; Entries = entries }
+                let initial =
+                    evidence |> List.map (fun item ->
+                        { PublisherKeyId = item.PublisherKeyId; Disposition = Admitted }) |> policyOf
+                let signUpdate sequence previous (policy: ProviderPublisherTrustPolicy) =
+                    { Sequence = sequence; PreviousPolicyIdentity = previous; Policy = policy
+                      Algorithm = "ECDSA-P256-SHA256"
+                      AuthorityPublicKeySpkiBase64 = authority.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                      SignatureBase64 =
+                        authority.SignData(
+                            ProviderPublisherTrustPolicyUpdateManifest.encode sequence previous policy.Identity,
+                            HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
+                        |> Convert.ToBase64String }: ProviderPublisherTrustPolicyUpdate
+                let openedCode, openedRegistry, _ =
+                    DurableProviderPublisherTrustPolicyRegistry.Open(
+                        Path.Combine(root, "policy.checkpoint"), authorityIdentity, None)
+                Assert.That(openedCode, Is.EqualTo "policy-checkpoint-empty")
+                let registry = openedRegistry.Value
+                Assert.That(registry.Apply(signUpdate 1L None initial).IsApplied, Is.True)
+                let source =
+                    { new IProviderArtifactSource with
+                        member _.Identity = expectedSource
+                        member _.OpenRead relativePath =
+                            bytes |> Map.tryFind relativePath
+                            |> Option.map (fun content -> new MemoryStream(content, false) :> Stream) }
+                let storeRoot = Path.GetFullPath(Path.Combine(root, "store"))
+                let store = ContentAddressedProviderStore storeRoot
+                let chains =
+                    evidence |> List.mapi (fun index item ->
+                        ProviderDistributionChain.run registry store (Path.Combine(root, $"transactions-{index}"))
+                            { Acquisition = request; Evidence = Some item; AllowedArguments = [ "--portable" ] }
+                            source)
+                chains |> List.iter (fun chain ->
+                    let providerValue = chain.Provider.Value
+                    providers.Add providerValue)
+
+                let pair = pairRequestFor [] []
+                let resolution =
+                    { pair with
+                        Definitions = pair.Definitions |> List.map (fun definition ->
+                            if definition.Definition = consumer then
+                                { definition with
+                                    Requirements = definition.Requirements |> List.map (fun requirement ->
+                                        { requirement with Contract = contractId }) }
+                            elif definition.Definition = secondaryProvider then
+                                { definition with Provides = [ { Contract = contractId; Version = version } ] }
+                            else definition)
+                        Candidates = pair.Candidates |> List.map (fun candidate ->
+                            if candidate.Definition = secondaryProvider then
+                                { candidate with Provides = [ { Contract = contractId; Version = version } ] }
+                            else candidate) }
+                    |> FakeGenerationResolver.resolve
+                let providerSets =
+                    match resolution with
+                    | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                    | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+                let selections =
+                    [ requirementId; secondaryRequirementId ] |> List.map (fun requirement ->
+                        let position = providerSets |> List.find (fun item -> item.Requirement = requirement)
+                                       |> fun item -> List.exactlyOne item.Members
+                        { selection position with Requirement = requirement })
+                for chain, selected in List.zip chains selections do
+                    let! activation =
+                        ProviderServingTrustRevalidation.activate chain resolution selected
+                            (runtimeRequest (plan [ selected.Occurrence ]))
+                    Assert.That(activation.IsServing, Is.True)
+                    activations.Add activation
+
+                if scenario = "first-withdrawn-second-current" || scenario = "all-withdrawn" then
+                    let successor =
+                        evidence |> List.mapi (fun index item ->
+                            { PublisherKeyId = item.PublisherKeyId
+                              Disposition = if index = 0 || scenario = "all-withdrawn" then Revoked else Admitted })
+                        |> policyOf
+                    Assert.That(registry.Apply(signUpdate 2L (Some initial.Identity) successor).IsApplied, Is.True)
+
+                let input =
+                    match scenario with
+                    | "reverse-all-current" -> [ activations[1]; activations[0] ]
+                    | "duplicate-occurrence" -> [ activations[0]; activations[0] ]
+                    | _ -> List.ofSeq activations
+                if scenario = "unavailable-member" then
+                    do! activations[1].Retire "make unavailable before sweep"
+                let! result = ProviderServingTrustSweep.run registry store input "publisher trust lapsed"
+                return
+                    { Code = result.Code; RefusedBy = result.RefusedBy
+                      Order = result.Members |> List.map (fun item -> OccurrenceId.value item.Occurrence)
+                      MemberCodes = result.Members |> List.map (fun item -> item.Result.Code)
+                      Continued = result.ContinuedCount; Withdrawn = result.WithdrawnCount
+                      FirstServing = activations[0].IsServing; SecondServing = activations[1].IsServing
+                      StagedSetRemains =
+                        Directory.Exists storeRoot
+                        && (Directory.EnumerateDirectories storeRoot |> Seq.isEmpty |> not) }
+            finally
+                for activation in activations do
+                    if activation.IsServing then
+                        activation.Retire("CBI46 test completed").GetAwaiter().GetResult()
+                for providerValue in providers do
+                    if not providerValue.HasExited then providerValue.Dispose()
+                try Directory.Delete(root, true) with _ -> ()
+        }
+
+    [<Test>]
+    member _.``CBI46 C1 the serving set is bounded and valid before effects``() = task {
+        let registry = Unchecked.defaultof<DurableProviderPublisherTrustPolicyRegistry>
+        let store = Unchecked.defaultof<ContentAddressedProviderStore>
+        let! result = ProviderServingTrustSweep.run registry store [] "publisher trust lapsed"
+        multiple (fun () ->
+            Assert.That(result.Code, Is.EqualTo "serving-trust-sweep-invalid")
+            Assert.That(result.RefusedBy, Is.EqualTo "preflight")
+            Assert.That(result.Members, Is.Empty)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI46 C2 typed occurrence identity determines order``() = task {
+        let! actual = this.Cbi46Run "reverse-all-current"
+        Assert.That(actual.Order, Is.EqualTo(box
+            [ "occ.def.test.cooling-provider.1"; "occ.def.test.cooling-provider.2" ])) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI46 C3 every admitted member receives one current decision``() = task {
+        let! actual = this.Cbi46Run "reverse-all-current"
+        multiple (fun () ->
+            Assert.That(actual.MemberCodes, Is.EqualTo(box [ "publisher-trust-current"; "publisher-trust-current" ]))
+            Assert.That(actual.Continued, Is.EqualTo 2)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI46 C4 trust withdrawal reaches every affected member``() = task {
+        let! actual = this.Cbi46Run "all-withdrawn"
+        multiple (fun () ->
+            Assert.That(actual.Withdrawn, Is.EqualTo 2)
+            Assert.That(actual.FirstServing, Is.False)
+            Assert.That(actual.SecondServing, Is.False)
+            Assert.That(actual.StagedSetRemains, Is.False)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI46 C5 one members outcome does not hide its sibling``() = task {
+        let! actual = this.Cbi46Run "first-withdrawn-second-current"
+        multiple (fun () ->
+            Assert.That(actual.Code, Is.EqualTo "serving-trust-sweep-withdrawn")
+            Assert.That(actual.Continued, Is.EqualTo 1)
+            Assert.That(actual.Withdrawn, Is.EqualTo 1)
+            Assert.That(actual.StagedSetRemains, Is.True,
+                "a staged set shared with a continuing sibling must remain available")) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI46 C6 preflight refusal has zero effect``() = task {
+        for scenario in [ "duplicate-occurrence"; "unavailable-member" ] do
+            let! actual = this.Cbi46Run scenario
+            multiple (fun () ->
+                Assert.That(actual.Code, Is.EqualTo("serving-trust-sweep-invalid"), scenario)
+                Assert.That(actual.Order, Is.Empty, scenario)
+                Assert.That(actual.FirstServing, Is.True, scenario)
+                Assert.That(actual.StagedSetRemains, Is.True, scenario)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI46 C7 minimal executes the shared sweep vectors``() = task {
+        use document = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            TestContext.CurrentContext.TestDirectory, "component-management", "fixtures",
+            "cbi46-serving-trust-sweep-vectors.json")))
+        Assert.That(document.RootElement.GetProperty("maximumMembers").GetInt32(),
+            Is.EqualTo ProviderServingTrustSweep.MaximumMembers)
+        let textValue (value: JsonElement) = value.GetString() |> Option.ofObj |> Option.defaultValue ""
+        for vector in document.RootElement.GetProperty("vectors").EnumerateArray() do
+            let name = vector.GetProperty("name") |> textValue
+            let! actual = this.Cbi46Run name
+            let expectedOrder =
+                vector.GetProperty("expectedOrder").EnumerateArray() |> Seq.map textValue |> Seq.toList
+            multiple (fun () ->
+                Assert.That(actual.Code, Is.EqualTo(vector.GetProperty("expectedCode") |> textValue), name)
+                Assert.That(actual.Order, Is.EqualTo(box expectedOrder), name)
+                Assert.That(actual.Continued, Is.EqualTo(vector.GetProperty("continued").GetInt32()), name)
+                Assert.That(actual.Withdrawn, Is.EqualTo(vector.GetProperty("withdrawn").GetInt32()), name)) }

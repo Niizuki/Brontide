@@ -14,14 +14,18 @@ public sealed class ProviderServingActivation : IAsyncDisposable
 {
     internal ProviderServingActivation(
         ProviderDistributionChainResult chain,
-        ComponentBindingLifecycleResult? lifecycle)
+        ComponentBindingLifecycleResult? lifecycle,
+        Brontide.Reference.Experimental.ComponentManagement.OccurrenceId occurrence)
     {
         Chain = chain;
         Lifecycle = lifecycle;
+        Occurrence = occurrence;
     }
 
     internal ProviderDistributionChainResult Chain { get; }
     internal ComponentBindingLifecycleResult? Lifecycle { get; }
+
+    public Brontide.Reference.Experimental.ComponentManagement.OccurrenceId Occurrence { get; }
 
     public bool IsServing =>
         Chain.Provider is { HasExited: false } && Lifecycle?.IsActive == true;
@@ -62,12 +66,12 @@ public static class ProviderServingTrustRevalidation
         ArgumentNullException.ThrowIfNull(chain);
         if (chain.Provider is not { } provider || !chain.Revalidated)
         {
-            return new(chain, null);
+            return new(chain, null, selection.Occurrence);
         }
 
         var lifecycle = await ComponentBindingLifecycle.ActivateAsync(
             resolution, selection, request, provider.Conversation, cancellationToken).ConfigureAwait(false);
-        return new(chain, lifecycle);
+        return new(chain, lifecycle, selection.Occurrence);
     }
 
     public static async ValueTask<ProviderServingTrustRevalidationResult> RevalidateAsync(
@@ -75,6 +79,17 @@ public static class ProviderServingTrustRevalidation
         ContentAddressedProviderStore store,
         ProviderServingActivation activation,
         string retirementReason,
+        CancellationToken cancellationToken = default) =>
+        await RevalidateAsync(
+            registry, store, activation, retirementReason, removeStagedSet: true, cancellationToken)
+            .ConfigureAwait(false);
+
+    internal static async ValueTask<ProviderServingTrustRevalidationResult> RevalidateAsync(
+        DurableProviderPublisherTrustPolicyRegistry registry,
+        ContentAddressedProviderStore store,
+        ProviderServingActivation activation,
+        string retirementReason,
+        bool removeStagedSet,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(registry);
@@ -127,14 +142,114 @@ public static class ProviderServingTrustRevalidation
         }
 
         await provider.DisposeAsync().ConfigureAwait(false);
-        var removal = store.Remove(chain.StagedIdentity.Value);
-        if (!removal.Removed && removal.Code != "artifact-set-not-staged")
+        if (removeStagedSet)
         {
-            retirementCode = $"{retirementCode};{removal.Code}";
+            var removal = store.Remove(chain.StagedIdentity.Value);
+            if (!removal.Removed && removal.Code != "artifact-set-not-staged")
+            {
+                retirementCode = $"{retirementCode};{removal.Code}";
+            }
         }
 
         return new(
             trust.Code, "cbi35", true, false,
             chain.LaunchPolicyIdentity, current.Policy.Identity, null, retirementCode);
+    }
+}
+
+public sealed record ProviderServingTrustSweepMember(
+    Brontide.Reference.Experimental.ComponentManagement.OccurrenceId Occurrence,
+    ProviderServingTrustRevalidationResult Result);
+
+public sealed record ProviderServingTrustSweepResult(
+    string Code,
+    string RefusedBy,
+    IReadOnlyList<ProviderServingTrustSweepMember> Members,
+    int ContinuedCount,
+    int WithdrawnCount);
+
+/// <summary>
+/// Applies one deterministic, bounded host-owned trust sweep. Invocation cadence remains external.
+/// </summary>
+public static class ProviderServingTrustSweep
+{
+    public const int MaximumMembers = 64;
+
+    public static async ValueTask<ProviderServingTrustSweepResult> RunAsync(
+        DurableProviderPublisherTrustPolicyRegistry registry,
+        ContentAddressedProviderStore store,
+        IReadOnlyList<ProviderServingActivation> activations,
+        string retirementReason,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(activations);
+        ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
+
+        if (activations.Count is < 1 or > MaximumMembers
+            || activations.Any(activation => activation is null || !activation.IsServing)
+            || activations.Select(activation => activation.Occurrence).Distinct().Count() != activations.Count)
+        {
+            return new(
+                "serving-trust-sweep-invalid", "preflight",
+                Array.Empty<ProviderServingTrustSweepMember>(), 0, 0);
+        }
+
+        ArgumentNullException.ThrowIfNull(registry);
+        ArgumentNullException.ThrowIfNull(store);
+
+        var ordered = activations
+            .OrderBy(activation => activation.Occurrence.Value, StringComparer.Ordinal)
+            .ToArray();
+        var members = new List<ProviderServingTrustSweepMember>(ordered.Length);
+
+        foreach (var activation in ordered)
+        {
+            var result = await ProviderServingTrustRevalidation.RevalidateAsync(
+                registry, store, activation, retirementReason, removeStagedSet: false, cancellationToken)
+                .ConfigureAwait(false);
+            members.Add(new(activation.Occurrence, result));
+        }
+
+        foreach (var stagedGroup in ordered
+                     .Where(activation => activation.Chain.StagedIdentity is not null)
+                     .GroupBy(activation => activation.Chain.StagedIdentity!.Value))
+        {
+            var occurrences = stagedGroup.Select(activation => activation.Occurrence).ToHashSet();
+            if (members.Any(member => occurrences.Contains(member.Occurrence)
+                                      && (member.Result.Continued || !member.Result.Revalidated)))
+            {
+                continue;
+            }
+
+            var removal = store.Remove(stagedGroup.Key);
+            if (!removal.Removed && removal.Code != "artifact-set-not-staged")
+            {
+                for (var index = 0; index < members.Count; index++)
+                {
+                    if (occurrences.Contains(members[index].Occurrence)
+                        && !members[index].Result.Continued)
+                    {
+                        members[index] = members[index] with
+                        {
+                            Result = members[index].Result with
+                            {
+                                RetirementCode = $"{members[index].Result.RetirementCode};{removal.Code}",
+                            },
+                        };
+                    }
+                }
+            }
+        }
+
+        var continued = members.Count(member => member.Result.Continued);
+        var code = members.Any(member => !member.Result.Revalidated)
+            ? "serving-trust-sweep-incomplete"
+            : members.Any(member => !member.Result.Continued && member.Result.RetirementCode != "retired")
+                ? "serving-trust-sweep-cleanup-incomplete"
+                : continued == members.Count
+                    ? "serving-trust-sweep-current"
+                    : "serving-trust-sweep-withdrawn";
+
+        return new(code, "none", members, continued, members.Count - continued);
     }
 }

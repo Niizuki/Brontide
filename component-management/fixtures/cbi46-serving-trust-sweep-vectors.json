@@ -1,0 +1,37 @@
+{
+  "maximumMembers": 64,
+  "vectors": [
+    {
+      "name": "reverse-all-current",
+      "input": ["occ.def.test.cooling-provider.2", "occ.def.test.cooling-provider.1"],
+      "expectedCode": "serving-trust-sweep-current",
+      "expectedOrder": ["occ.def.test.cooling-provider.1", "occ.def.test.cooling-provider.2"],
+      "continued": 2,
+      "withdrawn": 0
+    },
+    {
+      "name": "first-withdrawn-second-current",
+      "input": ["occ.def.test.cooling-provider.1", "occ.def.test.cooling-provider.2"],
+      "expectedCode": "serving-trust-sweep-withdrawn",
+      "expectedOrder": ["occ.def.test.cooling-provider.1", "occ.def.test.cooling-provider.2"],
+      "continued": 1,
+      "withdrawn": 1
+    },
+    {
+      "name": "duplicate-occurrence",
+      "input": ["occ.def.test.cooling-provider.1", "occ.def.test.cooling-provider.1"],
+      "expectedCode": "serving-trust-sweep-invalid",
+      "expectedOrder": [],
+      "continued": 0,
+      "withdrawn": 0
+    },
+    {
+      "name": "unavailable-member",
+      "input": ["occ.def.test.cooling-provider.1", "occ.def.test.cooling-provider.2"],
+      "expectedCode": "serving-trust-sweep-invalid",
+      "expectedOrder": [],
+      "continued": 0,
+      "withdrawn": 0
+    }
+  ]
+}
