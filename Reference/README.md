@@ -214,7 +214,9 @@ identity, a fresh authorization for the retained content, and a bounded retry bu
 one ready decision from the stopped activation's opaque retained recipe: it re-verifies the complete
 staged set, launches a new provider, reconstructs a fresh portable member under the same occurrence
 and logical runtime, and admits at most one successful successor while preserving retained content
-on refusal.
+on refusal. CBI53 makes the bounded restart history durable: one journal is tied to the occurrence
+and retained staged identity, records an attempt in-flight before CBI52 effects, resumes committed
+history without replay, and requires explicit retry or abandonment after an interrupted attempt.
 
 ## Build and test
 

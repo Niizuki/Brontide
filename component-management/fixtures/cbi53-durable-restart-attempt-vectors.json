@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "fixture": "cbi53-durable-restart-attempt-history",
+  "runId": "restart-run.test.1",
+  "occurrence": "occ.def.test.cooling-provider.1",
+  "stagedIdentity": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "maximumAttempts": 2,
+  "delaySeconds": 60,
+  "startInstant": "2026-08-05T09:00:00+00:00",
+  "vectors": [
+    { "name": "failure-then-success", "actions": ["attempt:staged-artifact-integrity-failed", "advance:60", "attempt:provider-restart-completed", "reopen"], "expectedCode": "durable-restart-completed", "expectedPhase": "terminal", "expectedAttemptCodes": ["staged-artifact-integrity-failed", "provider-restart-completed"], "expectedNextAttempt": 2, "expectedInFlight": null, "expectedInterruptions": 0, "expectedRetries": 0 },
+    { "name": "two-failures-exhausted", "actions": ["attempt:portable-process-interrupted", "advance:60", "attempt:staged-artifact-integrity-failed", "reopen"], "expectedCode": "durable-restart-exhausted", "expectedPhase": "terminal", "expectedAttemptCodes": ["portable-process-interrupted", "staged-artifact-integrity-failed"], "expectedNextAttempt": 2, "expectedInFlight": null, "expectedInterruptions": 0, "expectedRetries": 0 },
+    { "name": "interrupted-retried", "actions": ["crash", "reopen", "retry", "attempt:provider-restart-completed"], "expectedCode": "durable-restart-completed", "expectedPhase": "terminal", "expectedAttemptCodes": ["provider-restart-completed"], "expectedNextAttempt": 1, "expectedInFlight": null, "expectedInterruptions": 1, "expectedRetries": 1 },
+    { "name": "interrupted-abandoned", "actions": ["crash", "reopen", "abandon", "reopen"], "expectedCode": "durable-restart-abandoned", "expectedPhase": "terminal", "expectedAttemptCodes": [], "expectedNextAttempt": 0, "expectedInFlight": null, "expectedInterruptions": 1, "expectedRetries": 0 }
+  ]
+}

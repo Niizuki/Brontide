@@ -157,6 +157,9 @@
     <None Include="..\..\..\component-management\fixtures\cbi52-provider-restart-enforcement-vectors.json"
           Link="component-management\fixtures\cbi52-provider-restart-enforcement-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi53-durable-restart-attempt-vectors.json"
+          Link="component-management\fixtures\cbi53-durable-restart-attempt-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
@@ -165,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ComponentBindingIntegrationTests.fs" />
+    <Compile Include="ComponentProviderRestartAttemptRecoveryTests.fs" />
     <Compile Include="ComponentProviderTrustCadenceRecoveryTests.fs" />
     <Compile Include="ComponentProviderTrustOfflinePolicyTests.fs" />
     <Compile Include="ComponentArtifactAcquisitionTests.fs" />
