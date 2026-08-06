@@ -29,6 +29,18 @@ public enum ProviderTrustCadenceRecoveryDecision
 
 public sealed record ProviderTrustCadenceJournalCycle(int Index, DateTimeOffset Instant, string Code);
 
+/// <summary>
+/// The durable cursor a governed cycle was about to act on, recorded in the same write that marks the
+/// attempt in-flight. CBI62 refused a marker written after an effect because such a write is not
+/// atomic with what it describes; this one describes state that already exists and rides in a write
+/// the protocol already performs, so it opens no window.
+/// </summary>
+public sealed record ProviderTrustCadenceJournalCursor(
+    long AuthorityGeneration,
+    string ActiveAuthority,
+    long PolicySequence,
+    string? PolicyIdentity);
+
 public sealed record ProviderTrustCadenceJournalSnapshot(
     ProviderTrustCadenceRunId RunIdentity,
     string Code,
@@ -40,7 +52,8 @@ public sealed record ProviderTrustCadenceJournalSnapshot(
     IReadOnlyList<TimeSpan> Gaps,
     int NextCycleIndex,
     int InterruptionCount,
-    int RetryCount);
+    int RetryCount,
+    ProviderTrustCadenceJournalCursor? Cursor = null);
 
 public sealed record ProviderTrustCadenceJournalOpenResult(
     string Code,
@@ -118,14 +131,23 @@ public sealed class DurableProviderTrustCadenceJournal
         return new(OpenCode(state), journal);
     }
 
-    public ProviderTrustCadenceJournalTransitionResult BeginCycle()
+    /// <summary>
+    /// Marks the attempt in-flight. A governed caller supplies the durable cursor it is about to act
+    /// on, which this same write records rather than a later one.
+    /// </summary>
+    public ProviderTrustCadenceJournalTransitionResult BeginCycle(
+        ProviderTrustCadenceJournalCursor? cursor = null)
     {
         lock (sync)
         {
             if (state.Phase == "terminal") return Current(state.TerminalCode!);
             if (state.Phase == "in-flight") return Current("durable-cadence-indeterminate");
             if (state.Phase != "ready") return Current("durable-cadence-waiting");
-            return Transition(next => next.Phase = "in-flight", "durable-cadence-cycle-started");
+            return Transition(next =>
+            {
+                next.Phase = "in-flight";
+                next.Cursor = cursor is null ? null : JournalCursor.From(cursor);
+            }, "durable-cadence-cycle-started");
         }
     }
 
@@ -173,6 +195,9 @@ public sealed class DurableProviderTrustCadenceJournal
                     Instant = next.PreparedInstant,
                     Code = cycleCode,
                 });
+                // The cursor describes an attempt in flight; a committed one is described by its
+                // observation instead, so it does not outlive the phase that needed it.
+                next.Cursor = null;
                 if (transitionCode is "durable-cadence-stopped" or "durable-cadence-canceled"
                     or "durable-cadence-complete")
                 {
@@ -199,6 +224,7 @@ public sealed class DurableProviderTrustCadenceJournal
                 ProviderTrustCadenceRecoveryDecision.Retry => Transition(next =>
                 {
                     next.Phase = "ready";
+                    next.Cursor = null;
                     next.InterruptionCount++;
                     next.RetryCount++;
                 }, "durable-cadence-retry-ready"),
@@ -206,6 +232,7 @@ public sealed class DurableProviderTrustCadenceJournal
                 {
                     next.Phase = "terminal";
                     next.TerminalCode = "durable-cadence-abandoned";
+                    next.Cursor = null;
                     next.InterruptionCount++;
                 }, "durable-cadence-abandoned"),
                 _ => throw new ArgumentOutOfRangeException(nameof(decision)),
@@ -253,7 +280,12 @@ public sealed class DurableProviderTrustCadenceJournal
             value.GapTicks.Select(TimeSpan.FromTicks).ToArray(),
             value.Cycles.Count,
             value.InterruptionCount,
-            value.RetryCount);
+            value.RetryCount,
+            value.Cursor is null
+                ? null
+                : new ProviderTrustCadenceJournalCursor(
+                    value.Cursor.AuthorityGeneration, value.Cursor.ActiveAuthority,
+                    value.Cursor.PolicySequence, value.Cursor.PolicyIdentity));
 
     // Drawn from the one vocabulary the cycles produce from, so a code cannot be returned by a cycle
     // and refused here — which is what CBI61's two additions were until CBI62.
@@ -269,7 +301,9 @@ public sealed class DurableProviderTrustCadenceJournal
             || value.Cycles.Count > value.MaximumCycles
             || value.GapTicks.Any(gap => gap != value.IntervalTicks)
             || value.InterruptionCount < 0 || value.RetryCount < 0
-            || value.RetryCount > value.InterruptionCount)
+            || value.RetryCount > value.InterruptionCount
+            // A cursor describes an attempt in flight, so it cannot outlive that phase.
+            || (value.Cursor is not null && (value.Phase != "in-flight" || !value.Cursor.IsWellFormed())))
             return false;
         for (var index = 0; index < value.Cycles.Count; index++)
         {
@@ -361,6 +395,7 @@ public sealed class DurableProviderTrustCadenceJournal
         public List<long> GapTicks { get; set; } = [];
         public int InterruptionCount { get; set; }
         public int RetryCount { get; set; }
+        public JournalCursor? Cursor { get; set; }
 
         public JournalState Clone() => new()
         {
@@ -375,6 +410,37 @@ public sealed class DurableProviderTrustCadenceJournal
             GapTicks = [.. GapTicks],
             InterruptionCount = InterruptionCount,
             RetryCount = RetryCount,
+            Cursor = Cursor?.Clone(),
+        };
+    }
+
+    private sealed class JournalCursor
+    {
+        public long AuthorityGeneration { get; set; }
+        public string ActiveAuthority { get; set; } = "";
+        public long PolicySequence { get; set; }
+        public string? PolicyIdentity { get; set; }
+
+        public JournalCursor Clone() => new()
+        {
+            AuthorityGeneration = AuthorityGeneration,
+            ActiveAuthority = ActiveAuthority,
+            PolicySequence = PolicySequence,
+            PolicyIdentity = PolicyIdentity,
+        };
+
+        // A sequence above zero without an identity, or the reverse, is not a cursor any registry
+        // produces, so it is refused rather than half-read.
+        public bool IsWellFormed() =>
+            AuthorityGeneration >= 0 && !string.IsNullOrWhiteSpace(ActiveAuthority)
+            && PolicySequence >= 0 && (PolicySequence == 0) == (PolicyIdentity is null);
+
+        public static JournalCursor From(ProviderTrustCadenceJournalCursor value) => new()
+        {
+            AuthorityGeneration = value.AuthorityGeneration,
+            ActiveAuthority = value.ActiveAuthority,
+            PolicySequence = value.PolicySequence,
+            PolicyIdentity = value.PolicyIdentity,
         };
     }
 

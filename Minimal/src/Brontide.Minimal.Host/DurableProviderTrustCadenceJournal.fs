@@ -31,6 +31,16 @@ type ProviderTrustCadenceJournalCycle =
       Instant: DateTimeOffset
       Code: string }
 
+/// The durable cursor a governed cycle was about to act on, recorded in the same write that marks the
+/// attempt in-flight. CBI62 refused a marker written after an effect because such a write is not
+/// atomic with what it describes; this one describes state that already exists and rides in a write
+/// the protocol already performs, so it opens no window.
+type ProviderTrustCadenceJournalCursor =
+    { AuthorityGeneration: int64
+      ActiveAuthority: string
+      PolicySequence: int64
+      PolicyIdentity: string option }
+
 type ProviderTrustCadenceJournalSnapshot =
     { RunIdentity: ProviderTrustCadenceRunId
       Code: string
@@ -42,7 +52,8 @@ type ProviderTrustCadenceJournalSnapshot =
       Gaps: TimeSpan list
       NextCycleIndex: int
       InterruptionCount: int
-      RetryCount: int }
+      RetryCount: int
+      Cursor: ProviderTrustCadenceJournalCursor option }
 
 type ProviderTrustCadenceJournalTransitionResult =
     { Code: string
@@ -64,7 +75,8 @@ type private JournalState =
       Cycles: JournalCycleState list
       GapTicks: int64 list
       InterruptionCount: int
-      RetryCount: int }
+      RetryCount: int
+      Cursor: ProviderTrustCadenceJournalCursor option }
 
 [<RequireQualifiedAccess>]
 module private ProviderTrustCadenceJournalRecord =
@@ -92,6 +104,16 @@ module private ProviderTrustCadenceJournalRecord =
             && (value.GapTicks |> List.forall ((=) value.IntervalTicks))
             && value.InterruptionCount >= 0 && value.RetryCount >= 0
             && value.RetryCount <= value.InterruptionCount
+            // A cursor describes an attempt in flight, so it cannot outlive that phase, and a
+            // sequence above zero without an identity is not a cursor any registry produces.
+            && (match value.Cursor with
+                | None -> true
+                | Some cursor ->
+                    value.Phase = "in-flight"
+                    && cursor.AuthorityGeneration >= 0L
+                    && not (String.IsNullOrWhiteSpace cursor.ActiveAuthority)
+                    && cursor.PolicySequence >= 0L
+                    && (cursor.PolicySequence = 0L) = Option.isNone cursor.PolicyIdentity)
             && (value.Cycles
                 |> List.mapi (fun index cycle ->
                     cycle.Index = index
@@ -147,6 +169,18 @@ module private ProviderTrustCadenceJournalRecord =
         writer.WriteEndArray()
         writer.WriteNumber("interruptionCount", value.InterruptionCount)
         writer.WriteNumber("retryCount", value.RetryCount)
+        match value.Cursor with
+        | None -> writer.WriteNull("cursor")
+        | Some cursor ->
+            writer.WritePropertyName "cursor"
+            writer.WriteStartObject()
+            writer.WriteNumber("authorityGeneration", cursor.AuthorityGeneration)
+            writer.WriteString("activeAuthority", cursor.ActiveAuthority)
+            writer.WriteNumber("policySequence", cursor.PolicySequence)
+            match cursor.PolicyIdentity with
+            | Some identity -> writer.WriteString("policyIdentity", identity)
+            | None -> writer.WriteNull("policyIdentity")
+            writer.WriteEndObject()
         writer.WriteEndObject()
         writer.Flush()
         output.ToArray()
@@ -159,6 +193,22 @@ module private ProviderTrustCadenceJournalRecord =
                 let property = root.GetProperty "terminalCode"
                 if property.ValueKind = JsonValueKind.Null then None
                 else property.GetString() |> Option.ofObj
+            // A journal written before this slice has no cursor property at all, which decodes as
+            // an absent cursor rather than as a corrupt record.
+            let cursor =
+                match root.TryGetProperty "cursor" with
+                | true, property when property.ValueKind <> JsonValueKind.Null ->
+                    Some
+                        { AuthorityGeneration = property.GetProperty("authorityGeneration").GetInt64()
+                          ActiveAuthority =
+                            property.GetProperty("activeAuthority").GetString()
+                            |> Option.ofObj |> Option.defaultValue ""
+                          PolicySequence = property.GetProperty("policySequence").GetInt64()
+                          PolicyIdentity =
+                            let identity = property.GetProperty "policyIdentity"
+                            if identity.ValueKind = JsonValueKind.Null then None
+                            else identity.GetString() |> Option.ofObj }
+                | _ -> None
             let cycles =
                 root.GetProperty("cycles").EnumerateArray()
                 |> Seq.map (fun cycle ->
@@ -177,7 +227,8 @@ module private ProviderTrustCadenceJournalRecord =
                   Cycles = cycles
                   GapTicks = root.GetProperty("gapTicks").EnumerateArray() |> Seq.map _.GetInt64() |> Seq.toList
                   InterruptionCount = root.GetProperty("interruptionCount").GetInt32()
-                  RetryCount = root.GetProperty("retryCount").GetInt32() }
+                  RetryCount = root.GetProperty("retryCount").GetInt32()
+                  Cursor = cursor }
             if isValid value then Some value else None
         with
         | :? JsonException
@@ -246,7 +297,8 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
           Gaps = value.GapTicks |> List.map TimeSpan.FromTicks
           NextCycleIndex = value.Cycles.Length
           InterruptionCount = value.InterruptionCount
-          RetryCount = value.RetryCount }
+          RetryCount = value.RetryCount
+          Cursor = value.Cursor }
 
     let current code = { Code = code; Snapshot = project state }
 
@@ -261,11 +313,17 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
 
     member _.Snapshot = lock syncRoot (fun () -> project state)
 
-    member _.BeginCycle() = lock syncRoot (fun () ->
+    /// Marks the attempt in-flight. A governed caller supplies the durable cursor it is about to act
+    /// on, which this same write records rather than a later one.
+    member _.BeginCycle(cursor: ProviderTrustCadenceJournalCursor option) = lock syncRoot (fun () ->
         if state.Phase = "terminal" then current state.TerminalCode.Value
         elif state.Phase = "in-flight" then current "durable-cadence-indeterminate"
         elif state.Phase <> "ready" then current "durable-cadence-waiting"
-        else transition (fun value -> { value with Phase = "in-flight" }) "durable-cadence-cycle-started")
+        else
+            transition (fun value -> { value with Phase = "in-flight"; Cursor = cursor })
+                "durable-cadence-cycle-started")
+
+    member this.BeginCycle() = this.BeginCycle None
 
     member _.CompleteGap(nextInstant: DateTimeOffset) = lock syncRoot (fun () ->
         if state.Phase = "terminal" then current state.TerminalCode.Value
@@ -301,7 +359,9 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
                     if List.contains transitionCode [
                         "durable-cadence-stopped"; "durable-cadence-canceled"; "durable-cadence-complete" ] then
                         { value with Cycles = cycles; Phase = "terminal"; TerminalCode = Some transitionCode }
-                    else { value with Cycles = cycles; Phase = "waiting" }) transitionCode)
+                    // The cursor describes an attempt in flight; a committed one is described by
+                    // its observation instead, so it does not outlive the phase that needed it.
+                    else { value with Cycles = cycles; Phase = "waiting"; Cursor = None }) transitionCode)
 
     member _.ResolveInterrupted(decision: ProviderTrustCadenceRecoveryDecision) = lock syncRoot (fun () ->
         if state.Phase = "terminal" then current state.TerminalCode.Value
@@ -310,13 +370,14 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
             match decision with
             | ProviderTrustCadenceRecoveryDecision.Retry ->
                 transition (fun value ->
-                    { value with Phase = "ready"
+                    { value with Phase = "ready"; Cursor = None
                                  InterruptionCount = value.InterruptionCount + 1
                                  RetryCount = value.RetryCount + 1 })
                     "durable-cadence-retry-ready"
             | ProviderTrustCadenceRecoveryDecision.Abandon ->
                 transition (fun value ->
                     { value with Phase = "terminal"; TerminalCode = Some "durable-cadence-abandoned"
+                                 Cursor = None
                                  InterruptionCount = value.InterruptionCount + 1 })
                     "durable-cadence-abandoned")
 
@@ -337,7 +398,7 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
                 { Format = "CBI48"; RunIdentity = runIdentity.Value
                   MaximumCycles = schedule.MaximumCycles; IntervalTicks = schedule.Interval.Ticks
                   PreparedInstant = start; Phase = "ready"; TerminalCode = None
-                  Cycles = []; GapTicks = []; InterruptionCount = 0; RetryCount = 0 }
+                  Cycles = []; GapTicks = []; InterruptionCount = 0; RetryCount = 0; Cursor = None }
             if not (ProviderTrustCadenceJournalRecord.tryWrite fullPath value) then
                 { Code = "durable-cadence-write-failed"; Journal = None }
             else

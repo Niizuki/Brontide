@@ -190,7 +190,11 @@ The implementation currently provides:
   refused CBI61's two additions and left a normally completed run recorded as an interruption — while
   recording nothing about which of the two loops a resumed cycle had run, because the retained chain
   already records it and a retried cycle cannot double-apply either half;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI62 integration
+  CBI63 reconciles a governed interruption by recording the durable cursor in the write that already
+  marks an attempt in-flight — sound where CBI62's refused marker was not, because it precedes the
+  effect rather than following it — deriving the rotation and policy observations from it rather than
+  accepting them, and narrowing the evidence to the serving verdict nothing can check;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI63 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

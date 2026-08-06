@@ -971,6 +971,16 @@ them as `durable-cadence-result-invalid` before this slice, leaving a run that c
 recorded as an interruption that never happened. The fixture contains no journal, registry, clock,
 endpoint, or key material.
 
+### `cbi63-governed-reconciliation` sections
+
+`vectors` names, per governed interruption, whether the attempt recorded a cursor, which durable
+effects the registry then took, and the one serving observation the host supplies. Each pins the
+reconciliation code, the resulting journal phase, the derived rotation and policy observations, and
+the interruption and retry counts. A `null` derived observation means the reconciler refused before
+deriving anything. Four vectors carry identical evidence over four different registry outcomes, which
+is what forces the derivation to come from the registry rather than be restated from the evidence.
+The fixture contains no journal, registry, clock, endpoint, or key material.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations

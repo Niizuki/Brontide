@@ -258,6 +258,11 @@ CBI61's two additions and left a normally completed run recorded as an interrupt
 records nothing about which of the two loops a resumed cycle had run, because a marker written after
 the rotation returns is not atomic with its effect while the retained chain already records it, and a
 retried cycle cannot double-apply either half.
+CBI63 reconciles a governed interruption. The write that marks an attempt in-flight also records the
+durable cursor it was about to act on — the same device CBI62 refused, sound here only because it
+precedes the effect rather than following it — so the rotation and policy observations are derived
+rather than asserted. The evidence is therefore narrower than CBI49's, carrying only the serving
+verdict nothing can check, and CBI49's own path refuses a journal that recorded a cursor.
 
 ## Build and test
 

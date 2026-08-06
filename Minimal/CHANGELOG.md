@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased - CBI63 governed interruption reconciliation
+
+### Added
+
+- A durable cursor recorded by the write that already marks a governed attempt in-flight, naming the
+  authority generation, active authority, policy sequence, and policy identity the attempt was about
+  to act on.
+- A native F# governed reconciliation that derives the rotation and policy observations from that cursor and the
+  registry, and accepts only a serving verdict from the host.
+- A governed recovery advance that supplies the cursor, shared cross-stack vectors, and C1-C7 tests.
+
+### Changed
+
+- CBI49's ungoverned reconciliation refuses an in-flight journal that recorded a cursor, as
+  `cadence-reconciliation-governed`. Its single verdict would speak for effects the host need not have
+  inspected. Ungoverned runs are unaffected.
+- `ProviderTrustCadenceJournalSnapshot` gains a `Cursor` field. The journal is its only producer, so
+  no in-repo consumer constructs one; an external consumer that did would need to add
+  `Cursor = None`. `BeginCycle` gains a cursor-taking overload and keeps its existing no-argument
+  form.
+
+### Notes
+
+- The evidence is narrower than CBI49's rather than wider. Two of the three things a governed cycle
+  can do record themselves durably, so there is no field a host could over-assert into; the sweep
+  remains the one thing nothing here can check. A journal written before this slice has no cursor and
+  is refused rather than derived against an invented baseline. A derived effect is reported and never
+  vetoes retry, because CBI62 established that a retried governed cycle cannot double-apply.
+
 ## Unreleased - CBI62 durable governed cadence resumption
 
 ### Fixed

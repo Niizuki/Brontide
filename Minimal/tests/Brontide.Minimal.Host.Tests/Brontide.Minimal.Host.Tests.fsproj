@@ -187,6 +187,9 @@
     <None Include="..\..\..\component-management\fixtures\cbi62-governed-cadence-resumption-vectors.json"
           Link="component-management\fixtures\cbi62-governed-cadence-resumption-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi63-governed-reconciliation-vectors.json"
+          Link="component-management\fixtures\cbi63-governed-reconciliation-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
@@ -212,6 +215,7 @@
     <Compile Include="ComponentPolicyAuthorityRotationCycleTests.fs" />
     <Compile Include="ComponentGovernedTrustCadenceTests.fs" />
     <Compile Include="ComponentGovernedCadenceResumptionTests.fs" />
+    <Compile Include="ComponentGovernedReconciliationTests.fs" />
     <Compile Include="ComponentPolicyDistributionTests.fs" />
     <Compile Include="ComponentDistributionEndpointRotationTests.fs" />
     <Compile Include="ComponentPolicyDistributionWireTests.fs" />

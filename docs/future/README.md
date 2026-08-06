@@ -1232,9 +1232,38 @@ exercised, because only the second shows the refusal doing any work. The
 [`contract-completeness review`](../../component-management/cbi62-contract-completeness-review.md)
 bound it to one host-local journal under one writer, and record what the vocabulary guard does *not*
 bind: CBI49's and CBI50's observation vocabularies remain separate lists a later slice could let drift
-the same way. Reconciling a governed interruption through CBI49, where the evidence must name which of
-the two loops the host has verified rather than asserting both, is the next bounded implementation
-boundary.
+the same way.
+
+CBI63 reconciles a governed interruption, and **the item asked for wider evidence when what it needed
+was narrower**. "Name which of the two loops the host has verified" presumes the host should be
+speaking about both. Two of the three things a governed cycle can do — the rotation and the policy
+update — are recorded durably by the components that do them, so an assertion about either is a claim
+the record already answers better. The evidence therefore carries exactly one verdict, the serving
+one, and **there is no field a host could over-assert into**. That is the third consecutive slice
+whose scheduling item had to be corrected rather than fulfilled, and the pattern is worth naming: an
+item written from the shape of the previous slice tends to propose a symmetry the models do not have.
+
+**The loop boundary turns out not to be the verifiability boundary.** CBI61 split a cycle into the
+rotation loop and the CBI47 loop; the split that matters here runs through the middle of the second
+one, because the poll's effect is durably recorded and the sweep's is not. Evidence organised by loop
+would have had one field covering a derivable effect and an underivable one together, which is exactly
+the over-assertion this slice removes.
+
+What makes the derivation possible is **the same device CBI62 refused, sound here because of when it
+is written**. CBI62 refused a marker written *after* the rotation returns, since such a write is not
+atomic with the effect it describes. A cursor written *before* the cycle describes state that already
+exists and rides in the write that already marks the attempt in-flight, so it opens no window — and a
+named test asserts the transition sequence is unchanged, making "no extra write" checked rather than
+claimed. A derived effect then **reports and never vetoes**, because CBI62 established that a retried
+governed cycle cannot double-apply either half; without that result, refusing retry would have looked
+like the cautious choice. An absent cursor is refused rather than derived against an invented zero,
+which would read every effect as applied, and a cursor above the observed state is refused as the
+rollback it is rather than as an absence of effect. The
+[`CBI63 capability contract`](../../component-management/cbi63-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi63-contract-completeness-review.md)
+bound it to what the local durable record states. A host that terminates providers when CBI49's grace
+expires — which CBI49 names as its own deliberate limit and which no slice has yet taken — is the next
+bounded implementation boundary.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —
