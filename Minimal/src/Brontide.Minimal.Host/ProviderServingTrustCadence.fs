@@ -53,11 +53,16 @@ module ProviderServingTrustCycleBinding =
                 return Some result
         }
 
+/// One cycle's observations. `Rotation` is `None` for a cadence that does not govern authority
+/// rotation, which is every cadence composed before CBI61; a governed cycle carries the CBI60 result
+/// it ran before the poll, and `Poll` is `None` when that rotation stopped the cycle before the
+/// policy endpoint was contacted.
 type ProviderServingTrustCycleResult =
     { Code: string
-      Poll: ProviderPublisherTrustPolicyPollResult
+      Poll: ProviderPublisherTrustPolicyPollResult option
       Sweep: ProviderServingTrustSweepResult option
-      ServingCount: int }
+      ServingCount: int
+      Rotation: ProviderPolicyAuthorityCycleResult option }
     member this.CanContinue =
         this.Code = "provider-trust-cycle-current"
         || this.Code = "provider-trust-cycle-withdrawn"
@@ -76,19 +81,19 @@ module ProviderServingTrustCycle =
             let! poll = policy now cancellationToken
             if poll.Code = "policy-poll-canceled" then
                 return
-                    { Code = "provider-trust-cycle-canceled"; Poll = poll
-                      Sweep = None; ServingCount = 0 }
+                    { Code = "provider-trust-cycle-canceled"; Poll = Some poll
+                      Sweep = None; ServingCount = 0; Rotation = None }
             elif not poll.IsCurrent then
                 return
-                    { Code = "provider-trust-cycle-stopped"; Poll = poll
-                      Sweep = None; ServingCount = 0 }
+                    { Code = "provider-trust-cycle-stopped"; Poll = Some poll
+                      Sweep = None; ServingCount = 0; Rotation = None }
             else
                 let! sweep = serving cancellationToken
                 match sweep with
                 | None ->
                     return
-                        { Code = "provider-trust-cycle-current"; Poll = poll
-                          Sweep = None; ServingCount = 0 }
+                        { Code = "provider-trust-cycle-current"; Poll = Some poll
+                          Sweep = None; ServingCount = 0; Rotation = None }
                 | Some result ->
                     let code =
                         match result.Code with
@@ -96,8 +101,8 @@ module ProviderServingTrustCycle =
                         | "serving-trust-sweep-withdrawn" -> "provider-trust-cycle-withdrawn"
                         | _ -> "provider-trust-cycle-stopped"
                     return
-                        { Code = code; Poll = poll; Sweep = Some result
-                          ServingCount = result.Members.Length }
+                        { Code = code; Poll = Some poll; Sweep = Some result
+                          ServingCount = result.Members.Length; Rotation = None }
         }
 
 type ProviderServingTrustCadenceDelay =

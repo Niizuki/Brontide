@@ -1,5 +1,30 @@
 # Changelog
 
+## Unreleased - CBI61 governed trust cadence
+
+### Added
+
+- A governed cycle that runs one CBI60 rotation cycle before CBI47's poll and sweep, inside CBI47's
+  unchanged cadence, with both observations retained whole.
+- `provider-trust-cycle-authority-behind`, reported exactly when a poll refused with
+  `policy-update-authority-mismatch` and the same cycle's rotation did not reach current, and
+  `provider-trust-cycle-authority-unretained`, which stops before the policy endpoint.
+- Shared cross-stack cadence vectors and C1-C7 tests, including the vector pair that differs only in
+  what the rotation reported.
+
+### Changed
+
+- `ProviderServingTrustCycleResult` gains a `Rotation` observation, absent for an ungoverned cadence,
+  and its `Poll` is now nullable because a governed cycle can stop before the policy endpoint is
+  contacted. Existing construction sites and the cadence itself are unaffected.
+
+### Notes
+
+- CBI61 adds no capability to CBI41, CBI46, CBI47, or CBI60 and reclassifies no refusal. CBI41's
+  behaviour is unchanged: failing closed on an update it cannot verify is correct whether the cause
+  is a stranger or a rotation the host has not learned, and only a cycle that ran both loops can tell
+  those apart. Offline policy, durable resumption, and cross-process ownership remain separate.
+
 ## Unreleased - CBI60 durable policy-authority rotation cycle
 
 ### Added

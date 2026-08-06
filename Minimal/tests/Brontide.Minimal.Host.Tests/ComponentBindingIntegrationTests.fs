@@ -11495,9 +11495,10 @@ type ComponentBindingIntegrationTests() =
 
     member private this.Cbi47CycleResult code : ProviderServingTrustCycleResult =
         { Code = code
-          Poll = this.Cbi47Poll "policy-poll-current"
+          Poll = Some(this.Cbi47Poll "policy-poll-current")
           Sweep = None
-          ServingCount = 0 }
+          ServingCount = 0
+          Rotation = None }
 
     member private this.Cbi47Run(codes: string list, cancellation: string, ?maximumCycles: int) = task {
         use source = new CancellationTokenSource()

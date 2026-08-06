@@ -23,9 +23,10 @@ type ComponentProviderTrustCadenceRecoveryTests() =
     let start = DateTimeOffset(2026, 8, 5, 8, 0, 0, TimeSpan.Zero)
     let cycleResult code : ProviderServingTrustCycleResult =
         { Code = code
-          Poll = Unchecked.defaultof<ProviderPublisherTrustPolicyPollResult>
+          Poll = None
           Sweep = None
-          ServingCount = 0 }
+          ServingCount = 0
+          Rotation = None }
     let establish path =
         DurableProviderTrustCadenceJournal.Establish(path, runIdentity, schedule, start).Journal.Value
     let multiple action = Assert.Multiple(Action action)

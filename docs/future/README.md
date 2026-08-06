@@ -1168,9 +1168,40 @@ truncated at a *trailing* rotation, and each stack pins both directions with a n
 asserting the coverage. The [`CBI60 capability contract`](../../component-management/cbi60-capability-contract.md)
 and [`contract-completeness review`](../../component-management/cbi60-contract-completeness-review.md)
 bound it to one host-driven call under one writer, with CBI42's custody limit unchanged: the
-integrity tag detects corruption, not an adversary who can write the file and recompute it. A
-host-owned cadence running this cycle alongside CBI47's, without either one's failure standing for
-the other's, is the next bounded implementation boundary.
+integrity tag detects corruption, not an adversary who can write the file and recompute it.
+
+CBI61 runs that cycle alongside CBI47's, and the two turn out to be one cycle rather than two loops.
+**The order is decidable from the registry rather than chosen**: a policy update is verified against
+the authority in force, so an update signed by the authority a pending rotation installs is refused
+until that rotation is retained. Rotating first applies it; polling first refuses it. A shared vector
+distinguishes the two orders by whether a sequence was applied, which makes the ordering a test
+rather than a comment. CBI47's cadence needed no change — its loop is generic over a cycle, so
+governing it is a new cycle — and the one change to CBI47 is that a cycle result now carries the
+rotation it ran, which makes the pairing structural instead of positional.
+
+Its finding is what a later slice did to an earlier vector. **CBI41's `foreign-authority` vector
+became half-right when CBI57 landed.** `policy-update-authority-mismatch` could only mean a stranger
+before an authority could rotate, and the vector's name says so; afterwards the same observable also
+describes a legitimate publisher a host has not caught up with. CBI41 is neither wrong nor changed —
+failing closed on an update it cannot verify is correct either way — but nothing below the
+composition can tell the two causes apart, because only a cycle that ran both loops knows whether a
+rotation was attempted and what it reported. This is the first case in the programme where a later
+slice made an existing refusal **ambiguous without making it incorrect**, which is a different shape
+from the four stated limits that turned out to describe how something was called.
+
+Attribution is therefore a conjunction of two recorded facts rather than a reading of the poll code:
+`provider-trust-cycle-authority-behind` appears exactly when the poll refused with that code *and*
+the same cycle's rotation did not reach current. A rule that looked only at the poll code would
+relabel a stranger's update as a rotation lag, and the vector pair that differs **only** in the
+rotation outcome is what forces the distinction — without it both readings pass. Which rotation
+outcomes are fatal follows from what each changed: a refused or exhausted rotation changed nothing
+and is recorded beside a cycle that may still report current, while a rotation published without its
+guard stops before the policy endpoint, for CBI41's own reason about its own floor. The
+[`CBI61 capability contract`](../../component-management/cbi61-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi61-contract-completeness-review.md)
+bound it to one bounded host-driven call that retires nothing. Durable resumption of a governed
+cadence, where CBI48's journal must record which of the two loops a resumed cycle had already run, is
+the next bounded implementation boundary.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

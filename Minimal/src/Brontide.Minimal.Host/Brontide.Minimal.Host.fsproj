@@ -38,6 +38,7 @@
     <Compile Include="ComponentBindingIntegration.fs" />
     <Compile Include="ProviderServingTrustRevalidation.fs" />
     <Compile Include="ProviderServingTrustCadence.fs" />
+    <Compile Include="ProviderGovernedTrustCadence.fs" />
     <Compile Include="DurableProviderTrustCadenceJournal.fs" />
     <Compile Include="ProviderTrustOfflinePolicy.fs" />
     <Compile Include="ProviderOfflineServiceEnforcement.fs" />

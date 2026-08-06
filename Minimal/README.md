@@ -179,8 +179,13 @@ The implementation currently provides:
   strict without adding retry; CBI60 runs those attempts as one bounded host-driven cycle whose
   jitter-free backoff follows consecutive failures and resets on an applied rotation, whose retry is
   confined to what a fresh attempt can change, and whose authority floor gains durable
-  integrity-tagged custody advanced only by a handoff from a publication this host performed;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI60 integration
+  integrity-tagged custody advanced only by a handoff from a publication this host performed; CBI61
+  makes those two loops one cycle inside CBI47's unchanged cadence, rotating before polling because a
+  policy update is verified against the authority in force, recording a rotation that changed nothing
+  rather than propagating it, stopping before the policy endpoint when a rotation was published
+  without its guard, and attributing an unverifiable update to an incomplete rotation only when one
+  was attempted and did not complete;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI61 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

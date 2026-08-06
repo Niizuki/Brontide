@@ -63,11 +63,18 @@ public sealed class ProviderServingTrustSweepCycle(
     }
 }
 
+/// <summary>
+/// One cycle's observations. <paramref name="Rotation"/> is absent for a cadence that does not
+/// govern authority rotation, which is every cadence composed before CBI61; a governed cycle carries
+/// the CBI60 result it ran before the poll, and <paramref name="Poll"/> is absent when that rotation
+/// stopped the cycle before the policy endpoint was contacted.
+/// </summary>
 public sealed record ProviderServingTrustCycleResult(
     string Code,
-    ProviderPublisherTrustPolicyPollResult Poll,
+    ProviderPublisherTrustPolicyPollResult? Poll,
     ProviderServingTrustSweepResult? Sweep,
-    int ServingCount)
+    int ServingCount,
+    ProviderPolicyAuthorityCycleResult? Rotation = null)
 {
     public bool CanContinue => Code is
         "provider-trust-cycle-current" or "provider-trust-cycle-withdrawn";

@@ -948,6 +948,18 @@ is behind its recovered generation had its handoff refused — the lag CBI41 arg
 direction, pinned here so it cannot be mistaken for a lost rotation. The fixture contains no key
 material, source, client, registry, clock, transport, or floor store.
 
+### `cbi61-governed-trust-cadence` sections
+
+`schedule` names the shared inter-cycle interval; each vector's cadence budget is its own scripted
+cycle count, so a budget and a script can never disagree. `vectors` names one rotation outcome and
+one policy outcome per cycle, and pins the cadence code, the ordered cycle codes, each cycle's
+rotation and poll codes, whether the policy endpoint was reached at all, and the durable authority
+generation and policy sequence the registry reaches. Two vectors differ only in what the rotation
+reported and produce the same poll code with different cycle codes; they are what force attribution
+to be a conjunction of two recorded facts rather than a reading of the poll code alone. A `null`
+poll code means the cycle stopped before the policy endpoint was contacted. The fixture contains no
+key material, source, registry, clock, transport, floor store, or serving member.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations
