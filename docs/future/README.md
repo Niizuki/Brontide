@@ -1199,9 +1199,42 @@ and is recorded beside a cycle that may still report current, while a rotation p
 guard stops before the policy endpoint, for CBI41's own reason about its own floor. The
 [`CBI61 capability contract`](../../component-management/cbi61-capability-contract.md) and
 [`contract-completeness review`](../../component-management/cbi61-contract-completeness-review.md)
-bound it to one bounded host-driven call that retires nothing. Durable resumption of a governed
-cadence, where CBI48's journal must record which of the two loops a resumed cycle had already run, is
-the next bounded implementation boundary.
+bound it to one bounded host-driven call that retires nothing.
+
+CBI62 puts that governed cycle under CBI48's durable journal, and its first result is **a defect
+CBI61 introduced that neither slice's tests could see**. CBI61 added two cycle codes; CBI48 validates
+a committed code against the four it knew. A governed cadence reporting
+`provider-trust-cycle-authority-behind` was refused as `durable-cadence-result-invalid` and left
+in-flight, so **a run that completed normally was recorded as an interruption that never happened**,
+and the host's next start would demand a reconciliation decision about nothing. CBI61's suite never
+composed with a journal and CBI48's never produced a governed code — the defect lived in the seam
+between two slices rather than in either, which is a different blindness from the one Decision 10
+describes. The repair is not the two missing strings: producers and the journal now draw from one
+vocabulary, so a code cannot be returned by a cycle and refused by the journal, and the guard walks
+the vocabulary rather than naming today's six.
+
+**The item's premise was wrong, and saying why is the capability.** It expected the journal to record
+which of the two loops a resumed cycle had run. A marker written after the rotation returns is not
+atomic with the rotation's effect, so it opens a second indeterminate window instead of closing the
+first; and the rotation's effect is *already* durably recorded, by the retained chain and the stored
+floor, so a marker could only ever be a less trustworthy copy of a record that exists. The absent
+field is the contract, as it was for CBI17's synchronous succession. Its test is two runs identical in
+every journal-visible respect and differing only in whether the rotation reached its endpoint: the
+journals must be byte-identical while the checkpoints differ, which a journal recording the loop would
+fail and a harness whose arms did not really differ would also fail.
+
+What makes a governed retry safe is then a claim about two dependencies rather than about this slice,
+so it is probed: **CBI57 refuses a replayed rotation by generation and CBI37 refuses a replayed update
+by sequence.** Both the honest path — the host's own cursor moved, so the endpoints report it current
+— and the defensive path — a stale endpoint re-offers the identical statement and update — are
+exercised, because only the second shows the refusal doing any work. The
+[`CBI62 capability contract`](../../component-management/cbi62-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi62-contract-completeness-review.md)
+bound it to one host-local journal under one writer, and record what the vocabulary guard does *not*
+bind: CBI49's and CBI50's observation vocabularies remain separate lists a later slice could let drift
+the same way. Reconciling a governed interruption through CBI49, where the evidence must name which of
+the two loops the host has verified rather than asserting both, is the next bounded implementation
+boundary.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

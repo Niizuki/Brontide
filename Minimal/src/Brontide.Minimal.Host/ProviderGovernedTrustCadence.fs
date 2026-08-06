@@ -18,7 +18,7 @@ module ProviderGovernedTrustCycle =
     let private authorityBehind
         (rotation: ProviderPolicyAuthorityCycleResult)
         (result: ProviderServingTrustCycleResult) =
-        result.Code = "provider-trust-cycle-stopped"
+        result.Code = ProviderServingTrustCycleCodes.Stopped
         && (result.Poll |> Option.bind _.LastAttemptCode) = Some "policy-update-authority-mismatch"
         && not rotation.IsCurrent
 
@@ -43,18 +43,18 @@ module ProviderGovernedTrustCycle =
             let! rotated = rotation now cancellationToken
             if rotated.Code = "policy-authority-cycle-canceled" then
                 return
-                    { Code = "provider-trust-cycle-canceled"; Poll = None
+                    { Code = ProviderServingTrustCycleCodes.Canceled; Poll = None
                       Sweep = None; ServingCount = 0; Rotation = Some rotated }
             // The one rotation outcome that changed something the host cannot account for: the chain
             // advanced past a floor it does not hold, and every later advance moves further past it.
             elif rotated.Code = "policy-authority-cycle-floor-unretained" then
                 return
-                    { Code = "provider-trust-cycle-authority-unretained"; Poll = None
+                    { Code = ProviderServingTrustCycleCodes.AuthorityUnretained; Poll = None
                       Sweep = None; ServingCount = 0; Rotation = Some rotated }
             else
                 let! result = inner now cancellationToken
                 let code =
-                    if authorityBehind rotated result then "provider-trust-cycle-authority-behind"
+                    if authorityBehind rotated result then ProviderServingTrustCycleCodes.AuthorityBehind
                     else result.Code
                 return { result with Code = code; Rotation = Some rotated }
         }

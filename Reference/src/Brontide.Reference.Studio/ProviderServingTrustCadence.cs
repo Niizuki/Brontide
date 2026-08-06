@@ -64,6 +64,39 @@ public sealed class ProviderServingTrustSweepCycle(
 }
 
 /// <summary>
+/// Every code a trust cycle can return, with whether the cadence may continue after it. Producers
+/// use these constants rather than literals and CBI48's journal validates against this set, so a new
+/// code cannot be produced without the journal knowing it — which is what CBI61's two additions did
+/// before this was one vocabulary.
+/// </summary>
+public static class ProviderServingTrustCycleCodes
+{
+    public const string Current = "provider-trust-cycle-current";
+    public const string Withdrawn = "provider-trust-cycle-withdrawn";
+    public const string Stopped = "provider-trust-cycle-stopped";
+    public const string Canceled = "provider-trust-cycle-canceled";
+    public const string AuthorityBehind = "provider-trust-cycle-authority-behind";
+    public const string AuthorityUnretained = "provider-trust-cycle-authority-unretained";
+
+    private static readonly Dictionary<string, bool> Continuing = new(StringComparer.Ordinal)
+    {
+        [Current] = true,
+        [Withdrawn] = true,
+        [Stopped] = false,
+        [Canceled] = false,
+        [AuthorityBehind] = false,
+        [AuthorityUnretained] = false,
+    };
+
+    public static IReadOnlyCollection<string> All => Continuing.Keys;
+
+    public static bool IsKnown(string code) => code is not null && Continuing.ContainsKey(code);
+
+    public static bool Continues(string code) =>
+        code is not null && Continuing.TryGetValue(code, out var value) && value;
+}
+
+/// <summary>
 /// One cycle's observations. <paramref name="Rotation"/> is absent for a cadence that does not
 /// govern authority rotation, which is every cadence composed before CBI61; a governed cycle carries
 /// the CBI60 result it ran before the poll, and <paramref name="Poll"/> is absent when that rotation
@@ -76,9 +109,8 @@ public sealed record ProviderServingTrustCycleResult(
     int ServingCount,
     ProviderPolicyAuthorityCycleResult? Rotation = null)
 {
-    public bool CanContinue => Code is
-        "provider-trust-cycle-current" or "provider-trust-cycle-withdrawn";
-    public bool IsCanceled => Code == "provider-trust-cycle-canceled";
+    public bool CanContinue => ProviderServingTrustCycleCodes.Continues(Code);
+    public bool IsCanceled => Code == ProviderServingTrustCycleCodes.Canceled;
 }
 
 public interface IProviderServingTrustCycle
@@ -99,20 +131,20 @@ public sealed class ProviderServingTrustCycle(
     {
         var poll = await policy.PollAsync(now, cancellationToken).ConfigureAwait(false);
         if (poll.Code == "policy-poll-canceled")
-            return new("provider-trust-cycle-canceled", poll, null, 0);
+            return new(ProviderServingTrustCycleCodes.Canceled, poll, null, 0);
         if (!poll.IsCurrent)
-            return new("provider-trust-cycle-stopped", poll, null, 0);
+            return new(ProviderServingTrustCycleCodes.Stopped, poll, null, 0);
 
         var sweep = await serving.SweepAsync(cancellationToken).ConfigureAwait(false);
         if (sweep is null)
-            return new("provider-trust-cycle-current", poll, null, 0);
+            return new(ProviderServingTrustCycleCodes.Current, poll, null, 0);
         return sweep.Code switch
         {
             "serving-trust-sweep-current" =>
-                new("provider-trust-cycle-current", poll, sweep, sweep.Members.Count),
+                new(ProviderServingTrustCycleCodes.Current, poll, sweep, sweep.Members.Count),
             "serving-trust-sweep-withdrawn" =>
-                new("provider-trust-cycle-withdrawn", poll, sweep, sweep.Members.Count),
-            _ => new("provider-trust-cycle-stopped", poll, sweep, sweep.Members.Count),
+                new(ProviderServingTrustCycleCodes.Withdrawn, poll, sweep, sweep.Members.Count),
+            _ => new(ProviderServingTrustCycleCodes.Stopped, poll, sweep, sweep.Members.Count),
         };
     }
 }

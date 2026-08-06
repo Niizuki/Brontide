@@ -53,6 +53,40 @@ module ProviderServingTrustCycleBinding =
                 return Some result
         }
 
+/// Every code a trust cycle can return, with whether the cadence may continue after it. Producers use
+/// these values rather than literals and CBI48's journal validates against this set, so a new code
+/// cannot be produced without the journal knowing it — which is what CBI61's two additions did before
+/// this was one vocabulary.
+[<RequireQualifiedAccess>]
+module ProviderServingTrustCycleCodes =
+    [<Literal>]
+    let Current = "provider-trust-cycle-current"
+    [<Literal>]
+    let Withdrawn = "provider-trust-cycle-withdrawn"
+    [<Literal>]
+    let Stopped = "provider-trust-cycle-stopped"
+    [<Literal>]
+    let Canceled = "provider-trust-cycle-canceled"
+    [<Literal>]
+    let AuthorityBehind = "provider-trust-cycle-authority-behind"
+    [<Literal>]
+    let AuthorityUnretained = "provider-trust-cycle-authority-unretained"
+
+    let private continuing =
+        Map.ofList
+            [ Current, true
+              Withdrawn, true
+              Stopped, false
+              Canceled, false
+              AuthorityBehind, false
+              AuthorityUnretained, false ]
+
+    let all = continuing |> Map.toList |> List.map fst
+
+    let isKnown code = continuing |> Map.containsKey code
+
+    let continues code = continuing |> Map.tryFind code |> Option.defaultValue false
+
 /// One cycle's observations. `Rotation` is `None` for a cadence that does not govern authority
 /// rotation, which is every cadence composed before CBI61; a governed cycle carries the CBI60 result
 /// it ran before the poll, and `Poll` is `None` when that rotation stopped the cycle before the
@@ -63,10 +97,8 @@ type ProviderServingTrustCycleResult =
       Sweep: ProviderServingTrustSweepResult option
       ServingCount: int
       Rotation: ProviderPolicyAuthorityCycleResult option }
-    member this.CanContinue =
-        this.Code = "provider-trust-cycle-current"
-        || this.Code = "provider-trust-cycle-withdrawn"
-    member this.IsCanceled = this.Code = "provider-trust-cycle-canceled"
+    member this.CanContinue = ProviderServingTrustCycleCodes.continues this.Code
+    member this.IsCanceled = this.Code = ProviderServingTrustCycleCodes.Canceled
 
 type ProviderServingTrustCycle =
     DateTimeOffset -> CancellationToken -> Task<ProviderServingTrustCycleResult>
@@ -81,25 +113,25 @@ module ProviderServingTrustCycle =
             let! poll = policy now cancellationToken
             if poll.Code = "policy-poll-canceled" then
                 return
-                    { Code = "provider-trust-cycle-canceled"; Poll = Some poll
+                    { Code = ProviderServingTrustCycleCodes.Canceled; Poll = Some poll
                       Sweep = None; ServingCount = 0; Rotation = None }
             elif not poll.IsCurrent then
                 return
-                    { Code = "provider-trust-cycle-stopped"; Poll = Some poll
+                    { Code = ProviderServingTrustCycleCodes.Stopped; Poll = Some poll
                       Sweep = None; ServingCount = 0; Rotation = None }
             else
                 let! sweep = serving cancellationToken
                 match sweep with
                 | None ->
                     return
-                        { Code = "provider-trust-cycle-current"; Poll = Some poll
+                        { Code = ProviderServingTrustCycleCodes.Current; Poll = Some poll
                           Sweep = None; ServingCount = 0; Rotation = None }
                 | Some result ->
                     let code =
                         match result.Code with
-                        | "serving-trust-sweep-current" -> "provider-trust-cycle-current"
-                        | "serving-trust-sweep-withdrawn" -> "provider-trust-cycle-withdrawn"
-                        | _ -> "provider-trust-cycle-stopped"
+                        | "serving-trust-sweep-current" -> ProviderServingTrustCycleCodes.Current
+                        | "serving-trust-sweep-withdrawn" -> ProviderServingTrustCycleCodes.Withdrawn
+                        | _ -> ProviderServingTrustCycleCodes.Stopped
                     return
                         { Code = code; Poll = Some poll; Sweep = Some result
                           ServingCount = result.Members.Length; Rotation = None }

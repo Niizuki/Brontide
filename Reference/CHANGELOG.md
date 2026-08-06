@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased - CBI62 durable governed cadence resumption
+
+### Fixed
+
+- CBI48's journal refused the two cycle codes CBI61 added, reporting `durable-cadence-result-invalid`
+  and leaving the run in-flight, so a governed cadence that completed normally was recorded as an
+  interruption that never happened. Cycle codes now live in one vocabulary that the cycles produce
+  from and the journal validates against, and a named test walks the vocabulary rather than listing
+  today's codes.
+
+### Added
+
+- `ProviderServingTrustCycleCodes`, the single vocabulary of cycle codes with their continue/stop
+  classification.
+- Shared cross-stack resumption vectors covering commit, interruption, retry, and abandonment of a
+  governed run, and C1-C6 tests including the two that pin the absence of a loop marker and the
+  safety of a governed retry.
+
+### Notes
+
+- The journal records nothing about which of the two loops a resumed cycle had run. A marker written
+  after the rotation returns is not atomic with its effect, and the rotation's effect is already
+  durably recorded in the retained chain, so a marker could only be a less trustworthy copy. A
+  retried governed cycle cannot double-apply either half: CBI57 refuses a replayed rotation by
+  generation and CBI37 refuses a replayed update by sequence.
+
 ## Unreleased - CBI61 governed trust cadence
 
 ### Added
