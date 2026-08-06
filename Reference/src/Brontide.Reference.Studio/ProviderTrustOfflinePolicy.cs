@@ -93,6 +93,12 @@ public static class ProviderTrustCadenceReconciliation
         var snapshot = journal.Snapshot;
         if (snapshot.Phase != "in-flight")
             return new("cadence-reconciliation-not-required", snapshot);
+        // One verdict for everything the cycle did was right while a cycle was one loop. A governed
+        // attempt recorded the cursor it was about to act on, and two of the three things it can do
+        // are derivable from that, so this verdict would be speaking for effects the host need not
+        // have inspected.
+        if (snapshot.Cursor is not null)
+            return new("cadence-reconciliation-governed", snapshot);
         if (snapshot.RunIdentity != evidence.RunIdentity
             || snapshot.NextCycleIndex != evidence.AttemptIndex
             || snapshot.PreparedInstant != evidence.AttemptInstant)

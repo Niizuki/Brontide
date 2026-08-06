@@ -1,0 +1,129 @@
+{
+  "comment": "Each vector interrupts one governed attempt whose recorded cursor is (generation 0, sequence 0), advances the registry by the named effects, and then supplies one serving observation.",
+  "vectors": [
+    {
+      "name": "no-effects-confirmed-retries",
+      "cursor": "recorded",
+      "effects": "none",
+      "serving": "no-effects-confirmed",
+      "code": "governed-reconciliation-retry-ready",
+      "phase": "ready",
+      "rotationApplied": false,
+      "policyApplied": false,
+      "interruptions": 1,
+      "retries": 1
+    },
+    {
+      "name": "effects-accounted-for-abandons",
+      "cursor": "recorded",
+      "effects": "none",
+      "serving": "effects-accounted-for",
+      "code": "governed-reconciliation-abandoned",
+      "phase": "terminal",
+      "rotationApplied": false,
+      "policyApplied": false,
+      "interruptions": 1,
+      "retries": 0
+    },
+    {
+      "name": "unknown-defers-and-stays-in-flight",
+      "cursor": "recorded",
+      "effects": "none",
+      "serving": "unknown",
+      "code": "governed-reconciliation-deferred",
+      "phase": "in-flight",
+      "rotationApplied": false,
+      "policyApplied": false,
+      "interruptions": 0,
+      "retries": 0
+    },
+    {
+      "name": "a-rotation-is-derived-not-asserted",
+      "comment": "The evidence says nothing about the rotation; the recorded cursor and the registry do.",
+      "cursor": "recorded",
+      "effects": "rotation",
+      "serving": "no-effects-confirmed",
+      "code": "governed-reconciliation-retry-ready",
+      "phase": "ready",
+      "rotationApplied": true,
+      "policyApplied": false,
+      "interruptions": 1,
+      "retries": 1
+    },
+    {
+      "name": "a-policy-update-is-derived-not-asserted",
+      "cursor": "recorded",
+      "effects": "policy",
+      "serving": "no-effects-confirmed",
+      "code": "governed-reconciliation-retry-ready",
+      "phase": "ready",
+      "rotationApplied": false,
+      "policyApplied": true,
+      "interruptions": 1,
+      "retries": 1
+    },
+    {
+      "name": "both-derived-effects-still-permit-retry",
+      "comment": "CBI62 proved a retried governed cycle cannot double-apply either half, so a derived effect is reported rather than vetoing.",
+      "cursor": "recorded",
+      "effects": "rotation-and-policy",
+      "serving": "no-effects-confirmed",
+      "code": "governed-reconciliation-retry-ready",
+      "phase": "ready",
+      "rotationApplied": true,
+      "policyApplied": true,
+      "interruptions": 1,
+      "retries": 1
+    },
+    {
+      "name": "a-derived-effect-with-unknown-serving-still-defers",
+      "cursor": "recorded",
+      "effects": "rotation-and-policy",
+      "serving": "unknown",
+      "code": "governed-reconciliation-deferred",
+      "phase": "in-flight",
+      "rotationApplied": true,
+      "policyApplied": true,
+      "interruptions": 0,
+      "retries": 0
+    },
+    {
+      "name": "an-absent-cursor-is-refused-not-guessed",
+      "comment": "A journal written before this slice has no baseline, so it belongs to CBI49's ungoverned path.",
+      "cursor": "absent",
+      "effects": "none",
+      "serving": "no-effects-confirmed",
+      "code": "governed-reconciliation-cursor-absent",
+      "phase": "in-flight",
+      "rotationApplied": null,
+      "policyApplied": null,
+      "interruptions": 0,
+      "retries": 0
+    },
+    {
+      "name": "a-regressed-cursor-is-refused",
+      "comment": "Below the recorded cursor is a rollback the floors exist to prevent, not an absence of effect.",
+      "cursor": "recorded-ahead",
+      "effects": "none",
+      "serving": "no-effects-confirmed",
+      "code": "governed-reconciliation-cursor-regressed",
+      "phase": "in-flight",
+      "rotationApplied": null,
+      "policyApplied": null,
+      "interruptions": 0,
+      "retries": 0
+    },
+    {
+      "name": "evidence-for-another-attempt-changes-nothing",
+      "cursor": "recorded",
+      "effects": "none",
+      "serving": "wrong-index",
+      "code": "governed-reconciliation-mismatch",
+      "phase": "in-flight",
+      "rotationApplied": null,
+      "policyApplied": null,
+      "interruptions": 0,
+      "retries": 0
+    }
+  ]
+}

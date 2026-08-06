@@ -95,6 +95,12 @@ module ProviderTrustCadenceReconciliation =
         let snapshot = journal.Snapshot
         if snapshot.Phase <> "in-flight" then
             current "cadence-reconciliation-not-required" snapshot
+        // One verdict for everything the cycle did was right while a cycle was one loop. A governed
+        // attempt recorded the cursor it was about to act on, and two of the three things it can do
+        // are derivable from that, so this verdict would be speaking for effects the host need not
+        // have inspected.
+        elif Option.isSome snapshot.Cursor then
+            current "cadence-reconciliation-governed" snapshot
         elif snapshot.RunIdentity <> evidence.RunIdentity
              || snapshot.NextCycleIndex <> evidence.AttemptIndex
              || snapshot.PreparedInstant <> evidence.AttemptInstant then
