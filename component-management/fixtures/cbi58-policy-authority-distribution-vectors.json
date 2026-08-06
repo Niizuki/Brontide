@@ -1,0 +1,12 @@
+{
+  "vectors": [
+    { "name": "current", "mutation": "current", "code": "policy-authority-distribution-current", "generation": 0 },
+    { "name": "applied", "mutation": "applied", "code": "policy-authority-distribution-applied", "generation": 1 },
+    { "name": "wrong-endpoint", "mutation": "endpoint", "code": "policy-authority-distribution-endpoint-mismatch", "generation": 0 },
+    { "name": "invalid-signature", "mutation": "signature", "code": "policy-authority-distribution-signature-invalid", "generation": 0 },
+    { "name": "wrong-challenge", "mutation": "challenge", "code": "policy-authority-distribution-challenge-mismatch", "generation": 0 },
+    { "name": "wrong-authority-cursor", "mutation": "cursor", "code": "policy-authority-distribution-cursor-mismatch", "generation": 0 },
+    { "name": "expired", "mutation": "expired", "code": "policy-authority-distribution-stale", "generation": 0 },
+    { "name": "native-generation-refusal", "mutation": "native", "code": "policy-authority-generation-invalid", "generation": 0 }
+  ]
+}

@@ -186,5 +186,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi57-policy-authority-rotation-vectors.json"
           Link="component-management\fixtures\cbi57-policy-authority-rotation-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi58-policy-authority-distribution-vectors.json"
+          Link="component-management\fixtures\cbi58-policy-authority-distribution-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

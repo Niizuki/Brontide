@@ -918,6 +918,14 @@ applied mid-chain rather than by a poll, so no floor was handed off — CBI41's 
 here so it cannot be mistaken for residue. The fixture contains no acquirer, store, launcher,
 evaluator, registry, or runtime.
 
+### `cbi58-policy-authority-distribution` sections
+
+`vectors` names an authenticated current response, an applied rotation, endpoint and signature
+refusals, challenge and authority-cursor mismatch, expiry, and a statement refused by native CBI57
+generation validation. Each pins the portable code and recovered authority generation. Both roots
+execute every vector and reopen the durable checkpoint under the returned authority floor. The
+fixture contains no key material, source, client, registry, clock, or transport.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations

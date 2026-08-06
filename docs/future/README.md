@@ -1127,6 +1127,17 @@ at its own generation, refused only by a retained floor — and how rotation sta
 Distributed ownership, detached-effect custody, privileged floor custody, and production isolation
 remain separate work.
 
+CBI58 supplies the rotation statement CBI57 intentionally left injected. It is a separate
+single-attempt distribution path so the strict CBI39/CBI40 policy-update records and golden wire do
+not change. The active distribution endpoint signs a fresh response binding the exact durable policy
+cursor, active authority generation and identity, and the digest of zero or one complete CBI57
+statement. The client rechecks that cursor after authentication and routes a statement only through
+the durable registry, preserving every native CBI57 refusal. The
+[`CBI58 capability contract`](../../component-management/cbi58-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi58-contract-completeness-review.md)
+bound it to one injected attempt. A strict portable CBI58 wire and concrete single-attempt HTTPS
+source are the next bounded implementation boundary.
+
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —
 Decision 13 still blocks every activation of a CM3 group that declares a bounded lifecycle protocol.

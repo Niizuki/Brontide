@@ -171,8 +171,11 @@ The implementation currently provides:
   distribution confirmation, while ordinary polling remains pinned to the active key; CBI57 rotates
   the policy authority as one durable link in the retained CBI38 chain, carrying the predecessor's
   authorization and the successor's countersignature, so recovery re-verifies every update against
-  the authority in force at its position while the out-of-band pin never moves;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI57 integration
+  the authority in force at its position while the out-of-band pin never moves; CBI58 delivers zero
+  or one such statement through a separate active-endpoint-authenticated attempt bound to the exact
+  durable policy and authority cursor, with the durable CBI57 registry retaining sole authority to
+  apply or refuse it;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI58 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

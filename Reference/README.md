@@ -232,7 +232,10 @@ rollback of the active generation. CBI57 rotates the other key, the authority th
 itself, and does it inside the retained CBI38 chain rather than beside it: a transition is one
 durable link carrying the predecessor's authorization and the successor's countersignature, recovery
 re-verifies every retained update against the authority in force at its position, and the
-out-of-band pin never moves, so a rotation retires no serving member.
+out-of-band pin never moves, so a rotation retires no serving member. CBI58 supplies those rotation
+statements through a separate single-attempt source authenticated by the active CBI39 endpoint. Its
+signed response binds the exact policy and authority cursor, freshness, and the complete CBI57
+statement; only the durable registry decides whether the delivered transition applies.
 
 ## Build and test
 
