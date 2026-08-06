@@ -192,5 +192,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi59-policy-authority-wire-vectors.json"
           Link="component-management\fixtures\cbi59-policy-authority-wire-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi60-policy-authority-cycle-vectors.json"
+          Link="component-management\fixtures\cbi60-policy-authority-cycle-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

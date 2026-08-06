@@ -32,6 +32,8 @@
     <Compile Include="ProviderPublisherTrustPolicyDistributionWire.fs" />
     <Compile Include="ProviderPublisherTrustPolicyPoller.fs" />
     <Compile Include="ProviderPublisherTrustPolicyFloorStore.fs" />
+    <Compile Include="ProviderPolicyAuthorityRotationCycle.fs" />
+    <Compile Include="ProviderPolicyAuthorityFloorStore.fs" />
     <Compile Include="ProviderDistributionChain.fs" />
     <Compile Include="ComponentBindingIntegration.fs" />
     <Compile Include="ProviderServingTrustRevalidation.fs" />

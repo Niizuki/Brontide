@@ -935,6 +935,19 @@ rotation decoded, and at most one HTTP attempt. Both roots independently encode,
 transport every vector. The fixture contains no private key, network service, client configuration,
 registry, scheduler, or retry policy.
 
+### `cbi60-policy-authority-cycle` sections
+
+`schedule` names the shared base delay, backoff multiplier, maximum delay, and attempt timeout every
+vector uses; `vectors` names one attempt budget and one scripted endpoint outcome per attempt, so a
+vector states the endpoint's behaviour over a whole cycle rather than over one call. Each pins the
+cycle code, the last attempt code, the number of attempts made, the exact gap sequence, the applied
+and retained authority generations, the stored floor, and the generation a reopened checkpoint
+recovers under that floor. The gap sequences are pinnable because the backoff carries no jitter and
+is a function of consecutive failures rather than of the attempt index. A vector whose stored floor
+is behind its recovered generation had its handoff refused — the lag CBI41 argues is the safe
+direction, pinned here so it cannot be mistaken for a lost rotation. The fixture contains no key
+material, source, client, registry, clock, transport, or floor store.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations

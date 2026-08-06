@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased - CBI60 durable policy-authority rotation cycle
+
+### Added
+
+- A bounded, host-driven cycle of CBI58 rotation attempts with a validated schedule, jitter-free
+  backoff over consecutive failures, and retry confined to transport failure, timeout, a stale
+  window, and a superseded cursor.
+- Durable custody of the CBI38 authority floor: an integrity-tagged host-local store bound to the
+  authority pin that advances only by a handoff from a publication this host performed, and a custody
+  entry point that opens the checkpoint under both that guard and CBI42's.
+- Shared cross-stack cycle vectors and C1-C7 tests, including the truncation case only the authority
+  floor detects and the one neither guard detects.
+
+### Notes
+
+- CBI60 adds no capability to CBI57, CBI58, or CBI59 and reclassifies no refusal. It is one call the
+  host makes, not a daemon or a schedule that survives the process. An authority guard absent beneath
+  an existing checkpoint is adopted at zero and reported as `policy-authority-floor-adopted`, because
+  CBI42's establish-before-the-checkpoint ordering is not available to a guard introduced later.
+  Privileged floor custody and cross-process ownership remain separate boundaries.
+
 ## Unreleased - CBI59 policy-authority rotation wire
 
 ### Added

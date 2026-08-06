@@ -1141,8 +1141,36 @@ the configured absolute HTTPS endpoint, exact unparameterized media type, status
 larger than 1 MiB by both declared and streamed size; cancellation propagates and it never retries.
 The [`CBI59 capability contract`](../../component-management/cbi59-capability-contract.md) and
 [`contract-completeness review`](../../component-management/cbi59-contract-completeness-review.md)
-preserve the CBI39/CBI40 wire and CBI57 decision boundary. Host-owned durable scheduling and retry
-for these rotation attempts is the next bounded implementation boundary.
+preserve the CBI39/CBI40 wire and CBI57 decision boundary.
+
+CBI60 supplies that host-owned durable scheduling and retry, as one bounded cycle of CBI58 attempts
+with CBI41's shape applied to the other key. Backoff is a jitter-free function of *consecutive
+failures* that an applied rotation resets, and retry is confined to what a fresh attempt can change,
+which the slice had to re-derive rather than inherit: a rotation cycle also faces the native CBI57
+refusals a policy cycle never sees, and they are not retryable because the endpoint would offer the
+same statement again. Each applied rotation is handed to the floor only after CBI57 has published it,
+so a refused handoff reports an applied generation with no matching retained one rather than undoing
+a rotation that is already durable.
+
+Its finding is about the guard rather than the cycle. **CBI42's central trick is an ordering that a
+later guard cannot have.** CBI42 establishes its policy floor at zero *before* the checkpoint exists,
+which is precisely what lets a later absence mean the guard was removed; the authority floor is
+introduced after those checkpoints already exist, so absence is ambiguous between "this host never
+rotated" and "the guard was deleted". It is therefore **adopted at zero and reported as adopted**
+rather than refused or reported as a recovery — the host is told the guard did not exist, which is
+the whole of the difference the slice can honestly claim.
+
+What that adoption costs turned out to be **one case rather than a class, and the chain is why**. A
+truncation dropping a rotation that has later updates is already refused as an invalid chain, because
+those updates name the successor authority the truncation removed; a truncation dropping policy
+updates is already refused by CBI42's floor. The only case this guard alone detects is a checkpoint
+truncated at a *trailing* rotation, and each stack pins both directions with a named test rather than
+asserting the coverage. The [`CBI60 capability contract`](../../component-management/cbi60-capability-contract.md)
+and [`contract-completeness review`](../../component-management/cbi60-contract-completeness-review.md)
+bound it to one host-driven call under one writer, with CBI42's custody limit unchanged: the
+integrity tag detects corruption, not an adversary who can write the file and recompute it. A
+host-owned cadence running this cycle alongside CBI47's, without either one's failure standing for
+the other's, is the next bounded implementation boundary.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —
