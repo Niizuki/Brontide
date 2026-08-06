@@ -174,8 +174,10 @@ The implementation currently provides:
   the authority in force at its position while the out-of-band pin never moves; CBI58 delivers zero
   or one such statement through a separate active-endpoint-authenticated attempt bound to the exact
   durable policy and authority cursor, with the durable CBI57 registry retaining sole authority to
-  apply or refuse it;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI58 integration
+  apply or refuse it; CBI59 adds an independent canonical bounded binary wire and exact
+  single-attempt HTTPS adapter whose metadata, effective URI, body limits, and cancellation are
+  strict without adding retry;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI59 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

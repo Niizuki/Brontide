@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased - CBI59 policy-authority rotation wire
+
+### Added
+
+- A strict big-endian, strict-UTF-8 request/response codec for the complete CBI58 cursor and zero or
+  one CBI57 authority-rotation statement, with shared exact cross-stack golden encodings.
+- A single-attempt HTTPS source that requires the exact endpoint and media type, bounds declared and
+  streamed responses to 1 MiB, and propagates cancellation without retry.
+
+### Notes
+
+- CBI59 leaves the established CBI39/CBI40 wire unchanged. HTTP handler policy, scheduling, retry,
+  pin rotation, and privileged floor custody remain separate boundaries.
+
 ## Unreleased - CBI58 policy-authority rotation distribution
 
 ### Added

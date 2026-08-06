@@ -926,6 +926,15 @@ generation validation. Each pins the portable code and recovered authority gener
 execute every vector and reopen the durable checkpoint under the returned authority floor. The
 fixture contains no key material, source, client, registry, clock, or transport.
 
+### `cbi59-policy-authority-wire` sections
+
+`vectors` names the canonical request, current response, and rotation response with exact SHA-256
+digests; malformed framing and UTF-8; response status, endpoint, media-type, encoding, and declared
+or streamed size refusals; success; and cancellation. Each pins the portable observation, whether a
+rotation decoded, and at most one HTTP attempt. Both roots independently encode, decode, and
+transport every vector. The fixture contains no private key, network service, client configuration,
+registry, scheduler, or retry policy.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations

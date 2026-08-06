@@ -28,6 +28,7 @@
     <Compile Include="ProviderPublisherTrustPolicyDistribution.fs" />
     <Compile Include="DurableProviderDistributionEndpointRotation.fs" />
     <Compile Include="ProviderPolicyAuthorityRotationDistribution.fs" />
+    <Compile Include="ProviderPolicyAuthorityRotationDistributionWire.fs" />
     <Compile Include="ProviderPublisherTrustPolicyDistributionWire.fs" />
     <Compile Include="ProviderPublisherTrustPolicyPoller.fs" />
     <Compile Include="ProviderPublisherTrustPolicyFloorStore.fs" />
