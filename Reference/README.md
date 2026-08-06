@@ -236,6 +236,9 @@ out-of-band pin never moves, so a rotation retires no serving member. CBI58 supp
 statements through a separate single-attempt source authenticated by the active CBI39 endpoint. Its
 signed response binds the exact policy and authority cursor, freshness, and the complete CBI57
 statement; only the durable registry decides whether the delivered transition applies.
+CBI59 gives that separate source a canonical bounded binary wire and an exact single-attempt HTTPS
+adapter. Both declared and streamed bodies are capped at 1 MiB, response metadata and the effective
+URI are exact, cancellation propagates, and the adapter never retries or changes CBI57 authority.
 
 ## Build and test
 

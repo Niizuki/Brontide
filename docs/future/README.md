@@ -1135,8 +1135,14 @@ statement. The client rechecks that cursor after authentication and routes a sta
 the durable registry, preserving every native CBI57 refusal. The
 [`CBI58 capability contract`](../../component-management/cbi58-capability-contract.md) and
 [`contract-completeness review`](../../component-management/cbi58-contract-completeness-review.md)
-bound it to one injected attempt. A strict portable CBI58 wire and concrete single-attempt HTTPS
-source are the next bounded implementation boundary.
+bound it to one injected attempt. CBI59 supplies a separate strict big-endian, strict-UTF-8 wire for
+the complete CBI58 request and response plus a concrete single-attempt HTTPS source. It accepts only
+the configured absolute HTTPS endpoint, exact unparameterized media type, status 200, and bodies no
+larger than 1 MiB by both declared and streamed size; cancellation propagates and it never retries.
+The [`CBI59 capability contract`](../../component-management/cbi59-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi59-contract-completeness-review.md)
+preserve the CBI39/CBI40 wire and CBI57 decision boundary. Host-owned durable scheduling and retry
+for these rotation attempts is the next bounded implementation boundary.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

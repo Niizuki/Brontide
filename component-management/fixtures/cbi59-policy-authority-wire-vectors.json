@@ -1,0 +1,19 @@
+{
+  "vectors": [
+    { "mutation": "request", "code": "request-roundtrip", "rotation": false, "sha256": "C8BF38421F8662AE7BFDD1C6848801E5655400E91FC5395FFBB5312F8F1889D1" },
+    { "mutation": "current", "code": "response-current", "rotation": false, "sha256": "222F0496C44752087F41F013EFACDDE18FCC31D677A832B087D5E3CFE5561F44" },
+    { "mutation": "rotation", "code": "response-rotation", "rotation": true, "sha256": "C5A78998AFB5EE067FEA284F14AA9A8F85568818603FAAA30FAE645B949B1307" },
+    { "mutation": "truncated", "code": "wire-invalid", "rotation": false },
+    { "mutation": "trailing", "code": "wire-invalid", "rotation": false },
+    { "mutation": "marker", "code": "wire-invalid", "rotation": false },
+    { "mutation": "utf8", "code": "wire-invalid", "rotation": false },
+    { "mutation": "status", "code": "transport-invalid", "rotation": false },
+    { "mutation": "redirect", "code": "transport-invalid", "rotation": false },
+    { "mutation": "content-type", "code": "transport-invalid", "rotation": false },
+    { "mutation": "content-encoding", "code": "transport-invalid", "rotation": false },
+    { "mutation": "declared-oversize", "code": "transport-invalid", "rotation": false },
+    { "mutation": "success", "code": "transport-success", "rotation": false },
+    { "mutation": "streamed-oversize", "code": "transport-invalid", "rotation": false },
+    { "mutation": "canceled", "code": "transport-canceled", "rotation": false }
+  ]
+}
