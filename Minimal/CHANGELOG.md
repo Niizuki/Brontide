@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased - CBI58 policy-authority rotation distribution
+
+### Added
+
+- A native F# endpoint-authenticated single-attempt client for delivering zero or one CBI57
+  authority-rotation statement against the exact durable policy and authority cursor.
+- A canonical signed response manifest, injected source seam, bounded failure results, shared
+  cross-stack vectors, and C1-C6 tests that reopen the resulting checkpoint.
+
+### Notes
+
+- CBI58 is separate from the unchanged CBI39/CBI40 policy-distribution records and wire. Portable
+  framing, HTTPS transport, scheduling, pin rotation, and privileged floor custody remain separate.
+
 ## Unreleased - CBI57 policy-authority key rotation
 
 ### Added
