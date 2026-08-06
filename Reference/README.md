@@ -239,6 +239,12 @@ statement; only the durable registry decides whether the delivered transition ap
 CBI59 gives that separate source a canonical bounded binary wire and an exact single-attempt HTTPS
 adapter. Both declared and streamed bodies are capped at 1 MiB, response metadata and the effective
 URI are exact, cancellation propagates, and the adapter never retries or changes CBI57 authority.
+CBI60 wraps those single attempts in one bounded, host-driven cycle and gives the authority floor
+durable custody. Backoff is a jitter-free function of consecutive failures that an applied rotation
+resets, retry is confined to what a fresh attempt can change, and each applied rotation is handed to
+an integrity-tagged store only after CBI57 has published it. A guard absent beneath an existing
+checkpoint is adopted at zero and reported as such, because CBI42's establish-before-the-checkpoint
+ordering is not available to a guard introduced afterwards.
 
 ## Build and test
 

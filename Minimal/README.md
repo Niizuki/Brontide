@@ -176,8 +176,11 @@ The implementation currently provides:
   durable policy and authority cursor, with the durable CBI57 registry retaining sole authority to
   apply or refuse it; CBI59 adds an independent canonical bounded binary wire and exact
   single-attempt HTTPS adapter whose metadata, effective URI, body limits, and cancellation are
-  strict without adding retry;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI59 integration
+  strict without adding retry; CBI60 runs those attempts as one bounded host-driven cycle whose
+  jitter-free backoff follows consecutive failures and resets on an applied rotation, whose retry is
+  confined to what a fresh attempt can change, and whose authority floor gains durable
+  integrity-tagged custody advanced only by a handoff from a publication this host performed;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI60 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range
