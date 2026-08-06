@@ -1,0 +1,128 @@
+{
+  "schedule": {
+    "intervalMilliseconds": 5000
+  },
+  "vectors": [
+    {
+      "name": "authority-behind-commits-and-stops",
+      "comment": "CBI61's code reached CBI48 as durable-cadence-result-invalid before this slice, leaving an interrupted run that was never interrupted.",
+      "maximumCycles": 3,
+      "steps": [
+        { "commit": "provider-trust-cycle-current" },
+        { "commit": "provider-trust-cycle-authority-behind" }
+      ],
+      "code": "durable-cadence-stopped",
+      "phase": "terminal",
+      "committed": ["provider-trust-cycle-current", "provider-trust-cycle-authority-behind"],
+      "nextCycleIndex": 2,
+      "gaps": 1,
+      "interruptions": 0,
+      "retries": 0
+    },
+    {
+      "name": "authority-unretained-commits-and-stops",
+      "maximumCycles": 3,
+      "steps": [
+        { "commit": "provider-trust-cycle-authority-unretained" }
+      ],
+      "code": "durable-cadence-stopped",
+      "phase": "terminal",
+      "committed": ["provider-trust-cycle-authority-unretained"],
+      "nextCycleIndex": 1,
+      "gaps": 0,
+      "interruptions": 0,
+      "retries": 0
+    },
+    {
+      "name": "the-cause-survives-the-run-outcome",
+      "comment": "Both new codes commit durable-cadence-stopped; which one it was stays in the observation rather than being renamed.",
+      "maximumCycles": 2,
+      "steps": [
+        { "commit": "provider-trust-cycle-withdrawn" },
+        { "commit": "provider-trust-cycle-authority-behind" }
+      ],
+      "code": "durable-cadence-stopped",
+      "phase": "terminal",
+      "committed": ["provider-trust-cycle-withdrawn", "provider-trust-cycle-authority-behind"],
+      "nextCycleIndex": 2,
+      "gaps": 1,
+      "interruptions": 0,
+      "retries": 0
+    },
+    {
+      "name": "an-interrupted-governed-cycle-retries-its-index",
+      "maximumCycles": 3,
+      "steps": [
+        { "commit": "provider-trust-cycle-current" },
+        { "interrupt": "retry" },
+        { "commit": "provider-trust-cycle-authority-behind" }
+      ],
+      "code": "durable-cadence-stopped",
+      "phase": "terminal",
+      "committed": ["provider-trust-cycle-current", "provider-trust-cycle-authority-behind"],
+      "nextCycleIndex": 2,
+      "gaps": 1,
+      "interruptions": 1,
+      "retries": 1
+    },
+    {
+      "name": "an-interrupted-governed-cycle-may-be-abandoned",
+      "maximumCycles": 3,
+      "steps": [
+        { "commit": "provider-trust-cycle-current" },
+        { "interrupt": "abandon" }
+      ],
+      "code": "durable-cadence-abandoned",
+      "phase": "terminal",
+      "committed": ["provider-trust-cycle-current"],
+      "nextCycleIndex": 1,
+      "gaps": 1,
+      "interruptions": 1,
+      "retries": 0
+    },
+    {
+      "name": "a-governed-run-still-completes",
+      "maximumCycles": 2,
+      "steps": [
+        { "commit": "provider-trust-cycle-current" },
+        { "commit": "provider-trust-cycle-current" }
+      ],
+      "code": "durable-cadence-complete",
+      "phase": "terminal",
+      "committed": ["provider-trust-cycle-current", "provider-trust-cycle-current"],
+      "nextCycleIndex": 2,
+      "gaps": 1,
+      "interruptions": 0,
+      "retries": 0
+    },
+    {
+      "name": "cancellation-is-unchanged",
+      "comment": "CBI48's own terminal vocabulary is untouched by the two additions.",
+      "maximumCycles": 3,
+      "steps": [
+        { "commit": "provider-trust-cycle-canceled" }
+      ],
+      "code": "durable-cadence-canceled",
+      "phase": "terminal",
+      "committed": ["provider-trust-cycle-canceled"],
+      "nextCycleIndex": 1,
+      "gaps": 0,
+      "interruptions": 0,
+      "retries": 0
+    },
+    {
+      "name": "an-ordinary-stop-is-unchanged",
+      "maximumCycles": 3,
+      "steps": [
+        { "commit": "provider-trust-cycle-stopped" }
+      ],
+      "code": "durable-cadence-stopped",
+      "phase": "terminal",
+      "committed": ["provider-trust-cycle-stopped"],
+      "nextCycleIndex": 1,
+      "gaps": 0,
+      "interruptions": 0,
+      "retries": 0
+    }
+  ]
+}

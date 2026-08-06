@@ -73,11 +73,10 @@ module private ProviderTrustCadenceJournalRecord =
     [<Literal>]
     let TagBytes = 32
 
+    // Drawn from the one vocabulary the cycles produce from, so a code cannot be returned by a cycle
+    // and refused here — which is what CBI61's two additions were until CBI62.
     let isCycleCode code =
-        code = "provider-trust-cycle-current"
-        || code = "provider-trust-cycle-withdrawn"
-        || code = "provider-trust-cycle-stopped"
-        || code = "provider-trust-cycle-canceled"
+        ProviderServingTrustCycleCodes.isKnown code
 
     let isValid (value: JournalState) =
         let basic =
@@ -288,9 +287,12 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
             elif not (ProviderTrustCadenceJournalRecord.isCycleCode cycleCode) then
                 current "durable-cadence-result-invalid"
             else
+                // The journal names the run's outcome and never renames the cycle's: every
+                // non-continuing code other than cancellation stops the run, and which one it was
+                // stays in the committed observation for the host to read.
                 let transitionCode =
-                    if cycleCode = "provider-trust-cycle-stopped" then "durable-cadence-stopped"
-                    elif cycleCode = "provider-trust-cycle-canceled" then "durable-cadence-canceled"
+                    if cycleCode = ProviderServingTrustCycleCodes.Canceled then "durable-cadence-canceled"
+                    elif not (ProviderServingTrustCycleCodes.continues cycleCode) then "durable-cadence-stopped"
                     elif state.Cycles.Length + 1 = state.MaximumCycles then "durable-cadence-complete"
                     else "durable-cadence-cycle-committed"
                 transition (fun value ->

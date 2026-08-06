@@ -960,6 +960,17 @@ to be a conjunction of two recorded facts rather than a reading of the poll code
 poll code means the cycle stopped before the policy endpoint was contacted. The fixture contains no
 key material, source, registry, clock, transport, floor store, or serving member.
 
+### `cbi62-governed-cadence-resumption` sections
+
+`schedule` names the shared inter-cycle interval; each vector names its own cycle budget and a list of
+steps. A step either commits one cycle code or interrupts the cycle and resolves it with `retry` or
+`abandon`, so a vector states a whole durable run including its restarts. Each pins the last
+transition code, the phase, the ordered committed observations, the next cycle index, the completed
+gap count, and the interruption and retry counts. The two CBI61 codes appear because CBI48 refused
+them as `durable-cadence-result-invalid` before this slice, leaving a run that completed normally
+recorded as an interruption that never happened. The fixture contains no journal, registry, clock,
+endpoint, or key material.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations

@@ -252,6 +252,12 @@ changed nothing is recorded and the poll still runs; a rotation published withou
 before the policy endpoint. An update the registry cannot verify is attributed to an incomplete
 rotation only when one was attempted and did not complete, and is otherwise the stranger CBI41
 already refuses.
+CBI62 puts that governed cycle under CBI48's durable journal. Cycle codes now live in one vocabulary
+the cycles produce from and the journal validates against, which repairs a seam defect: CBI48 refused
+CBI61's two additions and left a normally completed run recorded as an interruption. The journal
+records nothing about which of the two loops a resumed cycle had run, because a marker written after
+the rotation returns is not atomic with its effect while the retained chain already records it, and a
+retried cycle cannot double-apply either half.
 
 ## Build and test
 

@@ -155,10 +155,13 @@ public sealed class DurableProviderTrustCadenceJournal
             if (state.Phase != "in-flight") return Current("durable-cadence-cycle-not-started");
             if (!IsCycleCode(cycleCode)) return Current("durable-cadence-result-invalid");
 
+            // The journal names the run's outcome and never renames the cycle's: every
+            // non-continuing code other than cancellation stops the run, and which one it was stays
+            // in the committed observation for the host to read.
             var transitionCode = cycleCode switch
             {
-                "provider-trust-cycle-stopped" => "durable-cadence-stopped",
-                "provider-trust-cycle-canceled" => "durable-cadence-canceled",
+                ProviderServingTrustCycleCodes.Canceled => "durable-cadence-canceled",
+                _ when !ProviderServingTrustCycleCodes.Continues(cycleCode) => "durable-cadence-stopped",
                 _ when state.Cycles.Count + 1 == state.MaximumCycles => "durable-cadence-complete",
                 _ => "durable-cadence-cycle-committed",
             };
@@ -252,11 +255,9 @@ public sealed class DurableProviderTrustCadenceJournal
             value.InterruptionCount,
             value.RetryCount);
 
-    private static bool IsCycleCode(string code) => code is
-        "provider-trust-cycle-current" or
-        "provider-trust-cycle-withdrawn" or
-        "provider-trust-cycle-stopped" or
-        "provider-trust-cycle-canceled";
+    // Drawn from the one vocabulary the cycles produce from, so a code cannot be returned by a cycle
+    // and refused here — which is what CBI61's two additions were until CBI62.
+    private static bool IsCycleCode(string code) => ProviderServingTrustCycleCodes.IsKnown(code);
 
     private static bool IsValid(JournalState value)
     {

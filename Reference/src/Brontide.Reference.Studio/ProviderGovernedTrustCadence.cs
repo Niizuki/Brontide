@@ -37,16 +37,16 @@ public sealed class ProviderGovernedTrustCycle(
         var rotated = await rotation.RunAsync(now, cancellationToken).ConfigureAwait(false);
 
         if (rotated.Code == "policy-authority-cycle-canceled")
-            return new("provider-trust-cycle-canceled", null, null, 0, rotated);
+            return new(ProviderServingTrustCycleCodes.Canceled, null, null, 0, rotated);
 
         // The one rotation outcome that changed something the host cannot account for: the chain
         // advanced past a floor it does not hold, and every later advance moves further past it.
         if (rotated.Code == "policy-authority-cycle-floor-unretained")
-            return new("provider-trust-cycle-authority-unretained", null, null, 0, rotated);
+            return new(ProviderServingTrustCycleCodes.AuthorityUnretained, null, null, 0, rotated);
 
         var result = await inner.RunAsync(now, cancellationToken).ConfigureAwait(false);
         var code = IsAuthorityBehind(rotated, result)
-            ? "provider-trust-cycle-authority-behind"
+            ? ProviderServingTrustCycleCodes.AuthorityBehind
             : result.Code;
         return result with { Code = code, Rotation = rotated };
     }
@@ -62,7 +62,7 @@ public sealed class ProviderGovernedTrustCycle(
     private static bool IsAuthorityBehind(
         ProviderPolicyAuthorityCycleResult rotation,
         ProviderServingTrustCycleResult result) =>
-        result.Code == "provider-trust-cycle-stopped"
+        result.Code == ProviderServingTrustCycleCodes.Stopped
         && result.Poll?.LastAttemptCode == "policy-update-authority-mismatch"
         && !rotation.IsCurrent;
 }
