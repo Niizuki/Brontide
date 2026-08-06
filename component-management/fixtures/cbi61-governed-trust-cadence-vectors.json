@@ -1,0 +1,146 @@
+{
+  "schedule": {
+    "comment": "The cadence budget is each vector's scripted cycle count, so a budget and a script can never disagree.",
+    "intervalMilliseconds": 1000
+  },
+  "vectors": [
+    {
+      "name": "rotation-precedes-poll",
+      "comment": "A rotation to a successor and an update signed by that successor are both available in one cycle. Polling first refuses the update; rotating first applies it.",
+      "cycles": [
+        { "rotation": "rotate", "policy": "successor-update" },
+        { "rotation": "current", "policy": "current" }
+      ],
+      "cadenceCode": "provider-trust-cadence-complete",
+      "cycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-current"],
+      "rotationCodes": ["policy-authority-cycle-current", "policy-authority-cycle-current"],
+      "pollCodes": ["policy-poll-current", "policy-poll-current"],
+      "polled": [true, true],
+      "finalGeneration": 1,
+      "finalSequence": 1
+    },
+    {
+      "name": "authority-behind-is-attributed",
+      "comment": "The rotation endpoint is unreachable while the policy endpoint offers an update signed by the successor. The refusal is the same code as a stranger's and is attributed to the incomplete rotation.",
+      "cycles": [
+        { "rotation": "transport", "policy": "successor-update" }
+      ],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "cycleCodes": ["provider-trust-cycle-authority-behind"],
+      "rotationCodes": ["policy-authority-cycle-exhausted"],
+      "pollCodes": ["policy-poll-refused"],
+      "polled": [true],
+      "finalGeneration": 0,
+      "finalSequence": 0
+    },
+    {
+      "name": "foreign-authority-is-not-attributed",
+      "comment": "The rotation cycle reports the host current, so an update signed by an authority the registry does not hold is a stranger rather than a lag.",
+      "cycles": [
+        { "rotation": "current", "policy": "foreign-update" }
+      ],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "cycleCodes": ["provider-trust-cycle-stopped"],
+      "rotationCodes": ["policy-authority-cycle-current"],
+      "pollCodes": ["policy-poll-refused"],
+      "polled": [true],
+      "finalGeneration": 0,
+      "finalSequence": 0
+    },
+    {
+      "name": "refused-rotation-does-not-stop-the-cadence",
+      "comment": "An endpoint-authentication failure on the rotation channel changes nothing, so the poll and sweep still run and the cadence completes.",
+      "cycles": [
+        { "rotation": "endpoint", "policy": "current" },
+        { "rotation": "endpoint", "policy": "current" }
+      ],
+      "cadenceCode": "provider-trust-cadence-complete",
+      "cycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-current"],
+      "rotationCodes": ["policy-authority-cycle-refused", "policy-authority-cycle-refused"],
+      "pollCodes": ["policy-poll-current", "policy-poll-current"],
+      "polled": [true, true],
+      "finalGeneration": 0,
+      "finalSequence": 0
+    },
+    {
+      "name": "exhausted-rotation-does-not-stop-the-cadence",
+      "comment": "A rotation channel that never answers is exhausted rather than fatal, and an ordinary policy update still applies.",
+      "cycles": [
+        { "rotation": "transport", "policy": "update" }
+      ],
+      "cadenceCode": "provider-trust-cadence-complete",
+      "cycleCodes": ["provider-trust-cycle-current"],
+      "rotationCodes": ["policy-authority-cycle-exhausted"],
+      "pollCodes": ["policy-poll-current"],
+      "polled": [true],
+      "finalGeneration": 0,
+      "finalSequence": 1
+    },
+    {
+      "name": "unretained-floor-stops-before-the-poll",
+      "comment": "The rotation was published but its guard was not retained, so the cycle stops before contacting the policy endpoint.",
+      "cycles": [
+        { "rotation": "rotate-unretained", "policy": "current" }
+      ],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "cycleCodes": ["provider-trust-cycle-authority-unretained"],
+      "rotationCodes": ["policy-authority-cycle-floor-unretained"],
+      "pollCodes": [null],
+      "polled": [false],
+      "finalGeneration": 1,
+      "finalSequence": 0
+    },
+    {
+      "name": "policy-refusal-stops-with-its-own-code",
+      "comment": "A poll refused for a reason unrelated to authority keeps CBI47's stop and is not attributed to rotation.",
+      "cycles": [
+        { "rotation": "current", "policy": "endpoint" }
+      ],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "cycleCodes": ["provider-trust-cycle-stopped"],
+      "rotationCodes": ["policy-authority-cycle-current"],
+      "pollCodes": ["policy-poll-refused"],
+      "polled": [true],
+      "finalGeneration": 0,
+      "finalSequence": 0
+    },
+    {
+      "name": "rotation-cancellation-precedes-any-poll",
+      "comment": "Cancellation observed by the rotation cycle cancels the whole cycle with no policy contact.",
+      "cycles": [
+        { "rotation": "canceled", "policy": "current" }
+      ],
+      "cadenceCode": "provider-trust-cadence-canceled",
+      "cycleCodes": ["provider-trust-cycle-canceled"],
+      "rotationCodes": ["policy-authority-cycle-canceled"],
+      "pollCodes": [null],
+      "polled": [false],
+      "finalGeneration": 0,
+      "finalSequence": 0
+    },
+    {
+      "name": "a-later-rotation-unblocks-a-later-update",
+      "comment": "The first cycle is behind and stops; a fresh cadence whose rotation succeeds applies the same update.",
+      "cycles": [
+        { "rotation": "rotate", "policy": "successor-update" },
+        { "rotation": "current", "policy": "successor-update" },
+        { "rotation": "current", "policy": "current" }
+      ],
+      "cadenceCode": "provider-trust-cadence-complete",
+      "cycleCodes": [
+        "provider-trust-cycle-current",
+        "provider-trust-cycle-current",
+        "provider-trust-cycle-current"
+      ],
+      "rotationCodes": [
+        "policy-authority-cycle-current",
+        "policy-authority-cycle-current",
+        "policy-authority-cycle-current"
+      ],
+      "pollCodes": ["policy-poll-current", "policy-poll-current", "policy-poll-current"],
+      "polled": [true, true, true],
+      "finalGeneration": 1,
+      "finalSequence": 2
+    }
+  ]
+}

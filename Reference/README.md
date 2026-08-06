@@ -245,6 +245,13 @@ resets, retry is confined to what a fresh attempt can change, and each applied r
 an integrity-tagged store only after CBI57 has published it. A guard absent beneath an existing
 checkpoint is adopted at zero and reported as such, because CBI42's establish-before-the-checkpoint
 ordering is not available to a guard introduced afterwards.
+CBI61 makes those two loops one cycle inside CBI47's unchanged cadence. The rotation runs first
+because a policy update is verified against the authority in force, so an update signed by the
+authority a pending rotation installs is refused until that rotation is retained. A rotation that
+changed nothing is recorded and the poll still runs; a rotation published without its guard stops
+before the policy endpoint. An update the registry cannot verify is attributed to an incomplete
+rotation only when one was attempted and did not complete, and is otherwise the stranger CBI41
+already refuses.
 
 ## Build and test
 
