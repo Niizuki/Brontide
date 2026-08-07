@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased - CBI66 retry-aware cadence gaps
+
+### Fixed
+
+- `CompleteGap` validated the instant it was given and then recorded the schedule interval regardless,
+  so a gap that was not the interval was recorded as one that was, leaving the recorded gaps
+  disagreeing with the recorded cycle instants in the same journal. It records the gap that elapsed.
+  Pinned by a failing test before the fix.
+
+### Added
+
+- The cadence shortens its next gap to CBI49's retry instant when that is sooner than the schedule
+  interval, so a run lands on the availability deadline rather than at the first scheduled cycle after
+  it. Shared cross-stack vectors and C1-C7 tests.
+
+### Changed
+
+- The journal accepts a positive gap no greater than the interval instead of requiring equality. This
+  is a relaxation: a journal written before this slice has gaps all equal to its interval and stays
+  valid, and no format marker moves.
+
+### Notes
+
+- The bound is one-sided on purpose. A retry instant may bring a cadence's next look forward and never
+  push it back, because the interval is the host's own schedule.
+- A cadence cannot detect an outage before it looks, so the first outage cycle still falls on the
+  ordinary interval and an interval longer than grace can still pass the deadline before any outage is
+  seen. A vector states that outcome rather than leaving it to be read as a guarantee.
+
 ## Unreleased - CBI65 durable availability baseline
 
 ### Added

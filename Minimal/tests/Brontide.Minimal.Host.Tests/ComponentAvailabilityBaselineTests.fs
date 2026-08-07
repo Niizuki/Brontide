@@ -120,6 +120,95 @@ type ComponentAvailabilityBaselineTests() =
             return Seq.tryHead observed
         }
 
+    let cbi66Fixture () = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+        TestContext.CurrentContext.TestDirectory, "component-management", "fixtures",
+        "cbi66-retry-aware-gaps-vectors.json")))
+
+    let cbi66Vector (document: JsonDocument) name =
+        document.RootElement.GetProperty("vectors").EnumerateArray()
+        |> Seq.find (fun vector -> textValue (vector.GetProperty "name") = name)
+
+    /// Runs one scripted cadence over an empty serving set, which keeps CBI49's decision, deadline and
+    /// retry instant real without launching a provider. Instants and gaps are reported in seconds from
+    /// the run start, which is how the vectors state them.
+    let cbi66Run (fixtureRoot: JsonElement) (vector: JsonElement) =
+        task {
+            let runStart =
+                DateTimeOffset.FromUnixTimeSeconds(
+                    fixtureRoot.GetProperty("schedule").GetProperty("startUnixSeconds").GetInt64())
+            let intervalSeconds = vector.GetProperty("intervalSeconds").GetInt32()
+            let polls = fixtureRoot.GetProperty "polls"
+            let script =
+                vector.GetProperty("cycles").EnumerateArray()
+                |> Seq.map (fun name ->
+                    let entry = polls.GetProperty(textValue name)
+                    textValue (entry.GetProperty "code"),
+                    Some(textValue (entry.GetProperty "lastAttemptCode")))
+                |> Seq.toList
+            let mutable index = 0
+            let policyCycle: ProviderPublisherTrustPolicyCycle =
+                fun _ _ ->
+                    let code, lastAttemptCode = script[min index (script.Length - 1)]
+                    Task.FromResult(poll code lastAttemptCode)
+            let sweep: ProviderServingTrustSweepCycle = fun _ -> Task.FromResult None
+            let enforce =
+                ProviderAvailabilityTrustCycle.enforcement
+                    (ProviderTrustOfflinePolicy.create
+                        (TimeSpan.FromSeconds(float (vector.GetProperty("graceSeconds").GetInt32())))
+                        (TimeSpan.FromSeconds(float (vector.GetProperty("retrySeconds").GetInt32()))))
+                    (fun _ -> Task.FromResult [])
+                    "offline availability withdrawn"
+            let inner =
+                ProviderAvailabilityTrustCycle.create
+                    (ProviderServingTrustCycle.create policyCycle sweep) enforce
+            let cycle: ProviderServingTrustCycle =
+                fun now cancellationToken -> task {
+                    let! result = inner now cancellationToken
+                    index <- index + 1
+                    return result
+                }
+            // Waits exactly the duration the cadence asked for, so a vector pins the cadence's own
+            // arithmetic rather than a host's accuracy.
+            let delay: ProviderServingTrustCadenceDelay =
+                fun now duration _ -> Task.FromResult(now + duration)
+            let schedule =
+                ProviderServingTrustCadenceSchedule.create
+                    script.Length (TimeSpan.FromSeconds(float intervalSeconds))
+            let! result =
+                ProviderServingTrustCadence.run schedule cycle delay runStart CancellationToken.None
+            let decisions =
+                result.Cycles
+                |> List.map (fun item ->
+                    item.Result.Availability
+                    |> Option.bind _.DecisionCode
+                    |> Option.defaultValue "none")
+            let expiry =
+                result.Cycles
+                |> List.tryPick (fun item ->
+                    if (item.Result.Availability |> Option.bind _.DecisionCode)
+                       = Some "offline-grace-expired" then
+                        Some(int (item.Instant - runStart).TotalSeconds)
+                    else None)
+            return
+                result.Code,
+                (result.Cycles |> List.map (fun item -> int (item.Instant - runStart).TotalSeconds)),
+                (result.Gaps |> List.map (fun gap -> int gap.TotalSeconds)),
+                decisions,
+                expiry
+        }
+
+    let cbi66Expected (vector: JsonElement) =
+        let ints name =
+            vector.GetProperty(name: string).EnumerateArray() |> Seq.map _.GetInt32() |> Seq.toList
+        let expiry = vector.GetProperty "expirySeconds"
+        textValue (vector.GetProperty "cadenceCode"),
+        ints "instantSeconds",
+        ints "gapSeconds",
+        (vector.GetProperty("decisionCodes").EnumerateArray()
+         |> Seq.map (fun value -> if value.ValueKind = JsonValueKind.Null then "none" else textValue value)
+         |> Seq.toList),
+        (if expiry.ValueKind = JsonValueKind.Null then None else Some(expiry.GetInt32()))
+
     [<Test>]
     member _.``CBI65 C8 minimal derives the shared availability baselines``() =
         use document = fixture ()
@@ -303,3 +392,134 @@ type ComponentAvailabilityBaselineTests() =
                 Assert.That(renewed |> Option.bind _.Deadline |> Option.get, Is.GreaterThan(Option.get interrupted)))
         finally
             deleteTree root }
+
+    [<Test>]
+    member _.``CBI66 C7 minimal shortens a cadence gap to the retry instant``() = task {
+        use document = cbi66Fixture ()
+        for vector in document.RootElement.GetProperty("vectors").EnumerateArray() do
+            let! actual = cbi66Run document.RootElement vector
+            Assert.That(actual, Is.EqualTo(cbi66Expected vector), textValue (vector.GetProperty "name")) }
+
+    [<Test>]
+    member _.``CBI66 C1 a gap longer than the interval is refused``() =
+        let root = Path.Combine(Path.GetTempPath(), $"brontide-cbi66-{Guid.NewGuid():N}")
+        try
+            let journal = journalAt (Path.Combine(root, "cadence.bin"))
+            journal.BeginCycle None |> ignore
+            journal.CommitCycle ProviderServingTrustCycleCodes.Current |> ignore
+            // The interval is the host's own upper bound, so a gap beyond it is not a shortened one.
+            let refused = journal.CompleteGap(start + interval + TimeSpan.FromSeconds 1.0)
+            multiple (fun () ->
+                Assert.That(refused.Code, Is.EqualTo "durable-cadence-gap-invalid")
+                Assert.That(refused.Snapshot.Gaps, Is.Empty)
+                Assert.That(
+                    (journal.CompleteGap(start + interval)).Code,
+                    Is.EqualTo "durable-cadence-gap-completed"))
+        finally
+            deleteTree root
+
+    [<Test>]
+    member _.``CBI66 C1 the journal records the gap that elapsed``() =
+        let root = Path.Combine(Path.GetTempPath(), $"brontide-cbi66-{Guid.NewGuid():N}")
+        try
+            let journal = journalAt (Path.Combine(root, "cadence.bin"))
+            journal.BeginCycle None |> ignore
+            journal.CommitCycle ProviderServingTrustCycleCodes.Current |> ignore
+            // A gap shorter than the schedule interval, which is what an availability retry instant
+            // asks for. The journal accepts the instant and must record the time that passed.
+            let shortened = TimeSpan.FromSeconds 20.0
+            let completed = journal.CompleteGap(start + shortened)
+            let snapshot = completed.Snapshot
+            multiple (fun () ->
+                Assert.That(completed.Code, Is.EqualTo "durable-cadence-gap-completed")
+                Assert.That(List.exactlyOne snapshot.Gaps, Is.EqualTo shortened
+                )
+                Assert.That(
+                    List.exactlyOne snapshot.Gaps,
+                    Is.EqualTo(snapshot.PreparedInstant - (List.last snapshot.Cycles).Instant)))
+        finally
+            deleteTree root
+
+    [<Test>]
+    member _.``CBI66 C3 every gap is positive and within the interval``() = task {
+        use document = cbi66Fixture ()
+        for vector in document.RootElement.GetProperty("vectors").EnumerateArray() do
+            let name = textValue (vector.GetProperty "name")
+            let intervalSeconds = vector.GetProperty("intervalSeconds").GetInt32()
+            let! _, _, gaps, _, _ = cbi66Run document.RootElement vector
+            for gap in gaps do
+                Assert.That(gap, Is.GreaterThan(0), name)
+                Assert.That(gap, Is.LessThanOrEqualTo(intervalSeconds), name) }
+
+    [<Test>]
+    member _.``CBI66 C4 a run with no outage keeps the interval``() = task {
+        use document = cbi66Fixture ()
+        let! _, _, gaps, decisions, _ =
+            cbi66Run document.RootElement (cbi66Vector document "a-run-with-no-outage-keeps-the-interval")
+        multiple (fun () ->
+            Assert.That(gaps, Is.EqualTo(box [ 30; 30 ]))
+            Assert.That(decisions, Is.EqualTo(box [ "none"; "none"; "none" ]))) }
+
+    [<Test>]
+    member _.``CBI66 C5 a record whose gaps are all the interval reopens unchanged``() =
+        let root = Path.Combine(Path.GetTempPath(), $"brontide-cbi66-{Guid.NewGuid():N}")
+        let path = Path.Combine(root, "cadence.bin")
+        try
+            let journal = journalAt path
+            journal.BeginCycle None |> ignore
+            journal.CommitCycle ProviderServingTrustCycleCodes.Current |> ignore
+            journal.CompleteGap(start + interval) |> ignore
+            journal.BeginCycle None |> ignore
+            journal.CommitCycle ProviderServingTrustCycleCodes.Current |> ignore
+            let written = journal.Snapshot.Gaps
+            let reopened =
+                DurableProviderTrustCadenceJournal.Open(path, ProviderTrustCadenceRunId.create "cbi65-run")
+            multiple (fun () ->
+                Assert.That(written, Is.EqualTo(box [ interval ]))
+                Assert.That(reopened.Journal.IsSome, Is.True)
+                Assert.That(reopened.Journal.Value.Snapshot.Gaps, Is.EqualTo(box written)))
+        finally
+            deleteTree root
+
+    /// A cadence cannot detect an outage before it looks, so the first outage cycle still falls on the
+    /// ordinary interval. Where one was seen before the deadline, expiry must land on the deadline
+    /// itself rather than at the next scheduled cycle.
+    [<Test>]
+    member _.``CBI66 C6 expiry is observed at the deadline once an outage is seen``() = task {
+        use document = cbi66Fixture ()
+        for vector in document.RootElement.GetProperty("vectors").EnumerateArray() do
+            let name = textValue (vector.GetProperty "name")
+            let! _, instants, _, decisions, expiry = cbi66Run document.RootElement vector
+            match expiry with
+            | None -> ()
+            | Some observed ->
+                let establishing =
+                    List.zip decisions instants
+                    |> List.filter (fun (code, _) -> code = "none")
+                    |> List.map snd
+                let deadline =
+                    List.last establishing + vector.GetProperty("graceSeconds").GetInt32()
+                if decisions |> List.exists (fun code -> code = "offline-idle") then
+                    Assert.That(observed, Is.EqualTo(deadline), name)
+                else
+                    Assert.That(observed, Is.GreaterThanOrEqualTo(deadline), name) }
+
+    /// The shared vectors run over an empty serving set, so their gaps are the gaps a serving cadence
+    /// waits only if CBI49's retry instant does not depend on the serving count. That is a claim about
+    /// a dependency, so it is probed rather than assumed.
+    [<Test>]
+    member _.``CBI66 C2 the retry instant does not depend on the serving count``() =
+        let policy =
+            ProviderTrustOfflinePolicy.create (TimeSpan.FromSeconds 100.0) (TimeSpan.FromSeconds 40.0)
+        let now = start + TimeSpan.FromSeconds 30.0
+        let idle =
+            policy.Evaluate(
+                now, Some start, "policy-poll-exhausted", Some "policy-distribution-transport-failed", 0)
+        let serving =
+            policy.Evaluate(
+                now, Some start, "policy-poll-exhausted", Some "policy-distribution-transport-failed", 2)
+        multiple (fun () ->
+            Assert.That(idle.Code, Is.EqualTo "offline-idle")
+            Assert.That(serving.Code, Is.EqualTo "offline-existing-service")
+            Assert.That(idle.RetryAt, Is.EqualTo serving.RetryAt)
+            Assert.That(idle.Deadline, Is.EqualTo serving.Deadline))

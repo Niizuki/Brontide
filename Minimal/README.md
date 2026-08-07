@@ -205,7 +205,11 @@ The implementation currently provides:
   since CBI48 — and answering the question from the cycle vocabulary rather than from the derivation,
   so a later code cannot be added without deciding it, while `provider-trust-cycle-stopped` stays
   unanswerable and is refused rather than guessed;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI65 integration
+  CBI66 lets CBI49's retry instant shorten a cadence gap so a run lands on the availability deadline
+  rather than at the first scheduled cycle after it, fixing a journal that recorded the schedule
+  interval as every gap regardless of what elapsed, and keeping the bound one-sided because a retry
+  instant may bring a look forward and never push it back;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI66 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

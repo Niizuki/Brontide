@@ -1331,6 +1331,36 @@ bound it to what one host's own journal states, and record that C1's central pro
 compile-time one: the derivation is handed a snapshot rather than a journal, so it has nothing to
 write to.
 
+CBI66 lets that policy's retry instant shorten a cadence gap, closing the limit CBI64 recorded, and
+its first result is **a defect underneath the fact nobody had consumed**. CBI49 has issued a next
+retry instant with every continuation it permits since it was written, capped at the deadline by its
+own C1 property, and nothing ever read it. Reading CBI48 in order to read it found `CompleteGap`
+validating the instant it is given and then recording the schedule interval regardless — inert while
+every gap equalled the interval, and wrong the moment one did not, because the recorded gaps then
+disagree with the recorded cycle instants in the same journal. It was pinned with a failing test
+before it was fixed.
+
+The cost of the limit was not cosmetic. A host asking for service to stop five minutes after the
+endpoint goes away got the rest of its polling interval as well, because the cadence's next look
+landed after the deadline it was meant to enforce. **The gap is now the earlier of the interval and
+the retry instant, so a run lands on the deadline itself.**
+
+**The bound is one-sided, and which side is the capability.** A retry instant may bring a cadence's
+next look forward and may never push it back: the interval is the host's own schedule, and a policy
+that only ever asks to be consulted *sooner* must not be able to slow it down. The vector that fails
+when this is wrong is the one whose retry is longer than the interval, and without it a
+gap-lengthening implementation passes everything else. What the slice will not claim is a deadline it
+cannot meet: **a cadence cannot detect an outage before it looks**, so the first outage cycle still
+falls on the ordinary interval, an interval longer than grace can pass the deadline before any outage
+is seen at all, and a vector states that outcome rather than leaving C6 to read as a guarantee. The
+durable change is a relaxation, so the migration is that there is none — a journal written before this
+slice has gaps all equal to its interval, and C5 pins the direction, because a guard requiring gaps
+strictly below the interval would invalidate every record already on disk and passes every other test.
+The [`CBI66 capability contract`](../../component-management/cbi66-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi66-contract-completeness-review.md)
+bound it to one bounded host-driven cadence and keep CBI41's poll backoff and CBI60's rotation backoff
+where they are.
+
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —
 Decision 13 still blocks every activation of a CM3 group that declares a bounded lifecycle protocol.

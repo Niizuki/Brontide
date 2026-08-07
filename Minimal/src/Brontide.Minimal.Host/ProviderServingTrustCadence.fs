@@ -185,6 +185,26 @@ type ProviderServingTrustCadenceResult =
 
 [<RequireQualifiedAccess>]
 module ProviderServingTrustCadence =
+    /// The schedule interval, or the availability retry instant the cycle just run asked for when that
+    /// is sooner. CBI49 caps its retry instant at the deadline, so honouring it is what makes a cadence
+    /// land on the deadline rather than at the first scheduled cycle after it — an interval longer than
+    /// grace would otherwise serve well past the moment the host asked service to stop.
+    ///
+    /// A retry instant further away than the interval changes nothing: a policy that only ever asks to
+    /// be consulted sooner must not be able to slow the host's own schedule down. A non-positive gap is
+    /// unreachable, because a retry instant is issued only while the evaluating instant is strictly
+    /// inside grace; the delay-must-advance check below is where such a decision would show.
+    let private nextGap
+        (schedule: ProviderServingTrustCadenceSchedule)
+        (previous: ProviderServingTrustCadenceCycle)
+        (instant: DateTimeOffset) =
+        match previous.Result.Availability |> Option.bind _.RetryAt with
+        | Some retryAt ->
+            let requested = retryAt - instant
+            if requested > TimeSpan.Zero && requested < schedule.Interval then requested
+            else schedule.Interval
+        | None -> schedule.Interval
+
     let run
         (schedule: ProviderServingTrustCadenceSchedule)
         (cycle: ProviderServingTrustCycle)
@@ -207,14 +227,15 @@ module ProviderServingTrustCadence =
                     let! canRun = task {
                         if cycles.Count = 0 then return true
                         else
+                            let duration = nextGap schedule cycles[cycles.Count - 1] instant
                             try
-                                let! next = delay instant schedule.Interval cancellationToken
+                                let! next = delay instant duration cancellationToken
                                 if cancellationToken.IsCancellationRequested then return false
                                 else
                                     if next <= instant then
                                         invalidOp "A cadence delay must advance the cycle instant."
                                     instant <- next
-                                    gaps.Add schedule.Interval
+                                    gaps.Add duration
                                     return true
                             with :? OperationCanceledException -> return false
                     }

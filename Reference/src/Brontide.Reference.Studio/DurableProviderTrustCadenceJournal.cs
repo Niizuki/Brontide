@@ -159,9 +159,15 @@ public sealed class DurableProviderTrustCadenceJournal
             if (state.Phase == "in-flight") return Current("durable-cadence-indeterminate");
             if (state.Phase != "waiting") return Current("durable-cadence-gap-invalid");
             if (nextInstant <= state.PreparedInstant) return Current("durable-cadence-gap-invalid");
+            // The gap that elapsed rather than the one the schedule names. Recording the interval
+            // regardless was inert while every gap equalled it and wrong as soon as an availability
+            // retry instant shortened one, leaving the recorded gaps disagreeing with the recorded
+            // cycle instants in the same journal.
+            var elapsed = nextInstant - state.PreparedInstant;
+            if (elapsed.Ticks > state.IntervalTicks) return Current("durable-cadence-gap-invalid");
             return Transition(next =>
             {
-                next.GapTicks.Add(next.IntervalTicks);
+                next.GapTicks.Add(elapsed.Ticks);
                 next.PreparedInstant = nextInstant;
                 next.Phase = "ready";
             }, "durable-cadence-gap-completed");
@@ -299,7 +305,10 @@ public sealed class DurableProviderTrustCadenceJournal
             || value.IntervalTicks <= 0 || value.IntervalTicks > TimeSpan.FromHours(24).Ticks
             || value.Phase is not ("ready" or "waiting" or "in-flight" or "terminal")
             || value.Cycles.Count > value.MaximumCycles
-            || value.GapTicks.Any(gap => gap != value.IntervalTicks)
+            // A gap may be shorter than the interval, because an availability retry instant can ask
+            // the cadence to look sooner; it may never be longer, because the interval is the host's
+            // own upper bound.
+            || value.GapTicks.Any(gap => gap <= 0 || gap > value.IntervalTicks)
             || value.InterruptionCount < 0 || value.RetryCount < 0
             || value.RetryCount > value.InterruptionCount
             // A cursor describes an attempt in flight, so it cannot outlive that phase.

@@ -1006,6 +1006,19 @@ the vocabulary cannot classify, one of them behind an establishing cycle, which 
 refusal to outrank a baseline that was derivable before it. The fixture contains no journal, registry,
 clock, endpoint, or key material.
 
+### `cbi66-retry-aware-gaps` sections
+
+`schedule` names the run start; every other number is per vector, because the interval, grace, and
+retry are what each vector varies. `polls` names the two poll outcomes a vector scripts. Each vector
+pins the cadence code, the cycle instants and gaps in seconds from the run start, each cycle's CBI49
+decision, and the instant expiry was observed. Grace is deliberately not a multiple of the interval in
+most vectors, which is what makes the final shortened gap visible; one vector makes it an exact
+multiple with a retry longer than the interval, and that is the one that fails if a retry instant is
+allowed to lengthen a gap. Every vector runs over an empty serving set, so no provider process is
+launched and CBI49 reports `offline-idle`; a named test in each root probes that its retry instant and
+deadline do not depend on the serving count, which is what makes that substitution safe. The fixture
+contains no key material, source, registry, clock, transport, floor store, or serving member.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations
