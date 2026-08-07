@@ -1,5 +1,30 @@
 # Changelog
 
+## Unreleased - CBI65 durable availability baseline
+
+### Added
+
+- `ProviderTrustCadenceAvailabilityRecovery`, which derives CBI64's availability baseline from the
+  observations CBI48 already committed. It reads a snapshot rather than a journal, so it has nothing
+  to write to.
+- `ProviderServingTrustCycleCodes.Establishes`, the vocabulary's answer to whether a cycle reporting a
+  code established current policy. It is null for a code the vocabulary cannot answer, which a
+  consumer must refuse rather than resolve.
+- An optional starting baseline on `ProviderAvailabilityTrustCycle`, and shared cross-stack vectors
+  covering the derivation and the classification of every cycle code, with C1-C8 tests.
+
+### Notes
+
+- No new durable record. The journal has held each cycle's instant and code since CBI48, and a second
+  record of a fact the first already holds is a thing that can disagree with it.
+- `provider-trust-cycle-stopped` is unanswerable — the cycle produces it both for a poll that was not
+  current and for a current poll whose sweep failed — so it is refused, and the refusal outranks any
+  establishing observation behind it. CBI48 cannot place one in front of a later cycle, which is
+  probed rather than assumed.
+- A terminal journal is a source rather than something to reject: CBI49 anchors the deadline in
+  absolute time, so an old baseline is already expired. No freshness guard is added here, because a
+  baseline later than the evaluating instant is already `offline-observation-invalid`.
+
 ## Unreleased - CBI64 cadence availability enforcement
 
 ### Added

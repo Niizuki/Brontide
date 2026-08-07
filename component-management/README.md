@@ -994,6 +994,18 @@ baseline fail rather than merely look different. Two vectors share a poll code a
 last attempt, which is what forces eligibility to read both facts. The fixture contains no key
 material, source, registry, clock, transport, floor store, or serving member.
 
+### `cbi65-availability-baseline` sections
+
+`schedule` names the run start and cadence interval from which every committed observation's instant
+is computed, so a vector never names a time CBI48 could not have recorded. `vectors` states one
+journal's committed observations as an ordered list of cycle codes and pins the derivation code and
+which cycle supplied the baseline, or `null` where none did. `classification` is the vocabulary's
+answer for **every** cycle code rather than only the ones the vectors exercise — a `null` means the
+vocabulary does not answer, which a consumer must refuse rather than resolve. Two vectors carry a code
+the vocabulary cannot classify, one of them behind an establishing cycle, which is what forces the
+refusal to outrank a baseline that was derivable before it. The fixture contains no journal, registry,
+clock, endpoint, or key material.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations

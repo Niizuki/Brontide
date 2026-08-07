@@ -68,6 +68,15 @@ public sealed class ProviderServingTrustSweepCycle(
 /// use these constants rather than literals and CBI48's journal validates against this set, so a new
 /// code cannot be produced without the journal knowing it — which is what CBI61's two additions did
 /// before this was one vocabulary.
+///
+/// <para><paramref name="Establishes"/> carries the second question a consumer asks of a committed
+/// observation: did the cycle reporting this code establish current policy? It is stated here rather
+/// than in the consumer for the same reason <paramref name="Continues"/> is, one consumer over — a
+/// code a cycle can produce and a consumer cannot classify is exactly the seam defect CBI62 found.
+/// It is undefined for a non-continuing code, because such a code makes the run terminal in the write
+/// that commits it and so never precedes another observation; <c>Stopped</c> is the one that could
+/// not be answered anyway, since a cycle produces it both for a poll that was not current and for a
+/// current poll whose sweep failed.</para>
 /// </summary>
 public static class ProviderServingTrustCycleCodes
 {
@@ -79,23 +88,32 @@ public static class ProviderServingTrustCycleCodes
     public const string AuthorityUnretained = "provider-trust-cycle-authority-unretained";
     public const string Offline = "provider-trust-cycle-offline";
 
-    private static readonly Dictionary<string, bool> Continuing = new(StringComparer.Ordinal)
+    private sealed record Classification(bool Continues, bool? Establishes);
+
+    private static readonly Dictionary<string, Classification> Codes = new(StringComparer.Ordinal)
     {
-        [Current] = true,
-        [Withdrawn] = true,
-        [Stopped] = false,
-        [Canceled] = false,
-        [AuthorityBehind] = false,
-        [AuthorityUnretained] = false,
-        [Offline] = true,
+        [Current] = new(true, true),
+        [Withdrawn] = new(true, true),
+        [Stopped] = new(false, null),
+        [Canceled] = new(false, null),
+        [AuthorityBehind] = new(false, null),
+        [AuthorityUnretained] = new(false, null),
+        [Offline] = new(true, false),
     };
 
-    public static IReadOnlyCollection<string> All => Continuing.Keys;
+    public static IReadOnlyCollection<string> All => Codes.Keys;
 
-    public static bool IsKnown(string code) => code is not null && Continuing.ContainsKey(code);
+    public static bool IsKnown(string code) => code is not null && Codes.ContainsKey(code);
 
     public static bool Continues(string code) =>
-        code is not null && Continuing.TryGetValue(code, out var value) && value;
+        code is not null && Codes.TryGetValue(code, out var value) && value.Continues;
+
+    /// <summary>
+    /// Whether a cycle reporting this code established current policy, or null when the vocabulary
+    /// does not answer it. A consumer that meets a null must refuse rather than choose a side.
+    /// </summary>
+    public static bool? Establishes(string code) =>
+        code is not null && Codes.TryGetValue(code, out var value) ? value.Establishes : null;
 }
 
 /// <summary>

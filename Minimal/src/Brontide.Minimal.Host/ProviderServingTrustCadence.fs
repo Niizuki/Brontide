@@ -57,6 +57,14 @@ module ProviderServingTrustCycleBinding =
 /// these values rather than literals and CBI48's journal validates against this set, so a new code
 /// cannot be produced without the journal knowing it — which is what CBI61's two additions did before
 /// this was one vocabulary.
+///
+/// `establishes` carries the second question a consumer asks of a committed observation: did the cycle
+/// reporting this code establish current policy? It is stated here rather than in the consumer for the
+/// same reason `continues` is, one consumer over — a code a cycle can produce and a consumer cannot
+/// classify is exactly the seam defect CBI62 found. It is `None` for a non-continuing code, because
+/// such a code makes the run terminal in the write that commits it and so never precedes another
+/// observation; `Stopped` is the one that could not be answered anyway, since a cycle produces it both
+/// for a poll that was not current and for a current poll whose sweep failed.
 [<RequireQualifiedAccess>]
 module ProviderServingTrustCycleCodes =
     [<Literal>]
@@ -74,21 +82,25 @@ module ProviderServingTrustCycleCodes =
     [<Literal>]
     let Offline = "provider-trust-cycle-offline"
 
-    let private continuing =
+    let private codes =
         Map.ofList
-            [ Current, true
-              Withdrawn, true
-              Stopped, false
-              Canceled, false
-              AuthorityBehind, false
-              AuthorityUnretained, false
-              Offline, true ]
+            [ Current, (true, Some true)
+              Withdrawn, (true, Some true)
+              Stopped, (false, None)
+              Canceled, (false, None)
+              AuthorityBehind, (false, None)
+              AuthorityUnretained, (false, None)
+              Offline, (true, Some false) ]
 
-    let all = continuing |> Map.toList |> List.map fst
+    let all = codes |> Map.toList |> List.map fst
 
-    let isKnown code = continuing |> Map.containsKey code
+    let isKnown code = codes |> Map.containsKey code
 
-    let continues code = continuing |> Map.tryFind code |> Option.defaultValue false
+    let continues code = codes |> Map.tryFind code |> Option.map fst |> Option.defaultValue false
+
+    /// Whether a cycle reporting this code established current policy, or `None` when the vocabulary
+    /// does not answer it. A consumer that meets a `None` must refuse rather than choose a side.
+    let establishes code = codes |> Map.tryFind code |> Option.bind snd
 
 /// What one cycle's availability evaluation decided and what enforcing it did. The cycle reports the
 /// CBI49 decision and CBI50's counts rather than CBI50's own result, which keeps this result free of
