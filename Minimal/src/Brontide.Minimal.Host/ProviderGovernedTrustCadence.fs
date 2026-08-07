@@ -44,13 +44,13 @@ module ProviderGovernedTrustCycle =
             if rotated.Code = "policy-authority-cycle-canceled" then
                 return
                     { Code = ProviderServingTrustCycleCodes.Canceled; Poll = None
-                      Sweep = None; ServingCount = 0; Rotation = Some rotated }
+                      Sweep = None; ServingCount = 0; Rotation = Some rotated; Availability = None }
             // The one rotation outcome that changed something the host cannot account for: the chain
             // advanced past a floor it does not hold, and every later advance moves further past it.
             elif rotated.Code = "policy-authority-cycle-floor-unretained" then
                 return
                     { Code = ProviderServingTrustCycleCodes.AuthorityUnretained; Poll = None
-                      Sweep = None; ServingCount = 0; Rotation = Some rotated }
+                      Sweep = None; ServingCount = 0; Rotation = Some rotated; Availability = None }
             else
                 let! result = inner now cancellationToken
                 let code =

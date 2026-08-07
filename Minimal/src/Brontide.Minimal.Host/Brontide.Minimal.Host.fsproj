@@ -43,6 +43,7 @@
     <Compile Include="ProviderTrustOfflinePolicy.fs" />
     <Compile Include="ProviderGovernedInterruptionReconciliation.fs" />
     <Compile Include="ProviderOfflineServiceEnforcement.fs" />
+    <Compile Include="ProviderCadenceAvailability.fs" />
     <Compile Include="ProviderRestartPolicy.fs" />
     <Compile Include="ProviderRestartEnforcement.fs" />
     <Compile Include="DurableProviderRestartAttemptJournal.fs" />

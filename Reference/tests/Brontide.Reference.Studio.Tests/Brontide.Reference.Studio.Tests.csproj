@@ -204,5 +204,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi63-governed-reconciliation-vectors.json"
           Link="component-management\fixtures\cbi63-governed-reconciliation-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi64-cadence-availability-vectors.json"
+          Link="component-management\fixtures\cbi64-cadence-availability-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

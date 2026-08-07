@@ -71,6 +71,8 @@ module ProviderServingTrustCycleCodes =
     let AuthorityBehind = "provider-trust-cycle-authority-behind"
     [<Literal>]
     let AuthorityUnretained = "provider-trust-cycle-authority-unretained"
+    [<Literal>]
+    let Offline = "provider-trust-cycle-offline"
 
     let private continuing =
         Map.ofList
@@ -79,7 +81,8 @@ module ProviderServingTrustCycleCodes =
               Stopped, false
               Canceled, false
               AuthorityBehind, false
-              AuthorityUnretained, false ]
+              AuthorityUnretained, false
+              Offline, true ]
 
     let all = continuing |> Map.toList |> List.map fst
 
@@ -87,16 +90,35 @@ module ProviderServingTrustCycleCodes =
 
     let continues code = continuing |> Map.tryFind code |> Option.defaultValue false
 
+/// What one cycle's availability evaluation decided and what enforcing it did. The cycle reports the
+/// CBI49 decision and CBI50's counts rather than CBI50's own result, which keeps this result free of
+/// the enforcement component's types; per-member evidence stays where its ordering and
+/// failure-isolation properties are pinned. `DecisionCode` is `None` when CBI50 refused the serving
+/// snapshot before any policy was evaluated.
+type ProviderTrustCycleAvailability =
+    { EnforcementCode: string
+      DecisionCode: string option
+      Deadline: DateTimeOffset option
+      RetryAt: DateTimeOffset option
+      AdmittedCount: int
+      StoppedCount: int }
+    member this.PermitsContinuation =
+        this.DecisionCode = Some "offline-existing-service"
+        || this.DecisionCode = Some "offline-idle"
+
 /// One cycle's observations. `Rotation` is `None` for a cadence that does not govern authority
 /// rotation, which is every cadence composed before CBI61; a governed cycle carries the CBI60 result
 /// it ran before the poll, and `Poll` is `None` when that rotation stopped the cycle before the
-/// policy endpoint was contacted.
+/// policy endpoint was contacted. `Availability` is `None` for a cadence that governs no availability
+/// policy, which is every cadence composed before CBI64, and for a cycle that established current
+/// policy or never reached the endpoint.
 type ProviderServingTrustCycleResult =
     { Code: string
       Poll: ProviderPublisherTrustPolicyPollResult option
       Sweep: ProviderServingTrustSweepResult option
       ServingCount: int
-      Rotation: ProviderPolicyAuthorityCycleResult option }
+      Rotation: ProviderPolicyAuthorityCycleResult option
+      Availability: ProviderTrustCycleAvailability option }
     member this.CanContinue = ProviderServingTrustCycleCodes.continues this.Code
     member this.IsCanceled = this.Code = ProviderServingTrustCycleCodes.Canceled
 
@@ -114,18 +136,18 @@ module ProviderServingTrustCycle =
             if poll.Code = "policy-poll-canceled" then
                 return
                     { Code = ProviderServingTrustCycleCodes.Canceled; Poll = Some poll
-                      Sweep = None; ServingCount = 0; Rotation = None }
+                      Sweep = None; ServingCount = 0; Rotation = None; Availability = None }
             elif not poll.IsCurrent then
                 return
                     { Code = ProviderServingTrustCycleCodes.Stopped; Poll = Some poll
-                      Sweep = None; ServingCount = 0; Rotation = None }
+                      Sweep = None; ServingCount = 0; Rotation = None; Availability = None }
             else
                 let! sweep = serving cancellationToken
                 match sweep with
                 | None ->
                     return
                         { Code = ProviderServingTrustCycleCodes.Current; Poll = Some poll
-                          Sweep = None; ServingCount = 0; Rotation = None }
+                          Sweep = None; ServingCount = 0; Rotation = None; Availability = None }
                 | Some result ->
                     let code =
                         match result.Code with
@@ -134,7 +156,7 @@ module ProviderServingTrustCycle =
                         | _ -> ProviderServingTrustCycleCodes.Stopped
                     return
                         { Code = code; Poll = Some poll; Sweep = Some result
-                          ServingCount = result.Members.Length; Rotation = None }
+                          ServingCount = result.Members.Length; Rotation = None; Availability = None }
         }
 
 type ProviderServingTrustCadenceDelay =

@@ -263,6 +263,12 @@ durable cursor it was about to act on — the same device CBI62 refused, sound h
 precedes the effect rather than following it — so the rotation and policy observations are derived
 rather than asserted. The evidence is therefore narrower than CBI49's, carrying only the serving
 verdict nothing can check, and CBI49's own path refuses a journal that recorded a cursor.
+CBI64 puts CBI49's availability policy and CBI50's enforcement inside the cadence, which nothing that
+polls repeatedly had ever reached: an outage used to end the run with every provider still serving.
+The baseline is the instant of the most recent cycle whose poll was current and an outage never
+refreshes it, so the deadline arrives; every non-current poll reaches a decision rather than only the
+grace-eligible ones; and the cycle code still names why current policy could not be established, so
+CBI61's attribution survives a cycle that stopped every member.
 
 ## Build and test
 

@@ -26,7 +26,8 @@ type ComponentProviderTrustCadenceRecoveryTests() =
           Poll = None
           Sweep = None
           ServingCount = 0
-          Rotation = None }
+          Rotation = None
+          Availability = None }
     let establish path =
         DurableProviderTrustCadenceJournal.Establish(path, runIdentity, schedule, start).Journal.Value
     let multiple action = Assert.Multiple(Action action)

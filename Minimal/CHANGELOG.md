@@ -1,5 +1,39 @@
 # Changelog
 
+## Unreleased - CBI64 cadence availability enforcement
+
+### Added
+
+- `ProviderAvailabilityTrustCycle`, a native F# cycle that applies CBI49's availability policy to a
+  cadence cycle that could not establish current policy and CBI50's enforcement to whatever that
+  decides. It closes over the instant of the most recent cycle whose poll was current and never lets
+  an outage refresh it.
+- `ProviderAvailabilityTrustCycle.enforcement`, binding one offline policy and the host's serving-set
+  snapshot to that seam, and `ProviderTrustCycleAvailability`, the cycle's projection of a CBI50
+  result.
+- `provider-trust-cycle-offline`, a continuing cycle code for a cadence inside grace, added to the one
+  vocabulary CBI48's journal validates against.
+- Shared cross-stack vectors over a scripted policy endpoint and real serving providers, and C1-C8
+  tests.
+
+### Changed
+
+- `ProviderServingTrustCycleResult` gains an `Availability` field. Adding a field to an F# record is a
+  breaking change for any external construction site; the migration is `Availability = None`, which is
+  every cycle composed before this slice.
+
+### Notes
+
+- CBI63 named this boundary as terminating providers when grace expires; CBI50 had done that since
+  2026-08-05, and the real gap was that nothing polling repeatedly had ever called CBI49 or CBI50 at
+  all. An outage previously ended the cadence with every provider still serving, which is neither
+  answer the policy offers.
+- Every non-current poll that made a poll reaches a decision, not only the grace-eligible outcomes,
+  because routing one third would leave the other two unreachable from a cadence. Cancellation and a
+  cycle its rotation stopped before the endpoint enforce nothing.
+- The cycle code still names why current policy could not be established, so CBI61's
+  `provider-trust-cycle-authority-behind` attribution survives a cycle that stopped every member.
+
 ## Unreleased - CBI63 governed interruption reconciliation
 
 ### Added

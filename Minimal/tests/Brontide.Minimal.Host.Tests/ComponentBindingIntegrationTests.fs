@@ -124,6 +124,15 @@ type private FailingRetirementConversation(inner: IPortableProviderConversation)
         member _.Terminate channel = inner.Terminate channel
         member _.Close() = inner.Close()
 
+type private Cbi64Observation =
+    { CadenceCode: string
+      CycleCodes: string list
+      DecisionCodes: string list
+      EnforcementCodes: string list
+      Stopped: int list
+      DeadlineMoved: bool
+      FinalServing: int }
+
 [<TestFixture>]
 type ComponentBindingIntegrationTests() =
     let consumer = DefinitionId.create "def.test.cooling-consumer"
@@ -11498,7 +11507,8 @@ type ComponentBindingIntegrationTests() =
           Poll = Some(this.Cbi47Poll "policy-poll-current")
           Sweep = None
           ServingCount = 0
-          Rotation = None }
+          Rotation = None
+          Availability = None }
 
     member private this.Cbi47Run(codes: string list, cancellation: string, ?maximumCycles: int) = task {
         use source = new CancellationTokenSource()
@@ -11642,3 +11652,414 @@ type ComponentBindingIntegrationTests() =
                         |> Seq.map _.GetDateTimeOffset() |> Seq.toList)), name)
                 Assert.That(result.Gaps |> List.map (fun gap -> int gap.TotalSeconds),
                     Is.EqualTo(box expectedGaps), name)) }
+
+    member private _.Cbi64Poll (code: string) (lastAttemptCode: string option) floor
+        : ProviderPublisherTrustPolicyPollResult =
+        { Code = code
+          LastAttemptCode = lastAttemptCode
+          Attempts = 1
+          Delays = []
+          AppliedSequences = []
+          RetainedSequences = []
+          Current = None
+          Floor = floor }
+
+    /// Runs one scripted cadence over the vector's serving activations in their own provider
+    /// processes. The availability seam is the production binding, so CBI49's decision and CBI50's
+    /// effects are the real ones rather than a harness restating them.
+    member private this.Cbi64Run(fixtureRoot: JsonElement, vector: JsonElement) =
+        task {
+            let textValue (value: JsonElement) = value.GetString() |> Option.ofObj |> Option.defaultValue ""
+            let root = Path.Combine(Path.GetTempPath(), $"brontide-cbi64-{Guid.NewGuid():N}")
+            Directory.CreateDirectory root |> ignore
+            let providers = ResizeArray<StagedProviderProcess>()
+            let activations = ResizeArray<ProviderServingActivation>()
+            try
+                use authority = ECDsa.Create ECCurve.NamedCurves.nistP256
+                use firstPublisher = ECDsa.Create ECCurve.NamedCurves.nistP256
+                use secondPublisher = ECDsa.Create ECCurve.NamedCurves.nistP256
+                let digestOf (key: ECDsa) =
+                    key.ExportSubjectPublicKeyInfo() |> SHA256.HashData |> Convert.ToHexString
+                let authorityIdentity = digestOf authority |> ProviderPublisherTrustPolicyAuthorityId.create
+                let executable =
+                    match Environment.GetEnvironmentVariable "BRONTIDE_MINIMAL_PROVIDER" |> Option.ofObj with
+                    | Some path when File.Exists path -> Path.GetFullPath path
+                    | _ ->
+                        Assert.Ignore "BRONTIDE_MINIMAL_PROVIDER does not name a built provider endpoint."
+                        failwith "The cross-process test was ignored."
+                let named (value: string | null) =
+                    match value with null -> failwith "A provider path component was missing." | present -> present
+                let providerRoot = Path.GetDirectoryName executable |> named
+                let bytes =
+                    Directory.EnumerateFiles providerRoot
+                    |> Seq.sort
+                    |> Seq.map (fun path -> Path.GetFileName path |> named, File.ReadAllBytes path)
+                    |> Map.ofSeq
+                let files =
+                    bytes |> Map.toList |> List.map (fun (path, content) ->
+                        { RelativePath = path
+                          Sha256 = SHA256.HashData content |> Convert.ToHexString
+                          Length = int64 content.LongLength }: ProviderArtifactAcquisitionFile)
+                let expectedSource = ProviderArtifactSourceId.create "fixture://brontide/provider-output"
+                let executableName = Path.GetFileName executable |> named
+                let artifacts = files |> List.map (fun file ->
+                    { RelativePath = file.RelativePath; Sha256 = file.Sha256 }: ProviderArtifactFile)
+                let request: ProviderArtifactAcquisitionRequest =
+                    { ExpectedSource = expectedSource
+                      Identity = ProviderArtifactSetIdentity.compute artifacts executableName [ "--portable" ]
+                      Files = files; ExecutablePath = executableName; Arguments = [ "--portable" ]
+                      MaxTotalBytes = files |> List.sumBy _.Length }
+                let evidenceFor (publisher: ECDsa) =
+                    { PublisherKeyId = digestOf publisher |> ProviderPublisherKeyId.create
+                      Algorithm = "ECDSA-P256-SHA256"
+                      PublicKeySpkiBase64 = publisher.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                      SignatureBase64 =
+                        publisher.SignData(
+                            ProviderArtifactPublisherManifest.encode request,
+                            HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
+                        |> Convert.ToBase64String }: ProviderPublisherEvidence
+                let evidence = [ evidenceFor firstPublisher; evidenceFor secondPublisher ]
+                let initial: ProviderPublisherTrustPolicy =
+                    let entries =
+                        evidence |> List.map (fun item ->
+                            { PublisherKeyId = item.PublisherKeyId; Disposition = Admitted })
+                    { Identity = ProviderPublisherTrustPolicyIdentity.compute entries; Entries = entries }
+                let signUpdate sequence previous (policy: ProviderPublisherTrustPolicy) =
+                    { Sequence = sequence; PreviousPolicyIdentity = previous; Policy = policy
+                      Algorithm = "ECDSA-P256-SHA256"
+                      AuthorityPublicKeySpkiBase64 = authority.ExportSubjectPublicKeyInfo() |> Convert.ToBase64String
+                      SignatureBase64 =
+                        authority.SignData(
+                            ProviderPublisherTrustPolicyUpdateManifest.encode sequence previous policy.Identity,
+                            HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)
+                        |> Convert.ToBase64String }: ProviderPublisherTrustPolicyUpdate
+                let _, openedRegistry, _ =
+                    DurableProviderPublisherTrustPolicyRegistry.Open(
+                        Path.Combine(root, "policy.checkpoint"), authorityIdentity, None)
+                let registry = openedRegistry.Value
+                Assert.That(registry.Apply(signUpdate 1L None initial).IsApplied, Is.True)
+                let source =
+                    { new IProviderArtifactSource with
+                        member _.Identity = expectedSource
+                        member _.OpenRead relativePath =
+                            bytes |> Map.tryFind relativePath
+                            |> Option.map (fun content -> new MemoryStream(content, false) :> Stream) }
+                let store = ContentAddressedProviderStore(Path.GetFullPath(Path.Combine(root, "store")))
+
+                // A vector's serving count is the host's real one: an empty set launches no provider at
+                // all, so an idle decision is not being read off a set that is quietly still serving.
+                let servingCount = vector.GetProperty("servingCount").GetInt32()
+                let chains =
+                    evidence |> List.truncate servingCount |> List.mapi (fun index item ->
+                        ProviderDistributionChain.run registry store (Path.Combine(root, $"transactions-{index}"))
+                            { Acquisition = request; Evidence = Some item; AllowedArguments = [ "--portable" ] }
+                            source)
+                chains |> List.iter (fun chain -> providers.Add chain.Provider.Value)
+
+                if servingCount > 0 then
+                    let pair = pairRequestFor [] []
+                    let resolution =
+                        { pair with
+                            Definitions = pair.Definitions |> List.map (fun definition ->
+                                if definition.Definition = consumer then
+                                    { definition with
+                                        Requirements = definition.Requirements |> List.map (fun requirement ->
+                                            { requirement with Contract = contractId }) }
+                                elif definition.Definition = secondaryProvider then
+                                    { definition with Provides = [ { Contract = contractId; Version = version } ] }
+                                else definition)
+                            Candidates = pair.Candidates |> List.map (fun candidate ->
+                                if candidate.Definition = secondaryProvider then
+                                    { candidate with Provides = [ { Contract = contractId; Version = version } ] }
+                                else candidate) }
+                        |> FakeGenerationResolver.resolve
+                    let providerSets =
+                        match resolution with
+                        | ResolutionOutcome.Resolved(_, generation) -> generation.ProviderSets
+                        | outcome -> failwithf "Expected a resolved generation, got %A." outcome
+                    let selections =
+                        [ requirementId; secondaryRequirementId ] |> List.map (fun requirement ->
+                            let position =
+                                providerSets |> List.find (fun item -> item.Requirement = requirement)
+                                |> fun item -> List.exactlyOne item.Members
+                            { selection position with Requirement = requirement })
+                    for chain, selected in List.zip chains (selections |> List.truncate servingCount) do
+                        let! activation =
+                            ProviderServingTrustRevalidation.activate chain resolution selected
+                                (runtimeRequest (plan [ selected.Occurrence ]))
+                        Assert.That(activation.IsServing, Is.True)
+                        activations.Add activation
+
+                let schedule = fixtureRoot.GetProperty "schedule"
+                let policy =
+                    ProviderTrustOfflinePolicy.create
+                        (TimeSpan.FromSeconds(float (schedule.GetProperty("graceSeconds").GetInt32())))
+                        (TimeSpan.FromSeconds(float (schedule.GetProperty("retrySeconds").GetInt32())))
+                let duplicate =
+                    match vector.TryGetProperty "duplicateSnapshot" with
+                    | true, value -> value.GetBoolean()
+                    | _ -> false
+                let snapshot =
+                    if duplicate then [ activations[0]; activations[0] ] else List.ofSeq activations
+
+                let polls = fixtureRoot.GetProperty "polls"
+                let script =
+                    vector.GetProperty("cycles").EnumerateArray()
+                    |> Seq.map (fun cycle ->
+                        let poll = polls.GetProperty(textValue cycle)
+                        let attempt = poll.GetProperty "lastAttemptCode"
+                        textValue (poll.GetProperty "code"),
+                        (if attempt.ValueKind = JsonValueKind.Null then None else Some(textValue attempt)))
+                    |> Seq.toList
+                let mutable index = 0
+                let policyCycle: ProviderPublisherTrustPolicyCycle =
+                    fun _ _ ->
+                        let code, lastAttemptCode = script[min index (script.Length - 1)]
+                        Task.FromResult(this.Cbi64Poll code lastAttemptCode registry.Floor)
+                let sweep: ProviderServingTrustSweepCycle = fun _ -> Task.FromResult None
+                let delay: ProviderServingTrustCadenceDelay =
+                    fun now duration cancellationToken ->
+                        index <- index + 1
+                        cancellationToken.ThrowIfCancellationRequested()
+                        Task.FromResult(now + duration)
+                let cycle =
+                    ProviderAvailabilityTrustCycle.create
+                        (ProviderServingTrustCycle.create policyCycle sweep)
+                        (ProviderAvailabilityTrustCycle.enforcement policy
+                            (fun _ -> Task.FromResult snapshot) "offline availability withdrawn")
+                let cadenceSchedule =
+                    ProviderServingTrustCadenceSchedule.create script.Length
+                        (TimeSpan.FromSeconds(float (schedule.GetProperty("intervalSeconds").GetInt32())))
+                let! result =
+                    ProviderServingTrustCadence.run cadenceSchedule cycle delay
+                        (DateTimeOffset(2026, 8, 7, 9, 0, 0, TimeSpan.Zero)) CancellationToken.None
+
+                let availability = result.Cycles |> List.map _.Result.Availability
+                return
+                    { CadenceCode = result.Code
+                      CycleCodes = result.Cycles |> List.map _.Result.Code
+                      DecisionCodes =
+                        availability |> List.map (fun item ->
+                            item |> Option.bind _.DecisionCode |> Option.defaultValue "none")
+                      EnforcementCodes =
+                        availability |> List.map (fun item ->
+                            item |> Option.map _.EnforcementCode |> Option.defaultValue "none")
+                      Stopped =
+                        availability |> List.map (fun item ->
+                            item |> Option.map _.StoppedCount |> Option.defaultValue 0)
+                      DeadlineMoved =
+                        (availability |> List.choose id |> List.map _.Deadline |> List.distinct |> List.length) > 1
+                      FinalServing = activations |> Seq.filter _.IsServing |> Seq.length }
+            finally
+                for activation in activations do
+                    if activation.IsServing then
+                        activation.Retire("CBI64 test completed").GetAwaiter().GetResult()
+                for provider in providers do
+                    if not provider.HasExited then provider.Dispose()
+                cbi32DeleteTree root
+        }
+
+    member private _.Cbi64Fixture() = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+        TestContext.CurrentContext.TestDirectory, "component-management", "fixtures",
+        "cbi64-cadence-availability-vectors.json")))
+
+    member private _.Cbi64Vector (document: JsonDocument) (name: string) =
+        document.RootElement.GetProperty("vectors").EnumerateArray()
+        |> Seq.find (fun vector ->
+            (vector.GetProperty("name").GetString() |> Option.ofObj |> Option.defaultValue "") = name)
+
+    member private _.Cbi64Expected(vector: JsonElement) =
+        let textValue (value: JsonElement) = value.GetString() |> Option.ofObj |> Option.defaultValue ""
+        let codes name =
+            vector.GetProperty(name: string).EnumerateArray()
+            |> Seq.map (fun value -> if value.ValueKind = JsonValueKind.Null then "none" else textValue value)
+            |> Seq.toList
+        { CadenceCode = vector.GetProperty "cadenceCode" |> textValue
+          CycleCodes = codes "cycleCodes"
+          DecisionCodes = codes "decisionCodes"
+          EnforcementCodes = codes "enforcementCodes"
+          Stopped = vector.GetProperty("stopped").EnumerateArray() |> Seq.map _.GetInt32() |> Seq.toList
+          DeadlineMoved = vector.GetProperty("deadlineMoved").GetBoolean()
+          FinalServing = vector.GetProperty("finalServing").GetInt32() }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI64 C8 minimal enforces availability across a cadence``() = task {
+        use document = this.Cbi64Fixture()
+        for vector in document.RootElement.GetProperty("vectors").EnumerateArray() do
+            let name = vector.GetProperty("name").GetString() |> Option.ofObj |> Option.defaultValue ""
+            let! actual = this.Cbi64Run(document.RootElement, vector)
+            Assert.That(actual, Is.EqualTo(this.Cbi64Expected vector), name) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI64 C1 an outage with no earlier current cycle has no baseline``() = task {
+        use document = this.Cbi64Fixture()
+        let! actual =
+            this.Cbi64Run(
+                document.RootElement,
+                this.Cbi64Vector document "an-outage-with-no-baseline-stops-service")
+        multiple (fun () ->
+            // CBI49 refuses to invent a baseline, so a grace-eligible outage still stops service.
+            Assert.That(actual.DecisionCodes, Is.EqualTo(box [ "offline-service-stop-required" ]))
+            Assert.That(actual.Stopped, Is.EqualTo(box [ 2 ]))
+            Assert.That(actual.FinalServing, Is.Zero)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI64 C2 a running cadence cannot extend its own deadline``() = task {
+        use document = this.Cbi64Fixture()
+        let! expiring =
+            this.Cbi64Run(
+                document.RootElement, this.Cbi64Vector document "grace-expires-while-the-cadence-runs")
+        let! recovering =
+            this.Cbi64Run(
+                document.RootElement, this.Cbi64Vector document "recovery-inside-grace-rearms-the-deadline")
+        multiple (fun () ->
+            // Four cycles of outage against one baseline, and the deadline never moves. A cadence that
+            // took each cycle's own instant would report existing service forever.
+            Assert.That(expiring.DeadlineMoved, Is.False)
+            Assert.That(List.last expiring.CycleCodes, Is.EqualTo "provider-trust-cycle-stopped")
+            Assert.That(List.last expiring.DecisionCodes, Is.EqualTo "offline-grace-expired")
+            // Only a cycle that establishes current policy moves it.
+            Assert.That(recovering.DeadlineMoved, Is.True)
+            Assert.That(recovering.CadenceCode, Is.EqualTo "provider-trust-cadence-complete")) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI64 C3 availability is decided only where a poll decided nothing``() = task {
+        use document = this.Cbi64Fixture()
+        let! actual =
+            this.Cbi64Run(document.RootElement, this.Cbi64Vector document "cancellation-enforces-nothing")
+        multiple (fun () ->
+            Assert.That(actual.CadenceCode, Is.EqualTo "provider-trust-cadence-canceled")
+            Assert.That(actual.EnforcementCodes, Is.EqualTo(box [ "none"; "none" ]))
+            Assert.That(actual.FinalServing, Is.EqualTo 2)) }
+
+    /// A governed cycle whose rotation stopped it carries no poll, so there is nothing for CBI49 to
+    /// evaluate. Composed rather than taken from the fixture, because the shared vectors script the
+    /// policy endpoint and this case never reaches it.
+    [<Test>]
+    member _.``CBI64 C3 a cycle that reached no endpoint enforces nothing``() = task {
+        let mutable enforced = 0
+        let inner: ProviderServingTrustCycle =
+            fun _ _ ->
+                Task.FromResult
+                    { Code = ProviderServingTrustCycleCodes.AuthorityUnretained; Poll = None
+                      Sweep = None; ServingCount = 0; Rotation = None; Availability = None }
+        let enforcement: ProviderOfflineEnforcementCycle =
+            fun _ _ _ _ _ ->
+                enforced <- enforced + 1
+                Task.FromResult
+                    { EnforcementCode = "offline-enforcement-stopped"
+                      DecisionCode = Some "offline-service-stop-required"
+                      Deadline = None; RetryAt = None; AdmittedCount = 0; StoppedCount = 0 }
+        let! result =
+            (ProviderAvailabilityTrustCycle.create inner enforcement)
+                DateTimeOffset.UnixEpoch CancellationToken.None
+        multiple (fun () ->
+            Assert.That(result.Code, Is.EqualTo ProviderServingTrustCycleCodes.AuthorityUnretained)
+            Assert.That(result.Availability, Is.EqualTo None)
+            Assert.That(enforced, Is.Zero)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI64 C4 every ineligible outcome stops service``() = task {
+        use document = this.Cbi64Fixture()
+        for name in
+            [ "an-exhausted-stale-window-is-not-availability"
+              "a-registry-refusal-is-not-availability"
+              "an-unretained-policy-floor-is-not-availability" ] do
+            let! actual = this.Cbi64Run(document.RootElement, this.Cbi64Vector document name)
+            multiple (fun () ->
+                Assert.That(List.last actual.DecisionCodes, Is.EqualTo("offline-service-stop-required"), name)
+                Assert.That(List.last actual.CycleCodes, Is.EqualTo("provider-trust-cycle-stopped"), name)
+                Assert.That(actual.FinalServing, Is.EqualTo(0), name)) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI64 C4 every non-current cycle with a poll carries one enforcement``() = task {
+        use document = this.Cbi64Fixture()
+        for vector in document.RootElement.GetProperty("vectors").EnumerateArray() do
+            let name = vector.GetProperty("name").GetString() |> Option.ofObj |> Option.defaultValue ""
+            let! actual = this.Cbi64Run(document.RootElement, vector)
+            for code, enforcement in List.zip actual.CycleCodes actual.EnforcementCodes do
+                let expected =
+                    if code = ProviderServingTrustCycleCodes.Current
+                       || code = ProviderServingTrustCycleCodes.Withdrawn
+                       || code = ProviderServingTrustCycleCodes.Canceled then "none" else "some"
+                Assert.That(
+                    (if enforcement = "none" then "none" else "some"),
+                    Is.EqualTo(expected), $"{name} {code}") }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI64 C5 availability never relabels a cycle it did not preserve``() = task {
+        use document = this.Cbi64Fixture()
+        for vector in document.RootElement.GetProperty("vectors").EnumerateArray() do
+            let name = vector.GetProperty("name").GetString() |> Option.ofObj |> Option.defaultValue ""
+            let! actual = this.Cbi64Run(document.RootElement, vector)
+            for code, decision in List.zip actual.CycleCodes actual.DecisionCodes do
+                if code = ProviderServingTrustCycleCodes.Offline then
+                    Assert.That(
+                        decision,
+                        Is.EqualTo("offline-existing-service").Or.EqualTo("offline-idle"), name) }
+
+    /// CBI61 attributes an unverifiable update to an incomplete rotation. That refusal is never
+    /// grace-eligible, so an availability stop in the same cycle must leave the attribution intact —
+    /// which is why the availability cycle is outermost rather than inside the governed one.
+    [<Test>]
+    member this.``CBI64 C5 an availability stop preserves the governed attribution``() = task {
+        let poll =
+            this.Cbi64Poll "policy-poll-refused" (Some "policy-update-authority-mismatch")
+                Unchecked.defaultof<ProviderPublisherTrustPolicyRecoveryFloor>
+        let inner: ProviderServingTrustCycle =
+            fun _ _ ->
+                Task.FromResult
+                    { Code = ProviderServingTrustCycleCodes.AuthorityBehind; Poll = Some poll
+                      Sweep = None; ServingCount = 0; Rotation = None; Availability = None }
+        let enforcement: ProviderOfflineEnforcementCycle =
+            fun _ _ _ _ _ ->
+                Task.FromResult
+                    { EnforcementCode = "offline-enforcement-stopped"
+                      DecisionCode = Some "offline-service-stop-required"
+                      Deadline = None; RetryAt = None; AdmittedCount = 2; StoppedCount = 2 }
+        let! result =
+            (ProviderAvailabilityTrustCycle.create inner enforcement)
+                DateTimeOffset.UnixEpoch CancellationToken.None
+        multiple (fun () ->
+            Assert.That(result.Code, Is.EqualTo ProviderServingTrustCycleCodes.AuthorityBehind)
+            Assert.That(result.Availability |> Option.map _.StoppedCount, Is.EqualTo(Some 2))) }
+
+    [<Test; Category("CrossProcess")>]
+    member this.``CBI64 C6 continuation stops nobody and a refused snapshot decides nothing``() = task {
+        use document = this.Cbi64Fixture()
+        let! continuing =
+            this.Cbi64Run(
+                document.RootElement, this.Cbi64Vector document "outage-inside-grace-preserves-service")
+        let! refused =
+            this.Cbi64Run(document.RootElement, this.Cbi64Vector document "a-refused-snapshot-stops-nothing")
+        multiple (fun () ->
+            Assert.That(continuing.Stopped |> List.forall (fun value -> value = 0), Is.True)
+            Assert.That(continuing.FinalServing, Is.EqualTo 2)
+            // CBI50 C7: a snapshot it refuses is evaluated against no policy and stops nobody.
+            Assert.That(refused.DecisionCodes, Is.EqualTo(box [ "none"; "none" ]))
+            Assert.That(refused.FinalServing, Is.EqualTo 2)) }
+
+    [<Test>]
+    member _.``CBI64 C7 the offline code is one the journal knows and continues``() =
+        multiple (fun () ->
+            Assert.That(ProviderServingTrustCycleCodes.isKnown ProviderServingTrustCycleCodes.Offline, Is.True)
+            Assert.That(ProviderServingTrustCycleCodes.continues ProviderServingTrustCycleCodes.Offline, Is.True))
+
+    [<Test>]
+    member _.``CBI64 C7 a cadence that continued through an outage is journalled``() =
+        let root = Path.Combine(Path.GetTempPath(), $"brontide-cbi64-journal-{Guid.NewGuid():N}")
+        try
+            let opened =
+                DurableProviderTrustCadenceJournal.Establish(
+                    Path.Combine(root, "cadence.bin"),
+                    ProviderTrustCadenceRunId.create "cbi64-offline-run",
+                    ProviderServingTrustCadenceSchedule.create 2 (TimeSpan.FromSeconds 60.0),
+                    DateTimeOffset(2026, 8, 7, 9, 0, 0, TimeSpan.Zero))
+            let journal = opened.Journal.Value
+            Assert.That(journal.BeginCycle(None).Code, Is.EqualTo "durable-cadence-cycle-started")
+            let committed = journal.CommitCycle ProviderServingTrustCycleCodes.Offline
+            multiple (fun () ->
+                Assert.That(committed.Code, Is.EqualTo "durable-cadence-cycle-committed")
+                Assert.That(committed.Snapshot.Phase, Is.EqualTo "waiting"))
+        finally
+            cbi32DeleteTree root
