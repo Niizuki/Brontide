@@ -1294,9 +1294,42 @@ reason it is not an endpoint failure: CBI49 would classify a canceled poll as
 availability withdrawal. The
 [`CBI64 capability contract`](../../component-management/cbi64-capability-contract.md) and
 [`contract-completeness review`](../../component-management/cbi64-contract-completeness-review.md)
-bound it to one bounded host-driven cadence, and name what it does not reach: the baseline is
-run-local, so a durable cadence resumed after a crash has none and its first outage stops service —
-deriving one from CBI48's committed observations is the next bounded implementation boundary.
+bound it to one bounded host-driven cadence.
+
+CBI65 derives that baseline from what CBI48 already committed, and its first result is that **a
+durable boundary needed no durable record**. The journal has held each cycle's instant and code since
+CBI48, so the slice adds a classification to an existing vocabulary and no storage at all — the
+opposite of the obvious reading, which is to retain the baseline beside the journal and is the design
+CBI42 argues against for the policy floor: a second record of a fact the first already holds is a
+thing that can disagree with it.
+
+What the derivation needed was a question the vocabulary had never been asked. `Continues` says
+whether a cadence may go on; nothing said whether a cycle *established current policy*. Answering that
+inside the derivation would have reproduced CBI62's defect one consumer over — a code a cycle can
+produce and a consumer cannot classify — so the answer sits beside `Continues`, and a shared fixture
+section pins it for every code rather than for the ones today's vectors happen to exercise. One code
+turns out to be genuinely unanswerable: **`provider-trust-cycle-stopped` is produced both for a poll
+that was not current and for a current poll whose sweep failed**, so the record does not say which. It
+is refused rather than guessed, and the refusal outranks any establishing cycle behind it, because a
+baseline drawn from the observations before it would be confidently wrong about everything after.
+CBI48 cannot place such a code in front of a later cycle — a non-continuing code makes the run
+terminal in the same write — and that is a claim about a dependency, so it is probed rather than
+asserted.
+
+Two decisions come from CBI49 rather than from preference. **The baseline is a fact about the host,
+not about the run**: a terminal journal is as good a source as an interrupted one, because CBI49
+anchors the deadline in absolute time, so an old baseline is already expired and refusing it would
+only make a host that shut down cleanly stop service at its first outage. And **no freshness guard is
+added**, because a baseline later than the evaluating instant is already `offline-observation-invalid`
+under CBI49. The composed effect is that a crash during an outage does not restart grace — and the
+wrong answer is the plausible one, since seeding a resumed cadence with its own restart instant renews
+the deadline on every restart, so a crash loop would serve indefinitely past a deadline that never
+arrives. The
+[`CBI65 capability contract`](../../component-management/cbi65-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi65-contract-completeness-review.md)
+bound it to what one host's own journal states, and record that C1's central property is a
+compile-time one: the derivation is handed a snapshot rather than a journal, so it has nothing to
+write to.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

@@ -200,7 +200,12 @@ The implementation currently provides:
   arrives, routing every non-current poll to a decision rather than only the grace-eligible ones, and
   leaving the cycle code naming why current policy could not be established so CBI61's attribution
   survives a cycle that stopped every member;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI64 integration
+  CBI65 derives that baseline from what CBI48 already committed so a crash inside an outage does not
+  restart grace, needing no new durable record — the journal has held each cycle's instant and code
+  since CBI48 — and answering the question from the cycle vocabulary rather than from the derivation,
+  so a later code cannot be added without deciding it, while `provider-trust-cycle-stopped` stays
+  unanswerable and is refused rather than guessed;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI65 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

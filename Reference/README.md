@@ -269,6 +269,12 @@ The baseline is the instant of the most recent cycle whose poll was current and 
 refreshes it, so the deadline arrives; every non-current poll reaches a decision rather than only the
 grace-eligible ones; and the cycle code still names why current policy could not be established, so
 CBI61's attribution survives a cycle that stopped every member.
+CBI65 derives that baseline from what CBI48 already committed, so a crash inside an outage does not
+restart grace. It needs no new durable record — the journal has held each cycle's instant and code
+since CBI48 — and the question it asks is answered by the cycle vocabulary rather than by the
+derivation, so a later code cannot be added without deciding it. `provider-trust-cycle-stopped` is
+unanswerable, because a cycle produces it both for a poll that was not current and for a current poll
+whose sweep failed, and it is refused rather than guessed.
 
 ## Build and test
 

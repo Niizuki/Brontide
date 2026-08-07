@@ -1,0 +1,94 @@
+{
+  "comment": "CBI65 derives CBI64's availability baseline from what CBI48 committed. A vector states one journal's committed observations as code-and-cycle-index pairs and pins the derivation. Instants are the cycle instants a cadence on the shared schedule would have prepared, so a vector never names a time the journal could not hold.",
+  "schedule": {
+    "comment": "The instant of cycle N is start plus N intervals, which is what CBI48 records as a committed observation's instant.",
+    "startUnixSeconds": 1786230000,
+    "intervalSeconds": 60
+  },
+  "vectors": [
+    {
+      "name": "the-most-recent-establishing-cycle-supplies-it",
+      "comment": "Two current cycles: the later one wins, so a derivation that took the first would report a deadline five minutes early.",
+      "cycles": ["provider-trust-cycle-current", "provider-trust-cycle-current"],
+      "code": "cadence-baseline-derived",
+      "baselineCycle": 1
+    },
+    {
+      "name": "an-outage-does-not-move-it",
+      "comment": "CBI64's C2 rule reconstructed from the record. Three offline cycles follow one current cycle and the baseline stays at the current one, so the deadline a resumed cadence computes is the one the interrupted cadence held.",
+      "cycles": [
+        "provider-trust-cycle-current",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-offline"
+      ],
+      "code": "cadence-baseline-derived",
+      "baselineCycle": 0
+    },
+    {
+      "name": "a-withdrawal-establishes-current-policy",
+      "comment": "A sweep that withdrew members still had a current poll before it ran, so its cycle moves the baseline exactly as a plain current one does.",
+      "cycles": [
+        "provider-trust-cycle-current",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-withdrawn"
+      ],
+      "code": "cadence-baseline-derived",
+      "baselineCycle": 2
+    },
+    {
+      "name": "recovery-after-an-outage-moves-it",
+      "comment": "The endpoint returned mid-run. A derivation that stopped at the first outage would anchor the deadline before a recovery the record plainly shows.",
+      "cycles": [
+        "provider-trust-cycle-current",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-current",
+        "provider-trust-cycle-offline"
+      ],
+      "code": "cadence-baseline-derived",
+      "baselineCycle": 2
+    },
+    {
+      "name": "a-run-that-never-reached-the-endpoint-has-none",
+      "comment": "Every committed cycle is an outage, so nothing in the record says the host ever saw current policy. CBI49's answer to a missing baseline is unchanged: the first outage after resumption stops service.",
+      "cycles": ["provider-trust-cycle-offline", "provider-trust-cycle-offline"],
+      "code": "cadence-baseline-absent",
+      "baselineCycle": null
+    },
+    {
+      "name": "an-empty-record-has-none",
+      "comment": "A journal established and interrupted on its first attempt has committed nothing at all.",
+      "cycles": [],
+      "code": "cadence-baseline-absent",
+      "baselineCycle": null
+    },
+    {
+      "name": "an-unclassifiable-observation-is-refused",
+      "comment": "A stopped cycle is produced both for a poll that was not current and for a current poll whose sweep failed, so the record does not say whether it established anything. CBI48 cannot place one in front of a later cycle — it terminates the run in the same write — but the derivation reads a snapshot, so this is a reachable input rather than a manufactured path.",
+      "cycles": [
+        "provider-trust-cycle-current",
+        "provider-trust-cycle-stopped",
+        "provider-trust-cycle-offline"
+      ],
+      "code": "cadence-baseline-observation-invalid",
+      "baselineCycle": null
+    },
+    {
+      "name": "a-refusal-outranks-an-establishing-cycle-behind-it",
+      "comment": "The refusal is not a fallback to whatever was derivable before it. A baseline computed from the cycles ahead of the unclassifiable one would be confidently wrong about everything after it.",
+      "cycles": ["provider-trust-cycle-current", "provider-trust-cycle-canceled"],
+      "code": "cadence-baseline-observation-invalid",
+      "baselineCycle": null
+    }
+  ],
+  "classification": {
+    "comment": "The vocabulary's answer for every code it holds, so both roots agree on the classification and not only on the vectors that happen to exercise it. A null means the vocabulary does not answer, which a consumer must refuse rather than resolve.",
+    "provider-trust-cycle-current": true,
+    "provider-trust-cycle-withdrawn": true,
+    "provider-trust-cycle-offline": false,
+    "provider-trust-cycle-stopped": null,
+    "provider-trust-cycle-canceled": null,
+    "provider-trust-cycle-authority-behind": null,
+    "provider-trust-cycle-authority-unretained": null
+  }
+}
