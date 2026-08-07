@@ -1,0 +1,91 @@
+{
+  "comment": "CBI66 lets CBI49's retry instant shorten a cadence gap. A vector scripts one poll outcome per cycle and pins the instants the cadence ran at, the gaps it waited, and where expiry was observed. Every vector runs over an empty serving set, so CBI49 reports offline-idle and its retry instant and deadline are the real ones without a provider process; a named test in each root repeats the shortening over two real serving members, because the retry instant is computed identically for both decisions.",
+  "schedule": {
+    "comment": "Instants and gaps are seconds from the run start, and each vector's cadence budget is its own scripted cycle count so a budget and a script can never disagree. Grace is not a multiple of the interval in most vectors, which is what makes the final shortened gap visible.",
+    "startUnixSeconds": 1786230000
+  },
+  "polls": {
+    "current": { "code": "policy-poll-current", "lastAttemptCode": "policy-distribution-current" },
+    "transport": { "code": "policy-poll-exhausted", "lastAttemptCode": "policy-distribution-transport-failed" }
+  },
+  "vectors": [
+    {
+      "name": "the-last-gap-before-the-deadline-is-shortened-to-land-on-it",
+      "comment": "The capability. Cycles fall on the interval until the deadline is less than one interval away, and the final gap is cut to ten seconds so expiry is observed at the deadline itself. Without this the fourth outage cycle would be at 120 and service would continue twenty seconds past the moment the host asked it to stop.",
+      "intervalSeconds": 30,
+      "graceSeconds": 100,
+      "retrySeconds": 40,
+      "cycles": ["current", "transport", "transport", "transport", "transport"],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "instantSeconds": [0, 30, 60, 90, 100],
+      "gapSeconds": [30, 30, 30, 10],
+      "decisionCodes": [null, "offline-idle", "offline-idle", "offline-idle", "offline-grace-expired"],
+      "expirySeconds": 100
+    },
+    {
+      "name": "a-retry-sooner-than-the-interval-governs-every-gap",
+      "comment": "A ten-second retry against a thirty-second interval. The first outage is still found at the ordinary interval, because a cadence cannot detect an outage before it looks; every gap after it is the retry.",
+      "intervalSeconds": 30,
+      "graceSeconds": 60,
+      "retrySeconds": 10,
+      "cycles": ["current", "transport", "transport", "transport", "transport"],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "instantSeconds": [0, 30, 40, 50, 60],
+      "gapSeconds": [30, 10, 10, 10],
+      "decisionCodes": [null, "offline-idle", "offline-idle", "offline-idle", "offline-grace-expired"],
+      "expirySeconds": 60
+    },
+    {
+      "name": "a-retry-further-than-the-interval-changes-nothing",
+      "comment": "Grace is an exact multiple of the interval and the retry is longer than it, so nothing is ever shortened and the cadence keeps the host's own schedule. This is the vector that fails if a retry instant is allowed to lengthen a gap.",
+      "intervalSeconds": 30,
+      "graceSeconds": 90,
+      "retrySeconds": 60,
+      "cycles": ["current", "transport", "transport", "transport"],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "instantSeconds": [0, 30, 60, 90],
+      "gapSeconds": [30, 30, 30],
+      "decisionCodes": [null, "offline-idle", "offline-idle", "offline-grace-expired"],
+      "expirySeconds": 90
+    },
+    {
+      "name": "a-current-cycle-restores-the-interval",
+      "comment": "The endpoint returns mid-run. The cycle that establishes current policy carries no availability observation, so the gap after it is the ordinary interval again and the shortening is a property of being inside an outage rather than a mode the cadence entered.",
+      "intervalSeconds": 30,
+      "graceSeconds": 100,
+      "retrySeconds": 10,
+      "cycles": ["current", "transport", "current", "transport", "transport"],
+      "cadenceCode": "provider-trust-cadence-complete",
+      "instantSeconds": [0, 30, 40, 70, 80],
+      "gapSeconds": [30, 10, 30, 10],
+      "decisionCodes": [null, "offline-idle", null, "offline-idle", "offline-idle"],
+      "expirySeconds": null
+    },
+    {
+      "name": "a-run-with-no-outage-keeps-the-interval",
+      "comment": "Every cycle establishes current policy, so no availability observation exists and the gaps are exactly the ones CBI47 pinned before this slice.",
+      "intervalSeconds": 30,
+      "graceSeconds": 100,
+      "retrySeconds": 10,
+      "cycles": ["current", "current", "current"],
+      "cadenceCode": "provider-trust-cadence-complete",
+      "instantSeconds": [0, 30, 60],
+      "gapSeconds": [30, 30],
+      "decisionCodes": [null, null, null],
+      "expirySeconds": null
+    },
+    {
+      "name": "an-outage-found-after-the-deadline-expires-at-once",
+      "comment": "The interval is longer than grace, so the outage is not observed until the deadline has already passed. The cadence cannot look before it looks, and the contract says so rather than claiming the deadline is always met.",
+      "intervalSeconds": 120,
+      "graceSeconds": 60,
+      "retrySeconds": 30,
+      "cycles": ["current", "transport"],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "instantSeconds": [0, 120],
+      "gapSeconds": [120],
+      "decisionCodes": [null, "offline-grace-expired"],
+      "expirySeconds": 120
+    }
+  ]
+}

@@ -101,7 +101,10 @@ module private ProviderTrustCadenceJournalRecord =
             && value.IntervalTicks <= TimeSpan.FromHours(24.0).Ticks
             && List.contains value.Phase [ "ready"; "waiting"; "in-flight"; "terminal" ]
             && value.Cycles.Length <= value.MaximumCycles
-            && (value.GapTicks |> List.forall ((=) value.IntervalTicks))
+            // A gap may be shorter than the interval, because an availability retry instant can ask
+            // the cadence to look sooner; it may never be longer, because the interval is the host's
+            // own upper bound.
+            && (value.GapTicks |> List.forall (fun gap -> gap > 0L && gap <= value.IntervalTicks))
             && value.InterruptionCount >= 0 && value.RetryCount >= 0
             && value.RetryCount <= value.InterruptionCount
             // A cursor describes an attempt in flight, so it cannot outlive that phase, and a
@@ -331,10 +334,17 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
         elif state.Phase <> "waiting" || nextInstant <= state.PreparedInstant then
             current "durable-cadence-gap-invalid"
         else
-            transition (fun value ->
-                { value with GapTicks = value.GapTicks @ [ value.IntervalTicks ]
-                             PreparedInstant = nextInstant; Phase = "ready" })
-                "durable-cadence-gap-completed")
+            // The gap that elapsed rather than the one the schedule names. Recording the interval
+            // regardless was inert while every gap equalled it and wrong as soon as an availability
+            // retry instant shortened one, leaving the recorded gaps disagreeing with the recorded
+            // cycle instants in the same journal.
+            let elapsed = nextInstant - state.PreparedInstant
+            if elapsed.Ticks > state.IntervalTicks then current "durable-cadence-gap-invalid"
+            else
+                transition (fun value ->
+                    { value with GapTicks = value.GapTicks @ [ elapsed.Ticks ]
+                                 PreparedInstant = nextInstant; Phase = "ready" })
+                    "durable-cadence-gap-completed")
 
     member _.CommitCycle(cycleCode: string) =
         if String.IsNullOrWhiteSpace cycleCode then

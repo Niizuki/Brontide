@@ -275,6 +275,10 @@ since CBI48 — and the question it asks is answered by the cycle vocabulary rat
 derivation, so a later code cannot be added without deciding it. `provider-trust-cycle-stopped` is
 unanswerable, because a cycle produces it both for a poll that was not current and for a current poll
 whose sweep failed, and it is refused rather than guessed.
+CBI66 lets CBI49's retry instant shorten a cadence gap, so a run lands on the availability deadline
+rather than at the first scheduled cycle after it, and fixes a journal that recorded the schedule
+interval as every gap regardless of what elapsed. The bound is one-sided: a retry instant may bring a
+look forward and never push it back, because the interval is the host's own schedule.
 
 ## Build and test
 

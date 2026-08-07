@@ -297,6 +297,272 @@ public sealed partial class ComponentBindingIntegrationTests
         return observed.SingleOrDefault();
     }
 
+    [Test]
+    public void Cbi66_C1_the_journal_records_the_gap_that_elapsed()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"brontide-cbi66-{Guid.NewGuid():N}");
+        try
+        {
+            var journal = Cbi65Journal(Path.Combine(root, "cadence.bin"));
+            journal.BeginCycle();
+            journal.CommitCycle(ProviderServingTrustCycleCodes.Current);
+            // A gap shorter than the schedule interval, which is what an availability retry instant
+            // asks for. The journal accepts the instant and must record the time that passed.
+            var shortened = TimeSpan.FromSeconds(20);
+            var completed = journal.CompleteGap(Cbi65Start + shortened);
+            var snapshot = completed.Snapshot;
+            Assert.Multiple(() =>
+            {
+                Assert.That(completed.Code, Is.EqualTo("durable-cadence-gap-completed"));
+                Assert.That(snapshot.Gaps.Single(), Is.EqualTo(shortened));
+                Assert.That(snapshot.Gaps.Single(),
+                    Is.EqualTo(snapshot.PreparedInstant - snapshot.Cycles[^1].Instant));
+            });
+        }
+        finally
+        {
+            Cbi32DeleteTree(root);
+        }
+    }
+
+    private static JsonDocument Cbi66Fixture() => JsonDocument.Parse(File.ReadAllText(Path.Combine(
+        TestContext.CurrentContext.TestDirectory, "component-management", "fixtures",
+        "cbi66-retry-aware-gaps-vectors.json")));
+
+    private static JsonElement Cbi66Vector(JsonDocument fixture, string name) =>
+        fixture.RootElement.GetProperty("vectors").EnumerateArray()
+            .Single(vector => vector.GetProperty("name").GetString() == name);
+
+    private sealed record Cbi66Observation(
+        string CadenceCode, string Instants, string Gaps, string DecisionCodes, int? Expiry);
+
+    /// <summary>
+    /// Runs one scripted cadence over an empty serving set, which keeps CBI49's decision, deadline and
+    /// retry instant real without launching a provider. Instants and gaps are reported in seconds from
+    /// the run start, which is how the vectors state them.
+    /// </summary>
+    private static async Task<Cbi66Observation> Cbi66RunAsync(JsonElement fixture, JsonElement vector)
+    {
+        var start = DateTimeOffset.FromUnixTimeSeconds(
+            fixture.GetProperty("schedule").GetProperty("startUnixSeconds").GetInt64());
+        var interval = TimeSpan.FromSeconds(vector.GetProperty("intervalSeconds").GetInt32());
+        var polls = fixture.GetProperty("polls");
+        var script = vector.GetProperty("cycles").EnumerateArray().Select(name =>
+        {
+            var poll = polls.GetProperty(name.GetString()!);
+            return (poll.GetProperty("code").GetString()!,
+                (string?)poll.GetProperty("lastAttemptCode").GetString());
+        }).ToArray();
+
+        var policy = new Cbi64PolicyCycle(script, null!);
+        var cadence = new ProviderServingTrustCadence(
+            ProviderServingTrustCadenceSchedule.Create(script.Length, interval));
+        var cycle = new Cbi66RecordingCycle(
+            new ProviderAvailabilityTrustCycle(
+                new ProviderServingTrustCycle(policy, new Cbi64Sweep()),
+                new ProviderOfflineEnforcementCycle(
+                    ProviderTrustOfflinePolicy.Create(
+                        TimeSpan.FromSeconds(vector.GetProperty("graceSeconds").GetInt32()),
+                        TimeSpan.FromSeconds(vector.GetProperty("retrySeconds").GetInt32())),
+                    _ => ValueTask.FromResult<IReadOnlyList<ProviderServingActivation>>([]),
+                    "offline availability withdrawn")),
+            policy);
+
+        var result = await cadence.RunAsync(cycle, new Cbi66Delay(), start);
+        var decisions = result.Cycles
+            .Select(item => item.Result.Availability?.DecisionCode ?? "none").ToArray();
+        var expiry = result.Cycles
+            .Where(item => item.Result.Availability?.DecisionCode == "offline-grace-expired")
+            .Select(item => (int?)(item.Instant - start).TotalSeconds)
+            .FirstOrDefault();
+        return new(
+            result.Code,
+            Cbi60Join(result.Cycles.Select(item => (int)(item.Instant - start).TotalSeconds)),
+            Cbi60Join(result.Gaps.Select(gap => (int)gap.TotalSeconds)),
+            Cbi60Join(decisions),
+            expiry);
+    }
+
+    private static Cbi66Observation Cbi66Expected(JsonElement vector)
+    {
+        var expiry = vector.GetProperty("expirySeconds");
+        return new(
+            vector.GetProperty("cadenceCode").GetString()!,
+            Cbi60Join(vector.GetProperty("instantSeconds").EnumerateArray().Select(v => v.GetInt32())),
+            Cbi60Join(vector.GetProperty("gapSeconds").EnumerateArray().Select(v => v.GetInt32())),
+            Cbi60Join(vector.GetProperty("decisionCodes").EnumerateArray()
+                .Select(v => v.ValueKind == JsonValueKind.Null ? "none" : v.GetString())),
+            expiry.ValueKind == JsonValueKind.Null ? null : expiry.GetInt32());
+    }
+
+    /// <summary>Waits exactly the duration the cadence asked for, so a vector pins the cadence's own arithmetic.</summary>
+    private sealed class Cbi66Delay : IProviderServingTrustCadenceDelay
+    {
+        public Task<DateTimeOffset> DelayAsync(
+            DateTimeOffset now, TimeSpan duration, CancellationToken cancellationToken) =>
+            Task.FromResult(now + duration);
+    }
+
+    private sealed class Cbi66RecordingCycle(IProviderServingTrustCycle inner, Cbi64PolicyCycle policy)
+        : IProviderServingTrustCycle
+    {
+        public async Task<ProviderServingTrustCycleResult> RunAsync(
+            DateTimeOffset now, CancellationToken cancellationToken)
+        {
+            var result = await inner.RunAsync(now, cancellationToken).ConfigureAwait(false);
+            policy.Cycle++;
+            return result;
+        }
+    }
+
+    [Test]
+    public async Task Shared_cbi66_vectors_shorten_a_cadence_gap_to_the_retry_instant()
+    {
+        using var fixture = Cbi66Fixture();
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var actual = await Cbi66RunAsync(fixture.RootElement, vector);
+            Assert.That(actual, Is.EqualTo(Cbi66Expected(vector)),
+                $"vector {vector.GetProperty("name").GetString()}");
+        }
+    }
+
+    [Test]
+    public void Cbi66_C1_a_gap_longer_than_the_interval_is_refused()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"brontide-cbi66-{Guid.NewGuid():N}");
+        try
+        {
+            var journal = Cbi65Journal(Path.Combine(root, "cadence.bin"));
+            journal.BeginCycle();
+            journal.CommitCycle(ProviderServingTrustCycleCodes.Current);
+            // The interval is the host's own upper bound, so a gap beyond it is not a shortened one.
+            var refused = journal.CompleteGap(Cbi65Start + Cbi65Interval + TimeSpan.FromSeconds(1));
+            Assert.Multiple(() =>
+            {
+                Assert.That(refused.Code, Is.EqualTo("durable-cadence-gap-invalid"));
+                Assert.That(refused.Snapshot.Gaps, Is.Empty);
+                Assert.That(journal.CompleteGap(Cbi65Start + Cbi65Interval).Code,
+                    Is.EqualTo("durable-cadence-gap-completed"));
+            });
+        }
+        finally
+        {
+            Cbi32DeleteTree(root);
+        }
+    }
+
+    [Test]
+    public async Task Cbi66_C3_every_gap_is_positive_and_within_the_interval()
+    {
+        using var fixture = Cbi66Fixture();
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var name = vector.GetProperty("name").GetString();
+            var interval = vector.GetProperty("intervalSeconds").GetInt32();
+            var actual = await Cbi66RunAsync(fixture.RootElement, vector);
+            foreach (var gap in Cbi60Split(actual.Gaps).Select(int.Parse))
+            {
+                Assert.That(gap, Is.GreaterThan(0), name);
+                Assert.That(gap, Is.LessThanOrEqualTo(interval), name);
+            }
+        }
+    }
+
+    [Test]
+    public async Task Cbi66_C4_a_run_with_no_outage_keeps_the_interval()
+    {
+        using var fixture = Cbi66Fixture();
+        var actual = await Cbi66RunAsync(
+            fixture.RootElement, Cbi66Vector(fixture, "a-run-with-no-outage-keeps-the-interval"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(actual.Gaps, Is.EqualTo("30,30"));
+            Assert.That(actual.DecisionCodes, Is.EqualTo("none,none,none"));
+        });
+    }
+
+    [Test]
+    public void Cbi66_C5_a_record_whose_gaps_are_all_the_interval_reopens_unchanged()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"brontide-cbi66-{Guid.NewGuid():N}");
+        var path = Path.Combine(root, "cadence.bin");
+        try
+        {
+            var journal = Cbi65Journal(path);
+            journal.BeginCycle();
+            journal.CommitCycle(ProviderServingTrustCycleCodes.Current);
+            journal.CompleteGap(Cbi65Start + Cbi65Interval);
+            journal.BeginCycle();
+            journal.CommitCycle(ProviderServingTrustCycleCodes.Current);
+            var written = journal.Snapshot.Gaps;
+
+            var reopened = DurableProviderTrustCadenceJournal.Open(
+                path, ProviderTrustCadenceRunId.Create("cbi65-run"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(written, Is.EqualTo(new[] { Cbi65Interval }));
+                Assert.That(reopened.Journal, Is.Not.Null);
+                Assert.That(reopened.Journal!.Snapshot.Gaps, Is.EqualTo(written));
+            });
+        }
+        finally
+        {
+            Cbi32DeleteTree(root);
+        }
+    }
+
+    /// <summary>
+    /// A cadence cannot detect an outage before it looks, so the first outage cycle still falls on the
+    /// ordinary interval. Where one was seen before the deadline, expiry must land on the deadline
+    /// itself rather than at the next scheduled cycle.
+    /// </summary>
+    [Test]
+    public async Task Cbi66_C6_expiry_is_observed_at_the_deadline_once_an_outage_is_seen()
+    {
+        using var fixture = Cbi66Fixture();
+        foreach (var vector in fixture.RootElement.GetProperty("vectors").EnumerateArray())
+        {
+            var name = vector.GetProperty("name").GetString();
+            var actual = await Cbi66RunAsync(fixture.RootElement, vector);
+            if (actual.Expiry is not { } expiry) continue;
+            var decisions = Cbi60Split(actual.DecisionCodes);
+            var instants = Cbi60Split(actual.Instants).Select(int.Parse).ToArray();
+            var establishing = decisions.Select((code, index) => (code, index))
+                .Where(item => item.code == "none").Select(item => instants[item.index]).ToArray();
+            var deadline = establishing[^1] + vector.GetProperty("graceSeconds").GetInt32();
+            var sawOutageFirst = decisions.Any(code => code == "offline-idle");
+            Assert.That(expiry, sawOutageFirst
+                ? Is.EqualTo(deadline)
+                : Is.GreaterThanOrEqualTo(deadline), name);
+        }
+    }
+
+    /// <summary>
+    /// The shared vectors run over an empty serving set, so their gaps are the gaps a serving cadence
+    /// waits only if CBI49's retry instant does not depend on the serving count. That is a claim about
+    /// a dependency, so it is probed rather than assumed.
+    /// </summary>
+    [Test]
+    public void Cbi66_C2_the_retry_instant_does_not_depend_on_the_serving_count()
+    {
+        var policy = ProviderTrustOfflinePolicy.Create(
+            TimeSpan.FromSeconds(100), TimeSpan.FromSeconds(40));
+        var lastCurrent = Cbi65Start;
+        var now = Cbi65Start + TimeSpan.FromSeconds(30);
+        var idle = policy.Evaluate(
+            now, lastCurrent, "policy-poll-exhausted", "policy-distribution-transport-failed", 0);
+        var serving = policy.Evaluate(
+            now, lastCurrent, "policy-poll-exhausted", "policy-distribution-transport-failed", 2);
+        Assert.Multiple(() =>
+        {
+            Assert.That(idle.Code, Is.EqualTo("offline-idle"));
+            Assert.That(serving.Code, Is.EqualTo("offline-existing-service"));
+            Assert.That(idle.RetryAt, Is.EqualTo(serving.RetryAt));
+            Assert.That(idle.Deadline, Is.EqualTo(serving.Deadline));
+        });
+    }
+
     private static DurableProviderTrustCadenceJournal Cbi65Journal(string path) =>
         DurableProviderTrustCadenceJournal.Establish(
             path, ProviderTrustCadenceRunId.Create("cbi65-run"),

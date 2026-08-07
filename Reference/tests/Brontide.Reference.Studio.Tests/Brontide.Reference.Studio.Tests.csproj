@@ -210,5 +210,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi65-availability-baseline-vectors.json"
           Link="component-management\fixtures\cbi65-availability-baseline-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi66-retry-aware-gaps-vectors.json"
+          Link="component-management\fixtures\cbi66-retry-aware-gaps-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

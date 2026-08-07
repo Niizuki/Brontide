@@ -231,10 +231,11 @@ public sealed class ProviderServingTrustCadence(ProviderServingTrustCadenceSched
 
             if (cycles.Count > 0)
             {
+                var duration = NextGap(cycles[^1], instant);
                 DateTimeOffset next;
                 try
                 {
-                    next = await delay.DelayAsync(instant, schedule.Interval, cancellationToken)
+                    next = await delay.DelayAsync(instant, duration, cancellationToken)
                         .ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
@@ -246,7 +247,7 @@ public sealed class ProviderServingTrustCadence(ProviderServingTrustCadenceSched
                 if (next <= instant)
                     throw new InvalidOperationException("A cadence delay must advance the cycle instant.");
                 instant = next;
-                gaps.Add(schedule.Interval);
+                gaps.Add(duration);
             }
 
             var result = await cycle.RunAsync(instant, cancellationToken).ConfigureAwait(false);
@@ -258,5 +259,25 @@ public sealed class ProviderServingTrustCadence(ProviderServingTrustCadenceSched
         }
 
         return new("provider-trust-cadence-complete", cycles, gaps);
+    }
+
+    /// <summary>
+    /// The schedule interval, or the availability retry instant the cycle just run asked for when
+    /// that is sooner. CBI49 caps its retry instant at the deadline, so honouring it is what makes a
+    /// cadence land on the deadline rather than at the first scheduled cycle after it — an interval
+    /// longer than grace would otherwise serve well past the moment the host asked service to stop.
+    ///
+    /// A retry instant further away than the interval changes nothing: a policy that only ever asks
+    /// to be consulted sooner must not be able to slow the host's own schedule down. A non-positive
+    /// gap is unreachable, because a retry instant is issued only while the evaluating instant is
+    /// strictly inside grace; the delay-must-advance check below is where such a decision would show.
+    /// </summary>
+    private TimeSpan NextGap(ProviderServingTrustCadenceCycle previous, DateTimeOffset instant)
+    {
+        if (previous.Result.Availability?.RetryAt is not { } retryAt) return schedule.Interval;
+        var requested = retryAt - instant;
+        return requested > TimeSpan.Zero && requested < schedule.Interval
+            ? requested
+            : schedule.Interval;
     }
 }
