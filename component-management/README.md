@@ -981,6 +981,19 @@ deriving anything. Four vectors carry identical evidence over four different reg
 is what forces the derivation to come from the registry rather than be restated from the evidence.
 The fixture contains no journal, registry, clock, endpoint, or key material.
 
+### `cbi64-cadence-availability` sections
+
+`schedule` names the shared cadence interval and the CBI49 grace and retry intervals every vector
+uses; `polls` names every outcome CBI41 can return, paired with a last-attempt code its own code path
+produces. Each vector scripts one poll outcome per cycle and the number of members the host has
+serving, and pins the cadence code, the ordered cycle codes, each cycle's CBI49 decision and CBI50
+enforcement code, the members stopped per cycle, whether the deadline moved across the run, and how
+many members are still serving at the end. Grace is five intervals, so a vector can hold an outage
+open and reach its deadline inside its own budget — which is what makes a cadence that refreshes its
+baseline fail rather than merely look different. Two vectors share a poll code and differ only in the
+last attempt, which is what forces eligibility to read both facts. The fixture contains no key
+material, source, registry, clock, transport, floor store, or serving member.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations

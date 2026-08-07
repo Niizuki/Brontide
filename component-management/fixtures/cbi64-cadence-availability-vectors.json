@@ -1,0 +1,183 @@
+{
+  "comment": "CBI64 composes CBI49's availability policy and CBI50's enforcement into the CBI47 cadence. A vector scripts one poll outcome per cycle and the serving set the host would snapshot, and pins what the cadence did about it.",
+  "schedule": {
+    "comment": "The cadence budget is each vector's scripted cycle count, so a budget and a script can never disagree. Grace is five intervals, so a vector can hold an outage open and still reach its deadline.",
+    "intervalSeconds": 60,
+    "graceSeconds": 300,
+    "retrySeconds": 60
+  },
+  "polls": {
+    "comment": "Every poll outcome CBI41 can return, paired with a last-attempt code its own code path can produce. Only 'transport' and 'timeout' are grace-eligible under CBI49 C2; 'stale' shares their poll code and is not, which is what proves eligibility reads both facts.",
+    "current": { "code": "policy-poll-current", "lastAttemptCode": "policy-distribution-current" },
+    "transport": { "code": "policy-poll-exhausted", "lastAttemptCode": "policy-distribution-transport-failed" },
+    "timeout": { "code": "policy-poll-exhausted", "lastAttemptCode": "policy-distribution-timeout" },
+    "stale": { "code": "policy-poll-exhausted", "lastAttemptCode": "policy-distribution-stale" },
+    "refused": { "code": "policy-poll-refused", "lastAttemptCode": "policy-update-authority-mismatch" },
+    "unretained": { "code": "policy-poll-floor-unretained", "lastAttemptCode": "policy-distribution-applied" },
+    "canceled": { "code": "policy-poll-canceled", "lastAttemptCode": null }
+  },
+  "vectors": [
+    {
+      "name": "outage-inside-grace-preserves-service",
+      "comment": "One cycle establishes current policy, then the endpoint is unreachable for three cycles. Every outage cycle is inside grace, so the cadence continues and stops nobody.",
+      "servingCount": 2,
+      "cycles": ["current", "transport", "transport", "transport"],
+      "cadenceCode": "provider-trust-cadence-complete",
+      "cycleCodes": [
+        "provider-trust-cycle-current",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-offline"
+      ],
+      "decisionCodes": [null, "offline-existing-service", "offline-existing-service", "offline-existing-service"],
+      "enforcementCodes": [null, "offline-enforcement-continuing", "offline-enforcement-continuing", "offline-enforcement-continuing"],
+      "stopped": [0, 0, 0, 0],
+      "deadlineMoved": false,
+      "finalServing": 2
+    },
+    {
+      "name": "grace-expires-while-the-cadence-runs",
+      "comment": "The deadline is five intervals after the only current cycle, so the sixth cycle is at the deadline exactly. A cadence that refreshed its baseline each cycle would never reach it.",
+      "servingCount": 2,
+      "cycles": ["current", "timeout", "timeout", "timeout", "timeout", "timeout"],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "cycleCodes": [
+        "provider-trust-cycle-current",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-stopped"
+      ],
+      "decisionCodes": [
+        null, "offline-existing-service", "offline-existing-service", "offline-existing-service",
+        "offline-existing-service", "offline-grace-expired"
+      ],
+      "enforcementCodes": [
+        null, "offline-enforcement-continuing", "offline-enforcement-continuing",
+        "offline-enforcement-continuing", "offline-enforcement-continuing", "offline-enforcement-stopped"
+      ],
+      "stopped": [0, 0, 0, 0, 0, 2],
+      "deadlineMoved": false,
+      "finalServing": 0
+    },
+    {
+      "name": "recovery-inside-grace-rearms-the-deadline",
+      "comment": "The endpoint returns before the deadline, which moves the baseline forward, so the outage that follows is measured from the recovery rather than from the first current cycle.",
+      "servingCount": 2,
+      "cycles": ["current", "transport", "current", "transport", "transport"],
+      "cadenceCode": "provider-trust-cadence-complete",
+      "cycleCodes": [
+        "provider-trust-cycle-current",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-current",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-offline"
+      ],
+      "decisionCodes": [null, "offline-existing-service", null, "offline-existing-service", "offline-existing-service"],
+      "enforcementCodes": [
+        null, "offline-enforcement-continuing", null,
+        "offline-enforcement-continuing", "offline-enforcement-continuing"
+      ],
+      "stopped": [0, 0, 0, 0, 0],
+      "deadlineMoved": true,
+      "finalServing": 2
+    },
+    {
+      "name": "an-outage-with-no-baseline-stops-service",
+      "comment": "The first cycle of the run is already an outage, so CBI49 has no last-current instant and refuses to invent one.",
+      "servingCount": 2,
+      "cycles": ["transport"],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "cycleCodes": ["provider-trust-cycle-stopped"],
+      "decisionCodes": ["offline-service-stop-required"],
+      "enforcementCodes": ["offline-enforcement-stopped"],
+      "stopped": [2],
+      "deadlineMoved": false,
+      "finalServing": 0
+    },
+    {
+      "name": "an-empty-serving-set-is-idle-and-continues",
+      "comment": "Inside grace with nothing to preserve. CBI50 reports idle, which permits continuation, so the cadence keeps polling an endpoint that may return.",
+      "servingCount": 0,
+      "cycles": ["current", "transport", "transport"],
+      "cadenceCode": "provider-trust-cadence-complete",
+      "cycleCodes": [
+        "provider-trust-cycle-current",
+        "provider-trust-cycle-offline",
+        "provider-trust-cycle-offline"
+      ],
+      "decisionCodes": [null, "offline-idle", "offline-idle"],
+      "enforcementCodes": [null, "offline-enforcement-idle", "offline-enforcement-idle"],
+      "stopped": [0, 0, 0],
+      "deadlineMoved": false,
+      "finalServing": 0
+    },
+    {
+      "name": "a-registry-refusal-is-not-availability",
+      "comment": "An update the registry cannot verify is inside grace and would be preserved if eligibility were ignored. CBI49 C2 refuses to relabel it, so service stops with the poll's own code.",
+      "servingCount": 2,
+      "cycles": ["current", "refused"],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "cycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-stopped"],
+      "decisionCodes": [null, "offline-service-stop-required"],
+      "enforcementCodes": [null, "offline-enforcement-stopped"],
+      "stopped": [0, 2],
+      "deadlineMoved": false,
+      "finalServing": 0
+    },
+    {
+      "name": "an-exhausted-stale-window-is-not-availability",
+      "comment": "The same poll code as the outage vectors with a different last attempt. This pair is what forces eligibility to read both facts: a rule that keyed on the poll code alone would preserve service here.",
+      "servingCount": 2,
+      "cycles": ["current", "stale"],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "cycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-stopped"],
+      "decisionCodes": [null, "offline-service-stop-required"],
+      "enforcementCodes": [null, "offline-enforcement-stopped"],
+      "stopped": [0, 2],
+      "deadlineMoved": false,
+      "finalServing": 0
+    },
+    {
+      "name": "an-unretained-policy-floor-is-not-availability",
+      "comment": "The poll applied an update it could not guard. Its last attempt succeeded, so only the poll code refuses eligibility here — the mirror of the vector above.",
+      "servingCount": 2,
+      "cycles": ["current", "unretained"],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "cycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-stopped"],
+      "decisionCodes": [null, "offline-service-stop-required"],
+      "enforcementCodes": [null, "offline-enforcement-stopped"],
+      "stopped": [0, 2],
+      "deadlineMoved": false,
+      "finalServing": 0
+    },
+    {
+      "name": "cancellation-enforces-nothing",
+      "comment": "A canceled poll is the host stopping its own loop. No availability observation is made and every provider is left serving for whatever the host does next.",
+      "servingCount": 2,
+      "cycles": ["current", "canceled"],
+      "cadenceCode": "provider-trust-cadence-canceled",
+      "cycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-canceled"],
+      "decisionCodes": [null, null],
+      "enforcementCodes": [null, null],
+      "stopped": [0, 0],
+      "deadlineMoved": false,
+      "finalServing": 2
+    },
+    {
+      "name": "a-refused-snapshot-stops-nothing",
+      "comment": "The host offers the same occurrence twice during an outage. CBI50 refuses the snapshot before evaluating any policy, so there is no decision, nothing is stopped, and the cadence stops with the poll's code.",
+      "servingCount": 2,
+      "duplicateSnapshot": true,
+      "cycles": ["current", "transport"],
+      "cadenceCode": "provider-trust-cadence-stopped",
+      "cycleCodes": ["provider-trust-cycle-current", "provider-trust-cycle-stopped"],
+      "decisionCodes": [null, null],
+      "enforcementCodes": [null, "offline-enforcement-invalid"],
+      "stopped": [0, 0],
+      "deadlineMoved": false,
+      "finalServing": 2
+    }
+  ]
+}

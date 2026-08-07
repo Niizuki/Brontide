@@ -1261,9 +1261,42 @@ which would read every effect as applied, and a cursor above the observed state 
 rollback it is rather than as an absence of effect. The
 [`CBI63 capability contract`](../../component-management/cbi63-capability-contract.md) and
 [`contract-completeness review`](../../component-management/cbi63-contract-completeness-review.md)
-bound it to what the local durable record states. A host that terminates providers when CBI49's grace
-expires — which CBI49 names as its own deliberate limit and which no slice has yet taken — is the next
-bounded implementation boundary.
+bound it to what the local durable record states.
+
+CBI64 puts CBI49's availability policy and CBI50's enforcement inside the cadence, and its first
+result is that **the boundary CBI63 named was already closed and the real one was next to it**. CBI63
+pointed at "a host that terminates providers when CBI49's grace expires"; CBI50 has done that since
+2026-08-05, and the sentence was copied from CBI49's deliberate-limits section, which nobody revised
+when the slice discharging it landed. That is the fifth stated limit in this programme describing how
+something was called rather than a rule anything applied, and the second the programme wrote about
+itself. The actual hole is one step over: **CBI49 and CBI50 existed and nothing that polls repeatedly
+had ever called them.** CBI47's cycle mapped every non-current poll to `provider-trust-cycle-stopped`
+and ended the run, so an outage left every provider serving with no deadline — neither of the two
+answers CBI49 offers.
+
+Its finding is a property only a repeated evaluator can exercise. CBI49 states that repeated
+evaluation uses the original last-current instant and cannot extend the deadline; its own vectors
+evaluate once each, so nothing had ever tested it, and a cadence is exactly the caller that can get it
+wrong. **A cadence that took each cycle's own instant as the baseline would report existing service
+forever**, and the failure is invisible in every single-cycle vector because the deadline simply never
+arrives. A vector holds an outage open across five cycles to its deadline, and a deliberate defect was
+watched turning it into an endless one.
+
+Two decisions come from the contracts rather than from preference. **Every non-current poll reaches a
+decision, not only the grace-eligible third** — routing only the eligible outcomes would leave CBI49's
+other two answers unreachable from any cadence, which is the composition deciding availability where
+nothing can see it. And **the cycle code still names why policy could not be established, with
+availability recorded beside it**, so CBI61's `provider-trust-cycle-authority-behind` attribution
+survives a cycle that stopped every member; that refusal is never grace-eligible, so collapsing the
+two facts into one code would have cost it. Cancellation is put ahead of the evaluation for the
+reason it is not an endpoint failure: CBI49 would classify a canceled poll as
+`offline-service-stop-required`, so an ordinary shutdown request would otherwise become an
+availability withdrawal. The
+[`CBI64 capability contract`](../../component-management/cbi64-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi64-contract-completeness-review.md)
+bound it to one bounded host-driven cadence, and name what it does not reach: the baseline is
+run-local, so a durable cadence resumed after a crash has none and its first outage stops service —
+deriving one from CBI48's committed observations is the next bounded implementation boundary.
 
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —

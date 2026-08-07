@@ -77,6 +77,7 @@ public static class ProviderServingTrustCycleCodes
     public const string Canceled = "provider-trust-cycle-canceled";
     public const string AuthorityBehind = "provider-trust-cycle-authority-behind";
     public const string AuthorityUnretained = "provider-trust-cycle-authority-unretained";
+    public const string Offline = "provider-trust-cycle-offline";
 
     private static readonly Dictionary<string, bool> Continuing = new(StringComparer.Ordinal)
     {
@@ -86,6 +87,7 @@ public static class ProviderServingTrustCycleCodes
         [Canceled] = false,
         [AuthorityBehind] = false,
         [AuthorityUnretained] = false,
+        [Offline] = true,
     };
 
     public static IReadOnlyCollection<string> All => Continuing.Keys;
@@ -97,17 +99,39 @@ public static class ProviderServingTrustCycleCodes
 }
 
 /// <summary>
+/// What one cycle's availability evaluation decided and what enforcing it did. The cycle reports the
+/// CBI49 decision and CBI50's counts rather than CBI50's own result, which keeps this result free of
+/// the enforcement component's types; per-member evidence stays where its ordering and
+/// failure-isolation properties are pinned. <paramref name="DecisionCode"/> is absent when CBI50
+/// refused the serving snapshot before any policy was evaluated.
+/// </summary>
+public sealed record ProviderTrustCycleAvailability(
+    string EnforcementCode,
+    string? DecisionCode,
+    DateTimeOffset? Deadline,
+    DateTimeOffset? RetryAt,
+    int AdmittedCount,
+    int StoppedCount)
+{
+    public bool PermitsContinuation =>
+        DecisionCode is "offline-existing-service" or "offline-idle";
+}
+
+/// <summary>
 /// One cycle's observations. <paramref name="Rotation"/> is absent for a cadence that does not
 /// govern authority rotation, which is every cadence composed before CBI61; a governed cycle carries
 /// the CBI60 result it ran before the poll, and <paramref name="Poll"/> is absent when that rotation
-/// stopped the cycle before the policy endpoint was contacted.
+/// stopped the cycle before the policy endpoint was contacted. <paramref name="Availability"/> is
+/// absent for a cadence that governs no availability policy, which is every cadence composed before
+/// CBI64, and for a cycle that established current policy or never reached the endpoint.
 /// </summary>
 public sealed record ProviderServingTrustCycleResult(
     string Code,
     ProviderPublisherTrustPolicyPollResult? Poll,
     ProviderServingTrustSweepResult? Sweep,
     int ServingCount,
-    ProviderPolicyAuthorityCycleResult? Rotation = null)
+    ProviderPolicyAuthorityCycleResult? Rotation = null,
+    ProviderTrustCycleAvailability? Availability = null)
 {
     public bool CanContinue => ProviderServingTrustCycleCodes.Continues(Code);
     public bool IsCanceled => Code == ProviderServingTrustCycleCodes.Canceled;

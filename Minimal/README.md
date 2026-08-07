@@ -194,7 +194,13 @@ The implementation currently provides:
   marks an attempt in-flight — sound where CBI62's refused marker was not, because it precedes the
   effect rather than following it — deriving the rotation and policy observations from it rather than
   accepting them, and narrowing the evidence to the serving verdict nothing can check;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI63 integration
+  CBI64 puts CBI49's availability policy and CBI50's enforcement inside the cadence, which nothing
+  that polls repeatedly had ever reached — an outage used to end the run with every provider still
+  serving — keeping the baseline at the most recent cycle whose poll was current so the deadline
+  arrives, routing every non-current poll to a decision rather than only the grace-eligible ones, and
+  leaving the cycle code naming why current policy could not be established so CBI61's attribution
+  survives a cycle that stopped every member;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI64 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range
