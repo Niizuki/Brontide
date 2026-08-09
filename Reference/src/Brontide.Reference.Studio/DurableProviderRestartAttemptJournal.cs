@@ -398,7 +398,7 @@ public static class DurableProviderRestartRecovery
         DurableProviderPublisherTrustPolicyRegistry registry,
         ContentAddressedProviderStore store,
         ProviderServingActivation activation,
-        ProviderRestartCause cause,
+        ProviderStopAttribution attribution,
         ProviderPublisherTrustPolicyId currentCyclePolicyIdentity,
         DateTimeOffset now)
     {
@@ -412,13 +412,13 @@ public static class DurableProviderRestartRecovery
         if (snapshot.Phase == "in-flight") return new("durable-restart-indeterminate", snapshot, null, null);
         DateTimeOffset? lastAttempt = snapshot.Attempts.Count == 0 ? null : snapshot.Attempts[^1].Instant;
         var decision = journal.Policy.Evaluate(
-            registry, activation, cause, currentCyclePolicyIdentity, now,
+            registry, activation, attribution, currentCyclePolicyIdentity, now,
             snapshot.Attempts.Count, lastAttempt);
         if (!decision.MayRestart) return new(decision.Code, snapshot, decision, null);
         var begun = journal.BeginAttempt(now);
         if (begun.Code != "durable-restart-attempt-started") return new(begun.Code, begun.Snapshot, decision, null);
         var enforcement = await ProviderRestartEnforcement.RunAsync(
-            journal.Policy, registry, store, activation, cause, currentCyclePolicyIdentity,
+            journal.Policy, registry, store, activation, attribution, currentCyclePolicyIdentity,
             now, snapshot.Attempts.Count, lastAttempt).ConfigureAwait(false);
         var committed = journal.CommitAttempt(
             enforcement.Code, enforcement.RefusedBy, enforcement.ProviderStarted,

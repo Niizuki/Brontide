@@ -43,7 +43,7 @@ public sealed class ProviderRestartPolicy
     public ProviderRestartDecision Evaluate(
         DurableProviderPublisherTrustPolicyRegistry registry,
         ProviderServingActivation activation,
-        ProviderRestartCause cause,
+        ProviderStopAttribution attribution,
         ProviderPublisherTrustPolicyId currentCyclePolicyIdentity,
         DateTimeOffset now,
         int attemptCount,
@@ -51,6 +51,7 @@ public sealed class ProviderRestartPolicy
     {
         ArgumentNullException.ThrowIfNull(registry);
         ArgumentNullException.ThrowIfNull(activation);
+        ArgumentNullException.ThrowIfNull(attribution);
 
         if (attemptCount < 0 || attemptCount > MaximumAttempts
             || attemptCount == 0 && lastAttempt is not null
@@ -62,10 +63,14 @@ public sealed class ProviderRestartPolicy
 
         if (activation.IsServing)
             return Denied("provider-restart-not-required", "state");
-        if (cause is ProviderRestartCause.PublisherTrustWithdrawal or ProviderRestartCause.OperatorRetirement)
+        // The attribution is issued about one activation, so one about a different occurrence is a
+        // caller mistake rather than a cause. The refusals below are unchanged; what changed is that
+        // the caller no longer chooses which of them applies.
+        if (attribution.Occurrence != activation.Occurrence)
+            return Denied("provider-restart-attribution-mismatch", "attribution");
+        if (attribution.Cause is ProviderRestartCause.PublisherTrustWithdrawal
+            or ProviderRestartCause.OperatorRetirement)
             return Denied("provider-restart-cause-refused", "cause");
-        if (cause is not ProviderRestartCause.UnexpectedExit and not ProviderRestartCause.OfflineAvailability)
-            throw new ArgumentOutOfRangeException(nameof(cause));
 
         var chain = activation.Chain;
         var current = registry.Current;

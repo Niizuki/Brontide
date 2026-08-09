@@ -23,8 +23,9 @@ module ProviderOfflineServiceEnforcement =
     [<Literal>]
     let MaximumMembers = 64
 
-    let run (policy: ProviderTrustOfflinePolicy) now lastCurrent pollCode lastAttemptCode
-        (activations: ProviderServingActivation list) retirementReason = task {
+    let runRecording (policy: ProviderTrustOfflinePolicy) now lastCurrent pollCode lastAttemptCode
+        (activations: ProviderServingActivation list) retirementReason
+        (attributions: DurableProviderStopAttributionStore option) = task {
         if isNull (box policy) then nullArg (nameof policy)
         if isNull (box activations) then nullArg (nameof activations)
         if String.IsNullOrWhiteSpace retirementReason then
@@ -59,6 +60,14 @@ module ProviderOfflineServiceEnforcement =
                         | _ -> true
                     members.Add { Occurrence = activation.OccurrenceId; RetirementCode = retirementCode
                                   ProviderStopped = providerStopped }
+                    // After the effect, never before. An interruption here leaves a stop with no
+                    // record, which reads as an unexpected exit — restartable, which is what an
+                    // availability stop wanted anyway; the opposite order would claim a stop that had
+                    // not happened.
+                    match attributions, activation.DistributionChain.StagedIdentity with
+                    | Some store, Some staged ->
+                        store.Record(activation.OccurrenceId, staged, now, OfflineAvailability) |> ignore
+                    | _ -> ()
                 let observations = List.ofSeq members
                 let stopped = observations |> List.filter _.ProviderStopped |> List.length
                 let code =
@@ -69,3 +78,56 @@ module ProviderOfflineServiceEnforcement =
                 return { Code = code; RefusedBy = "none"; Decision = Some decision
                          Members = observations; AdmittedCount = activations.Length; StoppedCount = stopped }
     }
+
+    let run policy now lastCurrent pollCode lastAttemptCode activations retirementReason =
+        runRecording policy now lastCurrent pollCode lastAttemptCode activations retirementReason None
+
+/// Records one stop for an activation, which is what every writer in the host holds.
+[<RequireQualifiedAccess>]
+module ProviderStopAttributions =
+    let record
+        (attributions: DurableProviderStopAttributionStore)
+        (activation: ProviderServingActivation)
+        (instant: DateTimeOffset)
+        cause
+        =
+        match activation.DistributionChain.StagedIdentity with
+        | Some staged -> attributions.Record(activation.OccurrenceId, staged, instant, cause)
+        | None -> "provider-stop-attribution-activation-unavailable"
+
+    let attribute
+        (attributions: DurableProviderStopAttributionStore)
+        (activation: ProviderServingActivation)
+        =
+        match activation.DistributionChain.StagedIdentity with
+        | Some staged -> attributions.Attribute(activation.OccurrenceId, staged)
+        | None -> { Code = "provider-stop-attribution-activation-unavailable"; Attribution = None }
+
+/// The one path by which an operator retirement becomes attributable. A retirement issued outside the
+/// host leaves no record and an exited process, which is indistinguishable from an unexpected exit —
+/// that is the bound on what this slice can attribute, and it is stated rather than implied away.
+[<RequireQualifiedAccess>]
+module ProviderOperatorRetirement =
+    let retire
+        (attributions: DurableProviderStopAttributionStore)
+        (activation: ProviderServingActivation)
+        (reason: string)
+        (now: DateTimeOffset)
+        =
+        task {
+            if isNull (box attributions) then nullArg (nameof attributions)
+            if isNull (box activation) then nullArg (nameof activation)
+            if String.IsNullOrWhiteSpace reason then
+                invalidArg (nameof reason) "A retirement reason is required."
+            match activation.DistributionChain.StagedIdentity with
+            | None -> return "provider-stop-attribution-activation-unavailable"
+            | Some stagedIdentity ->
+                if activation.IsServing then
+                    let! _ = activation.Retire reason
+                    ()
+                match activation.DistributionChain.Provider with
+                | Some provider when not provider.HasExited -> provider.Dispose()
+                | _ -> ()
+                return attributions.Record(
+                    activation.OccurrenceId, stagedIdentity, now, OperatorRetirement)
+        }

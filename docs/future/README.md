@@ -1361,6 +1361,37 @@ The [`CBI66 capability contract`](../../component-management/cbi66-capability-co
 bound it to one bounded host-driven cadence and keep CBI41's poll backoff and CBI60's rotation backoff
 where they are.
 
+CBI67 takes the boundary CBI50 and CBI64 both name — durable recording of a stop — and its result is
+that **the record is the means and not the capability**. Neither slice says what the absence costs, and
+reading CBI51 shows it: `ProviderRestartPolicy.Evaluate` took a `ProviderRestartCause` **the caller
+passed in**, and two of its four values are refusals, so the caller chose which refusal applied to it.
+
+**Only one of the three wrong claims was unguarded, and checking is what showed which.** A withdrawn
+publisher fails CBI51's own authorization check whatever cause is claimed; an unexpected exit is the
+restartable case anyway. Operator retirement is neither — the publisher is still trusted, so every
+other condition passes — so a caller saying `OfflineAvailability` about a provider someone
+deliberately retired got a restart the policy would have denied. That one case is the whole of what
+an attributable record buys, and saying so is more useful than implying it guards all four. The cause
+is now issued rather than asserted: an opaque attribution with no public construction path, obtainable
+only from the store.
+
+**The ordering is CBI41's rule in its third instance.** A record is a statement about something that
+happened, so it cannot precede the thing it describes. Written first and interrupted, it claims a stop
+that did not occur and CBI52 launches a second provider for an occurrence still serving; written
+after, an interruption leaves a stop with no record, which reads as an unexpected exit — restartable,
+which is what an availability stop wanted, and refused anyway for a withdrawn publisher by a check
+that does not depend on this record. **Absence therefore means the host did not stop it**, which is
+the only reading every writer's behaviour supports, and an unexpected exit cannot be written down at
+all, because absence is what it is.
+
+What the slice will not claim is the retirement it cannot see: **an operator who kills a provider from
+outside the host leaves no record and an exited process**, which is indistinguishable from an
+unexpected exit. The
+[`CBI67 capability contract`](../../component-management/cbi67-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi67-contract-completeness-review.md)
+bound it to the stops the host performs, under one host-local single-writer store with CBI42's custody
+limit unchanged.
+
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —
 Decision 13 still blocks every activation of a CM3 group that declares a bounded lifecycle protocol.

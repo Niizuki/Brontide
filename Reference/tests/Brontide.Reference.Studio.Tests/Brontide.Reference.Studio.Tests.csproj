@@ -213,5 +213,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi66-retry-aware-gaps-vectors.json"
           Link="component-management\fixtures\cbi66-retry-aware-gaps-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi67-stop-attribution-vectors.json"
+          Link="component-management\fixtures\cbi67-stop-attribution-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

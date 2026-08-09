@@ -139,9 +139,14 @@ public sealed partial class ComponentBindingIntegrationTests
                 var proof = scenario == "restart-cycle-mismatch"
                     ? Cbi44Policy(Cbi44Entry(Cbi44OtherPublisher, revoked: false)).Identity
                     : currentBefore;
-                var cause = scenario == "restart-cause-refused"
-                    ? ProviderRestartCause.OperatorRetirement
-                    : ProviderRestartCause.OfflineAvailability;
+                var attributions = DurableProviderStopAttributionStore
+                    .Open(Path.Combine(root, "stops.bin")).Store!;
+                attributions.Record(
+                    activations[0], instant,
+                    scenario == "restart-cause-refused"
+                        ? ProviderRestartCause.OperatorRetirement
+                        : ProviderRestartCause.OfflineAvailability);
+                var cause = attributions.Attribute(activations[0]).Attribution!;
                 var attempts = scenario == "restart-exhausted" ? 3
                     : scenario is "restart-waiting" or "restart-invalid-observation" ? 1 : 0;
                 DateTimeOffset? lastAttempt = scenario switch
@@ -269,9 +274,14 @@ public sealed partial class ComponentBindingIntegrationTests
                 await File.AppendAllTextAsync(integrityProbe, "mutated");
             }
 
-            var cause = scenario == "restart-enforce-policy-refused"
-                ? ProviderRestartCause.OperatorRetirement
-                : ProviderRestartCause.OfflineAvailability;
+            var attributions = DurableProviderStopAttributionStore
+                .Open(Path.Combine(root, "stops.bin")).Store!;
+            attributions.Record(
+                original, instant,
+                scenario == "restart-enforce-policy-refused"
+                    ? ProviderRestartCause.OperatorRetirement
+                    : ProviderRestartCause.OfflineAvailability);
+            var cause = attributions.Attribute(original).Attribution!;
             var result = await ProviderRestartEnforcement.RunAsync(
                 ProviderRestartPolicy.Create(3, TimeSpan.FromMinutes(1)),
                 registry, store, original, cause, initial.Identity, instant, 0, null);

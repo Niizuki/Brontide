@@ -235,7 +235,8 @@ public static class ProviderOfflineServiceEnforcement
         string pollCode,
         string? lastAttemptCode,
         IReadOnlyList<ProviderServingActivation> activations,
-        string retirementReason)
+        string retirementReason,
+        DurableProviderStopAttributionStore? attributions = null)
     {
         ArgumentNullException.ThrowIfNull(policy);
         ArgumentNullException.ThrowIfNull(activations);
@@ -290,6 +291,14 @@ public static class ProviderOfflineServiceEnforcement
                 providerStopped = provider.HasExited;
             }
             members.Add(new(activation.Occurrence, retirementCode, providerStopped));
+            // After the effect, never before. An interruption here leaves a stop with no record,
+            // which reads as an unexpected exit — restartable, which is what an availability stop
+            // wanted anyway; the opposite order would claim a stop that had not happened.
+            if (activation.Chain.StagedIdentity is { } terminated)
+            {
+                attributions?.Record(
+                    activation.Occurrence, terminated, now, ProviderRestartCause.OfflineAvailability);
+            }
         }
 
         var stopped = members.Count(member => member.ProviderStopped);
@@ -314,7 +323,9 @@ public static class ProviderServingTrustSweep
         ContentAddressedProviderStore store,
         IReadOnlyList<ProviderServingActivation> activations,
         string retirementReason,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        DurableProviderStopAttributionStore? attributions = null,
+        DateTimeOffset? recordedAt = null)
     {
         ArgumentNullException.ThrowIfNull(activations);
         ArgumentException.ThrowIfNullOrWhiteSpace(retirementReason);
@@ -342,6 +353,13 @@ public static class ProviderServingTrustSweep
                 registry, store, activation, retirementReason, removeStagedSet: false, cancellationToken)
                 .ConfigureAwait(false);
             members.Add(new(activation.Occurrence, result));
+            // After the effect, never before: the record states that this member was stopped.
+            if (!result.Continued && activation.Chain.StagedIdentity is { } withdrawn)
+            {
+                attributions?.Record(
+                    activation.Occurrence, withdrawn, recordedAt ?? DateTimeOffset.UtcNow,
+                    ProviderRestartCause.PublisherTrustWithdrawal);
+            }
         }
 
         foreach (var stagedGroup in ordered

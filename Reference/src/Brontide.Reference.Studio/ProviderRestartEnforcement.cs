@@ -19,12 +19,12 @@ public static class ProviderRestartEnforcement
         DurableProviderPublisherTrustPolicyRegistry registry,
         ContentAddressedProviderStore store,
         ProviderServingActivation activation,
-        ProviderRestartCause cause,
+        ProviderStopAttribution attribution,
         ProviderPublisherTrustPolicyId currentCyclePolicyIdentity,
         DateTimeOffset now,
         int attemptCount,
         DateTimeOffset? lastAttempt) =>
-        await RunCoreAsync(policy, registry, store, activation, cause, currentCyclePolicyIdentity,
+        await RunCoreAsync(policy, registry, store, activation, attribution, currentCyclePolicyIdentity,
             now, attemptCount, lastAttempt, null).ConfigureAwait(false);
 
     internal static async ValueTask<ProviderRestartEnforcementResult> RunWithEffectEnvironmentAsync(
@@ -32,13 +32,13 @@ public static class ProviderRestartEnforcement
         DurableProviderPublisherTrustPolicyRegistry registry,
         ContentAddressedProviderStore store,
         ProviderServingActivation activation,
-        ProviderRestartCause cause,
+        ProviderStopAttribution attribution,
         ProviderPublisherTrustPolicyId currentCyclePolicyIdentity,
         DateTimeOffset now,
         int attemptCount,
         DateTimeOffset? lastAttempt,
         IReadOnlyDictionary<string, string> environment) =>
-        await RunCoreAsync(policy, registry, store, activation, cause, currentCyclePolicyIdentity,
+        await RunCoreAsync(policy, registry, store, activation, attribution, currentCyclePolicyIdentity,
             now, attemptCount, lastAttempt, environment).ConfigureAwait(false);
 
     private static async ValueTask<ProviderRestartEnforcementResult> RunCoreAsync(
@@ -46,7 +46,7 @@ public static class ProviderRestartEnforcement
         DurableProviderPublisherTrustPolicyRegistry registry,
         ContentAddressedProviderStore store,
         ProviderServingActivation activation,
-        ProviderRestartCause cause,
+        ProviderStopAttribution attribution,
         ProviderPublisherTrustPolicyId currentCyclePolicyIdentity,
         DateTimeOffset now,
         int attemptCount,
@@ -59,7 +59,7 @@ public static class ProviderRestartEnforcement
         ArgumentNullException.ThrowIfNull(activation);
 
         var decision = policy.Evaluate(
-            registry, activation, cause, currentCyclePolicyIdentity, now, attemptCount, lastAttempt);
+            registry, activation, attribution, currentCyclePolicyIdentity, now, attemptCount, lastAttempt);
         if (!decision.MayRestart)
             return Result(decision.Code, decision.RefusedBy, decision);
 

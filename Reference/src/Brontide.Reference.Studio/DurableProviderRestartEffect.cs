@@ -277,7 +277,7 @@ public static class ExternallyReconciledProviderRestartRecovery
         DurableProviderPublisherTrustPolicyRegistry registry,
         ContentAddressedProviderStore store,
         ProviderServingActivation activation,
-        ProviderRestartCause cause,
+        ProviderStopAttribution attribution,
         ProviderPublisherTrustPolicyId currentCyclePolicyIdentity,
         DateTimeOffset now)
     {
@@ -298,7 +298,7 @@ public static class ExternallyReconciledProviderRestartRecovery
         if (!journal.Matches(activation)) return new("durable-restart-lineage-mismatch", initial, null, null);
         if (initial.Phase == "terminal") return new(initial.Code, initial, null, null);
         DateTimeOffset? lastAttempt = initial.Attempts.Count == 0 ? null : initial.Attempts[^1].Instant;
-        var decision = journal.Policy.Evaluate(registry, activation, cause, currentCyclePolicyIdentity,
+        var decision = journal.Policy.Evaluate(registry, activation, attribution, currentCyclePolicyIdentity,
             now, initial.Attempts.Count, lastAttempt);
         if (!decision.MayRestart) return new(decision.Code, initial, decision, null);
 
@@ -312,7 +312,7 @@ public static class ExternallyReconciledProviderRestartRecovery
         var begun = journal.BeginAttempt(now);
         if (begun.Code != "durable-restart-attempt-started") return new(begun.Code, begun.Snapshot, decision, null);
         var enforcement = await ProviderRestartEnforcement.RunWithEffectEnvironmentAsync(
-            journal.Policy, registry, store, activation, cause, currentCyclePolicyIdentity,
+            journal.Policy, registry, store, activation, attribution, currentCyclePolicyIdentity,
             now, initial.Attempts.Count, lastAttempt, prepared.Effect.Environment).ConfigureAwait(false);
         var committed = journal.CommitAttempt(
             enforcement.Code, enforcement.RefusedBy, enforcement.ProviderStarted,

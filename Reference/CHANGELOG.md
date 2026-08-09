@@ -1,5 +1,35 @@
 # Changelog
 
+## Unreleased - CBI67 durable stop attribution
+
+### Added
+
+- `DurableProviderStopAttributionStore`, a host-local record of why the host stopped each occurrence's
+  provider, integrity-tagged as CBI42's floor store is and with the same limit.
+- `ProviderStopAttribution`, an opaque issuer-controlled value with no public construction path.
+- Writers on every path in the host that stops a provider — CBI50's availability enforcement, CBI46's
+  trust sweep, and an explicit operator retirement — each recording after the effect is complete.
+- Shared cross-stack vectors and C1-C8 tests.
+
+### Changed
+
+- `ProviderRestartPolicy.Evaluate` takes a `ProviderStopAttribution` in place of a
+  `ProviderRestartCause`, and the value threads through CBI52, CBI53, and CBI55 unchanged in shape.
+  Its refusals are unchanged; what changed is that the caller can no longer choose which applies.
+  A caller that constructed a cause now obtains one from the store instead.
+
+### Notes
+
+- Two of the three wrong claims were already caught by something else, and only checking showed which:
+  a withdrawn publisher fails CBI51's own authorization check whatever cause is claimed, and an
+  unexpected exit is the restartable case anyway. Operator retirement is the one that is neither, and
+  it is the whole of what the record buys.
+- A record is written after the stop, never before, because a record is a statement about something
+  that happened. The opposite order claims a stop that did not occur and would have CBI52 launch a
+  second provider for an occurrence still serving.
+- A stop the host did not perform cannot be attributed: an operator who kills a provider from outside
+  the host leaves no record and an exited process, which is indistinguishable from an unexpected exit.
+
 ## Unreleased - CBI66 retry-aware cadence gaps
 
 ### Fixed
