@@ -67,6 +67,7 @@ type private JournalCycleState =
 type private JournalState =
     { Format: string
       RunIdentity: string
+      OwnerEpoch: int64
       MaximumCycles: int
       IntervalTicks: int64
       PreparedInstant: DateTimeOffset
@@ -105,6 +106,7 @@ module private ProviderTrustCadenceJournalRecord =
             // the cadence to look sooner; it may never be longer, because the interval is the host's
             // own upper bound.
             && (value.GapTicks |> List.forall (fun gap -> gap > 0L && gap <= value.IntervalTicks))
+            && value.OwnerEpoch >= 0L
             && value.InterruptionCount >= 0 && value.RetryCount >= 0
             && value.RetryCount <= value.InterruptionCount
             // A cursor describes an attempt in flight, so it cannot outlive that phase, and a
@@ -150,6 +152,7 @@ module private ProviderTrustCadenceJournalRecord =
         writer.WriteStartObject()
         writer.WriteString("format", value.Format)
         writer.WriteString("runIdentity", value.RunIdentity)
+        writer.WriteNumber("ownerEpoch", value.OwnerEpoch)
         writer.WriteNumber("maximumCycles", value.MaximumCycles)
         writer.WriteNumber("intervalTicks", value.IntervalTicks)
         writer.WriteString("preparedInstant", value.PreparedInstant)
@@ -222,6 +225,13 @@ module private ProviderTrustCadenceJournalRecord =
             let value =
                 { Format = root.GetProperty("format").GetString() |> Option.ofObj |> Option.defaultValue ""
                   RunIdentity = root.GetProperty("runIdentity").GetString() |> Option.ofObj |> Option.defaultValue ""
+                  // Absent in a record written before CBI68, which reads as zero and is claimed at one
+                  // by its first write. Opening observes rather than claims, so no adoption rule is
+                  // needed for a host that is mid-run.
+                  OwnerEpoch =
+                    match root.TryGetProperty "ownerEpoch" with
+                    | true, property when property.ValueKind = JsonValueKind.Number -> property.GetInt64()
+                    | _ -> 0L
                   MaximumCycles = root.GetProperty("maximumCycles").GetInt32()
                   IntervalTicks = root.GetProperty("intervalTicks").GetInt64()
                   PreparedInstant = root.GetProperty("preparedInstant").GetDateTimeOffset()
@@ -284,6 +294,7 @@ module private ProviderTrustCadenceJournalRecord =
 type DurableProviderTrustCadenceJournal private (path: string, initial: JournalState) =
     let syncRoot = obj ()
     let mutable state = initial
+    let mutable ownerEpoch = initial.OwnerEpoch
 
     let project (value: JournalState) =
         { RunIdentity = ProviderTrustCadenceRunId.create value.RunIdentity
@@ -305,20 +316,44 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
 
     let current code = { Code = code; Snapshot = project state }
 
+    /// Answers a refusal when the record has been written past the epoch this holder last saw or
+    /// wrote, and `None` when it has not. Every transition calls this before it reads its own phase:
+    /// those preconditions are judged from in-memory state, and a superseded holder's state is known
+    /// to be out of date, so reporting one would name a protocol error the holder did not make instead
+    /// of the run it lost.
+    ///
+    /// Only a record this holder can read can prove supersession. One that cannot be read is left to
+    /// the write path that already handles it — a journal deleted or replaced by a directory has
+    /// answered `durable-cadence-write-failed` since CBI48, and reclassifying that as damage would
+    /// change an outcome this slice has no reason to touch.
+    let superseded () =
+        match ProviderTrustCadenceJournalRecord.tryRead path with
+        | Some record when record.OwnerEpoch <> ownerEpoch ->
+            Some(current "durable-cadence-owner-superseded")
+        | _ -> None
+
     let transition mutation acceptedCode =
-        let next = mutation state
+        let next = { mutation state with OwnerEpoch = ownerEpoch + 1L }
         if not (ProviderTrustCadenceJournalRecord.isValid next)
            || not (ProviderTrustCadenceJournalRecord.tryWrite path next) then
             current "durable-cadence-write-failed"
         else
             state <- next
+            ownerEpoch <- next.OwnerEpoch
             current acceptedCode
 
     member _.Snapshot = lock syncRoot (fun () -> project state)
 
+    /// The record epoch this holder last saw or wrote. Ownership is claimed by writing rather than by
+    /// opening, so opening a run to look at it does not take it from the holder driving it.
+    member _.OwnerEpoch = lock syncRoot (fun () -> ownerEpoch)
+
     /// Marks the attempt in-flight. A governed caller supplies the durable cursor it is about to act
     /// on, which this same write records rather than a later one.
     member _.BeginCycle(cursor: ProviderTrustCadenceJournalCursor option) = lock syncRoot (fun () ->
+        match superseded () with
+        | Some refusal -> refusal
+        | None ->
         if state.Phase = "terminal" then current state.TerminalCode.Value
         elif state.Phase = "in-flight" then current "durable-cadence-indeterminate"
         elif state.Phase <> "ready" then current "durable-cadence-waiting"
@@ -329,6 +364,9 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
     member this.BeginCycle() = this.BeginCycle None
 
     member _.CompleteGap(nextInstant: DateTimeOffset) = lock syncRoot (fun () ->
+        match superseded () with
+        | Some refusal -> refusal
+        | None ->
         if state.Phase = "terminal" then current state.TerminalCode.Value
         elif state.Phase = "in-flight" then current "durable-cadence-indeterminate"
         elif state.Phase <> "waiting" || nextInstant <= state.PreparedInstant then
@@ -350,6 +388,9 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
         if String.IsNullOrWhiteSpace cycleCode then
             invalidArg (nameof cycleCode) "A cycle code is required."
         lock syncRoot (fun () ->
+            match superseded () with
+            | Some refusal -> refusal
+            | None ->
             if state.Phase = "terminal" then current state.TerminalCode.Value
             elif state.Phase <> "in-flight" then current "durable-cadence-cycle-not-started"
             elif not (ProviderTrustCadenceJournalRecord.isCycleCode cycleCode) then
@@ -374,6 +415,9 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
                     else { value with Cycles = cycles; Phase = "waiting"; Cursor = None }) transitionCode)
 
     member _.ResolveInterrupted(decision: ProviderTrustCadenceRecoveryDecision) = lock syncRoot (fun () ->
+        match superseded () with
+        | Some refusal -> refusal
+        | None ->
         if state.Phase = "terminal" then current state.TerminalCode.Value
         elif state.Phase <> "in-flight" then current "durable-cadence-reconciliation-not-required"
         else
@@ -408,7 +452,8 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
                 { Format = "CBI48"; RunIdentity = runIdentity.Value
                   MaximumCycles = schedule.MaximumCycles; IntervalTicks = schedule.Interval.Ticks
                   PreparedInstant = start; Phase = "ready"; TerminalCode = None
-                  Cycles = []; GapTicks = []; InterruptionCount = 0; RetryCount = 0; Cursor = None }
+                  Cycles = []; GapTicks = []; InterruptionCount = 0; RetryCount = 0; Cursor = None
+                  OwnerEpoch = 1L }
             if not (ProviderTrustCadenceJournalRecord.tryWrite fullPath value) then
                 { Code = "durable-cadence-write-failed"; Journal = None }
             else

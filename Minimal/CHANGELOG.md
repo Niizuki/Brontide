@@ -1,5 +1,35 @@
 # Changelog
 
+## Unreleased - CBI68 cadence run ownership
+
+### Fixed
+
+- Two holders of one cadence journal each kept their own copy of the state and each wrote the whole
+  record back, so a holder whose copy was behind erased a cycle another had committed, with nothing
+  reporting it; a holder superseded while its own copy was current wrote over the phase of a run it no
+  longer owned. Pinned by a failing test before the fix.
+
+### Added
+
+- An owner epoch in the journal record. Every write advances it, and a transition by a holder the
+  record has moved past is refused as `durable-cadence-owner-superseded` without writing.
+- `DurableProviderTrustCadenceJournal.OwnerEpoch`, the epoch a holder last saw or wrote, and shared
+  cross-stack vectors with C1-C7 tests.
+
+### Notes
+
+- Ownership is claimed by writing rather than by opening. Claiming at open is the first design that
+  comes to mind and three existing CBI48 tests refuse it: one opens a journal from inside a running
+  cycle purely to observe it, and two compare the durable bytes across a recovery.
+- That correction also removes the migration rather than easing it. A record written before this slice
+  carries no epoch, reads as zero, and is claimed at one by its first write, so no adoption rule is
+  needed and no format marker moves.
+- The guard runs before each transition's phase preconditions, because those are judged from state a
+  superseded holder already knows to be stale, and reporting one would name a protocol error the holder
+  did not make. An unreadable record keeps the outcome CBI48 already defines.
+- This is a fence, not a lock: it makes a written-past holder harmless and does not stop a second host
+  from opening a run the first is driving.
+
 ## Unreleased - CBI67 durable stop attribution
 
 ### Added

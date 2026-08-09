@@ -1392,6 +1392,37 @@ unexpected exit. The
 bound it to the stops the host performs, under one host-local single-writer store with CBI42's custody
 limit unchanged.
 
+CBI68 enforces the bound six slices have declared and none has checked, and its result is that
+**crossing it destroyed data rather than producing an error**. CBI48 states that its journal is bound
+to one process and one writer, and CBI62, CBI63, CBI64, CBI65 and CBI67 each repeat that cross-process
+ownership remains separate; none says what happens when two holders share one journal. `Open` read the
+record into memory and took no lock and no fence, so each holder wrote the whole record back and **a
+holder whose copy was behind erased a cycle another had committed**, with nothing reporting it. A
+failing test pinned it before the slice was designed: a reopened journal held zero cycles where one had
+been committed.
+
+The fix is CBI54's mechanism one component over — an epoch published in the record, so a holder the
+record has moved past is refused instead of writing. What is worth carrying forward is that **the
+obvious reading of ownership was wrong and existing tests are what said so**. Claiming the run at
+`Open` is the first design anyone writes, and three CBI48 tests refuse it: its C3 opens a journal from
+inside a running cycle purely to observe the in-flight phase and then expects the driving holder to
+commit, and its C5 and C7 compare the durable bytes across a recovery and require them unchanged. A
+slice that takes a run away from a host in order to look at it breaks the component it is protecting.
+**Ownership is therefore claimed by writing**, and opening only observes.
+
+That correction **removed the migration rather than easing it**: under claim-on-open a record written
+before this slice needed an adoption rule, and under claim-on-write it needs none, because the holder
+reads epoch 0 and its first write claims the run at 1. The guard also runs before each transition's
+phase preconditions, since those are judged from state a superseded holder already knows to be stale —
+a vector caught the alternative telling a fenced holder it had not started a cycle, naming a protocol
+error it had not made instead of the run it had lost. An unreadable record keeps the outcome CBI48
+already defines, so the slice adds one code and changes none. The
+[`CBI68 capability contract`](../../component-management/cbi68-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi68-contract-completeness-review.md)
+bound it to a fence rather than a lock: it makes a written-past holder harmless and does not stop a
+second host from opening a run the first is driving, which is CBI54's live file lock and the remaining
+supervision boundary.
+
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —
 Decision 13 still blocks every activation of a CM3 group that declares a bounded lifecycle protocol.

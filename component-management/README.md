@@ -1030,6 +1030,17 @@ what the store answers is decided by the record it holds; that CBI51 acts on the
 pinned by the restart scenarios, which run real providers and go red when the refusal is removed. The
 fixture contains no key material, source, registry, clock, transport, floor store, or serving member.
 
+### `cbi68-cadence-run-ownership` sections
+
+`runIdentity`, `startUnixSeconds`, `intervalSeconds`, and `maximumCycles` are the schedule every vector
+shares. Each vector is an ordered list of `steps` over one journal — `establish`, `open`, and
+`first:`/`second:` transitions, where `first` is the establishing holder and `second` is the one the
+first open returns — and pins each step's code, the epoch the record reaches, and the cycles and phase
+it retains. The epoch is a write counter, so `finalEpoch` also states how many of the steps wrote:
+`repeated-opening-is-inert` reaches 2 across four steps because opening writes nothing. Two vectors
+carry the defect this slice exists for, in its two orderings. The fixture contains no registry, clock,
+endpoint, key material, or serving member.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations

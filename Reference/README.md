@@ -284,6 +284,10 @@ took a caller-supplied `ProviderRestartCause`, two of whose four values are refu
 chose which applied. A withdrawn publisher and an unexpected exit were guarded anyway; an operator
 retirement was not, and that is what the record buys. A stop is recorded after it happens, absence
 means the host did not stop it, and a retirement issued outside the host cannot be attributed.
+CBI68 gives the cadence journal an owner epoch, closing a gap six slices declared and none checked: two
+holders each wrote their whole copy back, so one whose copy was behind erased a committed cycle with
+nothing reporting it. Ownership is claimed by writing rather than by opening, because opening is how a
+host inspects a run — which three existing CBI48 tests require.
 
 ## Build and test
 
