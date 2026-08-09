@@ -288,6 +288,12 @@ CBI68 gives the cadence journal an owner epoch, closing a gap six slices declare
 holders each wrote their whole copy back, so one whose copy was behind erased a committed cycle with
 nothing reporting it. Ownership is claimed by writing rather than by opening, because opening is how a
 host inspects a run — which three existing CBI48 tests require.
+CBI69 pairs that fence with a live operating-system lock, so a second host is refused before it reaches
+the record rather than after. Closing the boundary showed what it cost: a cadence writes after its
+cycle runs, so a competitor that reconciled the in-flight attempt took the run while the cycle was
+still executing and the record kept nothing of it — and a fenced holder never rejoins, so the transfer
+was permanent rather than the alternation CBI68's limits describe. Supervision claims nothing, adds no
+durable record because the journal already carries the epoch, and coordinates cooperating hosts only.
 
 ## Build and test
 

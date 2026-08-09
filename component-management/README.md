@@ -1041,6 +1041,21 @@ it retains. The epoch is a write counter, so `finalEpoch` also states how many o
 carry the defect this slice exists for, in its two orderings. The fixture contains no registry, clock,
 endpoint, key material, or serving member.
 
+### `cbi69-cadence-run-supervision` sections
+
+`runIdentity`, `startUnixSeconds`, `intervalSeconds`, and `maximumCycles` are the schedule every vector
+shares. Each vector is an ordered list of `steps` over one journal, where `a` and `b` are supervisors
+of the same run, `driving` is the establishing holder, and `competitor` is the one an open returns. A
+step contributes one code unless it drives two parties, in which case it contributes theirs in the
+order they act; a `release` step contributes the supervision's own liveness afterwards, because
+releasing returns nothing and the observable fact is that the supervision is no longer live. Each
+vector pins the codes, the epoch the record reaches, and the cycles and phase it retains — so
+`supervision-writes-nothing-to-the-record` reaches epoch 1 across five steps, four of which are
+supervision. The last two pairs are the point: one vector loses a cycle to a competitor that
+reconciles the run while it is still executing, and the next is the same scenario under a lock, which
+makes the difference the fixture's answer rather than a comment. The fixture contains no registry,
+clock, endpoint, key material, or serving member.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations

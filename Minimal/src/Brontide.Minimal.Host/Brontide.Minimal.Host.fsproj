@@ -41,6 +41,7 @@
     <Compile Include="ProviderServingTrustCadence.fs" />
     <Compile Include="ProviderGovernedTrustCadence.fs" />
     <Compile Include="DurableProviderTrustCadenceJournal.fs" />
+    <Compile Include="ProviderTrustCadenceRunSupervision.fs" />
     <Compile Include="ProviderTrustOfflinePolicy.fs" />
     <Compile Include="ProviderGovernedInterruptionReconciliation.fs" />
     <Compile Include="ProviderOfflineServiceEnforcement.fs" />

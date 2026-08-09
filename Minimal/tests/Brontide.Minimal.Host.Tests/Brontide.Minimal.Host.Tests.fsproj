@@ -205,6 +205,9 @@
     <None Include="..\..\..\component-management\fixtures\cbi68-cadence-run-ownership-vectors.json"
           Link="component-management\fixtures\cbi68-cadence-run-ownership-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi69-cadence-run-supervision-vectors.json"
+          Link="component-management\fixtures\cbi69-cadence-run-supervision-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Binding\Brontide.Minimal.Binding.fsproj" />
@@ -221,6 +224,7 @@
     <Compile Include="ComponentAvailabilityBaselineTests.fs" />
     <Compile Include="ComponentStopAttributionTests.fs" />
     <Compile Include="ComponentCadenceRunOwnershipTests.fs" />
+    <Compile Include="ComponentCadenceRunSupervisionTests.fs" />
     <Compile Include="ComponentArtifactAcquisitionTests.fs" />
     <Compile Include="ComponentPublisherEvidenceTests.fs" />
     <Compile Include="ComponentPublisherTrustTests.fs" />

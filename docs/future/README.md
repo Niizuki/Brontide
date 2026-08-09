@@ -1423,6 +1423,34 @@ bound it to a fence rather than a lock: it makes a written-past holder harmless 
 second host from opening a run the first is driving, which is CBI54's live file lock and the remaining
 supervision boundary.
 
+CBI69 supplies that lock, and reading the boundary in order to close it found **two things the limit
+did not say, both about what leaving it open costs**. A fence detects a lost run at the holder's next
+write, and **a cadence writes after its cycle has run**, so a competitor that opens the journal
+mid-cycle and reconciles the in-flight attempt takes the run *while the effects are still happening* —
+the cycle runs, the commit is refused, and the record keeps nothing of it. And CBI68's residual limits
+describe two interleaving holders as fencing each other alternately; **they do not**, because a refused
+transition leaves the refused holder's epoch unchanged, so the loser is out permanently and only a
+host that decides to reopen rejoins. Alternation is at least visible from both sides; a silent
+permanent transfer is not. Both are pinned in each stack, and the same competitor scenario is run
+twice — once unsupervised, where the cycle is lost, and once under a lock, where it never reaches the
+record — which makes the difference the fixture's answer rather than a comment. CBI68 enforces nothing
+incorrectly and its text stands as written; this is the sixth stated limit in this programme that
+described how something was called.
+
+Two decisions come from the components rather than from preference. **Supervision claims nothing**:
+acquiring reads and writes no part of the record, so a run may be supervised before it is established
+and CBI68's corrected rule that ownership is claimed by writing survives a lock arriving beside it.
+And **no durable record is added**, which is the opposite of the obvious reading — CBI54 publishes an
+epoch beside its lock because CBI53 has none, and copying that shape here would put a second
+owner-record next to the one the journal already carries, the design CBI42 argues against for the
+policy floor and CBI65 for the availability baseline. What the slice did need was the journal's own
+resolved path, without which a supervision paired with a different journal would have been trusted.
+The [`CBI69 capability contract`](../../component-management/cbi69-capability-contract.md) and
+[`contract-completeness review`](../../component-management/cbi69-contract-completeness-review.md)
+bound it to cooperating hosts over one shared filesystem: a host that opens the journal without
+acquiring is caught by the fence at its next write rather than excluded, nothing expires or is
+renewed, and a lock over a path an adversary can write is no stronger than CBI42's custody limit.
+
 PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
 Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —
 Decision 13 still blocks every activation of a CM3 group that declares a bounded lifecycle protocol.
