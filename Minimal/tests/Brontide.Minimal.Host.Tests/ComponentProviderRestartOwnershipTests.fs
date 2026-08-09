@@ -4,6 +4,7 @@ open System
 open System.Diagnostics
 open System.IO
 open System.Text.Json
+open System.Threading
 open System.Threading.Tasks
 open NUnit.Framework
 open Brontide.Minimal.Experimental.ComponentManagement
@@ -33,6 +34,21 @@ type ComponentProviderRestartOwnershipTests() =
         DurableProviderRestartOwnership.Acquire(
             path, ProviderRestartOwnerId.create owner, ProviderRestartOwnershipLeaseId.create lease,
             runIdentity, occurrence, staged)
+
+    /// Acquires after a holder process was killed. A process that has reported exit has not necessarily
+    /// had its file handles released by the kernel yet, so the first attempt can still see the lock
+    /// held and answer `restart-ownership-busy` with no snapshot. Retrying on exactly that code waits
+    /// for the release without waiting a fixed time for it, and without weakening what the caller then
+    /// asserts: any other code is returned immediately, so a lock that is never released still fails
+    /// the test rather than passing late.
+    let acquireAfterProcessLoss path owner lease =
+        let rec attempt index =
+            let result = acquire path owner lease
+            if result.Code <> "restart-ownership-busy" || index = 249 then result
+            else
+                Thread.Sleep 20
+                attempt (index + 1)
+        attempt 0
 
     let providerPath () =
         match Environment.GetEnvironmentVariable "BRONTIDE_MINIMAL_PROVIDER" with
@@ -133,11 +149,14 @@ type ComponentProviderRestartOwnershipTests() =
             | None -> failwith "The provider holder process did not start."
         let! held = holder.StandardOutput.ReadLineAsync()
         Assert.That(held, Is.EqualTo "held")
+        // Strict while the holder is alive: exclusivity must be refused at the first attempt.
         Assert.That((acquire temporary.Path "owner-b" "lease-b").Code, Is.EqualTo "restart-ownership-busy")
         holder.Kill(true)
         do! holder.WaitForExitAsync()
-        let recovered = acquire temporary.Path "owner-b" "lease-b"
-        Assert.That(recovered.Snapshot.Value.Epoch, Is.EqualTo 2L)
+        let recovered = acquireAfterProcessLoss temporary.Path "owner-b" "lease-b"
+        multiple (fun () ->
+            Assert.That(recovered.Code, Is.EqualTo "restart-ownership-acquired")
+            Assert.That(recovered.Snapshot.Value.Epoch, Is.EqualTo 2L))
         (recovered.Ownership.Value :> IDisposable).Dispose()
     }
 
