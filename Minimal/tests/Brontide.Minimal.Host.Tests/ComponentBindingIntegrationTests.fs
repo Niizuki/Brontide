@@ -11084,9 +11084,13 @@ type ComponentBindingIntegrationTests() =
                             policyOf [ { PublisherKeyId = ProviderPublisherKeyId.create (String('B', 64)); Disposition = Admitted } ]
                             |> _.Identity
                         else currentBefore
-                    let cause =
-                        if scenario = "restart-cause-refused" then ProviderRestartCause.OperatorRetirement
-                        else ProviderRestartCause.OfflineAvailability
+                    let attributions =
+                        (DurableProviderStopAttributionStore.Open(Path.Combine(root, "stops.bin"))).Store.Value
+                    ProviderStopAttributions.record attributions activations[0] instant
+                        (if scenario = "restart-cause-refused" then OperatorRetirement
+                         else OfflineAvailability)
+                    |> ignore
+                    let cause = (ProviderStopAttributions.attribute attributions activations[0]).Attribution.Value
                     let attempts =
                         if scenario = "restart-exhausted" then 3
                         elif scenario = "restart-waiting" || scenario = "restart-invalid-observation" then 1
@@ -11234,8 +11238,13 @@ type ComponentBindingIntegrationTests() =
                 let integrityProbe = Path.Combine(stagedRoot, integrityProbePath)
                 File.SetAttributes(integrityProbe, FileAttributes.Normal)
                 do! File.AppendAllTextAsync(integrityProbe, "mutated")
-            let cause = if scenario = "restart-enforce-policy-refused" then ProviderRestartCause.OperatorRetirement
-                        else ProviderRestartCause.OfflineAvailability
+            let attributions =
+                (DurableProviderStopAttributionStore.Open(Path.Combine(root, "stops.bin"))).Store.Value
+            ProviderStopAttributions.record attributions activation instant
+                (if scenario = "restart-enforce-policy-refused" then OperatorRetirement
+                 else OfflineAvailability)
+            |> ignore
+            let cause = (ProviderStopAttributions.attribute attributions activation).Attribution.Value
             let policy = ProviderRestartPolicy.create 3 (TimeSpan.FromMinutes 1.0)
             let! first = ProviderRestartEnforcement.run policy registry store activation cause initial.Identity instant 0 None
             successor <- first.Activation

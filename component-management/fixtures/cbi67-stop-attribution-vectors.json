@@ -1,0 +1,54 @@
+{
+  "comment": "CBI67 records why the host stopped a provider and makes the cause CBI51 reads issuer-controlled. A vector states what the store holds for one occurrence and pins the attribution it issues. The store needs no provider process, so these vectors are pure data; that CBI51 acts on the issued cause is pinned separately by the restart scenarios, which do run real providers.",
+  "occurrence": "occ.def.test.cooling-provider.1",
+  "stagedIdentity": "0000000000000000000000000000000000000000000000000000000000000001",
+  "otherStagedIdentity": "0000000000000000000000000000000000000000000000000000000000000002",
+  "recordedAtUnixSeconds": 1786230000,
+  "vectors": [
+    {
+      "name": "an-availability-stop-is-attributed-and-restartable",
+      "comment": "The ordinary path. CBI50's enforcement recorded the stop after terminating the provider, and the cause it wrote is the one CBI51 reads.",
+      "recorded": "offline-availability",
+      "recordedUnder": "same",
+      "code": "provider-stop-attribution-issued",
+      "cause": "offline-availability",
+      "restartRefused": false
+    },
+    {
+      "name": "a-trust-withdrawal-is-attributed-and-refused",
+      "comment": "CBI46's sweep recorded the stop. This refusal was already double-guarded by CBI51's own authorization check, so the record adds attribution rather than safety here.",
+      "recorded": "publisher-trust-withdrawal",
+      "recordedUnder": "same",
+      "code": "provider-stop-attribution-issued",
+      "cause": "publisher-trust-withdrawal",
+      "restartRefused": true
+    },
+    {
+      "name": "an-operator-retirement-is-attributed-and-refused",
+      "comment": "The case this slice exists for. A publisher that is still trusted passes every other check, so before the record a caller claiming availability about a deliberately retired provider got a restart the policy would have denied.",
+      "recorded": "operator-retirement",
+      "recordedUnder": "same",
+      "code": "provider-stop-attribution-issued",
+      "cause": "operator-retirement",
+      "restartRefused": true
+    },
+    {
+      "name": "no-record-is-an-unexpected-exit",
+      "comment": "Every stop the host performs writes a record, so absence means the host did not stop it. That is the honest reading and also the restartable one.",
+      "recorded": null,
+      "recordedUnder": "same",
+      "code": "provider-stop-attribution-unrecorded",
+      "cause": "unexpected-exit",
+      "restartRefused": false
+    },
+    {
+      "name": "a-record-for-another-deployment-is-stale",
+      "comment": "The store holds a record for this occurrence under a staged identity it is no longer running. That describes a different deployment, and a host holding a record it cannot match does not guess either way.",
+      "recorded": "operator-retirement",
+      "recordedUnder": "other",
+      "code": "provider-restart-attribution-stale",
+      "cause": null,
+      "restartRefused": true
+    }
+  ]
+}

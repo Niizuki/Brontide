@@ -309,7 +309,7 @@ public static class CrossProcessProviderRestartRecovery
         DurableProviderPublisherTrustPolicyRegistry registry,
         ContentAddressedProviderStore store,
         ProviderServingActivation activation,
-        ProviderRestartCause cause,
+        ProviderStopAttribution attribution,
         ProviderPublisherTrustPolicyId currentCyclePolicyIdentity,
         DateTimeOffset now)
     {
@@ -320,6 +320,6 @@ public static class CrossProcessProviderRestartRecovery
         if (held is null)
             return new("restart-ownership-required", snapshot, null, null);
         return await DurableProviderRestartRecovery.RunAsync(
-            journal, registry, store, activation, cause, currentCyclePolicyIdentity, now).ConfigureAwait(false);
+            journal, registry, store, activation, attribution, currentCyclePolicyIdentity, now).ConfigureAwait(false);
     }
 }

@@ -2,12 +2,6 @@ namespace Brontide.Minimal.Host
 
 open System
 
-type ProviderRestartCause =
-    | UnexpectedExit
-    | OfflineAvailability
-    | PublisherTrustWithdrawal
-    | OperatorRetirement
-
 type ProviderRestartDecision =
     { Code: string
       RefusedBy: string
@@ -25,13 +19,14 @@ type ProviderRestartPolicy internal (maximumAttempts: int, delay: TimeSpan) =
     member _.Evaluate(
         registry: DurableProviderPublisherTrustPolicyRegistry,
         activation: ProviderServingActivation,
-        cause: ProviderRestartCause,
+        attribution: ProviderStopAttribution,
         currentCyclePolicyIdentity: ProviderPublisherTrustPolicyId,
         now: DateTimeOffset,
         attemptCount: int,
         lastAttempt: DateTimeOffset option) =
         if isNull (box registry) then nullArg (nameof registry)
         if isNull (box activation) then nullArg (nameof activation)
+        if isNull (box attribution) then nullArg (nameof attribution)
         let denied code refusedBy policyIdentity =
             { Code = code; RefusedBy = refusedBy; MayRestart = false; RetryAt = None
               PolicyIdentity = policyIdentity; Authorization = None }
@@ -43,7 +38,12 @@ type ProviderRestartPolicy internal (maximumAttempts: int, delay: TimeSpan) =
             denied "provider-restart-observation-invalid" "preflight" None
         elif activation.IsServing then
             denied "provider-restart-not-required" "state" None
-        elif cause = PublisherTrustWithdrawal || cause = OperatorRetirement then
+        // The attribution is issued about one activation, so one about a different occurrence is a
+        // caller mistake rather than a cause. The refusals below are unchanged; what changed is that
+        // the caller no longer chooses which of them applies.
+        elif attribution.Occurrence <> activation.OccurrenceId then
+            denied "provider-restart-attribution-mismatch" "attribution" None
+        elif attribution.Cause = PublisherTrustWithdrawal || attribution.Cause = OperatorRetirement then
             denied "provider-restart-cause-refused" "cause" None
         else
             let chain = activation.DistributionChain

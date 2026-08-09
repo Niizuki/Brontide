@@ -209,7 +209,12 @@ The implementation currently provides:
   rather than at the first scheduled cycle after it, fixing a journal that recorded the schedule
   interval as every gap regardless of what elapsed, and keeping the bound one-sided because a retry
   instant may bring a look forward and never push it back;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI66 integration
+  CBI67 records why the host stopped each provider and makes the cause CBI51 reads issuer-controlled —
+  it took a caller-supplied `ProviderRestartCause`, two of whose four values are refusals, so the
+  caller chose which applied, and while a withdrawn publisher and an unexpected exit were guarded
+  anyway an operator retirement was not — recording a stop after it happens, reading absence as the
+  host not having stopped it, and declining to attribute a retirement issued outside the host;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI67 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

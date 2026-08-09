@@ -279,6 +279,11 @@ CBI66 lets CBI49's retry instant shorten a cadence gap, so a run lands on the av
 rather than at the first scheduled cycle after it, and fixes a journal that recorded the schedule
 interval as every gap regardless of what elapsed. The bound is one-sided: a retry instant may bring a
 look forward and never push it back, because the interval is the host's own schedule.
+CBI67 records why the host stopped each provider and makes the cause CBI51 reads issuer-controlled: it
+took a caller-supplied `ProviderRestartCause`, two of whose four values are refusals, so the caller
+chose which applied. A withdrawn publisher and an unexpected exit were guarded anyway; an operator
+retirement was not, and that is what the record buys. A stop is recorded after it happens, absence
+means the host did not stop it, and a retirement issued outside the host cannot be attributed.
 
 ## Build and test
 

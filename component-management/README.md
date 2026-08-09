@@ -1019,6 +1019,17 @@ launched and CBI49 reports `offline-idle`; a named test in each root probes that
 deadline do not depend on the serving count, which is what makes that substitution safe. The fixture
 contains no key material, source, registry, clock, transport, floor store, or serving member.
 
+### `cbi67-stop-attribution` sections
+
+`occurrence`, `stagedIdentity`, `otherStagedIdentity`, and `recordedAtUnixSeconds` are the identities
+and instant every vector shares. Each vector states what the store holds for that occurrence — a cause
+or nothing, recorded under the activation's own staged identity or another one — and pins the
+attribution code, the cause issued, and whether CBI51 refuses a restart on it. A `null` cause means
+the store issued no attribution at all. The vectors exercise the store rather than a provider, because
+what the store answers is decided by the record it holds; that CBI51 acts on the issued cause is
+pinned by the restart scenarios, which run real providers and go red when the refusal is removed. The
+fixture contains no key material, source, registry, clock, transport, floor store, or serving member.
+
 ### `cm0-mice-topology` sections
 
 `contracts`, `observers`, `topologyNodes`, `functions`, `claims`, and `expectations`. Relations

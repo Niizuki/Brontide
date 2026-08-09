@@ -181,11 +181,13 @@ module ProviderServingTrustSweep =
     [<Literal>]
     let MaximumMembers = 64
 
-    let run
+    let runRecording
         (registry: DurableProviderPublisherTrustPolicyRegistry)
         (store: ContentAddressedProviderStore)
         (activations: ProviderServingActivation list)
         retirementReason
+        (attributions: DurableProviderStopAttributionStore option)
+        (recordedAt: DateTimeOffset)
         =
         task {
             if String.IsNullOrWhiteSpace retirementReason then
@@ -219,6 +221,12 @@ module ProviderServingTrustSweep =
                     let! result =
                         ProviderServingTrustRevalidation.revalidateForSweep registry store activation retirementReason
                     members.Add { Occurrence = activation.OccurrenceId; Result = result }
+                    // After the effect, never before: the record states that this member was stopped.
+                    match attributions, activation.DistributionChain.StagedIdentity with
+                    | Some store, Some staged when not result.Continued ->
+                        store.Record(activation.OccurrenceId, staged, recordedAt, PublisherTrustWithdrawal)
+                        |> ignore
+                    | _ -> ()
                 let grouped =
                     ordered
                     |> List.choose (fun activation ->
@@ -261,3 +269,6 @@ module ProviderServingTrustSweep =
                     { Code = code; RefusedBy = "none"; Members = observations
                       ContinuedCount = continued; WithdrawnCount = observations.Length - continued }
         }
+
+    let run registry store activations retirementReason =
+        runRecording registry store activations retirementReason None DateTimeOffset.UnixEpoch
