@@ -1,0 +1,83 @@
+{
+  "comment": "CBI68 fences a holder that is no longer driving one cadence journal, so it cannot write over a run another holder owns. Every write advances the record's epoch; a holder is fenced when the record is no longer at the epoch it last saw or wrote. Opening only observes, which is what CBI48's own C3 does from inside a running cycle and what its C5 and C7 require to leave the bytes untouched. A vector scripts holder actions over one journal and pins each code, the epoch the record reaches, and what it retains.",
+  "runIdentity": "cadence-run.test.1",
+  "startUnixSeconds": 1786230000,
+  "intervalSeconds": 60,
+  "maximumCycles": 4,
+  "vectors": [
+    {
+      "name": "establishing-owns-and-each-write-advances-the-epoch",
+      "comment": "Establish writes epoch 1, so a run is owned from the moment it exists; the two transitions that follow take it to 3. The epoch is a write counter, which is what makes a stale holder detectable.",
+      "steps": ["establish", "first:begin", "first:commit"],
+      "codes": ["durable-cadence-established", "durable-cadence-cycle-started", "durable-cadence-cycle-committed"],
+      "finalEpoch": 3,
+      "committedCycles": 1,
+      "phase": "waiting"
+    },
+    {
+      "name": "opening-observes-without-taking-the-run",
+      "comment": "A second holder opens and does nothing. The first is still current and still transitions, because ownership is claimed by writing rather than by opening — CBI48's C3 opens a journal from inside a running cycle purely to look at it.",
+      "steps": ["establish", "first:begin", "first:commit", "first:gap", "open", "first:begin"],
+      "codes": [
+        "durable-cadence-established", "durable-cadence-cycle-started",
+        "durable-cadence-cycle-committed", "durable-cadence-gap-completed",
+        "durable-cadence-recovered", "durable-cadence-cycle-started"
+      ],
+      "finalEpoch": 5,
+      "committedCycles": 1,
+      "phase": "in-flight"
+    },
+    {
+      "name": "a-writing-holder-supersedes-the-one-that-was-driving",
+      "comment": "The second holder writes, which claims the run. The first now finds the record past the epoch it wrote and is refused instead of writing over a run it no longer owns.",
+      "steps": ["establish", "first:begin", "first:commit", "first:gap", "open", "second:begin", "first:begin"],
+      "codes": [
+        "durable-cadence-established", "durable-cadence-cycle-started",
+        "durable-cadence-cycle-committed", "durable-cadence-gap-completed",
+        "durable-cadence-recovered", "durable-cadence-cycle-started",
+        "durable-cadence-owner-superseded"
+      ],
+      "finalEpoch": 5,
+      "committedCycles": 1,
+      "phase": "in-flight"
+    },
+    {
+      "name": "a-holder-whose-memory-is-behind-erases-nothing",
+      "comment": "The defect this slice exists for. The first holder opened before the second committed, so its copy has no cycles; before the fence its next transition wrote that copy back and the committed cycle was gone from the record with nothing reporting it.",
+      "steps": ["establish", "open", "second:begin", "second:commit", "first:begin"],
+      "codes": [
+        "durable-cadence-established", "durable-cadence-recovered",
+        "durable-cadence-cycle-started", "durable-cadence-cycle-committed",
+        "durable-cadence-owner-superseded"
+      ],
+      "finalEpoch": 3,
+      "committedCycles": 1,
+      "phase": "waiting"
+    },
+    {
+      "name": "the-fence-refuses-the-loser-and-nobody-else",
+      "comment": "A run taken over is a run the new holder can keep driving. The refusal is aimed at the superseded holder alone.",
+      "steps": ["establish", "open", "second:begin", "first:begin", "second:commit"],
+      "codes": [
+        "durable-cadence-established", "durable-cadence-recovered",
+        "durable-cadence-cycle-started", "durable-cadence-owner-superseded",
+        "durable-cadence-cycle-committed"
+      ],
+      "finalEpoch": 3,
+      "committedCycles": 1,
+      "phase": "waiting"
+    },
+    {
+      "name": "repeated-opening-is-inert",
+      "comment": "Opening twice writes nothing and fences nobody, so a host may inspect a run as often as it likes without disturbing the holder driving it.",
+      "steps": ["establish", "open", "open", "second:begin"],
+      "codes": [
+        "durable-cadence-established", "durable-cadence-recovered",
+        "durable-cadence-recovered", "durable-cadence-cycle-started"
+      ],
+      "finalEpoch": 2,
+      "committedCycles": 0,
+      "phase": "in-flight"
+    }
+  ]
+}

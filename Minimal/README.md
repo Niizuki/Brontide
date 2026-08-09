@@ -214,7 +214,11 @@ The implementation currently provides:
   caller chose which applied, and while a withdrawn publisher and an unexpected exit were guarded
   anyway an operator retirement was not — recording a stop after it happens, reading absence as the
   host not having stopped it, and declining to attribute a retirement issued outside the host;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI67 integration
+  CBI68 gives the cadence journal an owner epoch, closing a gap six slices declared and none checked —
+  two holders each wrote their whole copy back, so one whose copy was behind erased a committed cycle
+  with nothing reporting it — claiming ownership by writing rather than by opening, because opening is
+  how a host inspects a run, which three existing CBI48 tests require;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI68 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

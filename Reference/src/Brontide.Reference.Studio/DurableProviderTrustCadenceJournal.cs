@@ -73,13 +73,23 @@ public sealed class DurableProviderTrustCadenceJournal
     private const int TagBytes = 32;
     private readonly object sync = new();
     private readonly string path;
+    private long ownerEpoch;
     private JournalState state;
 
     private DurableProviderTrustCadenceJournal(string path, JournalState state)
     {
         this.path = path;
+        this.ownerEpoch = state.OwnerEpoch;
         this.state = state;
     }
+
+    /// <summary>
+    /// The record epoch this holder last saw or wrote. Ownership is claimed by writing rather than by
+    /// opening, so opening a run to look at it does not take it from the holder that is driving it —
+    /// which CBI48's own C3 does from inside a running cycle, and its C5 and C7 require to leave the
+    /// bytes untouched.
+    /// </summary>
+    public long OwnerEpoch => ownerEpoch;
 
     public ProviderTrustCadenceJournalSnapshot Snapshot
     {
@@ -109,6 +119,7 @@ public sealed class DurableProviderTrustCadenceJournal
             PreparedInstant = start,
             Phase = "ready",
             TerminalCode = null,
+            OwnerEpoch = 1,
         };
         if (!TryWrite(path, state)) return new("durable-cadence-write-failed", null);
         return new("durable-cadence-established", new(path, state));
@@ -140,6 +151,7 @@ public sealed class DurableProviderTrustCadenceJournal
     {
         lock (sync)
         {
+            if (Superseded() is { } superseded) return superseded;
             if (state.Phase == "terminal") return Current(state.TerminalCode!);
             if (state.Phase == "in-flight") return Current("durable-cadence-indeterminate");
             if (state.Phase != "ready") return Current("durable-cadence-waiting");
@@ -155,6 +167,7 @@ public sealed class DurableProviderTrustCadenceJournal
     {
         lock (sync)
         {
+            if (Superseded() is { } superseded) return superseded;
             if (state.Phase == "terminal") return Current(state.TerminalCode!);
             if (state.Phase == "in-flight") return Current("durable-cadence-indeterminate");
             if (state.Phase != "waiting") return Current("durable-cadence-gap-invalid");
@@ -179,6 +192,7 @@ public sealed class DurableProviderTrustCadenceJournal
         ArgumentException.ThrowIfNullOrWhiteSpace(cycleCode);
         lock (sync)
         {
+            if (Superseded() is { } superseded) return superseded;
             if (state.Phase == "terminal") return Current(state.TerminalCode!);
             if (state.Phase != "in-flight") return Current("durable-cadence-cycle-not-started");
             if (!IsCycleCode(cycleCode)) return Current("durable-cadence-result-invalid");
@@ -223,6 +237,7 @@ public sealed class DurableProviderTrustCadenceJournal
     {
         lock (sync)
         {
+            if (Superseded() is { } superseded) return superseded;
             if (state.Phase == "terminal") return Current(state.TerminalCode!);
             if (state.Phase != "in-flight") return Current("durable-cadence-reconciliation-not-required");
             return decision switch
@@ -246,15 +261,39 @@ public sealed class DurableProviderTrustCadenceJournal
         }
     }
 
+    /// <summary>
+    /// Answers a refusal when this holder is no longer the current owner, and null when it is. Every
+    /// transition calls this before it reads its own phase: an in-memory epoch cannot know it has been
+    /// superseded, and a superseded holder's phase preconditions are judged from a view already known
+    /// to be out of date, so reporting one of them would name a protocol error the holder did not make
+    /// instead of the run it lost. Equality proves nobody else has written since this holder took
+    /// ownership, because every open advances the epoch and two holders can never share one.
+    /// </summary>
+    private ProviderTrustCadenceJournalTransitionResult? Superseded()
+    {
+        // Only a record this holder can read can prove it was superseded. One that cannot be read is
+        // left to the write path that already handles it — a journal deleted or replaced by a
+        // directory has reported `durable-cadence-write-failed` since CBI48, and reclassifying that as
+        // damage would change an outcome this slice has no reason to touch. An unreadable record is
+        // also no weaker a guard than the tag it failed, which is CBI42's limit either way.
+        if (!TryRead(path, out var current)) return null;
+        return current.OwnerEpoch == ownerEpoch ? null : Current("durable-cadence-owner-superseded");
+    }
+
     private ProviderTrustCadenceJournalTransitionResult Transition(
         Action<JournalState> mutation,
         string acceptedCode)
     {
         var next = state.Clone();
         mutation(next);
+        // Writing is what claims the run. Every write advances the epoch, so any other holder — one
+        // that opened to observe, or one whose memory is behind — finds the record no longer at the
+        // epoch it saw and is fenced out at its next transition.
+        next.OwnerEpoch = ownerEpoch + 1;
         if (!IsValid(next) || !TryWrite(path, next))
             return Current("durable-cadence-write-failed");
         state = next;
+        ownerEpoch = next.OwnerEpoch;
         return Current(acceptedCode);
     }
 
@@ -299,7 +338,8 @@ public sealed class DurableProviderTrustCadenceJournal
 
     private static bool IsValid(JournalState value)
     {
-        if (value.Format != "CBI48" || string.IsNullOrWhiteSpace(value.RunIdentity)
+        if (value.Format != "CBI48" || value.OwnerEpoch < 0
+            || string.IsNullOrWhiteSpace(value.RunIdentity)
             || value.RunIdentity.Length > 128 || value.RunIdentity != value.RunIdentity.Trim()
             || value.MaximumCycles is < 1 or > 64
             || value.IntervalTicks <= 0 || value.IntervalTicks > TimeSpan.FromHours(24).Ticks
@@ -395,6 +435,7 @@ public sealed class DurableProviderTrustCadenceJournal
     {
         public string Format { get; set; } = "";
         public string RunIdentity { get; set; } = "";
+        public long OwnerEpoch { get; set; }
         public int MaximumCycles { get; set; }
         public long IntervalTicks { get; set; }
         public DateTimeOffset PreparedInstant { get; set; }
@@ -410,6 +451,7 @@ public sealed class DurableProviderTrustCadenceJournal
         {
             Format = Format,
             RunIdentity = RunIdentity,
+            OwnerEpoch = OwnerEpoch,
             MaximumCycles = MaximumCycles,
             IntervalTicks = IntervalTicks,
             PreparedInstant = PreparedInstant,

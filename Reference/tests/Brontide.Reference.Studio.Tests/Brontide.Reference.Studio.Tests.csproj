@@ -216,5 +216,8 @@
     <None Include="..\..\..\component-management\fixtures\cbi67-stop-attribution-vectors.json"
           Link="component-management\fixtures\cbi67-stop-attribution-vectors.json"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\component-management\fixtures\cbi68-cadence-run-ownership-vectors.json"
+          Link="component-management\fixtures\cbi68-cadence-run-ownership-vectors.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
