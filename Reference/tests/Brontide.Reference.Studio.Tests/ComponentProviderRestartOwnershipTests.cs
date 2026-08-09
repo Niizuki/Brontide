@@ -39,6 +39,25 @@ public sealed class ComponentProviderRestartOwnershipTests
             path, ProviderRestartOwnerId.Create(owner), ProviderRestartOwnershipLeaseId.Create(lease),
             RunId, Occurrence, Staged);
 
+    /// <summary>
+    /// Acquires after a holder process was killed. A process that has reported exit has not
+    /// necessarily had its file handles released by the kernel yet, so the first attempt can still see
+    /// the lock held and answer <c>restart-ownership-busy</c> with no snapshot. Retrying on exactly
+    /// that code waits for the release without waiting a fixed time for it, and without weakening what
+    /// the caller then asserts: any other code is returned immediately, so a lock that is never
+    /// released still fails the test rather than passing late.
+    /// </summary>
+    private static ProviderRestartOwnershipAcquireResult AcquireAfterProcessLoss(
+        string path, string owner, string lease)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            var result = Acquire(path, owner, lease);
+            if (result.Code != "restart-ownership-busy" || attempt == 249) return result;
+            Thread.Sleep(20);
+        }
+    }
+
     private static async Task<int> ProbeAsync(string provider, string verb, string path, bool waitForHeld = false)
     {
         var start = new ProcessStartInfo(provider) { UseShellExecute = false, RedirectStandardInput = true, RedirectStandardOutput = true };
@@ -155,11 +174,16 @@ public sealed class ComponentProviderRestartOwnershipTests
         start.ArgumentList.Add($"--hold-exclusive-file={temporary.Path}");
         using var holder = Process.Start(start)!;
         Assert.That(await holder.StandardOutput.ReadLineAsync(), Is.EqualTo("held"));
+        // Strict while the holder is alive: exclusivity must be refused at the first attempt.
         Assert.That(Acquire(temporary.Path, "owner-b", "lease-b").Code, Is.EqualTo("restart-ownership-busy"));
         holder.Kill(entireProcessTree: true);
         await holder.WaitForExitAsync();
-        var recovered = Acquire(temporary.Path, "owner-b", "lease-b");
-        Assert.That(recovered.Snapshot!.Epoch, Is.EqualTo(2));
+        var recovered = AcquireAfterProcessLoss(temporary.Path, "owner-b", "lease-b");
+        Assert.Multiple(() =>
+        {
+            Assert.That(recovered.Code, Is.EqualTo("restart-ownership-acquired"));
+            Assert.That(recovered.Snapshot!.Epoch, Is.EqualTo(2));
+        });
         recovered.Ownership!.Dispose();
     }
 
