@@ -1,0 +1,124 @@
+{
+  "fixture": "cbi69-cadence-run-supervision",
+  "description": "CBI69 shared vectors. One cadence journal under a live cross-process exclusion. Each vector is an ordered list of steps; `a` and `b` are two supervisors of the same run, `driving` is the establishing journal holder and `competitor` is the one an open returns. A step contributes one code unless it drives two parties, in which case it contributes theirs in the order they act; a `release` step contributes the supervision's own liveness afterwards rather than a returned value. Every vector pins the codes, the epoch the record reaches, and the cycles and phase it retains. The fixture contains no registry, clock, endpoint, key material, or serving member.",
+  "runIdentity": "cadence-run.test.1",
+  "startUnixSeconds": 1786377600,
+  "intervalSeconds": 60,
+  "maximumCycles": 4,
+  "vectors": [
+    {
+      "name": "one-supervisor-excludes-a-second",
+      "steps": ["establish", "acquire:a", "acquire:b"],
+      "codes": [
+        "durable-cadence-established",
+        "cadence-supervision-acquired",
+        "cadence-supervision-busy"
+      ],
+      "finalEpoch": 1,
+      "committedCycles": 0,
+      "phase": "ready"
+    },
+    {
+      "name": "supervision-writes-nothing-to-the-record",
+      "steps": ["acquire:a", "establish", "release:a", "acquire:b", "release:b"],
+      "codes": [
+        "cadence-supervision-acquired",
+        "durable-cadence-established",
+        "cadence-supervision-released",
+        "cadence-supervision-acquired",
+        "cadence-supervision-released"
+      ],
+      "finalEpoch": 1,
+      "committedCycles": 0,
+      "phase": "ready"
+    },
+    {
+      "name": "release-restores-acquisition",
+      "steps": ["establish", "acquire:a", "acquire:b", "release:a", "acquire:b"],
+      "codes": [
+        "durable-cadence-established",
+        "cadence-supervision-acquired",
+        "cadence-supervision-busy",
+        "cadence-supervision-released",
+        "cadence-supervision-acquired"
+      ],
+      "finalEpoch": 1,
+      "committedCycles": 0,
+      "phase": "ready"
+    },
+    {
+      "name": "a-supervised-cadence-advances",
+      "steps": ["establish", "acquire:a", "advance:a", "advance:a"],
+      "codes": [
+        "durable-cadence-established",
+        "cadence-supervision-acquired",
+        "durable-cadence-cycle-committed",
+        "durable-cadence-cycle-committed"
+      ],
+      "finalEpoch": 6,
+      "committedCycles": 2,
+      "phase": "waiting"
+    },
+    {
+      "name": "a-released-supervisor-cannot-advance",
+      "steps": ["establish", "acquire:a", "release:a", "advance:a"],
+      "codes": [
+        "durable-cadence-established",
+        "cadence-supervision-acquired",
+        "cadence-supervision-released",
+        "cadence-supervision-required"
+      ],
+      "finalEpoch": 1,
+      "committedCycles": 0,
+      "phase": "ready"
+    },
+    {
+      "name": "a-reconciling-competitor-takes-a-run-whose-cycle-already-ran",
+      "steps": ["establish", "unsupervised-advance-against-a-competitor"],
+      "codes": [
+        "durable-cadence-established",
+        "durable-cadence-retry-ready",
+        "durable-cadence-owner-superseded"
+      ],
+      "finalEpoch": 3,
+      "committedCycles": 0,
+      "phase": "ready"
+    },
+    {
+      "name": "supervision-excludes-the-competitor-that-would-have-taken-it",
+      "steps": ["establish", "acquire:a", "supervised-advance-against-a-competitor:a"],
+      "codes": [
+        "durable-cadence-established",
+        "cadence-supervision-acquired",
+        "cadence-supervision-busy",
+        "durable-cadence-cycle-committed"
+      ],
+      "finalEpoch": 3,
+      "committedCycles": 1,
+      "phase": "waiting"
+    },
+    {
+      "name": "an-unsupervised-holder-is-still-fenced",
+      "steps": ["establish", "acquire:a", "open", "competitor:begin", "advance:a"],
+      "codes": [
+        "durable-cadence-established",
+        "cadence-supervision-acquired",
+        "durable-cadence-recovered",
+        "durable-cadence-cycle-started",
+        "durable-cadence-owner-superseded"
+      ],
+      "finalEpoch": 2,
+      "committedCycles": 0,
+      "phase": "in-flight"
+    }
+  ],
+  "expectations": {
+    "vectorCount": 8,
+    "codeVocabulary": [
+      "cadence-supervision-acquired",
+      "cadence-supervision-busy",
+      "cadence-supervision-released",
+      "cadence-supervision-required"
+    ]
+  }
+}

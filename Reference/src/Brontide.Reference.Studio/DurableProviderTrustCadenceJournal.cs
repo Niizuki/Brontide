@@ -91,6 +91,12 @@ public sealed class DurableProviderTrustCadenceJournal
     /// </summary>
     public long OwnerEpoch => ownerEpoch;
 
+    /// <summary>
+    /// The record this holder writes to, resolved. A supervision excludes writers from a path, so it
+    /// needs the holder's own path in order to answer whether it covers the journal it is handed.
+    /// </summary>
+    public string RecordPath => path;
+
     public ProviderTrustCadenceJournalSnapshot Snapshot
     {
         get { lock (sync) return Project(state); }

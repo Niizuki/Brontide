@@ -218,7 +218,14 @@ The implementation currently provides:
   two holders each wrote their whole copy back, so one whose copy was behind erased a committed cycle
   with nothing reporting it — claiming ownership by writing rather than by opening, because opening is
   how a host inspects a run, which three existing CBI48 tests require;
-- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI68 integration
+  CBI69 pairs that fence with a live operating-system lock so a second host is refused before it
+  reaches the record rather than after — closing the boundary showed that a cadence writes after its
+  cycle runs, so a competitor that reconciled the in-flight attempt took the run while the cycle was
+  still executing and the record kept nothing of it, and that a fenced holder never rejoins, making the
+  transfer permanent rather than the alternation CBI68's limits describe — while claiming nothing,
+  adding no durable record because the journal already carries the epoch, and coordinating cooperating
+  hosts only;
+- a headless host and seven F# test assemblies, including the host-owned CBI1-CBI69 integration
   suite.
 
 There is deliberately no `global.json`. Brontide Minimal Stack targets .NET 10; the supported range

@@ -1,5 +1,41 @@
 # Changelog
 
+## Unreleased - CBI69 cadence run supervision
+
+### Added
+
+- `ProviderTrustCadenceRunSupervision`, a live operating-system exclusion over one cadence run. It
+  holds a lock beside the journal for its lifetime; a second acquisition in any process answers
+  `cadence-supervision-busy` and changes nothing.
+- `SupervisedProviderTrustCadenceRecovery.AdvanceAsync`, which advances a cadence only while its
+  supervision is live and otherwise answers `cadence-supervision-required` without running the cycle.
+  The exclusion is held across the whole advance, including the cycle, because that is the window the
+  fence cannot cover.
+- `DurableProviderTrustCadenceJournal.RecordPath`, the holder's own resolved path, so a supervision can
+  answer whether it covers the journal it is handed. A supervision paired with another path or another
+  run refuses.
+- Shared cross-stack vectors with C1-C7 tests, including a real second process proving the exclusion.
+
+### Notes
+
+- CBI68's fence detects a lost run at the holder's next write, and a cadence writes after its cycle has
+  run. A competitor that opens mid-cycle and reconciles the in-flight attempt therefore takes the run
+  while the effects are still happening: the cycle runs, the commit is refused, and the record keeps
+  nothing of it. A named test runs that scenario and the same one under a lock.
+- CBI68's residual limits describe two interleaving holders as fencing each other alternately. They do
+  not: a refused transition leaves the refused holder's epoch unchanged, so the loser is out
+  permanently and only reopening rejoins. Pinned by a named test.
+- Supervision claims nothing. Acquiring reads and writes no part of the record, so a run may be
+  supervised before it is established and CBI68's rule that ownership is claimed by writing is
+  untouched.
+- No durable record is added. CBI54 publishes an epoch beside its lock because CBI53 has none; this
+  journal already carries one, and a second record of a fact the first holds is a thing that can
+  disagree with it.
+- Supervision is opt-in and coordinates cooperating hosts, which is CBI54's limit unchanged. A host
+  that opens the journal without acquiring is caught by the fence at its next write rather than
+  excluded. Nothing expires, nothing is renewed, and the lock file is left behind on release because
+  deleting it would race a supervisor that has already opened it.
+
 ## Unreleased - CBI68 cadence run ownership
 
 ### Fixed

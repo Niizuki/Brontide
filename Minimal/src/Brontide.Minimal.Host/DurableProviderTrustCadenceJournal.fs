@@ -348,6 +348,10 @@ type DurableProviderTrustCadenceJournal private (path: string, initial: JournalS
     /// opening, so opening a run to look at it does not take it from the holder driving it.
     member _.OwnerEpoch = lock syncRoot (fun () -> ownerEpoch)
 
+    /// The record this holder writes to, resolved. A supervision excludes writers from a path, so it
+    /// needs the holder's own path in order to answer whether it covers the journal it is handed.
+    member _.RecordPath = path
+
     /// Marks the attempt in-flight. A governed caller supplies the durable cursor it is about to act
     /// on, which this same write records rather than a later one.
     member _.BeginCycle(cursor: ProviderTrustCadenceJournalCursor option) = lock syncRoot (fun () ->
