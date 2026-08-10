@@ -154,9 +154,19 @@ public sealed record DefinitionConstraintRejection(
     ImmutableArray<CanonicalName> UnsupportedConstraints,
     string Reason);
 
+public sealed record DefinitionConstraintAssessment(
+    CanonicalName Candidate,
+    ConstraintEvaluationOutcome Outcome,
+    ConstraintDiagnosticCategory DiagnosticCategory,
+    ImmutableArray<CanonicalName> UnsupportedConstraints,
+    string Reason);
+
 public sealed record DefinitionConstraintSelectionResult<T>(
     ImmutableArray<DefinitionConstraintCandidate<T>> Eligible,
-    ImmutableArray<DefinitionConstraintRejection> Rejected);
+    ImmutableArray<DefinitionConstraintRejection> Rejected)
+{
+    public ImmutableArray<DefinitionConstraintAssessment> Assessments { get; init; } = [];
+}
 
 /// <summary>
 /// Experimental Architecture 0.7 selection boundary. An indeterminate Definition Constraint is
@@ -167,15 +177,36 @@ public static class DefinitionConstraintSelection
     public static DefinitionConstraintSelectionResult<T> Filter<T>(
         IEnumerable<DefinitionConstraintCandidate<T>> candidates,
         Func<Constraint, ConstraintAtomEvaluation> evaluateAtom)
+        => Filter(candidates, evaluateAtom, useStrongKleene: false);
+
+    /// <summary>Applies the explicit Draft Architecture 0.8 strong-Kleene selection rule.</summary>
+    public static DefinitionConstraintSelectionResult<T> FilterDraft08<T>(
+        IEnumerable<DefinitionConstraintCandidate<T>> candidates,
+        Func<Constraint, ConstraintAtomEvaluation> evaluateAtom)
+        => Filter(candidates, evaluateAtom, useStrongKleene: true);
+
+    private static DefinitionConstraintSelectionResult<T> Filter<T>(
+        IEnumerable<DefinitionConstraintCandidate<T>> candidates,
+        Func<Constraint, ConstraintAtomEvaluation> evaluateAtom,
+        bool useStrongKleene)
     {
         ArgumentNullException.ThrowIfNull(candidates);
         ArgumentNullException.ThrowIfNull(evaluateAtom);
 
         var eligible = ImmutableArray.CreateBuilder<DefinitionConstraintCandidate<T>>();
         var rejected = ImmutableArray.CreateBuilder<DefinitionConstraintRejection>();
+        var assessments = ImmutableArray.CreateBuilder<DefinitionConstraintAssessment>();
         foreach (var candidate in candidates)
         {
-            var evaluation = ConstraintExpressionEvaluator.Evaluate(candidate.Constraint, evaluateAtom);
+            var evaluation = useStrongKleene
+                ? ConstraintExpressionEvaluator.EvaluateStrongKleene(candidate.Constraint, evaluateAtom)
+                : ConstraintExpressionEvaluator.Evaluate(candidate.Constraint, evaluateAtom);
+            assessments.Add(new(
+                candidate.Name,
+                evaluation.Outcome,
+                evaluation.DiagnosticCategory,
+                evaluation.UnsupportedConstraints,
+                evaluation.Reason));
             if (evaluation.Outcome == ConstraintEvaluationOutcome.Satisfied)
             {
                 eligible.Add(candidate);
@@ -189,7 +220,10 @@ public static class DefinitionConstraintSelection
                 evaluation.Reason));
         }
 
-        return new(eligible.ToImmutable(), rejected.ToImmutable());
+        return new(eligible.ToImmutable(), rejected.ToImmutable())
+        {
+            Assessments = assessments.ToImmutable()
+        };
     }
 }
 

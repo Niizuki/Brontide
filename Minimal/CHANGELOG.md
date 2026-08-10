@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 A08-D1 experimental runtime
+
+### Added
+
+- Minimal-native structural strong-Kleene evaluation and explicit `World.stepDraft08`, with
+  True-only authority, pre-effect denial, instantaneous authorization, and resolved full-chain checks.
+- Draft-0.8 Definition selection assessments that retain normalized Unknown atom names for both
+  eligible and rejected candidates.
+- Minimal-native execution of all 11 A08-D1 C7/C3/C4 vectors.
+
+### Notes
+
+- Existing Architecture 0.7 evaluator, `World.step`, selection behavior, and poisoning tests are
+  retained. Minimal remains designed for Architecture 0.7; this is experimental 0.8 evidence.
+
 ## Unreleased - Architecture 0.8 delivery audit
 
 ### Added

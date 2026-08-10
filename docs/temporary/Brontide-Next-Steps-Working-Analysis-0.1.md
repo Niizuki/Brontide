@@ -216,9 +216,11 @@ Neither blocks Portable Binding (B), which targets 0.8 §16/§18.1 and reuses th
 Cooling/Catalog estate — so B and C can proceed in parallel with different focus. **However**, do not
 invest in re-hardening M1's poisoning rule: under 0.8 C7 it becomes `conflicting` rework (see D).
 R6/M6 Architecture 0.8 handoff planning and the separately authorized delivery audit are now
-complete. The audit accepts no runtime vectors and proposes A08-D1 (C7 plus C3/C4 preservation
-evidence) as the next bounded runtime slice; starting it requires a separate explicit request. Do
-not gold-plate 0.7 M1.
+complete. The audit's snapshot accepts no runtime vectors. A08-D1 was subsequently authorized and
+is now delivered through explicit Draft-0.8 entry points in both stacks: all 11 C7/C3/C4 vectors
+pass while the ordinary 0.7 poisoning entry points remain green. A08-D2 (C6 plus C2) is the next
+bounded runtime slice and requires a separate breaking-surface authorization. Do not gold-plate the
+retained 0.7 M1 path.
 
 ---
 

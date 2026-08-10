@@ -419,6 +419,97 @@ module ConstraintExpression =
 
             if matches then satisfied else unsatisfied
 
+    let private strongKleeneResult outcome children =
+        let unsupported = normalizeUnsupported children
+        match outcome with
+        | Indeterminate ->
+            let indeterminate = children |> List.filter (fun child -> child.Outcome = Indeterminate)
+            let category =
+                if List.isEmpty unsupported then
+                    indeterminate |> List.map _.DiagnosticCategory |> List.sort |> List.head
+                else
+                    UnsupportedConstraint
+            let suffix =
+                if List.isEmpty unsupported then
+                    ""
+                else
+                    let names = unsupported |> List.map CanonicalName.value |> String.concat ", "
+                    $" Target has unrecognised constraint kind(s): {names}."
+            { Outcome = Indeterminate
+              DiagnosticCategory = category
+              UnsupportedConstraints = unsupported
+              Reason = $"{category}: the complete constraint expression is indeterminate.{suffix}" }
+        | Satisfied
+        | Unsatisfied ->
+            let category, prefix =
+                if outcome = Satisfied then
+                    ConstraintSatisfied, "Satisfied: the complete constraint expression matched."
+                else
+                    ConstraintUnsatisfied, "Unsatisfied: the complete constraint expression did not match."
+            let suffix =
+                if List.isEmpty unsupported then
+                    ""
+                else
+                    let names = unsupported |> List.map CanonicalName.value |> String.concat ", "
+                    $" Observed unrecognised constraint kind(s): {names}."
+            { Outcome = outcome
+              DiagnosticCategory = category
+              UnsupportedConstraints = unsupported
+              Reason = prefix + suffix }
+
+    /// Evaluates the explicit Complete-Draft Architecture 0.8 path under structural strong Kleene
+    /// logic. The ordinary evaluate function remains the Architecture 0.7 poisoning path.
+    let rec evaluateStrongKleene
+        (evaluateAtom: ConstraintRequirement -> ConstraintAtomEvaluation)
+        (expression: ConstraintExpression)
+        : ConstraintExpressionEvaluation =
+        match expression with
+        | AtomicConstraint requirement ->
+            let atom =
+                try
+                    evaluateAtom requirement
+                with _ ->
+                    ConstraintAtomEvaluation.evaluatorFailed
+
+            { Outcome = atom.Outcome
+              DiagnosticCategory = atom.DiagnosticCategory
+              UnsupportedConstraints = atom.UnsupportedConstraints |> List.distinct |> List.sort
+              Reason = atom.Reason }
+        | AllOf []
+        | AnyOf [] -> invalid
+        | AllOf operands -> evaluateStrongKleeneGroup evaluateAtom true operands
+        | AnyOf operands -> evaluateStrongKleeneGroup evaluateAtom false operands
+        | Not operand ->
+            let child = evaluateStrongKleene evaluateAtom operand
+            let outcome =
+                match child.Outcome with
+                | Satisfied -> Unsatisfied
+                | Unsatisfied -> Satisfied
+                | Indeterminate -> Indeterminate
+            strongKleeneResult outcome [ child ]
+
+    and private evaluateStrongKleeneGroup
+        (evaluateAtom: ConstraintRequirement -> ConstraintAtomEvaluation)
+        requireAll
+        operands
+        : ConstraintExpressionEvaluation =
+        let children = operands |> List.map (evaluateStrongKleene evaluateAtom)
+        let outcome =
+            if requireAll then
+                if children |> List.exists (fun child -> child.Outcome = Unsatisfied) then
+                    Unsatisfied
+                elif children |> List.exists (fun child -> child.Outcome = Indeterminate) then
+                    Indeterminate
+                else
+                    Satisfied
+            else if children |> List.exists (fun child -> child.Outcome = Satisfied) then
+                Satisfied
+            elif children |> List.exists (fun child -> child.Outcome = Indeterminate) then
+                Indeterminate
+            else
+                Unsatisfied
+        strongKleeneResult outcome children
+
 type ConstraintDefinition =
     { Reference: ConstraintReference
       Name: CanonicalName

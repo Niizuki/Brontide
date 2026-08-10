@@ -72,6 +72,88 @@ type CompositionTests() =
         Assert.That(result.Rejected.Head.Reason, Does.Not.Contain "protected-value")
 
     [<Test>]
+    member _.``BR_08_ADV_C7_007 any unknown match retains candidate and records unknown`` () =
+        let timeDomain = TimeDomainReference.create (name "Brontide.Minimal.Tests:Draft08.SelectionClock")
+        let initial = World.create (System.Guid.NewGuid()) timeDomain
+        let supported, world =
+            World.registerConstraint
+                (name "Brontide.Minimal.Tests:Draft08.SelectionSupported")
+                BuiltIn.textShape
+                "supported"
+                initial
+            |> Result.defaultWith failwith
+        let unknown, _ =
+            World.registerConstraint
+                (name "Brontide.Minimal.Tests:Draft08.SelectionUnknown")
+                BuiltIn.textShape
+                "unknown"
+                world
+            |> Result.defaultWith failwith
+        let candidateName = name "brontide-minimal.composition.draft08-candidate"
+        let atom (definition: ConstraintDefinition) =
+            AtomicConstraint
+                { Constraint = definition.Reference
+                  Parameters = TextValue "value" }
+        let candidate =
+            { Name = candidateName
+              Value = "candidate"
+              Constraint = AnyOf [ atom supported; atom unknown ] }
+
+        let result =
+            DefinitionConstraintSelection.filterDraft08
+                (fun requirement ->
+                    if requirement.Constraint = supported.Reference then
+                        ConstraintAtomEvaluation.satisfied
+                    else
+                        ConstraintAtomEvaluation.unsupported unknown.Name)
+                [ candidate ]
+
+        Assert.That((result.Eligible |> List.map _.Name) = [ candidateName ], Is.True)
+        Assert.That(result.Rejected, Is.Empty)
+        Assert.That(result.Assessments.Head.UnsupportedConstraints, Does.Contain unknown.Name)
+
+    [<Test>]
+    member _.``BR_08_ADV_C7_008 all match unknown excludes candidate and records unknown`` () =
+        let timeDomain = TimeDomainReference.create (name "Brontide.Minimal.Tests:Draft08.SelectionClock")
+        let initial = World.create (System.Guid.NewGuid()) timeDomain
+        let supported, world =
+            World.registerConstraint
+                (name "Brontide.Minimal.Tests:Draft08.SelectionSupported")
+                BuiltIn.textShape
+                "supported"
+                initial
+            |> Result.defaultWith failwith
+        let unknown, _ =
+            World.registerConstraint
+                (name "Brontide.Minimal.Tests:Draft08.SelectionUnknown")
+                BuiltIn.textShape
+                "unknown"
+                world
+            |> Result.defaultWith failwith
+        let candidateName = name "brontide-minimal.composition.draft08-candidate"
+        let atom (definition: ConstraintDefinition) =
+            AtomicConstraint
+                { Constraint = definition.Reference
+                  Parameters = TextValue "value" }
+        let candidate =
+            { Name = candidateName
+              Value = "candidate"
+              Constraint = AllOf [ atom supported; atom unknown ] }
+
+        let result =
+            DefinitionConstraintSelection.filterDraft08
+                (fun requirement ->
+                    if requirement.Constraint = supported.Reference then
+                        ConstraintAtomEvaluation.satisfied
+                    else
+                        ConstraintAtomEvaluation.unsupported unknown.Name)
+                [ candidate ]
+
+        Assert.That(result.Eligible, Is.Empty)
+        Assert.That(result.Rejected.Head.Candidate, Is.EqualTo candidateName)
+        Assert.That(result.Assessments.Head.UnsupportedConstraints, Does.Contain unknown.Name)
+
+    [<Test>]
     member _.``provider selection is explicit and explained`` () =
         let intent =
             { Capability = capability ()

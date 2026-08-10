@@ -7,6 +7,13 @@ Reference and Minimal surfaces with the Complete Draft Architecture 0.8 C1-C14 r
 canonical vectors. It changes no runtime source, accepts no Architecture 0.8 conformance, and leaves
 both stack targets at Architecture 0.7.
 
+## Post-audit delivery status
+
+A08-D1 was subsequently authorized and is now delivered as explicit experimental Draft-0.8 paths in
+both stacks. Its five-item behavioral contract and 11 C7/C3/C4 vectors execute natively, while the
+ordinary Architecture 0.7 evaluator, execution, and selection entry points retain poisoning
+semantics. This does not rewrite the audit findings below, which are the pre-delivery inventory.
+
 ## Findings
 
 | Change | Reference | Minimal | Audit conclusion |
@@ -48,7 +55,8 @@ Flow conformance still follows the decided Channel → Portable Binding and Shap
 
 ## Next authorization boundary
 
-The next implementable runtime slice is **A08-D1**. Starting it requires an explicit request after
-this audit is reviewed. The slice must begin with named C1-through-Cn behavioral contracts and
-failing canonical tests in each stack; it must not change the status registry, pinned 0.7 matrices,
-or either stack's `Designed for` declaration.
+A08-D1 is delivered with named failing-first tests, retained 0.7 compatibility evidence, and an
+independent implementation in each stack. The next implementable runtime slice is **A08-D2**:
+C6 default-on Constraint-narrowed delegability plus C2 `Origin.Derived` inside the ordinary algebra.
+It requires a separate explicit request and a breaking-surface migration decision; it must not
+change the status registry, pinned 0.7 matrices, or either stack's `Designed for` declaration.
