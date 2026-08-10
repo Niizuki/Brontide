@@ -175,7 +175,9 @@ type World =
           GenesisActive: bool
           AuthorityActor: ActorReference
           Actors: Map<ActorReference, Actor>
+          RetiredActors: Set<ActorReference>
           Capabilities: Map<CapabilityReference, Capability>
+          ExtinguishedCapabilities: Set<CapabilityReference>
           LivenessLeases: Map<LivenessLeaseReference, LivenessLease>
           QuantifiedUsage: Map<QuantifiedConstraintOccurrence, int64>
           CapabilityConstraintExpressions: Map<CapabilityReference, ConstraintExpression list>
@@ -188,6 +190,7 @@ type World =
           Events: Event list
           Provenance: ProvenanceClaim list
           GenesisOccurrences: GenesisOccurrence list
+          TerminusOccurrences: TerminusOccurrence list
           TimeDomain: TimeDomainReference
           LastLogicalTime: int64 }
 
@@ -340,7 +343,9 @@ module World =
           GenesisActive = false
           AuthorityActor = authorityReference
           Actors = Map.ofList [ authorityReference, authorityActor ]
+          RetiredActors = Set.empty
           Capabilities = Map.empty
+          ExtinguishedCapabilities = Set.empty
           LivenessLeases = Map.empty
           QuantifiedUsage = Map.empty
           CapabilityConstraintExpressions = Map.empty
@@ -353,11 +358,13 @@ module World =
           Events = []
           Provenance = []
           GenesisOccurrences = []
+          TerminusOccurrences = []
           TimeDomain = timeDomain
           LastLogicalTime = Int64.MinValue }
 
     let scope (world: World) = world.Scope
     let actors (world: World) = world.Actors |> Map.toSeq |> Seq.map snd |> Seq.toList
+    let retiredActors (world: World) = world.RetiredActors |> Set.toList
     let shapes (world: World) = world.Shapes |> Map.toSeq |> Seq.map snd |> Seq.toList
     let operations (world: World) = world.Operations |> Map.toSeq |> Seq.map snd |> Seq.toList
     let capabilities (world: World) = world.Capabilities |> Map.toSeq |> Seq.map snd |> Seq.toList
@@ -365,6 +372,12 @@ module World =
     let events (world: World) = world.Events
     let provenance (world: World) = world.Provenance
     let genesisOccurrences (world: World) = world.GenesisOccurrences
+    let terminusOccurrences (world: World) = world.TerminusOccurrences
+    let terminusPolicy (_: World) =
+        { HeldCapabilityDisposition = HeldCapabilitiesExtinguishedImmediately
+          OutboundGrantDisposition = ImmortalSurvivesIndefinitely
+          LivenessScopedGrantDisposition = LivenessScopedGrantsExtinguishedImmediately
+          ActorReferenceDisposition = RetainedWithoutReuse }
     let timeDomain (world: World) = world.TimeDomain
     let lastLogicalTime (world: World) = world.LastLogicalTime
     let tryFindShape (reference: ShapeReference) (world: World) = Map.tryFind reference world.Shapes
@@ -398,6 +411,8 @@ module World =
         |> Seq.toList
     let tryFindCapability (reference: CapabilityReference) (world: World) =
         Map.tryFind reference world.Capabilities
+    let tryFindLivenessLease (reference: LivenessLeaseReference) (world: World) =
+        Map.tryFind reference world.LivenessLeases
     let capabilityConstraintExpressions (reference: CapabilityReference) (world: World) =
         Map.tryFind reference world.CapabilityConstraintExpressions
     let tryFindConstraint (reference: ConstraintReference) (world: World) =
@@ -647,6 +662,8 @@ module World =
             Error "That operation is already registered."
         elif not (Map.containsKey definition.Target world.Actors) then
             Error "The operation target is not an issued Actor in this domain."
+        elif Set.contains definition.Target world.RetiredActors then
+            Error "A retired Actor cannot become an Operation target."
         elif not (Map.containsKey definition.CommandShape world.Shapes) then
             Error "The command shape is not registered."
         elif not (Map.containsKey definition.ResultShape world.Shapes) then
@@ -836,6 +853,8 @@ module World =
         context.EnsureActive(world.Scope, world.GenesisTransaction, world.GenesisActive)
         if not (Map.containsKey grantor world.Actors) then
             Error "A liveness lease grantor must be an issued Actor."
+        elif Set.contains grantor world.RetiredActors then
+            Error "A retired Actor cannot maintain a liveness lease."
         elif durationMilliseconds <= 0L then
             Error "A liveness lease duration must be positive."
         elif context.IssuedAtMilliseconds > Int64.MaxValue - durationMilliseconds then
@@ -914,6 +933,8 @@ module World =
             Error "The Capability holder is not an issued Actor in this domain."
         elif not (Map.containsKey target world.Actors) then
             Error "The Capability target is not an issued Actor in this domain."
+        elif Set.contains holder world.RetiredActors || Set.contains target world.RetiredActors then
+            Error "A retired Actor cannot hold or target newly issued authority."
         elif Set.isEmpty operations then
             Error "A Capability must authorize at least one Operation."
         elif not operationsRecognized then
@@ -1000,8 +1021,16 @@ module World =
         | true, None -> Error "The parent Capability is unknown."
         | true, Some parent when parent.Holder <> delegator ->
             Error "Only the Capability holder may delegate it."
+        | true, Some _ when Set.contains delegator world.RetiredActors ->
+            Error "A retired Actor cannot delegate authority."
+        | true, Some _ when Set.contains parentReference world.ExtinguishedCapabilities ->
+            Error "An extinguished Capability cannot be delegated."
         | true, Some _ when not (Map.containsKey newHolder world.Actors) ->
             Error "The delegated Capability holder is unknown."
+        | true, Some _ when Set.contains newHolder world.RetiredActors ->
+            Error "A retired Actor cannot receive delegated authority."
+        | true, Some parent when Set.contains parent.Target world.RetiredActors ->
+            Error "Authority cannot be delegated to a retired target Actor."
         | true, Some parent ->
             let originCeiling =
                 world.Constraints
@@ -1272,6 +1301,99 @@ module World =
 
         collect capability []
 
+    let private hasMaintainedLivenessScope actor (capability: Capability) (world: World) =
+        capabilityChain capability world
+        |> List.collect (fun item ->
+            world.CapabilityConstraintExpressions
+            |> Map.tryFind item.Reference
+            |> Option.defaultValue (item.AddedConstraints |> List.map AtomicConstraint))
+        |> List.collect ConstraintExpression.atoms
+        |> List.exists (fun requirement ->
+            match Map.tryFind requirement.Constraint world.Constraints, requirement.Parameters with
+            | Some definition, TextValue token when definition.Name = BuiltIn.livenessLeaseConstraintName ->
+                world.LivenessLeases
+                |> Map.exists (fun _ lease ->
+                    lease.Grantor = actor
+                    && string (LivenessLeaseReference.value lease.Reference) = token)
+            | _ -> false)
+
+    let terminateActor
+        (policyActor: ActorReference)
+        (actor: ActorReference)
+        (reason: string)
+        (recordedAt: TemporalMark)
+        (world: World)
+        =
+        world.AuthorityTransactions.RunRuntime(
+            world.GenesisTransaction,
+            (fun () -> Error "Terminus is unavailable inside or through an uncommitted Genesis occurrence."),
+            (fun () ->
+                if String.IsNullOrWhiteSpace reason then
+                    Error "A Terminus occurrence requires an attributable reason."
+                elif recordedAt.TimeDomain <> world.TimeDomain then
+                    Error "Terminus must use the authority domain's trusted time domain."
+                elif recordedAt.Milliseconds < world.LastLogicalTime then
+                    Error "Terminus time cannot move backwards."
+                elif recordedAt.UncertaintyMilliseconds |> Option.exists (fun value -> value < 0L) then
+                    Error "Terminus time uncertainty cannot be negative."
+                elif not (Map.containsKey policyActor world.Actors) || Set.contains policyActor world.RetiredActors then
+                    Error "The Terminus policy Actor is unknown or retired."
+                elif not (Map.containsKey actor world.Actors) || Set.contains actor world.RetiredActors then
+                    Error "The Actor is unknown or already retired."
+                elif actor = world.AuthorityActor then
+                    Error "The authority-domain Actor cannot be retired by dynamic Terminus."
+                else
+                    let capabilities = world.Capabilities |> Map.toList |> List.map snd
+                    let held =
+                        capabilities
+                        |> List.filter (fun capability -> capability.Holder = actor)
+                        |> List.map _.Reference
+                    let outbound =
+                        capabilities
+                        |> List.filter (fun capability ->
+                            match capability.Parent with
+                            | Some parent -> world.Capabilities[parent].Holder = actor
+                            | None -> false)
+                    let livenessScoped =
+                        outbound
+                        |> List.filter (fun capability -> hasMaintainedLivenessScope actor capability world)
+                    let livenessScopedReferences = livenessScoped |> List.map _.Reference |> Set.ofList
+                    let extinguished =
+                        capabilities
+                        |> List.filter (fun capability ->
+                            capabilityChain capability world
+                            |> List.exists (fun ancestor -> Set.contains ancestor.Reference livenessScopedReferences))
+                        |> List.map _.Reference
+                        |> Set.ofList
+                    let surviving =
+                        outbound
+                        |> List.filter (fun capability -> not (Set.contains capability.Reference livenessScopedReferences))
+                        |> List.map _.Reference
+                    let leases =
+                        world.LivenessLeases
+                        |> Map.map (fun _ lease -> if lease.Grantor = actor then { lease with Dead = true } else lease)
+                    let occurrence, allocated = allocateOccurrence "terminus-occurrence" world
+                    let policy = terminusPolicy world
+                    let record =
+                        { Occurrence = occurrence
+                          PolicyActor = policyActor
+                          ActorRetired = actor
+                          Reason = reason
+                          Policy = policy
+                          HeldCapabilitiesExtinguished = held
+                          OutboundGrantsSurviving = surviving
+                          OutboundGrantsExtinguished = livenessScoped |> List.map _.Reference
+                          RecordedAt = recordedAt }
+                    Ok(
+                        record,
+                        { allocated with
+                            RetiredActors = Set.add actor allocated.RetiredActors
+                            ExtinguishedCapabilities = Set.union extinguished allocated.ExtinguishedCapabilities
+                            LivenessLeases = leases
+                            TerminusOccurrences = allocated.TerminusOccurrences @ [ record ]
+                            LastLogicalTime = recordedAt.Milliseconds })
+            ))
+
     let private validateEventDraft (draft: EventDraft) (world: World) =
         if not (Map.containsKey draft.Emitter world.Actors) then
             Error "An emitted Event names an unknown emitter."
@@ -1327,12 +1449,18 @@ module World =
         | None -> deny environment request "The requested Operation is unknown." world
         | Some operation when not (Map.containsKey request.Initiator world.Actors) ->
             deny environment request "The initiating Actor is unknown." world
+        | Some operation when Set.contains request.Initiator world.RetiredActors ->
+            deny environment request "The initiating Actor is retired." world
         | Some operation when not (Map.containsKey request.Target world.Actors) ->
             deny environment request "The target Actor is unknown." world
+        | Some operation when Set.contains request.Target world.RetiredActors ->
+            deny environment request "The target Actor is retired." world
         | Some operation when operation.Target <> request.Target ->
             deny environment request "The Operation is not recognized by the requested target." world
         | Some operation when not (Map.containsKey request.PresentedCapability world.Capabilities) ->
             deny environment request "The presented Capability was not issued by this authority domain." world
+        | Some operation when Set.contains request.PresentedCapability world.ExtinguishedCapabilities ->
+            deny environment request "The presented Capability was extinguished by Terminus." world
         | Some operation ->
             let capability = world.Capabilities[request.PresentedCapability]
 

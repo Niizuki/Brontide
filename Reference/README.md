@@ -42,7 +42,11 @@ execution-rate Constraint whose successful authorizations pool at the carrying c
 denials consume nothing and unenforceable vocabulary scopes remain declined. Its six C1/C5 vectors
 pass independently. A08-D5 now derives requester Dataset authority from the provider's explicitly
 bounded resource-space Capability, records the ordinary parent chain, and refuses scope excess
-before Dataset or Capability effects. Both C10 vectors pass independently. A08-D6 is next.
+before Dataset or Capability effects. Both C10 vectors pass independently. A08-D6 now records an
+attributable, enumerable Terminus under an explicit disposition policy: held authority ends,
+immortal outbound grants survive with retained grantor identity, and liveness-scoped grants plus
+their descendants end immediately. All three C12 vectors and the phase property pass independently.
+The six-slice runtime queue is complete; 0.8 closure and retargeting remain separately authorized.
 The retained [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json) matrix is
 detailed test evidence, not the source of the implementation target and not a claim that the
 remaining Architecture 0.7 work is implemented.

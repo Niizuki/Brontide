@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 A08-D6 experimental runtime
+
+### Added
+
+- Attributable, enumerable Terminus occurrences with an explicit fixed authority-disposition
+  policy and retained stable Actor references.
+- Reference-native execution of all three A08-D6 C12 vectors and all four phase properties.
+
+### Changed
+
+- Draft-0.8 authority now rejects retired holders and targets, preserves immortal outbound grants
+  with grantor ancestry, and immediately extinguishes liveness-scoped grants and descendants.
+- Capability registration and liveness renewal reject retired participants without erasing retained
+  provenance or authority records.
+
 ## Unreleased - Architecture 0.8 A08-D5 experimental runtime
 
 ### Added

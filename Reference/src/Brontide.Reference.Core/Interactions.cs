@@ -293,7 +293,8 @@ public enum ProvenanceKind
     Genesis,
     Execution,
     Event,
-    Outcome
+    Outcome,
+    Terminus
 }
 
 public sealed class ProvenanceEntry
@@ -302,6 +303,7 @@ public sealed class ProvenanceEntry
         long sequence,
         ProvenanceKind kind,
         GenesisRecord? genesis = null,
+        TerminusRecord? terminus = null,
         ExecutionRecord? execution = null,
         DomainEvent? @event = null,
         Outcome? outcome = null,
@@ -312,6 +314,7 @@ public sealed class ProvenanceEntry
         Sequence = sequence;
         Kind = kind;
         Genesis = genesis;
+        Terminus = terminus;
         Execution = execution;
         Event = @event;
         Outcome = outcome;
@@ -323,6 +326,7 @@ public sealed class ProvenanceEntry
     public long Sequence { get; }
     public ProvenanceKind Kind { get; }
     public GenesisRecord? Genesis { get; }
+    public TerminusRecord? Terminus { get; }
     public ExecutionRecord? Execution { get; }
     public DomainEvent? Event { get; }
     public Outcome? Outcome { get; }
@@ -332,6 +336,9 @@ public sealed class ProvenanceEntry
 
     internal static ProvenanceEntry ForGenesis(long sequence, GenesisRecord genesis) =>
         new(sequence, ProvenanceKind.Genesis, genesis: genesis);
+
+    internal static ProvenanceEntry ForTerminus(long sequence, TerminusRecord terminus) =>
+        new(sequence, ProvenanceKind.Terminus, terminus: terminus);
 
     internal static ProvenanceEntry ForExecution(
         long sequence,
@@ -355,5 +362,47 @@ public sealed record GenesisRecord(
     string Reason,
     ImmutableArray<ActorReference> ActorsCreated,
     ImmutableArray<Capability> CapabilitiesCreated);
+
+public enum HeldCapabilityTerminusDisposition
+{
+    ExtinguishedImmediately
+}
+
+public enum OutboundGrantTerminusDisposition
+{
+    ImmortalSurvivesIndefinitely
+}
+
+public enum LivenessScopedGrantTerminusDisposition
+{
+    ExtinguishedImmediately
+}
+
+public enum ActorReferenceTerminusDisposition
+{
+    RetainedWithoutReuse
+}
+
+public sealed record TerminusDispositionPolicy(
+    HeldCapabilityTerminusDisposition HeldCapabilityDisposition,
+    OutboundGrantTerminusDisposition OutboundGrantDisposition,
+    LivenessScopedGrantTerminusDisposition LivenessScopedGrantDisposition,
+    ActorReferenceTerminusDisposition ActorReferenceDisposition)
+{
+    public static TerminusDispositionPolicy D6 { get; } = new(
+        HeldCapabilityTerminusDisposition.ExtinguishedImmediately,
+        OutboundGrantTerminusDisposition.ImmortalSurvivesIndefinitely,
+        LivenessScopedGrantTerminusDisposition.ExtinguishedImmediately,
+        ActorReferenceTerminusDisposition.RetainedWithoutReuse);
+}
+
+public sealed record TerminusRecord(
+    InteractionContext Interaction,
+    ActorReference ActorRetired,
+    string Reason,
+    TerminusDispositionPolicy Policy,
+    ImmutableArray<Capability> HeldCapabilitiesExtinguished,
+    ImmutableArray<Capability> OutboundGrantsSurviving,
+    ImmutableArray<Capability> OutboundGrantsExtinguished);
 
 public sealed class BrontideDenialException(string message) : InvalidOperationException(message);

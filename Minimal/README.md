@@ -45,7 +45,11 @@ liveness leases and immutable occurrence-pooled execution-rate bookkeeping acros
 Capability ancestry; denials consume nothing and unenforceable vocabulary scopes remain declined.
 Its six C1/C5 vectors pass independently. A08-D5 now preflights provider-held Dataset-space
 authority, runs the creating Draft-0.8 transition, and returns an immutable World containing the
-requester's constrained derived Capability. Both C10 vectors pass independently. A08-D6 is next. The retained
+requester's constrained derived Capability. Both C10 vectors pass independently. A08-D6 now returns
+an immutable World with attributable Terminus occurrences, retired identities, extinguished
+liveness-scoped chains, and immortal outbound grants retaining their grantor ancestry. All three
+C12 vectors and the phase property pass independently. The six-slice runtime queue is complete;
+0.8 closure and retargeting remain separately authorized. The retained
 [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json)
 matrix is detailed test evidence, not the source of the implementation target and not a claim that
 the remaining Architecture 0.7 work is implemented.

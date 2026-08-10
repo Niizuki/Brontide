@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 A08-D6 experimental runtime
+
+### Added
+
+- Immutable, attributable Terminus occurrences and a fixed held/outbound authority-disposition
+  policy in the Minimal World.
+- Minimal-native execution of all three A08-D6 C12 vectors and all four phase properties.
+
+### Changed
+
+- Draft-0.8 transitions reject retired holders and targets, retain immortal outbound grant ancestry,
+  and extinguish liveness-scoped grants, descendants, and maintaining leases at Terminus.
+- Delegation rejects retired participants and extinguished parents while preserving stable records.
+
 ## Unreleased - Architecture 0.8 A08-D5 experimental runtime
 
 ### Added

@@ -15,6 +15,9 @@ public sealed class AuthorityDomain
     private readonly List<Capability> _capabilities = [];
     private readonly List<LivenessLease> _leases = [];
     private readonly List<GenesisRecord> _genesis = [];
+    private readonly List<TerminusRecord> _terminus = [];
+    private readonly HashSet<ActorReference> _retiredActors = [];
+    private readonly HashSet<Capability> _extinguishedCapabilities = [];
     private readonly List<ProvenanceEntry> _provenance = [];
     private readonly Dictionary<ActivityReference, ActorReference> _activities = [];
     private readonly HashSet<ActivityReference> _terminalActivities = [];
@@ -36,6 +39,7 @@ public sealed class AuthorityDomain
     public string Name { get; }
     public TimeProvider? TimeProvider { get; }
     public ShapeRegistry Shapes { get; }
+    public TerminusDispositionPolicy TerminusPolicy { get; } = TerminusDispositionPolicy.D6;
 
     public ImmutableArray<ConstraintRecognition> ConstraintRecognitionSet
     {
@@ -68,6 +72,16 @@ public sealed class AuthorityDomain
     public IReadOnlyList<GenesisRecord> GenesisOccurrences
     {
         get { lock (_gate) { return _genesis.ToArray(); } }
+    }
+
+    public IReadOnlyList<TerminusRecord> TerminusOccurrences
+    {
+        get { lock (_gate) { return _terminus.ToArray(); } }
+    }
+
+    public IReadOnlyCollection<ActorReference> RetiredActors
+    {
+        get { lock (_gate) { return _retiredActors.ToArray(); } }
     }
 
     public IReadOnlyList<ProvenanceEntry> Provenance
@@ -399,6 +413,70 @@ public sealed class AuthorityDomain
         }
     }
 
+    public TerminusRecord OccurTerminus(
+        ActorReference policyActor,
+        ActorReference actor,
+        string reason)
+    {
+        EnsureActor(policyActor);
+        EnsureActor(actor);
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new ArgumentException("A Terminus occurrence requires an attributable reason.", nameof(reason));
+        }
+
+        lock (_gate)
+        {
+            if (_retiredActors.Contains(policyActor) || _retiredActors.Contains(actor))
+            {
+                throw new InvalidOperationException("A Terminus occurrence requires active policy and retired-target Actors.");
+            }
+
+            var held = _capabilities.Where(capability => ReferenceEquals(capability.Holder, actor)).ToImmutableArray();
+            var outbound = _capabilities
+                .Where(capability => capability.Parent is not null && ReferenceEquals(capability.Parent.Holder, actor))
+                .ToImmutableArray();
+            var livenessScoped = outbound
+                .Where(capability => HasMaintainedLivenessScope(capability, actor))
+                .ToImmutableArray();
+            var livenessScopedSet = livenessScoped.ToImmutableHashSet();
+            var extinguished = _capabilities
+                .Where(capability => capability.DerivationChain().Any(livenessScopedSet.Contains))
+                .ToImmutableArray();
+            var surviving = outbound.Where(capability => !livenessScopedSet.Contains(capability)).ToImmutableArray();
+
+            foreach (var capability in extinguished)
+            {
+                _extinguishedCapabilities.Add(capability);
+            }
+
+            foreach (var lease in _leases.Where(lease => ReferenceEquals(lease.Grantor, actor)))
+            {
+                lease.Invalidate();
+            }
+
+            _retiredActors.Add(actor);
+            var record = new TerminusRecord(
+                new InteractionContext(policyActor, OccurrenceReference.New(), EmittedAt: TrustedTemporalMark()),
+                actor,
+                reason,
+                TerminusPolicy,
+                held,
+                surviving,
+                livenessScoped);
+            _terminus.Add(record);
+            Append(ProvenanceKind.Terminus, terminus: record);
+            return record;
+        }
+    }
+
+    private static bool HasMaintainedLivenessScope(Capability capability, ActorReference actor) =>
+        capability.DerivationChain()
+            .SelectMany(item => item.AddedConstraintExpressions)
+            .SelectMany(expression => ConstraintExpressionEvaluator.AtomicConstraints(expression))
+            .OfType<LivenessLeaseConstraint>()
+            .Any(constraint => ReferenceEquals(constraint.Lease.Grantor, actor));
+
     private async ValueTask<ExecutionResult> ExecuteInternalAsync(
         ActorReference initiator,
         ActorReference? requester,
@@ -439,6 +517,11 @@ public sealed class AuthorityDomain
             return Reject(execution, decisions, "denied: Actor reference is not issued by this authority domain");
         }
 
+        if (!ActorIsActive(initiator) || (requester is not null && !ActorIsActive(requester)))
+        {
+            return Reject(execution, decisions, "denied: Actor is retired from this authority domain");
+        }
+
         OperationDefinition definition;
         lock (_gate)
         {
@@ -448,9 +531,19 @@ public sealed class AuthorityDomain
             }
         }
 
+        if (!ActorIsActive(definition.Target))
+        {
+            return Reject(execution, decisions, "denied: Operation target Actor is retired");
+        }
+
         if (!CapabilityBelongs(capability))
         {
             return Reject(execution, decisions, "denied: Capability is not registered by this authority domain");
+        }
+
+        if (CapabilityIsExtinguished(capability))
+        {
+            return Reject(execution, decisions, "denied: Capability was extinguished by Terminus");
         }
 
         if (!ReferenceEquals(capability.Holder, authorityActor))
@@ -1036,6 +1129,7 @@ public sealed class AuthorityDomain
     private void Append(
         ProvenanceKind kind,
         GenesisRecord? genesis = null,
+        TerminusRecord? terminus = null,
         ExecutionRecord? execution = null,
         DomainEvent? @event = null,
         Outcome? outcome = null,
@@ -1049,6 +1143,7 @@ public sealed class AuthorityDomain
             _provenance.Add(kind switch
             {
                 ProvenanceKind.Genesis => ProvenanceEntry.ForGenesis(sequence, genesis!),
+                ProvenanceKind.Terminus => ProvenanceEntry.ForTerminus(sequence, terminus!),
                 ProvenanceKind.Execution => ProvenanceEntry.ForExecution(
                     sequence, execution!, decisions ?? [], authorized ?? false, message ?? string.Empty),
                 ProvenanceKind.Event => ProvenanceEntry.ForEvent(sequence, @event!),
@@ -1129,6 +1224,15 @@ public sealed class AuthorityDomain
             {
                 throw new InvalidOperationException(
                     "A Capability can be delegated only from registered authority to registered Actors.");
+            }
+
+            if (!ActorIsActive(capability.Parent.Holder) ||
+                !ActorIsActive(capability.Holder) ||
+                !ActorIsActive(capability.Target) ||
+                CapabilityIsExtinguished(capability.Parent))
+            {
+                throw new InvalidOperationException(
+                    "A retired Actor or extinguished Capability cannot participate in Delegation.");
             }
 
             EnsureLeasesBelong(capability.AddedConstraintExpressions);
@@ -1230,11 +1334,27 @@ public sealed class AuthorityDomain
         }
     }
 
+    private bool ActorIsActive(ActorReference actor)
+    {
+        lock (_gate)
+        {
+            return ActorBelongs(actor) && !_retiredActors.Contains(actor);
+        }
+    }
+
     private bool CapabilityBelongs(Capability capability)
     {
         lock (_gate)
         {
             return capability.DomainId == Id && _capabilities.Contains(capability);
+        }
+    }
+
+    private bool CapabilityIsExtinguished(Capability capability)
+    {
+        lock (_gate)
+        {
+            return _extinguishedCapabilities.Contains(capability);
         }
     }
 
@@ -1244,7 +1364,7 @@ public sealed class AuthorityDomain
                      .SelectMany(expression => ConstraintExpressionEvaluator.AtomicConstraints(expression))
                      .OfType<LivenessLeaseConstraint>())
         {
-            if (!_leases.Contains(leaseConstraint.Lease) || !ActorBelongs(leaseConstraint.Lease.Grantor))
+            if (!_leases.Contains(leaseConstraint.Lease) || !ActorIsActive(leaseConstraint.Lease.Grantor))
             {
                 throw new InvalidOperationException(
                     "A liveness-lease Constraint must use a lease registered by this authority domain.");
@@ -1270,6 +1390,10 @@ public sealed class AuthorityDomain
         if (!ActorBelongs(actor))
         {
             throw new InvalidOperationException("Actor reference belongs to another authority domain.");
+        }
+        if (!ActorIsActive(actor))
+        {
+            throw new InvalidOperationException("Actor is retired from this authority domain.");
         }
     }
 

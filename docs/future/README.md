@@ -17,10 +17,11 @@ non-projecting Constraint values, and retained additive payload projection. All 
 execute independently in both stacks. A08-D4 has now delivered complete-chain liveness evaluation,
 occurrence-pooled Base execution-rate accounting, denial-silent bookkeeping, and fail-closed
 declared scopes across all six C1/C5 vectors. A08-D5 has now delivered provider
-resource-Capability issuance by constrained Delegation across both C10 vectors. A08-D6 is next and
-requires separate authorization for attributable Terminus and authority disposition. The
-hash-pinned 0.7 matrices still await review retargeting; no whole-Architecture 0.8 implementation or
-ratification is implied.
+resource-Capability issuance by constrained Delegation across both C10 vectors. A08-D6 has now
+delivered attributable Terminus with explicit held, immortal-outbound, liveness-scoped, and stable
+reference dispositions across all three C12 vectors. The six authorized runtime slices are
+complete. The hash-pinned 0.7 matrices still await review retargeting, and stack-wide 0.8 closure,
+status changes, and ratification require separate authorization.
 
 This directory is the authoritative entry point for planned, draft, proposed, work-in-progress, or
 otherwise unimplemented work. A document belongs here even when it is the “current architecture” if

@@ -682,6 +682,35 @@ type GenesisOccurrence =
       IntroducedCapabilities: CapabilityReference list
       RecordedAt: TemporalMark }
 
+type HeldCapabilityTerminusDisposition =
+    | HeldCapabilitiesExtinguishedImmediately
+
+type OutboundGrantTerminusDisposition =
+    | ImmortalSurvivesIndefinitely
+
+type LivenessScopedGrantTerminusDisposition =
+    | LivenessScopedGrantsExtinguishedImmediately
+
+type ActorReferenceTerminusDisposition =
+    | RetainedWithoutReuse
+
+type TerminusDispositionPolicy =
+    { HeldCapabilityDisposition: HeldCapabilityTerminusDisposition
+      OutboundGrantDisposition: OutboundGrantTerminusDisposition
+      LivenessScopedGrantDisposition: LivenessScopedGrantTerminusDisposition
+      ActorReferenceDisposition: ActorReferenceTerminusDisposition }
+
+type TerminusOccurrence =
+    { Occurrence: OccurrenceReference
+      PolicyActor: ActorReference
+      ActorRetired: ActorReference
+      Reason: string
+      Policy: TerminusDispositionPolicy
+      HeldCapabilitiesExtinguished: CapabilityReference list
+      OutboundGrantsSurviving: CapabilityReference list
+      OutboundGrantsExtinguished: CapabilityReference list
+      RecordedAt: TemporalMark }
+
 type ProvenanceClaim =
     { Subject: string
       Predicate: CanonicalName
