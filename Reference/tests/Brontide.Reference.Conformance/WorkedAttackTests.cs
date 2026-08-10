@@ -33,7 +33,12 @@ public sealed class WorkedAttackTests
                 RecordField.Required("environment", environmentShape)));
 
             var environmentConstraint = CanonicalName.Parse("Deployment:Environment");
-            genesis.Constraint(environmentConstraint, ShapeContract.For(environmentShape), (constraint, context) =>
+            genesis.Constraint(
+                ConstraintDeclaration.Create(
+                    environmentConstraint,
+                    ShapeContract.For(environmentShape),
+                    "the request environment equals the delegated environment"),
+                (constraint, context) =>
             {
                 var allowed = constraint.Value.RequireScalar<string>();
                 var actual = context.Input.RequireField("environment").RequireScalar<string>();

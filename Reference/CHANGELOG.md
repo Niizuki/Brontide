@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 A08-D3 breaking experimental runtime
+
+### Changed
+
+- Constraint registration now consumes a first-class `ConstraintDeclaration` containing the
+  declaration version, exact value Shape/version, evaluation semantics, evaluator domain,
+  unknown behavior, accounting scope, and parallel-name evolution policy.
+- Constraint values are validated through the strict authority-plane path and are never additively
+  projected; ordinary Operation inputs retain Shape projection.
+
+### Added
+
+- Deterministic `AuthorityDomain.ConstraintRecognitionSet` evidence for implemented and deliberately
+  declined declarations, including standard Constraints.
+- Reference-native execution of all six A08-D3 C9/C8 vectors and their phase properties.
+
+### Breaking change
+
+- Replace `GenesisContext.Constraint(name, valueShape, evaluator)` with a first-class declaration,
+  normally `GenesisContext.Constraint(ConstraintDeclaration.Create(name, valueShape, semantics), evaluator)`.
+
 ## Unreleased - Architecture 0.8 A08-D2 breaking experimental runtime
 
 ### Changed

@@ -21,8 +21,7 @@ public sealed class CompositeConstraintConformanceTests
             holder = genesis.Actor("Holder");
             target = genesis.Actor("Target");
             genesis.Constraint(
-                deny,
-                ShapeContract.For(BuiltInShapes.Text),
+                ConstraintDeclaration.Create(deny, ShapeContract.For(BuiltInShapes.Text), "the atom never matches"),
                 (constraint, _) => ConstraintDecision.Deny(constraint.Name, "unrelated atom did not match"));
             genesis.Operation(
                 operation,
@@ -79,8 +78,7 @@ public sealed class CompositeConstraintConformanceTests
             holder = genesis.Actor("Holder");
             target = genesis.Actor("Target");
             genesis.Constraint(
-                known,
-                ShapeContract.For(BuiltInShapes.Text),
+                ConstraintDeclaration.Create(known, ShapeContract.For(BuiltInShapes.Text), "the atom matches"),
                 (constraint, _) => ConstraintDecision.Allow(constraint.Name, "unrelated atom matched"));
             genesis.Operation(
                 operation,
@@ -138,8 +136,7 @@ public sealed class CompositeConstraintConformanceTests
             holder = genesis.Actor("Holder");
             target = genesis.Actor("Target");
             genesis.Constraint(
-                known,
-                ShapeContract.For(BuiltInShapes.Text),
+                ConstraintDeclaration.Create(known, ShapeContract.For(BuiltInShapes.Text), "the atom matches"),
                 (constraint, _) => ConstraintDecision.Allow(constraint.Name, "known atom matched"));
             genesis.Operation(
                 operation,

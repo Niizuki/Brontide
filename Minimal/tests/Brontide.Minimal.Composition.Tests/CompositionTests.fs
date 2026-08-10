@@ -44,6 +44,7 @@ type CompositionTests() =
         let atom (definition: ConstraintDefinition) value =
             AtomicConstraint
                 { Constraint = definition.Reference
+                  ParameterShape = definition.ParameterShape
                   Parameters = TextValue value }
         let poisonedName = name "brontide-minimal.composition.poisoned"
         let eligibleName = name "brontide-minimal.composition.eligible"
@@ -93,6 +94,7 @@ type CompositionTests() =
         let atom (definition: ConstraintDefinition) =
             AtomicConstraint
                 { Constraint = definition.Reference
+                  ParameterShape = definition.ParameterShape
                   Parameters = TextValue "value" }
         let candidate =
             { Name = candidateName
@@ -134,6 +136,7 @@ type CompositionTests() =
         let atom (definition: ConstraintDefinition) =
             AtomicConstraint
                 { Constraint = definition.Reference
+                  ParameterShape = definition.ParameterShape
                   Parameters = TextValue "value" }
         let candidate =
             { Name = candidateName

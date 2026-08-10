@@ -26,8 +26,9 @@ R5's separate process comparison covers 15 shared data-only observations and rep
 Separate experimental Architecture 0.8 evidence now executes A08-D1's 11 C7/C3/C4 vectors and
 A08-D2's four C6/C2 vectors plus its phase property. A08-D2 is a documented breaking Capability
 surface migration: default-on Delegation is narrowed by `DelegationDepthConstraint`, and each
-derived Capability adds an implicit `Origin.Derived` ceiling. This does not alter the Designed-for
-0.7 target or pinned matrices.
+derived Capability adds an implicit `Origin.Derived` ceiling. A08-D3 additionally executes all six
+C9/C8 vectors through first-class declarations, recognition-set evidence, strict authority values,
+and retained payload projection. This does not alter the Designed-for 0.7 target or pinned matrices.
 
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).

@@ -32,7 +32,12 @@ public static class WorkedAttackStudioScene
             genesis.Shape(ShapeDefinition.Record(request, FragmentPolicy.Closed,
                 RecordField.Required("deployment", BuiltInShapes.Text),
                 RecordField.Required("environment", environment)));
-            genesis.Constraint(constraintName, ShapeContract.For(environment), (constraint, context) =>
+            genesis.Constraint(
+                ConstraintDeclaration.Create(
+                    constraintName,
+                    ShapeContract.For(environment),
+                    "the request environment equals the delegated environment"),
+                (constraint, context) =>
             {
                 var allowed = constraint.Value.RequireScalar<string>();
                 var actual = context.Input.RequireField("environment").RequireScalar<string>();

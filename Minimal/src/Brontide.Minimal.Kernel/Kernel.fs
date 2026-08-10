@@ -299,9 +299,15 @@ module World =
             let reference = ConstraintReference.issue scope referenceEpoch value
             reference,
             { Reference = reference
-              Name = name
-              ParameterShape = shape
-              Description = description }
+              Declaration =
+                { Name = name
+                  Version = 1
+                  ValueShape = shape
+                  EvaluationSemantics = description
+                  EvaluatorDomain = ConstraintEvaluatorDomain.TargetAuthority
+                  UnknownBehavior = ConstraintUnknownBehavior.Deny
+                  AccountingScope = ConstraintAccountingScope.NotQuantified
+                  EvolutionPolicy = ConstraintEvolutionPolicy.ParallelCanonicalName } }
 
         let constraints =
             [ standardConstraint -1L BuiltIn.delegationDepthConstraintName BuiltIn.integerShape "maximum additional derivation links"
@@ -344,6 +350,24 @@ module World =
     let lastLogicalTime (world: World) = world.LastLogicalTime
     let tryFindShape (reference: ShapeReference) (world: World) = Map.tryFind reference world.Shapes
     let tryFindOperation (reference: OperationReference) (world: World) = Map.tryFind reference world.Operations
+
+    let constraintRecognitionSet (environment: Environment) (world: World) =
+        world.Constraints
+        |> Map.toSeq
+        |> Seq.map snd
+        |> Seq.map (fun definition ->
+            let isStandard =
+                definition.Name = BuiltIn.delegationDepthConstraintName
+                || definition.Name = BuiltIn.originGrantConstraintName
+                || definition.Name = BuiltIn.originCeilingConstraintName
+            { Declaration = definition.Declaration
+              Decision =
+                if isStandard || Map.containsKey definition.Reference environment.ConstraintEvaluators then
+                    ConstraintRecognitionDecision.Implemented
+                else
+                    ConstraintRecognitionDecision.Declined })
+        |> Seq.sortBy _.Declaration.Name
+        |> Seq.toList
     let tryFindCapability (reference: CapabilityReference) (world: World) =
         Map.tryFind reference world.Capabilities
     let tryFindConstraintByName (name: CanonicalName) (world: World) =
@@ -504,32 +528,48 @@ module World =
                 { world with
                     Fragments = Map.add definition.Reference definition world.Fragments }
 
-    let registerConstraint
-        (name: CanonicalName)
-        (parameterShape: ShapeReference)
-        (description: string)
-        (world: World)
-        =
+    let registerConstraintDeclaration (declaration: ConstraintDeclaration) (world: World) =
         if not (mutationAllowed world) then
             Error "World mutation is unavailable outside the active Genesis branch."
-        elif not (Map.containsKey parameterShape world.Shapes) then
+        elif declaration.Version <= 0 then
+            Error "A Constraint declaration version must be positive."
+        elif String.IsNullOrWhiteSpace declaration.EvaluationSemantics then
+            Error "Constraint evaluation semantics are required."
+        elif declaration.EvaluatorDomain <> ConstraintEvaluatorDomain.TargetAuthority
+             || declaration.UnknownBehavior <> ConstraintUnknownBehavior.Deny
+             || declaration.EvolutionPolicy <> ConstraintEvolutionPolicy.ParallelCanonicalName then
+            Error "The Constraint does not use the Architecture 0.8 authority declaration regime."
+        elif not (Map.containsKey declaration.ValueShape world.Shapes) then
             Error "The constraint parameter shape is not registered."
+        elif world.Constraints |> Map.exists (fun _ existing -> existing.Name = declaration.Name) then
+            let existing =
+                world.Constraints
+                |> Map.toSeq
+                |> Seq.map snd
+                |> Seq.find (fun candidate -> candidate.Name = declaration.Name)
+            if existing.Declaration = declaration then
+                Error "That Constraint canonical name is already declared."
+            else
+                Error "A changed Constraint declaration requires a new canonical name."
         else
             let referenceEpoch =
                 allocationEpoch
                     "constraint"
-                    [ CanonicalName.value name
-                      ReferenceIdentity.shapeReference parameterShape
-                      description ]
+                    [ CanonicalName.value declaration.Name
+                      string declaration.Version
+                      ReferenceIdentity.shapeReference declaration.ValueShape
+                      declaration.EvaluationSemantics
+                      string declaration.EvaluatorDomain
+                      string declaration.UnknownBehavior
+                      string declaration.AccountingScope
+                      string declaration.EvolutionPolicy ]
                     world
 
             let reference = ConstraintReference.issue world.Scope referenceEpoch world.NextReference
 
             let definition =
                 { Reference = reference
-                  Name = name
-                  ParameterShape = parameterShape
-                  Description = description }
+                  Declaration = declaration }
 
             Ok(
                 definition,
@@ -538,6 +578,23 @@ module World =
                     NextReference = world.NextReference + 1L
                     Constraints = Map.add reference definition world.Constraints }
             )
+
+    let registerConstraint
+        (name: CanonicalName)
+        (parameterShape: ShapeReference)
+        (description: string)
+        (world: World)
+        =
+        registerConstraintDeclaration
+            { Name = name
+              Version = 1
+              ValueShape = parameterShape
+              EvaluationSemantics = description
+              EvaluatorDomain = ConstraintEvaluatorDomain.TargetAuthority
+              UnknownBehavior = ConstraintUnknownBehavior.Deny
+              AccountingScope = ConstraintAccountingScope.NotQuantified
+              EvolutionPolicy = ConstraintEvolutionPolicy.ParallelCanonicalName }
+            world
 
     let registerOperation (definition: OperationDefinition) (world: World) =
         if not (mutationAllowed world) then
@@ -648,15 +705,39 @@ module World =
                 | _ -> Ok()
             | _ -> Error "The value does not match the declared shape."
 
+    let private validateAuthorityValue
+        (declaredShape: ShapeReference)
+        (presentedShape: ShapeReference)
+        (value: ShapeValue)
+        (world: World)
+        =
+        if presentedShape <> declaredShape then
+            Error "Constraint values are not eligible for additive Shape projection."
+        else
+            match validateValue presentedShape value world with
+            | Error message -> Error message
+            | Ok() ->
+                match world.Shapes[presentedShape].Body, value with
+                | RecordShape _, RecordValue(_, fragments) ->
+                    let accepted = world.Shapes[presentedShape].AcceptedFragments
+                    if fragments |> Map.exists (fun reference _ -> not (Set.contains reference accepted)) then
+                        Error "Constraint values cannot contain projected-away Fragments."
+                    else
+                        Ok()
+                | _ -> Ok()
+
     let private validateConstraintRequirements (requirements: ConstraintRequirement list) (world: World) =
         requirements
         |> List.tryPick (fun requirement ->
             match Map.tryFind requirement.Constraint world.Constraints with
             | None -> Some "A Capability refers to an unknown Constraint."
             | Some definition ->
-                match validateValue definition.ParameterShape requirement.Parameters world with
-                | Ok() -> None
-                | Error message -> Some("A Capability Constraint value is invalid: " + message))
+                if requirement.ParameterShape.Name <> definition.ParameterShape.Name then
+                    Some "A Capability Constraint value uses a different Shape lineage from its declaration."
+                else
+                    match validateValue requirement.ParameterShape requirement.Parameters world with
+                    | Ok() -> None
+                    | Error message -> Some("A Capability Constraint value is invalid: " + message))
         |> Option.map Error
         |> Option.defaultValue (Ok())
 
@@ -822,6 +903,7 @@ module World =
                 addedExpressions
                 @ [ AtomicConstraint
                         { Constraint = originCeiling.Reference
+                          ParameterShape = BuiltIn.textShape
                           Parameters = TextValue "Derived" } ]
             match validateConstraintExpressions derivedExpressions world with
             | Error message -> Error message
@@ -1096,6 +1178,22 @@ module World =
                         Error "An Event Temporal Mark cannot have negative uncertainty."
                     | _ -> Ok()
 
+    let private projectPayloadValue
+        (presentedShape: ShapeReference)
+        (acceptedShape: ShapeReference)
+        (value: ShapeValue)
+        (world: World)
+        =
+        match validateValue presentedShape value world with
+        | Error message -> Error message
+        | Ok() when presentedShape.Name <> acceptedShape.Name || presentedShape.Version < acceptedShape.Version ->
+            Error "The presented payload Shape cannot project to the Operation input Shape."
+        | Ok() when presentedShape = acceptedShape -> Ok value
+        | Ok() ->
+            match value with
+            | RecordValue _ -> projectRecord acceptedShape value world
+            | _ -> validateValue acceptedShape value world |> Result.map (fun () -> value)
+
     let private stepCore
         (evaluateExpression:
             (ConstraintRequirement -> ConstraintAtomEvaluation) ->
@@ -1105,6 +1203,8 @@ module World =
         (world: World)
         (request: ExecutionRequest)
         (requestedOrigin: OriginClass)
+        (presentedCommandShape: ShapeReference option)
+        (strictAuthorityValues: bool)
         =
         match Map.tryFind request.Operation world.Operations with
         | _ when world.GenesisActive ->
@@ -1134,9 +1234,17 @@ module World =
             elif not (Set.contains request.Operation capability.Operations) then
                 deny environment request "The presented Capability does not authorize the requested Operation." world
             else
-                match validateValue operation.CommandShape request.Command world with
+                let projectedCommand =
+                    match presentedCommandShape with
+                    | None ->
+                        validateValue operation.CommandShape request.Command world
+                        |> Result.map (fun () -> request.Command)
+                    | Some presented -> projectPayloadValue presented operation.CommandShape request.Command world
+
+                match projectedCommand with
                 | Error message -> deny environment request message world
-                | Ok() ->
+                | Ok command ->
+                    let request = { request with Command = command }
                     let context =
                         { Request = request
                           Operation = operation
@@ -1160,9 +1268,28 @@ module World =
                         match Map.tryFind requirement.Constraint world.Constraints with
                         | None -> ConstraintAtomEvaluation.evaluatorFailed
                         | Some definition ->
-                            match validateValue definition.ParameterShape requirement.Parameters world with
+                            let normalizedRequirement =
+                                if strictAuthorityValues then
+                                    validateAuthorityValue
+                                        definition.ParameterShape
+                                        requirement.ParameterShape
+                                        requirement.Parameters
+                                        world
+                                    |> Result.map (fun () -> requirement)
+                                else
+                                    projectPayloadValue
+                                        requirement.ParameterShape
+                                        definition.ParameterShape
+                                        requirement.Parameters
+                                        world
+                                    |> Result.map (fun parameters ->
+                                        { requirement with
+                                            ParameterShape = definition.ParameterShape
+                                            Parameters = parameters })
+
+                            match normalizedRequirement with
                             | Error _ -> ConstraintAtomEvaluation.invalidValue
-                            | Ok() ->
+                            | Ok requirement ->
                                 let atomContext = { context with ConstraintCapability = constraintCapability }
                                 if definition.Name = BuiltIn.delegationDepthConstraintName then
                                     match requirement.Parameters with
@@ -1334,7 +1461,15 @@ module World =
                                           EmittedEvents = emittedEvents @ [ outcomeEvent ]
                                           Provenance = claims }
 
-    let private stepUsing evaluateExpression requestedOrigin (environment: Environment) (world: World) (request: ExecutionRequest) =
+    let private stepUsing
+        evaluateExpression
+        requestedOrigin
+        presentedCommandShape
+        strictAuthorityValues
+        (environment: Environment)
+        (world: World)
+        (request: ExecutionRequest)
+        =
         world.AuthorityTransactions.RunRuntime(
             world.GenesisTransaction,
             (fun () ->
@@ -1343,16 +1478,31 @@ module World =
                     request
                     "Runtime execution is unavailable inside or through an uncommitted Genesis occurrence."
                     world),
-            (fun () -> stepCore evaluateExpression environment world request requestedOrigin)
+            (fun () ->
+                stepCore
+                    evaluateExpression
+                    environment
+                    world
+                    request
+                    requestedOrigin
+                    presentedCommandShape
+                    strictAuthorityValues)
         )
 
     let step (environment: Environment) (world: World) (request: ExecutionRequest) =
-        stepUsing ConstraintExpression.evaluate OriginClass.Unverified environment world request
+        stepUsing ConstraintExpression.evaluate OriginClass.Unverified None false environment world request
 
     /// Executes through the explicit Complete-Draft Architecture 0.8 A08-D1 authority path.
     /// The ordinary step function retains Architecture 0.7 poisoning semantics.
     let stepDraft08 (environment: Environment) (world: World) (request: Draft08ExecutionRequest) =
-        stepUsing ConstraintExpression.evaluateStrongKleene request.RequestedOrigin environment world request.Request
+        stepUsing
+            ConstraintExpression.evaluateStrongKleene
+            request.RequestedOrigin
+            (Some request.PresentedCommandShape)
+            true
+            environment
+            world
+            request.Request
 
 [<RequireQualifiedAccess>]
 module Genesis =

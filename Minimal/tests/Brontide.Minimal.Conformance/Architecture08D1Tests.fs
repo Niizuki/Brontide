@@ -53,6 +53,7 @@ module private D1Helpers =
         let atom (definition: ConstraintDefinition) value =
             AtomicConstraint
                 { Constraint = definition.Reference
+                  ParameterShape = definition.ParameterShape
                   Parameters = TextValue value }
         let expression =
             expressionFactory
@@ -111,7 +112,10 @@ module private D1Helpers =
               Context = Map.empty }
 
         { Execution =
-            World.stepDraft08 environment ready { Request = request; RequestedOrigin = OriginClass.Unverified }
+            World.stepDraft08 environment ready
+                { Request = request
+                  RequestedOrigin = OriginClass.Unverified
+                  PresentedCommandShape = BuiltIn.textShape }
           Effects = effects
           UnknownName = unknown.Name }
 
@@ -147,6 +151,7 @@ module private D1Helpers =
                     let expression =
                         AtomicConstraint
                             { Constraint = validity.Reference
+                              ParameterShape = validity.ParameterShape
                               Parameters = TextValue "not-after:5" }
                     let capability, genesisWorld =
                         Genesis.capabilityWithExpressions
@@ -187,7 +192,10 @@ module private D1Helpers =
               Context = Map.empty }
 
         { Execution =
-            World.stepDraft08 environment ready { Request = request; RequestedOrigin = OriginClass.Unverified }
+            World.stepDraft08 environment ready
+                { Request = request
+                  RequestedOrigin = OriginClass.Unverified
+                  PresentedCommandShape = BuiltIn.textShape }
           Effects = effects
           WallTimeAfterExecution = wallTime }
 
@@ -281,6 +289,7 @@ type Architecture08D1Tests() =
                     let expression =
                         AtomicConstraint
                             { Constraint = narrowing.Reference
+                              ParameterShape = narrowing.ParameterShape
                               Parameters = TextValue "deny" }
                     let root, genesisWorld =
                         Genesis.capabilityWithExpressions
@@ -329,7 +338,10 @@ type Architecture08D1Tests() =
               Context = Map.empty }
 
         let execution =
-            World.stepDraft08 environment ready { Request = request; RequestedOrigin = OriginClass.Unverified }
+            World.stepDraft08 environment ready
+                { Request = request
+                  RequestedOrigin = OriginClass.Unverified
+                  PresentedCommandShape = BuiltIn.textShape }
 
         Assert.That(execution.Outcome.Status, Is.EqualTo Denied)
         Assert.That(effects, Is.Zero)
