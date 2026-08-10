@@ -167,30 +167,28 @@ foreach ($narrative in $narratives) {
 }
 
 $currentRegistryPath = Join-Path $repositoryRoot 'Brontide-Architecture-Status.json'
-$currentMasterPath = Join-Path $repositoryRoot 'conformance\architecture-0.7-requirements.json'
-$currentMatrixPaths = @(
-    Join-Path $repositoryRoot 'Reference\conformance\architecture-0.7.json'
-    Join-Path $repositoryRoot 'Minimal\conformance\architecture-0.7.json'
-)
 $registry = Read-JsonFile $currentRegistryPath
-$currentMaster = Read-JsonFile $currentMasterPath
+$implementationRecords = if ($null -ne $registry) { @($registry.implementations) } else { @() }
+$currentRequirementPaths = @($implementationRecords | ForEach-Object { [string]$_.currentDelivery.requirements.path } | Sort-Object -Unique)
+if ($currentRequirementPaths.Count -ne 1) {
+    $failures.Add('Both stack current-delivery records must select one shared requirement inventory.')
+}
+$currentMasterPath = if ($currentRequirementPaths.Count -eq 1) { Join-Path $repositoryRoot $currentRequirementPaths[0] } else { $null }
+$currentMaster = if ($null -ne $currentMasterPath) { Read-JsonFile $currentMasterPath } else { $null }
+$currentMatrixPaths = @($implementationRecords | ForEach-Object { Join-Path $repositoryRoot ([string]$_.currentDelivery.matrix.path) })
 
 if ($null -ne $registry -and $null -ne $currentMaster) {
     $expectedArchitecture = $registry.currentArchitecture
     $recordedArchitecture = $currentMaster.architecture
-    if ($currentMaster.schemaVersion -ne 1 -or $recordedArchitecture.revision -ne '0.7') {
-        $failures.Add('The current requirement vocabulary must use schema 1 and Architecture 0.7.')
+    $currentRevision = [string]$expectedArchitecture.revision
+    $revisionToken = $currentRevision.Replace('.', '')
+    if ($currentMaster.schemaVersion -ne 1 -or [string]$recordedArchitecture.revision -cne $currentRevision) {
+        $failures.Add("The current requirement vocabulary must use schema 1 and Architecture $currentRevision.")
     }
 
-    # The delivery vocabulary pins the architecture draft it targets, which may trail the
-    # registry's current architecture; the pinned draft is verified against its own path and hash
-    # below, and the registry's currentDelivery pins tie back to this vocabulary. Full field
-    # equality applies only while the registry's current architecture is that same revision.
-    if ([string]$recordedArchitecture.revision -ceq [string]$expectedArchitecture.revision) {
-        foreach ($field in @('status', 'path', 'sha256')) {
-            if ([string]$recordedArchitecture.$field -cne [string]$expectedArchitecture.$field) {
-                $failures.Add("The current requirement vocabulary architecture field '$field' does not match the status registry.")
-            }
+    foreach ($field in @('revision', 'status', 'path', 'sha256')) {
+        if ([string]$recordedArchitecture.$field -cne [string]$expectedArchitecture.$field) {
+            $failures.Add("The current requirement vocabulary architecture field '$field' does not match the status registry.")
         }
     }
 
@@ -214,11 +212,11 @@ if ($null -ne $registry -and $null -ne $currentMaster) {
     }
 
     foreach ($requirement in $currentRequirements) {
-        if ($requirement.id -notmatch '^BR-07-[A-Z]+-[0-9]{3}$') {
-            $failures.Add("Current requirement id '$($requirement.id)' is not stable Architecture 0.7 form.")
+        if ($requirement.id -notmatch "^BR-$revisionToken-[A-Z0-9-]+$") {
+            $failures.Add("Current requirement id '$($requirement.id)' is not stable Architecture $currentRevision form.")
         }
 
-        if ($requirement.change -notmatch '^C[1-8]$' -or
+        if ($requirement.change -notmatch '^C[1-9][0-9]*$' -or
             [string]::IsNullOrWhiteSpace($requirement.section) -or
             [string]::IsNullOrWhiteSpace($requirement.summary) -or
             @($requirement.appliesTo).Count -eq 0) {
@@ -226,15 +224,17 @@ if ($null -ne $registry -and $null -ne $currentMaster) {
         }
 
         foreach ($predecessor in @($requirement.predecessors)) {
-            if ($predecessor -notin $masterIds) {
+            if (-not [string]::IsNullOrWhiteSpace([string]$predecessor) -and $predecessor -notin $masterIds) {
                 $failures.Add("Current requirement '$($requirement.id)' names unknown predecessor '$predecessor'.")
             }
         }
     }
 
-    foreach ($change in 1..8 | ForEach-Object { "C$_" }) {
+    $changeNumbers = @($currentRequirements.change | ForEach-Object { [int]($_.Substring(1)) } | Sort-Object)
+    $maximumChange = if ($changeNumbers.Count -gt 0) { $changeNumbers[-1] } else { 0 }
+    foreach ($change in 1..$maximumChange | ForEach-Object { "C$_" }) {
         if (@($currentRequirements | Where-Object change -eq $change).Count -eq 0) {
-            $failures.Add("The current requirement vocabulary does not cover Architecture 0.7 change '$change'.")
+            $failures.Add("The current requirement vocabulary does not cover Architecture $currentRevision change '$change'.")
         }
     }
 
@@ -265,8 +265,8 @@ if ($null -ne $registry -and $null -ne $currentMaster) {
                 $failures.Add("$stack current matrix content hash does not match the status registry.")
             }
 
-            if ([string]$delivery.requirements.path -cne 'conformance/architecture-0.7-requirements.json') {
-                $failures.Add("$stack current requirement path does not match the permanent current inventory.")
+            if ([string]$delivery.requirements.path -cne $currentRequirementPaths[0]) {
+                $failures.Add("$stack current requirement path differs from the shared current inventory.")
             }
             elseif ((Get-CanonicalTextHash $currentMasterPath) -cne [string]$delivery.requirements.sha256) {
                 $failures.Add("$stack current requirement inventory hash does not match the status registry.")
@@ -282,6 +282,10 @@ if ($null -ne $registry -and $null -ne $currentMaster) {
                     $failures.Add("$stack current-delivery $artifact content hash does not match the status registry.")
                 }
             }
+        }
+
+        if ([string]$matrix.designedFor -cne "Architecture $currentRevision") {
+            $failures.Add("$stack current matrix Designed-for target does not match Architecture $currentRevision.")
         }
 
         foreach ($field in @('revision', 'status', 'path', 'sha256', 'reviewedCommit')) {
@@ -312,7 +316,7 @@ if ($null -ne $registry -and $null -ne $currentMaster) {
         foreach ($entry in $entries) {
             $id = [string]$entry.requirementId
             $requirement = @($currentRequirements | Where-Object id -eq $id)
-            if ($entry.architectureRevision -ne '0.7') {
+            if ([string]$entry.architectureRevision -cne $currentRevision) {
                 $failures.Add("$stack/$id has stale current architecture revision '$($entry.architectureRevision)'.")
             }
 

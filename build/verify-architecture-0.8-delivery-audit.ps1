@@ -1,13 +1,13 @@
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$registryPath = Join-Path $repositoryRoot 'Brontide-Architecture-Status.json'
+$registryPath = Join-Path $repositoryRoot 'conformance\reviews\snapshots\implementation-correction-architecture-status.json'
 $architecturePath = Join-Path $repositoryRoot 'docs\future\architecture\Brontide-Architecture-0.8.md'
 $vectorPath = Join-Path $repositoryRoot 'conformance\architecture-0.8-adversarial-vectors.json'
 $requirementsPath = Join-Path $repositoryRoot 'conformance\architecture-0.8-delivery-audit-requirements.json'
-$reportPath = Join-Path $repositoryRoot 'docs\future\architecture\architecture-0.8-delivery-audit-report.md'
-$contractPath = Join-Path $repositoryRoot 'docs\future\architecture\architecture-0.8-delivery-audit-contract.md'
-$reviewPath = Join-Path $repositoryRoot 'docs\future\architecture\architecture-0.8-delivery-audit-completeness-review.md'
+$reportPath = Join-Path $repositoryRoot 'docs\archive\architecture\architecture-0.8-delivery-audit-report.md'
+$contractPath = Join-Path $repositoryRoot 'docs\archive\architecture\architecture-0.8-delivery-audit-contract.md'
+$reviewPath = Join-Path $repositoryRoot 'docs\archive\architecture\architecture-0.8-delivery-audit-completeness-review.md'
 
 function Assert-True([bool]$Condition, [string]$Message) {
     if (-not $Condition) { throw $Message }

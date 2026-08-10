@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "stack": "Reference",
+  "designedFor": "Architecture 0.8",
+  "architecture": {
+    "revision": "0.8",
+    "status": "Complete Draft (document and implementation evidence complete; not ratified)",
+    "path": "docs/current/architecture/Brontide-Architecture-0.8.md",
+    "sha256": "6D844F5FA4D0D3CF09188765A912A13B30889A6ED1F232A28351F179016A8B2F",
+    "reviewedCommit": "e732e7e51dc76ac73c883f7c8be95b2d39743497"
+  },
+  "requirements": [
+    {
+      "requirementId": "BR-08-DELIVERY-C1", "architectureRevision": "0.8", "section": "10.3,11", "classification": "implemented", "component": "Brontide.Reference.Core complete-chain liveness",
+      "positiveEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D4ConformanceTests.cs", "anchor": "D4_C3_BR_08_ADV_C1_003_live_ancestor_authorises_exactly_one_effect" }, { "path": "conformance/architecture-0.8-d4-evidence.json", "anchor": "BR-08-ADV-C1-001" }],
+      "negativeEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D4ConformanceTests.cs", "anchor": "D4_C2_BR_08_ADV_C1_002_unavailable_liveness_evaluator_denies_with_redacted_category" }],
+      "status": "tested", "rationale": "D4 executes all three canonical liveness vectors against every carried ancestor before effects."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C2", "architectureRevision": "0.8", "section": "10.1,10.3,11", "classification": "implemented", "component": "Brontide.Reference.Core implicit Origin.Derived ceiling",
+      "positiveEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D2ConformanceTests.cs", "anchor": "D2_C3_BR_08_ADV_C2_001_delegated_origin_is_capped_by_implicit_constraint" }, { "path": "conformance/architecture-0.8-d2-evidence.json", "anchor": "BR-08-ADV-C2-002" }],
+      "negativeEvidence": [], "status": "tested", "rationale": "D2 executes both canonical origin-ceiling vectors through ordinary Constraint conjunction."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C3", "architectureRevision": "0.8", "section": "10.1,13.5", "classification": "implemented", "component": "Brontide.Reference.Core instantaneous authorization",
+      "positiveEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C3_001_expiry_after_effect_start_does_not_retroactively_deny" }, { "path": "conformance/architecture-0.8-d1-evidence.json", "anchor": "BR-08-ADV-C3-002" }],
+      "negativeEvidence": [], "status": "tested", "rationale": "D1 proves authorization occurs once before dispatch and later presentations re-evaluate."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C4", "architectureRevision": "0.8", "section": "10.3,11", "classification": "implemented", "component": "Brontide.Reference.Core carried complete chain",
+      "positiveEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C4_001_grandparent_constraint_denies_grandchild" }],
+      "negativeEvidence": [], "status": "tested", "rationale": "D1 executes the canonical grandparent-denial vector through the complete carried chain."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C5", "architectureRevision": "0.8", "section": "10.1,10.3,13.5", "classification": "implemented", "component": "Brontide.Reference.Core occurrence-pooled accounting",
+      "positiveEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D4ConformanceTests.cs", "anchor": "D4_C4_BR_08_ADV_C5_001_sibling_delegations_share_the_ancestor_occurrence_budget" }, { "path": "conformance/architecture-0.8-d4-evidence.json", "anchor": "BR-08-ADV-C5-003" }],
+      "negativeEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D4ConformanceTests.cs", "anchor": "D4_C5_BR_08_ADV_C5_002_denied_executions_consume_no_budget" }],
+      "status": "tested", "rationale": "D4 executes pooling, denial silence, and unenforceable-scope refusal."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C6", "architectureRevision": "0.8", "section": "10.3,11", "classification": "implemented", "component": "Brontide.Reference.Core default-on constrained Delegation",
+      "positiveEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D2ConformanceTests.cs", "anchor": "D2_C1_BR_08_ADV_C6_001_unadorned_capability_is_delegable_by_default" }, { "path": "conformance/architecture-0.8-d2-evidence.json", "anchor": "BR-08-ADV-C6-002" }],
+      "negativeEvidence": [], "status": "tested", "rationale": "D2 removes Boolean delegability and executes both default-on depth-narrowing vectors."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C7", "architectureRevision": "0.8", "section": "10.1,18.1,23,29.2", "classification": "implemented", "component": "Brontide.Reference structural strong-Kleene authority and selection",
+      "positiveEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C7_002_any_true_unknown_authorizes_and_records_unknown" }, { "path": "conformance/architecture-0.8-d1-evidence.json", "anchor": "BR-08-ADV-C7-008" }],
+      "negativeEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C7_006_unknown_excluded_middle_remains_unknown" }],
+      "status": "tested", "rationale": "D1 executes all eight authority and selection vectors with structural three-state semantics."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C8", "architectureRevision": "0.8", "section": "10.1,16,23", "classification": "implemented", "component": "Brontide.Reference exact Constraint values and additive payload projection",
+      "positiveEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D3ConformanceTests.cs", "anchor": "D3_C4_BR_08_ADV_C8_001_constraint_value_version_is_not_projected" }, { "path": "conformance/architecture-0.8-d3-evidence.json", "anchor": "BR-08-ADV-C8-003" }],
+      "negativeEvidence": [], "status": "tested", "rationale": "D3 executes strict authority values while retaining ordinary payload projection."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C9", "architectureRevision": "0.8", "section": "10.1,10.2,16,23", "classification": "implemented", "component": "Brontide.Reference first-class Constraint declarations",
+      "positiveEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D3ConformanceTests.cs", "anchor": "D3_C3_BR_08_ADV_C9_003_recognition_set_is_complete_ordered_and_effect_free" }, { "path": "conformance/architecture-0.8-d3-evidence.json", "anchor": "BR-08-ADV-C9-001" }],
+      "negativeEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D3ConformanceTests.cs", "anchor": "D3_C2_BR_08_ADV_C9_002_changed_semantics_under_one_name_is_rejected" }],
+      "status": "tested", "rationale": "D3 executes declaration recognition, semantic evolution refusal, and ordered recognition evidence."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C10", "architectureRevision": "0.8", "section": "12,18.2", "classification": "implemented", "component": "Brontide.Reference provider-derived Dataset authority",
+      "positiveEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D5ConformanceTests.cs", "anchor": "D5_C1_BR_08_ADV_C10_001_creation_derives_resource_authority_from_provider" }],
+      "negativeEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D5ConformanceTests.cs", "anchor": "D5_C3_BR_08_ADV_C10_002_out_of_scope_issuance_refuses_without_resource_effects" }],
+      "status": "tested", "rationale": "D5 executes both resource-authority derivation and scope-excess refusal vectors."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C11", "architectureRevision": "0.8", "section": "11,31", "classification": "non-runtime", "component": "Reference carried-parent representation record",
+      "positiveEvidence": [{ "path": "Reference/docs/architecture-0.8-handoff-implementation-notes.md", "anchor": "carried-parent-chain" }, { "path": "Reference/docs/architecture-0.8-handoff-implementation-notes.md", "anchor": "Revocation ceiling" }],
+      "negativeEvidence": [], "status": "implemented", "rationale": "The stack-owned representation and revocation ceiling are explicitly recorded."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C12", "architectureRevision": "0.8", "section": "9.1,12", "classification": "implemented", "component": "Brontide.Reference.Core attributable Terminus",
+      "positiveEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D6ConformanceTests.cs", "anchor": "D6_C1_BR_08_ADV_C12_003_terminus_is_attributable_enumerable_and_policy_declared" }, { "path": "conformance/architecture-0.8-d6-evidence.json", "anchor": "BR-08-ADV-C12-002" }],
+      "negativeEvidence": [{ "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D6ConformanceTests.cs", "anchor": "D6_C2_BR_08_ADV_C12_001_held_authority_denies_after_retirement_without_erasing_identity" }],
+      "status": "tested", "rationale": "D6 executes all Terminus disposition vectors under the declared fixed policy."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C13", "architectureRevision": "0.8", "section": "28,29.3", "classification": "non-runtime", "component": "Architecture first-hop legibility boundary",
+      "positiveEvidence": [{ "path": "conformance/architecture-0.8-delivery-audit-requirements.json", "anchor": "\"coverage\": \"coverage.C13\"" }],
+      "negativeEvidence": [], "status": "implemented", "rationale": "The documentation-only first-hop boundary is accounted without inventing a runtime claim."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C14", "architectureRevision": "0.8", "section": "19,33", "classification": "non-runtime", "component": "Open held-authority introspection decision",
+      "positiveEvidence": [{ "path": "conformance/architecture-0.8-delivery-audit-requirements.json", "anchor": "\"coverage\": \"coverage.C14\"" }],
+      "negativeEvidence": [], "status": "implemented", "rationale": "The open decision remains explicit and separate from operation discovery."
+    }
+  ]
+}

@@ -164,13 +164,17 @@ if ($request.schemaVersion -ne 3) {
     $failures.Add('The independent-review request must use schema 3 and route architecture identity through the central status registry.')
 }
 
-$statusRegistryPath = Get-RepositoryPath ([string]$request.architectureStatusRegistry.path)
+$liveStatusRegistryPath = Get-RepositoryPath ([string]$request.architectureStatusRegistry.path)
+$statusRegistryPath = Get-RepositoryPath 'conformance/reviews/snapshots/implementation-correction-architecture-status.json'
 $architectureStatus = $null
 if ($null -ne $statusRegistryPath) {
-    $registryHashValid = Test-Hash $statusRegistryPath ([string]$request.architectureStatusRegistry.sha256) 'Pinned architecture status registry'
+    $registryHashValid = Test-Hash $statusRegistryPath ([string]$request.architectureStatusRegistry.sha256) 'Pinned implementation-correction architecture status snapshot'
     if ($registryHashValid) {
         $architectureStatus = Read-JsonFile $statusRegistryPath
     }
+}
+if ($null -eq $liveStatusRegistryPath -or -not (Test-Path -LiteralPath $liveStatusRegistryPath -PathType Leaf)) {
+    $failures.Add('The live architecture status registry is missing.')
 }
 if ($null -eq $architectureStatus -or $architectureStatus.schemaVersion -ne 1) {
     $failures.Add('The architecture status registry must be readable and use schema 1.')

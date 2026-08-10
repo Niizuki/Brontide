@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "architecture": {
+    "revision": "0.8",
+    "status": "Complete Draft (document and implementation evidence complete; not ratified)",
+    "path": "docs/current/architecture/Brontide-Architecture-0.8.md",
+    "sha256": "6D844F5FA4D0D3CF09188765A912A13B30889A6ED1F232A28351F179016A8B2F",
+    "reviewedCommit": "e732e7e51dc76ac73c883f7c8be95b2d39743497"
+  },
+  "audit": {
+    "phase": "Architecture 0.8 current delivery",
+    "acceptanceBoundary": "Complete Draft implementation evidence. This artifact does not ratify Architecture 0.8.",
+    "evidenceStatuses": [
+      "candidate-reusable",
+      "candidate-partial",
+      "conflicting",
+      "missing",
+      "handoff-attested",
+      "architecture-only"
+    ]
+  },
+  "requirements": [
+    {
+      "id": "BR-08-DELIVERY-C1",
+      "change": "C1",
+      "section": "10.3,11",
+      "summary": "Every liveness-scoped ancestor link is evaluated at presentation and an unevaluatable link denies fail closed.",
+      "vectors": ["BR-08-ADV-C1-001", "BR-08-ADV-C1-002", "BR-08-ADV-C1-003"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C2",
+      "change": "C2",
+      "section": "10.1,10.3,11",
+      "summary": "Delegation implicitly conjoins the Origin.Derived ceiling as an ordinary Constraint.",
+      "vectors": ["BR-08-ADV-C2-001", "BR-08-ADV-C2-002"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C3",
+      "change": "C3",
+      "section": "10.1,13.5",
+      "summary": "Base authorization is evaluated once before an effect begins and is not implicitly re-evaluated mid-effect.",
+      "vectors": ["BR-08-ADV-C3-001", "BR-08-ADV-C3-002"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C4",
+      "change": "C4",
+      "section": "10.3,11",
+      "summary": "The target evaluates the full derivation-chain Constraint conjunction rather than the leaf alone.",
+      "vectors": ["BR-08-ADV-C4-001"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C5",
+      "change": "C5",
+      "section": "10.1,10.3,13.5",
+      "summary": "Quantified Constraints pool at their chain occurrence, denied executions consume nothing, and unenforceable declared scope denies.",
+      "vectors": ["BR-08-ADV-C5-001", "BR-08-ADV-C5-002", "BR-08-ADV-C5-003"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C6",
+      "change": "C6",
+      "section": "10.3,11",
+      "summary": "Delegability is default-on and narrowed only by a conjoining Constraint, never by a separately granted Boolean right.",
+      "vectors": ["BR-08-ADV-C6-001", "BR-08-ADV-C6-002"],
+      "supersedesRepresentation": "Architecture 0.7 explicit DelegationAllowed Boolean",
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C7",
+      "change": "C7",
+      "section": "10.1,18.1,23,29.2",
+      "summary": "Authority and selection use structural strong-Kleene evaluation rather than whole-expression poisoning.",
+      "vectors": ["BR-08-ADV-C7-001", "BR-08-ADV-C7-002", "BR-08-ADV-C7-003", "BR-08-ADV-C7-004", "BR-08-ADV-C7-005", "BR-08-ADV-C7-006", "BR-08-ADV-C7-007", "BR-08-ADV-C7-008"],
+      "supersedesRequirements": ["BR-07-CONSTRAINT-001", "BR-07-CONSTRAINT-002", "BR-07-CONSTRAINT-003"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C8",
+      "change": "C8",
+      "section": "10.1,16,23",
+      "summary": "Constraint values are never additively projected across Shape versions; ordinary payload compatibility is unchanged.",
+      "vectors": ["BR-08-ADV-C8-001", "BR-08-ADV-C8-002", "BR-08-ADV-C8-003"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C9",
+      "change": "C9",
+      "section": "10.1,10.2,16,23",
+      "summary": "Constraint declarations name identity, value Shape/version, evaluator domain, unknown behavior, accounting scope when relevant, evolution policy, and the recognition set.",
+      "vectors": ["BR-08-ADV-C9-001", "BR-08-ADV-C9-002", "BR-08-ADV-C9-003"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C10",
+      "change": "C10",
+      "section": "12,18.2",
+      "summary": "A provider issues resource authority by Delegation from its primordial resource-space authority and cannot exceed that chain.",
+      "vectors": ["BR-08-ADV-C10-001", "BR-08-ADV-C10-002"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C11",
+      "change": "C11",
+      "section": "11,31",
+      "summary": "Each domain records its chain-conjunction representation and the resulting revocation ceiling as an operational property.",
+      "vectors": ["BR-08-ADV-C11-001"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C12",
+      "change": "C12",
+      "section": "9.1,12",
+      "summary": "Dynamic-Actor domains declare Terminus disposition for held authority, outbound grants, survival schedules, and stable references.",
+      "vectors": ["BR-08-ADV-C12-001", "BR-08-ADV-C12-002", "BR-08-ADV-C12-003"],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C13",
+      "change": "C13",
+      "section": "28,29.3",
+      "summary": "Base legibility is limited to explicit first hops; transitive authority topology remains an extension direction.",
+      "coverage": "coverage.C13",
+      "vectors": [],
+      "appliesTo": ["Reference", "Minimal"]
+    },
+    {
+      "id": "BR-08-DELIVERY-C14",
+      "change": "C14",
+      "section": "19,33",
+      "summary": "Held-authority introspection remains an explicit open architecture decision, separate from operation discovery.",
+      "coverage": "coverage.C14",
+      "vectors": [],
+      "appliesTo": ["Reference", "Minimal"]
+    }
+  ]
+}

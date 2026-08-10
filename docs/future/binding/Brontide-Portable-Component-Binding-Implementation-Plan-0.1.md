@@ -3,7 +3,7 @@
 **Status:** Partially implemented experimental work — PB0 through PB7 complete; PB8 partly complete
 (evidence and documentation delivered; Decision 11 ruled on 2026-07-30; independent review outstanding)
 **Date:** 2026-07-23 (delivery status updated 2026-07-30)
-**Designed for:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §16 and
+**Designed for:** [Brontide Architecture 0.8](../../current/architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
 **Design sources:** [Composition and Components](../composition/Brontide-Design-Note-Composition-0.1.md),
 [Channel](../channel/Brontide-Design-Note-Channel-0.1.md), and
@@ -35,9 +35,9 @@ yet define a reusable Binding Plan, execute every Channel vector, demonstrate di
 semantic parity, publish a portable representation contract, or expose a general referenced-shaped-
 resource model.
 
-The work remains experimental until the architecture and Channel contract are ratified. It does not
-change either stack's Architecture 0.7 implementation target and does not make the Portable Binding
-part of Brontide Base.
+The work remains experimental until the architecture and Channel contract are ratified. Both stacks
+now target the implemented Architecture 0.8 Complete Draft, but this plan does not ratify the
+architecture, ratify Channel, or make Portable Binding part of Brontide Base.
 
 ## 2. Capability contract
 
@@ -885,8 +885,10 @@ sets and rationale stay in
   transferred ownership are 0.1 non-goals that fail negotiation closed. Decision recorded 2026-07-24;
   schema pinned by PB1 in the same file.
 
-- **2026-07-23 — Architecture scope:** Portable Binding remains outside Brontide Base and does not
-  change either stack's Architecture 0.7 target.
+- **2026-08-10 — Architecture target closure:** both stacks now target Architecture 0.8 after the
+  separate D1-D6 closure. Portable Binding remains outside Base and does not imply ratification.
+- **2026-07-23 — Architecture scope:** Portable Binding remains outside Brontide Base; its work does
+  not itself choose either stack's architecture target.
 - **2026-07-23 — Starting point:** reuse and refactor the Cooling/Catalog evidence; do not replace it
   with a disconnected greenfield protocol.
 - **2026-07-23 — Independence:** share data-only contracts and vectors, never executable semantic

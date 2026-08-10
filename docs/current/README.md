@@ -20,8 +20,13 @@ operational repository policy. It does not contain planned implementation work.
 The following current documents now live within this directory tree; the stack READMEs remain with
 their implementations:
 
-- [Architecture 0.7](./architecture/Brontide-Architecture-0.7.md), the locally declared implementation
-  target for both stacks;
+- [Architecture 0.8](./architecture/Brontide-Architecture-0.8.md), the locally declared Complete Draft
+  implementation target for both stacks, not ratified;
+- [Architecture 0.7](./architecture/Brontide-Architecture-0.7.md), retained historical compatibility
+  evidence;
+- [Architecture 0.8 D2 migration](./architecture/architecture-0.8-d2-breaking-migration.md) and
+  [D3 migration](./architecture/architecture-0.8-d3-breaking-migration.md), retained current
+  public-surface guidance;
 - [architecture change history](./architecture/Brontide-Architecture-Change-History.md);
 - [public boundaries](./policies/public-boundaries.md);
 - [Reference documentation](../../Reference/README.md); and

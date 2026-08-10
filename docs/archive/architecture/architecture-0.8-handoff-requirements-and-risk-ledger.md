@@ -6,10 +6,10 @@ change.
 
 Sources:
 
-- [Architecture 0.8](./Brontide-Architecture-0.8.md), especially §§10–12, §16, §19, §33, and §35;
+- [Architecture 0.8](../../current/architecture/Brontide-Architecture-0.8.md), especially §§10–12, §16, §19, §33, and §35;
 - the executed [Architecture 0.8 change plan](../../archive/architecture/Brontide-Architecture-0.8-Change-Plan.md);
 - the canonical [Architecture 0.8 adversarial vectors](../../../conformance/architecture-0.8-adversarial-vectors.json);
-- the first-stage [Channel requirements and risk ledger](../channel/architecture-0.8-channel-requirements-and-risk-ledger.md);
+- the first-stage [Channel requirements and risk ledger](../../future/channel/architecture-0.8-channel-requirements-and-risk-ledger.md);
 - [Reference implementation notes](../../../Reference/docs/architecture-0.8-handoff-implementation-notes.md) and
   [Minimal implementation notes](../../../Minimal/docs/architecture-0.8-handoff-implementation-notes.md).
 

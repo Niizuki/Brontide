@@ -4,8 +4,8 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $canonicalPath = Join-Path $repositoryRoot 'conformance\architecture-0.8-adversarial-vectors.json'
 $evidencePath = Join-Path $repositoryRoot 'conformance\architecture-0.8-d2-evidence.json'
 $contractPath = Join-Path $repositoryRoot 'conformance\architecture-0.8-d2-behavioral-contract.md'
-$migrationPath = Join-Path $repositoryRoot 'docs\future\architecture\architecture-0.8-d2-breaking-migration.md'
-$reviewPath = Join-Path $repositoryRoot 'docs\future\architecture\architecture-0.8-d2-completeness-review.md'
+$migrationPath = Join-Path $repositoryRoot 'docs\current\architecture\architecture-0.8-d2-breaking-migration.md'
+$reviewPath = Join-Path $repositoryRoot 'docs\archive\architecture\architecture-0.8-d2-completeness-review.md'
 
 function Assert-True([bool]$Condition, [string]$Message) {
     if (-not $Condition) { throw $Message }
