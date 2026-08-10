@@ -30,9 +30,11 @@ proof remains finite and experimental. M6 is complete as non-runtime handoff pla
 Architecture 0.8 ledger accounts for C1-C14 and all 33 vectors, while Minimal's implementation note
 records its World-resolved parent-reference chain and current no-revocation ceiling. The retained
 Architecture 0.8 delivery audit is now complete as inventory-only evidence: Minimal's independent
-matrix marks C3/C4 as reusable candidates, C8-C10 as partial candidates, C6/C7 as conflicts, and
-C1/C2/C5/C12 as missing. All canonical runtime vectors remain unaccepted; A08-D1 is only the
-proposed next runtime slice. The retained
+snapshot marks C3/C4 as reusable candidates, C8-C10 as partial candidates, C6/C7 as conflicts, and
+C1/C2/C5/C12 as missing. A08-D1 has since delivered explicit `World.stepDraft08` and Draft-0.8
+Definition selection paths backed by Minimal-native structural strong-Kleene evaluation. All 11
+C7/C3/C4 vectors pass without changing `World.step`, the 0.7 selector, the stack target, or
+ratification status. A08-D2 is the next proposed slice. The retained
 [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json)
 matrix is detailed test evidence, not the source of the implementation target and not a claim that
 the remaining Architecture 0.7 work is implemented.

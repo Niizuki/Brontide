@@ -45,6 +45,7 @@ and executes M6 in both host directions. Both protocols remain experimental test
 | Architecture 0.7 M1-M5 | Tested Complete Draft implementation and finite comparison evidence | Native suites cover recursive Constraints, typed-member names, static Attribute binding, Capability-denied Dataset issuance, Store-independent identity, declared concurrency, Router guarantees/fallback, and topology redaction. Independent process endpoints agree on all 15 shared observations; pinned matrix promotion remains. |
 | Architecture 0.8 M6 handoff | Complete non-runtime planning evidence | Shared C1-C14 requirements/risk ledger, 33-vector accounting, C13/C14 documentation coverage, completeness review, and Minimal World-resolved-parent-reference/revocation-ceiling note; no 0.8 implementation claim. |
 | Architecture 0.8 delivery audit | Complete inventory-only evidence | Shared 14-requirement inventory, Minimal-owned candidate/conflict/missing matrix, DA1-DA6 contract, completeness review, and six-slice runtime queue; all runtime vectors remain unaccepted and the stack target remains 0.7. |
+| Architecture 0.8 A08-D1 | Green experimental Complete-Draft evidence | Minimal-native structural strong-Kleene evaluation, explicit `World.stepDraft08`, Definition selection assessments, five-item contract, and 11 named C7/C3/C4 vectors; ordinary 0.7 poisoning entry points remain green. |
 
 ## Executable suites
 

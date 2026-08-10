@@ -5,10 +5,13 @@ both stacks. R6/M6's non-runtime Architecture 0.8 handoff is also complete throu
 [C1-C14 requirements/risk ledger](./architecture/architecture-0.8-handoff-requirements-and-risk-ledger.md),
 its completeness review, and separate stack representation-ceiling notes. The separately authorized
 [Architecture 0.8 delivery audit](./architecture/architecture-0.8-delivery-audit-report.md) now
-classifies each stack independently, keeps all runtime vectors unaccepted, and proposes six bounded
-runtime slices. The next implementable slice is A08-D1 (C7 structural strong-Kleene evaluation plus
-C3/C4 preservation evidence), but the audit does not authorize it. The hash-pinned 0.7 matrices
-still await review retargeting; no Architecture 0.8 runtime implementation is implied.
+classifies each stack independently, keeps its audit snapshot unaccepted, and proposes six bounded
+runtime slices. A08-D1 is now delivered as explicit experimental Draft-0.8 entry points in both
+stacks: structural strong-Kleene evaluation, instantaneous authorization, and full-chain conjunction
+pass all 11 C7/C3/C4 vectors while the ordinary 0.7 poisoning paths remain tested. A08-D2 is next and
+requires separate authorization because it changes the public delegability representation. The
+hash-pinned 0.7 matrices still await review retargeting; no whole-Architecture 0.8 implementation or
+ratification is implied.
 
 This directory is the authoritative entry point for planned, draft, proposed, work-in-progress, or
 otherwise unimplemented work. A document belongs here even when it is the “current architecture” if

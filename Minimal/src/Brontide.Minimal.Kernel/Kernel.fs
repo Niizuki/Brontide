@@ -1075,7 +1075,15 @@ module World =
                         Error "An Event Temporal Mark cannot have negative uncertainty."
                     | _ -> Ok()
 
-    let private stepCore (environment: Environment) (world: World) (request: ExecutionRequest) =
+    let private stepCore
+        (evaluateExpression:
+            (ConstraintRequirement -> ConstraintAtomEvaluation) ->
+                ConstraintExpression ->
+                ConstraintExpressionEvaluation)
+        (environment: Environment)
+        (world: World)
+        (request: ExecutionRequest)
+        =
         match Map.tryFind request.Operation world.Operations with
         | _ when world.GenesisActive ->
             deny environment request "Runtime execution is unavailable inside an active Genesis occurrence." world
@@ -1141,7 +1149,7 @@ module World =
 
                     let evaluations =
                         effectiveConstraints
-                        |> List.map (ConstraintExpression.evaluate evaluateAtom)
+                        |> List.map (evaluateExpression evaluateAtom)
 
                     let constraintFailure =
                         evaluations
@@ -1252,7 +1260,7 @@ module World =
                                           EmittedEvents = emittedEvents @ [ outcomeEvent ]
                                           Provenance = claims }
 
-    let step (environment: Environment) (world: World) (request: ExecutionRequest) =
+    let private stepUsing evaluateExpression (environment: Environment) (world: World) (request: ExecutionRequest) =
         world.AuthorityTransactions.RunRuntime(
             world.GenesisTransaction,
             (fun () ->
@@ -1261,8 +1269,16 @@ module World =
                     request
                     "Runtime execution is unavailable inside or through an uncommitted Genesis occurrence."
                     world),
-            (fun () -> stepCore environment world request)
+            (fun () -> stepCore evaluateExpression environment world request)
         )
+
+    let step (environment: Environment) (world: World) (request: ExecutionRequest) =
+        stepUsing ConstraintExpression.evaluate environment world request
+
+    /// Executes through the explicit Complete-Draft Architecture 0.8 A08-D1 authority path.
+    /// The ordinary step function retains Architecture 0.7 poisoning semantics.
+    let stepDraft08 (environment: Environment) (world: World) (request: ExecutionRequest) =
+        stepUsing ConstraintExpression.evaluateStrongKleene environment world request
 
 [<RequireQualifiedAccess>]
 module Genesis =

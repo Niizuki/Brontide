@@ -26,10 +26,12 @@ finite experimental comparison evidence, not a ratification or private-model com
 R6 is complete as non-runtime handoff planning: the shared Architecture 0.8 ledger accounts for
 C1-C14 and all 33 adversarial/evidence vectors, while Reference's separate implementation note
 records its carried parent chain and current no-revocation ceiling. No 0.8 runtime claim follows.
-The follow-on Architecture 0.8 delivery audit is also complete: Reference's independent matrix marks
-C3/C4 as reusable candidates, C1/C2/C8-C10 as partial candidates, C6/C7 as conflicts, and the
-remaining runtime gaps as missing. All canonical runtime vectors remain unaccepted; A08-D1 is only
-the proposed next runtime slice.
+The follow-on Architecture 0.8 delivery audit is also complete: Reference's independent snapshot
+marks C3/C4 as reusable candidates, C1/C2/C8-C10 as partial candidates, C6/C7 as conflicts, and the
+remaining runtime gaps as missing. A08-D1 has since delivered an explicit `ExecuteDraft08Async` and
+Draft-0.8 Definition selection path backed by structural strong-Kleene evaluation. All 11 C7/C3/C4
+vectors pass without changing `ExecuteAsync`, the 0.7 selector, the stack target, or ratification
+status. A08-D2 is the next proposed slice.
 The retained [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json) matrix is
 detailed test evidence, not the source of the implementation target and not a claim that the
 remaining Architecture 0.7 work is implemented.

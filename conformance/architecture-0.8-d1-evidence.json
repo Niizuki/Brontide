@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "phase": "A08-D1",
+  "architectureRevision": "0.8",
+  "architectureStatus": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
+  "evidenceStatus": "executed-experimental",
+  "stackTargetsRemain": "Architecture 0.7",
+  "contract": "conformance/architecture-0.8-d1-behavioral-contract.md",
+  "capabilities": ["D1-C1", "D1-C2", "D1-C3", "D1-C4", "D1-C5"],
+  "vectors": [
+    {
+      "id": "BR-08-ADV-C3-001",
+      "capabilities": ["D1-C4"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C3_001_expiry_after_effect_start_does_not_retroactively_deny" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D1Tests.fs", "anchor": "BR_08_ADV_C3_001 expiry after effect start does not retroactively deny" }
+    },
+    {
+      "id": "BR-08-ADV-C3-002",
+      "capabilities": ["D1-C4"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C3_002_new_execution_after_expiry_is_denied" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D1Tests.fs", "anchor": "BR_08_ADV_C3_002 new execution after expiry is denied" }
+    },
+    {
+      "id": "BR-08-ADV-C4-001",
+      "capabilities": ["D1-C5"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C4_001_grandparent_constraint_denies_grandchild" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D1Tests.fs", "anchor": "BR_08_ADV_C4_001 grandparent constraint denies grandchild" }
+    },
+    {
+      "id": "BR-08-ADV-C7-001",
+      "capabilities": ["D1-C1", "D1-C2"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C7_001_not_unknown_denies_before_effect" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D1Tests.fs", "anchor": "BR_08_ADV_C7_001 not unknown denies before effect" }
+    },
+    {
+      "id": "BR-08-ADV-C7-002",
+      "capabilities": ["D1-C1", "D1-C2"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C7_002_any_true_unknown_authorizes_and_records_unknown" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D1Tests.fs", "anchor": "BR_08_ADV_C7_002 any true unknown authorizes" }
+    },
+    {
+      "id": "BR-08-ADV-C7-003",
+      "capabilities": ["D1-C1", "D1-C2"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C7_003_all_true_unknown_denies_before_effect" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D1Tests.fs", "anchor": "BR_08_ADV_C7_003 all true unknown denies before effect" }
+    },
+    {
+      "id": "BR-08-ADV-C7-004",
+      "capabilities": ["D1-C1", "D1-C2"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C7_004_any_unknown_false_denies_before_effect" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D1Tests.fs", "anchor": "BR_08_ADV_C7_004 any unknown false denies before effect" }
+    },
+    {
+      "id": "BR-08-ADV-C7-005",
+      "capabilities": ["D1-C1", "D1-C2"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C7_005_all_false_unknown_is_false_and_denies_before_effect" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D1Tests.fs", "anchor": "BR_08_ADV_C7_005 all false unknown is false and denies" }
+    },
+    {
+      "id": "BR-08-ADV-C7-006",
+      "capabilities": ["D1-C1", "D1-C2"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D1ConformanceTests.cs", "anchor": "BR_08_ADV_C7_006_unknown_excluded_middle_remains_unknown" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D1Tests.fs", "anchor": "BR_08_ADV_C7_006 unknown excluded middle remains unknown" }
+    },
+    {
+      "id": "BR-08-ADV-C7-007",
+      "capabilities": ["D1-C3"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Studio.Tests/Architecture07ConstraintSelectionTests.cs", "anchor": "BR_08_ADV_C7_007_any_unknown_match_retains_candidate_and_records_unknown" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Composition.Tests/CompositionTests.fs", "anchor": "BR_08_ADV_C7_007 any unknown match retains candidate and records unknown" }
+    },
+    {
+      "id": "BR-08-ADV-C7-008",
+      "capabilities": ["D1-C3"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Studio.Tests/Architecture07ConstraintSelectionTests.cs", "anchor": "BR_08_ADV_C7_008_all_match_unknown_excludes_candidate_and_records_unknown" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Composition.Tests/CompositionTests.fs", "anchor": "BR_08_ADV_C7_008 all match unknown excludes candidate and records unknown" }
+    }
+  ],
+  "entryPoints": {
+    "reference": {
+      "draft08": ["ConstraintExpressionEvaluator.EvaluateStrongKleene", "AuthorityDomain.ExecuteDraft08Async", "DefinitionConstraintSelection.FilterDraft08"],
+      "architecture07Retained": ["ConstraintExpressionEvaluator.Evaluate", "AuthorityDomain.ExecuteAsync", "DefinitionConstraintSelection.Filter"]
+    },
+    "minimal": {
+      "draft08": ["ConstraintExpression.evaluateStrongKleene", "World.stepDraft08", "DefinitionConstraintSelection.filterDraft08"],
+      "architecture07Retained": ["ConstraintExpression.evaluate", "World.step", "DefinitionConstraintSelection.filter"]
+    }
+  }
+}

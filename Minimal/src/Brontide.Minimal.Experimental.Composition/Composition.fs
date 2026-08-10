@@ -65,21 +65,33 @@ type DefinitionConstraintRejection =
       UnsupportedConstraints: CanonicalName list
       Reason: string }
 
+type DefinitionConstraintAssessment =
+    { Candidate: CanonicalName
+      Outcome: ConstraintEvaluationOutcome
+      DiagnosticCategory: ConstraintDiagnosticCategory
+      UnsupportedConstraints: CanonicalName list
+      Reason: string }
+
 type DefinitionConstraintSelectionResult<'T> =
     { Eligible: DefinitionConstraintCandidate<'T> list
-      Rejected: DefinitionConstraintRejection list }
+      Rejected: DefinitionConstraintRejection list
+      Assessments: DefinitionConstraintAssessment list }
 
 [<RequireQualifiedAccess>]
 module DefinitionConstraintSelection =
-    let filter
+    let private filterWith
+        (evaluateExpression:
+            (ConstraintRequirement -> ConstraintAtomEvaluation) ->
+                ConstraintExpression ->
+                ConstraintExpressionEvaluation)
         (evaluateAtom: ConstraintRequirement -> ConstraintAtomEvaluation)
         (candidates: DefinitionConstraintCandidate<'T> list)
         : DefinitionConstraintSelectionResult<'T> =
-        let assessments =
+        let assessments: (DefinitionConstraintCandidate<'T> * ConstraintExpressionEvaluation) list =
             candidates
             |> List.map (fun candidate ->
                 candidate,
-                ConstraintExpression.evaluate evaluateAtom candidate.Constraint)
+                evaluateExpression evaluateAtom candidate.Constraint)
 
         { Eligible =
             assessments
@@ -95,7 +107,28 @@ module DefinitionConstraintSelection =
                         { Candidate = candidate.Name
                           DiagnosticCategory = evaluation.DiagnosticCategory
                           UnsupportedConstraints = evaluation.UnsupportedConstraints
-                          Reason = evaluation.Reason }) }
+                          Reason = evaluation.Reason })
+          Assessments =
+            assessments
+            |> List.map (fun (candidate, evaluation) ->
+                { Candidate = candidate.Name
+                  Outcome = evaluation.Outcome
+                  DiagnosticCategory = evaluation.DiagnosticCategory
+                  UnsupportedConstraints = evaluation.UnsupportedConstraints
+                  Reason = evaluation.Reason }) }
+
+    let filter
+        (evaluateAtom: ConstraintRequirement -> ConstraintAtomEvaluation)
+        (candidates: DefinitionConstraintCandidate<'T> list)
+        : DefinitionConstraintSelectionResult<'T> =
+        filterWith ConstraintExpression.evaluate evaluateAtom candidates
+
+    /// Applies the explicit Complete-Draft Architecture 0.8 strong-Kleene selection rule.
+    let filterDraft08
+        (evaluateAtom: ConstraintRequirement -> ConstraintAtomEvaluation)
+        (candidates: DefinitionConstraintCandidate<'T> list)
+        : DefinitionConstraintSelectionResult<'T> =
+        filterWith ConstraintExpression.evaluateStrongKleene evaluateAtom candidates
 
 type BoxedValue =
     private

@@ -92,7 +92,30 @@ public sealed class AuthorityDomain
             operation,
             AuthorityPresentation.Direct(capability),
             input,
-            origin).ConfigureAwait(false);
+            origin,
+            useStrongKleene: false).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Executes through the explicit Complete-Draft Architecture 0.8 A08-D1 authority path.
+    /// The ordinary <see cref="ExecuteAsync"/> path retains Architecture 0.7 poisoning semantics.
+    /// </summary>
+    public async ValueTask<ExecutionResult> ExecuteDraft08Async(
+        ActorReference actor,
+        OperationReference operation,
+        Capability capability,
+        ShapeValue input,
+        OriginClass origin = OriginClass.Unverified)
+    {
+        EnsureRuntimeAccessAllowed();
+        return await ExecuteInternalAsync(
+            actor,
+            null,
+            operation,
+            AuthorityPresentation.Direct(capability),
+            input,
+            origin,
+            useStrongKleene: true).ConfigureAwait(false);
     }
 
     public async ValueTask<ExecutionResult> ExecuteOnBehalfAsync(
@@ -117,7 +140,8 @@ public sealed class AuthorityDomain
             operation,
             authorityPresentation,
             input,
-            origin).ConfigureAwait(false);
+            origin,
+            useStrongKleene: false).ConfigureAwait(false);
     }
 
     public DomainEvent EmitEvent(
@@ -361,7 +385,8 @@ public sealed class AuthorityDomain
         OperationReference operation,
         AuthorityPresentation presentation,
         ShapeValue input,
-        OriginClass origin)
+        OriginClass origin,
+        bool useStrongKleene)
     {
         ArgumentNullException.ThrowIfNull(initiator);
         ArgumentNullException.ThrowIfNull(presentation);
@@ -443,9 +468,13 @@ public sealed class AuthorityDomain
 
         foreach (var expression in capability.EffectiveConstraintExpressions())
         {
-            var evaluation = ConstraintExpressionEvaluator.Evaluate(
-                expression,
-                constraint => EvaluateConstraintAtom(constraint, evaluationContext));
+            var evaluation = useStrongKleene
+                ? ConstraintExpressionEvaluator.EvaluateStrongKleene(
+                    expression,
+                    constraint => EvaluateConstraintAtom(constraint, evaluationContext))
+                : ConstraintExpressionEvaluator.Evaluate(
+                    expression,
+                    constraint => EvaluateConstraintAtom(constraint, evaluationContext));
             originGrantSeen |= evaluation.SatisfiedConstraints.Contains(StandardConstraintNames.OriginGrant);
             var decision = ConstraintDecision.FromExpression(expression, evaluation);
             decisions.Add(decision);

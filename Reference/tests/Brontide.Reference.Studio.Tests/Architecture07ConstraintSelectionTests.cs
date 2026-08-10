@@ -43,4 +43,56 @@ public sealed class Architecture07ConstraintSelectionTests
             Assert.That(result.Rejected[0].Reason, Does.Not.Contain("protected-value"));
         });
     }
+
+    [Test]
+    public void BR_08_ADV_C7_007_any_unknown_match_retains_candidate_and_records_unknown()
+    {
+        var supported = CanonicalName.Parse("Example:Draft08.Supported");
+        var unknown = CanonicalName.Parse("Example:Draft08.Unknown");
+        var candidateName = CanonicalName.Parse("Example:Draft08.Candidate");
+        var candidate = new DefinitionConstraintCandidate<string>(
+            candidateName,
+            "candidate",
+            new AnyOfConstraintExpression(Atom(supported), Atom(unknown)));
+
+        var result = DefinitionConstraintSelection.FilterDraft08(
+            [candidate],
+            constraint => constraint.Name == supported
+                ? ConstraintAtomEvaluation.Satisfied()
+                : ConstraintAtomEvaluation.Unsupported(unknown));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Eligible.Select(item => item.Name), Is.EqualTo(new[] { candidateName }));
+            Assert.That(result.Rejected, Is.Empty);
+            Assert.That(result.Assessments.Single().UnsupportedConstraints, Does.Contain(unknown));
+        });
+    }
+
+    [Test]
+    public void BR_08_ADV_C7_008_all_match_unknown_excludes_candidate_and_records_unknown()
+    {
+        var supported = CanonicalName.Parse("Example:Draft08.Supported");
+        var unknown = CanonicalName.Parse("Example:Draft08.Unknown");
+        var candidateName = CanonicalName.Parse("Example:Draft08.Candidate");
+        var candidate = new DefinitionConstraintCandidate<string>(
+            candidateName,
+            "candidate",
+            new AllOfConstraintExpression(Atom(supported), Atom(unknown)));
+
+        var result = DefinitionConstraintSelection.FilterDraft08(
+            [candidate],
+            constraint => constraint.Name == supported
+                ? ConstraintAtomEvaluation.Satisfied()
+                : ConstraintAtomEvaluation.Unsupported(unknown));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Eligible, Is.Empty);
+            Assert.That(result.Rejected.Single().Candidate, Is.EqualTo(candidateName));
+            Assert.That(result.Assessments.Single().UnsupportedConstraints, Does.Contain(unknown));
+        });
+    }
+
+    private static ValueConstraint Atom(CanonicalName name) => new(name, ShapeValue.Text("value"));
 }

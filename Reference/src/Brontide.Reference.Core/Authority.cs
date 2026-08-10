@@ -140,6 +140,27 @@ public static class ConstraintExpressionEvaluator
         };
     }
 
+    /// <summary>
+    /// Evaluates one Draft Architecture 0.8 expression structurally under strong Kleene logic.
+    /// The Architecture 0.7 <see cref="Evaluate"/> path remains available for the stack's stated target.
+    /// </summary>
+    public static ConstraintExpressionEvaluation EvaluateStrongKleene(
+        ConstraintExpression expression,
+        Func<Constraint, ConstraintAtomEvaluation> evaluateAtom)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+        ArgumentNullException.ThrowIfNull(evaluateAtom);
+
+        return expression switch
+        {
+            Constraint atom => EvaluateAtom(atom, evaluateAtom),
+            AllOfConstraintExpression allOf => EvaluateStrongKleeneGroup(allOf.Operands, evaluateAtom, requireAll: true),
+            AnyOfConstraintExpression anyOf => EvaluateStrongKleeneGroup(anyOf.Operands, evaluateAtom, requireAll: false),
+            NotConstraintExpression not => NegateStrongKleene(EvaluateStrongKleene(not.Operand, evaluateAtom)),
+            _ => InvalidExpression()
+        };
+    }
+
     public static ImmutableArray<Constraint> AtomicConstraints(ConstraintExpression expression)
     {
         ArgumentNullException.ThrowIfNull(expression);
@@ -254,6 +275,107 @@ public static class ConstraintExpressionEvaluator
             },
             _ => throw new ArgumentOutOfRangeException(nameof(child))
         };
+
+    private static ConstraintExpressionEvaluation EvaluateStrongKleeneGroup(
+        ImmutableArray<ConstraintExpression> operands,
+        Func<Constraint, ConstraintAtomEvaluation> evaluateAtom,
+        bool requireAll)
+    {
+        var children = operands
+            .Select(operand => EvaluateStrongKleene(operand, evaluateAtom))
+            .ToImmutableArray();
+        var outcome = requireAll
+            ? children.Any(child => child.Outcome == ConstraintEvaluationOutcome.Unsatisfied)
+                ? ConstraintEvaluationOutcome.Unsatisfied
+                : children.Any(child => child.Outcome == ConstraintEvaluationOutcome.Indeterminate)
+                    ? ConstraintEvaluationOutcome.Indeterminate
+                    : ConstraintEvaluationOutcome.Satisfied
+            : children.Any(child => child.Outcome == ConstraintEvaluationOutcome.Satisfied)
+                ? ConstraintEvaluationOutcome.Satisfied
+                : children.Any(child => child.Outcome == ConstraintEvaluationOutcome.Indeterminate)
+                    ? ConstraintEvaluationOutcome.Indeterminate
+                    : ConstraintEvaluationOutcome.Unsatisfied;
+
+        return StrongKleeneResult(outcome, children, requireAll);
+    }
+
+    private static ConstraintExpressionEvaluation NegateStrongKleene(ConstraintExpressionEvaluation child)
+    {
+        var outcome = child.Outcome switch
+        {
+            ConstraintEvaluationOutcome.Satisfied => ConstraintEvaluationOutcome.Unsatisfied,
+            ConstraintEvaluationOutcome.Unsatisfied => ConstraintEvaluationOutcome.Satisfied,
+            ConstraintEvaluationOutcome.Indeterminate => ConstraintEvaluationOutcome.Indeterminate,
+            _ => throw new ArgumentOutOfRangeException(nameof(child))
+        };
+        var result = StrongKleeneResult(outcome, [child], requireAll: true);
+        return result with
+        {
+            SatisfiedConstraints = outcome == ConstraintEvaluationOutcome.Satisfied
+                ? child.UnsatisfiedConstraints
+                : [],
+            UnsatisfiedConstraints = outcome == ConstraintEvaluationOutcome.Unsatisfied
+                ? child.SatisfiedConstraints
+                : []
+        };
+    }
+
+    private static ConstraintExpressionEvaluation StrongKleeneResult(
+        ConstraintEvaluationOutcome outcome,
+        ImmutableArray<ConstraintExpressionEvaluation> children,
+        bool requireAll)
+    {
+        var unsupported = NormalizeUnsupported(children.SelectMany(child => child.UnsupportedConstraints));
+        if (outcome == ConstraintEvaluationOutcome.Indeterminate)
+        {
+            var indeterminate = children.Where(child => child.Outcome == ConstraintEvaluationOutcome.Indeterminate).ToArray();
+            var category = unsupported.IsEmpty
+                ? indeterminate.Select(child => child.DiagnosticCategory).Order().First()
+                : ConstraintDiagnosticCategory.UnsupportedConstraint;
+            var suffix = unsupported.IsEmpty
+                ? string.Empty
+                : $" Target has unrecognised constraint kind(s): {string.Join(", ", unsupported)}.";
+            return new(
+                outcome,
+                category,
+                unsupported,
+                $"{category}: the complete constraint expression is indeterminate.{suffix}");
+        }
+
+        var suffixForObservedUnknowns = unsupported.IsEmpty
+            ? string.Empty
+            : $" Observed unrecognised constraint kind(s): {string.Join(", ", unsupported)}.";
+        if (outcome == ConstraintEvaluationOutcome.Satisfied)
+        {
+            var proof = requireAll
+                ? children.SelectMany(child => child.SatisfiedConstraints)
+                : children
+                    .Where(child => child.Outcome == ConstraintEvaluationOutcome.Satisfied)
+                    .SelectMany(child => child.SatisfiedConstraints);
+            return new(
+                outcome,
+                ConstraintDiagnosticCategory.Satisfied,
+                unsupported,
+                $"Satisfied: the complete constraint expression matched.{suffixForObservedUnknowns}")
+            {
+                SatisfiedConstraints = NormalizeNames(proof)
+            };
+        }
+
+        var failedProof = requireAll
+            ? children
+                .Where(child => child.Outcome == ConstraintEvaluationOutcome.Unsatisfied)
+                .SelectMany(child => child.UnsatisfiedConstraints)
+            : children.SelectMany(child => child.UnsatisfiedConstraints);
+        return new(
+            outcome,
+            ConstraintDiagnosticCategory.Unsatisfied,
+            unsupported,
+            $"Unsatisfied: the complete constraint expression did not match.{suffixForObservedUnknowns}")
+        {
+            UnsatisfiedConstraints = NormalizeNames(failedProof)
+        };
+    }
 
     private static ConstraintExpressionEvaluation Poison(IEnumerable<ConstraintExpressionEvaluation> children)
     {
