@@ -1,8 +1,10 @@
 # Future work
 
 Architecture 0.7 R1-R5/M1-M5 code and finite cross-process comparison evidence are now delivered in
-both stacks. Their hash-pinned matrices still await review retargeting; R6/M6 is the remaining 0.7
-plan phase and prepares the Architecture 0.8 requirement/risk handoff without pre-implementing it.
+both stacks. R6/M6's non-runtime Architecture 0.8 handoff is also complete through the
+[C1-C14 requirements/risk ledger](./architecture/architecture-0.8-handoff-requirements-and-risk-ledger.md),
+its completeness review, and separate stack representation-ceiling notes. The hash-pinned 0.7
+matrices still await review retargeting; no Architecture 0.8 runtime implementation is implied.
 
 This directory is the authoritative entry point for planned, draft, proposed, work-in-progress, or
 otherwise unimplemented work. A document belongs here even when it is the “current architecture” if

@@ -215,7 +215,8 @@ remaining action is review retargeting and independent attestation, not producti
 Neither blocks Portable Binding (B), which targets 0.8 §16/§18.1 and reuses the
 Cooling/Catalog estate — so B and C can proceed in parallel with different focus. **However**, do not
 invest in re-hardening M1's poisoning rule: under 0.8 C7 it becomes `conflicting` rework (see D).
-The next implementation phase is R6/M6 Architecture 0.8 handoff; don't gold-plate 0.7 M1.
+R6/M6 Architecture 0.8 handoff planning is now complete; the next runtime work requires a separately
+authorized Architecture 0.8 delivery audit. Do not gold-plate 0.7 M1.
 
 ---
 
@@ -285,11 +286,11 @@ this choice is the ceiling any future revocation semantics can reach. The edit s
 include *"Reference and Minimal implementation notes (record each stack's representation choice and
 ceiling **before the Portable Binding freezes one**)."*
 
-**This is the cross-cut with B.** PB1/PB3 must not freeze a portable chain-conjunction representation
-until R6/M6 have recorded each stack's choice and its revocation ceiling. Doing PB first would cap
-revocation semantics by accident. **Action:** add the representation-choice record to
-`Reference/docs/architecture-0.7-delivery.md` and `Minimal/docs/architecture-0.7-delivery.md` (the
-"Architecture 0.8 preparation" sections already flag this) as an explicit PB0 prerequisite.
+**This is the cross-cut with B.** PB shipped before the R6/M6 record, but it transfers no Capability
+chain and therefore did not freeze either representation. R6/M6 now records Reference's carried
+parent objects and Minimal's World-resolved parent references, with their distinct current
+revocation ceilings, in separate unpinned Architecture 0.8 handoff notes. The hash-pinned 0.7
+delivery ledgers remain unchanged.
 
 ### D4 — context items (not immediate blockers)
 
