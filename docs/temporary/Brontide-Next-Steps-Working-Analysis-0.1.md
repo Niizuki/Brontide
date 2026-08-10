@@ -146,7 +146,7 @@ introduced in PB0/PB1 layout and wired into the repository gate.
 
 ---
 
-## C. The open 0.7 gap — M3/M4 (R3/R4)
+## C. The delivered 0.7 M3-M5 (R3-R5) code and open review gate
 
 Both stacks have delivered M1/R1 (composite constraint poisoning, `BR_07_CONSTRAINT_001/002/003`),
 and M2/R2 (typed member canonical names). M3/R3 (`BR-07-BINDING-001`, static Attribute-constrained
@@ -154,8 +154,13 @@ binding) is **implemented and tested natively in both stacks** against
 [its behavioural contract](../../conformance/br-07-binding-001-contract.md), but both matrices still
 record it as `planned`: the matrix hash is pinned by the status registry, whose own hash is pinned by
 the closed independent-review request, so the status change needs that review retargeted and freshly
-attested by a non-implementing reviewer. C4 and C5 remain classified `missing` and unbuilt. That —
-plus the blocked M3/R3 status flip — is the honest gap in the current target.
+attested by a non-implementing reviewer. C4 and C5 are now implemented and tested independently in
+R4/M4 against `BR-07-PERSISTENT-INFORMATION-001`, but their matrix rows have the same pinned `planned`
+state. Review retargeting and independent attestation are now the honest gap in the current target.
+R5/M5 is also delivered: a 15-vector data-only fixture is evaluated by independent native
+executables across real process boundaries. Every observation agrees with the fixture oracle and
+the other stack, with no allowed disagreements. The exact finite proof boundary is recorded in
+`conformance/architecture-0.7-cross-stack-comparison-report.md`.
 
 ### C3 — static Attribute-constrained binding (§18.1) → M3 / R3
 
@@ -173,16 +178,14 @@ candidate, ties, restoration, unsupported constraint. Minimal writes these in
 
 ### C4 + C5 — Router endpoints and Dataset authority/identity/concurrency → M4 / R4
 
-This is the larger lift and needs a **new experimental project that does not yet exist** in either
-stack:
+This larger lift is delivered in independent experimental projects:
 
 - `Minimal/src/Brontide.Minimal.Experimental.PersistentInformation` (+ `...PersistentInformation.Tests`)
 - `Reference/src/Brontide.Reference.Experimental.PersistentInformation` (+ tests)
 
-Neither directory is present today, so M4/R4 also carries scaffolding cost: create the projects, add
-them to the solution/build graph, and extend the dependency-boundary verifier
-(`verify-project-graph.ps1` / `verify-assembly-graph.ps1` / Minimal `verify-boundaries.ps1`) so the
-new experimental project cannot leak into Base/Core/Model/Kernel.
+Both directories and their native NUnit projects are registered in the solution/build graph. The
+dependency-boundary verifiers (`verify-project-graph.ps1`, `verify-assembly-graph.ps1`, and Minimal
+`verify-boundaries.ps1`) keep the new experimental projects from leaking into Base/Core/Model/Kernel.
 
 **C4 — Router logical-endpoint guarantees (§18.2).** Router-owned guarantee tests, including behavior
 when the backing Store changes, and explicit refusal of any guarantee the Router cannot uphold.
@@ -206,11 +209,13 @@ roles stay deferred.
 
 ### Sequencing note (interacts with B and D)
 
-M3/R3 is small and self-contained — it was landed first, as this note recommended. M4/R4 is the persistent-information slice and
-is heavier. Neither blocks Portable Binding (B), which targets 0.8 §16/§18.1 and reuses the
+M3/R3 through M5/R5 are implemented and tested independently in both stacks. Their retained matrices
+still say `planned` because the status-registry evidence is pinned by the closed review request; the
+remaining action is review retargeting and independent attestation, not production implementation.
+Neither blocks Portable Binding (B), which targets 0.8 §16/§18.1 and reuses the
 Cooling/Catalog estate — so B and C can proceed in parallel with different focus. **However**, do not
 invest in re-hardening M1's poisoning rule: under 0.8 C7 it becomes `conflicting` rework (see D).
-Finish M3/M4 as clean 0.7 Complete-Draft evidence; don't gold-plate M1.
+The next implementation phase is R6/M6 Architecture 0.8 handoff; don't gold-plate 0.7 M1.
 
 ---
 

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Brontide.Minimal.Experimental.PersistentInformation</AssemblyName>
+    <RootNamespace>Brontide.Minimal.Experimental.PersistentInformation</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="PersistentInformation.fs" />
+  </ItemGroup>
+</Project>

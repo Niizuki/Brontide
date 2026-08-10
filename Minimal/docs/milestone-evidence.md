@@ -18,10 +18,11 @@ evidence of complete 0.7 conformance. The permanent implementation-correction st
 claim gaps and their independently reviewed closure state.
 
 Architecture 0.7 evidence is checked separately through
-[`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). The current M1-M2
-evidence covers recursive Constraint evaluation, target-side poisoning, experimental selection
-exclusion, and provisional typed-member canonical names; it does not imply that the remaining
-target is implemented.
+[`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). M1-M5 implementation
+evidence now covers recursive Constraints, typed-member names, static Attribute binding, and the
+experimental Opaque Corpus/Dataset/Store/Router slice. The pinned matrix still records M3-M4 as
+planned pending review retargeting, and no whole-revision or ratification claim follows.
+M5's native endpoint agrees with the fixture oracle and Reference endpoint on 15 shared observations.
 
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
@@ -30,7 +31,7 @@ and executes M6 in both host directions. Both protocols remain experimental test
 
 | Milestone | Status | Current evidence |
 | --- | --- | --- |
-| M0 — F# skeleton | Implemented foundation | 17 `.fsproj` projects in `Brontide.Minimal.slnx`; boundary guard; no `global.json`; no Reference project reference. |
+| M0 — F# skeleton | Implemented foundation | 23 `.fsproj` projects in `Brontide.Minimal.slnx`; boundary guard; no `global.json`; no Reference project reference. |
 | M1 — pure Base kernel | Implemented foundation | Opaque issued references, canonical names, explicit target/presented Capability, provenance, constraints, narrowing delegation, fail-closed execution, trusted logical time, redacted audits, shaped Outcomes, attributed Events. |
 | M2 — native Cooling | Implemented foundation | Pure two-way Cooling transition, ShapeValue representation, headless host output, native tests. The fuller sensor/controller capability narrative remains conformance work. |
 | M3 — Shape composition | Implemented foundation | Additive versions, strict record validation, authored/open Fragments, explicit canonical and required-Fragment projection, retained Velocity/DirectionalVelocity conformance case. |
@@ -41,7 +42,7 @@ and executes M6 in both host directions. Both protocols remain experimental test
 | M8 — Macro Operation | Not yet implemented | Activity lifecycle and cross-stack provider exchange remain. |
 | M9 — 0.5 Composition | Implemented foundation | Four dependency-strength claims, support/opposition, deterministic provider selection, boxed values, CPU imaging, optimisation eligibility, explanations. |
 | M10 — mixed-stack workspace | Deferred | Minimal has independent multi-layer image workspace semantics. Reference/Minimal/third-provider substitution is the later entanglement proof. |
-| Architecture 0.7 M1-M2 | Tested Complete Draft evidence | Model/Kernel three-state recursive Constraint evaluation, conformance denial/redaction, experimental Composition candidate exclusion, and opaque typed-member parse/format/compare/rejection vectors. C3-C5 remain planned. |
+| Architecture 0.7 M1-M5 | Tested Complete Draft implementation and finite comparison evidence | Native suites cover recursive Constraints, typed-member names, static Attribute binding, Capability-denied Dataset issuance, Store-independent identity, declared concurrency, Router guarantees/fallback, and topology redaction. Independent process endpoints agree on all 15 shared observations; pinned matrix promotion remains. |
 
 ## Executable suites
 
@@ -49,6 +50,10 @@ and executes M6 in both host directions. Both protocols remain experimental test
 - `Brontide.Minimal.Kernel.Tests`: Cooling, Event streams, and Flow.
 - `Brontide.Minimal.Enrichment.Tests`: isolated non-conformance Enrichment experiments.
 - `Brontide.Minimal.Composition.Tests`: isolated Architecture 0.5 Composition and Imaging experiments.
+- `Brontide.Minimal.PersistentInformation.Tests`: isolated Architecture 0.7 Opaque Corpus, Dataset,
+  Store-role, concurrency, and Router evidence.
+- `Brontide.Minimal.Architecture07.TestConsole`: offline native endpoint for the shared R5/M5
+  finite-vector comparison.
 - `Brontide.Minimal.Interchange.Tests`: historical seam, neutral fixture validation, adversarial vectors,
   and real Reference provider-process evidence without Reference project or assembly references.
 

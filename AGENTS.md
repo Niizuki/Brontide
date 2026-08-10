@@ -347,9 +347,12 @@ sandbox, and excluded from CI by default.
 
 ## Registered integration test consoles
 
-No credentialed integration test consoles are currently registered. When one is added, list its
-project path, offline check command, supported live verbs, configuration source, and permitted
-sandbox target here in the same change.
+- `Reference/tests/Brontide.Reference.Architecture07.TestConsole` and
+  `Minimal/tests/Brontide.Minimal.Architecture07.TestConsole` are offline, non-interactive R5/M5
+  observation endpoints. Run both through `build/verify-architecture-0.7-comparison.ps1`; the sole
+  operation evaluates every vector in `conformance/architecture-0.7-comparison-vectors.json` and
+  writes canonical JSON to a caller-supplied path. They have no live verbs, configuration source,
+  credentials, network access, or permitted external sandbox target.
 
 ## Git, branches, and pull requests
 

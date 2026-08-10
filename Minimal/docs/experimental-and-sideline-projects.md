@@ -16,9 +16,12 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   change cannot rebind it, and restores without consulting anything. The 0.7 matrix still records
   that requirement as `planned`, because moving it changes a hash the closed independent-review
   request pins. Neither changes the project's experimental classification.
-- `Brontide.Minimal.Experimental.PersistentInformation` is planned, not created. Its first scope is
-  the C4/C5 Opaque Corpus/Dataset/Store-role evidence in Plan 0.3; it does not imply a complete
-  persistence system, deep Router policy, or ratified persistent-information extension.
+- `Brontide.Minimal.Experimental.PersistentInformation` implements and tests the M4 C4/C5 Opaque
+  Corpus/Dataset/Store-role/Router slice against
+  [`BR-07-PERSISTENT-INFORMATION-001`](../../conformance/br-07-persistent-information-001-contract.md).
+  In-memory endpoints, a single-writer declaration checked at operations, and bounded Router fallback do not imply durable
+  media, transactions, a complete persistence system, deep Router policy, or a ratified extension.
+  The pinned 0.7 matrix remains `planned` until review retargeting.
 - `Brontide.Minimal.Experimental.ComponentManagement` is the fake, deterministic Component Manager
   for the
   [Component Management Implementation Plan 0.1](../../docs/future/component-management/Brontide-Component-Management-Implementation-Plan-0.1.md).

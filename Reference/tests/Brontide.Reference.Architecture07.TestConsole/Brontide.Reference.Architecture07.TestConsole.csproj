@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Brontide.Reference.Architecture07.TestConsole</AssemblyName>
+    <RootNamespace>Brontide.Reference.Architecture07.TestConsole</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Brontide.Reference.Core\Brontide.Reference.Core.csproj" />
+    <ProjectReference Include="..\..\src\Brontide.Reference.Experimental.Composition\Brontide.Reference.Experimental.Composition.csproj" />
+    <ProjectReference Include="..\..\src\Brontide.Reference.Experimental.PersistentInformation\Brontide.Reference.Experimental.PersistentInformation.csproj" />
+  </ItemGroup>
+</Project>

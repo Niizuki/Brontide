@@ -1,5 +1,9 @@
 # Future work
 
+Architecture 0.7 R1-R5/M1-M5 code and finite cross-process comparison evidence are now delivered in
+both stacks. Their hash-pinned matrices still await review retargeting; R6/M6 is the remaining 0.7
+plan phase and prepares the Architecture 0.8 requirement/risk handoff without pre-implementing it.
+
 This directory is the authoritative entry point for planned, draft, proposed, work-in-progress, or
 otherwise unimplemented work. A document belongs here even when it is the “current architecture” if
 the implementations have not delivered it.
@@ -1464,7 +1468,7 @@ Decision 13 still blocks every activation of a CM3 group that declares a bounded
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |
-| Persistent Information | [`Persistent Information Design Note`](./persistent-information/Brontide-Design-Note-Persistent-Information-0.1.md) | Design direction only. |
+| Persistent Information | [`Persistent Information Design Note`](./persistent-information/Brontide-Design-Note-Persistent-Information-0.1.md) | R4/M4 experimental Opaque Corpus, Dataset, Store-role, declared-concurrency, and Router-guarantee evidence exists independently in both stacks; durable media and the wider design remain planned. |
 | Topology and Guardians | [`Topology Design Note`](./topology/Brontide-Design-Note-Topology-0.1.md) | Recorded design direction; not ratified. |
 | Reference 0.3 plan | [`Reference implementation plan`](../../Reference/docs/future/Brontide-Reference-Stack-Implementation-Plan-0.3.md) | Planned work with retained delivery evidence. |
 | Minimal 0.3 plan | [`Minimal implementation plan`](../../Minimal/docs/future/Brontide-Minimal-Stack-Implementation-Plan-0.3.md) | Planned work with retained delivery evidence. |

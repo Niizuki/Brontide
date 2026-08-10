@@ -53,6 +53,9 @@ Invoke-Checked { dotnet restore $referenceSolution }
 Invoke-Checked { dotnet restore $minimalSolution }
 Invoke-Checked { dotnet build $referenceSolution --no-restore }
 Invoke-Checked { dotnet build $minimalSolution --no-restore }
+Invoke-Checked {
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-architecture-0.7-comparison.ps1') -NoBuild
+}
 Invoke-Checked { dotnet test $referenceSolution --no-build --filter 'Category!=CrossProcess' }
 Invoke-Checked { dotnet test $minimalSolution --no-build --filter 'Category!=CrossProcess' }
 
