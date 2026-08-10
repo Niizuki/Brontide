@@ -40,6 +40,7 @@ module private AttributeBindingHelpers =
         let atomFor definition value =
             AtomicConstraint
                 { Constraint = (definition: ConstraintDefinition).Reference
+                  ParameterShape = definition.ParameterShape
                   Parameters = TextValue value }
         attributeOf, atomFor regionDefinition, atomFor exoticDefinition
 

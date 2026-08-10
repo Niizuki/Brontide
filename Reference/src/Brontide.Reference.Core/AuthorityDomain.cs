@@ -35,6 +35,24 @@ public sealed class AuthorityDomain
     public TimeProvider? TimeProvider { get; }
     public ShapeRegistry Shapes { get; }
 
+    public ImmutableArray<ConstraintRecognition> ConstraintRecognitionSet
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _constraints.Values
+                    .OrderBy(definition => definition.Name)
+                    .Select(definition => new ConstraintRecognition(
+                        definition.Declaration,
+                        definition.Evaluator is null
+                            ? ConstraintRecognitionDecision.Declined
+                            : ConstraintRecognitionDecision.Implemented))
+                    .ToImmutableArray();
+            }
+        }
+    }
+
     public IReadOnlyList<ActorReference> Actors
     {
         get { lock (_gate) { return _actors.ToArray(); } }
@@ -474,10 +492,10 @@ public sealed class AuthorityDomain
                 var evaluation = useStrongKleene
                     ? ConstraintExpressionEvaluator.EvaluateStrongKleene(
                         expression,
-                        constraint => EvaluateConstraintAtom(constraint, evaluationContext))
+                        constraint => EvaluateConstraintAtom(constraint, evaluationContext, strictAuthorityValues: true))
                     : ConstraintExpressionEvaluator.Evaluate(
                         expression,
-                        constraint => EvaluateConstraintAtom(constraint, evaluationContext));
+                        constraint => EvaluateConstraintAtom(constraint, evaluationContext, strictAuthorityValues: false));
                 originGrantSeen |= evaluation.SatisfiedConstraints.Contains(StandardConstraintNames.OriginGrant);
                 var decision = ConstraintDecision.FromExpression(expression, evaluation);
                 decisions.Add(decision);
@@ -548,7 +566,8 @@ public sealed class AuthorityDomain
 
     private ConstraintAtomEvaluation EvaluateConstraintAtom(
         Constraint constraint,
-        ConstraintEvaluationContext evaluationContext)
+        ConstraintEvaluationContext evaluationContext,
+        bool strictAuthorityValues)
     {
         ConstraintDefinition constraintDefinition;
         lock (_gate)
@@ -559,10 +578,17 @@ public sealed class AuthorityDomain
             }
         }
 
-        var constraintShape = Shapes.Project(constraint.Value, constraintDefinition.ValueShape);
+        var constraintShape = strictAuthorityValues
+            ? Shapes.ValidateAuthorityValue(constraint.Value, constraintDefinition.ValueShape)
+            : Shapes.Project(constraint.Value, constraintDefinition.ValueShape);
         if (!constraintShape.IsValid)
         {
             return ConstraintAtomEvaluation.InvalidValue();
+        }
+
+        if (constraintDefinition.Evaluator is null)
+        {
+            return ConstraintAtomEvaluation.Unsupported(constraintDefinition.Name);
         }
 
         try
@@ -650,8 +676,10 @@ public sealed class AuthorityDomain
         _constraints.Add(
             StandardConstraintNames.PermittedOperations,
             new ConstraintDefinition(
-                StandardConstraintNames.PermittedOperations,
-                ShapeContract.For(BuiltInShapes.OperationSet),
+                StandardConstraintDeclaration(
+                    StandardConstraintNames.PermittedOperations,
+                    BuiltInShapes.OperationSet,
+                    "the requested Operation belongs to the permitted set"),
                 (constraint, context) => constraint is PermittedOperationsConstraint permitted
                     ? permitted.AllowedOperations.Contains(context.Operation)
                         ? ConstraintDecision.Allow(constraint.Name, $"Operation {context.Operation} is permitted")
@@ -661,8 +689,10 @@ public sealed class AuthorityDomain
         _constraints.Add(
             StandardConstraintNames.WallClockValidity,
             new ConstraintDefinition(
-                StandardConstraintNames.WallClockValidity,
-                ShapeContract.For(BuiltInShapes.TimeWindow),
+                StandardConstraintDeclaration(
+                    StandardConstraintNames.WallClockValidity,
+                    BuiltInShapes.TimeWindow,
+                    "trusted presentation time is within the declared window"),
                 (constraint, context) =>
                 {
                     if (constraint is not WallClockValidityConstraint window)
@@ -684,8 +714,10 @@ public sealed class AuthorityDomain
         _constraints.Add(
             StandardConstraintNames.LivenessLease,
             new ConstraintDefinition(
-                StandardConstraintNames.LivenessLease,
-                ShapeContract.For(BuiltInShapes.Lease),
+                StandardConstraintDeclaration(
+                    StandardConstraintNames.LivenessLease,
+                    BuiltInShapes.Lease,
+                    "the declared liveness lease is active at presentation"),
                 (constraint, context) =>
                 {
                     if (constraint is not LivenessLeaseConstraint lease)
@@ -701,8 +733,10 @@ public sealed class AuthorityDomain
         _constraints.Add(
             StandardConstraintNames.OriginGrant,
             new ConstraintDefinition(
-                StandardConstraintNames.OriginGrant,
-                ShapeContract.For(BuiltInShapes.OriginClass),
+                StandardConstraintDeclaration(
+                    StandardConstraintNames.OriginGrant,
+                    BuiltInShapes.OriginClass,
+                    "the requested origin is vouched by the primordial grant"),
                 (constraint, context) =>
                 {
                     if (constraint is not OriginGrantConstraint grant)
@@ -733,8 +767,10 @@ public sealed class AuthorityDomain
         _constraints.Add(
             StandardConstraintNames.DelegationDepth,
             new ConstraintDefinition(
-                StandardConstraintNames.DelegationDepth,
-                ShapeContract.For(BuiltInShapes.Signed64),
+                StandardConstraintDeclaration(
+                    StandardConstraintNames.DelegationDepth,
+                    BuiltInShapes.Signed64,
+                    "the number of links below the carrying Capability does not exceed the ceiling"),
                 (constraint, context) =>
                 {
                     if (constraint is not DelegationDepthConstraint depth)
@@ -755,8 +791,10 @@ public sealed class AuthorityDomain
         _constraints.Add(
             StandardConstraintNames.OriginCeiling,
             new ConstraintDefinition(
-                StandardConstraintNames.OriginCeiling,
-                ShapeContract.For(BuiltInShapes.OriginClass),
+                StandardConstraintDeclaration(
+                    StandardConstraintNames.OriginCeiling,
+                    BuiltInShapes.OriginClass,
+                    "the requested origin does not exceed the delegated ceiling"),
                 (constraint, context) =>
                 {
                     if (constraint is not OriginCeilingConstraint ceiling)
@@ -772,6 +810,20 @@ public sealed class AuthorityDomain
                             $"origin {context.RequestedOrigin} exceeds the {ceiling.Maximum} ceiling");
                 }));
     }
+
+    private static ConstraintDeclaration StandardConstraintDeclaration(
+        CanonicalName name,
+        ShapeReference valueShape,
+        string evaluationSemantics) =>
+        new(
+            name,
+            1,
+            ShapeContract.For(valueShape),
+            evaluationSemantics,
+            ConstraintEvaluatorDomain.TargetAuthority,
+            ConstraintUnknownBehavior.Deny,
+            ConstraintAccountingScope.NotQuantified,
+            ConstraintEvolutionPolicy.ParallelCanonicalName);
 
     internal ActivityReference CreateActivity(ActorReference owner, CanonicalName kind)
     {
@@ -1024,13 +1076,34 @@ public sealed class AuthorityDomain
 
     private void RegisterConstraint(ConstraintDefinition definition)
     {
+        ArgumentNullException.ThrowIfNull(definition);
         if (!Shapes.Recognizes(definition.ValueShape))
         {
             throw new InvalidOperationException($"Constraint {definition.Name} requires a recognised value Shape.");
         }
+        if (definition.Declaration.EvaluatorDomain != ConstraintEvaluatorDomain.TargetAuthority ||
+            definition.Declaration.UnknownBehavior != ConstraintUnknownBehavior.Deny ||
+            definition.Declaration.EvolutionPolicy != ConstraintEvolutionPolicy.ParallelCanonicalName)
+        {
+            throw new InvalidOperationException(
+                $"Constraint {definition.Name} does not use the Architecture 0.8 authority declaration regime.");
+        }
 
         lock (_gate)
         {
+            if (_constraints.TryGetValue(definition.Name, out var existing))
+            {
+                var changed = existing.Declaration.Version != definition.Declaration.Version ||
+                    existing.ValueShape.Canonical != definition.ValueShape.Canonical ||
+                    !existing.ValueShape.RequiredFragments.SequenceEqual(definition.ValueShape.RequiredFragments) ||
+                    !StringComparer.Ordinal.Equals(
+                        existing.Declaration.EvaluationSemantics,
+                        definition.Declaration.EvaluationSemantics) ||
+                    existing.Declaration.AccountingScope != definition.Declaration.AccountingScope;
+                throw new InvalidOperationException(changed
+                    ? $"Constraint {definition.Name} changed its declaration and requires a new canonical name."
+                    : $"Constraint {definition.Name} is already declared.");
+            }
             _constraints.Add(definition.Name, definition);
         }
     }
@@ -1103,11 +1176,10 @@ public sealed class AuthorityDomain
             WhileActive(() => _domain.Shapes.Register(definition));
 
         public void Constraint(
-            CanonicalName name,
-            ShapeContract valueShape,
-            ConstraintEvaluator evaluator) =>
+            ConstraintDeclaration declaration,
+            ConstraintEvaluator? evaluator = null) =>
             WhileActive(() =>
-                _domain.RegisterConstraint(new ConstraintDefinition(name, valueShape, evaluator)));
+                _domain.RegisterConstraint(new ConstraintDefinition(declaration, evaluator)));
 
         public void Operation(
             OperationReference reference,

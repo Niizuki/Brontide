@@ -96,6 +96,7 @@ type NativeSemanticsTests() =
         let atom (definition: ConstraintDefinition) value =
             AtomicConstraint
                 { Constraint = definition.Reference
+                  ParameterShape = definition.ParameterShape
                   Parameters = TextValue value }
 
         let evaluate (requirement: ConstraintRequirement) =

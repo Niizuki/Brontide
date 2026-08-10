@@ -67,6 +67,7 @@ let main arguments =
                 let world = World.registerOperation definition world |> get
                 let requirement =
                     { Constraint = constraintDefinition.Reference
+                      ParameterShape = constraintDefinition.ParameterShape
                       Parameters = TextValue "allow" }
 
                 let capability, world =

@@ -254,8 +254,46 @@ type FragmentDefinition =
       HostShape: ShapeReference
       Shape: ShapeReference }
 
+[<RequireQualifiedAccess>]
+type ConstraintEvaluatorDomain =
+    | TargetAuthority
+
+[<RequireQualifiedAccess>]
+type ConstraintUnknownBehavior =
+    | Deny
+
+[<RequireQualifiedAccess>]
+type ConstraintAccountingScope =
+    | NotQuantified
+    | ChainOccurrencePooling
+    | VocabularyDefined of name: CanonicalName * delegationMultipliesAggregateBudget: bool
+
+[<RequireQualifiedAccess>]
+type ConstraintEvolutionPolicy =
+    | ParallelCanonicalName
+
+[<RequireQualifiedAccess>]
+type ConstraintRecognitionDecision =
+    | Implemented
+    | Declined
+
+type ConstraintDeclaration =
+    { Name: CanonicalName
+      Version: int
+      ValueShape: ShapeReference
+      EvaluationSemantics: string
+      EvaluatorDomain: ConstraintEvaluatorDomain
+      UnknownBehavior: ConstraintUnknownBehavior
+      AccountingScope: ConstraintAccountingScope
+      EvolutionPolicy: ConstraintEvolutionPolicy }
+
+type ConstraintRecognition =
+    { Declaration: ConstraintDeclaration
+      Decision: ConstraintRecognitionDecision }
+
 type ConstraintRequirement =
     { Constraint: ConstraintReference
+      ParameterShape: ShapeReference
       Parameters: ShapeValue }
 
 type ConstraintExpression =
@@ -512,9 +550,10 @@ module ConstraintExpression =
 
 type ConstraintDefinition =
     { Reference: ConstraintReference
-      Name: CanonicalName
-      ParameterShape: ShapeReference
-      Description: string }
+      Declaration: ConstraintDeclaration }
+    member this.Name = this.Declaration.Name
+    member this.ParameterShape = this.Declaration.ValueShape
+    member this.Description = this.Declaration.EvaluationSemantics
 
 type OperationDefinition =
     { Reference: OperationReference
@@ -556,7 +595,8 @@ type OriginClass =
 
 type Draft08ExecutionRequest =
     { Request: ExecutionRequest
-      RequestedOrigin: OriginClass }
+      RequestedOrigin: OriginClass
+      PresentedCommandShape: ShapeReference }
 
 [<StructuralEquality; StructuralComparison>]
 type TimeDomainReference = private TimeDomainReference of CanonicalName

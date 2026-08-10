@@ -189,6 +189,7 @@ type MinimalCoolingBindingHost(
             initial <- withConstraint
             constraintRequirement <-
                 [ { Constraint = definition.Reference
+                    ParameterShape = definition.ParameterShape
                     Parameters = TextValue "must fail closed" } ]
 
     let (authorizedActor, deniedActor, targetActor, capability), ready =

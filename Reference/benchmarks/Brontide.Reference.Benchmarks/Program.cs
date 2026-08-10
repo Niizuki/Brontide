@@ -14,8 +14,10 @@ var domain = AuthorityDomain.Create("Reference benchmark", genesis =>
     holder = genesis.Actor("benchmark holder");
     target = genesis.Actor("benchmark target");
     genesis.Constraint(
-        constraintName,
-        ShapeContract.For(BuiltInShapes.Text),
+        ConstraintDeclaration.Create(
+            constraintName,
+            ShapeContract.For(BuiltInShapes.Text),
+            "the benchmark token equals allow"),
         (constraint, _) => constraint.Value.RequireScalar<string>() == "allow"
             ? ConstraintDecision.Allow(constraint.Name, "benchmark allow")
             : ConstraintDecision.Deny(constraint.Name, "benchmark deny"));

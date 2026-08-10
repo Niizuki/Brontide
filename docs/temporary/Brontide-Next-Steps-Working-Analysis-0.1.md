@@ -218,10 +218,12 @@ invest in re-hardening M1's poisoning rule: under 0.8 C7 it becomes `conflicting
 R6/M6 Architecture 0.8 handoff planning and the separately authorized delivery audit are now
 complete. The audit's snapshot accepts no runtime vectors. A08-D1 was subsequently authorized and
 is now delivered through explicit Draft-0.8 entry points in both stacks: all 11 C7/C3/C4 vectors
-pass while the ordinary 0.7 poisoning entry points remain green. A08-D2 (C6 plus C2) is the next
-bounded runtime slice and has now delivered its separately authorized breaking migration: default-on
+pass while the ordinary 0.7 poisoning entry points remain green. A08-D2 (C6 plus C2) delivered its
+separately authorized breaking migration: default-on
 delegation-depth Constraint narrowing and implicit `Origin.Derived` ceilings pass all four canonical
-vectors in both stacks. A08-D3 (C9 plus C8) is the next authorization boundary. Do not gold-plate the
+vectors in both stacks. A08-D3 (C9 plus C8) has now delivered first-class declarations,
+recognition-set evidence, strict authority values, and retained payload projection across all six
+canonical vectors. A08-D4 (C1 plus C5) is the next authorization boundary. Do not gold-plate the
 retained 0.7 M1 path.
 
 ---

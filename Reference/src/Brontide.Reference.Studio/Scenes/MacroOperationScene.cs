@@ -37,7 +37,12 @@ public static class MacroOperationScene
             genesis.Shape(ShapeDefinition.Record(request, FragmentPolicy.Closed,
                 RecordField.Required("organisation", BuiltInShapes.Text),
                 RecordField.Required("scope", BuiltInShapes.Text)));
-            genesis.Constraint(organisationConstraint, ShapeContract.For(BuiltInShapes.Text), (constraint, context) =>
+            genesis.Constraint(
+                ConstraintDeclaration.Create(
+                    organisationConstraint,
+                    ShapeContract.For(BuiltInShapes.Text),
+                    "the request organisation equals the delegated organisation"),
+                (constraint, context) =>
             {
                 if (context.Operation == complete)
                 {

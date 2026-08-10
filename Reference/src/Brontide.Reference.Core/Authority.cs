@@ -707,10 +707,106 @@ public sealed record ConstraintDecision(bool Allowed, CanonicalName ConstraintNa
 
 public delegate ConstraintDecision ConstraintEvaluator(Constraint constraint, ConstraintEvaluationContext context);
 
+public enum ConstraintEvaluatorDomain
+{
+    TargetAuthority
+}
+
+public enum ConstraintUnknownBehavior
+{
+    Deny
+}
+
+public enum ConstraintAccountingScope
+{
+    NotQuantified,
+    ChainOccurrencePooling,
+    VocabularyDefined
+}
+
+public enum ConstraintEvolutionPolicy
+{
+    ParallelCanonicalName
+}
+
+public enum ConstraintRecognitionDecision
+{
+    Implemented,
+    Declined
+}
+
+public sealed record ConstraintDeclaration
+{
+    public ConstraintDeclaration(
+        CanonicalName name,
+        int version,
+        ShapeContract valueShape,
+        string evaluationSemantics,
+        ConstraintEvaluatorDomain evaluatorDomain,
+        ConstraintUnknownBehavior unknownBehavior,
+        ConstraintAccountingScope accountingScope,
+        ConstraintEvolutionPolicy evolutionPolicy)
+    {
+        if (string.IsNullOrWhiteSpace(name.Value))
+        {
+            throw new ArgumentException("A Constraint declaration requires a canonical name.", nameof(name));
+        }
+        if (version <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(version), "A Constraint declaration version must be positive.");
+        }
+        if (string.IsNullOrWhiteSpace(evaluationSemantics))
+        {
+            throw new ArgumentException("Constraint evaluation semantics are required.", nameof(evaluationSemantics));
+        }
+
+        Name = name;
+        Version = version;
+        ValueShape = valueShape ?? throw new ArgumentNullException(nameof(valueShape));
+        EvaluationSemantics = evaluationSemantics;
+        EvaluatorDomain = evaluatorDomain;
+        UnknownBehavior = unknownBehavior;
+        AccountingScope = accountingScope;
+        EvolutionPolicy = evolutionPolicy;
+    }
+
+    public CanonicalName Name { get; }
+    public int Version { get; }
+    public ShapeContract ValueShape { get; }
+    public string EvaluationSemantics { get; }
+    public ConstraintEvaluatorDomain EvaluatorDomain { get; }
+    public ConstraintUnknownBehavior UnknownBehavior { get; }
+    public ConstraintAccountingScope AccountingScope { get; }
+    public ConstraintEvolutionPolicy EvolutionPolicy { get; }
+
+    public static ConstraintDeclaration Create(
+        CanonicalName name,
+        ShapeContract valueShape,
+        string evaluationSemantics,
+        int version = 1,
+        ConstraintAccountingScope accountingScope = ConstraintAccountingScope.NotQuantified) =>
+        new(
+            name,
+            version,
+            valueShape,
+            evaluationSemantics,
+            ConstraintEvaluatorDomain.TargetAuthority,
+            ConstraintUnknownBehavior.Deny,
+            accountingScope,
+            ConstraintEvolutionPolicy.ParallelCanonicalName);
+}
+
+public sealed record ConstraintRecognition(
+    ConstraintDeclaration Declaration,
+    ConstraintRecognitionDecision Decision);
+
 public sealed record ConstraintDefinition(
-    CanonicalName Name,
-    ShapeContract ValueShape,
-    ConstraintEvaluator Evaluator);
+    ConstraintDeclaration Declaration,
+    ConstraintEvaluator? Evaluator)
+{
+    public CanonicalName Name => Declaration.Name;
+    public ShapeContract ValueShape => Declaration.ValueShape;
+}
 
 public sealed class ConstraintEvaluationContext
 {

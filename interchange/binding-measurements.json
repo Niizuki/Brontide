@@ -55,7 +55,7 @@
       "files": [
         { "path": "Minimal/src/Brontide.Minimal.Binding/Binding.fs", "layer": "retained-experiment", "manualSourceLines": 327 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/PortableBinding.fs", "layer": "retained-experiment", "manualSourceLines": 1092 },
-        { "path": "Minimal/src/Brontide.Minimal.Binding/CoolingBindingHost.fs", "layer": "retained-experiment", "manualSourceLines": 405 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/CoolingBindingHost.fs", "layer": "retained-experiment", "manualSourceLines": 406 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/CatalogBinding.fs", "layer": "retained-experiment", "manualSourceLines": 673 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableAuthority.fs", "layer": "portable", "manualSourceLines": 185 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableBindingHost.fs", "layer": "portable", "manualSourceLines": 357 },
@@ -80,10 +80,10 @@
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableValue.fs", "layer": "portable", "manualSourceLines": 130 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableValueCodec.fs", "layer": "portable", "manualSourceLines": 404 }
       ],
-      "layerSourceLines": { "retained-experiment": 2497, "portable": 6429 },
-      "manualSourceLines": 8926,
+      "layerSourceLines": { "retained-experiment": 2498, "portable": 6429 },
+      "manualSourceLines": 8927,
       "generatedSourceLines": 0,
-      "totalSourceLines": 8926
+      "totalSourceLines": 8927
     }
   ],
   "sourceCostComparison": {

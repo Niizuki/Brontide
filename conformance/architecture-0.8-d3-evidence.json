@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "phase": "A08-D3",
+  "architectureRevision": "0.8",
+  "architectureStatus": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
+  "evidenceStatus": "executed-experimental-breaking",
+  "stackTargetsRemain": "Architecture 0.7",
+  "contract": "conformance/architecture-0.8-d3-behavioral-contract.md",
+  "migration": "docs/future/architecture/architecture-0.8-d3-breaking-migration.md",
+  "capabilities": ["D3-C1", "D3-C2", "D3-C3", "D3-C4", "D3-C5", "D3-C6"],
+  "vectors": [
+    {
+      "id": "BR-08-ADV-C8-001",
+      "capabilities": ["D3-C4"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D3ConformanceTests.cs", "anchor": "D3_C4_BR_08_ADV_C8_001_constraint_value_version_is_not_projected" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D3Tests.fs", "anchor": "D3_C4 BR_08_ADV_C8_001 Constraint value version is not projected" }
+    },
+    {
+      "id": "BR-08-ADV-C8-002",
+      "capabilities": ["D3-C5"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D3ConformanceTests.cs", "anchor": "D3_C5_BR_08_ADV_C8_002_authored_old_constraint_fallback_authorises" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D3Tests.fs", "anchor": "D3_C5 BR_08_ADV_C8_002 authored old Constraint fallback authorises" }
+    },
+    {
+      "id": "BR-08-ADV-C8-003",
+      "capabilities": ["D3-C6"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D3ConformanceTests.cs", "anchor": "D3_C6_BR_08_ADV_C8_003_payload_projection_remains_additive" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D3Tests.fs", "anchor": "D3_C6 BR_08_ADV_C8_003 payload projection remains additive" }
+    },
+    {
+      "id": "BR-08-ADV-C9-001",
+      "capabilities": ["D3-C1"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D3ConformanceTests.cs", "anchor": "D3_C1_BR_08_ADV_C9_001_declined_declaration_is_named_and_denies_before_effect" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D3Tests.fs", "anchor": "D3_C1 BR_08_ADV_C9_001 declined declaration is named and denies before effect" }
+    },
+    {
+      "id": "BR-08-ADV-C9-002",
+      "capabilities": ["D3-C2"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D3ConformanceTests.cs", "anchor": "D3_C2_BR_08_ADV_C9_002_changed_semantics_under_one_name_is_rejected" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D3Tests.fs", "anchor": "D3_C2 BR_08_ADV_C9_002 changed semantics under one name is rejected" }
+    },
+    {
+      "id": "BR-08-ADV-C9-003",
+      "capabilities": ["D3-C3"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D3ConformanceTests.cs", "anchor": "D3_C3_BR_08_ADV_C9_003_recognition_set_is_complete_ordered_and_effect_free" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D3Tests.fs", "anchor": "D3_C3 BR_08_ADV_C9_003 recognition set is complete ordered and effect free" }
+    }
+  ],
+  "surfaces": {
+    "reference": ["ConstraintDeclaration", "ConstraintRecognition", "AuthorityDomain.ConstraintRecognitionSet", "ShapeRegistry.ValidateAuthorityValue"],
+    "minimal": ["ConstraintDeclaration", "ConstraintRequirement.ParameterShape", "World.constraintRecognitionSet", "Draft08ExecutionRequest.PresentedCommandShape"]
+  }
+}

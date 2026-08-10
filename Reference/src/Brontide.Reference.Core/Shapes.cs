@@ -529,6 +529,45 @@ public sealed class ShapeRegistry
         }
     }
 
+    /// <summary>
+    /// Validates an authority-plane value without applying additive Shape or Fragment projection.
+    /// </summary>
+    public ShapeProjectionResult ValidateAuthorityValue(ShapeValue value, ShapeContract declared)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(declared);
+        lock (_gate)
+        {
+            if (value.Reference != declared.Canonical)
+            {
+                return ShapeProjectionResult.Invalid(
+                    $"Authority value Shape {value.Reference} does not exactly match {declared.Canonical}.");
+            }
+
+            var validation = ProjectCore(value, declared);
+            if (!validation.IsValid || validation.IgnoredFragments.Length > 0)
+            {
+                return validation.IsValid
+                    ? ShapeProjectionResult.Invalid("Authority values cannot contain projected-away Fragments.")
+                    : validation;
+            }
+
+            var definition = _shapes[declared.Canonical];
+            var exactFragments = definition.IncludedFragments
+                .Concat(declared.RequiredFragments)
+                .Distinct()
+                .ToImmutableHashSet();
+            if (value.Fragments.Keys.Any(fragment => !exactFragments.Contains(fragment)) ||
+                exactFragments.Any(fragment => !value.Fragments.ContainsKey(fragment)))
+            {
+                return ShapeProjectionResult.Invalid(
+                    "Authority value Fragments must exactly match the Constraint declaration.");
+            }
+
+            return validation;
+        }
+    }
+
     /// <summary>Transparent forwarding preserves the original complete value, including unknown Fragments.</summary>
     public static ShapeValue PreserveForForwarding(ShapeValue value) =>
         value ?? throw new ArgumentNullException(nameof(value));

@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 A08-D3 breaking experimental runtime
+
+### Changed
+
+- `ConstraintRequirement` now carries its presented `ParameterShape`, so authority values can be
+  checked against the declaration's exact Shape/version without projection.
+- `Draft08ExecutionRequest` now carries `PresentedCommandShape`; the complete payload is validated
+  before a later additive record is projected to the Operation's accepted version.
+- Constraint definitions now own first-class declarations and reject semantic or value-Shape drift
+  under an existing canonical name.
+
+### Added
+
+- `World.registerConstraintDeclaration` and deterministic implemented/declined recognition-set
+  evidence, including standard Constraints.
+- Minimal-native execution of all six A08-D3 C9/C8 vectors and their phase properties.
+
+### Breaking change
+
+- Add `ParameterShape` to Constraint requirements and `PresentedCommandShape` to Draft-0.8 requests;
+  later additive Constraint values now deny instead of being inferred or projected.
+
 ## Unreleased - Architecture 0.8 A08-D2 breaking experimental runtime
 
 ### Changed

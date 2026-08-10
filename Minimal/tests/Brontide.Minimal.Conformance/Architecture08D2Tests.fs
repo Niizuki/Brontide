@@ -108,7 +108,8 @@ module private D2Helpers =
               Command = UnitValue
               Occurrence = None
               Context = Map.empty }
-          RequestedOrigin = origin }
+          RequestedOrigin = origin
+          PresentedCommandShape = BuiltIn.unitShape }
 
 open D2Helpers
 
@@ -145,6 +146,7 @@ type Architecture08D2Tests() =
         let fixture =
             prepare (fun depth _ _ ->
                 [ { Constraint = depth.Reference
+                    ParameterShape = depth.ParameterShape
                     Parameters = IntegerValue 0L } ])
         let child, world =
             World.delegateCapability
@@ -184,6 +186,7 @@ type Architecture08D2Tests() =
         let fixture =
             prepare (fun _ grant _ ->
                 [ { Constraint = grant.Reference
+                    ParameterShape = grant.ParameterShape
                     Parameters = TextValue "Device" } ])
         let child, world =
             World.delegateCapability
@@ -230,6 +233,7 @@ type Architecture08D2Tests() =
         let fixture =
             prepare (fun _ grant _ ->
                 [ { Constraint = grant.Reference
+                    ParameterShape = grant.ParameterShape
                     Parameters = TextValue "Device" } ])
         let mutable effects = 0
         let execution =
@@ -251,6 +255,7 @@ type Architecture08D2Tests() =
         let fixture =
             prepare (fun depth _ _ ->
                 [ { Constraint = depth.Reference
+                    ParameterShape = depth.ParameterShape
                     Parameters = IntegerValue 0L } ])
         let child, world =
             World.delegateCapability

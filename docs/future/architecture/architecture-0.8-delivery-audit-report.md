@@ -20,6 +20,12 @@ Delegation is narrowed by a carrying-link depth Constraint, and every derivation
 ordinary `Origin.Derived` ceiling. All four C6/C2 vectors plus a phase-wide property execute natively.
 The migration is recorded separately and does not rewrite the pre-delivery findings below.
 
+A08-D3 was subsequently authorized and is now delivered as a breaking experimental migration in
+both stacks. Constraint types carry first-class declaration metadata and deterministic recognition
+decisions; authority values require the declaration's exact Shape/version and are never projected,
+while Operation payload projection remains additive. All six C9/C8 vectors execute natively. This
+does not rewrite the pre-delivery audit findings below.
+
 ## Findings
 
 | Change | Reference | Minimal | Audit conclusion |
@@ -61,9 +67,9 @@ Flow conformance still follows the decided Channel → Portable Binding and Shap
 
 ## Next authorization boundary
 
-A08-D1 and A08-D2 are delivered with named failing-first tests and independent implementations in
-each stack. A08-D2 also carries the required breaking-surface migration decision. The next
-implementable runtime slice is **A08-D3**: C9 first-class Constraint declarations and recognition-set
-evidence plus C8's Constraint-value projection exemption while retaining ordinary payload
-projection. It requires a separate explicit request and must not change the status registry, pinned
-0.7 matrices, or either stack's `Designed for` declaration.
+A08-D1 through A08-D3 are delivered with named failing-first tests and independent implementations
+in each stack. A08-D2 and A08-D3 carry their required breaking-surface migration decisions. The next
+implementable runtime slice is **A08-D4**: C1 liveness-scoped ancestor evaluation plus C5
+occurrence-pooled quantified accounting with fail-closed scope declarations. It requires a separate
+explicit request and must not change the status registry, pinned 0.7 matrices, or either stack's
+`Designed for` declaration.

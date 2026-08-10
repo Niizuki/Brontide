@@ -143,10 +143,12 @@ type BaseAuthorityConformance() =
             AnyOf
                 [ AtomicConstraint
                     { Constraint = fixture.Constraint.Reference
+                      ParameterShape = fixture.Constraint.ParameterShape
                       Parameters = TextValue "known" }
                   Not(
                       AtomicConstraint
                           { Constraint = unsupported.Reference
+                            ParameterShape = unsupported.ParameterShape
                             Parameters = TextValue "protected-secret" }
                   ) ]
 
@@ -369,6 +371,7 @@ type BaseAuthorityConformance() =
                 fixture.Stranger.Reference
                 fixture.Capability.Reference
                 [ { Constraint = fixture.Constraint.Reference
+                    ParameterShape = fixture.Constraint.ParameterShape
                     Parameters = TextValue "echo-only" } ]
                 fixture.World
             |> get
@@ -404,6 +407,7 @@ type BaseAuthorityConformance() =
                 fixture.Stranger.Reference
                 fixture.Capability.Reference
                 [ { Constraint = fixture.Constraint.Reference
+                    ParameterShape = fixture.Constraint.ParameterShape
                     Parameters = TextValue "echo-only" } ]
                 fixture.World
             |> get
@@ -452,6 +456,7 @@ type BaseAuthorityConformance() =
                 fixture.Stranger.Reference
                 fixture.Capability.Reference
                 [ { Constraint = fixture.Constraint.Reference
+                    ParameterShape = fixture.Constraint.ParameterShape
                     Parameters = TextValue "echo-only" } ]
                 fixture.World
             |> get

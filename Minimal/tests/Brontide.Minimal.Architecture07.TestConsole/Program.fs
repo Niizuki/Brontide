@@ -55,7 +55,10 @@ module Program =
     let private observeConstraint id scenario =
         let yes, no, unknown = definitions ()
         let atom (definition: ConstraintDefinition) value =
-            AtomicConstraint { Constraint = definition.Reference; Parameters = TextValue value }
+            AtomicConstraint
+                { Constraint = definition.Reference
+                  ParameterShape = definition.ParameterShape
+                  Parameters = TextValue value }
         let expression =
             match scenario with
             | "conjunction-satisfied" -> AllOf [ atom yes "yes"; atom yes "yes" ]
@@ -87,7 +90,11 @@ module Program =
         let exoticDefinition, _ = register world exotic
         let attributes = Map.ofList [ regionDefinition.Reference, region; exoticDefinition.Reference, exotic ]
         let attributeOf reference = Map.tryFind reference attributes
-        let atom (definition: ConstraintDefinition) value = AtomicConstraint { Constraint = definition.Reference; Parameters = TextValue value }
+        let atom (definition: ConstraintDefinition) value =
+            AtomicConstraint
+                { Constraint = definition.Reference
+                  ParameterShape = definition.ParameterShape
+                  Parameters = TextValue value }
         attributeOf, region, exotic, atom regionDefinition, atom exoticDefinition
 
     let private sourced attribute value : AttributeValue =
