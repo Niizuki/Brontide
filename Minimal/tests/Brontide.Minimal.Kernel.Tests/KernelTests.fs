@@ -43,7 +43,6 @@ type NativeSemanticsTests() =
                             target.Reference
                             (Set.singleton operation)
                             []
-                            false
                             world
                         |> Result.defaultWith failwith
 

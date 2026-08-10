@@ -31,7 +31,11 @@ marks C3/C4 as reusable candidates, C1/C2/C8-C10 as partial candidates, C6/C7 as
 remaining runtime gaps as missing. A08-D1 has since delivered an explicit `ExecuteDraft08Async` and
 Draft-0.8 Definition selection path backed by structural strong-Kleene evaluation. All 11 C7/C3/C4
 vectors pass without changing `ExecuteAsync`, the 0.7 selector, the stack target, or ratification
-status. A08-D2 is the next proposed slice.
+status. A08-D2 has now replaced the separate Boolean delegability surface with default-on,
+Constraint-depth narrowing and implicit `Origin.Derived` ceilings on every derived Capability. Its
+four C6/C2 vectors and phase property pass through the explicit Draft-0.8 execution path. This is a
+documented breaking experimental migration, not a stack retarget or ratification. A08-D3 is the next
+proposed slice.
 The retained [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json) matrix is
 detailed test evidence, not the source of the implementation target and not a claim that the
 remaining Architecture 0.7 work is implemented.

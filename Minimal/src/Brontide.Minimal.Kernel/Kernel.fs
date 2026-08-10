@@ -82,14 +82,12 @@ module private ReferenceIdentity =
         target
         (operations: Set<OperationReference>)
         expressions
-        delegationAllowed
         parent
         issuedBy
         =
         [ yield CanonicalName.value name
           yield actor holder
           yield actor target
-          yield if delegationAllowed then "delegable" else "terminal"
           for operation in operations do
               yield "operation"
               yield CanonicalName.value operation.Name
@@ -191,7 +189,9 @@ type World =
 type ConstraintContext =
     { Request: ExecutionRequest
       Operation: OperationDefinition
-      LogicalTime: int64 }
+      LogicalTime: int64
+      RequestedOrigin: OriginClass
+      ConstraintCapability: Capability }
 
 type ConstraintEvaluator = ShapeValue -> ConstraintContext -> Result<unit, string>
 
@@ -295,6 +295,20 @@ module World =
             { Reference = authorityReference
               Name = CanonicalName.create "Brontide.Minimal:AuthorityDomain" }
 
+        let standardConstraint value name shape description =
+            let reference = ConstraintReference.issue scope referenceEpoch value
+            reference,
+            { Reference = reference
+              Name = name
+              ParameterShape = shape
+              Description = description }
+
+        let constraints =
+            [ standardConstraint -1L BuiltIn.delegationDepthConstraintName BuiltIn.integerShape "maximum additional derivation links"
+              standardConstraint -2L BuiltIn.originGrantConstraintName BuiltIn.textShape "genesis-grade origin assertion"
+              standardConstraint -3L BuiltIn.originCeilingConstraintName BuiltIn.textShape "maximum delegated origin assertion" ]
+            |> Map.ofList
+
         { Scope = scope
           AuthorityTransactions = AuthorityTransactionCoordinator()
           ReferenceEpoch = referenceEpoch
@@ -307,7 +321,7 @@ module World =
           CapabilityConstraintExpressions = Map.empty
           Shapes = shapes
           Fragments = Map.empty
-          Constraints = Map.empty
+          Constraints = constraints
           Operations = Map.empty
           EventDefinitions = Map.empty
           Executions = []
@@ -332,6 +346,11 @@ module World =
     let tryFindOperation (reference: OperationReference) (world: World) = Map.tryFind reference world.Operations
     let tryFindCapability (reference: CapabilityReference) (world: World) =
         Map.tryFind reference world.Capabilities
+    let tryFindConstraintByName (name: CanonicalName) (world: World) =
+        world.Constraints
+        |> Map.toSeq
+        |> Seq.map snd
+        |> Seq.tryFind (fun definition -> definition.Name = name)
 
     let genesis
         (policy: CanonicalName)
@@ -690,7 +709,6 @@ module World =
         (target: ActorReference)
         (operations: Set<OperationReference>)
         (expressions: ConstraintExpression list)
-        (delegationAllowed: bool)
         (world: World)
         =
         context.EnsureActive(world.Scope, world.GenesisTransaction, world.GenesisActive)
@@ -721,7 +739,6 @@ module World =
                         target
                         operations
                         expressions
-                        delegationAllowed
                         None
                         None
 
@@ -750,8 +767,7 @@ module World =
                       Operations = operations
                       AddedConstraints = atomicCompatibility
                       Parent = None
-                      IssuedBy = None
-                      DelegationAllowed = delegationAllowed }
+                      IssuedBy = None }
 
                 Ok(
                     capability,
@@ -770,7 +786,6 @@ module World =
         (target: ActorReference)
         (operations: Set<OperationReference>)
         (constraints: ConstraintRequirement list)
-        (delegationAllowed: bool)
         (world: World)
         =
         issuePrimordialCapabilityWithExpressions
@@ -780,7 +795,6 @@ module World =
             target
             operations
             (constraints |> List.map AtomicConstraint)
-            delegationAllowed
             world
 
     let delegateCapabilityWithExpressions
@@ -796,12 +810,20 @@ module World =
         | true, None -> Error "The parent Capability is unknown."
         | true, Some parent when parent.Holder <> delegator ->
             Error "Only the Capability holder may delegate it."
-        | true, Some parent when not parent.DelegationAllowed ->
-            Error "The parent Capability does not permit further Delegation."
         | true, Some _ when not (Map.containsKey newHolder world.Actors) ->
             Error "The delegated Capability holder is unknown."
         | true, Some parent ->
-            match validateConstraintExpressions addedExpressions world with
+            let originCeiling =
+                world.Constraints
+                |> Map.toSeq
+                |> Seq.map snd
+                |> Seq.find (fun definition -> definition.Name = BuiltIn.originCeilingConstraintName)
+            let derivedExpressions =
+                addedExpressions
+                @ [ AtomicConstraint
+                        { Constraint = originCeiling.Reference
+                          Parameters = TextValue "Derived" } ]
+            match validateConstraintExpressions derivedExpressions world with
             | Error message -> Error message
             | Ok() ->
                 let referenceEpoch =
@@ -810,8 +832,7 @@ module World =
                         newHolder
                         parent.Target
                         parent.Operations
-                        addedExpressions
-                        parent.DelegationAllowed
+                        derivedExpressions
                         (Some parent.Reference)
                         (Some delegator)
                     |> fun parts -> allocationEpoch "capability" parts world
@@ -819,7 +840,7 @@ module World =
                 let reference = CapabilityReference.issue world.Scope referenceEpoch world.NextReference
 
                 let atomicCompatibility =
-                    addedExpressions
+                    derivedExpressions
                     |> List.choose (function
                         | AtomicConstraint requirement -> Some requirement
                         | _ -> None)
@@ -832,8 +853,7 @@ module World =
                       Operations = parent.Operations
                       AddedConstraints = atomicCompatibility
                       Parent = Some parent.Reference
-                      IssuedBy = Some delegator
-                      DelegationAllowed = parent.DelegationAllowed }
+                      IssuedBy = Some delegator }
 
                 Ok(
                     capability,
@@ -842,7 +862,7 @@ module World =
                         NextReference = world.NextReference + 1L
                         Capabilities = Map.add reference capability world.Capabilities
                         CapabilityConstraintExpressions =
-                            Map.add reference addedExpressions world.CapabilityConstraintExpressions }
+                            Map.add reference derivedExpressions world.CapabilityConstraintExpressions }
                 )
 
     let delegateCapability
@@ -989,6 +1009,7 @@ module World =
               Emitter = emitter
               CausedBy = execution
               Payload = details |> Option.defaultValue UnitValue
+              Origin = OriginClass.Unverified
               EmittedAt = recordedAt
               OccurredAt = None }
 
@@ -1083,6 +1104,7 @@ module World =
         (environment: Environment)
         (world: World)
         (request: ExecutionRequest)
+        (requestedOrigin: OriginClass)
         =
         match Map.tryFind request.Operation world.Operations with
         | _ when world.GenesisActive ->
@@ -1118,38 +1140,80 @@ module World =
                     let context =
                         { Request = request
                           Operation = operation
-                          LogicalTime = environment.TrustedTime.Milliseconds }
+                          LogicalTime = environment.TrustedTime.Milliseconds
+                          RequestedOrigin = requestedOrigin
+                          ConstraintCapability = capability }
 
                     let effectiveConstraints =
-                        (operation.Constraints |> List.map AtomicConstraint)
+                        (operation.Constraints
+                         |> List.map (fun requirement -> capability, AtomicConstraint requirement))
                         @ (capabilityChain capability world
                            |> List.collect (fun chainCapability ->
                                world.CapabilityConstraintExpressions
                                |> Map.tryFind chainCapability.Reference
                                |> Option.defaultValue (
                                    chainCapability.AddedConstraints |> List.map AtomicConstraint
-                               )))
+                               )
+                               |> List.map (fun expression -> chainCapability, expression)))
 
-                    let evaluateAtom requirement =
+                    let evaluateAtom constraintCapability requirement =
                         match Map.tryFind requirement.Constraint world.Constraints with
                         | None -> ConstraintAtomEvaluation.evaluatorFailed
                         | Some definition ->
                             match validateValue definition.ParameterShape requirement.Parameters world with
                             | Error _ -> ConstraintAtomEvaluation.invalidValue
                             | Ok() ->
-                                match Map.tryFind requirement.Constraint environment.ConstraintEvaluators with
-                                | None -> ConstraintAtomEvaluation.unsupported definition.Name
-                                | Some evaluator ->
-                                    try
-                                        match evaluator requirement.Parameters context with
-                                        | Ok() -> ConstraintAtomEvaluation.satisfied
-                                        | Error message -> ConstraintAtomEvaluation.unsatisfied message
-                                    with _ ->
-                                        ConstraintAtomEvaluation.evaluatorFailed
+                                let atomContext = { context with ConstraintCapability = constraintCapability }
+                                if definition.Name = BuiltIn.delegationDepthConstraintName then
+                                    match requirement.Parameters with
+                                    | IntegerValue maximum when maximum >= 0L ->
+                                        let chain = capabilityChain capability world
+                                        let sourceIndex = chain |> List.findIndex ((=) constraintCapability)
+                                        let linksBelow = int64 (List.length chain - sourceIndex - 1)
+                                        if linksBelow <= maximum then
+                                            ConstraintAtomEvaluation.satisfied
+                                        else
+                                            ConstraintAtomEvaluation.unsatisfied
+                                                $"delegation depth {linksBelow} exceeds the Constraint ceiling {maximum}"
+                                    | _ -> ConstraintAtomEvaluation.invalidValue
+                                elif definition.Name = BuiltIn.originGrantConstraintName then
+                                    match requirement.Parameters with
+                                    | TextValue granted ->
+                                        if requestedOrigin = OriginClass.Unverified then
+                                            ConstraintAtomEvaluation.satisfied
+                                        elif capability.Parent.IsNone && string requestedOrigin = granted then
+                                            ConstraintAtomEvaluation.satisfied
+                                        elif capability.Parent.IsSome && requestedOrigin = OriginClass.Derived then
+                                            ConstraintAtomEvaluation.satisfied
+                                        else
+                                            ConstraintAtomEvaluation.unsatisfied
+                                                $"origin {requestedOrigin} exceeds the Capability's origin grant"
+                                    | _ -> ConstraintAtomEvaluation.invalidValue
+                                elif definition.Name = BuiltIn.originCeilingConstraintName then
+                                    match requirement.Parameters with
+                                    | TextValue "Derived" when
+                                        requestedOrigin = OriginClass.Unverified
+                                        || requestedOrigin = OriginClass.Derived ->
+                                        ConstraintAtomEvaluation.satisfied
+                                    | TextValue "Derived" ->
+                                        ConstraintAtomEvaluation.unsatisfied
+                                            $"origin {requestedOrigin} exceeds the Derived ceiling"
+                                    | _ -> ConstraintAtomEvaluation.invalidValue
+                                else
+                                    match Map.tryFind requirement.Constraint environment.ConstraintEvaluators with
+                                    | None -> ConstraintAtomEvaluation.unsupported definition.Name
+                                    | Some evaluator ->
+                                        try
+                                            match evaluator requirement.Parameters atomContext with
+                                            | Ok() -> ConstraintAtomEvaluation.satisfied
+                                            | Error message -> ConstraintAtomEvaluation.unsatisfied message
+                                        with _ ->
+                                            ConstraintAtomEvaluation.evaluatorFailed
 
                     let evaluations =
                         effectiveConstraints
-                        |> List.map (evaluateExpression evaluateAtom)
+                        |> List.map (fun (constraintCapability, expression) ->
+                            evaluateExpression (evaluateAtom constraintCapability) expression)
 
                     let constraintFailure =
                         evaluations
@@ -1159,8 +1223,16 @@ module World =
                             |> List.tryFind (fun evaluation -> evaluation.Outcome = Unsatisfied))
                         |> Option.map _.Reason
 
+                    let originGrantPresent =
+                        effectiveConstraints
+                        |> List.collect (snd >> ConstraintExpression.atoms)
+                        |> List.exists (fun requirement ->
+                            world.Constraints[requirement.Constraint].Name = BuiltIn.originGrantConstraintName)
+
                     match constraintFailure with
                     | Some message -> deny environment request message world
+                    | None when requestedOrigin <> OriginClass.Unverified && not originGrantPresent ->
+                        deny environment request $"origin {requestedOrigin} was asserted without an origin grant" world
                     | None ->
                         match Map.tryFind operation.Reference environment.Handlers with
                         | None -> deny environment request "The Operation has no pure handler." world
@@ -1203,6 +1275,7 @@ module World =
                                                           Emitter = draft.Emitter
                                                           CausedBy = execution
                                                           Payload = draft.Payload
+                                                          Origin = requestedOrigin
                                                           EmittedAt = environment.TrustedTime
                                                           OccurredAt = draft.OccurredAt }
 
@@ -1220,6 +1293,7 @@ module World =
                                               Emitter = request.Target
                                               CausedBy = execution
                                               Payload = result
+                                              Origin = requestedOrigin
                                               EmittedAt = environment.TrustedTime
                                               OccurredAt = None }
 
@@ -1260,7 +1334,7 @@ module World =
                                           EmittedEvents = emittedEvents @ [ outcomeEvent ]
                                           Provenance = claims }
 
-    let private stepUsing evaluateExpression (environment: Environment) (world: World) (request: ExecutionRequest) =
+    let private stepUsing evaluateExpression requestedOrigin (environment: Environment) (world: World) (request: ExecutionRequest) =
         world.AuthorityTransactions.RunRuntime(
             world.GenesisTransaction,
             (fun () ->
@@ -1269,22 +1343,22 @@ module World =
                     request
                     "Runtime execution is unavailable inside or through an uncommitted Genesis occurrence."
                     world),
-            (fun () -> stepCore evaluateExpression environment world request)
+            (fun () -> stepCore evaluateExpression environment world request requestedOrigin)
         )
 
     let step (environment: Environment) (world: World) (request: ExecutionRequest) =
-        stepUsing ConstraintExpression.evaluate environment world request
+        stepUsing ConstraintExpression.evaluate OriginClass.Unverified environment world request
 
     /// Executes through the explicit Complete-Draft Architecture 0.8 A08-D1 authority path.
     /// The ordinary step function retains Architecture 0.7 poisoning semantics.
-    let stepDraft08 (environment: Environment) (world: World) (request: ExecutionRequest) =
-        stepUsing ConstraintExpression.evaluateStrongKleene environment world request
+    let stepDraft08 (environment: Environment) (world: World) (request: Draft08ExecutionRequest) =
+        stepUsing ConstraintExpression.evaluateStrongKleene request.RequestedOrigin environment world request.Request
 
 [<RequireQualifiedAccess>]
 module Genesis =
     let actor context name world = World.issueGenesisActor context name world
 
-    let capability context name holder target operations constraints delegationAllowed world =
+    let capability context name holder target operations constraints world =
         World.issuePrimordialCapability
             context
             name
@@ -1292,10 +1366,9 @@ module Genesis =
             target
             operations
             constraints
-            delegationAllowed
             world
 
-    let capabilityWithExpressions context name holder target operations expressions delegationAllowed world =
+    let capabilityWithExpressions context name holder target operations expressions world =
         World.issuePrimordialCapabilityWithExpressions
             context
             name
@@ -1303,5 +1376,4 @@ module Genesis =
             target
             operations
             expressions
-            delegationAllowed
             world

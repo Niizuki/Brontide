@@ -77,7 +77,6 @@ let main arguments =
                         target.Reference
                         (Set.singleton operation)
                         [ requirement ]
-                        false
                         world
                     |> get
 

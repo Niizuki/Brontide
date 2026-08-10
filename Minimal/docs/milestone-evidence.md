@@ -24,6 +24,12 @@ experimental Opaque Corpus/Dataset/Store/Router slice. The pinned matrix still r
 planned pending review retargeting, and no whole-revision or ratification claim follows.
 M5's native endpoint agrees with the fixture oracle and Reference endpoint on 15 shared observations.
 
+Separate experimental Architecture 0.8 evidence now executes A08-D1's 11 C7/C3/C4 vectors and
+A08-D2's four C6/C2 vectors plus its phase property. A08-D2 is a documented breaking Capability
+surface migration: default-on Delegation is narrowed by the standard depth Constraint, typed origin
+is explicit at `World.stepDraft08`, and each derived Capability adds an implicit `Origin.Derived`
+ceiling. This does not alter the Designed-for 0.7 target or pinned matrices.
+
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
 It closes the M3/M4 prerequisites relevant to interchange, completes the external binding surface,

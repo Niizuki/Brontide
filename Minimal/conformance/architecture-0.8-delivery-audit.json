@@ -60,8 +60,12 @@
         { "path": "Minimal/src/Brontide.Minimal.Model/Model.fs", "anchor": "DelegationAllowed: bool" },
         { "path": "Minimal/src/Brontide.Minimal.Kernel/Kernel.fs", "anchor": "not parent.DelegationAllowed" }
       ],
+      "postAuditReplacement": [
+        { "path": "Minimal/src/Brontide.Minimal.Model/Model.fs", "anchor": "let delegationDepthConstraintName" },
+        { "path": "conformance/architecture-0.8-d2-evidence.json", "anchor": "A08-D2" }
+      ],
       "vectorDisposition": "not-executed",
-      "rationale": "The current explicit Boolean right conflicts with default-on, Constraint-narrowed delegability."
+      "rationale": "The audited explicit Boolean right conflicted with default-on, Constraint-narrowed delegability. A08-D2 subsequently removed it; postAuditReplacement records the delivered evidence without rewriting this audit snapshot."
     },
     {
       "requirementId": "BR-08-DELIVERY-C7",

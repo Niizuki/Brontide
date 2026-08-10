@@ -33,6 +33,17 @@ function Assert-Evidence([object]$Evidence, [string]$Stack, [string]$Requirement
     }
 }
 
+function Test-Evidence([object]$Evidence) {
+    foreach ($item in $Evidence) {
+        if ([string]::IsNullOrWhiteSpace($item.path) -or [string]::IsNullOrWhiteSpace($item.anchor)) { return $false }
+        $fullPath = Join-Path $repositoryRoot $item.path
+        if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) { return $false }
+        $content = Get-Content -Raw -LiteralPath $fullPath
+        if ($content.IndexOf([string]$item.anchor, [System.StringComparison]::Ordinal) -lt 0) { return $false }
+    }
+    return $true
+}
+
 $registry = Read-Json $registryPath
 $vectors = Read-Json $vectorPath
 $inventory = Read-Json $requirementsPath
@@ -89,7 +100,12 @@ foreach ($matrixEntry in $matrices) {
         Assert-True ($allowedStatuses -contains $row.evidenceStatus) "DA4 $stack $($row.requirementId) has unknown status '$($row.evidenceStatus)'."
         Assert-True (@('accepted', 'implemented', 'tested') -notcontains $row.evidenceStatus) "DA4 $stack $($row.requirementId) promotes audit evidence."
         Assert-Evidence $row.candidateEvidence $stack $row.requirementId
-        Assert-Evidence $row.conflictingEvidence $stack $row.requirementId
+        if ($row.requirementId -eq 'BR-08-DELIVERY-C6' -and -not (Test-Evidence $row.conflictingEvidence)) {
+            Assert-True (@($row.postAuditReplacement).Count -gt 0) "DA5 $stack C6 removed its audited conflict but has no post-audit replacement evidence."
+            Assert-Evidence $row.postAuditReplacement $stack "$($row.requirementId) post-audit replacement"
+        } else {
+            Assert-Evidence $row.conflictingEvidence $stack $row.requirementId
+        }
         $change = ($requirements | Where-Object id -eq $row.requirementId).change
         $expectedDisposition = if ($change -eq 'C11') { 'attested' } elseif ($change -in @('C13', 'C14')) { 'documentation-only' } else { 'not-executed' }
         Assert-Equal $expectedDisposition $row.vectorDisposition "DA4 $stack $change vector disposition mismatch."

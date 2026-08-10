@@ -74,9 +74,9 @@ type PersistentInformationTests() =
                     let world = World.registerOperation appendDefinition world |> Result.defaultWith failwith
                     let otherDefinition = { Reference = otherOperation; Description = "unrelated"; Target = otherTarget.Reference; CommandShape = BuiltIn.unitShape; ResultShape = BuiltIn.unitShape; Constraints = [] }
                     let world = World.registerOperation otherDefinition world |> Result.defaultWith failwith
-                    let issuedGrant, world = Genesis.capability genesis (name "Brontide.Minimal.Tests:DatasetGrant") issuer.Reference target.Reference (Set.ofList [ createOperation; appendOperation ]) [] false world |> Result.defaultWith failwith
+                    let issuedGrant, world = Genesis.capability genesis (name "Brontide.Minimal.Tests:DatasetGrant") issuer.Reference target.Reference (Set.ofList [ createOperation; appendOperation ]) [] world |> Result.defaultWith failwith
                     grant <- issuedGrant
-                    let otherGrant, world = Genesis.capability genesis (name "Brontide.Minimal.Tests:WrongTargetGrant") issuer.Reference otherTarget.Reference (Set.singleton otherOperation) [] false world |> Result.defaultWith failwith
+                    let otherGrant, world = Genesis.capability genesis (name "Brontide.Minimal.Tests:WrongTargetGrant") issuer.Reference otherTarget.Reference (Set.singleton otherOperation) [] world |> Result.defaultWith failwith
                     wrongTargetGrant <- otherGrant
                     (), world)
                 initial

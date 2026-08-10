@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 A08-D2 breaking experimental runtime
+
+### Changed
+
+- Removed the separate `Capability.DelegationAllowed` field and Boolean arguments from
+  `Genesis.capability` and `Genesis.capabilityWithExpressions`; Capabilities are delegable by
+  default and restriction uses the standard delegation-depth Constraint.
+- Every derived Capability now carries an implicit standard `Origin.Derived` ceiling requirement,
+  evaluated natively against its carrying link and complete resolved chain.
+- `World.stepDraft08` now accepts a typed `Draft08ExecutionRequest`; successful Events record the
+  exercised origin while the ordinary `World.step` path remains unverified-origin.
+
+### Added
+
+- Minimal-native execution of all four A08-D2 C6/C2 vectors plus the phase-wide zero-effect and
+  removed-surface property.
+- Standard Minimal definitions for delegation depth, origin grants, and origin ceilings.
+
+### Breaking change
+
+- Remove the Boolean issuance argument and replace former `false` values with a depth-zero standard
+  Constraint requirement. Wrap Draft-0.8 requests with an explicit typed requested origin.
+
 ## Unreleased - Architecture 0.8 A08-D1 experimental runtime
 
 ### Added

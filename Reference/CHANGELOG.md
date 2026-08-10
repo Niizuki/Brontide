@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 A08-D2 breaking experimental runtime
+
+### Changed
+
+- Removed the separate `Capability.DelegationAllowed` field and `delegable` issuance arguments;
+  Capabilities are now delegable by default and restriction uses `DelegationDepthConstraint`.
+- Every derived Capability now carries an implicit `OriginCeilingConstraint(OriginClass.Derived)`
+  evaluated through the ordinary full-chain Constraint path.
+- Constraint evaluation now retains the carrying Capability link so delegation-depth ceilings are
+  measured at presentation without evaluating during offline derivation.
+
+### Added
+
+- Reference-native execution of all four A08-D2 C6/C2 vectors plus the phase-wide zero-effect and
+  removed-surface property.
+- An explicit breaking migration document for Boolean-free issuance and depth-zero replacement.
+
+### Breaking change
+
+- Remove `delegable` arguments and replace `delegable: false` with
+  `new DelegationDepthConstraint(0)`. `Capability.DelegationAllowed` no longer exists.
+
 ## Unreleased - Architecture 0.8 A08-D1 experimental runtime
 
 ### Added

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "phase": "A08-D2",
+  "architectureRevision": "0.8",
+  "architectureStatus": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
+  "evidenceStatus": "executed-experimental-breaking",
+  "stackTargetsRemain": "Architecture 0.7",
+  "contract": "conformance/architecture-0.8-d2-behavioral-contract.md",
+  "migration": "docs/future/architecture/architecture-0.8-d2-breaking-migration.md",
+  "capabilities": ["D2-C1", "D2-C2", "D2-C3", "D2-C4", "D2-C5"],
+  "vectors": [
+    {
+      "id": "BR-08-ADV-C2-001",
+      "capabilities": ["D2-C3", "D2-C5"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D2ConformanceTests.cs", "anchor": "D2_C3_BR_08_ADV_C2_001_delegated_origin_is_capped_by_implicit_constraint" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D2Tests.fs", "anchor": "D2_C3 BR_08_ADV_C2_001 delegated origin is capped by implicit Constraint" }
+    },
+    {
+      "id": "BR-08-ADV-C2-002",
+      "capabilities": ["D2-C4"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D2ConformanceTests.cs", "anchor": "D2_C4_BR_08_ADV_C2_002_primordial_origin_grant_remains_vouched" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D2Tests.fs", "anchor": "D2_C4 BR_08_ADV_C2_002 primordial origin grant remains vouched" }
+    },
+    {
+      "id": "BR-08-ADV-C6-001",
+      "capabilities": ["D2-C1"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D2ConformanceTests.cs", "anchor": "D2_C1_BR_08_ADV_C6_001_unadorned_capability_is_delegable_by_default" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D2Tests.fs", "anchor": "D2_C1 BR_08_ADV_C6_001 unadorned Capability is delegable by default" }
+    },
+    {
+      "id": "BR-08-ADV-C6-002",
+      "capabilities": ["D2-C2", "D2-C5"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D2ConformanceTests.cs", "anchor": "D2_C2_BR_08_ADV_C6_002_delegation_depth_constraint_denies_every_descendant" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D2Tests.fs", "anchor": "D2_C2 BR_08_ADV_C6_002 delegation depth Constraint denies every descendant" }
+    }
+  ],
+  "phaseProperties": {
+    "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D2ConformanceTests.cs", "anchor": "D2_C5_phase_property_denials_are_effect_free_and_boolean_surface_is_removed" },
+    "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D2Tests.fs", "anchor": "D2_C5 phase property denials are effect free and Boolean surface is removed" }
+  },
+  "surfaces": {
+    "reference": ["DelegationDepthConstraint", "OriginCeilingConstraint", "Capability.Delegate", "AuthorityDomain.ExecuteDraft08Async"],
+    "minimal": ["BuiltIn.delegationDepthConstraintName", "BuiltIn.originCeilingConstraintName", "World.delegateCapability", "Draft08ExecutionRequest", "World.stepDraft08"]
+  },
+  "removed": {
+    "reference": ["Capability.DelegationAllowed", "GenesisContext.Grant(delegable)", "GenesisContext.GrantExpressions(delegable)"],
+    "minimal": ["Capability.DelegationAllowed", "Genesis.capability delegationAllowed", "Genesis.capabilityWithExpressions delegationAllowed"]
+  }
+}
