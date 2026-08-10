@@ -65,8 +65,12 @@
       "conflictingEvidence": [
         { "path": "Reference/src/Brontide.Reference.Core/Authority.cs", "anchor": "DelegationAllowed" }
       ],
+      "postAuditReplacement": [
+        { "path": "Reference/src/Brontide.Reference.Core/Authority.cs", "anchor": "public sealed record DelegationDepthConstraint" },
+        { "path": "conformance/architecture-0.8-d2-evidence.json", "anchor": "A08-D2" }
+      ],
       "vectorDisposition": "not-executed",
-      "rationale": "The current explicit Boolean right conflicts with default-on, Constraint-narrowed delegability."
+      "rationale": "The audited explicit Boolean right conflicted with default-on, Constraint-narrowed delegability. A08-D2 subsequently removed it; postAuditReplacement records the delivered evidence without rewriting this audit snapshot."
     },
     {
       "requirementId": "BR-08-DELIVERY-C7",

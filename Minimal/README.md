@@ -34,7 +34,11 @@ snapshot marks C3/C4 as reusable candidates, C8-C10 as partial candidates, C6/C7
 C1/C2/C5/C12 as missing. A08-D1 has since delivered explicit `World.stepDraft08` and Draft-0.8
 Definition selection paths backed by Minimal-native structural strong-Kleene evaluation. All 11
 C7/C3/C4 vectors pass without changing `World.step`, the 0.7 selector, the stack target, or
-ratification status. A08-D2 is the next proposed slice. The retained
+ratification status. A08-D2 has now removed Boolean delegability, added default-on delegation-depth
+Constraint narrowing, introduced typed origin assertions, and attached an implicit
+`Origin.Derived` ceiling to every derived Capability. Its four C6/C2 vectors and phase property pass
+through the explicit Draft-0.8 path. This is a documented breaking experimental migration, not a
+stack retarget or ratification. A08-D3 is the next proposed slice. The retained
 [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json)
 matrix is detailed test evidence, not the source of the implementation target and not a claim that
 the remaining Architecture 0.7 work is implemented.

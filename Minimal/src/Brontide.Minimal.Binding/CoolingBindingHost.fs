@@ -225,7 +225,6 @@ type MinimalCoolingBindingHost(
                         targetActor.Reference
                         (Set.singleton operation)
                         []
-                        false
                         world
                     |> get
 

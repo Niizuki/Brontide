@@ -94,7 +94,6 @@ module private Helpers =
                             target.Reference
                             (Set.singleton echoOperation)
                             []
-                            true
                             world
                         |> get
 
@@ -164,7 +163,6 @@ type BaseAuthorityConformance() =
                             fixture.Target.Reference
                             (Set.singleton echoOperation)
                             [ composite ]
-                            false
                             world
                         |> get
 
@@ -427,7 +425,20 @@ type BaseAuthorityConformance() =
         Assert.That(child.Holder, Is.EqualTo fixture.Stranger.Reference)
         Assert.That(child.Target, Is.EqualTo fixture.Capability.Target)
         Assert.That(child.Operations = fixture.Capability.Operations, Is.True)
-        Assert.That(List.length child.AddedConstraints, Is.EqualTo 1)
+        let originCeiling =
+            World.tryFindConstraintByName BuiltIn.originCeilingConstraintName delegatedWorld
+            |> Option.get
+        Assert.That(List.length child.AddedConstraints, Is.EqualTo 2)
+        Assert.That(
+            child.AddedConstraints
+            |> List.exists (fun requirement -> requirement.Constraint = fixture.Constraint.Reference),
+            Is.True)
+        Assert.That(
+            child.AddedConstraints
+            |> List.exists (fun requirement ->
+                requirement.Constraint = originCeiling.Reference
+                && requirement.Parameters = TextValue "Derived"),
+            Is.True)
         Assert.That(wideningAttempt.Outcome.Status, Is.EqualTo Denied)
 
     [<Test>]
@@ -591,7 +602,6 @@ type BaseAuthorityConformance() =
                                 fixture.Target.Reference
                                 (Set.singleton echoOperation)
                                 []
-                                false
                                 world
                             |> get
 
@@ -643,7 +653,6 @@ type BaseAuthorityConformance() =
                             fixture.Target.Reference
                             (Set.singleton echoOperation)
                             []
-                            false
                             world
                         |> get
 
@@ -711,7 +720,6 @@ type BaseAuthorityConformance() =
                             fixture.Target.Reference
                             (Set.singleton echoOperation)
                             []
-                            false
                             provisionalWorld
                         |> get
 
@@ -729,7 +737,6 @@ type BaseAuthorityConformance() =
                             fixture.Target.Reference
                             (Set.singleton echoOperation)
                             []
-                            false
                             acceptedWorld
                         |> get
 
@@ -798,7 +805,6 @@ type BaseAuthorityConformance() =
                                 fixture.Target.Reference
                                 (Set.singleton echoOperation)
                                 []
-                                false
                                 transactionWorld
                             |> get
 

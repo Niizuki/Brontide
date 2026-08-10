@@ -532,8 +532,7 @@ type Capability =
       Operations: Set<OperationReference>
       AddedConstraints: ConstraintRequirement list
       Parent: CapabilityReference option
-      IssuedBy: ActorReference option
-      DelegationAllowed: bool }
+      IssuedBy: ActorReference option }
 
 type Actor =
     { Reference: ActorReference
@@ -547,6 +546,17 @@ type ExecutionRequest =
       Command: ShapeValue
       Occurrence: OccurrenceReference option
       Context: Map<string, string> }
+
+type OriginClass =
+    | Unverified
+    | Derived
+    | Device
+    | Human
+    | Autonomous
+
+type Draft08ExecutionRequest =
+    { Request: ExecutionRequest
+      RequestedOrigin: OriginClass }
 
 [<StructuralEquality; StructuralComparison>]
 type TimeDomainReference = private TimeDomainReference of CanonicalName
@@ -587,6 +597,7 @@ type Event =
       Emitter: ActorReference
       CausedBy: ExecutionReference
       Payload: ShapeValue
+      Origin: OriginClass
       EmittedAt: TemporalMark
       OccurredAt: TemporalMark option }
 
@@ -633,5 +644,8 @@ module BuiltIn =
     let decimalShape = shape "brontide.base.decimal" 1
     let textShape = shape "brontide.base.text" 1
     let bytesShape = shape "brontide.base.bytes" 1
+    let delegationDepthConstraintName = CanonicalName.create "Brontide:DelegationDepth"
+    let originGrantConstraintName = CanonicalName.create "Brontide:OriginGrant"
+    let originCeilingConstraintName = CanonicalName.create "Brontide:OriginCeiling"
     let executionOutcomeEvent: EventReference =
         { Name = CanonicalName.create "Brontide.Minimal:Execution.Outcome" }

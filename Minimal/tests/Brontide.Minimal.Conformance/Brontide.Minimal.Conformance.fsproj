@@ -16,6 +16,7 @@
   <ItemGroup>
     <Compile Include="ConformanceTests.fs" />
     <Compile Include="Architecture08D1Tests.fs" />
+    <Compile Include="Architecture08D2Tests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

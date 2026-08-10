@@ -173,7 +173,8 @@ public sealed class Architecture08D1ConformanceTests
         {
             Assert.That(result.Outcome.Status, Is.EqualTo(OutcomeStatus.Rejected));
             Assert.That(effects, Is.Zero);
-            Assert.That(grandchild.AddedConstraintExpressions, Is.Empty);
+            Assert.That(grandchild.AddedConstraintExpressions.OfType<OriginCeilingConstraint>().Single().Maximum,
+                Is.EqualTo(OriginClass.Derived));
         });
     }
 

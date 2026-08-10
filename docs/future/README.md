@@ -9,7 +9,11 @@ classifies each stack independently, keeps its audit snapshot unaccepted, and pr
 runtime slices. A08-D1 is now delivered as explicit experimental Draft-0.8 entry points in both
 stacks: structural strong-Kleene evaluation, instantaneous authorization, and full-chain conjunction
 pass all 11 C7/C3/C4 vectors while the ordinary 0.7 poisoning paths remain tested. A08-D2 is next and
-requires separate authorization because it changes the public delegability representation. The
+has now delivered the authorized breaking migration: delegability is default-on, depth restrictions
+are ordinary conjoined Constraints, and every derivation adds an `Origin.Derived` ceiling. All four
+C6/C2 vectors plus the phase-wide property execute in both stacks. A08-D3 is next and requires
+separate authorization for Constraint declarations, recognition-set evidence, and projection
+exemption. The
 hash-pinned 0.7 matrices still await review retargeting; no whole-Architecture 0.8 implementation or
 ratification is implied.
 

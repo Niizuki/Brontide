@@ -455,32 +455,36 @@ public sealed class AuthorityDomain
         }
 
         var trustedNow = TimeProvider?.GetUtcNow();
-        var evaluationContext = new ConstraintEvaluationContext(
-            operation,
-            initiator,
-            requester,
-            definition.Target,
-            capability,
-            projectedInput.Value!,
-            origin,
-            trustedNow);
         var originGrantSeen = false;
 
-        foreach (var expression in capability.EffectiveConstraintExpressions())
+        foreach (var constraintCapability in capability.DerivationChain())
         {
-            var evaluation = useStrongKleene
-                ? ConstraintExpressionEvaluator.EvaluateStrongKleene(
-                    expression,
-                    constraint => EvaluateConstraintAtom(constraint, evaluationContext))
-                : ConstraintExpressionEvaluator.Evaluate(
-                    expression,
-                    constraint => EvaluateConstraintAtom(constraint, evaluationContext));
-            originGrantSeen |= evaluation.SatisfiedConstraints.Contains(StandardConstraintNames.OriginGrant);
-            var decision = ConstraintDecision.FromExpression(expression, evaluation);
-            decisions.Add(decision);
-            if (!decision.Allowed)
+            var evaluationContext = new ConstraintEvaluationContext(
+                operation,
+                initiator,
+                requester,
+                definition.Target,
+                capability,
+                constraintCapability,
+                projectedInput.Value!,
+                origin,
+                trustedNow);
+            foreach (var expression in constraintCapability.AddedConstraintExpressions)
             {
-                return Reject(execution, decisions, $"denied: {decision.Reason}");
+                var evaluation = useStrongKleene
+                    ? ConstraintExpressionEvaluator.EvaluateStrongKleene(
+                        expression,
+                        constraint => EvaluateConstraintAtom(constraint, evaluationContext))
+                    : ConstraintExpressionEvaluator.Evaluate(
+                        expression,
+                        constraint => EvaluateConstraintAtom(constraint, evaluationContext));
+                originGrantSeen |= evaluation.SatisfiedConstraints.Contains(StandardConstraintNames.OriginGrant);
+                var decision = ConstraintDecision.FromExpression(expression, evaluation);
+                decisions.Add(decision);
+                if (!decision.Allowed)
+                {
+                    return Reject(execution, decisions, $"denied: {decision.Reason}");
+                }
             }
         }
 
@@ -632,7 +636,7 @@ public sealed class AuthorityDomain
                 responsible,
                 OccurrenceReference.New(),
                 Causation: new OccurrenceReference(execution.Id.Value),
-                Origin: OriginClass.Derived,
+                Origin: execution.Interaction.Origin,
                 EmittedAt: TrustedTemporalMark()),
             TerminalReference.For(execution.Id),
             status,
@@ -724,6 +728,48 @@ public sealed class AuthorityDomain
                     return ConstraintDecision.Deny(
                         constraint.Name,
                         $"origin {context.RequestedOrigin} exceeds the Capability's origin ceiling");
+                }));
+
+        _constraints.Add(
+            StandardConstraintNames.DelegationDepth,
+            new ConstraintDefinition(
+                StandardConstraintNames.DelegationDepth,
+                ShapeContract.For(BuiltInShapes.Signed64),
+                (constraint, context) =>
+                {
+                    if (constraint is not DelegationDepthConstraint depth)
+                    {
+                        return ConstraintDecision.Deny(constraint.Name, "invalid delegation-depth representation");
+                    }
+
+                    var chain = context.Capability.DerivationChain();
+                    var sourceIndex = chain.IndexOf(context.ConstraintCapability);
+                    var linksBelow = sourceIndex < 0 ? long.MaxValue : chain.Length - sourceIndex - 1L;
+                    return linksBelow <= depth.MaximumAdditionalLinks
+                        ? ConstraintDecision.Allow(constraint.Name, "delegation depth is within the Constraint ceiling")
+                        : ConstraintDecision.Deny(
+                            constraint.Name,
+                            $"delegation depth {linksBelow} exceeds the Constraint ceiling {depth.MaximumAdditionalLinks}");
+                }));
+
+        _constraints.Add(
+            StandardConstraintNames.OriginCeiling,
+            new ConstraintDefinition(
+                StandardConstraintNames.OriginCeiling,
+                ShapeContract.For(BuiltInShapes.OriginClass),
+                (constraint, context) =>
+                {
+                    if (constraint is not OriginCeilingConstraint ceiling)
+                    {
+                        return ConstraintDecision.Deny(constraint.Name, "invalid origin-ceiling representation");
+                    }
+
+                    return context.RequestedOrigin is OriginClass.Unverified ||
+                           context.RequestedOrigin == ceiling.Maximum
+                        ? ConstraintDecision.Allow(constraint.Name, $"origin is within the {ceiling.Maximum} ceiling")
+                        : ConstraintDecision.Deny(
+                            constraint.Name,
+                            $"origin {context.RequestedOrigin} exceeds the {ceiling.Maximum} ceiling");
                 }));
     }
 
@@ -861,8 +907,7 @@ public sealed class AuthorityDomain
         ActorReference holder,
         ActorReference target,
         IEnumerable<OperationReference> operations,
-        IEnumerable<ConstraintExpression> constraints,
-        bool delegable)
+        IEnumerable<ConstraintExpression> constraints)
     {
         EnsureActor(holder);
         EnsureActor(target);
@@ -897,7 +942,6 @@ public sealed class AuthorityDomain
             operationSet,
             null,
             constraintSet,
-            delegable,
             RegisterDerivedCapability);
         lock (_gate)
         {
@@ -1082,21 +1126,19 @@ public sealed class AuthorityDomain
             ActorReference holder,
             ActorReference target,
             IEnumerable<OperationReference> operations,
-            IEnumerable<Constraint>? constraints = null,
-            bool delegable = true) =>
+            IEnumerable<Constraint>? constraints = null) =>
             WhileActive(() =>
-                _domain.IssueCapability(holder, target, operations, constraints ?? [], delegable));
+                _domain.IssueCapability(holder, target, operations, constraints ?? []));
 
         public Capability GrantExpressions(
             ActorReference holder,
             ActorReference target,
             IEnumerable<OperationReference> operations,
-            IEnumerable<ConstraintExpression> expressions,
-            bool delegable = true) =>
+            IEnumerable<ConstraintExpression> expressions) =>
             WhileActive(() =>
             {
                 ArgumentNullException.ThrowIfNull(expressions);
-                return _domain.IssueCapability(holder, target, operations, expressions, delegable);
+                return _domain.IssueCapability(holder, target, operations, expressions);
             });
 
         public LivenessLease Lease(ActorReference grantor, TimeSpan duration) =>

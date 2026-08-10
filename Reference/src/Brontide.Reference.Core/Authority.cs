@@ -8,6 +8,8 @@ public static class StandardConstraintNames
     public static readonly CanonicalName WallClockValidity = CanonicalName.Parse("Brontide:WallClockValidity");
     public static readonly CanonicalName LivenessLease = CanonicalName.Parse("Brontide:LivenessLease");
     public static readonly CanonicalName OriginGrant = CanonicalName.Parse("Brontide:OriginGrant");
+    public static readonly CanonicalName DelegationDepth = CanonicalName.Parse("Brontide:DelegationDepth");
+    public static readonly CanonicalName OriginCeiling = CanonicalName.Parse("Brontide:OriginCeiling");
     public static readonly CanonicalName AllOf = CanonicalName.Parse("Brontide:Constraint.AllOf");
     public static readonly CanonicalName AnyOf = CanonicalName.Parse("Brontide:Constraint.AnyOf");
     public static readonly CanonicalName Not = CanonicalName.Parse("Brontide:Constraint.Not");
@@ -498,6 +500,43 @@ public sealed record OriginGrantConstraint : Constraint
     public OriginClass GrantedClass { get; }
 }
 
+/// <summary>
+/// Limits how many derivation links may appear below the Capability carrying this Constraint.
+/// Absence means unbounded/default-on Delegation.
+/// </summary>
+public sealed record DelegationDepthConstraint : Constraint
+{
+    public DelegationDepthConstraint(long maximumAdditionalLinks)
+        : base(StandardConstraintNames.DelegationDepth, ShapeValue.Signed64(maximumAdditionalLinks))
+    {
+        if (maximumAdditionalLinks < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maximumAdditionalLinks));
+        }
+
+        MaximumAdditionalLinks = maximumAdditionalLinks;
+    }
+
+    public long MaximumAdditionalLinks { get; }
+}
+
+/// <summary>The ordinary Constraint implicitly conjoined by every Draft-0.8 derivation.</summary>
+public sealed record OriginCeilingConstraint : Constraint
+{
+    public OriginCeilingConstraint(OriginClass maximum)
+        : base(StandardConstraintNames.OriginCeiling, ShapeValue.Scalar(BuiltInShapes.OriginClass, maximum.ToString()))
+    {
+        if (maximum != OriginClass.Derived)
+        {
+            throw new ArgumentException("The A08-D2 derivation ceiling is Origin.Derived.", nameof(maximum));
+        }
+
+        Maximum = maximum;
+    }
+
+    public OriginClass Maximum { get; }
+}
+
 /// <summary>A renewable, grantor-scoped mortality token evaluated against the domain's trusted clock.</summary>
 public sealed class LivenessLease
 {
@@ -681,6 +720,7 @@ public sealed class ConstraintEvaluationContext
         ActorReference? requester,
         ActorReference target,
         Capability capability,
+        Capability constraintCapability,
         ShapeValue input,
         OriginClass requestedOrigin,
         DateTimeOffset? trustedNow)
@@ -690,6 +730,7 @@ public sealed class ConstraintEvaluationContext
         Requester = requester;
         Target = target;
         Capability = capability;
+        ConstraintCapability = constraintCapability;
         Input = input;
         RequestedOrigin = requestedOrigin;
         TrustedNow = trustedNow;
@@ -700,6 +741,7 @@ public sealed class ConstraintEvaluationContext
     public ActorReference? Requester { get; }
     public ActorReference Target { get; }
     public Capability Capability { get; }
+    public Capability ConstraintCapability { get; }
     public ShapeValue Input { get; }
     public OriginClass RequestedOrigin { get; }
     public DateTimeOffset? TrustedNow { get; }
@@ -747,7 +789,6 @@ public sealed class Capability
         ImmutableHashSet<OperationReference> rootOperations,
         Capability? parent,
         IEnumerable<ConstraintExpression> addedConstraints,
-        bool delegationAllowed,
         Action<Capability> derivedCallback)
     {
         DomainId = domainId;
@@ -757,7 +798,6 @@ public sealed class Capability
         Parent = parent;
         AddedConstraintExpressions = addedConstraints.ToImmutableArray();
         AddedConstraints = AddedConstraintExpressions.OfType<Constraint>().ToImmutableArray();
-        DelegationAllowed = delegationAllowed;
         _derivedCallback = derivedCallback;
         Id = Guid.NewGuid();
     }
@@ -770,7 +810,6 @@ public sealed class Capability
     public Capability? Parent { get; }
     public ImmutableArray<Constraint> AddedConstraints { get; }
     public ImmutableArray<ConstraintExpression> AddedConstraintExpressions { get; }
-    public bool DelegationAllowed { get; }
     public bool IsPrimordial => Parent is null;
 
     public Capability Delegate(ActorReference newHolder, params Constraint[] added)
@@ -780,11 +819,6 @@ public sealed class Capability
     {
         ArgumentNullException.ThrowIfNull(newHolder);
         ArgumentNullException.ThrowIfNull(added);
-        if (!DelegationAllowed)
-        {
-            throw new InvalidOperationException("This Capability does not permit further Delegation.");
-        }
-
         if (newHolder.DomainId != DomainId)
         {
             throw new InvalidOperationException("Cross-domain Delegation is not part of Brontide Base.");
@@ -796,14 +830,16 @@ public sealed class Capability
             throw new InvalidOperationException("Origin grants cannot be introduced through Delegation.");
         }
 
+        var derivedConstraints = added
+            .Append<ConstraintExpression>(new OriginCeilingConstraint(OriginClass.Derived))
+            .ToArray();
         var derived = new Capability(
             DomainId,
             newHolder,
             Target,
             RootOperations,
             this,
-            added,
-            DelegationAllowed,
+            derivedConstraints,
             _derivedCallback);
         _derivedCallback(derived);
         return derived;
