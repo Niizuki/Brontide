@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 A08-D4 experimental runtime
+
+### Added
+
+- Complete-chain Draft-0.8 liveness evidence covering expired, unavailable, and active ancestor
+  scopes without changing the retained Architecture 0.7 entry point.
+- `ExecutionRateLimitConstraint`, a Base `ChainOccurrencePooling` Constraint with whole-millisecond
+  windows and synchronized check/commit accounting shared by every descendant of its exact chain
+  occurrence.
+- Reference-native execution of all six A08-D4 C1/C5 vectors and their phase properties.
+
+### Changed
+
+- Quantified usage is prepared during expression evaluation and committed only after the complete
+  chain authorizes, so denied Executions consume no budget.
+- Vocabulary-defined accounting scopes are identifiable but reported declined and deny before an
+  ordinary evaluator when the target has no scope-enforcement facility.
+
 ## Unreleased - Architecture 0.8 A08-D3 breaking experimental runtime
 
 ### Changed

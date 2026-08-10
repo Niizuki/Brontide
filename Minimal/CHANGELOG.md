@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 A08-D4 experimental runtime
+
+### Added
+
+- Minimal-owned typed liveness-lease identity, Genesis issuance, and exact ancestor evaluation at
+  the Draft-0.8 presentation instant.
+- An immutable Base execution-rate accounting transition keyed by carrying Capability plus exact
+  expression/atom occurrence and time window, shared by sibling Delegations.
+- Minimal-native execution of all six A08-D4 C1/C5 vectors and their phase properties.
+
+### Changed
+
+- Successful authorization returns a `World` with prepared occurrence usage committed; every denial
+  returns the original accounting state.
+- Vocabulary-defined accounting scopes remain identifiable but are reported declined and deny
+  before an ordinary evaluator when their scope cannot be enforced.
+
 ## Unreleased - Architecture 0.8 A08-D3 breaking experimental runtime
 
 ### Changed

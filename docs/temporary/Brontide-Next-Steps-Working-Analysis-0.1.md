@@ -223,7 +223,9 @@ separately authorized breaking migration: default-on
 delegation-depth Constraint narrowing and implicit `Origin.Derived` ceilings pass all four canonical
 vectors in both stacks. A08-D3 (C9 plus C8) has now delivered first-class declarations,
 recognition-set evidence, strict authority values, and retained payload projection across all six
-canonical vectors. A08-D4 (C1 plus C5) is the next authorization boundary. Do not gold-plate the
+canonical vectors. A08-D4 (C1 plus C5) has now delivered complete-chain liveness evaluation,
+occurrence-pooled accounting, denial silence, and fail-closed declared scopes across all six
+canonical vectors. A08-D5 (C10) is the next authorization boundary. Do not gold-plate the
 retained 0.7 M1 path.
 
 ---

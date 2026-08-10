@@ -162,6 +162,9 @@ type private AuthorityTransactionCoordinator() =
             else
                 action ())
 
+type private QuantifiedConstraintOccurrence =
+    | QuantifiedConstraintOccurrence of CapabilityReference * expressionIndex: int * atomIndex: int * windowIndex: int64
+
 type World =
     private
         { Scope: Guid
@@ -173,6 +176,8 @@ type World =
           AuthorityActor: ActorReference
           Actors: Map<ActorReference, Actor>
           Capabilities: Map<CapabilityReference, Capability>
+          LivenessLeases: Map<LivenessLeaseReference, LivenessLease>
+          QuantifiedUsage: Map<QuantifiedConstraintOccurrence, int64>
           CapabilityConstraintExpressions: Map<CapabilityReference, ConstraintExpression list>
           Shapes: Map<ShapeReference, ShapeDefinition>
           Fragments: Map<FragmentReference, FragmentDefinition>
@@ -224,7 +229,7 @@ type StepResult =
       EmittedEvents: Event list
       Provenance: ProvenanceClaim list }
 
-type GenesisContext internal (scope: Guid, transaction: Guid) =
+type GenesisContext internal (scope: Guid, transaction: Guid, issuedAtMilliseconds: int64) =
     let allocationGate = obj ()
     let mutable active = true
     let mutable nextAllocation = 0L
@@ -263,6 +268,8 @@ type GenesisContext internal (scope: Guid, transaction: Guid) =
     member internal _.Complete() =
         lock allocationGate (fun () -> active <- false)
 
+    member internal _.IssuedAtMilliseconds = issuedAtMilliseconds
+
 [<RequireQualifiedAccess>]
 module World =
     let private allocationEpoch kind parts (world: World) =
@@ -286,6 +293,14 @@ module World =
               builtInShape BuiltIn.decimalShape (ScalarShape Decimal)
               builtInShape BuiltIn.textShape (ScalarShape Text)
               builtInShape BuiltIn.bytesShape (ScalarShape Bytes) ]
+            @ [ { Reference = BuiltIn.executionRateLimitShape
+                  Description = "Brontide.Minimal Base execution-rate value"
+                  Body =
+                    RecordShape
+                        [ { Name = "maximum-executions"; Shape = BuiltIn.integerShape; Required = true }
+                          { Name = "window-milliseconds"; Shape = BuiltIn.integerShape; Required = true } ]
+                  AcceptedFragments = Set.empty
+                  IsOpenToFragments = false } ]
             |> Seq.map (fun definition -> definition.Reference, definition)
             |> Map.ofSeq
 
@@ -295,7 +310,7 @@ module World =
             { Reference = authorityReference
               Name = CanonicalName.create "Brontide.Minimal:AuthorityDomain" }
 
-        let standardConstraint value name shape description =
+        let standardConstraint value name shape description accountingScope =
             let reference = ConstraintReference.issue scope referenceEpoch value
             reference,
             { Reference = reference
@@ -306,13 +321,15 @@ module World =
                   EvaluationSemantics = description
                   EvaluatorDomain = ConstraintEvaluatorDomain.TargetAuthority
                   UnknownBehavior = ConstraintUnknownBehavior.Deny
-                  AccountingScope = ConstraintAccountingScope.NotQuantified
+                  AccountingScope = accountingScope
                   EvolutionPolicy = ConstraintEvolutionPolicy.ParallelCanonicalName } }
 
         let constraints =
-            [ standardConstraint -1L BuiltIn.delegationDepthConstraintName BuiltIn.integerShape "maximum additional derivation links"
-              standardConstraint -2L BuiltIn.originGrantConstraintName BuiltIn.textShape "genesis-grade origin assertion"
-              standardConstraint -3L BuiltIn.originCeilingConstraintName BuiltIn.textShape "maximum delegated origin assertion" ]
+            [ standardConstraint -1L BuiltIn.delegationDepthConstraintName BuiltIn.integerShape "maximum additional derivation links" ConstraintAccountingScope.NotQuantified
+              standardConstraint -2L BuiltIn.originGrantConstraintName BuiltIn.textShape "genesis-grade origin assertion" ConstraintAccountingScope.NotQuantified
+              standardConstraint -3L BuiltIn.originCeilingConstraintName BuiltIn.textShape "maximum delegated origin assertion" ConstraintAccountingScope.NotQuantified
+              standardConstraint -4L BuiltIn.livenessLeaseConstraintName BuiltIn.textShape "the declared liveness lease is active at presentation" ConstraintAccountingScope.NotQuantified
+              standardConstraint -5L BuiltIn.executionRateLimitConstraintName BuiltIn.executionRateLimitShape "successful Executions do not exceed the occurrence-pooled maximum in the current window" ConstraintAccountingScope.ChainOccurrencePooling ]
             |> Map.ofList
 
         { Scope = scope
@@ -324,6 +341,8 @@ module World =
           AuthorityActor = authorityReference
           Actors = Map.ofList [ authorityReference, authorityActor ]
           Capabilities = Map.empty
+          LivenessLeases = Map.empty
+          QuantifiedUsage = Map.empty
           CapabilityConstraintExpressions = Map.empty
           Shapes = shapes
           Fragments = Map.empty
@@ -360,9 +379,18 @@ module World =
                 definition.Name = BuiltIn.delegationDepthConstraintName
                 || definition.Name = BuiltIn.originGrantConstraintName
                 || definition.Name = BuiltIn.originCeilingConstraintName
+                || definition.Name = BuiltIn.livenessLeaseConstraintName
+                || definition.Name = BuiltIn.executionRateLimitConstraintName
+            let enforceable =
+                match definition.Declaration.AccountingScope with
+                | ConstraintAccountingScope.NotQuantified ->
+                    isStandard || Map.containsKey definition.Reference environment.ConstraintEvaluators
+                | ConstraintAccountingScope.ChainOccurrencePooling ->
+                    definition.Name = BuiltIn.executionRateLimitConstraintName
+                | ConstraintAccountingScope.VocabularyDefined _ -> false
             { Declaration = definition.Declaration
               Decision =
-                if isStandard || Map.containsKey definition.Reference environment.ConstraintEvaluators then
+                if enforceable then
                     ConstraintRecognitionDecision.Implemented
                 else
                     ConstraintRecognitionDecision.Declined })
@@ -394,7 +422,7 @@ module World =
                 transactionEpoch,
                 (fun () -> Error "Genesis occurrences cannot be nested."),
                 (fun () ->
-                    let context = GenesisContext(world.Scope, transactionEpoch)
+                    let context = GenesisContext(world.Scope, transactionEpoch, recordedAt.Milliseconds)
                     let transactionWorld =
                         { world with
                             ReferenceEpoch = transactionEpoch
@@ -782,6 +810,71 @@ module World =
             ReferenceEpoch = referenceEpoch
             NextReference = world.NextReference + 1L
             Actors = Map.add reference actor world.Actors }
+
+    let internal issueLivenessLease
+        (context: GenesisContext)
+        (grantor: ActorReference)
+        (durationMilliseconds: int64)
+        (world: World)
+        =
+        context.EnsureActive(world.Scope, world.GenesisTransaction, world.GenesisActive)
+        if not (Map.containsKey grantor world.Actors) then
+            Error "A liveness lease grantor must be an issued Actor."
+        elif durationMilliseconds <= 0L then
+            Error "A liveness lease duration must be positive."
+        elif context.IssuedAtMilliseconds > Int64.MaxValue - durationMilliseconds then
+            Error "The liveness lease expiry is not representable."
+        else
+            let referenceEpoch =
+                allocationEpoch
+                    "liveness-lease"
+                    [ string (ActorReference.value grantor)
+                      string durationMilliseconds
+                      string context.IssuedAtMilliseconds ]
+                    world
+            let reference = LivenessLeaseReference.issue world.Scope referenceEpoch world.NextReference
+            let lease =
+                { Reference = reference
+                  Grantor = grantor
+                  ExpiresAtMilliseconds = context.IssuedAtMilliseconds + durationMilliseconds
+                  Dead = false }
+            Ok(
+                lease,
+                { world with
+                    ReferenceEpoch = referenceEpoch
+                    NextReference = world.NextReference + 1L
+                    LivenessLeases = Map.add reference lease world.LivenessLeases })
+
+    let livenessLeaseConstraint (lease: LivenessLease) (world: World) =
+        if not (Map.containsKey lease.Reference world.LivenessLeases) then
+            Error "The liveness lease is not registered by this authority domain."
+        else
+            let definition =
+                tryFindConstraintByName BuiltIn.livenessLeaseConstraintName world
+                |> Option.defaultWith (fun () -> invalidOp "The Base liveness Constraint is missing.")
+            Ok
+                { Constraint = definition.Reference
+                  ParameterShape = definition.ParameterShape
+                  Parameters = TextValue(string (LivenessLeaseReference.value lease.Reference)) }
+
+    let executionRateLimitConstraint maximumExecutions windowMilliseconds (world: World) =
+        if maximumExecutions <= 0L then
+            Error "The execution maximum must be positive."
+        elif windowMilliseconds <= 0L then
+            Error "The accounting window must be positive."
+        else
+            let definition =
+                tryFindConstraintByName BuiltIn.executionRateLimitConstraintName world
+                |> Option.defaultWith (fun () -> invalidOp "The Base execution-rate Constraint is missing.")
+            Ok
+                { Constraint = definition.Reference
+                  ParameterShape = definition.ParameterShape
+                  Parameters =
+                    RecordValue(
+                        Map.ofList
+                            [ "maximum-executions", IntegerValue maximumExecutions
+                              "window-milliseconds", IntegerValue windowMilliseconds ],
+                        Map.empty) }
 
     let internal issuePrimordialCapabilityWithExpressions
         (context: GenesisContext)
@@ -1254,7 +1347,7 @@ module World =
 
                     let effectiveConstraints =
                         (operation.Constraints
-                         |> List.map (fun requirement -> capability, AtomicConstraint requirement))
+                         |> List.mapi (fun index requirement -> capability, -index - 1, AtomicConstraint requirement))
                         @ (capabilityChain capability world
                            |> List.collect (fun chainCapability ->
                                world.CapabilityConstraintExpressions
@@ -1262,9 +1355,11 @@ module World =
                                |> Option.defaultValue (
                                    chainCapability.AddedConstraints |> List.map AtomicConstraint
                                )
-                               |> List.map (fun expression -> chainCapability, expression)))
+                               |> List.mapi (fun index expression -> chainCapability, index, expression)))
 
-                    let evaluateAtom constraintCapability requirement =
+                    let pendingAccounting = ResizeArray<QuantifiedConstraintOccurrence>()
+
+                    let evaluateAtom constraintCapability expressionIndex atomIndex requirement =
                         match Map.tryFind requirement.Constraint world.Constraints with
                         | None -> ConstraintAtomEvaluation.evaluatorFailed
                         | Some definition ->
@@ -1291,7 +1386,54 @@ module World =
                             | Error _ -> ConstraintAtomEvaluation.invalidValue
                             | Ok requirement ->
                                 let atomContext = { context with ConstraintCapability = constraintCapability }
-                                if definition.Name = BuiltIn.delegationDepthConstraintName then
+                                match definition.Declaration.AccountingScope with
+                                | ConstraintAccountingScope.VocabularyDefined _ ->
+                                    ConstraintAtomEvaluation.unsupported definition.Name
+                                | ConstraintAccountingScope.ChainOccurrencePooling when
+                                    definition.Name <> BuiltIn.executionRateLimitConstraintName ->
+                                    ConstraintAtomEvaluation.unsupported definition.Name
+                                | _ when definition.Name = BuiltIn.livenessLeaseConstraintName && strictAuthorityValues ->
+                                    match requirement.Parameters with
+                                    | TextValue token ->
+                                        let lease =
+                                            world.LivenessLeases
+                                            |> Map.toSeq
+                                            |> Seq.map snd
+                                            |> Seq.tryFind (fun candidate ->
+                                                string (LivenessLeaseReference.value candidate.Reference) = token)
+                                        match lease with
+                                        | None -> ConstraintAtomEvaluation.unsupported definition.Name
+                                        | Some value when value.Dead || environment.TrustedTime.Milliseconds >= value.ExpiresAtMilliseconds ->
+                                            ConstraintAtomEvaluation.unsatisfied "the liveness lease is expired"
+                                        | Some _ -> ConstraintAtomEvaluation.satisfied
+                                    | _ -> ConstraintAtomEvaluation.invalidValue
+                                | _ when definition.Name = BuiltIn.executionRateLimitConstraintName && strictAuthorityValues ->
+                                    match requirement.Parameters with
+                                    | RecordValue(fields, _) ->
+                                        match Map.tryFind "maximum-executions" fields, Map.tryFind "window-milliseconds" fields with
+                                        | Some(IntegerValue maximum), Some(IntegerValue window) when maximum > 0L && window > 0L ->
+                                            let quotient = environment.TrustedTime.Milliseconds / window
+                                            let windowIndex =
+                                                if environment.TrustedTime.Milliseconds % window < 0L then
+                                                    quotient - 1L
+                                                else
+                                                    quotient
+                                            let occurrence =
+                                                QuantifiedConstraintOccurrence(
+                                                    constraintCapability.Reference,
+                                                    expressionIndex,
+                                                    atomIndex,
+                                                    windowIndex)
+                                            let committed = world.QuantifiedUsage |> Map.tryFind occurrence |> Option.defaultValue 0L
+                                            let prepared = pendingAccounting |> Seq.filter ((=) occurrence) |> Seq.length |> int64
+                                            if committed + prepared >= maximum then
+                                                ConstraintAtomEvaluation.unsatisfied "the chain-occurrence execution budget is exhausted"
+                                            else
+                                                pendingAccounting.Add occurrence
+                                                ConstraintAtomEvaluation.satisfied
+                                        | _ -> ConstraintAtomEvaluation.invalidValue
+                                    | _ -> ConstraintAtomEvaluation.invalidValue
+                                | _ when definition.Name = BuiltIn.delegationDepthConstraintName ->
                                     match requirement.Parameters with
                                     | IntegerValue maximum when maximum >= 0L ->
                                         let chain = capabilityChain capability world
@@ -1303,7 +1445,7 @@ module World =
                                             ConstraintAtomEvaluation.unsatisfied
                                                 $"delegation depth {linksBelow} exceeds the Constraint ceiling {maximum}"
                                     | _ -> ConstraintAtomEvaluation.invalidValue
-                                elif definition.Name = BuiltIn.originGrantConstraintName then
+                                | _ when definition.Name = BuiltIn.originGrantConstraintName ->
                                     match requirement.Parameters with
                                     | TextValue granted ->
                                         if requestedOrigin = OriginClass.Unverified then
@@ -1316,7 +1458,7 @@ module World =
                                             ConstraintAtomEvaluation.unsatisfied
                                                 $"origin {requestedOrigin} exceeds the Capability's origin grant"
                                     | _ -> ConstraintAtomEvaluation.invalidValue
-                                elif definition.Name = BuiltIn.originCeilingConstraintName then
+                                | _ when definition.Name = BuiltIn.originCeilingConstraintName ->
                                     match requirement.Parameters with
                                     | TextValue "Derived" when
                                         requestedOrigin = OriginClass.Unverified
@@ -1326,7 +1468,7 @@ module World =
                                         ConstraintAtomEvaluation.unsatisfied
                                             $"origin {requestedOrigin} exceeds the Derived ceiling"
                                     | _ -> ConstraintAtomEvaluation.invalidValue
-                                else
+                                | _ ->
                                     match Map.tryFind requirement.Constraint environment.ConstraintEvaluators with
                                     | None -> ConstraintAtomEvaluation.unsupported definition.Name
                                     | Some evaluator ->
@@ -1339,8 +1481,14 @@ module World =
 
                     let evaluations =
                         effectiveConstraints
-                        |> List.map (fun (constraintCapability, expression) ->
-                            evaluateExpression (evaluateAtom constraintCapability) expression)
+                        |> List.map (fun (constraintCapability, expressionIndex, expression) ->
+                            let mutable atomIndex = 0
+                            evaluateExpression
+                                (fun requirement ->
+                                    let current = atomIndex
+                                    atomIndex <- atomIndex + 1
+                                    evaluateAtom constraintCapability expressionIndex current requirement)
+                                expression)
 
                     let constraintFailure =
                         evaluations
@@ -1352,7 +1500,7 @@ module World =
 
                     let originGrantPresent =
                         effectiveConstraints
-                        |> List.collect (snd >> ConstraintExpression.atoms)
+                        |> List.collect (fun (_, _, expression) -> ConstraintExpression.atoms expression)
                         |> List.exists (fun requirement ->
                             world.Constraints[requirement.Constraint].Name = BuiltIn.originGrantConstraintName)
 
@@ -1361,33 +1509,38 @@ module World =
                     | None when requestedOrigin <> OriginClass.Unverified && not originGrantPresent ->
                         deny environment request $"origin {requestedOrigin} was asserted without an origin grant" world
                     | None ->
+                        let accountingWorld =
+                            pendingAccounting
+                            |> Seq.fold (fun state occurrence ->
+                                let consumed = state.QuantifiedUsage |> Map.tryFind occurrence |> Option.defaultValue 0L
+                                { state with QuantifiedUsage = Map.add occurrence (consumed + 1L) state.QuantifiedUsage }) world
                         match Map.tryFind operation.Reference environment.Handlers with
                         | None -> deny environment request "The Operation has no pure handler." world
                         | Some handler ->
                             match handler request with
-                            | Error failure -> fail environment request failure world
+                            | Error failure -> fail environment request failure accountingWorld
                             | Ok(result, eventDrafts, claimDrafts) ->
-                                match validateValue operation.ResultShape result world with
+                                match validateValue operation.ResultShape result accountingWorld with
                                 | Error message ->
                                     fail
                                         environment
                                         request
                                         (OperationFailure.withoutDetails
                                             ("The handler returned an invalid result: " + message))
-                                        world
+                                        accountingWorld
                                 | Ok() ->
                                     match
                                         eventDrafts
                                         |> List.tryPick (fun draft ->
-                                            match validateEventDraft draft world with
+                                            match validateEventDraft draft accountingWorld with
                                             | Ok() -> None
                                             | Error message -> Some message)
                                     with
                                     | Some message ->
-                                        fail environment request (OperationFailure.withoutDetails message) world
+                                        fail environment request (OperationFailure.withoutDetails message) accountingWorld
                                     | None ->
                                         let execution, afterExecution =
-                                            allocateExecution request environment.TrustedTime world
+                                            allocateExecution request environment.TrustedTime accountingWorld
 
                                         let events, afterEvents =
                                             eventDrafts
@@ -1507,6 +1660,9 @@ module World =
 [<RequireQualifiedAccess>]
 module Genesis =
     let actor context name world = World.issueGenesisActor context name world
+
+    let livenessLease context grantor durationMilliseconds world =
+        World.issueLivenessLease context grantor durationMilliseconds world
 
     let capability context name holder target operations constraints world =
         World.issuePrimordialCapability

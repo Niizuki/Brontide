@@ -9,6 +9,8 @@ public sealed class AuthorityDomain
     private readonly Dictionary<OperationReference, OperationDefinition> _operations = [];
     private readonly Dictionary<EventReference, EventDefinition> _events = [];
     private readonly Dictionary<CanonicalName, ConstraintDefinition> _constraints = [];
+    private readonly object _accountingGate = new();
+    private readonly Dictionary<QuantifiedConstraintOccurrence, long> _quantifiedUsage = [];
     private readonly List<ActorReference> _actors = [];
     private readonly List<Capability> _capabilities = [];
     private readonly List<LivenessLease> _leases = [];
@@ -45,7 +47,7 @@ public sealed class AuthorityDomain
                     .OrderBy(definition => definition.Name)
                     .Select(definition => new ConstraintRecognition(
                         definition.Declaration,
-                        definition.Evaluator is null
+                        !CanEvaluate(definition)
                             ? ConstraintRecognitionDecision.Declined
                             : ConstraintRecognitionDecision.Implemented))
                     .ToImmutableArray();
@@ -475,44 +477,57 @@ public sealed class AuthorityDomain
         var trustedNow = TimeProvider?.GetUtcNow();
         var originGrantSeen = false;
 
-        foreach (var constraintCapability in capability.DerivationChain())
+        var pendingAccounting = new List<QuantifiedConstraintOccurrence>();
+        lock (_accountingGate)
         {
-            var evaluationContext = new ConstraintEvaluationContext(
-                operation,
-                initiator,
-                requester,
-                definition.Target,
-                capability,
-                constraintCapability,
-                projectedInput.Value!,
-                origin,
-                trustedNow);
-            foreach (var expression in constraintCapability.AddedConstraintExpressions)
+            foreach (var constraintCapability in capability.DerivationChain())
             {
-                var evaluation = useStrongKleene
-                    ? ConstraintExpressionEvaluator.EvaluateStrongKleene(
-                        expression,
-                        constraint => EvaluateConstraintAtom(constraint, evaluationContext, strictAuthorityValues: true))
-                    : ConstraintExpressionEvaluator.Evaluate(
-                        expression,
-                        constraint => EvaluateConstraintAtom(constraint, evaluationContext, strictAuthorityValues: false));
-                originGrantSeen |= evaluation.SatisfiedConstraints.Contains(StandardConstraintNames.OriginGrant);
-                var decision = ConstraintDecision.FromExpression(expression, evaluation);
-                decisions.Add(decision);
-                if (!decision.Allowed)
+                var evaluationContext = new ConstraintEvaluationContext(
+                    operation,
+                    initiator,
+                    requester,
+                    definition.Target,
+                    capability,
+                    constraintCapability,
+                    projectedInput.Value!,
+                    origin,
+                    trustedNow);
+                for (var expressionIndex = 0; expressionIndex < constraintCapability.AddedConstraintExpressions.Length; expressionIndex++)
                 {
-                    return Reject(execution, decisions, $"denied: {decision.Reason}");
+                    var expression = constraintCapability.AddedConstraintExpressions[expressionIndex];
+                    var atomIndex = 0;
+                    ConstraintAtomEvaluation Evaluate(Constraint constraint) => EvaluateConstraintAtom(
+                        constraint,
+                        evaluationContext,
+                        strictAuthorityValues: useStrongKleene,
+                        new QuantifiedConstraintLocation(constraintCapability.Id, expressionIndex, atomIndex++),
+                        pendingAccounting);
+                    var evaluation = useStrongKleene
+                        ? ConstraintExpressionEvaluator.EvaluateStrongKleene(expression, Evaluate)
+                        : ConstraintExpressionEvaluator.Evaluate(expression, Evaluate);
+                    originGrantSeen |= evaluation.SatisfiedConstraints.Contains(StandardConstraintNames.OriginGrant);
+                    var decision = ConstraintDecision.FromExpression(expression, evaluation);
+                    decisions.Add(decision);
+                    if (!decision.Allowed)
+                    {
+                        return Reject(execution, decisions, $"denied: {decision.Reason}");
+                    }
                 }
             }
-        }
 
-        if (origin != OriginClass.Unverified && !originGrantSeen)
-        {
-            var decision = ConstraintDecision.Deny(
-                StandardConstraintNames.OriginGrant,
-                $"origin {origin} was asserted without an origin grant");
-            decisions.Add(decision);
-            return Reject(execution, decisions, $"denied: {decision.Reason}");
+            if (origin != OriginClass.Unverified && !originGrantSeen)
+            {
+                var decision = ConstraintDecision.Deny(
+                    StandardConstraintNames.OriginGrant,
+                    $"origin {origin} was asserted without an origin grant");
+                decisions.Add(decision);
+                return Reject(execution, decisions, $"denied: {decision.Reason}");
+            }
+
+            foreach (var occurrence in pendingAccounting)
+            {
+                _quantifiedUsage[occurrence] = _quantifiedUsage.GetValueOrDefault(occurrence) + 1L;
+            }
         }
 
         Append(
@@ -567,7 +582,9 @@ public sealed class AuthorityDomain
     private ConstraintAtomEvaluation EvaluateConstraintAtom(
         Constraint constraint,
         ConstraintEvaluationContext evaluationContext,
-        bool strictAuthorityValues)
+        bool strictAuthorityValues,
+        QuantifiedConstraintLocation location,
+        List<QuantifiedConstraintOccurrence> pendingAccounting)
     {
         ConstraintDefinition constraintDefinition;
         lock (_gate)
@@ -584,6 +601,43 @@ public sealed class AuthorityDomain
         if (!constraintShape.IsValid)
         {
             return ConstraintAtomEvaluation.InvalidValue();
+        }
+
+        if (constraintDefinition.Declaration.AccountingScope == ConstraintAccountingScope.VocabularyDefined ||
+            (constraintDefinition.Declaration.AccountingScope == ConstraintAccountingScope.ChainOccurrencePooling &&
+             constraint is not ExecutionRateLimitConstraint))
+        {
+            return ConstraintAtomEvaluation.Unsupported(constraintDefinition.Name);
+        }
+
+        if (constraint is ExecutionRateLimitConstraint rate)
+        {
+            if (evaluationContext.TrustedNow is null)
+            {
+                return ConstraintAtomEvaluation.Unsatisfied("target has no trusted clock for quantified accounting");
+            }
+
+            var elapsedMilliseconds = evaluationContext.TrustedNow.Value.ToUnixTimeMilliseconds();
+            var windowMilliseconds = (long)rate.Window.TotalMilliseconds;
+            var windowIndex = Math.DivRem(elapsedMilliseconds, windowMilliseconds, out var remainder);
+            if (remainder < 0)
+            {
+                windowIndex--;
+            }
+            var occurrence = new QuantifiedConstraintOccurrence(
+                location.CapabilityId,
+                location.ExpressionIndex,
+                location.AtomIndex,
+                windowIndex);
+            var committed = _quantifiedUsage.GetValueOrDefault(occurrence);
+            var prepared = pendingAccounting.LongCount(candidate => candidate == occurrence);
+            if (committed + prepared >= rate.MaximumExecutions)
+            {
+                return ConstraintAtomEvaluation.Unsatisfied("the chain-occurrence execution budget is exhausted");
+            }
+
+            pendingAccounting.Add(occurrence);
+            return ConstraintAtomEvaluation.Satisfied("the chain-occurrence execution budget is available");
         }
 
         if (constraintDefinition.Evaluator is null)
@@ -603,6 +657,27 @@ public sealed class AuthorityDomain
             return ConstraintAtomEvaluation.EvaluatorFailed();
         }
     }
+
+    private static bool CanEvaluate(ConstraintDefinition definition) =>
+        definition.Declaration.AccountingScope switch
+        {
+            ConstraintAccountingScope.NotQuantified => definition.Evaluator is not null,
+            ConstraintAccountingScope.ChainOccurrencePooling =>
+                definition.Name == StandardConstraintNames.ExecutionRateLimit,
+            ConstraintAccountingScope.VocabularyDefined => false,
+            _ => false
+        };
+
+    private readonly record struct QuantifiedConstraintLocation(
+        Guid CapabilityId,
+        int ExpressionIndex,
+        int AtomIndex);
+
+    private readonly record struct QuantifiedConstraintOccurrence(
+        Guid CapabilityId,
+        int ExpressionIndex,
+        int AtomIndex,
+        long WindowIndex);
 
     private ExecutionResult Reject(
         ExecutionRecord execution,
@@ -731,6 +806,18 @@ public sealed class AuthorityDomain
                 }));
 
         _constraints.Add(
+            StandardConstraintNames.ExecutionRateLimit,
+            new ConstraintDefinition(
+                StandardConstraintDeclaration(
+                    StandardConstraintNames.ExecutionRateLimit,
+                    BuiltInShapes.ExecutionRateLimit,
+                    "successful Executions do not exceed the occurrence-pooled maximum in the current window",
+                    ConstraintAccountingScope.ChainOccurrencePooling),
+                (_, _) => ConstraintDecision.Allow(
+                    StandardConstraintNames.ExecutionRateLimit,
+                    "accounting is evaluated by the authority boundary")));
+
+        _constraints.Add(
             StandardConstraintNames.OriginGrant,
             new ConstraintDefinition(
                 StandardConstraintDeclaration(
@@ -814,7 +901,8 @@ public sealed class AuthorityDomain
     private static ConstraintDeclaration StandardConstraintDeclaration(
         CanonicalName name,
         ShapeReference valueShape,
-        string evaluationSemantics) =>
+        string evaluationSemantics,
+        ConstraintAccountingScope accountingScope = ConstraintAccountingScope.NotQuantified) =>
         new(
             name,
             1,
@@ -822,7 +910,7 @@ public sealed class AuthorityDomain
             evaluationSemantics,
             ConstraintEvaluatorDomain.TargetAuthority,
             ConstraintUnknownBehavior.Deny,
-            ConstraintAccountingScope.NotQuantified,
+            accountingScope,
             ConstraintEvolutionPolicy.ParallelCanonicalName);
 
     internal ActivityReference CreateActivity(ActorReference owner, CanonicalName kind)

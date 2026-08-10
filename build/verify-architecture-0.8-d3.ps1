@@ -72,7 +72,8 @@ foreach ($check in $surfaceChecks) {
 
 $referenceDomain = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot 'Reference\src\Brontide.Reference.Core\AuthorityDomain.cs')
 Assert-True ($referenceDomain -match 'strictAuthorityValues\s*\?\s*Shapes\.ValidateAuthorityValue') 'Reference draft-0.8 execution does not enforce exact Constraint value Shapes.'
-Assert-True ($referenceDomain -match 'strictAuthorityValues: true') 'Reference draft-0.8 execution does not select strict authority values.'
+Assert-True ($referenceDomain -match 'strictAuthorityValues: useStrongKleene') 'Reference execution does not bind strict authority values to the Draft-0.8 evaluator selection.'
+Assert-True ($referenceDomain -match 'useStrongKleene: true') 'Reference draft-0.8 execution does not select strict authority values.'
 
 Assert-True (Test-Path -LiteralPath $migrationPath -PathType Leaf) 'A08-D3 breaking migration document is missing.'
 $migration = Get-Content -Raw -LiteralPath $migrationPath

@@ -18,6 +18,7 @@
     <Compile Include="Architecture08D1Tests.fs" />
     <Compile Include="Architecture08D2Tests.fs" />
     <Compile Include="Architecture08D3Tests.fs" />
+    <Compile Include="Architecture08D4Tests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

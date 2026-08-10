@@ -30,7 +30,9 @@ surface migration: default-on Delegation is narrowed by the standard depth Const
 is explicit at `World.stepDraft08`, and each derived Capability adds an implicit `Origin.Derived`
 ceiling. A08-D3 additionally executes all six C9/C8 vectors through first-class declarations,
 recognition-set evidence, exact authority value Shapes, and typed payload projection. This does not
-alter the Designed-for 0.7 target or pinned matrices.
+alter the Designed-for 0.7 target or pinned matrices. A08-D4 additionally executes all six C1/C5
+vectors through Minimal-owned liveness leases, resolved complete-chain evaluation, immutable
+occurrence-pooled accounting, denial silence, and fail-closed scope enforcement.
 
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).

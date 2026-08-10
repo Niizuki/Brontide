@@ -153,6 +153,16 @@ module CapabilityReference =
     let value (CapabilityReference(_, _, value)) = value
 
 [<Struct; StructuralEquality; StructuralComparison>]
+type LivenessLeaseReference = private LivenessLeaseReference of scope: Guid * epoch: Guid * value: int64
+
+[<RequireQualifiedAccess>]
+module LivenessLeaseReference =
+    let internal issue scope epoch value = LivenessLeaseReference(scope, epoch, value)
+    let internal identity (LivenessLeaseReference(scope, epoch, value)) = scope, epoch, value
+    let scope (LivenessLeaseReference(scope, _, _)) = scope
+    let value (LivenessLeaseReference(_, _, value)) = value
+
+[<Struct; StructuralEquality; StructuralComparison>]
 type ConstraintReference = private ConstraintReference of scope: Guid * epoch: Guid * value: int64
 
 [<RequireQualifiedAccess>]
@@ -573,6 +583,12 @@ type Capability =
       Parent: CapabilityReference option
       IssuedBy: ActorReference option }
 
+type LivenessLease =
+    { Reference: LivenessLeaseReference
+      Grantor: ActorReference
+      ExpiresAtMilliseconds: int64
+      Dead: bool }
+
 type Actor =
     { Reference: ActorReference
       Name: CanonicalName }
@@ -684,8 +700,11 @@ module BuiltIn =
     let decimalShape = shape "brontide.base.decimal" 1
     let textShape = shape "brontide.base.text" 1
     let bytesShape = shape "brontide.base.bytes" 1
+    let executionRateLimitShape = shape "brontide.base.execution-rate-limit" 1
     let delegationDepthConstraintName = CanonicalName.create "Brontide:DelegationDepth"
     let originGrantConstraintName = CanonicalName.create "Brontide:OriginGrant"
     let originCeilingConstraintName = CanonicalName.create "Brontide:OriginCeiling"
+    let livenessLeaseConstraintName = CanonicalName.create "Brontide:LivenessLease"
+    let executionRateLimitConstraintName = CanonicalName.create "Brontide:ExecutionRateLimit"
     let executionOutcomeEvent: EventReference =
         { Name = CanonicalName.create "Brontide.Minimal:Execution.Outcome" }
