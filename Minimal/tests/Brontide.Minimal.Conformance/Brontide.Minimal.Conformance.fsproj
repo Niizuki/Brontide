@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
     <ProjectReference Include="..\..\src\Brontide.Minimal.Kernel\Brontide.Minimal.Kernel.fsproj" />
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Experimental.PersistentInformation\Brontide.Minimal.Experimental.PersistentInformation.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConformanceTests.fs" />
@@ -19,6 +20,7 @@
     <Compile Include="Architecture08D2Tests.fs" />
     <Compile Include="Architecture08D3Tests.fs" />
     <Compile Include="Architecture08D4Tests.fs" />
+    <Compile Include="Architecture08D5Tests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

@@ -926,6 +926,32 @@ public sealed class AuthorityDomain
         return activity;
     }
 
+    internal Capability DelegateProviderAuthority(
+        ExecutionRecord execution,
+        Capability providerAuthority,
+        IEnumerable<Constraint> addedConstraints)
+    {
+        ArgumentNullException.ThrowIfNull(execution);
+        ArgumentNullException.ThrowIfNull(providerAuthority);
+        ArgumentNullException.ThrowIfNull(addedConstraints);
+        lock (_gate)
+        {
+            if (!CapabilityBelongs(providerAuthority))
+            {
+                throw new BrontideDenialException("Provider authority is not registered by this authority domain.");
+            }
+
+            if (!ReferenceEquals(providerAuthority.Holder, execution.Target) ||
+                !ReferenceEquals(providerAuthority.Target, execution.Target))
+            {
+                throw new BrontideDenialException(
+                    "Provider authority must be held by and target the creating provider.");
+            }
+
+            return providerAuthority.Delegate(execution.Initiator, addedConstraints.ToArray());
+        }
+    }
+
     private void EnsureOriginAuthority(
         ActorReference emitter,
         OriginClass origin,

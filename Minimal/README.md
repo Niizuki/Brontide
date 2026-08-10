@@ -43,7 +43,9 @@ implemented/declined recognition evidence, exact authority value Shape/version c
 additive payload projection. Its six C9/C8 vectors pass independently. A08-D4 adds Minimal-owned
 liveness leases and immutable occurrence-pooled execution-rate bookkeeping across resolved
 Capability ancestry; denials consume nothing and unenforceable vocabulary scopes remain declined.
-Its six C1/C5 vectors pass independently. A08-D5 is the next proposed slice. The retained
+Its six C1/C5 vectors pass independently. A08-D5 now preflights provider-held Dataset-space
+authority, runs the creating Draft-0.8 transition, and returns an immutable World containing the
+requester's constrained derived Capability. Both C10 vectors pass independently. A08-D6 is next. The retained
 [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json)
 matrix is detailed test evidence, not the source of the implementation target and not a claim that
 the remaining Architecture 0.7 work is implemented.
@@ -67,7 +69,8 @@ The implementation currently provides:
   effective values and provenance, holding no source, and restoring without reselection;
 - a separate experimental Persistent Information component with opaque Corpus/Dataset/Store/Router
   identities, result-valued boundary failures, Store-independent Dataset identity, and Router-owned
-  guarantees over deterministic in-memory backing Stores;
+  guarantees over deterministic in-memory backing Stores, plus provider resource-Capability
+  issuance coordinated with the Minimal Kernel's immutable Draft-0.8 transition;
 - deterministic CPU imaging, boxed application boundaries, provider opposition and selection
   explanations, and visible optimisation eligibility;
 - a tagged JSON ShapeValue codec and versioned external manifest negotiation;

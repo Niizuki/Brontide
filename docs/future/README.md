@@ -16,8 +16,9 @@ first-class declarations, deterministic implemented/declined recognition sets, s
 non-projecting Constraint values, and retained additive payload projection. All six C9/C8 vectors
 execute independently in both stacks. A08-D4 has now delivered complete-chain liveness evaluation,
 occurrence-pooled Base execution-rate accounting, denial-silent bookkeeping, and fail-closed
-declared scopes across all six C1/C5 vectors. A08-D5 is next and requires separate authorization for
-provider resource-Capability issuance by derivation. The
+declared scopes across all six C1/C5 vectors. A08-D5 has now delivered provider
+resource-Capability issuance by constrained Delegation across both C10 vectors. A08-D6 is next and
+requires separate authorization for attributable Terminus and authority disposition. The
 hash-pinned 0.7 matrices still await review retargeting; no whole-Architecture 0.8 implementation or
 ratification is implied.
 

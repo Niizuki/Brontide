@@ -14,6 +14,12 @@ Register Dataset creation through `AuthorityDomain`, then call `DatasetRegistry.
 authorised handler with the initiating Actor and Operation. Reads and appends address the typed
 Dataset and Store-role identities and repeat the Corpus's declared concurrency mode.
 
+For Architecture 0.8 D5 issuance, declare `DatasetAuthorityConstraint.Declaration`, give the
+provider a Dataset-space-constrained Capability for resource Operations, and call
+`DatasetRegistry.IssueWithAuthority` from the authorized creating handler. The returned resource
+Capability is an ordinary Delegation to the requester; an exceeded provider scope is refused before
+the Dataset or Capability is added.
+
 A `RouterEndpoint` exposes only its own declared guarantees. Call `Describe(true)` only behind
 management authority; a confidential Router still redacts backing identity. The in-memory endpoint
 proves semantic persistence only for its lifetime. Crash recovery, transactions, migration, and

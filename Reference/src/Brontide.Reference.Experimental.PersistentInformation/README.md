@@ -4,6 +4,7 @@ Designed for Brontide Architecture 0.7 sections 12, 18.2, and 21.1, Complete Dra
 
 This independently consumable experimental component implements the R4 evidence slice: Opaque
 Corpus declarations, typed Dataset and Store-role identity, attributable Dataset issuance records,
+provider-owned Dataset-space Constraints and resource-Capability issuance by Delegation,
 single-writer Dataset operations, deterministic in-memory Store endpoints, and Router-owned logical
 endpoint guarantees with bounded fallback and topology redaction.
 

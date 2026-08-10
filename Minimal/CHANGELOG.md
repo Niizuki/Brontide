@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 A08-D5 experimental runtime
+
+### Added
+
+- A Dataset-authority declaration and immutable issuance coordinator that returns both the Dataset
+  record and a requester Capability derived from provider authority.
+- Minimal-native execution of both A08-D5 C10 vectors and all three phase properties.
+
+### Changed
+
+- The Persistent Information experiment now integrates with `World.stepDraft08`, while Model and
+  Kernel remain free of Dataset-specific concepts.
+- Complete provider ancestry is resolved before creation; any exceeded Dataset-space Constraint
+  refuses without handler, registry, Store, or Capability effects.
+
 ## Unreleased - Architecture 0.8 A08-D4 experimental runtime
 
 ### Added

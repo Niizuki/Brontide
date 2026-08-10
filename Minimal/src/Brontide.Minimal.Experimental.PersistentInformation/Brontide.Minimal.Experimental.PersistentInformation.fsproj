@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
+    <ProjectReference Include="..\Brontide.Minimal.Kernel\Brontide.Minimal.Kernel.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PersistentInformation.fs" />

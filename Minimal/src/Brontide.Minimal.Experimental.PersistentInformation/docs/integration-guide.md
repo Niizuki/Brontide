@@ -15,5 +15,10 @@ Dataset identity, role identity, and declared concurrency mode. A `RouterEndpoin
 logical Store endpoint; its guarantee set is its own declaration, and backing identity is visible
 only to authorised management when the Router policy is non-confidential.
 
+For Architecture 0.8 D5 issuance, register `DatasetAuthority.constraintDeclaration`, give the
+provider a `spaceRequirement`, and use `DatasetRegistry.IssueWithAuthority`. It preflights the
+complete provider chain, runs `World.stepDraft08`, then returns the Dataset, derived requester
+Capability, and next immutable `World` as one successful coordinator result.
+
 The endpoint is intentionally in-memory. Durable media, restart recovery, transactions, migration,
 and deletion remain out of scope.
