@@ -2,7 +2,7 @@
 
 Status: Complete experimental programme retained at its evidence-pinned path
 Implementation state: CM0-CM6 are implemented and tested independently in both stacks.
-Designed for: [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §18.1, §19,
+Designed for: [Brontide Architecture 0.8](../../current/architecture/Brontide-Architecture-0.8.md) §18.1, §19,
 §20.1, §24, and §33, Complete Draft, not ratified
 Design source:
 [Component Management and Distribution](./Brontide-Design-Note-Component-Management-0.1.md)

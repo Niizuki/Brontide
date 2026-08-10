@@ -10,8 +10,8 @@ with its classification and repinned every dependent evidence path.
 - **Current** documents describe implemented behavior, the architecture currently used as an
   implementation target, or an operationally authoritative repository policy.
 - **Future** documents describe planned, draft, work-in-progress, proposed, or otherwise
-  unimplemented work. “Current architecture” does not mean “currently implemented”; Architecture
-  0.8 therefore remains a future implementation direction.
+  unimplemented work. The hash-pinned pre-implementation Architecture 0.8 snapshot remains at its
+  former future path only as closed review evidence; the implemented current copy is under `current`.
 - **Temporary** documents coordinate a bounded programme and state their own deletion gate. They
   are not architecture and must not be cited as permanent completion evidence.
 - **Archive** documents preserve superseded architecture, executed plans, and completed programmes.
@@ -27,8 +27,11 @@ with its classification and repinned every dependent evidence path.
 
 - [`Brontide-Architecture-Status.json`](../Brontide-Architecture-Status.json) selects the current and
   latest ratified architecture; do not infer either from filenames.
-- [`Brontide-Architecture-0.7.md`](./current/architecture/Brontide-Architecture-0.7.md) remains the locally declared
-  implementation target for both stacks.
+- [`Brontide-Architecture-0.8.md`](./current/architecture/Brontide-Architecture-0.8.md) is the locally
+  declared implementation target for both stacks. Its Complete Draft implementation evidence does
+  not constitute ratification.
+- [`Brontide-Architecture-0.7.md`](./current/architecture/Brontide-Architecture-0.7.md) is retained
+  historical compatibility evidence.
 - [`Brontide-Architecture-Change-History.md`](./current/architecture/Brontide-Architecture-Change-History.md) is the
   maintained cross-version history.
 

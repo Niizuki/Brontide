@@ -3,7 +3,7 @@
 ## Design Note: Component Management and Distribution
 
 **Status:** Work-in-progress design note, version 0.1
-**Current architecture context:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md),
+**Current architecture context:** [Brontide Architecture 0.8](../../current/architecture/Brontide-Architecture-0.8.md),
 §18.1, §24, §28, and §33
 **Related direction:** [Composition and Components](../composition/Brontide-Design-Note-Composition-0.1.md)
 

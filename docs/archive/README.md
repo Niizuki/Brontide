@@ -13,7 +13,8 @@ Architecture 0.5 and everything earlier are grouped under [`foundation/`](./foun
 
 ## Later areas
 
-- [`architecture/`](./architecture/) contains Architecture 0.6.
+- [`architecture/`](./architecture/) contains Architecture 0.6 plus the completed Architecture 0.8
+  handoff, delivery audit, D1-D6 completeness reviews, and closure history.
 - [`interchange/`](./interchange/) contains the completed experimental interchange programme.
 - [`corrections/`](./corrections/) contains the implementation-correction completion report.
 

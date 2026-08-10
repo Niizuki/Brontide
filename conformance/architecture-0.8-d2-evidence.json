@@ -6,7 +6,7 @@
   "evidenceStatus": "executed-experimental-breaking",
   "stackTargetsRemain": "Architecture 0.7",
   "contract": "conformance/architecture-0.8-d2-behavioral-contract.md",
-  "migration": "docs/future/architecture/architecture-0.8-d2-breaking-migration.md",
+  "migration": "docs/current/architecture/architecture-0.8-d2-breaking-migration.md",
   "capabilities": ["D2-C1", "D2-C2", "D2-C3", "D2-C4", "D2-C5"],
   "vectors": [
     {

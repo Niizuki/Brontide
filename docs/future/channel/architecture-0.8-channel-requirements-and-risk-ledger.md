@@ -9,12 +9,12 @@ Draft semantic contract: [Draft Channel Contract 0.1](./Brontide-Draft-Channel-C
 Shared vectors: [Channel 0.1 conformance vectors](../../../conformance/channel-0.1-vectors.json).
 Evidence base: the retained Cooling and Catalog interchange proofs governed by the
 [Reference/Minimal Interchange Implementation Plan 0.1](../../archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
-Architecture context: [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §6.16, §8,
+Architecture context: [Brontide Architecture 0.8](../../current/architecture/Brontide-Architecture-0.8.md) §6.16, §8,
 §13.6, §16.4, §19, §24, §33, §35.1.
 
 This ledger is the Channel-specific first-stage artifact called for by Reference R6 and Minimal M6.
 The full C1-C14 handoff register incorporates it by reference in
-[`architecture-0.8-handoff-requirements-and-risk-ledger.md`](../architecture/architecture-0.8-handoff-requirements-and-risk-ledger.md).
+[`architecture-0.8-handoff-requirements-and-risk-ledger.md`](../../archive/architecture/architecture-0.8-handoff-requirements-and-risk-ledger.md).
 This ledger exists so that the `Channel` extension's open questions are tracked before a wire format
 or realisation freezes them (§6.8, §35.1). Completing an item here creates a decision or a piece of
 evidence for review; it does not by itself ratify Channel or authorise implementation.

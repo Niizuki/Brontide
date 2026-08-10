@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $vectorPath = Join-Path $repositoryRoot 'conformance\architecture-0.8-adversarial-vectors.json'
-$ledgerPath = Join-Path $repositoryRoot 'docs\future\architecture\architecture-0.8-handoff-requirements-and-risk-ledger.md'
+$ledgerPath = Join-Path $repositoryRoot 'docs\archive\architecture\architecture-0.8-handoff-requirements-and-risk-ledger.md'
 $referenceNotePath = Join-Path $repositoryRoot 'Reference\docs\architecture-0.8-handoff-implementation-notes.md'
 $minimalNotePath = Join-Path $repositoryRoot 'Minimal\docs\architecture-0.8-handoff-implementation-notes.md'
 

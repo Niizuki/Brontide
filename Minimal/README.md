@@ -2,14 +2,13 @@
 
 Brontide Minimal Stack is the independent F# implementation and headless counterpoint.
 
-**Designed for:** [Brontide Architecture 0.7](../docs/current/architecture/Brontide-Architecture-0.7.md)
+**Designed for:** [Brontide Architecture 0.8](../docs/current/architecture/Brontide-Architecture-0.8.md), Complete Draft, not ratified
 
 **Status:** Partial implementation with explicitly labelled experiments
 
-This target states the architecture revision against which the stack was devised. The implemented
-surface and known limitations are described here and exercised by the solution tests. Focused
-experimental projects may state a later target locally; in particular, Component Management is
-designed against Architecture 0.8 without changing the stack-wide target.
+This target states the architecture revision against which the stack is currently devised. The
+implemented surface and known limitations are described here and exercised by the solution tests.
+It is an implementation target and evidence claim, not architecture ratification.
 
 Minimal lives beside Brontide Reference Stack but does not reference Reference assemblies or reuse
 Reference CLR types; the implementations support, challenge, and eventually substitute for one
@@ -49,7 +48,9 @@ requester's constrained derived Capability. Both C10 vectors pass independently.
 an immutable World with attributable Terminus occurrences, retired identities, extinguished
 liveness-scoped chains, and immortal outbound grants retaining their grantor ancestry. All three
 C12 vectors and the phase property pass independently. The six-slice runtime queue is complete;
-0.8 closure and retargeting remain separately authorized. The retained
+Architecture 0.8 is now the stack-wide implementation target. The retained 0.7 entry points and
+matrices remain historical compatibility evidence; neither this target nor the Complete Draft
+implementation evidence ratifies 0.8. The retained
 [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json)
 matrix is detailed test evidence, not the source of the implementation target and not a claim that
 the remaining Architecture 0.7 work is implemented.

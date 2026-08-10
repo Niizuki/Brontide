@@ -3,7 +3,7 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $canonicalPath = Join-Path $repositoryRoot 'conformance\architecture-0.8-adversarial-vectors.json'
 $evidencePath = Join-Path $repositoryRoot 'conformance\architecture-0.8-d5-evidence.json'
 $contractPath = Join-Path $repositoryRoot 'conformance\architecture-0.8-d5-behavioral-contract.md'
-$reviewPath = Join-Path $repositoryRoot 'docs\future\architecture\architecture-0.8-d5-completeness-review.md'
+$reviewPath = Join-Path $repositoryRoot 'docs\archive\architecture\architecture-0.8-d5-completeness-review.md'
 function Assert-True([bool]$Condition, [string]$Message) { if (-not $Condition) { throw $Message } }
 function Assert-Equal($Expected, $Actual, [string]$Message) { if ($Expected -ne $Actual) { throw "$Message Expected '$Expected', found '$Actual'." } }
 function Assert-Anchor([object]$Evidence, [string]$Label) {

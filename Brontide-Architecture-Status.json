@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "currentArchitecture": {
     "revision": "0.8",
-    "status": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
-    "path": "docs/future/architecture/Brontide-Architecture-0.8.md",
-    "sha256": "B0FD7F69D6E7A1881FBD71D9365F7E88B2CE4F72C0B7C2B137E78607CD208E98"
+    "status": "Complete Draft (document and implementation evidence complete; not ratified)",
+    "path": "docs/current/architecture/Brontide-Architecture-0.8.md",
+    "sha256": "6D844F5FA4D0D3CF09188765A912A13B30889A6ED1F232A28351F179016A8B2F"
   },
   "latestRatifiedArchitecture": {
     "revision": null,
@@ -23,51 +23,53 @@
   "implementations": [
     {
       "stack": "Reference",
+      "designedFor": "0.8",
       "implementationMatrix": {
         "path": "Reference/conformance/architecture-0.5.json",
         "sha256": "F7581CCABABDD528F2A56E898902AFEC4930C82EC4A02C6FB4B554F4A43691A7"
       },
       "currentDelivery": {
         "requirements": {
-          "path": "conformance/architecture-0.7-requirements.json",
-          "sha256": "F8C2B9F3D0B3DA280EF5CF8E62A096DB693F1BF70B66252BB90EF0EE9B810DF9"
+          "path": "conformance/architecture-0.8-requirements.json",
+          "sha256": "B4D0B9532C379DCB236F5A3315B749A8452F0F8DE78A4D3227CA7F9EE914F756"
         },
         "matrix": {
-          "path": "Reference/conformance/architecture-0.7.json",
-          "sha256": "C0FCA1AE7583AF83E4A7F552B754D8CB9E6C6D49F600DD9032596B9437AE0A1C"
+          "path": "Reference/conformance/architecture-0.8.json",
+          "sha256": "B3F6EC509F9354BBF9FF90CA884C1B5B323B9CFBEE0AD34A608EB967DC23C63D"
         },
         "plan": {
-          "path": "Reference/docs/future/Brontide-Reference-Stack-Implementation-Plan-0.3.md",
-          "sha256": "29B321459C4CA1991C50EB1403305C6510F2A84FB3CA7613C6D5482D12DFF9CE"
+          "path": "Reference/README.md",
+          "sha256": "4FA7C85CF3DD67BFBECBC42819E1B28F5B4C0437A1EE0B39EEECA67542FFBE91"
         },
         "ledger": {
-          "path": "Reference/docs/architecture-0.7-delivery.md",
-          "sha256": "9CB4A4A7021ACE76E9F0F44659FBC25563D7BCF981D440CE7F047B7F14F9D9B7"
+          "path": "Reference/docs/milestone-evidence.md",
+          "sha256": "7FCD9841268266CD6938440A8981E0964D67A9091F6F39A00A06354D0135F2D0"
         }
       }
     },
     {
       "stack": "Minimal",
+      "designedFor": "0.8",
       "implementationMatrix": {
         "path": "Minimal/conformance/architecture-0.5.json",
         "sha256": "7E36831300C539E6A651765C563722EA0BA346500B01EB54C5EE11CE7AE83517"
       },
       "currentDelivery": {
         "requirements": {
-          "path": "conformance/architecture-0.7-requirements.json",
-          "sha256": "F8C2B9F3D0B3DA280EF5CF8E62A096DB693F1BF70B66252BB90EF0EE9B810DF9"
+          "path": "conformance/architecture-0.8-requirements.json",
+          "sha256": "B4D0B9532C379DCB236F5A3315B749A8452F0F8DE78A4D3227CA7F9EE914F756"
         },
         "matrix": {
-          "path": "Minimal/conformance/architecture-0.7.json",
-          "sha256": "DAF46C01D3392CA1B0C1694462EA0F0DA9CAB9B0706577C877CC1EF1C80C706F"
+          "path": "Minimal/conformance/architecture-0.8.json",
+          "sha256": "2A2DAD3C4A429ADD07FE7EE5F98461F32072E0BBA0A948B4B8F5D3E034F79C02"
         },
         "plan": {
-          "path": "Minimal/docs/future/Brontide-Minimal-Stack-Implementation-Plan-0.3.md",
-          "sha256": "1806121FA1964754742CF666B27F5E06314A48BF7996F9296592A15C9DB8E9DD"
+          "path": "Minimal/README.md",
+          "sha256": "C59AFAB6D6575638C2D116A0969B92A57A0357DE545F7220701131CA148C2A6B"
         },
         "ledger": {
-          "path": "Minimal/docs/architecture-0.7-delivery.md",
-          "sha256": "18070D8D95BAC4B56BA2FBE857EF0B20A516DA4EFCB48D02DD2407386473CAD2"
+          "path": "Minimal/docs/milestone-evidence.md",
+          "sha256": "F50CEEB6DE9949258B2B54F8A99B1265821AEAA2904518D6FA4F057849A34EF9"
         }
       }
     }

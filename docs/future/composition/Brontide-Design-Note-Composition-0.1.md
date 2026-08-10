@@ -5,7 +5,7 @@
 **Status:** Work-in-progress design note, version 0.1
 **Originally extracted from:** Brontide Architecture 0.6, §18.1
 
-**Current architecture context:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md),
+**Current architecture context:** [Brontide Architecture 0.8](../../current/architecture/Brontide-Architecture-0.8.md),
 §18.1; the current architecture document retains a summary section under the same number. Staged
 acquisition and generation management are expanded in
 [Component Management](../component-management/Brontide-Design-Note-Component-Management-0.1.md). The broader Environment,

@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 closure and retargeting
+
+### Changed
+
+- Retarget the stack-wide `Designed for` declaration and current-delivery evidence from Architecture
+  0.7 to the implemented Architecture 0.8 Complete Draft.
+- Add an aggregate C1-C14 current-delivery matrix covering all 33 runtime vectors while retaining
+  the former 0.7 matrix as immutable historical evidence.
+- Preserve the explicit `not ratified` boundary; this changes implementation claims, not architecture
+  ratification or standard vocabulary.
+
 ## Unreleased - Architecture 0.8 A08-D6 experimental runtime
 
 ### Added

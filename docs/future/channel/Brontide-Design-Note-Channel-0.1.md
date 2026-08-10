@@ -3,7 +3,7 @@
 ## Design Note: Channel
 
 **Status:** Work-in-progress design note, version 0.1; not ratified, not Brontide Base.
-**Current architecture context:** [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md),
+**Current architecture context:** [Brontide Architecture 0.8](../../current/architecture/Brontide-Architecture-0.8.md),
 especially §6.16, §8, §13.6, §16.4, §19, §24, §33, and §35.1.
 **Evidence base:** the retained Cooling and Catalog interchange proofs, each implemented
 independently in the Reference (C#) and Minimal (F#) stacks and crossing a real process boundary,

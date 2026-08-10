@@ -2,14 +2,13 @@
 
 Brontide Reference Stack is the independent .NET 10 / Avalonia implementation and showcase.
 
-**Designed for:** [Brontide Architecture 0.7](../docs/current/architecture/Brontide-Architecture-0.7.md)
+**Designed for:** [Brontide Architecture 0.8](../docs/current/architecture/Brontide-Architecture-0.8.md), Complete Draft, not ratified
 
 **Status:** Partial implementation with explicitly labelled experiments
 
-This target states the architecture revision against which the stack was devised. The implemented
-surface and known limitations are described here and exercised by the solution tests. Focused
-experimental projects may state a later target locally; in particular, Component Management is
-designed against Architecture 0.8 without changing the stack-wide target.
+This target states the architecture revision against which the stack is currently devised. The
+implemented surface and known limitations are described here and exercised by the solution tests.
+It is an implementation target and evidence claim, not architecture ratification.
 
 Architecture 0.7 R1-R5 now have Reference-native Complete Draft implementation evidence for recursive three-state
 Constraint expressions, fail-closed authority evaluation, experimental Composition selection, and
@@ -46,7 +45,9 @@ before Dataset or Capability effects. Both C10 vectors pass independently. A08-D
 attributable, enumerable Terminus under an explicit disposition policy: held authority ends,
 immortal outbound grants survive with retained grantor identity, and liveness-scoped grants plus
 their descendants end immediately. All three C12 vectors and the phase property pass independently.
-The six-slice runtime queue is complete; 0.8 closure and retargeting remain separately authorized.
+The six-slice runtime queue and its closure are complete, so Architecture 0.8 is now the stack-wide
+implementation target. The retained 0.7 entry points and matrices remain historical compatibility
+evidence; neither this target nor the Complete Draft implementation evidence ratifies 0.8.
 The retained [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json) matrix is
 detailed test evidence, not the source of the implementation target and not a claim that the
 remaining Architecture 0.7 work is implemented.

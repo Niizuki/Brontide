@@ -1,6 +1,6 @@
 # Brontide Minimal Stack milestone evidence
 
-Designed for: [Brontide Architecture 0.7](../../docs/current/architecture/Brontide-Architecture-0.7.md)
+Designed for: [Brontide Architecture 0.8](../../docs/current/architecture/Brontide-Architecture-0.8.md), Complete Draft, not ratified
 
 The mechanically checked source for Architecture 0.5 requirement status is
 [`../conformance/architecture-0.5.json`](../conformance/architecture-0.5.json). This document is the
@@ -37,7 +37,9 @@ executes both C10 vectors through provider-scope preflight, the Draft-0.8 transi
 Capability derivation recorded in the returned World. A08-D6 executes all three C12 vectors and its
 phase property through an immutable attributable Terminus transition, retained immortal-grant
 ancestry, and immediate liveness-chain extinction. The six-slice runtime queue is complete without
-changing the Designed-for 0.7 target or pinned matrices.
+changing runtime behavior. The closure phase now makes 0.8 the current implementation target through
+[`../conformance/architecture-0.8.json`](../conformance/architecture-0.8.json); the pinned 0.7 matrix
+is retained unchanged as historical evidence, and no ratification claim follows.
 
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
@@ -62,6 +64,7 @@ and executes M6 in both host directions. Both protocols remain experimental test
 | Architecture 0.8 delivery audit | Complete inventory-only evidence | Shared 14-requirement inventory, Minimal-owned candidate/conflict/missing matrix, DA1-DA6 contract, completeness review, and six-slice runtime queue; all runtime vectors remain unaccepted and the stack target remains 0.7. |
 | Architecture 0.8 A08-D1 | Green experimental Complete-Draft evidence | Minimal-native structural strong-Kleene evaluation, explicit `World.stepDraft08`, Definition selection assessments, five-item contract, and 11 named C7/C3/C4 vectors; ordinary 0.7 poisoning entry points remain green. |
 | Architecture 0.8 A08-D2-D6 | Green experimental Complete-Draft evidence | Default-on constrained Delegation, first-class Constraint declarations/evolution, liveness and pooled accounting, provider-derived Dataset authority, and attributable Terminus across the remaining 21 runtime vectors; closure and retargeting remain separate. |
+| Architecture 0.8 closure | Current implementation target; not ratified | Shared C1-C14 requirements, Minimal-owned aggregate current-delivery matrix, all 33 runtime vectors, and registry-aligned target declaration; 0.7 remains retained historical evidence. |
 
 ## Executable suites
 

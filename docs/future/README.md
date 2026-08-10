@@ -1,27 +1,15 @@
 # Future work
 
-Architecture 0.7 R1-R5/M1-M5 code and finite cross-process comparison evidence are now delivered in
-both stacks. R6/M6's non-runtime Architecture 0.8 handoff is also complete through the
-[C1-C14 requirements/risk ledger](./architecture/architecture-0.8-handoff-requirements-and-risk-ledger.md),
-its completeness review, and separate stack representation-ceiling notes. The separately authorized
-[Architecture 0.8 delivery audit](./architecture/architecture-0.8-delivery-audit-report.md) now
-classifies each stack independently, keeps its audit snapshot unaccepted, and proposes six bounded
-runtime slices. A08-D1 is now delivered as explicit experimental Draft-0.8 entry points in both
-stacks: structural strong-Kleene evaluation, instantaneous authorization, and full-chain conjunction
-pass all 11 C7/C3/C4 vectors while the ordinary 0.7 poisoning paths remain tested. A08-D2 delivered
-the authorized breaking migration: delegability is default-on, depth restrictions
-are ordinary conjoined Constraints, and every derivation adds an `Origin.Derived` ceiling. All four
-C6/C2 vectors plus the phase-wide property execute in both stacks. A08-D3 has now delivered
-first-class declarations, deterministic implemented/declined recognition sets, strict
-non-projecting Constraint values, and retained additive payload projection. All six C9/C8 vectors
-execute independently in both stacks. A08-D4 has now delivered complete-chain liveness evaluation,
-occurrence-pooled Base execution-rate accounting, denial-silent bookkeeping, and fail-closed
-declared scopes across all six C1/C5 vectors. A08-D5 has now delivered provider
-resource-Capability issuance by constrained Delegation across both C10 vectors. A08-D6 has now
-delivered attributable Terminus with explicit held, immortal-outbound, liveness-scoped, and stable
-reference dispositions across all three C12 vectors. The six authorized runtime slices are
-complete. The hash-pinned 0.7 matrices still await review retargeting, and stack-wide 0.8 closure,
-status changes, and ratification require separate authorization.
+Architecture 0.8 is now the Complete Draft implementation target for both stacks. The implemented
+C1-C14 delivery inventory, all 33 runtime vectors, and the completed D1-D6 programme are indexed by
+the current stack matrices and archived architecture evidence. Architecture 0.7 remains retained
+historical compatibility evidence. Architecture 0.8 is not ratified; formal ratification and
+standard-vocabulary freezing remain separate decisions.
+
+The exact pre-implementation Architecture 0.8 document remains at
+[`architecture/Brontide-Architecture-0.8.md`](./architecture/Brontide-Architecture-0.8.md) solely as
+a hash-pinned snapshot for the closed implementation-correction review. The implemented current
+copy is [under `docs/current`](../current/architecture/Brontide-Architecture-0.8.md).
 
 This directory is the authoritative entry point for planned, draft, proposed, work-in-progress, or
 otherwise unimplemented work. A document belongs here even when it is the “current architecture” if
@@ -1482,7 +1470,7 @@ Decision 13 still blocks every activation of a CM3 group that declares a bounded
 
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
-| Architecture 0.8 | [`Brontide-Architecture-0.8.md`](./architecture/Brontide-Architecture-0.8.md) | Complete draft; implementation evidence pending; not ratified. |
+| Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
 | Channel | [`Channel Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Cooling/Catalog evidence exists; reusable Channel realization remains planned. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
