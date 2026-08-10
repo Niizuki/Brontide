@@ -69,6 +69,13 @@ public sealed class DurableProviderRestartAttemptJournal
         this.state = state;
     }
 
+    /// <summary>
+    /// The resolved path this journal was opened at. CBI54 derives its ownership path from this and
+    /// compares it again before driving a transition: a lease acquired for one journal must not fence
+    /// a different journal that happens to carry the same lineage identities.
+    /// </summary>
+    public string Path => path;
+
     public ProviderRestartAttemptJournalSnapshot Snapshot
     {
         get { lock (sync) return Project(state); }
@@ -84,7 +91,7 @@ public sealed class DurableProviderRestartAttemptJournal
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         ArgumentNullException.ThrowIfNull(policy);
         ValidateIdentities(runIdentity, occurrence, stagedIdentity);
-        path = Path.GetFullPath(path);
+        path = System.IO.Path.GetFullPath(path);
         TryDelete(path + ".tmp");
         if (File.Exists(path)) return new("durable-restart-already-exists", null);
         var value = new JournalState
@@ -109,7 +116,7 @@ public sealed class DurableProviderRestartAttemptJournal
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         ValidateIdentities(runIdentity, occurrence, stagedIdentity);
-        path = Path.GetFullPath(path);
+        path = System.IO.Path.GetFullPath(path);
         TryDelete(path + ".tmp");
         if (!File.Exists(path)) return new("durable-restart-missing", null);
         if (!TryRead(path, out var value)) return new("durable-restart-corrupt", null);
@@ -303,7 +310,7 @@ public sealed class DurableProviderRestartAttemptJournal
         var temporary = path + ".tmp";
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
             var record = JsonSerializer.SerializeToUtf8Bytes(value);
             if (record.Length + TagBytes > MaxBytes) return false;
             using var output = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough);

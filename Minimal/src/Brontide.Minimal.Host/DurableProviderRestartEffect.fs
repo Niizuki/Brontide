@@ -336,7 +336,7 @@ module ExternallyReconciledProviderRestartRecovery =
         if isNull (box ownership) then nullArg (nameof ownership)
         if isNull (box journal) then nullArg (nameof journal)
         let initial = journal.Snapshot
-        let! held = ownership.TryEnterAsync initial
+        let! held = ownership.TryEnterAsync journal
         match held with
         | None -> return result "restart-ownership-required" None initial ownership.Snapshot.Epoch false false
         | Some lease ->
@@ -355,7 +355,7 @@ module ExternallyReconciledProviderRestartRecovery =
         if isNull (box ownership) then nullArg (nameof ownership)
         if isNull (box journal) then nullArg (nameof journal)
         let initial = journal.Snapshot
-        let! held = ownership.TryEnterAsync initial
+        let! held = ownership.TryEnterAsync journal
         match held with
         | None -> return { Code = "restart-ownership-required"; Snapshot = initial; Decision = None; Enforcement = None }
         | Some lease ->

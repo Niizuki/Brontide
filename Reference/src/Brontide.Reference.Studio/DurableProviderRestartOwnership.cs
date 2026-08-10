@@ -56,13 +56,16 @@ public sealed class DurableProviderRestartOwnership : IDisposable
     private const int TagBytes = 32;
     private readonly SemaphoreSlim gate = new(1, 1);
     private readonly FileStream lockStream;
+    private readonly string journalPath;
     private readonly string statePath;
     private readonly OwnershipState state;
     private bool disposed;
 
-    private DurableProviderRestartOwnership(FileStream lockStream, string statePath, OwnershipState state)
+    private DurableProviderRestartOwnership(
+        FileStream lockStream, string journalPath, string statePath, OwnershipState state)
     {
         this.lockStream = lockStream;
+        this.journalPath = journalPath;
         this.statePath = statePath;
         this.state = state;
     }
@@ -70,17 +73,26 @@ public sealed class DurableProviderRestartOwnership : IDisposable
     public ProviderRestartOwnershipSnapshot Snapshot => Project(
         state, !disposed && !lockStream.SafeFileHandle.IsClosed, "restart-ownership-current");
 
+    /// <summary>The journal path this lease was acquired for. A lease fences exactly the journal it names.</summary>
+    public string JournalPath => journalPath;
+
+    /// <summary>
+    /// <paramref name="journalPath"/> is the CBI53 journal this lease fences, not a free ownership
+    /// path. The lock path is derived from it so that two hosts coordinating one journal cannot pick
+    /// two different lock files and exclude nobody; one journal has exactly one ownership path.
+    /// </summary>
     public static ProviderRestartOwnershipAcquireResult Acquire(
-        string path,
+        string journalPath,
         ProviderRestartOwnerId owner,
         ProviderRestartOwnershipLeaseId lease,
         ProviderRestartAttemptRunId runIdentity,
         Brontide.Reference.Experimental.ComponentManagement.OccurrenceId occurrence,
         ProviderArtifactSetId stagedIdentity)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentException.ThrowIfNullOrWhiteSpace(journalPath);
         Validate(owner, lease, runIdentity, occurrence, stagedIdentity);
-        var lockPath = Path.GetFullPath(path);
+        var resolvedJournalPath = Path.GetFullPath(journalPath);
+        var lockPath = resolvedJournalPath + ".ownership";
         var statePath = lockPath + ".state";
         try
         {
@@ -137,18 +149,18 @@ public sealed class DurableProviderRestartOwnership : IDisposable
             held.Dispose();
             return new("restart-ownership-write-failed", null, prior is null ? null : Project(prior, false, "restart-ownership-observed"));
         }
-        var ownership = new DurableProviderRestartOwnership(held, statePath, next);
+        var ownership = new DurableProviderRestartOwnership(held, resolvedJournalPath, statePath, next);
         return new("restart-ownership-acquired", ownership, ownership.Snapshot);
     }
 
     public static ProviderRestartOwnershipInspection Inspect(
-        string path,
+        string journalPath,
         ProviderRestartAttemptRunId runIdentity,
         Brontide.Reference.Experimental.ComponentManagement.OccurrenceId occurrence,
         ProviderArtifactSetId stagedIdentity)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        var statePath = Path.GetFullPath(path) + ".state";
+        ArgumentException.ThrowIfNullOrWhiteSpace(journalPath);
+        var statePath = Path.GetFullPath(journalPath) + ".ownership.state";
         if (!File.Exists(statePath)) return new("restart-ownership-missing", null);
         if (!TryRead(statePath, out var value)) return new("restart-ownership-corrupt", null);
         if (!Matches(value, runIdentity, occurrence, stagedIdentity))
@@ -156,7 +168,7 @@ public sealed class DurableProviderRestartOwnership : IDisposable
         return new("restart-ownership-observed", Project(value, false, "restart-ownership-observed"));
     }
 
-    public bool IsCurrentFor(ProviderRestartAttemptJournalSnapshot journal)
+    public bool IsCurrentFor(DurableProviderRestartAttemptJournal journal)
     {
         ArgumentNullException.ThrowIfNull(journal);
         gate.Wait();
@@ -164,7 +176,7 @@ public sealed class DurableProviderRestartOwnership : IDisposable
         finally { gate.Release(); }
     }
 
-    internal async ValueTask<IDisposable?> TryEnterAsync(ProviderRestartAttemptJournalSnapshot journal)
+    internal async ValueTask<IDisposable?> TryEnterAsync(DurableProviderRestartAttemptJournal journal)
     {
         await gate.WaitAsync().ConfigureAwait(false);
         if (!IsCurrent(journal))
@@ -175,18 +187,23 @@ public sealed class DurableProviderRestartOwnership : IDisposable
         return new GateRelease(gate);
     }
 
-    private bool IsCurrent(ProviderRestartAttemptJournalSnapshot journal)
+    // Lineage identities do not identify a journal: two journals can carry the same run, occurrence,
+    // and staged identity, and a copied journal file carries them by construction. The path is what
+    // distinguishes them, so it is compared alongside the identities rather than trusted.
+    private bool IsCurrent(DurableProviderRestartAttemptJournal journal)
     {
+        var snapshot = journal.Snapshot;
         if (disposed || lockStream.SafeFileHandle.IsClosed
-            || state.RunIdentity != journal.RunIdentity.Value
-            || state.Occurrence != journal.Occurrence.Value
-            || state.StagedIdentity != journal.StagedIdentity.Value)
+            || !string.Equals(journalPath, journal.Path, StringComparison.Ordinal)
+            || state.RunIdentity != snapshot.RunIdentity.Value
+            || state.Occurrence != snapshot.Occurrence.Value
+            || state.StagedIdentity != snapshot.StagedIdentity.Value)
             return false;
         return TryRead(statePath, out var current)
             && current.Epoch == state.Epoch
             && current.Owner == state.Owner
             && current.Lease == state.Lease
-            && Matches(current, journal.RunIdentity, journal.Occurrence, journal.StagedIdentity);
+            && Matches(current, snapshot.RunIdentity, snapshot.Occurrence, snapshot.StagedIdentity);
     }
 
     public void Dispose()
@@ -316,7 +333,7 @@ public static class CrossProcessProviderRestartRecovery
         ArgumentNullException.ThrowIfNull(ownership);
         ArgumentNullException.ThrowIfNull(journal);
         var snapshot = journal.Snapshot;
-        using var held = await ownership.TryEnterAsync(snapshot).ConfigureAwait(false);
+        using var held = await ownership.TryEnterAsync(journal).ConfigureAwait(false);
         if (held is null)
             return new("restart-ownership-required", snapshot, null, null);
         return await DurableProviderRestartRecovery.RunAsync(

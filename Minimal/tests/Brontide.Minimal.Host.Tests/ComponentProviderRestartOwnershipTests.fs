@@ -13,7 +13,11 @@ open Brontide.Minimal.Host
 type private RestartTemporaryOwnership() =
     let root = Path.Combine(Path.GetTempPath(), $"brontide-cbi54-{Guid.NewGuid():N}")
     member _.Root = root
-    member _.Path = Path.Combine(root, "restart.owner")
+    /// Ownership is acquired for a journal, so the journal path is what the tests name. The lock and
+    /// its state are derived from it rather than chosen, which is the property CBI54 C2 now rests on.
+    member _.JournalPath = Path.Combine(root, "restart.journal")
+    member this.LockPath = this.JournalPath + ".ownership"
+    member this.StatePath = this.LockPath + ".state"
     interface IDisposable with
         member _.Dispose() =
             let rec remove attempt =
@@ -70,39 +74,39 @@ type ComponentProviderRestartOwnershipTests() =
     [<Test>]
     member _.``CBI54 C1 ownership is bound to one restart lineage``() =
         use temporary = new RestartTemporaryOwnership()
-        let acquired = acquire temporary.Path "owner-a" "lease-a"
+        let acquired = acquire temporary.JournalPath "owner-a" "lease-a"
         (acquired.Ownership.Value :> IDisposable).Dispose()
-        let before = File.ReadAllBytes(temporary.Path + ".state")
+        let before = File.ReadAllBytes(temporary.StatePath)
         let mismatch = DurableProviderRestartOwnership.Acquire(
-            temporary.Path, ProviderRestartOwnerId.create "owner-a", ProviderRestartOwnershipLeaseId.create "lease-a",
+            temporary.JournalPath, ProviderRestartOwnerId.create "owner-a", ProviderRestartOwnershipLeaseId.create "lease-a",
             ProviderRestartAttemptRunId.create "restart-run.other", occurrence, staged)
         multiple (fun () ->
             Assert.That(acquired.Code, Is.EqualTo "restart-ownership-acquired")
             Assert.That(mismatch.Code, Is.EqualTo "restart-ownership-lineage-mismatch")
-            Assert.That(File.ReadAllBytes(temporary.Path + ".state"), Is.EqualTo(box before)))
+            Assert.That(File.ReadAllBytes(temporary.StatePath), Is.EqualTo(box before)))
 
     [<Test; Category("CrossProcess")>]
     member _.``CBI54 C2 one operating system owner excludes other processes``() = task {
         use temporary = new RestartTemporaryOwnership()
-        let acquired = acquire temporary.Path "owner-a" "lease-a"
-        let! blocked = probe "probe" temporary.Path
+        let acquired = acquire temporary.JournalPath "owner-a" "lease-a"
+        let! blocked = probe "probe" temporary.LockPath
         Assert.That(blocked, Is.EqualTo 74)
         (acquired.Ownership.Value :> IDisposable).Dispose()
-        let! available = probe "probe" temporary.Path
+        let! available = probe "probe" temporary.LockPath
         Assert.That(available, Is.Zero)
     }
 
     [<Test>]
     member _.``CBI54 C3 every acquisition advances an atomic durable fence``() =
         use temporary = new RestartTemporaryOwnership()
-        let first = acquire temporary.Path "owner-a" "lease-a"
+        let first = acquire temporary.JournalPath "owner-a" "lease-a"
         (first.Ownership.Value :> IDisposable).Dispose()
-        let before = File.ReadAllBytes(temporary.Path + ".state")
-        Directory.CreateDirectory(temporary.Path + ".state.tmp") |> ignore
-        let refused = acquire temporary.Path "owner-b" "lease-b"
-        let afterRefused = File.ReadAllBytes(temporary.Path + ".state")
-        Directory.Delete(temporary.Path + ".state.tmp")
-        let second = acquire temporary.Path "owner-b" "lease-b"
+        let before = File.ReadAllBytes(temporary.StatePath)
+        Directory.CreateDirectory(temporary.StatePath + ".tmp") |> ignore
+        let refused = acquire temporary.JournalPath "owner-b" "lease-b"
+        let afterRefused = File.ReadAllBytes(temporary.StatePath)
+        Directory.Delete(temporary.StatePath + ".tmp")
+        let second = acquire temporary.JournalPath "owner-b" "lease-b"
         multiple (fun () ->
             Assert.That(refused.Code, Is.EqualTo "restart-ownership-write-failed")
             Assert.That(afterRefused, Is.EqualTo(box before))
@@ -112,24 +116,51 @@ type ComponentProviderRestartOwnershipTests() =
     [<Test>]
     member _.``CBI54 C4 only the current live lease matches the journal``() =
         use temporary = new RestartTemporaryOwnership()
-        let journalPath = Path.Combine(temporary.Root, "restart.journal")
         let journal = DurableProviderRestartAttemptJournal.Establish(
-            journalPath, runIdentity, occurrence, staged,
+            temporary.JournalPath, runIdentity, occurrence, staged,
             ProviderRestartPolicy.create 2 (TimeSpan.FromMinutes 1.0)).Journal.Value
-        let before = File.ReadAllBytes journalPath
-        let ownership = (acquire temporary.Path "owner-a" "lease-a").Ownership.Value
-        Assert.That(ownership.IsCurrentFor journal.Snapshot, Is.True)
+        let before = File.ReadAllBytes temporary.JournalPath
+        let ownership = (acquire temporary.JournalPath "owner-a" "lease-a").Ownership.Value
+        Assert.That(ownership.IsCurrentFor journal, Is.True)
         (ownership :> IDisposable).Dispose()
         multiple (fun () ->
-            Assert.That(ownership.IsCurrentFor journal.Snapshot, Is.False)
-            Assert.That(File.ReadAllBytes journalPath, Is.EqualTo(box before)))
+            Assert.That(ownership.IsCurrentFor journal, Is.False)
+            Assert.That(File.ReadAllBytes temporary.JournalPath, Is.EqualTo(box before)))
+
+    /// The finding this capability exists for. Lineage identities do not identify a journal: a second
+    /// journal carrying the same run, occurrence, and staged identity — which a copied journal file
+    /// carries by construction — was previously indistinguishable from the one the lease was acquired
+    /// for, so a lease could fence a journal nobody was excluded from. Deriving the lock path from the
+    /// journal makes two hosts on one journal collide; comparing the path here catches a lease pointed
+    /// at a different journal that the identity comparison alone accepts.
+    [<Test>]
+    member _.``CBI54 C4 a lease fences only the journal it names``() =
+        use temporary = new RestartTemporaryOwnership()
+        let policy = ProviderRestartPolicy.create 2 (TimeSpan.FromMinutes 1.0)
+        let owned = DurableProviderRestartAttemptJournal.Establish(
+            temporary.JournalPath, runIdentity, occurrence, staged, policy).Journal.Value
+        let impostorPath = Path.Combine(temporary.Root, "copied.journal")
+        let impostor = DurableProviderRestartAttemptJournal.Establish(
+            impostorPath, runIdentity, occurrence, staged, policy).Journal.Value
+        let ownership = (acquire temporary.JournalPath "owner-a" "lease-a").Ownership.Value
+        // Released even when an assertion below fails, so the lock never outlives the fixture and
+        // wedges its own temporary-directory cleanup.
+        use _ = (ownership :> IDisposable)
+        multiple (fun () ->
+            // Identical lineage on both journals, so identity comparison alone cannot separate them.
+            Assert.That(impostor.Snapshot.RunIdentity, Is.EqualTo owned.Snapshot.RunIdentity)
+            Assert.That(impostor.Snapshot.Occurrence, Is.EqualTo owned.Snapshot.Occurrence)
+            Assert.That(impostor.Snapshot.StagedIdentity, Is.EqualTo owned.Snapshot.StagedIdentity)
+            Assert.That(ownership.IsCurrentFor owned, Is.True)
+            Assert.That(ownership.IsCurrentFor impostor, Is.False)
+            Assert.That(ownership.JournalPath, Is.EqualTo(Path.GetFullPath temporary.JournalPath)))
 
     [<Test>]
     member _.``CBI54 C5 released and superseded leases are stale``() =
         use temporary = new RestartTemporaryOwnership()
-        let first = acquire temporary.Path "owner-a" "lease-a"
+        let first = acquire temporary.JournalPath "owner-a" "lease-a"
         (first.Ownership.Value :> IDisposable).Dispose()
-        let second = acquire temporary.Path "owner-a" "lease-a"
+        let second = acquire temporary.JournalPath "owner-a" "lease-a"
         multiple (fun () ->
             Assert.That(first.Ownership.Value.Snapshot.IsLive, Is.False)
             Assert.That(second.Snapshot.Value.Epoch, Is.EqualTo 2L)
@@ -139,10 +170,10 @@ type ComponentProviderRestartOwnershipTests() =
     [<Test; Category("CrossProcess")>]
     member _.``CBI54 C6 process loss relinquishes exclusivity without erasing history``() = task {
         use temporary = new RestartTemporaryOwnership()
-        let first = acquire temporary.Path "owner-a" "lease-a"
+        let first = acquire temporary.JournalPath "owner-a" "lease-a"
         (first.Ownership.Value :> IDisposable).Dispose()
         let start = ProcessStartInfo(providerPath(), UseShellExecute = false, RedirectStandardInput = true, RedirectStandardOutput = true)
-        start.ArgumentList.Add($"--hold-exclusive-file={temporary.Path}")
+        start.ArgumentList.Add($"--hold-exclusive-file={temporary.LockPath}")
         use holder =
             match Process.Start start |> Option.ofObj with
             | Some value -> value
@@ -150,10 +181,10 @@ type ComponentProviderRestartOwnershipTests() =
         let! held = holder.StandardOutput.ReadLineAsync()
         Assert.That(held, Is.EqualTo "held")
         // Strict while the holder is alive: exclusivity must be refused at the first attempt.
-        Assert.That((acquire temporary.Path "owner-b" "lease-b").Code, Is.EqualTo "restart-ownership-busy")
+        Assert.That((acquire temporary.JournalPath "owner-b" "lease-b").Code, Is.EqualTo "restart-ownership-busy")
         holder.Kill(true)
         do! holder.WaitForExitAsync()
-        let recovered = acquireAfterProcessLoss temporary.Path "owner-b" "lease-b"
+        let recovered = acquireAfterProcessLoss temporary.JournalPath "owner-b" "lease-b"
         multiple (fun () ->
             Assert.That(recovered.Code, Is.EqualTo "restart-ownership-acquired")
             Assert.That(recovered.Snapshot.Value.Epoch, Is.EqualTo 2L))
@@ -163,14 +194,14 @@ type ComponentProviderRestartOwnershipTests() =
     [<Test>]
     member _.``CBI54 C7 inspection is bounded and fails closed``() =
         use temporary = new RestartTemporaryOwnership()
-        Assert.That(DurableProviderRestartOwnership.Inspect(temporary.Path, runIdentity, occurrence, staged).Code,
+        Assert.That(DurableProviderRestartOwnership.Inspect(temporary.JournalPath, runIdentity, occurrence, staged).Code,
             Is.EqualTo "restart-ownership-missing")
-        let acquired = acquire temporary.Path "owner-a" "lease-a"
+        let acquired = acquire temporary.JournalPath "owner-a" "lease-a"
         (acquired.Ownership.Value :> IDisposable).Dispose()
-        let bytes = File.ReadAllBytes(temporary.Path + ".state")
+        let bytes = File.ReadAllBytes(temporary.StatePath)
         bytes[0] <- bytes[0] ^^^ 0x7Fuy
-        File.WriteAllBytes(temporary.Path + ".state", bytes)
-        Assert.That(DurableProviderRestartOwnership.Inspect(temporary.Path, runIdentity, occurrence, staged).Code,
+        File.WriteAllBytes(temporary.StatePath, bytes)
+        Assert.That(DurableProviderRestartOwnership.Inspect(temporary.JournalPath, runIdentity, occurrence, staged).Code,
             Is.EqualTo "restart-ownership-corrupt")
 
     [<Test>]
@@ -187,7 +218,7 @@ type ComponentProviderRestartOwnershipTests() =
                 let action = text actionElement
                 if action.StartsWith("acquire:", StringComparison.Ordinal) then
                     let parts = action.Split ':'
-                    let result = acquire temporary.Path parts[1] parts[2]
+                    let result = acquire temporary.JournalPath parts[1] parts[2]
                     code <- result.Code
                     ownership <- result.Ownership
                     snapshot <- result.Snapshot
@@ -195,7 +226,7 @@ type ComponentProviderRestartOwnershipTests() =
                     (ownership.Value :> IDisposable).Dispose()
                     snapshot <- Some ownership.Value.Snapshot
                 elif action = "inspect" then
-                    let result = DurableProviderRestartOwnership.Inspect(temporary.Path, runIdentity, occurrence, staged)
+                    let result = DurableProviderRestartOwnership.Inspect(temporary.JournalPath, runIdentity, occurrence, staged)
                     code <- result.Code
                     snapshot <- result.Snapshot
             multiple (fun () ->
