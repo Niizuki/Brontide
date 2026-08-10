@@ -26,7 +26,9 @@ Dataset identity and authorised issuance, explicit single-writer access, Store r
 Router endpoint guarantees; its matrix promotion has the same review boundary.
 M5 adds a native F# process endpoint that consumes the common data-only comparison fixture. Its 15
 R1-R4 observations agree with both the fixture oracle and the independent Reference endpoint; the
-proof remains finite and experimental. The retained
+proof remains finite and experimental. M6 is complete as non-runtime handoff planning: the shared
+Architecture 0.8 ledger accounts for C1-C14 and all 33 vectors, while Minimal's implementation note
+records its World-resolved parent-reference chain and current no-revocation ceiling. The retained
 [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json)
 matrix is detailed test evidence, not the source of the implementation target and not a claim that
 the remaining Architecture 0.7 work is implemented.

@@ -43,6 +43,7 @@ and executes M6 in both host directions. Both protocols remain experimental test
 | M9 — 0.5 Composition | Implemented foundation | Four dependency-strength claims, support/opposition, deterministic provider selection, boxed values, CPU imaging, optimisation eligibility, explanations. |
 | M10 — mixed-stack workspace | Deferred | Minimal has independent multi-layer image workspace semantics. Reference/Minimal/third-provider substitution is the later entanglement proof. |
 | Architecture 0.7 M1-M5 | Tested Complete Draft implementation and finite comparison evidence | Native suites cover recursive Constraints, typed-member names, static Attribute binding, Capability-denied Dataset issuance, Store-independent identity, declared concurrency, Router guarantees/fallback, and topology redaction. Independent process endpoints agree on all 15 shared observations; pinned matrix promotion remains. |
+| Architecture 0.8 M6 handoff | Complete non-runtime planning evidence | Shared C1-C14 requirements/risk ledger, 33-vector accounting, C13/C14 documentation coverage, completeness review, and Minimal World-resolved-parent-reference/revocation-ceiling note; no 0.8 implementation claim. |
 
 ## Executable suites
 

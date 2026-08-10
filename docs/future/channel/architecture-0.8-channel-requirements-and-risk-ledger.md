@@ -12,10 +12,12 @@ Evidence base: the retained Cooling and Catalog interchange proofs governed by t
 Architecture context: [Brontide Architecture 0.8](../architecture/Brontide-Architecture-0.8.md) §6.16, §8,
 §13.6, §16.4, §19, §24, §33, §35.1.
 
-This ledger is the deliverable the Reference and Minimal 0.3 plan phases R6/M6 call for. It exists
-so that the `Channel` extension's open questions are tracked before any wire format or realisation
-freezes them (§6.8, §35.1). Completing an item here creates a decision or a piece of evidence for
-review; it does not by itself ratify Channel or authorise implementation.
+This ledger is the Channel-specific first-stage artifact called for by Reference R6 and Minimal M6.
+The full C1-C14 handoff register incorporates it by reference in
+[`architecture-0.8-handoff-requirements-and-risk-ledger.md`](../architecture/architecture-0.8-handoff-requirements-and-risk-ledger.md).
+This ledger exists so that the `Channel` extension's open questions are tracked before a wire format
+or realisation freezes them (§6.8, §35.1). Completing an item here creates a decision or a piece of
+evidence for review; it does not by itself ratify Channel or authorise implementation.
 
 ## 1. Scope boundary
 
@@ -166,9 +168,10 @@ Flow ratification forces, now bounded by the representation-ceiling rule (§11).
 
 ## 7. Hand-off boundary
 
-This ledger is the R6/M6 planning artifact. Its semantic register is complete for hand-off: every
-requirement carries a current disposition, every risk has a mitigation, and the unresolved work is
-explicitly evidence-gated in the Portable Binding realization. It is superseded when the
+This ledger is the Channel portion of the R6/M6 planning artifact. Its semantic register is complete
+for Channel hand-off: every requirement carries a current disposition, every risk has a mitigation,
+and the unresolved work is explicitly evidence-gated in the Portable Binding realization. It is
+superseded when the
 `Channel` extension direction is either specified or its items are dispositioned into that
 specification. It never changes the architecture status, the implementation baseline, or any
 ratification claim; those remain governed by the status registry.

@@ -23,6 +23,9 @@ Router endpoint guarantees. Its matrix promotion is governed by the same pinned-
 R5 adds a real-process comparison endpoint which consumes a shared data-only fixture and agrees
 with both its independent oracle and the Minimal endpoint across 15 R1-R4 observations. This is
 finite experimental comparison evidence, not a ratification or private-model compatibility claim.
+R6 is complete as non-runtime handoff planning: the shared Architecture 0.8 ledger accounts for
+C1-C14 and all 33 adversarial/evidence vectors, while Reference's separate implementation note
+records its carried parent chain and current no-revocation ceiling. No 0.8 runtime claim follows.
 The retained [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json) matrix is
 detailed test evidence, not the source of the implementation target and not a claim that the
 remaining Architecture 0.7 work is implemented.

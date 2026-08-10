@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 R6 handoff planning
+
+### Added
+
+- A shared C1-C14 requirements/risk ledger accounting for all 33 Architecture 0.8 vectors and both
+  documentation-only coverage changes without pre-implementing the draft.
+- Reference implementation notes recording the carried parent-chain representation and its current
+  no-post-issuance-revocation ceiling.
+- A mechanical handoff gate integrated into the repository completion gate.
+
+### Notes
+
+- Reference remains designed for Architecture 0.7; this is planning evidence only.
+
 ## Unreleased - Architecture 0.7 R5 independent comparison
 
 ### Added
