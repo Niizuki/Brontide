@@ -29,6 +29,10 @@ R1-R4 observations agree with both the fixture oracle and the independent Refere
 proof remains finite and experimental. M6 is complete as non-runtime handoff planning: the shared
 Architecture 0.8 ledger accounts for C1-C14 and all 33 vectors, while Minimal's implementation note
 records its World-resolved parent-reference chain and current no-revocation ceiling. The retained
+Architecture 0.8 delivery audit is now complete as inventory-only evidence: Minimal's independent
+matrix marks C3/C4 as reusable candidates, C8-C10 as partial candidates, C6/C7 as conflicts, and
+C1/C2/C5/C12 as missing. All canonical runtime vectors remain unaccepted; A08-D1 is only the
+proposed next runtime slice. The retained
 [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json)
 matrix is detailed test evidence, not the source of the implementation target and not a claim that
 the remaining Architecture 0.7 work is implemented.
