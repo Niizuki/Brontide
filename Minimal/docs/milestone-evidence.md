@@ -34,7 +34,10 @@ alter the Designed-for 0.7 target or pinned matrices. A08-D4 additionally execut
 vectors through Minimal-owned liveness leases, resolved complete-chain evaluation, immutable
 occurrence-pooled accounting, denial silence, and fail-closed scope enforcement. A08-D5 additionally
 executes both C10 vectors through provider-scope preflight, the Draft-0.8 transition, and immutable
-Capability derivation recorded in the returned World.
+Capability derivation recorded in the returned World. A08-D6 executes all three C12 vectors and its
+phase property through an immutable attributable Terminus transition, retained immortal-grant
+ancestry, and immediate liveness-chain extinction. The six-slice runtime queue is complete without
+changing the Designed-for 0.7 target or pinned matrices.
 
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
@@ -58,6 +61,7 @@ and executes M6 in both host directions. Both protocols remain experimental test
 | Architecture 0.8 M6 handoff | Complete non-runtime planning evidence | Shared C1-C14 requirements/risk ledger, 33-vector accounting, C13/C14 documentation coverage, completeness review, and Minimal World-resolved-parent-reference/revocation-ceiling note; no 0.8 implementation claim. |
 | Architecture 0.8 delivery audit | Complete inventory-only evidence | Shared 14-requirement inventory, Minimal-owned candidate/conflict/missing matrix, DA1-DA6 contract, completeness review, and six-slice runtime queue; all runtime vectors remain unaccepted and the stack target remains 0.7. |
 | Architecture 0.8 A08-D1 | Green experimental Complete-Draft evidence | Minimal-native structural strong-Kleene evaluation, explicit `World.stepDraft08`, Definition selection assessments, five-item contract, and 11 named C7/C3/C4 vectors; ordinary 0.7 poisoning entry points remain green. |
+| Architecture 0.8 A08-D2-D6 | Green experimental Complete-Draft evidence | Default-on constrained Delegation, first-class Constraint declarations/evolution, liveness and pooled accounting, provider-derived Dataset authority, and attributable Terminus across the remaining 21 runtime vectors; closure and retargeting remain separate. |
 
 ## Executable suites
 

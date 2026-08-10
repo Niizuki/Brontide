@@ -32,7 +32,9 @@ and retained payload projection. A08-D4 executes all six C1/C5 vectors through c
 liveness checks, occurrence-pooled rate accounting, denial-silent bookkeeping, and fail-closed
 scope enforcement. A08-D5 executes both C10 vectors: Dataset creation derives constrained requester
 authority from an explicit provider-held chain and refuses scope excess without resource effects.
-This does not alter the Designed-for 0.7 target or pinned matrices.
+A08-D6 executes all three C12 vectors and its phase property through attributable Terminus,
+retained immortal-grant ancestry, and immediate liveness-chain extinction. The six-slice runtime
+queue is complete. This does not alter the Designed-for 0.7 target or pinned matrices.
 
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
@@ -58,6 +60,7 @@ Core, Architecture 0.5 Composition, or the proposed portable binding.
 | Architecture 0.8 R6 handoff | Shared C1-C14 requirements/risk ledger, 33-vector accounting, C13/C14 documentation coverage, completeness review, and Reference carried-parent-chain/revocation-ceiling note | Complete non-runtime planning evidence; no 0.8 implementation or ratification claim |
 | Architecture 0.8 delivery audit | Shared 14-requirement inventory, Reference-owned candidate/conflict/missing matrix, DA1-DA6 contract, completeness review, and six-slice runtime queue | Complete inventory-only evidence; all runtime vectors remain unaccepted and the stack target remains 0.7 |
 | Architecture 0.8 A08-D1 | Explicit Draft-0.8 strong-Kleene evaluator, `ExecuteDraft08Async`, Definition selection assessments, five-item contract, and 11 named C7/C3/C4 vectors | Green experimental Complete-Draft evidence; ordinary 0.7 poisoning entry points remain green; no target or ratification change |
+| Architecture 0.8 A08-D2-D6 | Default-on constrained Delegation, first-class Constraint declarations/evolution, liveness and pooled accounting, provider-derived Dataset authority, and attributable Terminus across the remaining 21 runtime vectors | Green experimental Complete-Draft evidence; the authorized runtime queue is complete, while stack retargeting, pinned-matrix review, and ratification remain separate |
 
 The M0 test-first requirement is a process gate. Brontide Reference Stack's source and tests originally arrived in one
 commit, so the repository cannot prove that the expected failures were observed before their
