@@ -32,7 +32,9 @@ ceiling. A08-D3 additionally executes all six C9/C8 vectors through first-class 
 recognition-set evidence, exact authority value Shapes, and typed payload projection. This does not
 alter the Designed-for 0.7 target or pinned matrices. A08-D4 additionally executes all six C1/C5
 vectors through Minimal-owned liveness leases, resolved complete-chain evaluation, immutable
-occurrence-pooled accounting, denial silence, and fail-closed scope enforcement.
+occurrence-pooled accounting, denial silence, and fail-closed scope enforcement. A08-D5 additionally
+executes both C10 vectors through provider-scope preflight, the Draft-0.8 transition, and immutable
+Capability derivation recorded in the returned World.
 
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).

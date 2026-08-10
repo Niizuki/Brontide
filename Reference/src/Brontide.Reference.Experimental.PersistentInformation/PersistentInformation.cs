@@ -191,6 +191,47 @@ public sealed class InMemoryStore : IStoreEndpoint
 
 public sealed record DatasetIssuance(ActorReference Issuer, OperationReference IssuingOperation);
 
+public sealed record DatasetAuthorityConstraint : Constraint
+{
+    public static readonly CanonicalName ConstraintName =
+        CanonicalName.Parse("Brontide.Experimental.PersistentInformation:DatasetAuthority");
+
+    private DatasetAuthorityConstraint(bool isSpace, string designation)
+        : base(ConstraintName, ShapeValue.Text((isSpace ? "space:" : "dataset:") + designation))
+    {
+        IsSpace = isSpace;
+        Designation = Identity.Validate(designation, nameof(designation));
+    }
+
+    public bool IsSpace { get; }
+    public string Designation { get; }
+
+    public static ConstraintDeclaration Declaration { get; } = ConstraintDeclaration.Create(
+        ConstraintName,
+        ShapeContract.For(BuiltInShapes.Text),
+        "the addressed Dataset is within the provider's declared Dataset space");
+
+    public static DatasetAuthorityConstraint ForSpace(string prefix) => new(true, prefix);
+    public static DatasetAuthorityConstraint ForResource(DatasetId dataset) => new(false, dataset.Value);
+
+    public bool Allows(DatasetId dataset) => IsSpace
+        ? dataset.Value.StartsWith(Designation, StringComparison.Ordinal)
+        : string.Equals(dataset.Value, Designation, StringComparison.Ordinal);
+
+    public static ConstraintDecision Evaluate(Constraint constraint, ConstraintEvaluationContext context)
+    {
+        if (constraint is not DatasetAuthorityConstraint datasetAuthority ||
+            context.Input is not ScalarShapeValue { Value: string designation })
+        {
+            return ConstraintDecision.Deny(ConstraintName, "invalid Dataset-authority representation or designation");
+        }
+
+        return datasetAuthority.Allows(DatasetId.Parse(designation))
+            ? ConstraintDecision.Allow(ConstraintName, "Dataset is within the delegated authority scope")
+            : ConstraintDecision.Deny(ConstraintName, "Dataset is outside the delegated authority scope");
+    }
+}
+
 public sealed record DatasetRecord(
     DatasetId Id,
     CorpusId Corpus,
@@ -200,6 +241,12 @@ public sealed record DatasetRecord(
     ConcurrentAccessMode ConcurrentAccess,
     ImmutableDictionary<StoreRoleId, IStoreEndpoint> RoleBindings,
     ImmutableHashSet<StoreRoleId> IdentityBearingRoles);
+
+public sealed record DatasetAuthorityIssuance(
+    ExecutionId Execution,
+    Capability ProviderAuthority,
+    DatasetRecord Dataset,
+    Capability ResourceCapability);
 
 public sealed class DatasetRegistry
 {
@@ -214,26 +261,98 @@ public sealed class DatasetRegistry
         IReadOnlyDictionary<StoreRoleId, IStoreEndpoint> bindings)
     {
         ArgumentNullException.ThrowIfNull(issuance);
+        var validation = ValidateIssue(corpus, dataset, bindings);
+        return validation.IsSuccess
+            ? PersistentResult<DatasetRecord>.Success(Add(issuance, corpus, dataset, bindings))
+            : PersistentResult<DatasetRecord>.Refused(validation.Code, validation.Failure!.Reason);
+    }
+
+    public PersistentResult<DatasetAuthorityIssuance> IssueWithAuthority(
+        Brontide.Reference.Core.ExecutionContext context,
+        Capability providerAuthority,
+        OpaqueCorpus corpus,
+        DatasetId dataset,
+        IReadOnlyDictionary<StoreRoleId, IStoreEndpoint> bindings)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(providerAuthority);
+        var validation = ValidateIssue(corpus, dataset, bindings);
+        if (!validation.IsSuccess)
+        {
+            return PersistentResult<DatasetAuthorityIssuance>.Refused(validation.Code, validation.Failure!.Reason);
+        }
+
+        var declaredScopes = providerAuthority.DerivationChain()
+            .SelectMany(capability => capability.AddedConstraintExpressions)
+            .SelectMany(expression => ConstraintExpressionEvaluator.AtomicConstraints(expression))
+            .Where(constraint => constraint.Name == DatasetAuthorityConstraint.ConstraintName)
+            .ToArray();
+        if (declaredScopes.Any(constraint => constraint is not DatasetAuthorityConstraint))
+        {
+            return PersistentResult<DatasetAuthorityIssuance>.Refused(
+                "dataset-authority-invalid",
+                "The provider chain contains an invalid Dataset-authority Constraint representation.");
+        }
+
+        if (declaredScopes.Cast<DatasetAuthorityConstraint>().Any(scope => !scope.Allows(dataset)))
+        {
+            return PersistentResult<DatasetAuthorityIssuance>.Refused(
+                "dataset-authority-exceeded",
+                "The requested Dataset is outside the provider's effective resource-space authority.");
+        }
+
+        Capability resourceCapability;
+        try
+        {
+            resourceCapability = context.DelegateProviderAuthority(
+                providerAuthority,
+                DatasetAuthorityConstraint.ForResource(dataset));
+        }
+        catch (BrontideDenialException exception)
+        {
+            return PersistentResult<DatasetAuthorityIssuance>.Refused("dataset-authority-invalid", exception.Message);
+        }
+
+        var record = Add(
+            new DatasetIssuance(context.Execution.Target, context.Execution.Operation),
+            corpus,
+            dataset,
+            bindings);
+        return PersistentResult<DatasetAuthorityIssuance>.Success(
+            new(context.Execution.Id, providerAuthority, record, resourceCapability));
+    }
+
+    private PersistentResult<bool> ValidateIssue(
+        OpaqueCorpus corpus,
+        DatasetId dataset,
+        IReadOnlyDictionary<StoreRoleId, IStoreEndpoint> bindings)
+    {
         ArgumentNullException.ThrowIfNull(corpus);
         ArgumentNullException.ThrowIfNull(bindings);
         if (_datasets.ContainsKey(dataset))
         {
-            return PersistentResult<DatasetRecord>.Refused("dataset-invalid", $"Dataset '{dataset}' already exists.");
+            return PersistentResult<bool>.Refused("dataset-invalid", $"Dataset '{dataset}' already exists.");
         }
 
         foreach (var role in corpus.Roles)
         {
             if (role.Required && (!bindings.TryGetValue(role.Id, out var endpoint) || endpoint is null))
             {
-                return PersistentResult<DatasetRecord>.Refused("role-unavailable", $"Required role '{role.Id}' has no logical Store endpoint.");
+                return PersistentResult<bool>.Refused("role-unavailable", $"Required role '{role.Id}' has no logical Store endpoint.");
             }
         }
 
-        if (bindings.Keys.Any(role => corpus.Roles.All(declaration => declaration.Id != role)))
-        {
-            return PersistentResult<DatasetRecord>.Refused("role-not-found", "A binding names a role the Corpus does not declare.");
-        }
+        return bindings.Keys.Any(role => corpus.Roles.All(declaration => declaration.Id != role))
+            ? PersistentResult<bool>.Refused("role-not-found", "A binding names a role the Corpus does not declare.")
+            : PersistentResult<bool>.Success(true);
+    }
 
+    private DatasetRecord Add(
+        DatasetIssuance issuance,
+        OpaqueCorpus corpus,
+        DatasetId dataset,
+        IReadOnlyDictionary<StoreRoleId, IStoreEndpoint> bindings)
+    {
         var record = new DatasetRecord(
             dataset,
             corpus.Id,
@@ -244,7 +363,7 @@ public sealed class DatasetRegistry
             bindings.ToImmutableDictionary(),
             corpus.Roles.Where(role => role.IdentityBearing).Select(role => role.Id).ToImmutableHashSet());
         _datasets.Add(dataset, record);
-        return PersistentResult<DatasetRecord>.Success(record);
+        return record;
     }
 
     public PersistentResult<int> Append(

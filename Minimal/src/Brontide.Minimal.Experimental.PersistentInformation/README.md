@@ -6,8 +6,9 @@ This native F# experimental component implements the M4 evidence slice with opaq
 result-valued refusals, immutable Corpus and Dataset records, deterministic in-memory Store
 endpoints, and a Router whose declared logical guarantees stay stable across backing changes.
 
-It depends only on `Brontide.Minimal.Model`. Authority remains in `Brontide.Minimal.Kernel`; the
-owning host invokes Dataset mutation only from a handler reached through `World.step`.
+It depends on `Brontide.Minimal.Model` and `Brontide.Minimal.Kernel`. Dataset-specific authority
+remains here: the D5 coordinator preflights provider scope, invokes `World.stepDraft08`, and returns
+the immutable World containing the derived requester Capability.
 
 Quick verification:
 

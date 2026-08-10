@@ -398,6 +398,22 @@ module World =
         |> Seq.toList
     let tryFindCapability (reference: CapabilityReference) (world: World) =
         Map.tryFind reference world.Capabilities
+    let capabilityConstraintExpressions (reference: CapabilityReference) (world: World) =
+        Map.tryFind reference world.CapabilityConstraintExpressions
+    let tryFindConstraint (reference: ConstraintReference) (world: World) =
+        Map.tryFind reference world.Constraints
+    let capabilityDerivationChain (reference: CapabilityReference) (world: World) =
+        let rec collect visited current acc =
+            if Set.contains current visited then
+                Error "The Capability derivation chain contains a cycle."
+            else
+                match Map.tryFind current world.Capabilities with
+                | None -> Error "The Capability derivation chain contains an unknown parent."
+                | Some capability ->
+                    match capability.Parent with
+                    | None -> Ok(capability :: acc)
+                    | Some parent -> collect (Set.add current visited) parent (capability :: acc)
+        collect Set.empty reference []
     let tryFindConstraintByName (name: CanonicalName) (world: World) =
         world.Constraints
         |> Map.toSeq

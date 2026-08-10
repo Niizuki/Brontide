@@ -40,7 +40,9 @@ strict non-projecting authority values, and retained additive payload projection
 vectors pass independently. A08-D4 adds complete-chain liveness evaluation and a synchronized Base
 execution-rate Constraint whose successful authorizations pool at the carrying chain occurrence;
 denials consume nothing and unenforceable vocabulary scopes remain declined. Its six C1/C5 vectors
-pass independently. A08-D5 is the next proposed slice.
+pass independently. A08-D5 now derives requester Dataset authority from the provider's explicitly
+bounded resource-space Capability, records the ordinary parent chain, and refuses scope excess
+before Dataset or Capability effects. Both C10 vectors pass independently. A08-D6 is next.
 The retained [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json) matrix is
 detailed test evidence, not the source of the implementation target and not a claim that the
 remaining Architecture 0.7 work is implemented.
@@ -61,7 +63,8 @@ later Attribute or candidate change cannot rebind it, and restoration consults n
 
 `Brontide.Reference.Experimental.PersistentInformation` carries R4/C4-C5 outside Core: typed
 Corpus, Dataset, Store-role, Store, and Router identities; Dataset records independent of Store
-content; issuance through an existing Capability-authorised Operation; and Router guarantees
+content; issuance through an existing Capability-authorised Operation; provider-owned Dataset-space
+authority issuance by constrained Delegation; and Router guarantees
 validated across every declared backing and fallback. Its endpoints are deterministic in-memory
 evidence, not a durable database or general storage layer.
 

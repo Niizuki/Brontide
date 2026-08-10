@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 A08-D5 experimental runtime
+
+### Added
+
+- Provider-owned Dataset-space Constraints and authorized Dataset issuance returning a Capability
+  derived from the provider's explicit resource-space authority.
+- Reference-native execution of both A08-D5 C10 vectors and all three phase properties.
+
+### Changed
+
+- `ExecutionContext` now exposes provider-authority Delegation during an active authorized effect;
+  it requires the parent Capability to be registered, held by, and targeted at the provider.
+- Dataset scope and structural validation precede both registry insertion and Capability Delegation.
+
 ## Unreleased - Architecture 0.8 A08-D4 experimental runtime
 
 ### Added

@@ -246,6 +246,16 @@ public sealed class ExecutionContext
         return _domain.CreateActivity(Execution.Target, kind);
     }
 
+    /// <summary>
+    /// Derives authority issued by the target provider as part of this authorized Operation effect.
+    /// The provider must hold registered authority over the same target.
+    /// </summary>
+    public Capability DelegateProviderAuthority(Capability providerAuthority, params Constraint[] addedConstraints)
+    {
+        EnsureActive();
+        return _domain.DelegateProviderAuthority(Execution, providerAuthority, addedConstraints);
+    }
+
     public Outcome CompleteActivity(
         ActivityReference activity,
         OutcomeStatus status = OutcomeStatus.Completed,

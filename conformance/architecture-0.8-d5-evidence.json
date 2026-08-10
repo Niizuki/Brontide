@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "phase": "A08-D5",
+  "architectureRevision": "0.8",
+  "architectureStatus": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
+  "evidenceStatus": "executed-experimental",
+  "stackTargetsRemain": "Architecture 0.7",
+  "contract": "conformance/architecture-0.8-d5-behavioral-contract.md",
+  "capabilities": ["D5-C1", "D5-C2", "D5-C3"],
+  "vectors": [
+    {
+      "id": "BR-08-ADV-C10-001",
+      "capabilities": ["D5-C1", "D5-C2"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D5ConformanceTests.cs", "anchor": "D5_C1_BR_08_ADV_C10_001_creation_derives_resource_authority_from_provider" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D5Tests.fs", "anchor": "D5_C1 BR_08_ADV_C10_001 creation derives resource authority from provider" }
+    },
+    {
+      "id": "BR-08-ADV-C10-002",
+      "capabilities": ["D5-C3"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D5ConformanceTests.cs", "anchor": "D5_C3_BR_08_ADV_C10_002_out_of_scope_issuance_refuses_without_resource_effects" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D5Tests.fs", "anchor": "D5_C3 BR_08_ADV_C10_002 out of scope issuance refuses without resource effects" }
+    }
+  ],
+  "surfaces": {
+    "reference": ["ExecutionContext.DelegateProviderAuthority", "DatasetAuthorityConstraint", "DatasetRegistry.IssueWithAuthority"],
+    "minimal": ["World.capabilityDerivationChain", "DatasetAuthority.constraintDeclaration", "DatasetRegistry.IssueWithAuthority"]
+  }
+}

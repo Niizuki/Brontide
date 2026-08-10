@@ -32,6 +32,11 @@ execution-rate budgets pool at their exact chain occurrence, denied Executions c
 unenforceable vocabulary scopes remain named declines. All six C1/C5 vectors execute natively. This
 does not rewrite the pre-delivery audit findings below.
 
+A08-D5 was subsequently authorized and is now delivered as experimental runtime evidence in both
+stacks. Dataset creation issues requester authority by ordinary Delegation from an explicit
+provider-held resource-space chain, while exceeded ancestor scope refuses before resource effects.
+Both C10 vectors execute natively. This does not rewrite the pre-delivery audit findings below.
+
 ## Findings
 
 | Change | Reference | Minimal | Audit conclusion |
@@ -73,9 +78,9 @@ Flow conformance still follows the decided Channel → Portable Binding and Shap
 
 ## Next authorization boundary
 
-A08-D1 through A08-D4 are delivered with named failing-first tests and independent implementations
+A08-D1 through A08-D5 are delivered with named failing-first tests and independent implementations
 in each stack. A08-D2 and A08-D3 carry their required breaking-surface migration decisions. The next
-implementable runtime slice is **A08-D5**: C10 provider resource-Capability issuance by derivation
-without exceeding the provider chain. It requires a separate
+implementable runtime slice is **A08-D6**: C12 attributable Terminus and the domain's explicit
+held/outbound authority-disposition policy. It requires a separate
 explicit request and must not change the status registry, pinned 0.7 matrices, or either stack's
 `Designed for` declaration.

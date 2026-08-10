@@ -2,6 +2,7 @@ namespace Brontide.Minimal.Experimental.PersistentInformation
 
 open System
 open Brontide.Minimal.Model
+open Brontide.Minimal.Kernel
 
 module private Identity =
     let validate parameterName (value: string) =
@@ -152,6 +153,47 @@ type DatasetRecord =
       RoleBindings: Map<StoreRoleId, IStoreEndpoint>
       IdentityBearingRoles: Set<StoreRoleId> }
 
+type DatasetAuthorityIssuance =
+    { Execution: ExecutionReference
+      ProviderAuthority: CapabilityReference
+      Dataset: DatasetRecord
+      ResourceCapability: Capability }
+
+[<RequireQualifiedAccess>]
+module DatasetAuthority =
+    let constraintName = CanonicalName.create "Brontide.Experimental.PersistentInformation:DatasetAuthority"
+
+    let constraintDeclaration: ConstraintDeclaration =
+        { Name = constraintName
+          Version = 1
+          ValueShape = BuiltIn.textShape
+          EvaluationSemantics = "the addressed Dataset is within the provider's declared Dataset space"
+          EvaluatorDomain = ConstraintEvaluatorDomain.TargetAuthority
+          UnknownBehavior = ConstraintUnknownBehavior.Deny
+          AccountingScope = ConstraintAccountingScope.NotQuantified
+          EvolutionPolicy = ConstraintEvolutionPolicy.ParallelCanonicalName }
+
+    let private requirement (definition: ConstraintDefinition) value =
+        if definition.Name <> constraintName then
+            invalidArg (nameof definition) "The Constraint definition is not Dataset authority."
+        { Constraint = definition.Reference
+          ParameterShape = definition.ParameterShape
+          Parameters = TextValue value }
+
+    let spaceRequirement definition prefix =
+        requirement definition ("space:" + Identity.validate (nameof prefix) prefix)
+
+    let resourceRequirement definition dataset =
+        requirement definition ("dataset:" + DatasetId.value dataset)
+
+    let allows dataset requirement =
+        match requirement.Parameters with
+        | TextValue value when value.StartsWith("space:", StringComparison.Ordinal) ->
+            (DatasetId.value dataset).StartsWith(value.Substring(6), StringComparison.Ordinal)
+        | TextValue value when value.StartsWith("dataset:", StringComparison.Ordinal) ->
+            String.Equals(DatasetId.value dataset, value.Substring(8), StringComparison.Ordinal)
+        | _ -> false
+
 type DatasetRegistry() =
     let mutable datasets = Map.empty<DatasetId, DatasetRecord>
 
@@ -180,6 +222,81 @@ type DatasetRegistry() =
                     |> Set.ofList }
             datasets <- Map.add dataset record datasets
             Ok record
+
+    member this.IssueWithAuthority(
+        environment: Environment,
+        world: World,
+        request: Draft08ExecutionRequest,
+        providerAuthority: Capability,
+        resourceCapabilityName: CanonicalName,
+        corpus: OpaqueCorpus,
+        dataset: DatasetId,
+        bindings: Map<StoreRoleId, IStoreEndpoint>) =
+        let validateDataset () =
+            if Map.containsKey dataset datasets then
+                Refusal.create "dataset-invalid" $"Dataset '{DatasetId.value dataset}' already exists."
+            elif corpus.Roles |> List.exists (fun role -> role.Required && not (Map.containsKey role.Id bindings)) then
+                Refusal.create "role-unavailable" "A required Store role has no logical endpoint."
+            elif bindings |> Map.exists (fun role _ -> corpus.Roles |> List.forall (fun declared -> declared.Id <> role)) then
+                Refusal.create "role-not-found" "A binding names a role the Corpus does not declare."
+            else Ok()
+
+        let providerScope () =
+            match World.tryFindCapability providerAuthority.Reference world with
+            | None -> Refusal.create "dataset-authority-invalid" "Provider authority is not registered by this authority domain."
+            | Some registered when registered <> providerAuthority ->
+                Refusal.create "dataset-authority-invalid" "Provider authority does not match the registered Capability."
+            | Some _ when providerAuthority.Holder <> request.Request.Target || providerAuthority.Target <> request.Request.Target ->
+                Refusal.create "dataset-authority-invalid" "Provider authority must be held by and target the creating provider."
+            | Some _ ->
+                match World.capabilityDerivationChain providerAuthority.Reference world with
+                | Error message -> Refusal.create "dataset-authority-invalid" message
+                | Ok chain ->
+                    let scopes =
+                        chain
+                        |> List.collect (fun capability ->
+                            World.capabilityConstraintExpressions capability.Reference world
+                            |> Option.defaultValue []
+                            |> List.collect ConstraintExpression.atoms)
+                        |> List.choose (fun requirement ->
+                            match World.tryFindConstraint requirement.Constraint world with
+                            | Some definition when definition.Name = DatasetAuthority.constraintName -> Some requirement
+                            | _ -> None)
+                    if scopes |> List.forall (DatasetAuthority.allows dataset) then Ok()
+                    else Refusal.create "dataset-authority-exceeded" "The requested Dataset is outside the provider's effective resource-space authority."
+
+        match validateDataset(), providerScope() with
+        | Error failure, _ | _, Error failure -> Error failure
+        | Ok(), Ok() ->
+            let stepped = World.stepDraft08 environment world request
+            if stepped.Outcome.Status <> Succeeded then
+                Refusal.create "dataset-creation-refused" (stepped.Outcome.Reason |> Option.defaultValue "The creating Execution did not succeed.")
+            else
+                let scopeDefinition =
+                    World.tryFindConstraintByName DatasetAuthority.constraintName stepped.World
+                    |> Option.defaultWith (fun () -> invalidOp "The Dataset-authority Constraint declaration is missing.")
+                match
+                    World.delegateCapability
+                        resourceCapabilityName
+                        request.Request.Target
+                        request.Request.Initiator
+                        providerAuthority.Reference
+                        [ DatasetAuthority.resourceRequirement scopeDefinition dataset ]
+                        stepped.World
+                with
+                | Error message -> Refusal.create "dataset-authority-invalid" message
+                | Ok(resourceCapability, nextWorld) ->
+                    match this.Issue(
+                        { Issuer = request.Request.Target; IssuingOperation = request.Request.Operation },
+                        corpus, dataset, bindings) with
+                    | Error failure -> Error failure
+                    | Ok record ->
+                        Ok(
+                            { Execution = stepped.Outcome.Execution
+                              ProviderAuthority = providerAuthority.Reference
+                              Dataset = record
+                              ResourceCapability = resourceCapability },
+                            nextWorld)
 
     member private _.Resolve(dataset, role, requestedConcurrency) =
         match Map.tryFind dataset datasets with
