@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "phase": "A08-D4",
+  "architectureRevision": "0.8",
+  "architectureStatus": "Complete Draft (document edit complete; implementation evidence pending; not ratified)",
+  "evidenceStatus": "executed-experimental",
+  "stackTargetsRemain": "Architecture 0.7",
+  "contract": "conformance/architecture-0.8-d4-behavioral-contract.md",
+  "capabilities": ["D4-C1", "D4-C2", "D4-C3", "D4-C4", "D4-C5", "D4-C6"],
+  "vectors": [
+    {
+      "id": "BR-08-ADV-C1-001",
+      "capabilities": ["D4-C1"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D4ConformanceTests.cs", "anchor": "D4_C1_BR_08_ADV_C1_001_expired_ancestor_liveness_denies_before_effect" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D4Tests.fs", "anchor": "D4_C1 BR_08_ADV_C1_001 expired ancestor liveness denies before effect" }
+    },
+    {
+      "id": "BR-08-ADV-C1-002",
+      "capabilities": ["D4-C2"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D4ConformanceTests.cs", "anchor": "D4_C2_BR_08_ADV_C1_002_unavailable_liveness_evaluator_denies_with_redacted_category" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D4Tests.fs", "anchor": "D4_C2 BR_08_ADV_C1_002 unavailable liveness evaluator denies with redacted category" }
+    },
+    {
+      "id": "BR-08-ADV-C1-003",
+      "capabilities": ["D4-C3"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D4ConformanceTests.cs", "anchor": "D4_C3_BR_08_ADV_C1_003_live_ancestor_authorises_exactly_one_effect" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D4Tests.fs", "anchor": "D4_C3 BR_08_ADV_C1_003 live ancestor authorises exactly one effect" }
+    },
+    {
+      "id": "BR-08-ADV-C5-001",
+      "capabilities": ["D4-C4"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D4ConformanceTests.cs", "anchor": "D4_C4_BR_08_ADV_C5_001_sibling_delegations_share_the_ancestor_occurrence_budget" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D4Tests.fs", "anchor": "D4_C4 BR_08_ADV_C5_001 sibling delegations share ancestor occurrence budget" }
+    },
+    {
+      "id": "BR-08-ADV-C5-002",
+      "capabilities": ["D4-C5"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D4ConformanceTests.cs", "anchor": "D4_C5_BR_08_ADV_C5_002_denied_executions_consume_no_budget" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D4Tests.fs", "anchor": "D4_C5 BR_08_ADV_C5_002 denied executions consume no budget" }
+    },
+    {
+      "id": "BR-08-ADV-C5-003",
+      "capabilities": ["D4-C6"],
+      "reference": { "path": "Reference/tests/Brontide.Reference.Conformance/Architecture08D4ConformanceTests.cs", "anchor": "D4_C6_BR_08_ADV_C5_003_unenforceable_vocabulary_scope_denies_before_evaluator" },
+      "minimal": { "path": "Minimal/tests/Brontide.Minimal.Conformance/Architecture08D4Tests.fs", "anchor": "D4_C6 BR_08_ADV_C5_003 unenforceable vocabulary scope denies before evaluator" }
+    }
+  ],
+  "surfaces": {
+    "reference": ["LivenessLeaseConstraint", "ExecutionRateLimitConstraint", "QuantifiedConstraintOccurrence"],
+    "minimal": ["LivenessLeaseReference", "Genesis.livenessLease", "World.executionRateLimitConstraint", "QuantifiedConstraintOccurrence"]
+  }
+}

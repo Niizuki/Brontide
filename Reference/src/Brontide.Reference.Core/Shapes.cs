@@ -28,6 +28,7 @@ public static class BuiltInShapes
     public static readonly ShapeReference OperationSet = ShapeReference.Parse("Brontide:OperationSet", 1);
     public static readonly ShapeReference TimeWindow = ShapeReference.Parse("Brontide:TimeWindow", 1);
     public static readonly ShapeReference Lease = ShapeReference.Parse("Brontide:Lease", 1);
+    public static readonly ShapeReference ExecutionRateLimit = ShapeReference.Parse("Brontide:ExecutionRateLimitValue", 1);
     public static readonly ShapeReference OriginClass = ShapeReference.Parse("Brontide:OriginClass", 1);
     public static readonly ShapeReference Details = ShapeReference.Parse("Brontide:Details", 1);
     public static readonly ShapeReference Activity = ShapeReference.Parse("Brontide:Activity", 1);
@@ -336,6 +337,11 @@ public sealed class ShapeRegistry
             RecordField.Optional("not-before", BuiltInShapes.Text),
             RecordField.Optional("not-after", BuiltInShapes.Text)));
         registry.Register(ShapeDefinition.Scalar<string>(BuiltInShapes.Lease));
+        registry.Register(ShapeDefinition.Record(
+            BuiltInShapes.ExecutionRateLimit,
+            FragmentPolicy.Closed,
+            RecordField.Required("maximum-executions", BuiltInShapes.Signed64),
+            RecordField.Required("window-milliseconds", BuiltInShapes.Signed64)));
         registry.Register(ShapeDefinition.Scalar<string>(BuiltInShapes.OriginClass));
         registry.Register(ShapeDefinition.Record(BuiltInShapes.Details, FragmentPolicy.Closed,
             RecordField.Required("message", BuiltInShapes.Text)));

@@ -40,8 +40,10 @@ Constraint narrowing, introduced typed origin assertions, and attached an implic
 through the explicit Draft-0.8 path. This is a documented breaking experimental migration, not a
 stack retarget or ratification. A08-D3 now adds first-class Constraint declarations, deterministic
 implemented/declined recognition evidence, exact authority value Shape/version checks, and typed
-additive payload projection. Its six C9/C8 vectors pass independently. A08-D4 is the next proposed
-slice. The retained
+additive payload projection. Its six C9/C8 vectors pass independently. A08-D4 adds Minimal-owned
+liveness leases and immutable occurrence-pooled execution-rate bookkeeping across resolved
+Capability ancestry; denials consume nothing and unenforceable vocabulary scopes remain declined.
+Its six C1/C5 vectors pass independently. A08-D5 is the next proposed slice. The retained
 [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json)
 matrix is detailed test evidence, not the source of the implementation target and not a claim that
 the remaining Architecture 0.7 work is implemented.

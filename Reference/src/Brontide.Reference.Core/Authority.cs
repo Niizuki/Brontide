@@ -7,6 +7,7 @@ public static class StandardConstraintNames
     public static readonly CanonicalName PermittedOperations = CanonicalName.Parse("Brontide:PermittedOperations");
     public static readonly CanonicalName WallClockValidity = CanonicalName.Parse("Brontide:WallClockValidity");
     public static readonly CanonicalName LivenessLease = CanonicalName.Parse("Brontide:LivenessLease");
+    public static readonly CanonicalName ExecutionRateLimit = CanonicalName.Parse("Brontide:ExecutionRateLimit");
     public static readonly CanonicalName OriginGrant = CanonicalName.Parse("Brontide:OriginGrant");
     public static readonly CanonicalName DelegationDepth = CanonicalName.Parse("Brontide:DelegationDepth");
     public static readonly CanonicalName OriginCeiling = CanonicalName.Parse("Brontide:OriginCeiling");
@@ -482,6 +483,47 @@ public sealed record LivenessLeaseConstraint : Constraint
     }
 
     public LivenessLease Lease { get; }
+}
+
+/// <summary>
+/// A Base quantified Constraint whose budget is pooled at its occurrence in the derivation chain.
+/// </summary>
+public sealed record ExecutionRateLimitConstraint : Constraint
+{
+    public ExecutionRateLimitConstraint(long maximumExecutions, TimeSpan window)
+        : base(
+            StandardConstraintNames.ExecutionRateLimit,
+            ShapeValue.Record(
+                BuiltInShapes.ExecutionRateLimit,
+                ("maximum-executions", ShapeValue.Signed64(maximumExecutions)),
+                ("window-milliseconds", ShapeValue.Signed64(WholeMilliseconds(window)))))
+    {
+        if (maximumExecutions <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maximumExecutions), "The execution maximum must be positive.");
+        }
+        if (window <= TimeSpan.Zero || window.TotalMilliseconds > long.MaxValue ||
+            window != TimeSpan.FromMilliseconds((long)window.TotalMilliseconds))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(window),
+                "The accounting window must be a positive whole number of milliseconds.");
+        }
+
+        MaximumExecutions = maximumExecutions;
+        Window = window;
+    }
+
+    public long MaximumExecutions { get; }
+    public TimeSpan Window { get; }
+
+    private static long WholeMilliseconds(TimeSpan window) =>
+        window > TimeSpan.Zero && window.TotalMilliseconds <= long.MaxValue &&
+        window == TimeSpan.FromMilliseconds((long)window.TotalMilliseconds)
+            ? (long)window.TotalMilliseconds
+            : throw new ArgumentOutOfRangeException(
+                nameof(window),
+                "The accounting window must be a positive whole number of milliseconds.");
 }
 
 public sealed record OriginGrantConstraint : Constraint
