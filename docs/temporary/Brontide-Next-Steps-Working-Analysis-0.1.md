@@ -215,8 +215,10 @@ remaining action is review retargeting and independent attestation, not producti
 Neither blocks Portable Binding (B), which targets 0.8 §16/§18.1 and reuses the
 Cooling/Catalog estate — so B and C can proceed in parallel with different focus. **However**, do not
 invest in re-hardening M1's poisoning rule: under 0.8 C7 it becomes `conflicting` rework (see D).
-R6/M6 Architecture 0.8 handoff planning is now complete; the next runtime work requires a separately
-authorized Architecture 0.8 delivery audit. Do not gold-plate 0.7 M1.
+R6/M6 Architecture 0.8 handoff planning and the separately authorized delivery audit are now
+complete. The audit accepts no runtime vectors and proposes A08-D1 (C7 plus C3/C4 preservation
+evidence) as the next bounded runtime slice; starting it requires a separate explicit request. Do
+not gold-plate 0.7 M1.
 
 ---
 

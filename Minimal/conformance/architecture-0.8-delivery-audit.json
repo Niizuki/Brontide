@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "stack": "Minimal",
+  "designedFor": "Architecture 0.7",
+  "auditedArchitecture": "0.8 Complete Draft",
+  "acceptanceBoundary": "Audit inventory only; no row is accepted Architecture 0.8 conformance.",
+  "requirements": [
+    {
+      "requirementId": "BR-08-DELIVERY-C1",
+      "evidenceStatus": "missing",
+      "component": "No liveness-scoped Constraint implementation",
+      "candidateEvidence": [],
+      "vectorDisposition": "not-executed",
+      "rationale": "The resolved parent chain exists, but Minimal has no liveness-scoped authority type or presentation-time liveness evaluator."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C2",
+      "evidenceStatus": "missing",
+      "component": "No Origin Constraint algebra",
+      "candidateEvidence": [],
+      "vectorDisposition": "not-executed",
+      "rationale": "Minimal does not establish Origin.Derived as an implicit Constraint on delegation."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C3",
+      "evidenceStatus": "candidate-reusable",
+      "component": "Brontide.Minimal.Kernel World.step",
+      "candidateEvidence": [
+        { "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "BR_05_AUTH_005 failed Capability Constraint denies before effects" },
+        { "path": "Minimal/src/Brontide.Minimal.Kernel/Kernel.fs", "anchor": "stepCore" }
+      ],
+      "vectorDisposition": "not-executed",
+      "rationale": "World.step evaluates authority before invoking the effect and does not re-enter authorization mid-effect, but the canonical vectors are not executed."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C4",
+      "evidenceStatus": "candidate-reusable",
+      "component": "Brontide.Minimal.Kernel resolved capability chain",
+      "candidateEvidence": [
+        { "path": "Minimal/src/Brontide.Minimal.Kernel/Kernel.fs", "anchor": "capabilityChain" },
+        { "path": "Minimal/docs/architecture-0.8-handoff-implementation-notes.md", "anchor": "resolved-parent-reference" }
+      ],
+      "vectorDisposition": "not-executed",
+      "rationale": "World.step resolves every ancestor and evaluates its stored expressions, but the canonical grandparent-denial vector is not executed."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C5",
+      "evidenceStatus": "missing",
+      "component": "No general quantified Constraint accounting component",
+      "candidateEvidence": [],
+      "vectorDisposition": "not-executed",
+      "rationale": "No occurrence-pooled accounting scope, denied-execution silence, or unenforceable-scope denial is implemented as a general Constraint facility."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C6",
+      "evidenceStatus": "conflicting",
+      "component": "Brontide.Minimal.Model Capability and Kernel delegation",
+      "candidateEvidence": [],
+      "conflictingEvidence": [
+        { "path": "Minimal/src/Brontide.Minimal.Model/Model.fs", "anchor": "DelegationAllowed: bool" },
+        { "path": "Minimal/src/Brontide.Minimal.Kernel/Kernel.fs", "anchor": "not parent.DelegationAllowed" }
+      ],
+      "vectorDisposition": "not-executed",
+      "rationale": "The current explicit Boolean right conflicts with default-on, Constraint-narrowed delegability."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C7",
+      "evidenceStatus": "conflicting",
+      "component": "Brontide.Minimal.Model constraint evaluator and experimental selection",
+      "candidateEvidence": [],
+      "conflictingEvidence": [
+        { "path": "Minimal/tests/Brontide.Minimal.Kernel.Tests/KernelTests.fs", "anchor": "BR_07_CONSTRAINT_001 unknown atoms poison all composite positions" },
+        { "path": "Minimal/tests/Brontide.Minimal.Composition.Tests/CompositionTests.fs", "anchor": "BR_07_CONSTRAINT_003 UnsupportedConstraint excludes poisoned candidate" }
+      ],
+      "vectorDisposition": "not-executed",
+      "rationale": "Whole-expression poisoning deliberately implements Architecture 0.7 and inverts the C7 positive-control cases."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C8",
+      "evidenceStatus": "candidate-partial",
+      "component": "Brontide.Minimal.Binding portable Shape floor",
+      "candidateEvidence": [
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableAuthority.fs", "anchor": "unrecognized Constraint value version denies rather than widening authority by projection" },
+        { "path": "Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/PortableEstablishmentTests.fs", "anchor": "PB-57 a projection is recorded as a mapping obligation" }
+      ],
+      "vectorDisposition": "not-executed",
+      "rationale": "The experimental seam separates authority content from additive payload projection, but it carries no Capability and does not execute the canonical Constraint-version vectors."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C9",
+      "evidenceStatus": "candidate-partial",
+      "component": "Kernel diagnostics plus experimental Portable Binding declarations",
+      "candidateEvidence": [
+        { "path": "Minimal/tests/Brontide.Minimal.Conformance/ConformanceTests.fs", "anchor": "BR_07_CONSTRAINT_002 poisoned Capability denies before effects with redacted diagnostics" },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableContract.fs", "anchor": "AuthorityDeclaration" }
+      ],
+      "vectorDisposition": "not-executed",
+      "rationale": "Unknown kinds fail closed and portable declarations exist, but there is no stack-wide first-class Constraint declaration catalogue, evolution check, or recognition-set attestation."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C10",
+      "evidenceStatus": "candidate-partial",
+      "component": "Brontide.Minimal.Experimental.PersistentInformation Dataset issuance",
+      "candidateEvidence": [
+        { "path": "Minimal/tests/Brontide.Minimal.PersistentInformation.Tests/PersistentInformationTests.fs", "anchor": "C2 Dataset issuance is an authorized effect and denials are silent" }
+      ],
+      "vectorDisposition": "not-executed",
+      "rationale": "Dataset issuance is attributable and effect-gated, but it returns no Capability derived from the provider's primordial resource-space authority."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C11",
+      "evidenceStatus": "handoff-attested",
+      "component": "Minimal Architecture 0.8 handoff implementation note",
+      "candidateEvidence": [
+        { "path": "Minimal/docs/architecture-0.8-handoff-implementation-notes.md", "anchor": "resolved-parent-reference" },
+        { "path": "Minimal/docs/architecture-0.8-handoff-implementation-notes.md", "anchor": "Revocation ceiling" }
+      ],
+      "vectorDisposition": "attested",
+      "rationale": "The resolved-parent-reference choice and current no-revocation/tombstone ceiling are explicitly recorded as operational properties."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C12",
+      "evidenceStatus": "missing",
+      "component": "No Terminus policy",
+      "candidateEvidence": [],
+      "vectorDisposition": "not-executed",
+      "rationale": "No Actor retirement occurrence or attributable held/outbound authority disposition policy exists."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C13",
+      "evidenceStatus": "architecture-only",
+      "component": "Architecture scope",
+      "candidateEvidence": [],
+      "vectorDisposition": "documentation-only",
+      "rationale": "No runtime claim follows from the first-hop legibility scope statement."
+    },
+    {
+      "requirementId": "BR-08-DELIVERY-C14",
+      "evidenceStatus": "architecture-only",
+      "component": "Open architecture decision",
+      "candidateEvidence": [],
+      "vectorDisposition": "documentation-only",
+      "rationale": "Holder introspection remains open and is not inferred from operation discovery."
+    }
+  ]
+}

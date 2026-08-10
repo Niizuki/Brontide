@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased - Architecture 0.8 delivery audit
+
+### Added
+
+- A Minimal-owned Architecture 0.8 C1-C14 audit matrix that distinguishes reusable candidates,
+  partial candidates, conflicts, missing behavior, handoff attestations, and architecture-only scope.
+- A shared audit capability contract, completeness review, ordered six-slice runtime queue, and
+  mechanical gate covering all 33 canonical vectors and both documentation-only changes.
+
+### Notes
+
+- No runtime vector is accepted and Minimal remains designed for Architecture 0.7. A08-D1 is a
+  proposed next slice, not an implementation claim.
+
 ## Unreleased - Architecture 0.8 M6 handoff planning
 
 ### Added

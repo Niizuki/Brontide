@@ -1,0 +1,54 @@
+# Architecture 0.8 delivery audit
+
+Reviewed: 2026-08-10
+
+This audit implements the phase authorized after the R6/M6 handoff. It compares the current native
+Reference and Minimal surfaces with the Complete Draft Architecture 0.8 C1-C14 register and all 33
+canonical vectors. It changes no runtime source, accepts no Architecture 0.8 conformance, and leaves
+both stack targets at Architecture 0.7.
+
+## Findings
+
+| Change | Reference | Minimal | Audit conclusion |
+| --- | --- | --- | --- |
+| C1 | `candidate-partial` | `missing` | Reference has atomic presentation-time liveness plus carried ancestry; Minimal has ancestry but no liveness-scoped authority type. Neither executes the three vectors. |
+| C2 | `candidate-partial` | `missing` | Reference has special origin ceilings but not implicit `Origin.Derived` in the ordinary algebra; Minimal has no corresponding origin Constraint. |
+| C3 | `candidate-reusable` | `candidate-reusable` | Both roots deny before effect dispatch. Canonical instantaneous-authorization vectors are still required before acceptance. |
+| C4 | `candidate-reusable` | `candidate-reusable` | Reference carries parents and Minimal resolves them through `World`; both traverse ancestors, but neither executes the canonical grandparent vector. |
+| C5 | `missing` | `missing` | Neither stack has general occurrence-pooled quantified accounting or declared-scope enforcement. |
+| C6 | `conflicting` | `conflicting` | Both expose explicit Boolean delegability, contrary to default-on Constraint narrowing. |
+| C7 | `conflicting` | `conflicting` | Both deliberately implement 0.7 whole-expression poisoning in authority and selection. |
+| C8 | `candidate-partial` | `candidate-partial` | Portable Binding protects its no-Capability authority seam and supports payload projection, but it does not evaluate versioned Constraint values. |
+| C9 | `candidate-partial` | `candidate-partial` | Both fail unknown kinds closed and have portable declarations, but neither declares a stack-wide recognition set or complete Constraint evolution/accounting metadata. |
+| C10 | `candidate-partial` | `candidate-partial` | Dataset creation is attributable and effect-gated but issues no Capability derived from provider resource-space authority. |
+| C11 | `handoff-attested` | `handoff-attested` | The distinct carried and resolved choices and their no-revocation ceilings are already recorded. |
+| C12 | `missing` | `missing` | Neither stack has Terminus or an attributable Actor-retirement disposition policy. |
+| C13 | `architecture-only` | `architecture-only` | No runtime implementation follows from the legibility scope statement. |
+| C14 | `architecture-only` | `architecture-only` | Holder introspection remains an open decision and is not a runtime requirement. |
+
+No canonical runtime vector is currently executed by name. C11's evidence vector is attested by the
+handoff notes; C13 and C14 are documentation-only coverage.
+
+## Proposed runtime delivery queue
+
+This queue is an audit output, not runtime authorization.
+
+| Slice | Changes | Dependency | Bounded outcome |
+| --- | --- | --- | --- |
+| A08-D1 | C7, C3, C4 | Audit complete | Replace poisoning with structural strong-Kleene evaluation in authority and selection, while pinning pre-effect and full-chain behavior with the 11 applicable canonical vectors. Preserve explicit 0.7 evidence as historical tests rather than silently rewriting its claim. |
+| A08-D2 | C6, C2 | A08-D1 | Replace Boolean delegability with default-on Constraint narrowing and establish `Origin.Derived` inside the same algebra. This is a breaking public-surface decision and requires an explicit migration note. |
+| A08-D3 | C9, C8 | A08-D1 | Introduce first-class Constraint declarations and recognition-set evidence, then enforce the projection exemption while retaining payload projection. |
+| A08-D4 | C1, C5 | A08-D2, A08-D3 | Add liveness-scoped ancestor evaluation and occurrence-pooled quantified accounting with fail-closed scope declarations. |
+| A08-D5 | C10 | A08-D2, A08-D4 | Issue provider resource Capabilities by derivation without exceeding the provider chain. |
+| A08-D6 | C12 | A08-D5 | Add Terminus and the domain's attributable held/outbound authority disposition policy. |
+
+C11 remains an operational constraint on every slice rather than a new runtime phase. C13 and C14
+remain outside the runtime queue. Channel and Portable Binding remain reusable experimental inputs;
+Flow conformance still follows the decided Channel → Portable Binding and Shape floor → Flow order.
+
+## Next authorization boundary
+
+The next implementable runtime slice is **A08-D1**. Starting it requires an explicit request after
+this audit is reviewed. The slice must begin with named C1-through-Cn behavioral contracts and
+failing canonical tests in each stack; it must not change the status registry, pinned 0.7 matrices,
+or either stack's `Designed for` declaration.
