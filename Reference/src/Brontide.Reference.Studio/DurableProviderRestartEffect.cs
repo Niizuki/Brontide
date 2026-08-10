@@ -284,7 +284,7 @@ public static class ExternallyReconciledProviderRestartRecovery
         ArgumentNullException.ThrowIfNull(ownership);
         ArgumentNullException.ThrowIfNull(journal);
         var initial = journal.Snapshot;
-        using var held = await ownership.TryEnterAsync(initial).ConfigureAwait(false);
+        using var held = await ownership.TryEnterAsync(journal).ConfigureAwait(false);
         if (held is null) return new("restart-ownership-required", initial, null, null);
         if (initial.Phase == "in-flight")
         {
@@ -328,7 +328,7 @@ public static class ExternallyReconciledProviderRestartRecovery
         ArgumentNullException.ThrowIfNull(ownership);
         ArgumentNullException.ThrowIfNull(journal);
         var initial = journal.Snapshot;
-        using var held = await ownership.TryEnterAsync(initial).ConfigureAwait(false);
+        using var held = await ownership.TryEnterAsync(journal).ConfigureAwait(false);
         if (held is null)
             return Result("restart-ownership-required", null, initial, ownership.Snapshot.Epoch, false, false);
         return ReconcileHeld(ownership, journal, effectPath);

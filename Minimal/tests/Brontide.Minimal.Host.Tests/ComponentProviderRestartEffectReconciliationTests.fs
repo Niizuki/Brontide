@@ -12,7 +12,6 @@ open Brontide.Minimal.Host
 type private RestartTemporaryEffect() =
     let root = Path.Combine(Path.GetTempPath(), $"brontide-cbi55-{Guid.NewGuid():N}")
     member _.Root = root
-    member _.OwnershipPath = Path.Combine(root, "restart.owner")
     member _.JournalPath = Path.Combine(root, "restart.journal")
     member _.EffectPath = Path.Combine(root, "restart.effect")
     interface IDisposable with
@@ -48,7 +47,7 @@ type ComponentProviderRestartEffectReconciliationTests() =
 
     let acquire (temporary: RestartTemporaryEffect) owner lease =
         DurableProviderRestartOwnership.Acquire(
-            temporary.OwnershipPath, ProviderRestartOwnerId.create owner, ProviderRestartOwnershipLeaseId.create lease,
+            temporary.JournalPath, ProviderRestartOwnerId.create owner, ProviderRestartOwnershipLeaseId.create lease,
             runIdentity, occurrence, staged).Ownership.Value
 
     let prepare (temporary: RestartTemporaryEffect) epoch index attemptInstant =

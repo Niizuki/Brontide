@@ -146,31 +146,40 @@ module private ProviderRestartOwnershipRecord =
                 else decode record
         with :? IOException | :? UnauthorizedAccessException -> None
 
-type DurableProviderRestartOwnership private (lockStream: FileStream, statePath: string, initial: RestartOwnershipState) =
+type DurableProviderRestartOwnership private (lockStream: FileStream, journalPath: string, statePath: string, initial: RestartOwnershipState) =
     let gate = new SemaphoreSlim(1, 1)
     let mutable disposed = false
     let state = initial
 
-    let isCurrent (journal: ProviderRestartAttemptJournalSnapshot) =
+    // Lineage identities do not identify a journal: two journals can carry the same run, occurrence,
+    // and staged identity, and a copied journal file carries them by construction. The path is what
+    // distinguishes them, so it is compared alongside the identities rather than trusted.
+    let isCurrent (journal: DurableProviderRestartAttemptJournal) =
+        let snapshot = journal.Snapshot
         not disposed && not lockStream.SafeFileHandle.IsClosed
-        && state.RunIdentity = journal.RunIdentity.Value
-        && state.Occurrence = OccurrenceId.value journal.Occurrence
-        && state.StagedIdentity = ProviderArtifactSetId.value journal.StagedIdentity
+        && String.Equals(journalPath, journal.Path, StringComparison.Ordinal)
+        && state.RunIdentity = snapshot.RunIdentity.Value
+        && state.Occurrence = OccurrenceId.value snapshot.Occurrence
+        && state.StagedIdentity = ProviderArtifactSetId.value snapshot.StagedIdentity
         && (ProviderRestartOwnershipRecord.tryRead statePath
             |> Option.exists (fun current ->
                 current.Epoch = state.Epoch && current.Owner = state.Owner && current.Lease = state.Lease
-                && ProviderRestartOwnershipRecord.matches current journal.RunIdentity journal.Occurrence journal.StagedIdentity))
+                && ProviderRestartOwnershipRecord.matches current snapshot.RunIdentity snapshot.Occurrence snapshot.StagedIdentity))
 
     member _.Snapshot =
         ProviderRestartOwnershipRecord.project "restart-ownership-current"
             (not disposed && not lockStream.SafeFileHandle.IsClosed) state
 
-    member _.IsCurrentFor(journal) =
+    /// The journal path this lease was acquired for. A lease fences exactly the journal it names.
+    member _.JournalPath = journalPath
+
+    member _.IsCurrentFor(journal: DurableProviderRestartAttemptJournal) =
+        if isNull (box journal) then nullArg (nameof journal)
         gate.Wait()
         try isCurrent journal
         finally gate.Release() |> ignore
 
-    member internal _.TryEnterAsync(journal) = task {
+    member internal _.TryEnterAsync(journal: DurableProviderRestartAttemptJournal) = task {
         do! gate.WaitAsync()
         if not (isCurrent journal) then
             gate.Release() |> ignore
@@ -194,15 +203,19 @@ type DurableProviderRestartOwnership private (lockStream: FileStream, statePath:
                     disposed <- true
             finally gate.Release() |> ignore
 
-    static member Acquire(path, owner: ProviderRestartOwnerId, lease: ProviderRestartOwnershipLeaseId,
+    /// `journalPath` is the CBI53 journal this lease fences, not a free ownership path. The lock path
+    /// is derived from it so that two hosts coordinating one journal cannot pick two different lock
+    /// files and exclude nobody; one journal has exactly one ownership path by construction.
+    static member Acquire(journalPath, owner: ProviderRestartOwnerId, lease: ProviderRestartOwnershipLeaseId,
                           runIdentity: ProviderRestartAttemptRunId, occurrence, stagedIdentity) =
-        if String.IsNullOrWhiteSpace path then invalidArg (nameof path) "An ownership path is required."
-        let lockPath = Path.GetFullPath path
+        if String.IsNullOrWhiteSpace journalPath then invalidArg (nameof journalPath) "A journal path is required."
+        let resolvedJournalPath = Path.GetFullPath journalPath
+        let lockPath = resolvedJournalPath + ".ownership"
         let statePath = lockPath + ".state"
         let prepared =
             try
                 match Path.GetDirectoryName lockPath with
-                | null -> invalidArg (nameof path) "An ownership path must have a parent directory."
+                | null -> invalidArg (nameof journalPath) "A journal path must have a parent directory."
                 | parent -> Directory.CreateDirectory parent |> ignore
                 Ok()
             with :? IOException | :? UnauthorizedAccessException | :? NotSupportedException ->
@@ -243,12 +256,12 @@ type DurableProviderRestartOwnership private (lockStream: FileStream, statePath:
                     { Code = "restart-ownership-write-failed"; Ownership = None
                       Snapshot = prior |> Option.map (ProviderRestartOwnershipRecord.project "restart-ownership-observed" false) }
                 else
-                    let ownership = new DurableProviderRestartOwnership(held, statePath, next)
+                    let ownership = new DurableProviderRestartOwnership(held, resolvedJournalPath, statePath, next)
                     { Code = "restart-ownership-acquired"; Ownership = Some ownership; Snapshot = Some ownership.Snapshot }
 
-    static member Inspect(path, runIdentity, occurrence, stagedIdentity) =
-        if String.IsNullOrWhiteSpace path then invalidArg (nameof path) "An ownership path is required."
-        let statePath = Path.GetFullPath(path) + ".state"
+    static member Inspect(journalPath, runIdentity, occurrence, stagedIdentity) =
+        if String.IsNullOrWhiteSpace journalPath then invalidArg (nameof journalPath) "A journal path is required."
+        let statePath = Path.GetFullPath(journalPath) + ".ownership.state"
         if not (File.Exists statePath) then { Code = "restart-ownership-missing"; Snapshot = None }
         else
             match ProviderRestartOwnershipRecord.tryRead statePath with
@@ -271,7 +284,7 @@ module CrossProcessProviderRestartRecovery =
         if isNull (box ownership) then nullArg (nameof ownership)
         if isNull (box journal) then nullArg (nameof journal)
         let snapshot = journal.Snapshot
-        let! held = ownership.TryEnterAsync snapshot
+        let! held = ownership.TryEnterAsync journal
         match held with
         | None -> return { Code = "restart-ownership-required"; Snapshot = snapshot; Decision = None; Enforcement = None }
         | Some lease ->

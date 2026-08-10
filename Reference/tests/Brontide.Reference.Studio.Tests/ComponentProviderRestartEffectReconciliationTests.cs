@@ -18,7 +18,6 @@ public sealed class ComponentProviderRestartEffectReconciliationTests
     private sealed class TemporaryEffect : IDisposable
     {
         public string Root { get; } = Path.Combine(Path.GetTempPath(), $"brontide-cbi55-{Guid.NewGuid():N}");
-        public string OwnershipPath => Path.Combine(Root, "restart.owner");
         public string JournalPath => Path.Combine(Root, "restart.journal");
         public string EffectPath => Path.Combine(Root, "restart.effect");
         public void Dispose()
@@ -45,7 +44,7 @@ public sealed class ComponentProviderRestartEffectReconciliationTests
 
     private static DurableProviderRestartOwnership Acquire(TemporaryEffect temporary, string owner, string lease)
         => DurableProviderRestartOwnership.Acquire(
-            temporary.OwnershipPath, ProviderRestartOwnerId.Create(owner), ProviderRestartOwnershipLeaseId.Create(lease),
+            temporary.JournalPath, ProviderRestartOwnerId.Create(owner), ProviderRestartOwnershipLeaseId.Create(lease),
             RunId, Occurrence, Staged).Ownership!;
 
     private static DurableProviderRestartEffect Prepare(TemporaryEffect temporary, long epoch, int index = 0,

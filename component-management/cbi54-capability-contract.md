@@ -16,20 +16,32 @@ expiry protocol, exactly-once executor, or recovery proof for an interrupted pro
 
 ## Capabilities
 
-### C1 — ownership is bound to one restart lineage
+### C1 — ownership is bound to one restart lineage, at one journal
 
-Acquisition requires distinct owner and lease identifiers plus the CBI53 run, occurrence, and staged
-content identities. A durable ownership record established for another lineage is refused without
-replacement.
+Acquisition requires distinct owner and lease identifiers, the CBI53 run, occurrence, and staged
+content identities, and the path of the journal being fenced. A durable ownership record established
+for another lineage is refused without replacement.
 
-Property: every accepted epoch belongs to exactly one durable restart lineage.
+Lineage identities do not identify a journal: two journals can carry the same run, occurrence, and
+staged identity, and a copied journal file carries them by construction. The ownership path is
+therefore derived from the journal path rather than chosen by the caller, and the journal publishes
+its own resolved path so the pairing is compared rather than trusted. A lease drives only the journal
+it was acquired for; presented with any other journal it is not current, and no CBI53 transition is
+attempted.
+
+Property: every accepted epoch belongs to exactly one durable restart lineage at exactly one journal
+path, and no lease validates against a journal it was not acquired for.
 
 ### C2 — one operating-system owner excludes other processes
 
 The owner holds an exclusive writer lock for the lease lifetime. A competing process cannot acquire
 the same ownership path and receives `restart-ownership-busy` without changing the durable record.
+Because the ownership path is derived from the journal path, two hosts coordinating one journal
+cannot select two different lock files and exclude nobody; one journal has exactly one ownership
+path by construction.
 
-Property: at most one live process can hold a lease for an ownership path.
+Property: at most one live process can hold a lease for an ownership path, and at most one live
+process can hold a lease for a journal.
 
 ### C3 — every acquisition advances a durable fencing epoch
 
@@ -80,11 +92,18 @@ Property: every shared vector produces the same portable observation in both roo
 
 ## Contract-completeness review
 
-The contract covers lineage binding, live exclusion, durable fencing, atomic publication, corrupt
-state, failed publication, release, stale leases, reacquisition, process loss, inspection, coordinator
-preflight, and shared observations. It deliberately does not cover network filesystems with weak
-locking or rename guarantees, distributed consensus, lease expiry, hostile state writers, process
-identity attestation, provider-effect reconciliation, endpoint rotation, or privileged custody.
+The contract covers lineage binding, journal pairing, live exclusion, durable fencing, atomic
+publication, corrupt state, failed publication, release, stale leases, reacquisition, process loss,
+inspection, coordinator preflight, and shared observations. It deliberately does not cover network
+filesystems with weak locking or rename guarantees, distributed consensus, lease expiry, hostile
+state writers, process identity attestation, provider-effect reconciliation, endpoint rotation, or
+privileged custody.
+
+The pairing requirement in C1 and C2 was added after delivery, on the finding recorded in the
+[CBI54 contract-completeness review](./cbi54-contract-completeness-review.md): the exclusion was
+originally over a caller-chosen ownership path, so two hosts could fence one journal from two
+different lock files, hold two independent epoch sequences, and exclude nobody. CBI69 reached the
+same conclusion for the cadence lock. This is a behaviour and public-API change, not a restatement.
 
 ## Deliberate limits
 

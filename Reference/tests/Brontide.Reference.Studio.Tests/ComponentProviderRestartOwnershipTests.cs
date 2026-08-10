@@ -16,7 +16,13 @@ public sealed class ComponentProviderRestartOwnershipTests
     private sealed class TemporaryOwnership : IDisposable
     {
         public string Root { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"brontide-cbi54-{Guid.NewGuid():N}");
-        public string Path => System.IO.Path.Combine(Root, "restart.owner");
+        /// <summary>
+        /// Ownership is acquired for a journal, so the journal path is what the tests name. The lock
+        /// and its state are derived from it rather than chosen, which is the property C2 now rests on.
+        /// </summary>
+        public string JournalPath => System.IO.Path.Combine(Root, "restart.journal");
+        public string LockPath => JournalPath + ".ownership";
+        public string StatePath => LockPath + ".state";
         public void Dispose()
         {
             for (var attempt = 0; attempt < 250; attempt++)
@@ -84,16 +90,16 @@ public sealed class ComponentProviderRestartOwnershipTests
     public void Cbi54_C1_ownership_is_bound_to_one_restart_lineage()
     {
         using var temporary = new TemporaryOwnership();
-        var acquired = Acquire(temporary.Path);
+        var acquired = Acquire(temporary.JournalPath);
         acquired.Ownership!.Dispose();
-        var before = File.ReadAllBytes(temporary.Path + ".state");
+        var before = File.ReadAllBytes(temporary.StatePath);
         var mismatch = DurableProviderRestartOwnership.Acquire(
-            temporary.Path, Owner, Lease, ProviderRestartAttemptRunId.Create("restart-run.other"), Occurrence, Staged);
+            temporary.JournalPath, Owner, Lease, ProviderRestartAttemptRunId.Create("restart-run.other"), Occurrence, Staged);
         Assert.Multiple(() =>
         {
             Assert.That(acquired.Code, Is.EqualTo("restart-ownership-acquired"));
             Assert.That(mismatch.Code, Is.EqualTo("restart-ownership-lineage-mismatch"));
-            Assert.That(File.ReadAllBytes(temporary.Path + ".state"), Is.EqualTo(before));
+            Assert.That(File.ReadAllBytes(temporary.StatePath), Is.EqualTo(before));
         });
     }
 
@@ -101,24 +107,24 @@ public sealed class ComponentProviderRestartOwnershipTests
     public async Task Cbi54_C2_one_operating_system_owner_excludes_other_processes()
     {
         using var temporary = new TemporaryOwnership();
-        var acquired = Acquire(temporary.Path);
-        Assert.That(await ProbeAsync(ProviderPath(), "probe", temporary.Path), Is.EqualTo(74));
+        var acquired = Acquire(temporary.JournalPath);
+        Assert.That(await ProbeAsync(ProviderPath(), "probe", temporary.LockPath), Is.EqualTo(74));
         acquired.Ownership!.Dispose();
-        Assert.That(await ProbeAsync(ProviderPath(), "probe", temporary.Path), Is.Zero);
+        Assert.That(await ProbeAsync(ProviderPath(), "probe", temporary.LockPath), Is.Zero);
     }
 
     [Test]
     public void Cbi54_C3_every_acquisition_advances_an_atomic_durable_fence()
     {
         using var temporary = new TemporaryOwnership();
-        var first = Acquire(temporary.Path);
+        var first = Acquire(temporary.JournalPath);
         first.Ownership!.Dispose();
-        var before = File.ReadAllBytes(temporary.Path + ".state");
-        Directory.CreateDirectory(temporary.Path + ".state.tmp");
-        var refused = Acquire(temporary.Path, "owner-b", "lease-b");
-        var afterRefused = File.ReadAllBytes(temporary.Path + ".state");
-        Directory.Delete(temporary.Path + ".state.tmp");
-        var second = Acquire(temporary.Path, "owner-b", "lease-b");
+        var before = File.ReadAllBytes(temporary.StatePath);
+        Directory.CreateDirectory(temporary.StatePath + ".tmp");
+        var refused = Acquire(temporary.JournalPath, "owner-b", "lease-b");
+        var afterRefused = File.ReadAllBytes(temporary.StatePath);
+        Directory.Delete(temporary.StatePath + ".tmp");
+        var second = Acquire(temporary.JournalPath, "owner-b", "lease-b");
         Assert.Multiple(() =>
         {
             Assert.That(refused.Code, Is.EqualTo("restart-ownership-write-failed"));
@@ -132,18 +138,50 @@ public sealed class ComponentProviderRestartOwnershipTests
     public void Cbi54_C4_only_the_current_live_lease_matches_the_journal()
     {
         using var temporary = new TemporaryOwnership();
-        var journalPath = System.IO.Path.Combine(temporary.Root, "restart.journal");
         var journal = DurableProviderRestartAttemptJournal.Establish(
-            journalPath, RunId, Occurrence, Staged,
+            temporary.JournalPath, RunId, Occurrence, Staged,
             ProviderRestartPolicy.Create(2, TimeSpan.FromMinutes(1))).Journal!;
-        var before = File.ReadAllBytes(journalPath);
-        var ownership = Acquire(temporary.Path).Ownership!;
-        Assert.That(ownership.IsCurrentFor(journal.Snapshot), Is.True);
+        var before = File.ReadAllBytes(temporary.JournalPath);
+        var ownership = Acquire(temporary.JournalPath).Ownership!;
+        Assert.That(ownership.IsCurrentFor(journal), Is.True);
         ownership.Dispose();
         Assert.Multiple(() =>
         {
-            Assert.That(ownership.IsCurrentFor(journal.Snapshot), Is.False);
-            Assert.That(File.ReadAllBytes(journalPath), Is.EqualTo(before));
+            Assert.That(ownership.IsCurrentFor(journal), Is.False);
+            Assert.That(File.ReadAllBytes(temporary.JournalPath), Is.EqualTo(before));
+        });
+    }
+
+    /// <summary>
+    /// The finding this capability exists for. Lineage identities do not identify a journal: a second
+    /// journal carrying the same run, occurrence, and staged identity — which a copied journal file
+    /// carries by construction — was previously indistinguishable from the one the lease was acquired
+    /// for, so a lease could fence a journal nobody was excluded from. Deriving the lock path from the
+    /// journal makes two hosts on one journal collide; comparing the path here catches a lease pointed
+    /// at a different journal that the identity comparison alone accepts.
+    /// </summary>
+    [Test]
+    public void Cbi54_C4_a_lease_fences_only_the_journal_it_names()
+    {
+        using var temporary = new TemporaryOwnership();
+        var policy = ProviderRestartPolicy.Create(2, TimeSpan.FromMinutes(1));
+        var owned = DurableProviderRestartAttemptJournal.Establish(
+            temporary.JournalPath, RunId, Occurrence, Staged, policy).Journal!;
+        var impostorPath = System.IO.Path.Combine(temporary.Root, "copied.journal");
+        var impostor = DurableProviderRestartAttemptJournal.Establish(
+            impostorPath, RunId, Occurrence, Staged, policy).Journal!;
+        // Released even when an assertion below fails, so the lock never outlives the fixture and
+        // wedges its own temporary-directory cleanup.
+        using var ownership = Acquire(temporary.JournalPath).Ownership!;
+        Assert.Multiple(() =>
+        {
+            // Identical lineage on both journals, so identity comparison alone cannot separate them.
+            Assert.That(impostor.Snapshot.RunIdentity, Is.EqualTo(owned.Snapshot.RunIdentity));
+            Assert.That(impostor.Snapshot.Occurrence, Is.EqualTo(owned.Snapshot.Occurrence));
+            Assert.That(impostor.Snapshot.StagedIdentity, Is.EqualTo(owned.Snapshot.StagedIdentity));
+            Assert.That(ownership.IsCurrentFor(owned), Is.True);
+            Assert.That(ownership.IsCurrentFor(impostor), Is.False);
+            Assert.That(ownership.JournalPath, Is.EqualTo(System.IO.Path.GetFullPath(temporary.JournalPath)));
         });
     }
 
@@ -151,9 +189,9 @@ public sealed class ComponentProviderRestartOwnershipTests
     public void Cbi54_C5_released_and_superseded_leases_are_stale()
     {
         using var temporary = new TemporaryOwnership();
-        var first = Acquire(temporary.Path);
+        var first = Acquire(temporary.JournalPath);
         first.Ownership!.Dispose();
-        var second = Acquire(temporary.Path);
+        var second = Acquire(temporary.JournalPath);
         Assert.Multiple(() =>
         {
             Assert.That(first.Ownership.Snapshot.IsLive, Is.False);
@@ -167,18 +205,18 @@ public sealed class ComponentProviderRestartOwnershipTests
     public async Task Cbi54_C6_process_loss_relinquishes_exclusivity_without_erasing_history()
     {
         using var temporary = new TemporaryOwnership();
-        var first = Acquire(temporary.Path);
+        var first = Acquire(temporary.JournalPath);
         first.Ownership!.Dispose();
         var start = new ProcessStartInfo(ProviderPath())
             { UseShellExecute = false, RedirectStandardInput = true, RedirectStandardOutput = true };
-        start.ArgumentList.Add($"--hold-exclusive-file={temporary.Path}");
+        start.ArgumentList.Add($"--hold-exclusive-file={temporary.LockPath}");
         using var holder = Process.Start(start)!;
         Assert.That(await holder.StandardOutput.ReadLineAsync(), Is.EqualTo("held"));
         // Strict while the holder is alive: exclusivity must be refused at the first attempt.
-        Assert.That(Acquire(temporary.Path, "owner-b", "lease-b").Code, Is.EqualTo("restart-ownership-busy"));
+        Assert.That(Acquire(temporary.JournalPath, "owner-b", "lease-b").Code, Is.EqualTo("restart-ownership-busy"));
         holder.Kill(entireProcessTree: true);
         await holder.WaitForExitAsync();
-        var recovered = AcquireAfterProcessLoss(temporary.Path, "owner-b", "lease-b");
+        var recovered = AcquireAfterProcessLoss(temporary.JournalPath, "owner-b", "lease-b");
         Assert.Multiple(() =>
         {
             Assert.That(recovered.Code, Is.EqualTo("restart-ownership-acquired"));
@@ -191,14 +229,14 @@ public sealed class ComponentProviderRestartOwnershipTests
     public void Cbi54_C7_inspection_is_bounded_and_fails_closed()
     {
         using var temporary = new TemporaryOwnership();
-        Assert.That(DurableProviderRestartOwnership.Inspect(temporary.Path, RunId, Occurrence, Staged).Code,
+        Assert.That(DurableProviderRestartOwnership.Inspect(temporary.JournalPath, RunId, Occurrence, Staged).Code,
             Is.EqualTo("restart-ownership-missing"));
-        var acquired = Acquire(temporary.Path);
+        var acquired = Acquire(temporary.JournalPath);
         acquired.Ownership!.Dispose();
-        var bytes = File.ReadAllBytes(temporary.Path + ".state");
+        var bytes = File.ReadAllBytes(temporary.StatePath);
         bytes[0] ^= 0x7F;
-        File.WriteAllBytes(temporary.Path + ".state", bytes);
-        Assert.That(DurableProviderRestartOwnership.Inspect(temporary.Path, RunId, Occurrence, Staged).Code,
+        File.WriteAllBytes(temporary.StatePath, bytes);
+        Assert.That(DurableProviderRestartOwnership.Inspect(temporary.JournalPath, RunId, Occurrence, Staged).Code,
             Is.EqualTo("restart-ownership-corrupt"));
     }
 
@@ -218,13 +256,13 @@ public sealed class ComponentProviderRestartOwnershipTests
                 if (action.StartsWith("acquire:", StringComparison.Ordinal))
                 {
                     var parts = action.Split(':');
-                    var result = Acquire(temporary.Path, parts[1], parts[2]);
+                    var result = Acquire(temporary.JournalPath, parts[1], parts[2]);
                     code = result.Code; ownership = result.Ownership; snapshot = result.Snapshot;
                 }
                 else if (action == "release") { ownership!.Dispose(); snapshot = ownership.Snapshot; }
                 else if (action == "inspect")
                 {
-                    var result = DurableProviderRestartOwnership.Inspect(temporary.Path, RunId, Occurrence, Staged);
+                    var result = DurableProviderRestartOwnership.Inspect(temporary.JournalPath, RunId, Occurrence, Staged);
                     code = result.Code; snapshot = result.Snapshot;
                 }
             }

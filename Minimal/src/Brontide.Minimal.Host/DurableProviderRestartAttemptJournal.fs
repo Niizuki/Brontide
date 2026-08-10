@@ -242,6 +242,11 @@ type DurableProviderRestartAttemptJournal private (path: string, initial: Restar
            || not (ProviderRestartAttemptJournalRecord.tryWrite path next) then current "durable-restart-write-failed"
         else state <- next; current code
 
+    /// The resolved path this journal was opened at. CBI54 derives its ownership path from this and
+    /// compares it again before driving a transition: a lease acquired for one journal must not fence
+    /// a different journal that happens to carry the same lineage identities.
+    member _.Path = path
+
     member _.Snapshot = lock syncRoot (fun () -> project state)
     member _.BeginAttempt(instant: DateTimeOffset) = lock syncRoot (fun () ->
         if state.Phase = "terminal" then current state.TerminalCode.Value
