@@ -13,6 +13,7 @@ Status: implementation-owned dependency and review map, not new architectural vo
 | Cooling binding | separate `Experimental.Binding` files | `PortableBinding.fs` plus `CoolingBindingHost.fs` | Experimental; no stack-to-stack assembly reference and no Capability transfer. |
 | Catalog transport | `Experimental.Binding/CatalogBinding.cs` | `Binding/CatalogBinding.fs` | Separate file/module per stack, strict protocol, fixed payload limit, independent endpoint and client. |
 | Process composition | each `Interchange.Provider` executable | each `Interchange.Provider` executable | Provider programs are composition roots and own semantic state; binding libraries do not select authority or credentials. |
+| Persistent-information experiment | `Brontide.Reference.Experimental.PersistentInformation` | `Brontide.Minimal.Experimental.PersistentInformation` | Outside Core/Model/Kernel; Dataset mutations are invoked only from an already-authorised native Operation handler; identity and Router guarantees remain typed experiment-owned data. |
 
 The Catalog correction deliberately introduced a separate transport module instead of enlarging the
 Cooling-specific protocol file. Future changes to the older 1,000-line Minimal portable binding

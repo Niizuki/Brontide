@@ -11,13 +11,18 @@ surface and known limitations are described here and exercised by the solution t
 experimental projects may state a later target locally; in particular, Component Management is
 designed against Architecture 0.8 without changing the stack-wide target.
 
-Architecture 0.7 R1-R2 now have Reference-native Complete Draft evidence for recursive three-state
+Architecture 0.7 R1-R5 now have Reference-native Complete Draft implementation evidence for recursive three-state
 Constraint expressions, fail-closed authority evaluation, experimental Composition selection, and
 distinct typed-member canonical names with an open provisional member-kind token. R3's static
 Attribute-constrained binding (`BR-07-BINDING-001`) is implemented and tested, but the matrix still
 records it as `planned`: changing that status changes a hash the closed independent-review request
 pins, which needs that review retargeted and freshly attested by a reviewer who is not an
-implementation actor.
+implementation actor. R4 adds an experimental persistent-information component for Opaque Corpus,
+Dataset identity and authorised issuance, explicit single-writer access, Store roles, and stable
+Router endpoint guarantees. Its matrix promotion is governed by the same pinned-review boundary.
+R5 adds a real-process comparison endpoint which consumes a shared data-only fixture and agrees
+with both its independent oracle and the Minimal endpoint across 15 R1-R4 observations. This is
+finite experimental comparison evidence, not a ratification or private-model compatibility claim.
 The retained [`conformance/architecture-0.7.json`](./conformance/architecture-0.7.json) matrix is
 detailed test evidence, not the source of the implementation target and not a claim that the
 remaining Architecture 0.7 work is implemented.
@@ -35,6 +40,12 @@ conformance. That project also carries Architecture 0.7 §18.1's static Attribut
 binding: a binding resolves exactly once against the Attribute values read at that moment, records
 the effective values and the per-candidate provenance that decided it, and holds no source — so a
 later Attribute or candidate change cannot rebind it, and restoration consults nothing.
+
+`Brontide.Reference.Experimental.PersistentInformation` carries R4/C4-C5 outside Core: typed
+Corpus, Dataset, Store-role, Store, and Router identities; Dataset records independent of Store
+content; issuance through an existing Capability-authorised Operation; and Router guarantees
+validated across every declared backing and fallback. Its endpoints are deterministic in-memory
+evidence, not a durable database or general storage layer.
 
 `Brontide.Reference.Experimental.ComponentManagement` now implements the fake Component Management
 CM0-CM6 programme: strict neutral-fixture loading, deterministic attributable discovery, immutable

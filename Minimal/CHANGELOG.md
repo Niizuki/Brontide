@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased - Architecture 0.7 M5 cross-stack comparison
+
+### Added
+
+- A Minimal-native F# process endpoint for the common 15-vector M1-M4 data fixture, implemented
+  only with Minimal public surfaces.
+- Paired comparison evidence for canonical results, denials, provenance, restoration, diagnostics,
+  Dataset identity, Router guarantees, fallback, and redaction.
+
+### Notes
+
+- No disagreements are allowed or observed; the evidence remains finite and experimental.
+
+## Unreleased - Architecture 0.7 M4 persistent-information experiment
+
+### Added
+
+- `Brontide.Minimal.Experimental.PersistentInformation`, a native F# experimental component with
+  opaque Corpus/Dataset/Store-role/Store/Router identities, immutable records, result-valued
+  refusals, declaration-checked single-writer operations, and Router-owned endpoint guarantees.
+- `Brontide.Minimal.PersistentInformation.Tests`, with C1-C8 evidence for Kernel denial before
+  effects, Store-independent Dataset identity, concurrency refusal, fallback, guarantee leakage
+  prevention, and topology redaction.
+
+### Notes
+
+- The endpoints are in-memory evidence, not durable-media storage, transactions, or a general Router.
+- The retained 0.7 matrix remains pinned as `planned` for M4 until review is retargeted.
+
 ## Unreleased - CBI69 cadence run supervision
 
 ### Added

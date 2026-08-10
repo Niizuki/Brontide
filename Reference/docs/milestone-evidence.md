@@ -17,10 +17,11 @@ Architecture 0.7 implementation detail is recorded in
 evidence of complete 0.7 conformance.
 
 Architecture 0.7 evidence is checked separately through
-[`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). R1-R2 currently cover
-recursive Constraint evaluation, authority poisoning, experimental selection exclusion, and
-provisional typed-member canonical names;
-it does not imply that the remaining target is implemented.
+[`../conformance/architecture-0.7.json`](../conformance/architecture-0.7.json). R1-R5 implementation
+evidence now covers recursive Constraints, typed-member names, static Attribute binding, and the
+experimental Opaque Corpus/Dataset/Store/Router slice. The pinned matrix still records R3-R4 as
+planned pending review retargeting, and no whole-revision or ratification claim follows.
+R5's separate process comparison covers 15 shared data-only observations and reports no disagreement.
 
 The active cross-stack sequence is defined by
 [`Brontide-Interchange-Implementation-Plan-0.1.md`](../../docs/archive/interchange/Brontide-Interchange-Implementation-Plan-0.1.md).
@@ -42,7 +43,7 @@ Core, Architecture 0.5 Composition, or the proposed portable binding.
 | M9 | Studio scene plus section-cited Outcome conformance cover delegated `Audit.Start`, activity creation, and later terminal completion | Green |
 | Architecture 0.5 delta | Experimental composition tests cover explicit dependency strength, optional boxed boundaries, non-inferred accelerator eligibility, visible provider substitution, operational observations, vector execution, and fallback | Green experimental evidence; not represented as ratified Component, Binding Plan, system-service, or optimisation semantics |
 | Interchange P0-P4 plus correction breadth | Neutral Cooling and Catalog fixtures; independent protocol/value implementations; real two-way foreign-process tests; malformed/version/replay/payload vectors; source-cost inventory; dependency/output audit | Green experimental cross-stack evidence; both protocols and observation formats remain unratified |
-| Architecture 0.7 R1-R2 | Core three-state recursive Constraint tests, authority denial/redaction conformance tests, experimental Composition candidate-exclusion tests, and typed-member parse/format/compare/rejection vectors | Green Complete Draft evidence for C1-C2 only; no ratification or whole-revision conformance claim |
+| Architecture 0.7 R1-R5 | Native suites cover recursive Constraints, typed-member names, static Attribute binding, Capability-denied Dataset issuance, Store-independent identity, declared concurrency, Router guarantees/fallback, and topology redaction; independent process endpoints agree on all 15 shared observations | Green experimental Complete Draft implementation and finite cross-stack comparison evidence; pinned matrix promotion remains; no ratification claim |
 
 The M0 test-first requirement is a process gate. Brontide Reference Stack's source and tests originally arrived in one
 commit, so the repository cannot prove that the expected failures were observed before their
@@ -84,3 +85,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\build\verify-dependencies.
 
 The complete cross-stack gate is `..\..\build\verify-interchange.ps1` from this directory, or
 `.\build\verify-interchange.ps1` from the repository root.
+The focused Architecture 0.7 R5/M5 gate is
+`.\build\verify-architecture-0.7-comparison.ps1` from the repository root.

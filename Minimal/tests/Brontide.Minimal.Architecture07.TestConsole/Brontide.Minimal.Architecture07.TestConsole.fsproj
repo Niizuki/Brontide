@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Brontide.Minimal.Architecture07.TestConsole</AssemblyName>
+    <RootNamespace>Brontide.Minimal.Architecture07.TestConsole</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Model\Brontide.Minimal.Model.fsproj" />
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Kernel\Brontide.Minimal.Kernel.fsproj" />
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Experimental.Composition\Brontide.Minimal.Experimental.Composition.fsproj" />
+    <ProjectReference Include="..\..\src\Brontide.Minimal.Experimental.PersistentInformation\Brontide.Minimal.Experimental.PersistentInformation.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+</Project>

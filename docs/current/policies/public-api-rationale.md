@@ -28,6 +28,14 @@ an enum or closed union because Architecture 0.7 leaves the member-kind catalogu
 provisional. No current binding protocol serializes the new type, so no wire version or legacy alias
 is introduced.
 
+The experimental persistent-information APIs are public because each project is independently
+consumable by its stack's composition root and verified by a separate test assembly. Corpus,
+Dataset, Store-role, Store, and Router identifiers are distinct types because Store content and
+placement must not become Dataset identity accidentally. Construction and operation failures are
+typed results so unsupported concurrency, unavailable roles, and impossible Router guarantees are
+visible before effects. Capability types do not enter these projects: each stack's existing
+authority evaluator gates the handler that invokes issuance or mutation.
+
 Two correction APIs expose trust-boundary facts deliberately. Minimal `FragmentDefinition` now
 requires `HostShape` so an authored attachment cannot be replayed onto an unrelated open Shape;
 callers must provide the earliest compatible host Shape. Reference `ExecutionRecord.HasInput`

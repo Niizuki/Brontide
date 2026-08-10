@@ -1,0 +1,112 @@
+{
+  "contract": "BR-07-CROSS-STACK-COMPARISON-001",
+  "version": 1,
+  "vectors": [
+    {
+      "id": "A07-CMP-001",
+      "phase": "R1-M1",
+      "operation": "constraint",
+      "input": { "scenario": "conjunction-satisfied" },
+      "expected": { "status": "accepted", "value": "satisfied", "diagnostic": "none" }
+    },
+    {
+      "id": "A07-CMP-002",
+      "phase": "R1-M1",
+      "operation": "constraint",
+      "input": { "scenario": "unsupported-poisons-disjunction" },
+      "expected": { "status": "denied", "diagnostic": "unsupported-constraint" }
+    },
+    {
+      "id": "A07-CMP-003",
+      "phase": "R1-M1",
+      "operation": "constraint",
+      "input": { "scenario": "unsatisfied" },
+      "expected": { "status": "denied", "diagnostic": "unsatisfied" }
+    },
+    {
+      "id": "A07-CMP-004",
+      "phase": "R2-M2",
+      "operation": "canonical-name",
+      "input": { "text": "org.example:Cooling.Unit#Operation.Start" },
+      "expected": { "status": "accepted", "value": "org.example:Cooling.Unit#Operation.Start", "diagnostic": "none" }
+    },
+    {
+      "id": "A07-CMP-005",
+      "phase": "R2-M2",
+      "operation": "canonical-name",
+      "input": { "text": "Cooling.Unit#Operation.Start@3" },
+      "expected": { "status": "denied", "diagnostic": "name-invalid" }
+    },
+    {
+      "id": "A07-CMP-006",
+      "phase": "R2-M2",
+      "operation": "canonical-name",
+      "input": { "text": "Cooling.Unit#Operation.Start#Shape.Command" },
+      "expected": { "status": "denied", "diagnostic": "name-invalid" }
+    },
+    {
+      "id": "A07-CMP-007",
+      "phase": "R3-M3",
+      "operation": "attribute-binding",
+      "input": { "scenario": "ordinal-selection" },
+      "expected": { "status": "accepted", "value": "Provider.A", "diagnostic": "none", "provenance": ["Provider.A:selected"] }
+    },
+    {
+      "id": "A07-CMP-008",
+      "phase": "R3-M3",
+      "operation": "attribute-binding",
+      "input": { "scenario": "unsupported-then-selected" },
+      "expected": { "status": "accepted", "value": "Provider.B", "diagnostic": "none", "provenance": ["Provider.A:unevaluatable", "Provider.B:selected"] }
+    },
+    {
+      "id": "A07-CMP-009",
+      "phase": "R3-M3",
+      "operation": "attribute-binding",
+      "input": { "scenario": "restore-recorded-selection" },
+      "expected": { "status": "accepted", "value": "Provider.A", "diagnostic": "none", "provenance": ["Provider.A:selected"], "restoration": "Provider.A" }
+    },
+    {
+      "id": "A07-CMP-010",
+      "phase": "R4-M4",
+      "operation": "persistent-information",
+      "input": { "scenario": "corpus-rejects-external-coordination" },
+      "expected": { "status": "denied", "diagnostic": "concurrency-unsupported" }
+    },
+    {
+      "id": "A07-CMP-011",
+      "phase": "R4-M4",
+      "operation": "persistent-information",
+      "input": { "scenario": "dataset-identity-survives-content-loss" },
+      "expected": { "status": "accepted", "value": "dataset-1", "diagnostic": "none", "restoration": "empty-content" }
+    },
+    {
+      "id": "A07-CMP-012",
+      "phase": "R4-M4",
+      "operation": "persistent-information",
+      "input": { "scenario": "dataset-concurrency-mismatch" },
+      "expected": { "status": "denied", "diagnostic": "concurrency-mismatch", "effects": 0 }
+    },
+    {
+      "id": "A07-CMP-013",
+      "phase": "R4-M4",
+      "operation": "persistent-information",
+      "input": { "scenario": "router-fallback" },
+      "expected": { "status": "accepted", "value": "second", "diagnostic": "none", "guarantees": ["durable"] }
+    },
+    {
+      "id": "A07-CMP-014",
+      "phase": "R4-M4",
+      "operation": "persistent-information",
+      "input": { "scenario": "router-rejects-unsupported-guarantee" },
+      "expected": { "status": "denied", "diagnostic": "router-guarantee-unsupported" }
+    },
+    {
+      "id": "A07-CMP-015",
+      "phase": "R4-M4",
+      "operation": "persistent-information",
+      "input": { "scenario": "router-redacts-topology" },
+      "expected": { "status": "accepted", "value": "redacted", "diagnostic": "none", "guarantees": ["durable"] }
+    }
+  ],
+  "allowedDisagreements": []
+}

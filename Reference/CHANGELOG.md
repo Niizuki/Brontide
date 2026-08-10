@@ -1,5 +1,35 @@
 # Changelog
 
+## Unreleased - Architecture 0.7 R5 independent comparison
+
+### Added
+
+- A data-only 15-vector R1-R4 comparison fixture and a Reference-native process endpoint which
+  invokes only Reference public surfaces.
+- A repository comparison gate that checks expected observations, paired agreement, denial
+  silence, disagreement classification, and the finite proof boundary.
+
+### Notes
+
+- All compared observations agree; this is experimental finite-vector evidence, not ratification
+  or a cross-stack wire protocol.
+
+## Unreleased - Architecture 0.7 R4 persistent-information experiment
+
+### Added
+
+- `Brontide.Reference.Experimental.PersistentInformation`, an independent experimental component
+  for Opaque Corpus declarations, typed Dataset/Store-role/Store/Router identities, attributable
+  Dataset issuance records, declaration-checked single-writer operations, and Router-owned endpoint guarantees.
+- `Brontide.Reference.PersistentInformation.Tests`, with C1-C8 evidence for authority denial before
+  effects, Store-independent Dataset identity, concurrency refusal, fallback, guarantee leakage
+  prevention, and topology redaction.
+
+### Notes
+
+- The endpoints are in-memory evidence, not durable-media storage, transactions, or a general Router.
+- The retained 0.7 matrix remains pinned as `planned` for R4 until review is retargeted.
+
 ## Unreleased - CBI69 cadence run supervision
 
 ### Added
