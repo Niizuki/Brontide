@@ -104,7 +104,14 @@ Assert-ContainsAll 'Channel 0.2 recipient cancellation-refusal path' $interactio
 )
 Assert-ContainsAll 'Channel 0.2 complete cancellation terminal paths' $interaction @(
     '| `dispatched` or `cancel-pending` | valid correlated peer protocol fault | `peer-fault` |',
-    '| `executing` or `cancel-requested` | structurally invalid, unrecognized, unsupported, or wrongly scoped cancellation control | `faulted` | possible/already occurred; emit one interaction-scoped protocol fault and ignore a later handler terminal |'
+    '| `executing` or `cancel-requested` | structurally invalid, unrecognized, unsupported, or wrongly scoped cancellation control | `peer-fault` | possible/already occurred; emit one interaction-scoped protocol fault and ignore a later handler terminal |'
+)
+Assert-ContainsAll 'Channel 0.2 live replay and recipient provenance paths' $interaction @(
+    '| `executing` or `cancel-requested` | repeated request with the same accepted identity | `peer-fault` | possible/already occurred; no redispatch, emit `replay-detected`, and ignore a later handler terminal |',
+    '| `peer-fault` | yes | One interaction-scoped peer protocol fault was committed; handler effects may already be possible. |',
+    '| `lost` | yes | Local session or transport loss prevented a valid terminal commit; no peer statement is claimed. |',
+    '| initiator `peer-fault` / recipient `peer-fault` / recipient `rejected-protocol` | no | yes | receipt/commit also observed locally |',
+    '| initiator or recipient `lost` | no | no | yes |'
 )
 
 Assert-ContainsAll 'Channel 0.2 responsibility matrix' $responsibility @(
@@ -197,6 +204,14 @@ Assert-ContainsAll 'Channel 0.1 observation migration' $migration @(
 )
 $vectorMigrationSection = ($migration -split '## Channel 0.1 vector migration', 2)[1] -split '## New evidence required by redesign', 2 | Select-Object -First 1
 $allowedDispositions = @('retained', 'replaced', 'moved', 'removed', 'legacy-only')
+$allDispositionRows = @($migration -split "`r?`n" | Where-Object { $_ -match '^\| .* \| \*\*[^*]+\*\* \|' })
+foreach ($row in $allDispositionRows) {
+    $cells = @($row.Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+    $disposition = $cells[1].Trim('*').ToLowerInvariant()
+    if ($disposition -notin $allowedDispositions) {
+        $failures.Add("Channel 0.1 migration item '$($cells[0])' uses undeclared disposition '$disposition'.")
+    }
+}
 $vectorRows = @($vectorMigrationSection -split "`r?`n" | Where-Object { $_ -match '^\| CH-[0-9]{2} ' })
 foreach ($row in $vectorRows) {
     $cells = @($row.Trim('|').Split('|') | ForEach-Object { $_.Trim() })
@@ -248,7 +263,7 @@ Assert-ContainsAll 'Channel 0.2 neutral brief' $neutralBrief @(
 )
 Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
     'four owner rulings resolved',
-    'fresh independent final closure review is pending',
+    'fresh independent definitive closure review is pending',
     '## Required review scope',
     '## Required verdicts',
     '## Closure'
@@ -256,10 +271,10 @@ Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 N1-N3 correction pin must retain exactly the review README and both negative attestations before final closure re-review.')
+    $failures.Add('The Channel 0.2 F1-F3 correction pin must retain exactly the review README and all three negative attestations before definitive closure re-review.')
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'channel\0.2')) {

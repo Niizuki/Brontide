@@ -1,7 +1,7 @@
 # Channel 0.2 design-foundation reviews
 
-Status: four owner rulings resolved; two negative independent reviews retained; B1-B4 and N1-N3 have
-correction passes and fresh independent final closure review is pending.
+Status: four owner rulings resolved; three negative independent reviews retained; B1-B4, N1-N3, and
+F1-F3 have correction passes and fresh independent definitive closure review is pending.
 
 This directory retains independent attestations for the complete Channel 0.2 first-batch design
 foundation. A review is independent only when its reviewer identity differs from the design author,
@@ -64,6 +64,9 @@ The author correction pass and ordinary documentation gates are not independent 
 - [First closure review](./channel-0.2-design-foundation-closure-attestation.md) — reviewed
   `e863bf15fca30466d6e262b0ea66b3c05bc384eb`; `does-not-conform`; B1-B4 closed and N1-N3 retained
   for final closure comparison.
+- [Final closure review](./channel-0.2-design-foundation-final-closure-attestation.md) — reviewed
+  `1af7ba0018c874750e346ee687f07ea1d302adef`; `does-not-conform`; B1-B4/N1-N3 closed and F1-F3
+  retained for definitive closure comparison.
 
 No conforming closure attestation exists yet. The corrected artifacts remain nonconforming evidence
 until a fresh reviewer closes every retained finding and reports no new blocker.

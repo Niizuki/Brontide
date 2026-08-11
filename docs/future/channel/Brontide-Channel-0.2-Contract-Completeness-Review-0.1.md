@@ -2,9 +2,9 @@
 
 Date: 2026-08-11
 
-Status: author pass plus B1-B4 and N1-N3 correction passes complete; fresh independent final closure
-review remains required. This review asks what the proposed contract does not say. It is separate
-from conformance review and does not claim the contract is correct.
+Status: author pass plus B1-B4, N1-N3, and F1-F3 correction passes complete; fresh independent
+definitive closure review remains required. This review asks what the proposed contract does not say.
+It is separate from conformance review and does not claim the contract is correct.
 
 Reviewed artifacts:
 
@@ -238,3 +238,17 @@ failing against the pre-correction artifacts.
 
 These corrections likewise require a fresh independent final closure review and do not authorize
 Batch 2 by themselves.
+
+The next closure review at `1af7ba0018c874750e346ee687f07ea1d302adef` closed B1-B4 and N1-N3 but
+recorded F1-F3 in the retained
+[final closure attestation](./reviews/channel-0.2-design-foundation-final-closure-attestation.md).
+F1 is corrected by defining a repeated accepted identity during `executing` or `cancel-requested` as
+one interaction-scoped `replay-detected` peer fault with no redispatch and a late-handler terminal
+ignored. F2 is corrected by replacing recipient `faulted` with distinct `peer-fault` and `lost`
+terminal states and assigning each an exclusive provenance row. F3 is corrected by mapping the
+added cancellation Outcome through the declared `replaced` disposition. The verifier now checks
+the live replay/provenance paths and every bold disposition row in the complete ledger; it was
+observed failing on F1-F3 before correction.
+
+These corrections require a new independent definitive closure review and do not authorize Batch 2
+by themselves.

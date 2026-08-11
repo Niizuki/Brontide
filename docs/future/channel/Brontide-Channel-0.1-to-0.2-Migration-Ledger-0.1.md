@@ -2,9 +2,9 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch migration disposition; B4 and N1/N3 corrected after independent review
-and subject to fresh independent final closure review. Serialized spellings remain unselected until
-the neutral contract batch.
+Status: proposed first-batch migration disposition; B4, N1/N3, and F3 corrected after independent
+review and subject to fresh independent definitive closure review. Serialized spellings remain
+unselected until the neutral contract batch.
 
 Sources inventoried:
 
@@ -54,7 +54,7 @@ spelling.
 | `Outcome` | **retained** | `InteractionOutcome`, always interaction-scoped and one of success, shaped failure, or supported cancellation. |
 | Outcome `succeeded` / result | **retained** | Semantic success with shaped result. |
 | Outcome `failed` / details | **retained** | Semantic failure with shaped details, distinct from peer fault/loss. |
-| Outcome `cancelled` | **new** | Optional profile-supported semantic terminal form; cancellation acknowledgement alone is not terminal. |
+| Outcome `cancelled` | **replaced** | The 0.1 Outcome terminal set is replaced by a profile-declared set that may include semantic cancellation; cancellation acknowledgement alone is not terminal. |
 | `ProtocolError` | **replaced** | `PeerProtocolFault`, explicitly a bounded peer assertion with session or interaction scope. |
 | protocol category | **replaced** | Revised peer-fault taxonomy below; unknown fault category becomes local `unrecognized-peer-fault` and does not trigger a reply loop. |
 | realization/local code | **retained** | Bounded, non-normative diagnostic excluded from portable semantics. |
@@ -89,7 +89,7 @@ spelling.
 | `active` | **replaced** | Per-interaction initiator `dispatched` and recipient `executing`; several may coexist. |
 | `withdrawn` | **replaced** | Binding withdrawal externally owned; Channel session `draining` refuses new interactions while preserving in-flight histories. |
 | `terminated` | **replaced** | Channel session `closed`; external Component/process termination remains separate. |
-| `failed` | **replaced** | Channel session `faulted`; each nonterminal interaction separately becomes peer-fault/lost/faulted with effect evidence. |
+| `failed` | **replaced** | Channel session `faulted`; each nonterminal interaction separately becomes peer-fault or lost with effect evidence. |
 
 New 0.2 session state: `draining`. New interaction states are specified in the interaction state
 machine and have no 0.1 global-state equivalent.

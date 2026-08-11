@@ -2,8 +2,8 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; B1/B2 and N2 corrected after independent review and
-subject to fresh independent final closure review.
+Status: proposed first-batch design artifact; B1/B2, N2, and F1/F2 corrected after independent review
+and subject to fresh independent definitive closure review.
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 
@@ -45,7 +45,8 @@ activity require a declared extension facet and cannot reinterpret this state ma
 | `outcome-succeeded` | yes | Handler produced semantic success and one Outcome was committed. |
 | `outcome-failed` | yes | Handler produced shaped semantic failure and one Outcome was committed. |
 | `outcome-cancelled` | yes | Handler completed through the supported cancellation contract and one Outcome was committed. |
-| `faulted` | yes | Channel cannot continue the interaction and one protocol fault was committed or local loss occurred. |
+| `peer-fault` | yes | One interaction-scoped peer protocol fault was committed; handler effects may already be possible. |
+| `lost` | yes | Local session or transport loss prevented a valid terminal commit; no peer statement is claimed. |
 
 The two endpoint histories need not end with the same local label when transport is lost after a peer
 commits a terminal frame. Each reports only what it can establish. Portable parity compares facts
@@ -79,10 +80,12 @@ with the same provenance, not a fictional global state.
 | `executing` | handler returns shaped failure | `outcome-failed` | possible; failure is not rollback |
 | `executing` | valid cancellation control arrives | `cancel-requested` | possible/already occurred |
 | `executing` | structurally valid cancellation control is denied by local cancellation authority | `executing` | possible/already occurred; emit nonterminal `refused` acknowledgement |
-| `executing` or `cancel-requested` | structurally invalid, unrecognized, unsupported, or wrongly scoped cancellation control | `faulted` | possible/already occurred; emit one interaction-scoped protocol fault and ignore a later handler terminal |
+| `executing` or `cancel-requested` | structurally invalid, unrecognized, unsupported, or wrongly scoped cancellation control | `peer-fault` | possible/already occurred; emit one interaction-scoped protocol fault and ignore a later handler terminal |
+| `executing` or `cancel-requested` | repeated request with the same accepted identity | `peer-fault` | possible/already occurred; no redispatch, emit `replay-detected`, and ignore a later handler terminal |
 | `cancel-requested` | handler reports cancellation completed | `outcome-cancelled` | possible; report exact evidence |
 | `cancel-requested` | handler completes normally or with failure | matching Outcome terminal | possible; cancellation was not guaranteed |
-| `executing` or `cancel-requested` | internal Channel failure before terminal commit | `faulted` | `unknown` unless handler boundary evidence narrows it |
+| `executing` or `cancel-requested` | internal Channel failure and one scoped protocol fault commits | `peer-fault` | `unknown` unless handler boundary evidence narrows it |
+| `executing` or `cancel-requested` | session/transport loss or internal failure prevents a valid terminal commit | `lost` | `unknown` unless handler boundary evidence narrows it |
 | any terminal | repeated request with same identity | unchanged terminal | no redispatch; replay fault/observation |
 
 ## Admission order
@@ -111,8 +114,9 @@ mechanically, but its observable classification and zero-effect boundary must ma
 - Accepted interaction identities enter the replay set before handler dispatch.
 - Outcomes may arrive in any order and close only their named interaction.
 - Drain snapshots the admitted set and refuses new candidates; it does not reorder or cancel the set.
-- A fatal session fault maps every nonterminal local initiator interaction to `lost` and every
-  nonterminal local recipient interaction to `faulted`, each with its own effect evidence.
+- A fatal session or transport loss maps every nonterminal local initiator and recipient interaction
+  to `lost`. A recipient instead reaches `peer-fault` only when one scoped protocol fault actually
+  commits. Each interaction retains its own effect evidence.
 
 The contract promises no fairness. A finite bound is a safety/resource fact, not a scheduling policy.
 
@@ -148,8 +152,8 @@ class and `released` predicate.
 | --- | --- | --- | --- |
 | initiator or recipient `refused-local` | no | no | yes |
 | `outcome-succeeded/failed/cancelled` | yes | no | receipt/commit also observed locally |
-| `peer-fault` / recipient `rejected-protocol` | no | yes | receipt/commit also observed locally |
-| `lost` | no | no | yes |
+| initiator `peer-fault` / recipient `peer-fault` / recipient `rejected-protocol` | no | yes | receipt/commit also observed locally |
+| initiator or recipient `lost` | no | no | yes |
 
 No adapter may translate horizontally between these columns merely because its local API has one
 error union.

@@ -2,8 +2,9 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch behavioral contract. No Channel 0.2 schema, API, implementation, or
-ratification is authorized until the complete design foundation receives fresh independent review.
+Status: proposed first-batch behavioral contract; N2 and F1/F2 corrected after independent review.
+No Channel 0.2 schema, API, implementation, or ratification is authorized until the complete design
+foundation receives fresh independent definitive closure review.
 
 Designed for: Brontide Architecture 0.8, Complete Draft, especially sections 6.16, 13.6, 16.4,
 18.1, 19, and 24.
@@ -159,6 +160,12 @@ replay window of an old session unless a later extension defines a distinct resu
 **Failure and uncertainty.** Missing, extra, wrong-session, or mismatched identities reject the
 claimed terminal fact. If the request crossed dispatch, rejecting a malformed terminal fact leaves
 effect certainty `unknown`, not zero.
+
+A repeated accepted identity received while its original interaction is nonterminal commits one
+interaction-scoped `replay-detected` peer fault for that identity. The original handler is not
+redispatched, the recipient closes its interaction history as peer fault, any later handler terminal
+is ignored, and effect certainty remains `unknown` unless explicit evidence narrows it. Replay after
+an accepted terminal never replaces that first terminal history.
 
 **Named scenarios.** `C4-two-complete-out-of-order`, `C4-bound-exceeded`,
 `C4-replay-not-redispatched`, and `C4-terminal-correlation-mismatch`.
