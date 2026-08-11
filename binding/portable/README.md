@@ -5,8 +5,8 @@ for direct-versus-process parity in each (PB4), paired across the stacks and aga
 [implementation-neutral provider](../neutral-provider/README.md) (PB5), hardened (PB6), and given the
 Composition handoff by which composition machinery reaches the layer (PB7). PB8's evidence and
 documentation work is complete, and Decision 11 was ruled on 2026-07-30: negotiation compares
-provider identity and the Binding Plan reports the provider that answered. Its independent reviews
-remain outstanding.
+provider identity and the Binding Plan reports the provider that answered. Its independent review
+sequence is complete; only PB8's owner-held Channel naming question remains.
 Planned experimental work; not ratified; not part of Brontide Base.
 **Designed for:** Brontide Architecture 0.8 §16 and §18.1 (Complete Draft).
 **Plan:** [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
@@ -180,7 +180,8 @@ changed something here:
 
 PB7 added [`schemas/composition-handoff.json`](schemas/composition-handoff.json) and
 [`vectors/composition-handoff.json`](vectors/composition-handoff.json) — eleven vectors, PB-72
-through PB-82, taking the total to 82. `binding-plan.json` already carried a `compositionHandoff`
+through PB-82. Decision 11 added PB-83 and the PB8 lifecycle correction added PB-84, taking the
+total to 84. `binding-plan.json` already carried a `compositionHandoff`
 stub naming the phase; it now points at the schema that owns the seam.
 
 The seam was declared here **before** either stack implemented it. That is the
@@ -213,8 +214,11 @@ PB8's other work lands outside this directory: the Channel ledger, the public bo
 stacks' changelogs and inventories, and the re-measured source-cost inventory in
 [`interchange/binding-measurements.json`](../../interchange/binding-measurements.json), which now
 separates the retained experiments from this layer and records the representation, framing,
-allocation, copy, and payload-bound facts for both realizations with their provenance. Decision 11 has since been ruled on, leaving one
-remaining step — fresh independent reviews — which is not the implementer's to close.
+allocation, copy, and payload-bound facts for both realizations with their provenance. Decision 11
+has since been ruled on. The fresh independent review sequence is complete and retained under
+[`reviews/`](reviews/README.md); its findings added capability-wide properties, corrected lifecycle
+and provider-attribution claims, and made unknowable provider effects explicit in both production
+hosts. Only the owner-held Channel naming question remains for PB8.
 
 ## Boundary
 
