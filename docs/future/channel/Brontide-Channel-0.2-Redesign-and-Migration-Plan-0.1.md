@@ -292,8 +292,9 @@ not derive expectations from one implementation's public API.
 
 Review policy, retained negative attestations, and the exact continuation instructions:
 [`reviews/`](./reviews/README.md#exact-next-work). Five independent negative attestations are
-retained. Their findings through T1-T4 have correction passes; a fresh conforming closure re-review
-attestation and a closure record are still required. The T1-T4 correction pass and the totality
+retained. Their findings through T1-T4 have correction passes at
+`2d00cbb08df58e255d89d2d8ffba6b6f33cc440e`; a fresh conforming closure re-review attestation and a
+closure record are still required. The T1-T4 correction pass and the totality
 attestation that found them share one actor, which the review policy records as a disclosed
 deviation.
 
