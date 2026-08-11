@@ -2,10 +2,10 @@
 
 ## Channel 0.2 Redesign and Migration Plan 0.1
 
-**Status:** First-batch design foundation drafted and its four owner rulings resolved. B1-B4 and
-N1-N3 are closed as framed; the next review found F1-F3, which now have a contract-first correction
-and await fresh definitive closure review before Batch 2. No Channel 0.2 implementation or
-ratification is claimed.
+**Status:** First-batch design foundation drafted and its four owner rulings resolved. B1-B4,
+N1-N3, and F1-F3 are closed as framed; the definitive review found D1-D5, which now have a
+contract-first correction plus a closed state/event grid and await fresh totality closure review
+before Batch 2. No Channel 0.2 implementation or ratification is claimed.
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),
 [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md), and the
@@ -222,6 +222,15 @@ absence, timeout, interruption, duplicate/late terminal traffic, and effect unce
 The model must define whether one session permits one, sequential, or concurrent interactions and
 how correlation and draining behave for the selected rule. It must also define the pre-Ready window
 for relational initialization and the post-Release window for ordinary invocation.
+
+### 7.3a Closed state/event coverage
+
+Correction-pass artifact: [Channel 0.2 state/event coverage](./Brontide-Channel-0.2-State-Event-Coverage-0.1.md).
+
+The first-batch machines additionally carry a closed-world state/event grid. Every recognized event
+family in every session, initiator, recipient, and terminal state maps to exactly one detailed row,
+named catch-all, or finite late-traffic rule. Generated Batch 2 model vectors must enumerate this
+grid. An unlisted event may not be ignored or assigned implementation-specific behavior.
 
 ### 7.4 Responsibility matrix
 

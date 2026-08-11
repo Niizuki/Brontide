@@ -2,8 +2,8 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch migration disposition; B4, N1/N3, and F3 corrected after independent
-review and subject to fresh independent definitive closure review. Serialized spellings remain
+Status: proposed first-batch migration disposition; B4, N1/N3, F3, and D5 corrected after independent
+review and subject to fresh independent totality closure review. Serialized spellings remain
 unselected until the neutral contract batch.
 
 Sources inventoried:
@@ -187,6 +187,7 @@ the new profile declares finite values and the neutral vectors test their consis
 | `authorityDecision` | **retained** | Local permitted/denied/unknown result; only permitted dispatches. |
 | `mappingObligations` | **moved** | Shape/profile adapter observation. |
 | `retryCount` | **moved** | Distributed/host attempt policy. Channel records optional causal prior identity, not a retry count it did not own. |
+| delivery `fallback` | **moved** | Delivery/retry facet observation; exact `none` remains a valid attributable value and Channel core does not infer another attempt. |
 | `interrupted` | **replaced** | Local loss category/detection point and interaction terminal provenance. |
 | `failureDomain` | **replaced** | Peer-statement provenance or local detection point, never one ambiguous domain field. |
 | `terminalStatus` | **replaced** | Discriminated provenance: local refusal, semantic Outcome, peer protocol fault, or local loss. |

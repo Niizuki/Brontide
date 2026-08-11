@@ -14,6 +14,7 @@ $artifactNames = @(
     'Brontide-Channel-0.2-Capability-Contract-0.1.md',
     'Brontide-Channel-0.2-Session-State-Machine-0.1.md',
     'Brontide-Channel-0.2-Interaction-State-Machine-0.1.md',
+    'Brontide-Channel-0.2-State-Event-Coverage-0.1.md',
     'Brontide-Channel-0.2-Responsibility-Matrix-0.1.md',
     'Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md',
     'Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md',
@@ -35,7 +36,7 @@ function Read-RequiredText {
 function Assert-ContainsAll {
     param(
         [Parameter(Mandatory = $true)][string]$Label,
-        [Parameter(Mandatory = $true)][string]$Content,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Content,
         [Parameter(Mandatory = $true)][string[]]$Expected
     )
 
@@ -54,6 +55,7 @@ $plan = Read-RequiredText 'Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.
 $contract = Read-RequiredText 'Brontide-Channel-0.2-Capability-Contract-0.1.md'
 $session = Read-RequiredText 'Brontide-Channel-0.2-Session-State-Machine-0.1.md'
 $interaction = Read-RequiredText 'Brontide-Channel-0.2-Interaction-State-Machine-0.1.md'
+$stateEventCoverage = Read-RequiredText 'Brontide-Channel-0.2-State-Event-Coverage-0.1.md'
 $responsibility = Read-RequiredText 'Brontide-Channel-0.2-Responsibility-Matrix-0.1.md'
 $completeness = Read-RequiredText 'Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md'
 $migration = Read-RequiredText 'Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md'
@@ -96,22 +98,52 @@ Assert-ContainsAll 'Channel 0.2 interaction state machine' $interaction @(
 )
 Assert-ContainsAll 'Channel 0.2 recipient authority-denial path' $interaction @(
     '| `refused-local` | yes | Local policy denied a structurally valid request before dispatch; no peer frame is emitted. |',
-    '| `validating` | structural/profile/state/class/phase/Shape/authority-structure/bound/replay/concurrency check fails | `rejected-protocol` | no |',
+    '| `validating` | structural/profile/state/class/direction/Shape/authority-structure/bound/replay/concurrency check fails | `rejected-protocol` | no |',
     '| `validating` | structurally valid authority presentation is denied by local policy | `refused-local` | no |'
 )
 Assert-ContainsAll 'Channel 0.2 recipient cancellation-refusal path' $interaction @(
-    '| `executing` | structurally valid cancellation control is denied by local cancellation authority | `executing` | possible/already occurred; emit nonterminal `refused` acknowledgement |'
+    '| `executing` | structurally valid cancellation control is denied by local cancellation authority | `cancel-refused` | possible/already occurred; emit nonterminal `refused` acknowledgement |'
 )
 Assert-ContainsAll 'Channel 0.2 complete cancellation terminal paths' $interaction @(
-    '| `dispatched` or `cancel-pending` | valid correlated peer protocol fault | `peer-fault` |',
-    '| `executing` or `cancel-requested` | structurally invalid, unrecognized, unsupported, or wrongly scoped cancellation control | `peer-fault` | possible/already occurred; emit one interaction-scoped protocol fault and ignore a later handler terminal |'
+    '| `dispatched`, `cancel-pending`, `cancel-accepted`, or `cancel-refused` | valid correlated peer protocol fault | `peer-fault` |',
+    '| `executing`, `cancel-requested`, or `cancel-refused` | structurally invalid, unrecognized, unsupported, or wrongly scoped cancellation control | `peer-fault` | possible/already occurred; emit one interaction-scoped protocol fault and ignore a later handler terminal |'
 )
 Assert-ContainsAll 'Channel 0.2 live replay and recipient provenance paths' $interaction @(
-    '| `executing` or `cancel-requested` | repeated request with the same accepted identity | `peer-fault` | possible/already occurred; no redispatch, emit `replay-detected`, and ignore a later handler terminal |',
+    '| `executing`, `cancel-requested`, or `cancel-refused` | repeated request with the same accepted identity | `peer-fault` | possible/already occurred; no redispatch, emit `replay-detected`, and ignore a later handler terminal |',
     '| `peer-fault` | yes | One interaction-scoped peer protocol fault was committed; handler effects may already be possible. |',
     '| `lost` | yes | Local session or transport loss prevented a valid terminal commit; no peer statement is claimed. |',
     '| initiator `peer-fault` / recipient `peer-fault` / recipient `rejected-protocol` | no | yes | receipt/commit also observed locally |',
     '| initiator or recipient `lost` | no | no | yes |'
+)
+Assert-ContainsAll 'Channel 0.2 duplicate drain result' $session @(
+    '| `draining` | duplicate local or peer drain control | `faulted` | session-scoped `state-violation`; preserve the original drain snapshot and all interaction effect evidence |'
+)
+Assert-ContainsAll 'Channel 0.2 cancellation acknowledgement totality' $interaction @(
+    '| `cancel-accepted` | no | Peer accepted the one cancellation request; the interaction still awaits a terminal fact. |',
+    '| `cancel-refused` | no | Peer refused the one cancellation request; ordinary execution still awaits success or failure. |',
+    '| `dispatched` | unsolicited cancellation acknowledgement | `peer-fault` | `unknown`; emit/record interaction-scoped `state-violation` |',
+    '| `cancel-pending` | cancellation `accepted` acknowledgement | `cancel-accepted` | acknowledgement is nonterminal and proves no effect fact |',
+    '| `cancel-pending` | cancellation `refused` acknowledgement | `cancel-refused` | acknowledgement is nonterminal and proves no effect fact |',
+    '| `cancel-accepted` or `cancel-refused` | any further cancellation acknowledgement | `peer-fault` | preserve possible effects; emit/record interaction-scoped `state-violation` |'
+)
+Assert-ContainsAll 'Channel 0.2 local phase refusal provenance' $interaction @(
+    '| `validating` | receiver-local external phase predicate is `false` or `unknown` | `refused-local` | no |'
+)
+Assert-ContainsAll 'Channel 0.2 duplicate terminal fault action' $interaction @(
+    '`late-traffic-fault` latch',
+    '`clear`',
+    '`fault-committed`',
+    '`fault-unavailable`',
+    'first duplicate semantic terminal or late non-fault control',
+    'one interaction-scoped `state-violation` peer fault'
+)
+Assert-ContainsAll 'Channel 0.2 state/event coverage' $stateEventCoverage @(
+    '## Closed-world totality rule',
+    '## Session coverage grid',
+    '## Initiator interaction coverage grid',
+    '## Recipient interaction coverage grid',
+    '## Late-traffic latch',
+    'Every recognized event/state pair has exactly one route'
 )
 
 Assert-ContainsAll 'Channel 0.2 responsibility matrix' $responsibility @(
@@ -202,6 +234,9 @@ Assert-ContainsAll 'Channel 0.1 observation migration' $migration @(
     '`localCode`',
     '`localMessage`'
 )
+Assert-ContainsAll 'Channel 0.1 delivery fallback migration' $migration @(
+    '| delivery `fallback` | **moved** | Delivery/retry facet observation; exact `none` remains a valid attributable value and Channel core does not infer another attempt. |'
+)
 $vectorMigrationSection = ($migration -split '## Channel 0.1 vector migration', 2)[1] -split '## New evidence required by redesign', 2 | Select-Object -First 1
 $allowedDispositions = @('retained', 'replaced', 'moved', 'removed', 'legacy-only')
 $allDispositionRows = @($migration -split "`r?`n" | Where-Object { $_ -match '^\| .* \| \*\*[^*]+\*\* \|' })
@@ -263,7 +298,7 @@ Assert-ContainsAll 'Channel 0.2 neutral brief' $neutralBrief @(
 )
 Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
     'four owner rulings resolved',
-    'fresh independent definitive closure review is pending',
+    'fresh independent totality closure review is pending',
     '## Required review scope',
     '## Required verdicts',
     '## Closure'
@@ -271,10 +306,10 @@ Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 F1-F3 correction pin must retain exactly the review README and all three negative attestations before definitive closure re-review.')
+    $failures.Add('The Channel 0.2 D1-D5 correction pin must retain exactly the review README and all four negative attestations before totality closure re-review.')
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'channel\0.2')) {
@@ -288,4 +323,4 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host 'Channel 0.2 design-foundation verification passed: 10 required artifacts, C1-C12 with properties/scenarios/silence, 6 session states, all 24 predecessor vectors dispositioned, 4 owner rulings resolved, and independent review still pending.'
+Write-Host 'Channel 0.2 design-foundation verification passed: 11 required artifacts, C1-C12 with properties/scenarios/silence, total session/interaction event coverage, 6 session states, all 24 predecessor vectors dispositioned, 4 owner rulings resolved, and independent review still pending.'

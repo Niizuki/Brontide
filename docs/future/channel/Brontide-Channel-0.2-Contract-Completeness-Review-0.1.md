@@ -2,8 +2,8 @@
 
 Date: 2026-08-11
 
-Status: author pass plus B1-B4, N1-N3, and F1-F3 correction passes complete; fresh independent
-definitive closure review remains required. This review asks what the proposed contract does not say.
+Status: author pass plus B1-B4, N1-N3, F1-F3, and D1-D5 correction passes complete; fresh independent
+totality closure review remains required. This review asks what the proposed contract does not say.
 It is separate from conformance review and does not claim the contract is correct.
 
 Reviewed artifacts:
@@ -252,3 +252,18 @@ observed failing on F1-F3 before correction.
 
 These corrections require a new independent definitive closure review and do not authorize Batch 2
 by themselves.
+
+The definitive review at `1b7c5fdea0dc555a64152eea055fcebad053cf90` closed every retained finding
+but recorded D1-D5 in the retained
+[definitive closure attestation](./reviews/channel-0.2-design-foundation-definitive-closure-attestation.md).
+D1 makes duplicate drain a fatal session-scoped `state-violation` with the original snapshot and
+interaction evidence preserved. D2 records accepted/refused cancellation acknowledgements in
+distinct states and faults unsolicited, duplicate, or contradictory acknowledgement/control. D3
+routes a receiver-local false/unknown external phase to frameless `refused-local`. D4 adds one finite
+late-traffic-fault latch and exactly one possible peer-fault emission without replacing the first
+terminal. D5 moves the predecessor delivery-fallback observation to its owning delivery/retry facet.
+
+The new [state/event coverage grid](./Brontide-Channel-0.2-State-Event-Coverage-0.1.md) closes the
+event domain across every session, initiator, recipient, and terminal state. The verifier was
+extended before correction and observed D1-D5 plus the missing grid fail. These changes still need a
+fresh independent totality closure review and do not authorize Batch 2 themselves.

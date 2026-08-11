@@ -2,7 +2,8 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; subject to fresh independent review.
+Status: proposed first-batch design artifact; D1 corrected after independent review and subject to
+fresh independent totality closure review.
 
 Contract owner: [Channel 0.2 C2](./Brontide-Channel-0.2-Capability-Contract-0.1.md#c2--the-channel-session-has-one-small-explicit-state-machine).
 
@@ -65,6 +66,7 @@ and never advances it.
 | `establishing` | local validation or peer establishment refusal | `closed` | refusal provenance and `known-none` |
 | `unestablished` | local fixed validation refuses | `closed` | frameless local refusal and `known-none` |
 | `established` | local or peer drain begins | `draining` | drain initiator and current in-flight set |
+| `draining` | duplicate local or peer drain control | `faulted` | session-scoped `state-violation`; preserve the original drain snapshot and all interaction effect evidence |
 | `draining` | all admitted interactions terminal and close is sent/received | `closed` | orderly close and empty in-flight set |
 | any nonterminal | fatal recognized Channel violation | `faulted` | peer fault or local violation provenance; each interaction records its own certainty |
 | any nonterminal | transport/process loss prevents continuation | `faulted` | local loss category/detection point; each interaction records its own certainty |
@@ -88,10 +90,11 @@ state.
 
 ## Drain protocol
 
-Drain is symmetric and idempotent in effect:
+Drain is symmetric but its control occurs exactly once per endpoint history:
 
 1. the first accepted local or peer drain moves the local session to `draining`;
-2. subsequent drain controls keep it in `draining` and are recorded as duplicates;
+2. a subsequent local or peer drain control is a session-scoped `state-violation` and moves the
+   session to `faulted`; the first drain snapshot and every interaction's effect evidence remain;
 3. no new interaction may be admitted locally after the first drain transition;
 4. interactions already admitted continue under the interaction state machine;
 5. close is legal only when the local in-flight set is empty; and
@@ -100,6 +103,20 @@ Drain is symmetric and idempotent in effect:
 
 Channel does not promise that an unresponsive peer will cooperate with drain. Timeout or transport
 loss faults the session and closes each nonterminal interaction through a local loss observation.
+
+## Session event totality
+
+The legal and refused/illegal tables are a closed-world dispatch table. A recognized event in a
+nonterminal state that has no more specific legal row is a session-scoped `state-violation` and moves
+the session to `faulted`. An unrecognized or structurally invalid received session control is a
+session-scoped structural peer fault and moves the session to `faulted`. A wrong-state local action
+that has not emitted a frame is a frameless local refusal and leaves the state unchanged only where
+the refused/illegal table says so. Terminal-state input follows the terminal rows and never emits an
+answering-fault loop.
+
+This totality rule does not override a specific nonfatal row such as a new peer interaction during
+drain. Every event/state pair therefore has one result rather than an implementation-selected
+default.
 
 ## Fixed and negotiated equivalence
 

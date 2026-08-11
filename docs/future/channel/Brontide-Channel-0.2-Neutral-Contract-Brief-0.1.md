@@ -12,7 +12,9 @@ identity representation, version rule, vector/property structure, observation pr
 and negative-probe discipline before a schema is authored.
 
 The brief is subordinate to the [C1-C12 capability contract](./Brontide-Channel-0.2-Capability-Contract-0.1.md)
-and both state machines. If a convenient schema shape contradicts them, the schema changes.
+both state machines, and the closed
+[state/event coverage grid](./Brontide-Channel-0.2-State-Event-Coverage-0.1.md). If a convenient
+schema shape contradicts them, the schema changes.
 
 ## Planned neutral layout
 
@@ -191,6 +193,8 @@ groups include:
 - local denial, cross-trust forbidden authority, and deputy attribution;
 - relational exact/mismatched edge, direction, member, Operation, Capability, Shape, and phase;
 - cancellation races and duplicate terminal facts;
+- every session/initiator/recipient state-event cell, including duplicate drain, acknowledgement
+  multiplicity, receiver-local phase refusal, and the late-traffic latch;
 - all peer-fault categories, local-loss categories, and unknown peer-fault no-loop behavior;
 - known-none/known/unknown effect certainty counter-cases;
 - required/optional extension facets and retry-as-new-attempt; and
@@ -273,7 +277,8 @@ Its dependency graph and resolved libraries are verified as part of C12.
 
 Schema authoring may begin only when:
 
-- C1-C12 and both state machines have no unresolved internal contradiction;
+- C1-C12, both state machines, and the closed state/event grid have no unresolved internal
+  contradiction or uncovered recognized event;
 - every responsibility-matrix concern has one owner;
 - every 0.1 item/vector has a migration disposition;
 - the completeness review has no unowned finding;

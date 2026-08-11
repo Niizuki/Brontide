@@ -2,7 +2,7 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch behavioral contract; N2 and F1/F2 corrected after independent review.
+Status: proposed first-batch behavioral contract; N2, F1/F2, and D1-D4 corrected after independent review.
 No Channel 0.2 schema, API, implementation, or ratification is authorized until the complete design
 foundation receives fresh independent definitive closure review.
 
@@ -95,8 +95,11 @@ session states. A profile may use those external facts as exact interaction guar
 **Authority and effect boundary.** A session transition never authorizes an Operation. Closing or
 faulting a session does not imply that an in-flight provider effect was undone.
 
-**Failure and uncertainty.** Illegal or duplicate control is a protocol fault. Peer loss faults the
-local session and leaves each nonterminal interaction to record its own effect certainty.
+**Failure and uncertainty.** Illegal or duplicate control is a protocol fault. In particular, a
+second local or peer drain moves `draining` to `faulted`, records one session-scoped
+`state-violation`, preserves the first drain snapshot, and does not rewrite any interaction's effect
+certainty. Peer loss faults the local session and leaves each nonterminal interaction to record its
+own effect certainty.
 
 **Named scenarios.** `C2-drain-refuses-new`, `C2-drain-preserves-in-flight`,
 `C2-ready-is-not-session-state`, and `C2-late-control-after-close`.
@@ -128,8 +131,9 @@ The Portable Binding 0.2 profile declares at least:
 the interaction.
 
 **Failure and uncertainty.** A locally false or unknown guard is frameless refusal with
-`known-none`. A peer receiving a class or direction outside the established profile returns an
-interaction-scoped protocol fault with no handler dispatch.
+`known-none` at either endpoint, including the recipient's independently derived external phase.
+A peer receiving a class or direction outside the established profile returns an interaction-scoped
+protocol fault with no handler dispatch.
 
 **Named scenarios.** `C3-relational-before-ready`, `C3-ordinary-before-release-refused`,
 `C3-unknown-class`, and `C3-wrong-direction`.
@@ -278,24 +282,28 @@ Outcome, peer protocol fault, locally observed loss, or cancellation completed b
 Outcome. A semantic Outcome may succeed, fail with shaped details, or report `cancelled` when the
 established profile supports cancellation.
 
-Cancellation is an optional core control with fixed meaning. A cancellation request may be sent only
-for a nonterminal dispatched interaction. The peer may acknowledge `accepted` or `refused`, but the
-acknowledgement is not terminal and proves nothing about effects. The interaction remains nonterminal
-until a semantic Outcome, peer fault, or local loss arrives. If cancellation is required but not
-supported, profile establishment refuses; if merely optional and unsupported, no cancellation
-control is legal.
+Cancellation is an optional core control with fixed meaning. Exactly one cancellation request may be
+sent for a nonterminal dispatched interaction. The peer may acknowledge `accepted` or `refused`; the
+initiator records those as distinct nonterminal states, and either proves nothing about effects. An
+unsolicited, duplicate, or contradictory acknowledgement/control is an interaction-scoped
+`state-violation`. The interaction remains nonterminal until a semantic Outcome, peer fault, or local
+loss arrives. If cancellation is required but not supported, profile establishment refuses; if merely
+optional and unsupported, no cancellation control is legal.
 
 **Authority and effect boundary.** Cancellation authority is declared separately from invocation
 authority. Accepting cancellation does not erase effects already performed.
 
 **Failure and uncertainty.** Duplicate terminal facts are protocol faults and do not replace the
-first accepted terminal history. A structurally invalid, unrecognized, unsupported, or wrongly
+first accepted terminal history. The first duplicate terminal or late non-fault control attempts one
+interaction-scoped `state-violation` peer fault and settles a finite late-traffic latch; a peer fault
+or later late traffic receives no answering frame. A structurally invalid, unrecognized, unsupported, or wrongly
 scoped cancellation control produces one interaction-scoped peer protocol fault; because invocation
 may already be executing, effect certainty remains unknown unless stronger evidence exists. Loss
 after cancellation acceptance retains unknown effects unless stronger evidence exists.
 
 **Named scenarios.** `C8-semantic-failure-is-not-protocol-fault`,
-`C8-cancel-accepted-still-awaits-outcome`, `C8-cancel-unsupported-at-profile`, and
+`C8-cancel-accepted-still-awaits-outcome`, `C8-unsolicited-cancel-ack-fault`,
+`C8-contradictory-cancel-ack-fault`, `C8-cancel-unsupported-at-profile`,
 `C8-invalid-cancel-control-peer-fault`, and `C8-duplicate-terminal-rejected`.
 
 **Property C8-P1.** Every interaction has at most one accepted terminal history, and no cancellation

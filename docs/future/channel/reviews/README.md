@@ -1,7 +1,7 @@
 # Channel 0.2 design-foundation reviews
 
-Status: four owner rulings resolved; three negative independent reviews retained; B1-B4, N1-N3, and
-F1-F3 have correction passes and fresh independent definitive closure review is pending.
+Status: four owner rulings resolved; four negative independent reviews retained; B1-B4, N1-N3,
+F1-F3, and D1-D5 have correction passes and fresh independent totality closure review is pending.
 
 This directory retains independent attestations for the complete Channel 0.2 first-batch design
 foundation. A review is independent only when its reviewer identity differs from the design author,
@@ -22,10 +22,11 @@ The reviewer reads and assesses:
 6. C1-C12, including every named scenario, capability-wide property, evidence mode, and explicit
    silence;
 7. both state machines and all legal/illegal/terminal paths;
-8. every responsibility-matrix owner and neutral crossing artifact;
-9. the completeness review, including its residual risks;
-10. every migration-ledger inventory and disposition; and
-11. the neutral contract/vector brief and Batch 2 entry gate.
+8. the closed state/event coverage grid, including every catch-all and late-traffic latch;
+9. every responsibility-matrix owner and neutral crossing artifact;
+10. the completeness review, including its residual risks;
+11. every migration-ledger inventory and disposition; and
+12. the neutral contract/vector brief and Batch 2 entry gate.
 
 ## Required verdicts
 
@@ -34,8 +35,8 @@ An attestation records:
 - reviewer identity, reviewed commit, date, and isolation method;
 - overall `conforms`, `conforms-with-nonblocking-findings`, or `does-not-conform`;
 - one verdict and rationale for each C1-C12;
-- session-state, interaction-state, responsibility, completeness, migration-coverage, and neutral-
-  brief verdicts;
+- session-state, interaction-state, state/event-totality, responsibility, completeness,
+  migration-coverage, and neutral-brief verdicts;
 - confirmation that each of the four resolved owner rulings is represented consistently throughout
   the first-batch design;
 - every blocking and nonblocking finding with exact artifact/section evidence; and
@@ -67,6 +68,9 @@ The author correction pass and ordinary documentation gates are not independent 
 - [Final closure review](./channel-0.2-design-foundation-final-closure-attestation.md) — reviewed
   `1af7ba0018c874750e346ee687f07ea1d302adef`; `does-not-conform`; B1-B4/N1-N3 closed and F1-F3
   retained for definitive closure comparison.
+- [Definitive closure review](./channel-0.2-design-foundation-definitive-closure-attestation.md) —
+  reviewed `1b7c5fdea0dc555a64152eea055fcebad053cf90`; `does-not-conform`; all earlier findings closed and
+  D1-D5 retained for totality closure comparison.
 
 No conforming closure attestation exists yet. The corrected artifacts remain nonconforming evidence
 until a fresh reviewer closes every retained finding and reports no new blocker.
