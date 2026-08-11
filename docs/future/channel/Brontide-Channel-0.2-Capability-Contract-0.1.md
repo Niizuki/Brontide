@@ -2,9 +2,9 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch behavioral contract; N2, F1/F2, and D1-D4 corrected after independent review.
-No Channel 0.2 schema, API, implementation, or ratification is authorized until the complete design
-foundation receives fresh independent definitive closure review.
+Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, and T3 corrected after independent
+review. No Channel 0.2 schema, API, implementation, or ratification is authorized until the complete
+design foundation receives a fresh independent closure re-review.
 
 Designed for: Brontide Architecture 0.8, Complete Draft, especially sections 6.16, 13.6, 16.4,
 18.1, 19, and 24.
@@ -298,8 +298,11 @@ first accepted terminal history. The first duplicate terminal or late non-fault 
 interaction-scoped `state-violation` peer fault and settles a finite late-traffic latch; a peer fault
 or later late traffic receives no answering frame. A structurally invalid, unrecognized, unsupported, or wrongly
 scoped cancellation control produces one interaction-scoped peer protocol fault; because invocation
-may already be executing, effect certainty remains unknown unless stronger evidence exists. Loss
-after cancellation acceptance retains unknown effects unless stronger evidence exists.
+may already be executing, effect certainty remains unknown unless stronger evidence exists. A
+`cancelled` Outcome with no cancellation request in force contradicts the accepted history and is
+invalid at both endpoints: the recipient commits an `internal-channel-failure` instead of the Outcome
+and the initiator records a peer fault. Loss after cancellation acceptance retains unknown
+effects unless stronger evidence exists.
 
 **Named scenarios.** `C8-semantic-failure-is-not-protocol-fault`,
 `C8-cancel-accepted-still-awaits-outcome`, `C8-unsolicited-cancel-ack-fault`,

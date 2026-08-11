@@ -2,8 +2,8 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; D1 corrected after independent review and subject to
-fresh independent totality closure review.
+Status: proposed first-batch design artifact; D1 corrected after independent review and subject to a
+fresh independent closure re-review.
 
 Contract owner: [Channel 0.2 C2](./Brontide-Channel-0.2-Capability-Contract-0.1.md#c2--the-channel-session-has-one-small-explicit-state-machine).
 

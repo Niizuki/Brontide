@@ -2,10 +2,10 @@
 
 ## Channel 0.2 Redesign and Migration Plan 0.1
 
-**Status:** First-batch design foundation drafted and its four owner rulings resolved. B1-B4,
-N1-N3, and F1-F3 are closed as framed; the definitive review found D1-D5, which now have a
-contract-first correction plus a closed state/event grid and await fresh totality closure review
-before Batch 2. No Channel 0.2 implementation or ratification is claimed.
+**Status:** First-batch design foundation drafted and its four owner rulings resolved. B1-B4, N1-N3,
+F1-F3, and D1-D5 are closed as framed; the totality review found blocking T1 and nonblocking T2-T4,
+which now have a contract-first correction and await a fresh independent closure re-review before
+Batch 2. No Channel 0.2 implementation or ratification is claimed.
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),
 [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md), and the
@@ -291,10 +291,12 @@ not derive expectations from one implementation's public API.
 ### 7.8 Fresh independent design review
 
 Review policy, retained negative attestations, and the exact continuation instructions:
-[`reviews/`](./reviews/README.md#exact-next-work). Four independent negative attestations are
-retained. Their findings through D1-D5 have correction passes at
-`5cf42c4d97083324ffb8d6bd68491a145b8e611a`; a fresh conforming totality attestation and closure
-record are still required.
+[`reviews/`](./reviews/README.md#exact-next-work). Five independent negative attestations are
+retained. Their findings through T1-T4 have correction passes at
+`11ba93bddbd38f03df59b4afc5166d7c6991c865`; a fresh conforming closure re-review attestation and a
+closure record are still required. The T1-T4 correction pass and the totality
+attestation that found them share one actor, which the review policy records as a disclosed
+deviation.
 
 Obtain a fresh-context review of the complete first batch before implementation. Reviewers assess
 Architecture 0.8, both local implementation targets, the retained 0.1 evidence, Decision 13, every

@@ -2,8 +2,8 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; B1/B2, N2, and F1/F2 corrected after independent review
-and subject to fresh independent definitive closure review.
+Status: proposed first-batch design artifact; B1/B2, N2, F1/F2, D2/D3/D4, and T3 corrected after
+independent review and subject to a fresh independent closure re-review.
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 
@@ -72,7 +72,7 @@ with the same provenance, not a fictional global state.
 | `cancel-accepted` or `cancel-refused` | any further cancellation acknowledgement | `peer-fault` | preserve possible effects; emit/record interaction-scoped `state-violation` |
 | `cancel-pending` or `cancel-accepted` | valid correlated success/failure/cancelled Outcome | matching Outcome terminal | profile-owned evidence; acceptance is not retroactive rollback |
 | `cancel-refused` | valid correlated success or failure Outcome | matching Outcome terminal | profile-owned evidence; cancellation refusal is not a terminal fact |
-| `cancel-refused` | correlated cancelled Outcome | `peer-fault` | `unknown`; cancelled contradicts the accepted refusal history |
+| `dispatched` or `cancel-refused` | correlated cancelled Outcome | `peer-fault` | `unknown`; cancelled contradicts a history with no cancellation request in force |
 | `dispatched`, `cancel-pending`, `cancel-accepted`, or `cancel-refused` | timeout, interruption, peer close, or unusable terminal frame | `lost` | `unknown` unless explicit evidence proves otherwise |
 | any terminal | first duplicate semantic terminal or late non-fault control while latch is `clear` | unchanged terminal | apply the `late-traffic-fault` latch; first accepted history remains authoritative |
 | any terminal | peer fault, or any late traffic after the latch is settled | unchanged terminal | record locally; emit no answering frame |
@@ -94,6 +94,7 @@ with the same provenance, not a fictional global state.
 | `executing`, `cancel-requested`, or `cancel-refused` | structurally invalid, unrecognized, unsupported, or wrongly scoped cancellation control | `peer-fault` | possible/already occurred; emit one interaction-scoped protocol fault and ignore a later handler terminal |
 | `executing`, `cancel-requested`, or `cancel-refused` | repeated request with the same accepted identity | `peer-fault` | possible/already occurred; no redispatch, emit `replay-detected`, and ignore a later handler terminal |
 | `cancel-requested` | handler reports cancellation completed | `outcome-cancelled` | possible; report exact evidence |
+| `executing` or `cancel-refused` | handler reports cancellation completed with no cancellation request in force | `peer-fault` | possible; commit one interaction-scoped `internal-channel-failure` and record the discarded handler terminal |
 | `executing`, `cancel-requested`, or `cancel-refused` | internal Channel failure and one scoped protocol fault commits | `peer-fault` | `unknown` unless handler boundary evidence narrows it |
 | `executing`, `cancel-requested`, or `cancel-refused` | session/transport loss or internal failure prevents a valid terminal commit | `lost` | `unknown` unless handler boundary evidence narrows it |
 | any terminal | first duplicate semantic terminal or late non-fault control while latch is `clear` | unchanged terminal | apply the `late-traffic-fault` latch; no redispatch or handler effect |
@@ -141,7 +142,11 @@ Cancellation is optional in the profile and exact when present:
 4. exactly one cancellation request is legal, from initiator `dispatched` and recipient `executing`;
 5. `accepted` means the recipient has accepted responsibility to request cancellation from the
    handler, not that the handler has stopped and not that effects are zero;
-6. `refused` means execution continues under the ordinary terminal contract;
+6. `refused` means execution continues under the ordinary terminal contract, and a handler terminal
+   of `cancelled` with no cancellation request in force — because none arrived, or because the
+   recipient refused the one that did — is invalid at both endpoints: the recipient commits one
+   interaction-scoped `internal-channel-failure` rather than an Outcome, and the initiator records
+   the contradicting cancelled Outcome as `peer-fault`;
 7. only a semantic Outcome, peer fault, or local loss is terminal; and
 8. accepted/refused acknowledgement state is recorded explicitly; unsolicited, duplicate, or
    contradictory acknowledgement/control is an interaction-scoped `state-violation`; and
