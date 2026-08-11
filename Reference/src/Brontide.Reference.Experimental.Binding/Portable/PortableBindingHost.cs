@@ -160,6 +160,7 @@ public sealed class PortableBindingHost : IAsyncDisposable
             .ToImmutableArray();
         var copies = resourceObservations.Sum(resource => resource.Copies);
         var obligations = prepared?.MappingObligations ?? ImmutableArray<string>.Empty;
+        var requestEnteredSeam = false;
 
         try
         {
@@ -187,6 +188,7 @@ public sealed class PortableBindingHost : IAsyncDisposable
 
             _lifecycle.Apply(PortableEnvelopeKind.Request);
             _lifecycle.RecordRequest(correlation.RequestId);
+            requestEnteredSeam = true;
             var receipt = await _conversation.RequestAsync(
                 Plan,
                 ChannelId,
@@ -239,7 +241,13 @@ public sealed class PortableBindingHost : IAsyncDisposable
         catch (PortableFaultException fault)
         {
             _lifecycle.Fail();
-            return Rejected(fault, correlation, obligations, resourceObservations, started);
+            return Rejected(
+                fault,
+                correlation,
+                obligations,
+                resourceObservations,
+                requestEnteredSeam && MakesProviderEffectUnattributable(fault.Category) ? null : 0,
+                started);
         }
         catch (PortableProcessFailureException failure)
         {
@@ -265,11 +273,22 @@ public sealed class PortableBindingHost : IAsyncDisposable
     private PortableCorrelationMapping NewCorrelation() =>
         new(ChannelId, PortableChannelRequestId.New(), PortableHostExecutionId.New());
 
+    // These categories mean the endpoint cannot associate the peer's response with a trustworthy
+    // request outcome. Other rejections still prove that validation stopped before provider effect.
+    private static bool MakesProviderEffectUnattributable(PortableProtocolCategory category) =>
+        category is
+            PortableProtocolCategory.CorrelationMismatch or
+            PortableProtocolCategory.MalformedMessage or
+            PortableProtocolCategory.UnsupportedKind or
+            PortableProtocolCategory.StateViolation or
+            PortableProtocolCategory.InternalProtocolFailure;
+
     private PortableInteractionResult Rejected(
         PortableFaultException fault,
         PortableCorrelationMapping correlation,
         ImmutableArray<string> obligations,
         ImmutableArray<PortableResourceObservation> resources,
+        long? providerEffectCount,
         long started) =>
         new(
             PortableFrameDecision.Reject,
@@ -283,8 +302,7 @@ public sealed class PortableBindingHost : IAsyncDisposable
                 Plan.AuthorityDecisionPoint,
                 correlation,
                 fault.Domain,
-                // A rejection never produces a partial provider effect.
-                0,
+                providerEffectCount,
                 0,
                 [.. resources.Select(resource => resource.AsRefused())],
                 obligations,
@@ -311,7 +329,7 @@ public sealed class PortableBindingHost : IAsyncDisposable
                 Plan.AuthorityDecisionPoint,
                 correlation,
                 failure.Domain,
-                0,
+                null,
                 0,
                 [.. resources.Select(resource => resource.AsRefused())],
                 obligations,

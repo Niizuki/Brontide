@@ -1,7 +1,7 @@
 # Portable Binding — contract-completeness reviews
 
-**Status:** Standing practice record. Non-pinned. Nothing here ratifies anything or changes either
-stack's Architecture 0.7 implementation target.
+**Status:** Standing practice record. Non-pinned. Nothing here ratifies anything; both stacks now
+state Architecture 0.8 as their local implementation target.
 
 Decision 10, recorded 2026-07-28, adopted two standing practices after every defect PB6 found turned
 out to be present identically in both stacks. One is a property per capability, which lives with the

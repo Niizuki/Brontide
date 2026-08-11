@@ -1,9 +1,9 @@
 # Public boundary operability and threat assumptions
 
 Status: implementation-owned operational contract for the Architecture 0.5 evidence baseline and
-experimental interchange projects. New architectural decisions come from
-[Architecture 0.7](../architecture/Brontide-Architecture-0.7.md). This document is not an architecture
-revision.
+experimental interchange projects. New architectural decisions come from the current architecture,
+[Architecture 0.8](../architecture/Brontide-Architecture-0.8.md). This document is not an architecture
+revision and does not ratify that Complete Draft.
 
 ## Base authority boundaries
 
@@ -44,8 +44,9 @@ cryptographic peer identity, or protection from a malicious executable selected 
 The two rows above describe the retained line-delimited JSON experiments. The Portable Component
 Binding is a separate, later seam with its own declarations; the JSON-lines protocol is diagnostic
 and legacy and is never the portable wire contract. This section records the portable seam's
-operational assumptions. It is experimental evidence, not a ratified extension, and it changes
-neither stack's Architecture 0.7 implementation target.
+operational assumptions. It is experimental evidence, not a ratified extension. Both stacks now
+state Architecture 0.8 as their local implementation target; this boundary does not change that
+target or ratify the architecture.
 
 | Boundary | Payload/depth | Time and cancellation | Cleanup | Replay and denial-of-service assumptions |
 | --- | --- | --- | --- | --- |

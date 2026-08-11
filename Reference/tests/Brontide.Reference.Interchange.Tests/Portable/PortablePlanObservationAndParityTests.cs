@@ -95,6 +95,33 @@ public sealed class PortablePlanObservationAndParityTests
         });
     }
 
+    // PB8 B3 — an endpoint cannot fabricate a zero effect count when the peer's effect is unknowable.
+    [Test]
+    public async Task An_unobservable_provider_effect_uses_the_declared_unknown_form()
+    {
+        await using var host = await PortableTestHarness.DirectHostAsync();
+        var succeeded = await host.InvokeAsync(
+            CoolingPortableFixture.SetEnabled,
+            CoolingPortableFixture.CommandV1,
+            CoolingPortableFixture.Command("primary", enabled: true),
+            PortableTestHarness.Permitted());
+
+        var unknown = succeeded.Observation with
+        {
+            TerminalStatus = PortableTerminalStatus.ProcessFailure,
+            FailureDomain = PortableFailureDomain.Transport,
+            ProviderEffectCount = null
+        };
+
+        Assert.Multiple(() =>
+        {
+            Assert.DoesNotThrow(unknown.RequireComplete);
+            Assert.That(unknown.ParityProfile()["providerEffectCount"], Is.EqualTo("unknown"));
+            Assert.Throws<InvalidOperationException>(() =>
+                (unknown with { TerminalStatus = PortableTerminalStatus.Succeeded, FailureDomain = null }).RequireComplete());
+        });
+    }
+
     // PB-58-DIRECT-AND-PROCESS-PARITY-ON-SUCCESS
     [Test]
     public async Task Both_realizations_agree_on_every_field_of_the_parity_profile_for_a_success()

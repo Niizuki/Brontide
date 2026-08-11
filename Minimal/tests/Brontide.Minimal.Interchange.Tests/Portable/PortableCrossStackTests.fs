@@ -123,7 +123,7 @@ type PortableCrossStackTests() =
                 Assert.That(result.Observation.CrossedBoundaries, Contains.Item "process")
                 Assert.That(result.Observation.SelectedProvider, Is.EqualTo CoolingFixture.provider)
                 Assert.That(result.Observation.CopyCount, Is.EqualTo 1L)
-                Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo 1L))
+                Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo(Some 1L)))
 
             expectOk (host.Withdraw().Result)
             expectOk (host.Terminate().Result)

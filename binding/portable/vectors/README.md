@@ -1,7 +1,7 @@
 # `binding/portable/vectors/`
 
 Valid, additive-compatible, and adversarial fixtures with exact expected outcomes, authored in
-**PB1** (plan §5) and extended once, by **PB7**.
+**PB1** (plan §5), extended by **PB7**, and hardened by the PB8 independent review.
 
 These are data only and validate without loading either stack.
 [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) is the gate.
@@ -19,6 +19,7 @@ These are data only and validate without loading either stack.
 | [`catalog-fixture-contract.json`](catalog-fixture-contract.json) | The second subject contract: the Catalog experiment restated in the neutral form |
 | [`catalog-vectors.json`](catalog-vectors.json) | PB-64 – PB-71 over the Catalog fixture — a negotiated Operation set, nested repeated containers, a declared detail Shape, the addressing-only handle, and two fixture-domain rules |
 | [`composition-handoff.json`](composition-handoff.json) | **PB7** — PB-72 – PB-82, C2 and C8: the resolved requirement and offered provision that produce a Binding Plan, what preflight refuses, and the release barrier |
+| [`capability-properties.json`](capability-properties.json) | **PB8 review** — one property per C1-C10 over every vector carrying that capability, with a nameable counterexample that makes each property capable of failing |
 
 ## Vector form
 
@@ -42,7 +43,8 @@ fixes what must be equal and what may differ; it does not execute the comparison
 
 Vector ids are two-digit by the gate's pattern, so the space is `PB-01` through `PB-99`; `PB-01`
 through `PB-63` are PB1's, `PB-64` through `PB-71` are the Catalog group's, and `PB-72` through
-`PB-82` are the Composition handoff's.
+`PB-82` are the Composition handoff's. PB-83 records Decision 11 negotiation, and PB-84 pins the
+post-withdrawal Outcome rule found by independent review.
 
 A preflight refusal in `composition-handoff.json` uses `frameDecision: none` with
 `resultClass: protocol-error`. That combination is deliberate and is not the frameless denial of C3:

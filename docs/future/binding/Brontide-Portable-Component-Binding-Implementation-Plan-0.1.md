@@ -1,8 +1,8 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Partially implemented experimental work — PB0 through PB7 complete; PB8 partly complete
-(evidence and documentation delivered; Decision 11 ruled on 2026-07-30; independent review outstanding)
-**Date:** 2026-07-23 (delivery status updated 2026-07-30)
+**Status:** Partially implemented experimental work — PB0 through PB7 complete; PB8 steps 1-5
+complete, with only the owner-held Channel naming decision in step 6 outstanding
+**Date:** 2026-07-23 (delivery status updated 2026-08-11)
 **Designed for:** [Brontide Architecture 0.8](../../current/architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
 **Design sources:** [Composition and Components](../composition/Brontide-Design-Note-Composition-0.1.md),
@@ -150,14 +150,14 @@ deterministically. The repository-wide gate invokes it.
 | Phase | State | Evidence |
 | --- | --- | --- |
 | PB0 — baseline and contract freeze | **Complete** | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md), [`representation-choice.md`](../../../binding/portable/representation-choice.md), [`open-decisions.md`](../../../binding/portable/open-decisions.md) |
-| PB1 — neutral manifests, plans, and vectors | **Complete** | [`schemas/`](../../../binding/portable/schemas/README.md) (8 files at PB1; 9 since PB7), [`vectors/`](../../../binding/portable/vectors/README.md) (63 vectors at PB1; 82 since the Catalog group Decision 5 added and PB7's Composition handoff, plus 6 golden encodings), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
+| PB1 — neutral manifests, plans, and vectors | **Complete** | [`schemas/`](../../../binding/portable/schemas/README.md) (8 files at PB1; 9 since PB7), [`vectors/`](../../../binding/portable/vectors/README.md) (63 vectors at PB1; 84 after the Catalog group, PB7 Composition handoff, Decision 11, and PB8 lifecycle review corrections, plus 6 golden encodings), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB2 — Reference native implementation | **Complete** | [`Reference/src/Brontide.Reference.Experimental.Binding/Portable/`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/), [`Reference/tests/Brontide.Reference.Interchange.Tests/Portable/`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB3 — Minimal native implementation | **Complete** | [`Minimal/src/Brontide.Minimal.Binding/Portable/`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/), [`Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/), [`build/verify-portable-binding.ps1`](../../../build/verify-portable-binding.ps1) |
 | PB4 — direct and process realization parity | **Complete** | [`Reference .../Portable/PortableRealizationParityTests.cs`](../../../Reference/tests/Brontide.Reference.Interchange.Tests/Portable/PortableRealizationParityTests.cs), [`Minimal .../Portable/PortableRealizationParityTests.fs`](../../../Minimal/tests/Brontide.Minimal.Interchange.Tests/Portable/PortableRealizationParityTests.fs), both `PortableChannelVectorCoverageTests`, both `PortableCrossProcessTests` |
 | PB5 — cross-stack and independent-provider matrix | **Complete** | both stacks' `PortableCrossStackTests` and `PortableNeutralProviderTests`, [`binding/neutral-provider/`](../../../binding/neutral-provider/README.md), [`catalog-fixture-contract.json`](../../../binding/portable/vectors/catalog-fixture-contract.json) |
 | PB6 — resource, lifecycle, and hardening completion | **Complete** | both stacks' `PortableDecoderPropertyTests`, `PortableProcessCategoryTests`, `PortableResourceSeamTests`, `PortableLifecycleSeamTests`, and the `a failure path leaks nothing` cases in `PortableRealizationParityTests` |
 | PB7 — Composition handoff | **Complete** | [`schemas/composition-handoff.json`](../../../binding/portable/schemas/composition-handoff.json), [`vectors/composition-handoff.json`](../../../binding/portable/vectors/composition-handoff.json) (PB-72 - PB-82, plus three group properties), [`Reference .../Portable/PortableCompositionHandoff.cs`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCompositionHandoff.cs), [`Minimal .../Portable/PortableCompositionHandoff.fs`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/PortableCompositionHandoff.fs), both `PortableCompositionHandoffTests` |
-| PB8 — evidence, documentation, and review closure | **Partly complete** — steps 1-4 delivered; steps 5 and 6 outstanding | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md) executed-evidence table, [`channel ledger`](../channel/architecture-0.8-channel-requirements-and-risk-ledger.md) §4, [`binding-measurements.json`](../../../interchange/binding-measurements.json) schema 2, [`public-boundaries.md`](../../current/policies/public-boundaries.md) portable seam, both stacks' `CHANGELOG.md` |
+| PB8 — evidence, documentation, and review closure | **Partly complete** — steps 1-5 delivered; step 6 owner ruling outstanding | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md) executed-evidence table, [`channel ledger`](../channel/architecture-0.8-channel-requirements-and-risk-ledger.md) §4, [`binding-measurements.json`](../../../interchange/binding-measurements.json) schema 2, [`public-boundaries.md`](../../current/policies/public-boundaries.md) portable seam, both stacks' `CHANGELOG.md`, and [`reviews/`](../../../binding/portable/reviews/README.md) |
 
 Only PB8 remains. The neutral contract exists and is gated, both stacks implement it natively in both
 realizations, PB4 measured those two realizations against each other across the portable observation
@@ -678,16 +678,15 @@ be released, which the Local Initialisation case reaches. The two stacks state i
 4. Run `build/verify-portable-binding.ps1`, then the complete repository gate
    `build/verify-interchange.ps1` from a clean worktree.
 5. Obtain fresh independent reviews of Reference, Minimal, and the neutral contract. Reviewers must
-   evaluate C1-C10 and the current Architecture 0.8 draft while respecting each stack's stated 0.7
-   implementation target.
+   evaluate C1-C10 and the current Architecture 0.8 draft while respecting each stack's locally
+   stated Architecture 0.8 implementation target and limitations.
 6. Move every answered question to `Resolved questions`; retain only actual blockers under `Open
    questions (owners needed)`.
 
 **Exit:** all C1-C10 evidence is passing and discoverable, limitations are current, the complete
 gate is green, and independent reviews contain no unresolved in-scope findings.
 
-**Partly delivered.** Steps 1 through 4 are complete; steps 5 and 6 are not, and neither can be
-completed by the implementer.
+**Partly delivered.** Steps 1 through 5 are complete. Step 6 still requires the named owner ruling.
 
 #### Delivered
 
@@ -710,7 +709,7 @@ Decision 10 caveat is carried into the ledger rather than left in the binding pr
 
 **Step 3 — re-measurement.** [`interchange/binding-measurements.json`](../../../interchange/binding-measurements.json)
 moves to schema 2. Every source file now declares its layer — retained experiment or portable — and
-each stack records per-layer totals; the portable layer measures 7,337 Reference lines against 6,392
+each stack records per-layer totals; the portable layer measures 7,401 Reference lines against 6,530
 Minimal lines, two independent implementations of one contract within about 13% of each other. The
 file also records the representation, framing, allocation, copy-accounting, and payload-bound facts
 for both realizations, each stating whether it is declared by the contract, asserted by a named
@@ -724,15 +723,15 @@ is gated is structural cost.
 **Step 4 — gates.** `build/verify-portable-binding.ps1` and the complete repository gate
 `build/verify-interchange.ps1` both pass.
 
-#### Outstanding, and why the implementer cannot close them
+#### Independent review closure and outstanding owner ruling
 
-**Step 5 — fresh independent reviews.** An automated attestation counts as independent only when the
-reviewer has an identity distinct from every implementation actor, starts in a fresh isolated
-context, and has no access to the implementation session's private reasoning. The session that
-implemented PB7 and this documentation is an implementation actor for exactly this evidence, so it
-cannot review it. The existing control plane under `conformance/reviews/` is pinned to the completed
-implementation-correction programme; using it would require a new request rather than an edit to that
-closed record, which is an owner decision about what is being reviewed and by whom.
+**Step 5 — fresh independent reviews: complete 2026-08-11.** The retained review sequence under
+[`binding/portable/reviews/`](../../../binding/portable/reviews/README.md) records the initial
+findings, their test-first corrections, two further negative rounds that found production effect
+attribution gaps, and three conforming closure attestations pinned to `5150d6d`. The closure reviewers
+have identities distinct from the implementation actors, used fresh isolated contexts, assessed
+C1-C10 and the current Architecture 0.8 status and local targets, and verified the ten-vector
+unknown-effect class against its known-zero counter-cases.
 
 **Step 6 — question closure.** Decision 11 was ruled on 2026-07-30 and is recorded in
 [`open-decisions.md`](../../../binding/portable/open-decisions.md): negotiation compares provider
@@ -742,7 +741,7 @@ without a ruling would convert a provisional choice into a decision by writing i
 one thing the open-decisions file exists to prevent. The eight decisions raised by PB4 through PB6
 were ruled on separately and are already recorded there.
 
-The Channel naming question remains open work for PB8; nothing in steps 1 through 4 depends on it.
+The Channel naming question remains the sole open work for PB8; steps 1 through 5 do not decide it.
 
 ## 6. Mandatory evidence matrix
 

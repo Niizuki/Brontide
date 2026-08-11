@@ -38,8 +38,8 @@ encoding (its own §18.1 work, realising this frame).
 Each requirement is what the `Channel` extension must eventually settle. Disposition is one of
 `open`, `decided-in-note` (the design note records the semantic answer; the portable form remains
 open), `decided-in-draft` (the draft contract records a reviewable semantic answer without
-ratification), `vectors-authored` (shared data-only vectors exist but stack harnesses remain
-evidence-gated), `realisation-executed` (a conforming realisation executes the vectors in both
+ratification), `vectors-authored` (shared data-only vectors exist but have not yet been executed by
+both stack harnesses), `realisation-executed` (a conforming realisation executes the vectors in both
 stacks; the semantics are evidenced but not ratified), or `evidence-gated` (answerable only against
 a running conformance realisation).
 
@@ -132,8 +132,9 @@ Channel-relevant caveat, not only a binding-programme one.
 
 ## 5. Recorded test scenarios (forward)
 
-These are recorded targets for the eventual Channel realisation and its conformance work; none is
-implemented here.
+These are recorded scenarios for the eventual Channel contract and its conformance work. Entries
+marked *Delivered* are implemented and executed by the Portable Binding as one conforming
+realisation; the remaining entries stay targets. This evidence does not ratify Channel.
 
 - **Cross-stack conformance vectors (CH-R11).** *Delivered.* The shared vector file records
   request/Outcome correlation, category mapping, unrecognised versions, frame/no-frame failure

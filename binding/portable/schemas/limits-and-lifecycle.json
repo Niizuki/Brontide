@@ -52,7 +52,7 @@
       { "id": "established", "terminal": false, "detail": "Negotiation succeeded and the Binding Plan is frozen. The provider is not yet ready." },
       { "id": "ready", "terminal": false, "detail": "The provider signalled readiness. Requests are legal." },
       { "id": "active", "terminal": false, "detail": "A request is outstanding and its correlated outcome has not arrived." },
-      { "id": "withdrawn", "terminal": false, "detail": "The binding was withdrawn cleanly. No new request is legal; an outstanding outcome may still be accepted." },
+      { "id": "withdrawn", "terminal": false, "detail": "The binding was withdrawn cleanly. No new request or Outcome is legal. A later Outcome is refused because the binding no longer has an active request to correlate; whether the peer performed an effect before withdrawal remains unknown." },
       { "id": "terminated", "terminal": true, "detail": "The binding ended. No frame is legal." },
       { "id": "failed", "terminal": true, "detail": "The binding ended through a protocol error or process failure. No frame is legal." }
     ],

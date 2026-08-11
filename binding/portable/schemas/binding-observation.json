@@ -30,7 +30,7 @@
     { "id": "failureDomain", "shape": "Text", "required": false, "enumSource": "channel-envelope.json failureDomains", "detail": "Present whenever terminalStatus is not 'succeeded'." },
     { "id": "terminalStatus", "shape": "Text", "required": true, "enum": ["succeeded", "failed", "denied", "protocol-error", "process-failure"] },
     { "id": "correlationMapping", "shape": "correlationMapping", "required": true },
-    { "id": "providerEffectCount", "shape": "Integer.Signed64", "required": true, "detail": "Required wherever it is observable. A failure path must report 0." },
+    { "id": "providerEffectCount", "shape": "optional<Integer.Signed64>", "required": true, "absentForm": "unknown", "detail": "Known non-negative count where the observer can attribute provider effects. The value is 'unknown' when timeout, interruption, peer loss, malformed correlation, or another declared boundary prevents attribution; absence must never be rewritten as zero." },
     { "id": "timing", "shape": "timingObservation", "required": true }
   ],
   "nonNormativeFields": [
@@ -89,7 +89,7 @@
     "resourceParityRule": "referencedResources compares 'flavor', 'ownership', 'integrityVerified', and 'accepted'; it excludes 'copies' for the reason given above."
   },
   "completenessRule": {
-    "rule": "Every normative field is present on every terminal observation, including rejections and denials. An unobservable value is reported with its declared absent form rather than omitted.",
+    "rule": "Every normative field is present on every terminal observation, including rejections and denials. An unobservable provider effect count uses the declared 'unknown' form rather than omission or a fabricated zero. A succeeded observation always carries a known count.",
     "denialProfile": {
       "detail": "A local denial produces a complete observation even though no frame was emitted.",
       "expected": {

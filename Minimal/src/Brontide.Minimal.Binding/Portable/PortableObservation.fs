@@ -37,7 +37,7 @@ type Observation =
       FailureDomain: FailureDomain option
       TerminalStatus: TerminalStatus
       Correlation: CorrelationMapping
-      ProviderEffectCount: int64
+      ProviderEffectCount: int64 option
       Timing: Timing
       LocalCode: string option
       LocalMessage: string option }
@@ -56,8 +56,10 @@ module Observation =
               "A failure domain is present exactly when the terminal status is not 'succeeded'."
           if List.isEmpty observation.CrossedBoundaries then
               "Crossed boundaries are reported, using 'none' when nothing was crossed."
-          if observation.ProviderEffectCount < 0L || observation.CopyCount < 0L then
+          if observation.ProviderEffectCount |> Option.exists (fun count -> count < 0L) || observation.CopyCount < 0L then
               "Effect and copy counts are never negative."
+          if observation.TerminalStatus = TerminalStatus.Succeeded && observation.ProviderEffectCount.IsNone then
+              "A succeeded observation has a known provider effect count."
           if
               HostExecutionId.value observation.Correlation.HostNativeExecution = ChannelRequestId.value
                   observation.Correlation.Request
@@ -82,7 +84,7 @@ module Observation =
               (match observation.FailureDomain with
                | Some domain -> FailureDomain.token domain
                | None -> "absent")
-              "providerEffectCount", string observation.ProviderEffectCount
+              "providerEffectCount", (observation.ProviderEffectCount |> Option.map string |> Option.defaultValue "unknown")
               "negotiatedOperations",
               System.String.Join(", ", observation.NegotiatedOperations |> List.map PortableOperationRef.text)
               "negotiatedContractVersion", string observation.NegotiatedContractVersion
@@ -130,7 +132,7 @@ module InteractionResult =
 [<RequireQualifiedAccess>]
 module ObservationBuilder =
 
-    let build
+    let private create
         plan
         terminalStatus
         authorityDecision
@@ -167,6 +169,70 @@ module ObservationBuilder =
           LocalCode = localCode
           LocalMessage = localMessage }
 
+    let build
+        plan
+        terminalStatus
+        authorityDecision
+        authorityDecisionPoint
+        correlation
+        failureDomain
+        providerEffectCount
+        copyCount
+        resources
+        mappingObligations
+        interrupted
+        timing
+        localCode
+        localMessage
+        =
+        create
+            plan
+            terminalStatus
+            authorityDecision
+            authorityDecisionPoint
+            correlation
+            failureDomain
+            (Some providerEffectCount)
+            copyCount
+            resources
+            mappingObligations
+            interrupted
+            timing
+            localCode
+            localMessage
+
+    /// Builds a failure observation when the local endpoint cannot attribute a provider effect.
+    let unknownEffect
+        plan
+        terminalStatus
+        authorityDecision
+        authorityDecisionPoint
+        correlation
+        failureDomain
+        copyCount
+        resources
+        mappingObligations
+        interrupted
+        timing
+        localCode
+        localMessage
+        =
+        create
+            plan
+            terminalStatus
+            authorityDecision
+            authorityDecisionPoint
+            correlation
+            failureDomain
+            None
+            copyCount
+            resources
+            mappingObligations
+            interrupted
+            timing
+            localCode
+            localMessage
+
     /// The denial profile: a local denial produces a complete observation even though no frame was
     /// emitted, and it crosses no boundary because it never left the host.
     let denial plan correlation decision timing reason =
@@ -186,7 +252,7 @@ module ObservationBuilder =
           FailureDomain = Some FailureDomain.LocalEndpoint
           TerminalStatus = TerminalStatus.Denied
           Correlation = correlation
-          ProviderEffectCount = 0L
+          ProviderEffectCount = Some 0L
           Timing = timing
           LocalCode = Some "local-denial"
           LocalMessage = Some reason }

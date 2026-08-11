@@ -27,7 +27,8 @@ creates the data-only neutral contract under [`binding/portable/`](../../binding
 choice, and both resolved owner decisions are recorded there; PB1 authored the neutral contract
 itself, as eight data-only schemas, 63 vectors covering C1-C10 and all 24 Channel 0.1 vectors, and
 deterministic golden CBOR encodings — the later additions are Decision 5's eight Catalog vectors and
-PB7's ninth schema with its eleven, taking the total to 82; PB2 implemented that contract natively in the Reference
+PB7's ninth schema with its eleven, Decision 11's provider-mismatch vector, and PB8's lifecycle
+correction, taking the total to 84; PB2 implemented that contract natively in the Reference
 stack under [`Brontide.Reference.Experimental.Binding/Portable/`](../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/);
 and PB3 implemented it independently in the Minimal stack under
 [`Brontide.Minimal.Binding/Portable/`](../../Minimal/src/Brontide.Minimal.Binding/Portable/), using
@@ -131,11 +132,15 @@ experimental surface; and the source-cost inventory has been re-measured, separa
 portable layers, and extended with the representation, framing, allocation, copy, and payload-bound
 facts for both realizations, each stating how it is known. The complete repository gate is green.
 
-Two PB8 steps remain, and neither is the implementer's to close: **fresh independent reviews** of
-Reference, Minimal, and the neutral contract, which require a reviewer identity distinct from every
-implementation actor in a fresh context; and **question closure**, of which Decision 11 was recorded
-on 2026-07-30, leaving the Channel naming question. Neither was closed by an implementer writing a
-provisional choice down as a decision.
+PB8 Step 5 is complete. The retained independent-review sequence found and corrected neutral
+contract contradictions, stale target and Channel evidence, missing capability-wide properties,
+and two production paths that fabricated a zero provider-effect count when attribution was unknown.
+Fresh closure reviewers for Reference, Minimal, and the neutral contract all conform at `5150d6d`;
+the records live under [`binding/portable/reviews/`](../../binding/portable/reviews/README.md).
+
+One PB8 step remains and is not the implementer's to close: **question closure** for the Channel
+naming question. Decision 11 was recorded on 2026-07-30; no implementer has converted the remaining
+provisional name into an owner ruling.
 
 The former Priority 0 documentation relocation is complete; its archived plan is the
 [Pinned Documentation Relocation Plan 0.1](../archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).
@@ -144,7 +149,7 @@ No documentation prerequisite now precedes planned implementation work.
 ## Priority 2 — Component Management
 
 [Component Management Implementation Plan 0.1](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md)
-is the next implementable programme while Portable Binding awaits reviewer and owner actions. CM0
+is the next implementable programme while Portable Binding awaits its remaining owner action. CM0
 through CM5 are complete independently in both stacks. CM1 adds standardised contract/version
 discovery across zero or more fake sources, deterministic attributable candidates, immutable staged
 acquisition, contested evidence with attributable fake-policy decisions, source disappearance, four

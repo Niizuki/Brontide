@@ -164,6 +164,20 @@ type PortableLifecycleAndChannelTests() =
         Assert.That(refused.Category, Is.EqualTo(Some ProtocolCategory.StateViolation))
 
     [<Test>]
+    member _.``PB-84 an outcome after withdrawal is refused because no request remains active``() =
+        let lifecycle =
+            Lifecycle.create true
+            |> Lifecycle.apply EnvelopeKind.Establish
+            |> Result.bind (Lifecycle.apply EnvelopeKind.EstablishAccepted)
+            |> Result.bind (Lifecycle.apply EnvelopeKind.Ready)
+            |> Result.bind (Lifecycle.apply EnvelopeKind.Request)
+            |> Result.bind (Lifecycle.apply EnvelopeKind.Withdraw)
+            |> expectOk
+
+        Assert.That(Lifecycle.state lifecycle, Is.EqualTo LifecycleState.Withdrawn)
+        expectCategory ProtocolCategory.StateViolation (Lifecycle.apply EnvelopeKind.Outcome lifecycle) |> ignore
+
+    [<Test>]
     member _.``PB-38 a clean termination follows a withdrawal``() =
         let host, seam = processCoolingHost ()
         use _ = seam
@@ -258,7 +272,12 @@ type PortableLifecycleAndChannelTests() =
             Assert.That(result.FrameDecision, Is.EqualTo FrameDecision.Reject)
             Assert.That(result.Category, Is.EqualTo(Some ProtocolCategory.CorrelationMismatch))
             // The failure is attributed to the endpoint that observed it.
-            Assert.That(result.Observation.FailureDomain, Is.EqualTo(Some FailureDomain.LocalEndpoint)))
+            Assert.That(result.Observation.FailureDomain, Is.EqualTo(Some FailureDomain.LocalEndpoint))
+            Assert.That(
+                result.Observation.ProviderEffectCount,
+                Is.EqualTo None,
+                "A mismatched Outcome cannot attribute the peer provider's effect."
+            ))
 
     [<Test>]
     member _.``PB-44 an outcome without a request identity is refused rather than matched by position``() =
@@ -298,7 +317,7 @@ type PortableLifecycleAndChannelTests() =
 
         assertAll (fun () ->
             Assert.That(result.Category, Is.EqualTo(Some ProtocolCategory.UnsupportedOperation))
-            Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo 0L))
+            Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo(Some 0L)))
 
     [<Test>]
     member _.``PB-47 a shaped failed Outcome crosses without an exception``() =
@@ -389,7 +408,12 @@ type PortableLifecycleAndChannelTests() =
             Assert.That(result.ResultClass, Is.EqualTo ResultClass.ProcessFailure)
             Assert.That(result.ProcessCategory, Is.EqualTo(Some ProcessCategory.PeerTerminated))
             Assert.That(result.Observation.FailureDomain, Is.EqualTo(Some FailureDomain.RemoteProvider))
-            Assert.That(result.Observation.TerminalStatus, Is.EqualTo TerminalStatus.ProcessFailure))
+            Assert.That(result.Observation.TerminalStatus, Is.EqualTo TerminalStatus.ProcessFailure)
+            Assert.That(
+                result.Observation.ProviderEffectCount,
+                Is.EqualTo None,
+                "A terminated peer cannot prove whether its provider performed the requested effect."
+            ))
 
     [<Test>]
     member _.``PB-51 the process-failure categories are exactly the neutral set``() =

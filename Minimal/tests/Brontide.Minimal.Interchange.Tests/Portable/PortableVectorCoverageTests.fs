@@ -108,7 +108,8 @@ module PortableVectorCoverage =
               "PB-79-INTERACTION-BEFORE-RELEASE-REFUSED", "PortableCompositionHandoffTests"
               "PB-80-RELEASE-REQUIRES-READY", "PortableCompositionHandoffTests"
               "PB-81-RELEASED-BINDING-INTERACTS", "PortableCompositionHandoffTests"
-              "PB-82-WITHDRAWAL-INFORMS-A-REPLACEMENT", "PortableCompositionHandoffTests" ]
+              "PB-82-WITHDRAWAL-INFORMS-A-REPLACEMENT", "PortableCompositionHandoffTests"
+              "PB-84-OUTCOME-AFTER-WITHDRAWAL-REFUSED", "PortableLifecycleAndChannelTests" ]
 
     /// A portable vector counts as executed when this stack runs it rather than defers it.
     let executed vector =

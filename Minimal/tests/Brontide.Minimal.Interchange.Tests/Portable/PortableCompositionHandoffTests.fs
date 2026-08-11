@@ -262,7 +262,7 @@ type PortableCompositionHandoffTests() =
             result.Observation.AuthorityDecision |> shouldEqual AuthorityDecision.Unknown
             result.Observation.AuthorityDecisionPoint |> shouldEqual AuthorityDecisionPoint.HostLocal
             result.Observation.FailureDomain |> shouldEqual (Some FailureDomain.LocalEndpoint)
-            result.Observation.ProviderEffectCount |> shouldEqual 0L
+            result.Observation.ProviderEffectCount |> shouldEqual (Some 0L)
             result.Observation.LocalCode |> shouldEqual (Some "gate-closed")
             Observation.completenessFailures result.Observation |> shouldEqual []
 
@@ -300,7 +300,7 @@ type PortableCompositionHandoffTests() =
             CompositionStage.token composed.Stage |> shouldEqual "released"
             result.FrameDecision |> shouldEqual FrameDecision.Accept
             result.ResultClass |> shouldEqual ResultClass.OutcomeSucceeded
-            result.Observation.ProviderEffectCount |> shouldEqual 1L
+            result.Observation.ProviderEffectCount |> shouldEqual (Some 1L)
             handler.ProviderEffectCount |> shouldEqual 1L
 
             // The observation reports the plan the handoff froze.
@@ -341,7 +341,7 @@ type PortableCompositionHandoffTests() =
             // rather than as a third behaviour.
             afterRetirement.Category |> shouldEqual (Some ProtocolCategory.StateViolation)
             afterRetirement.Observation.LocalCode |> shouldEqual (Some "gate-closed")
-            afterRetirement.Observation.ProviderEffectCount |> shouldEqual 0L
+            afterRetirement.Observation.ProviderEffectCount |> shouldEqual (Some 0L)
 
             // The binding scope survives its plan, and there is no renegotiation in place: a
             // replacement is a new plan.
@@ -503,7 +503,7 @@ type PortableCompositionHandoffTests() =
                     $"An interaction in stage '{stage}' is refused rather than admitted."
                 )
 
-                result.Observation.ProviderEffectCount |> shouldEqual 0L
+                result.Observation.ProviderEffectCount |> shouldEqual (Some 0L)
 
             // Counted at the provider, not read from the observation: the observation is what the
             // binding says happened, and the counter is what did.

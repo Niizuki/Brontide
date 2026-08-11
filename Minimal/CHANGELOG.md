@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased - Portable Binding PB8 review corrections
+
+### Changed
+
+- **Breaking:** `PortableObservation.ProviderEffectCount` is now `int64 option`. `None` means the
+  observing endpoint cannot truthfully determine whether the provider performed an effect; callers
+  must handle that state instead of interpreting an unavailable count as zero.
+- Process loss after a request now emits `None` through the production host path.
+- Post-seam protocol failures that cannot attribute a trustworthy Outcome now also emit `None`,
+  while verified pre-provider refusals retain `Some 0L`.
+- Refuse a late `Outcome` after withdrawal and cover the corrected lifecycle contract with native
+  regression evidence.
+
 ## Unreleased - Architecture 0.8 closure and retargeting
 
 ### Changed

@@ -300,8 +300,8 @@ type PortableRealizationParityTests() =
             if scenario.Result = ResultClass.OutcomeSucceeded then 1L else 0L
 
         assertAll (fun () ->
-            Assert.That(direct.Observation.ProviderEffectCount, Is.EqualTo expected)
-            Assert.That(crossed.Observation.ProviderEffectCount, Is.EqualTo expected))
+            Assert.That(direct.Observation.ProviderEffectCount, Is.EqualTo(Some expected))
+            Assert.That(crossed.Observation.ProviderEffectCount, Is.EqualTo(Some expected)))
 
     /// PB6: a failure path leaks no provider effect, no authority value, no resource, no runtime
     /// type, and no false success — in either realization.
@@ -323,7 +323,7 @@ type PortableRealizationParityTests() =
             assertAll (fun () ->
                 Assert.That(
                     result.Observation.ProviderEffectCount,
-                    Is.EqualTo 0L,
+                    Is.EqualTo(Some 0L),
                     $"{realization}: a failure reported a provider effect."
                 )
 

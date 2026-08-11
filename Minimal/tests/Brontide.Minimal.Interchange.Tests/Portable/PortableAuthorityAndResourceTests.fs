@@ -38,7 +38,7 @@ type PortableAuthorityAndResourceTests() =
         assertAll (fun () ->
             Assert.That(result.FrameDecision, Is.EqualTo FrameDecision.None)
             Assert.That(result.ResultClass, Is.EqualTo ResultClass.Denial)
-            Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo 0L)
+            Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo(Some 0L))
             Assert.That(handler.ProviderEffectCount, Is.EqualTo 0L))
 
     [<Test>]
@@ -306,7 +306,7 @@ type PortableAuthorityAndResourceTests() =
             Assert.That(Observation.completenessFailures observation, Is.Empty)
             Assert.That(observation.TerminalStatus, Is.EqualTo TerminalStatus.Denied)
             Assert.That(observation.AuthorityDecisionPoint, Is.EqualTo AuthorityDecisionPoint.HostLocal)
-            Assert.That(observation.ProviderEffectCount, Is.EqualTo 0L)
+            Assert.That(observation.ProviderEffectCount, Is.EqualTo(Some 0L))
             Assert.That(observation.CopyCount, Is.EqualTo 0L)
             shouldEqual [ "none" ] observation.CrossedBoundaries
             Assert.That(observation.Interrupted, Is.False)

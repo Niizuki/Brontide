@@ -109,7 +109,8 @@ public sealed class PortableVectorCoverageTests
             ["PB-79-INTERACTION-BEFORE-RELEASE-REFUSED"] = "PortableCompositionHandoffTests",
             ["PB-80-RELEASE-REQUIRES-READY"] = "PortableCompositionHandoffTests",
             ["PB-81-RELEASED-BINDING-INTERACTS"] = "PortableCompositionHandoffTests",
-            ["PB-82-WITHDRAWAL-INFORMS-A-REPLACEMENT"] = "PortableCompositionHandoffTests"
+            ["PB-82-WITHDRAWAL-INFORMS-A-REPLACEMENT"] = "PortableCompositionHandoffTests",
+            ["PB-84-OUTCOME-AFTER-WITHDRAWAL-REFUSED"] = "PortableLifecycleAndChannelTests"
         }.ToImmutableSortedDictionary(StringComparer.Ordinal);
 
     [Test]

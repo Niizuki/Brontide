@@ -3,8 +3,8 @@
 **Status:** PB0 baseline inventory complete for the C1–C10 mapping; PB1 neutral schemas and vectors
 authored (see [PB1 evidence paths](#pb1-evidence-paths)); PB2–PB7 executed against them in both
 stacks (see [executed evidence](#executed-evidence-pb2pb7)). Capability text summarises plan §2 and
-is subordinate to the plan. Nothing here ratifies anything or changes either stack's Architecture
-0.7 implementation target.
+is subordinate to the plan. Nothing here ratifies anything; both stacks now state Architecture 0.8
+as their local implementation target.
 
 **Owner legend:** CM = Portable Binding contract maintainers · Ref = Reference stack owner ·
 Min = Minimal stack owner · Both = CM + both stack owners.
@@ -29,21 +29,24 @@ the C-item but absent · **blocked** = gated on an open owner decision (see `ope
 
 ## PB1 evidence paths
 
-Every C-item now has a neutral schema and at least one vector. Vector ids are unique across
-[`vectors/`](vectors/README.md) and the gate fails if any capability, Channel vector, protocol-error
-category, process-failure category, or failure domain loses its coverage.
+Every C-item now has a neutral schema and at least one vector. Each also has a property quantified
+over every vector carrying that capability in
+[`capability-properties.json`](vectors/capability-properties.json). Vector ids are unique across
+[`vectors/`](vectors/README.md), and the gate fails if any capability, capability-wide property,
+Channel vector, protocol-error category, process-failure category, or failure domain loses its
+coverage.
 
 | Capability | Neutral schema | Vectors | PB1 status |
 | --- | --- | --- | --- |
-| C1 | [`component-contract.json`](schemas/component-contract.json), [`references-and-shape-floor.json`](schemas/references-and-shape-floor.json) | PB-01 – PB-09, PB-54 | Closed. Compact identifiers, the missing item, are defined and scoped to one binding. |
+| C1 | [`component-contract.json`](schemas/component-contract.json), [`references-and-shape-floor.json`](schemas/references-and-shape-floor.json) | PB-01 – PB-09, PB-54, PB-83 | Closed. Compact identifiers, the missing item, are defined and scoped to one binding; negotiation verifies the provider that answered. |
 | C2 | [`binding-plan.json`](schemas/binding-plan.json) | PB-01, PB-39, PB-53, PB-54 | Closed. One consolidated, immutable, inspectable plan replaces the scattered fields. |
 | C3 | [`authority-presentation.json`](schemas/authority-presentation.json) | PB-18 – PB-24, PB-56, PB-59 | Closed. `no-capability-transfer` generalised; local denial is frameless. |
 | C4 | [`channel-envelope.json`](schemas/channel-envelope.json) | PB-42 – PB-52, PB-16, PB-17 | Closed. Both experiments' message kinds map to neutral envelope kinds; the taxonomy is reproduced exactly. |
 | C5 | [`references-and-shape-floor.json`](schemas/references-and-shape-floor.json) | PB-10 – PB-17, PB-57 | Closed. One reference encoding; Constraint values exempt from additive projection. |
 | C6 | [`payload-representation.json`](schemas/payload-representation.json) | PB-25 – PB-32, PB-60 | Closed for the declared floor: copied immutable blob plus the retained addressing-only handle. Borrow and transfer stay 0.1 non-goals, and four of C6's named concerns are declared-but-unexercised at this floor — see [C6 at the 0.1 floor](#c6-at-the-01-floor). |
 | C7 | [`binding-observation.json`](schemas/binding-observation.json) parity profile, [`binding-plan.json`](schemas/binding-plan.json) parity rule | PB-58 – PB-60, PB-62 | Closed. PB4 executed the comparison in each stack over every result class a host can reach, including across a real process boundary, and closed the four divergences it found; PB5 then paired the two stacks, so parity is no longer measured only within one. |
-| C8 | [`limits-and-lifecycle.json`](schemas/limits-and-lifecycle.json) | PB-09, PB-31 – PB-41 | Closed. One limit set (tighter bound wins) and an explicit state machine. |
-| C9 | [`binding-observation.json`](schemas/binding-observation.json) | PB-55 – PB-57 | Closed. The unified observation set is defined, with normative and non-normative fields separated. |
+| C8 | [`limits-and-lifecycle.json`](schemas/limits-and-lifecycle.json) | PB-09, PB-31 – PB-41, PB-84 | Closed. One limit set (tighter bound wins) and an explicit state machine; withdrawal makes a late Outcome a visible state violation. |
+| C9 | [`binding-observation.json`](schemas/binding-observation.json) | PB-55 – PB-57, PB-84 | Closed. The unified observation set is defined, with normative and non-normative fields separated; an unknowable provider effect count has the explicit `unknown` form rather than a fabricated zero. |
 | C10 | [`fixture-contract.json`](vectors/fixture-contract.json), [`catalog-fixture-contract.json`](vectors/catalog-fixture-contract.json) | PB-61 – PB-63 | Closed. PB5 executed all six combinations: both host directions over the negotiated process realization, both hosts against the [implementation-neutral provider](../neutral-provider/README.md), and both fixed direct calls. Building the neutral provider found that the fixture declaration was not encodable as published; the fixtures now separate annotation from contract data. |
 
 Deterministic byte evidence lives in [`vectors/golden-encodings.json`](vectors/golden-encodings.json)

@@ -306,10 +306,94 @@ $channelInventory = Read-JsonFile $channelVectorPath
 $adversarialInventory = Read-JsonFile $adversarialPath
 $envelopeSchema = Read-JsonFile (Join-Path $schemaRoot 'channel-envelope.json')
 $goldenInventory = Read-JsonFile (Join-Path $vectorRoot 'golden-encodings.json')
+$compositionSchema = Read-JsonFile (Join-Path $schemaRoot 'composition-handoff.json')
+$compositionVectors = Read-JsonFile (Join-Path $vectorRoot 'composition-handoff.json')
+$lifecycleSchema = Read-JsonFile (Join-Path $schemaRoot 'limits-and-lifecycle.json')
+$observationSchema = Read-JsonFile (Join-Path $schemaRoot 'binding-observation.json')
 
 $schemaFiles = Get-ChildItem -LiteralPath $schemaRoot -Filter '*.json' -File
 $vectorFiles = Get-ChildItem -LiteralPath $vectorRoot -Filter '*.json' -File |
-    Where-Object { $_.Name -notin @('fixture-contract.json', 'catalog-fixture-contract.json', 'golden-encodings.json') }
+    Where-Object { $_.Name -notin @('fixture-contract.json', 'catalog-fixture-contract.json', 'golden-encodings.json', 'capability-properties.json') }
+
+# ---------------------------------------------------------------------------
+# PB8 review regressions: semantic claims must agree across neutral artifacts
+# ---------------------------------------------------------------------------
+
+$interconnectionStage = @($compositionSchema.stages | Where-Object { [string]$_.id -eq 'interconnection' })
+if ($interconnectionStage.Count -ne 1 -or
+    [string]$interconnectionStage[0].rule -notmatch 'offered document' -or
+    [string]$interconnectionStage[0].rule -match 'read from the required document') {
+    $failures.Add("PB8 B1: composition handoff must say the plan provider fact is read from the offered document.")
+}
+
+$providerSubstitution = @($compositionVectors.vectors | Where-Object { [string]$_.id -eq 'PB-78-ENDPOINT-SUBSTITUTES-PROVIDER' })
+if ($providerSubstitution.Count -ne 1 -or
+    (@($providerSubstitution[0].then) -join ' ') -match 'never compares provider identity') {
+    $failures.Add("PB8 B1: PB-78 must apply Decision 11 and refuse provider substitution during negotiation.")
+}
+
+foreach ($state in @($lifecycleSchema.lifecycle.states)) {
+    if ([string]$state.detail -match 'outstanding outcome may still be accepted') {
+        $transition = @($lifecycleSchema.lifecycle.transitions | Where-Object {
+            [string]$_.from -eq [string]$state.id -and [string]$_.on -eq 'outcome'
+        })
+        if ($transition.Count -eq 0) {
+            $failures.Add("PB8 B2: lifecycle state '$($state.id)' promises an accepted Outcome but declares no Outcome transition.")
+        }
+    }
+}
+
+$effectCountField = @($observationSchema.normativeFields | Where-Object { [string]$_.id -eq 'providerEffectCount' })
+if ($effectCountField.Count -ne 1 -or
+    [string]$effectCountField[0].shape -ne 'optional<Integer.Signed64>' -or
+    [string]$effectCountField[0].absentForm -ne 'unknown') {
+    $failures.Add("PB8 B3: providerEffectCount must declare the explicit 'unknown' absent form for unobservable effects.")
+}
+
+$capabilityPropertyPath = Join-Path $vectorRoot 'capability-properties.json'
+if (-not (Test-Path -LiteralPath $capabilityPropertyPath)) {
+    $failures.Add('PB8 B4: capability-properties.json is missing; C1-C10 need properties over all of their vectors.')
+}
+else {
+    $capabilityProperties = Read-JsonFile $capabilityPropertyPath
+    foreach ($capability in $allowedCapabilities) {
+        $properties = @($capabilityProperties.properties | Where-Object { [string]$_.capability -eq $capability })
+        if ($properties.Count -ne 1 -or
+            [string]$properties[0].scope -ne 'all-vectors-with-capability' -or
+            [string]::IsNullOrWhiteSpace([string]$properties[0].statement) -or
+            [string]::IsNullOrWhiteSpace([string]$properties[0].counterexample)) {
+            $failures.Add("PB8 B4: capability '$capability' needs exactly one global property with a nameable counterexample.")
+        }
+    }
+}
+
+$targetClaimPaths = @(
+    (Join-Path $repositoryRoot 'docs\current\architecture\Brontide-Architecture-0.8.md'),
+    (Join-Path $portableRoot 'README.md'),
+    (Join-Path $portableRoot 'contract-matrix.md'),
+    (Join-Path $portableRoot 'completeness-reviews.md'),
+    (Join-Path $repositoryRoot 'docs\future\binding\Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md'),
+    (Join-Path $repositoryRoot 'docs\current\policies\public-boundaries.md'),
+    (Join-Path $repositoryRoot 'binding\neutral-provider\README.md')
+)
+foreach ($path in $targetClaimPaths) {
+    $text = Get-Content -LiteralPath $path -Raw
+    if ($text -match 'currently\s+target\s+Architecture\s+0\.7|Architecture\s+0\.7\s+implementation\s+target|stated\s+0\.7\s+implementation\s+target') {
+        $failures.Add("PB8 N1: '$path' still states the superseded Architecture 0.7 stack target.")
+    }
+    if ($text -match 'New architectural decisions come from\s*\r?\n?\s*\[Architecture 0\.7\]') {
+        $failures.Add("PB8 N3: '$path' still directs new architectural decisions to Architecture 0.7.")
+    }
+}
+
+if ([string]$channelInventory.contract.status -match 'harnesses pending') {
+    $failures.Add('PB8 N2: Channel vector metadata still says stack harnesses are pending after executed evidence was recorded.')
+}
+
+$channelLedger = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\future\channel\architecture-0.8-channel-requirements-and-risk-ledger.md') -Raw
+if ($channelLedger -match 'none is\s*\r?\n?\s*implemented here') {
+    $failures.Add('PB8 N2: the Channel ledger still says no recorded target is implemented despite executed realization evidence.')
+}
 
 # ---------------------------------------------------------------------------
 # Neutrality: the checked-in neutral layer stays data only

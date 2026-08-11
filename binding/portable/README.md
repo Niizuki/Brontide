@@ -5,8 +5,8 @@ for direct-versus-process parity in each (PB4), paired across the stacks and aga
 [implementation-neutral provider](../neutral-provider/README.md) (PB5), hardened (PB6), and given the
 Composition handoff by which composition machinery reaches the layer (PB7). PB8's evidence and
 documentation work is complete, and Decision 11 was ruled on 2026-07-30: negotiation compares
-provider identity and the Binding Plan reports the provider that answered. Its independent reviews
-remain outstanding.
+provider identity and the Binding Plan reports the provider that answered. Its independent review
+sequence is complete; only PB8's owner-held Channel naming question remains.
 Planned experimental work; not ratified; not part of Brontide Base.
 **Designed for:** Brontide Architecture 0.8 §16 and §18.1 (Complete Draft).
 **Plan:** [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
@@ -180,7 +180,8 @@ changed something here:
 
 PB7 added [`schemas/composition-handoff.json`](schemas/composition-handoff.json) and
 [`vectors/composition-handoff.json`](vectors/composition-handoff.json) — eleven vectors, PB-72
-through PB-82, taking the total to 82. `binding-plan.json` already carried a `compositionHandoff`
+through PB-82. Decision 11 added PB-83 and the PB8 lifecycle correction added PB-84, taking the
+total to 84. `binding-plan.json` already carried a `compositionHandoff`
 stub naming the phase; it now points at the schema that owns the seam.
 
 The seam was declared here **before** either stack implemented it. That is the
@@ -192,12 +193,13 @@ invent. A preflight refusal is `frameDecision: none` with `resultClass: protocol
 like a denial but a contract refusal rather than an authority decision; and a gate refusal reports
 `authorityDecision: unknown`, because the gate refuses before the authority boundary is reached.
 
-PB7 also found that **negotiation never compares provider identity**, so the Binding Plan's
-`provider` fact reports the required document's value — who the host asked for — rather than who
-answered. Every fixture here derives from one declaration, so the two have always agreed and nothing
-could have observed the difference. Decision 11 in [`open-decisions.md`](open-decisions.md) records
-it with its options; no schema or vector changed for it, because the provisional fix is a check at
-the composition seam rather than a contract change.
+PB7 also found that **negotiation never compared provider identity**, so the Binding Plan's
+`provider` fact reported the required document's value — who the host asked for — rather than who
+answered. Every fixture here derived from one declaration, so the two agreed and nothing observed the
+difference. Decision 11 in [`open-decisions.md`](open-decisions.md) corrected the contract:
+negotiation now refuses a provider mismatch, and the plan reads the provider from the offered
+document so the fact names who answered. The composition seam retains its separate check that the
+answering provision is the one resolution selected.
 
 ## What PB8 changed here
 
@@ -212,11 +214,15 @@ PB8's other work lands outside this directory: the Channel ledger, the public bo
 stacks' changelogs and inventories, and the re-measured source-cost inventory in
 [`interchange/binding-measurements.json`](../../interchange/binding-measurements.json), which now
 separates the retained experiments from this layer and records the representation, framing,
-allocation, copy, and payload-bound facts for both realizations with their provenance. Decision 11 has since been ruled on, leaving one
-remaining step — fresh independent reviews — which is not the implementer's to close.
+allocation, copy, and payload-bound facts for both realizations with their provenance. Decision 11
+has since been ruled on. The fresh independent review sequence is complete and retained under
+[`reviews/`](reviews/README.md); its findings added capability-wide properties, corrected lifecycle
+and provider-attribution claims, and made unknowable provider effects explicit in both production
+hosts. Only the owner-held Channel naming question remains for PB8.
 
 ## Boundary
 
-Nothing here changes either stack's Architecture 0.7 implementation target or asserts Architecture
-0.8 conformance. This is planned experimental scaffolding; the reusable surface is refactored out
-of the existing Cooling/Catalog experiments rather than replacing them.
+Both stacks now state Architecture 0.8 as their local implementation target. Nothing here ratifies
+Architecture 0.8 or promotes Portable Binding into Brontide Base. This remains experimental
+scaffolding; the reusable surface is refactored out of the existing Cooling/Catalog experiments
+rather than replacing them.

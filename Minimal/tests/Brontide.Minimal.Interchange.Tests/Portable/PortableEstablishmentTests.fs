@@ -202,7 +202,7 @@ type PortableEstablishmentTests() =
         assertAll (fun () ->
             Assert.That(result.FrameDecision, Is.EqualTo FrameDecision.Accept)
             Assert.That(result.ResultClass, Is.EqualTo ResultClass.OutcomeSucceeded)
-            Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo 1L))
+            Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo(Some 1L)))
 
     [<Test>]
     member _.``PB-12 a non-additive version difference refuses projection``() =
@@ -220,7 +220,7 @@ type PortableEstablishmentTests() =
         assertAll (fun () ->
             Assert.That(result.FrameDecision, Is.EqualTo FrameDecision.Reject)
             Assert.That(result.Category, Is.EqualTo(Some ProtocolCategory.InvalidPayload))
-            Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo 0L))
+            Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo(Some 0L)))
 
     [<Test>]
     member _.``PB-13 a closed result Shape refuses an undeclared Fragment rather than projecting it``() =

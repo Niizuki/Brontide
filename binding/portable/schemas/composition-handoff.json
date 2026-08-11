@@ -74,7 +74,7 @@
     {
       "id": "interconnection",
       "fixes": ["every fact in binding-plan.json"],
-      "rule": "Preflight runs, the contract is negotiated, the plan is frozen, and the readiness signal arrives. The plan's hostEndpoint is the requirement's, and step 6 has established that the provider which answered is the one the resolution selected. The plan's own provider fact is read from the required document rather than from the answer, which is the subject of Decision 11 in open-decisions.md.",
+      "rule": "Preflight runs, the contract is negotiated, the plan is frozen, and the readiness signal arrives. The plan's hostEndpoint is the requirement's, and step 6 has established that the provider which answered is the one the resolution selected. The plan's own provider fact is read from the offered document, so it names the provider that answered as Decision 11 requires.",
       "gate": "closed"
     },
     {
