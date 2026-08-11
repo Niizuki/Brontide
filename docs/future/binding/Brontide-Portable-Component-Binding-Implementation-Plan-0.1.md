@@ -1,7 +1,7 @@
 # Brontide Portable Component Binding Implementation Plan 0.1
 
-**Status:** Partially implemented experimental work — PB0 through PB7 complete; PB8 steps 1-5
-complete, with only the owner-held Channel naming decision in step 6 outstanding
+**Status:** Completed experimental evidence programme — PB0 through PB8 complete; Channel 0.1
+remains unratified and its explicitly migrated successor is planned separately
 **Date:** 2026-07-23 (delivery status updated 2026-08-11)
 **Designed for:** [Brontide Architecture 0.8](../../current/architecture/Brontide-Architecture-0.8.md) §16 and
 §18.1, Complete Draft, not ratified
@@ -157,9 +157,9 @@ deterministically. The repository-wide gate invokes it.
 | PB5 — cross-stack and independent-provider matrix | **Complete** | both stacks' `PortableCrossStackTests` and `PortableNeutralProviderTests`, [`binding/neutral-provider/`](../../../binding/neutral-provider/README.md), [`catalog-fixture-contract.json`](../../../binding/portable/vectors/catalog-fixture-contract.json) |
 | PB6 — resource, lifecycle, and hardening completion | **Complete** | both stacks' `PortableDecoderPropertyTests`, `PortableProcessCategoryTests`, `PortableResourceSeamTests`, `PortableLifecycleSeamTests`, and the `a failure path leaks nothing` cases in `PortableRealizationParityTests` |
 | PB7 — Composition handoff | **Complete** | [`schemas/composition-handoff.json`](../../../binding/portable/schemas/composition-handoff.json), [`vectors/composition-handoff.json`](../../../binding/portable/vectors/composition-handoff.json) (PB-72 - PB-82, plus three group properties), [`Reference .../Portable/PortableCompositionHandoff.cs`](../../../Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCompositionHandoff.cs), [`Minimal .../Portable/PortableCompositionHandoff.fs`](../../../Minimal/src/Brontide.Minimal.Binding/Portable/PortableCompositionHandoff.fs), both `PortableCompositionHandoffTests` |
-| PB8 — evidence, documentation, and review closure | **Partly complete** — steps 1-5 delivered; step 6 owner ruling outstanding | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md) executed-evidence table, [`channel ledger`](../channel/architecture-0.8-channel-requirements-and-risk-ledger.md) §4, [`binding-measurements.json`](../../../interchange/binding-measurements.json) schema 2, [`public-boundaries.md`](../../current/policies/public-boundaries.md) portable seam, both stacks' `CHANGELOG.md`, and [`reviews/`](../../../binding/portable/reviews/README.md) |
+| PB8 — evidence, documentation, and review closure | **Complete** — steps 1-5 delivered and independently closed; step 6 owner ruling selected the explicitly migrated Channel 0.2 redesign | [`contract-matrix.md`](../../../binding/portable/contract-matrix.md) executed-evidence table, [`channel ledger`](../channel/architecture-0.8-channel-requirements-and-risk-ledger.md) §4, [`binding-measurements.json`](../../../interchange/binding-measurements.json) schema 2, [`public-boundaries.md`](../../current/policies/public-boundaries.md) portable seam, both stacks' `CHANGELOG.md`, [`reviews/`](../../../binding/portable/reviews/README.md), and the [Channel 0.2 successor plan](../channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md) |
 
-Only PB8 remains. The neutral contract exists and is gated, both stacks implement it natively in both
+PB0 through PB8 are complete. The neutral contract exists and is gated, both stacks implement it natively in both
 realizations, PB4 measured those two realizations against each other across the portable observation
 set, PB5 paired the two stacks and added a provider that depends on neither, PB6 hardened both, and
 PB7 added the seam by which composition machinery reaches the layer at all. Every C item has
@@ -733,15 +733,14 @@ have identities distinct from the implementation actors, used fresh isolated con
 C1-C10 and the current Architecture 0.8 status and local targets, and verified the ten-vector
 unknown-effect class against its known-zero counter-cases.
 
-**Step 6 — question closure.** Decision 11 was ruled on 2026-07-30 and is recorded in
+**Step 6 — question closure: complete 2026-08-11.** Decision 11 was ruled on 2026-07-30 and is recorded in
 [`open-decisions.md`](../../../binding/portable/open-decisions.md): negotiation compares provider
-identity, and the plan reports the provider that answered. The Channel naming question remains open
-and still awaits an *owner* ruling rather than an implementer's. Moving it to `Resolved questions`
-without a ruling would convert a provisional choice into a decision by writing it down, which is the
-one thing the open-decisions file exists to prevent. The eight decisions raised by PB4 through PB6
-were ruled on separately and are already recorded there.
-
-The Channel naming question remains the sole open work for PB8; steps 1 through 5 do not decide it.
+identity, and the plan reports the provider that answered. The architecture-owner ruling selected an
+explicitly migrated revision rather than ratifying Channel 0.1's provisional Shape and category
+names. A subsequent ruling widened that successor from Decision 13's minimum delta into a full
+Channel 0.2 redesign. The required work is now owned by the
+[Channel 0.2 Redesign and Migration Plan](../channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md),
+not by this completed 0.1 programme.
 
 ## 6. Mandatory evidence matrix
 
@@ -785,24 +784,25 @@ promotion, and an Architecture 0.8 implementation claim remain separate decision
 
 ## Open questions (owners needed)
 
-One question is open. The eight raised by PB4, PB5, and PB6 were all recorded on 2026-07-28, and
-Decision 11, raised by PB7, was recorded on 2026-07-30; all nine have moved to
-[Resolved questions](#resolved-questions). Each remains written up in full — what was observed, what
-was running and why, the alternatives with their trade-offs, and what the ruling changed — in
-[`binding/portable/open-decisions.md`](../../../binding/portable/open-decisions.md).
-
-| Owner | Question | Blocking point |
-| --- | --- | --- |
-| Brontide architecture maintainers | Ratify the provisional Channel Shape/category names or publish an explicitly migrated revision? | Blocks a stable public Portable Binding version; experimental PB0-PB6 may proceed against a versioned draft. |
+None. Decisions 12 and 14 through 16 in the integration ledger remain open but block no Portable
+Binding 0.1 work and are not questions owned by this completed plan.
 
 ## Resolved questions
 
-The eight below were raised by PB4, PB5, and PB6, ran on a provisional implementer choice while each
-phase proceeded, and were recorded on **2026-07-28**. Four confirm the provisional choice unchanged;
-four create follow-on work, marked as such. Decision 11, raised by PB7, follows them. Full option
-sets and rationale stay in
+The decisions below include the eight raised by PB4, PB5, and PB6, which ran on a provisional
+implementer choice while each phase proceeded and were recorded on **2026-07-28**. Four confirmed
+the provisional choice unchanged and four created follow-on work. Decision 11, raised by PB7, and
+the owner-held Channel successor rulings follow them. Full option sets and rationale for Decisions
+3 through 11 stay in
 [`binding/portable/open-decisions.md`](../../../binding/portable/open-decisions.md).
 
+- **2026-08-11 — Channel 0.1 naming:** **publish an explicitly migrated revision rather than ratify
+  the provisional Channel 0.1 Shape and category names.** Version 0.1 remains executable experimental
+  evidence and does not become a stable public contract.
+- **2026-08-11 — Successor scope:** the migrated successor is a full Channel 0.2 redesign, beginning
+  with a fresh capability contract, state machines, responsibility and migration artifacts, silence
+  review, and independent design review. Its plan is
+  [`Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md`](../channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md).
 - **2026-07-30 — Decision 11, the plan's provider fact:** **negotiation compares provider identity**
   and refuses a mismatch as `unsupported-contract`, and the plan's `provider`/`selectedProvider`
   facts and the C9 observation are read from the **offered** document. A required document naming a

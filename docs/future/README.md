@@ -15,13 +15,27 @@ This directory is the authoritative entry point for planned, draft, proposed, wo
 otherwise unimplemented work. A document belongs here even when it is the “current architecture” if
 the implementations have not delivered it.
 
-## Priority 1 — Portable Component Binding
+## Priority 1 — Channel 0.2 redesign and migration
+
+The [Channel 0.2 Redesign and Migration Plan](./channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md)
+is the next work. The architecture-owner ruling does not ratify Channel 0.1's provisional names:
+version 0.1 remains executable experimental evidence, and an explicitly migrated 0.2 will reconsider
+the capability boundary, session and interaction state machines, message and failure taxonomy,
+observation provenance, and extension seams before schemas or public surfaces are added.
+
+Its mandatory first batch is design work: a fresh C1-Cn capability contract, explicit session and
+interaction state machines, a responsibility matrix across Channel and adjacent extensions, a
+contract-completeness and silence review, a complete 0.1-to-0.2 migration ledger, a neutral-artifact
+brief, and fresh independent design review. Neither stack implements Channel 0.2 until that package
+agrees and its review has no blocking finding.
+
+## Completed predecessor — Portable Component Binding 0.1
 
 [Portable Component Binding Implementation Plan 0.1](./binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
-is the next implementation goal. It turns retained Cooling and Catalog experiments into a reusable
-Binding Plan and Channel realization. Its first stage, PB0, inventories the existing Cooling and
-Catalog behaviour, maps it to the C1-C10 capability contract and the Channel 0.1 vectors, and
-creates the data-only neutral contract under [`binding/portable/`](../../binding/portable/README.md).
+records the completed experimental predecessor. It turned retained Cooling and Catalog experiments
+into a reusable Binding Plan and Channel 0.1 realization, mapped them to C1-C10 and all Channel 0.1
+vectors, and created the data-only neutral contract under
+[`binding/portable/`](../../binding/portable/README.md).
 
 **PB0 through PB7 are complete.** The PB0 scaffold, C1-C10 baseline inventory, representation
 choice, and both resolved owner decisions are recorded there; PB1 authored the neutral contract
@@ -102,7 +116,8 @@ names or publish an explicitly migrated revision, and Decisions 12 and 13, raise
 on 2026-08-01. Decision 13 was recorded on 2026-08-11: Portable Binding 0.1 retains its fail-closed
 refusal of every CM3 group declaring a bounded lifecycle protocol, and a versioned 0.2 will separate
 establishment from readiness and add exact declared relational lifecycle traffic before Ready. The
-Channel naming question and Decision 12 remain open.
+Channel question was resolved on 2026-08-11 in favor of a full, explicitly migrated 0.2 redesign;
+Decision 12 remains open and blocks nothing.
 
 **PB7 added the Composition handoff**: the narrow seam by which a resolved Component requirement and
 an offered provision produce a Binding Plan during activation preflight. It consumes a resolution and
@@ -124,7 +139,7 @@ question is **Decision 11**, recorded on 2026-07-30: negotiation now compares pr
 refuses a mismatch, and the plan reports the provider that answered. It was another instance of the
 gap Decision 10 names.
 
-**PB8 is partly complete.** Its evidence and documentation work is done: the contract matrix now
+**PB8 is complete.** Its evidence and documentation work is done: the contract matrix now
 carries an executed-evidence table naming which realizations have run each capability; the Channel
 ledger records CH-R11 as executed by a conforming realisation rather than awaiting stack harnesses;
 the public boundary document gains a portable-seam section; both stacks' changelogs record the added
@@ -138,9 +153,10 @@ and two production paths that fabricated a zero provider-effect count when attri
 Fresh closure reviewers for Reference, Minimal, and the neutral contract all conform at `5150d6d`;
 the records live under [`binding/portable/reviews/`](../../binding/portable/reviews/README.md).
 
-One PB8 step remains and is not the implementer's to close: **question closure** for the Channel
-naming question. Decision 11 was recorded on 2026-07-30; no implementer has converted the remaining
-provisional name into an owner ruling.
+PB8 Step 6 closed on 2026-08-11 by owner ruling: Channel 0.1's provisional logical names are not
+ratified as the lasting contract. The explicitly migrated successor is the full Channel 0.2 redesign
+now listed as Priority 1. This closes Portable Binding 0.1 evidence without promoting it to a stable
+public extension.
 
 The former Priority 0 documentation relocation is complete; its archived plan is the
 [Pinned Documentation Relocation Plan 0.1](../archive/documentation/Brontide-Pinned-Documentation-Relocation-Plan-0.1.md).
@@ -149,7 +165,7 @@ No documentation prerequisite now precedes planned implementation work.
 ## Priority 2 — Component Management
 
 [Component Management Implementation Plan 0.1](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md)
-is the next implementable programme while Portable Binding awaits its remaining owner action. CM0
+records the completed fake Component Management programme retained at its evidence path. CM0
 through CM5 are complete independently in both stacks. CM1 adds standardised contract/version
 discovery across zero or more fake sources, deterministic attributable candidates, immutable staged
 acquisition, contested evidence with attributable fake-policy decisions, source disappearance, four
@@ -1470,17 +1486,18 @@ bound it to cooperating hosts over one shared filesystem: a host that opens the 
 acquiring is caught by the fence at its next write rather than excluded, nothing expires or is
 renewed, and a lock over a path an adversary can write is no stronger than CBI42's custody limit.
 
-PB8's independent reviews remain a separate governance prerequisite rather than implementation work.
-Decision 13 was recorded on 2026-08-11: the current 0.1 implementation continues to refuse every CM3
-group that declares a bounded lifecycle protocol, and 0.2 is the planned versioned correction after
-the reviews. Decisions 12 and 14 through 16 await rulings and block no current work.
+PB8's independent reviews and owner closure are complete. Decision 13 was recorded on 2026-08-11:
+the current 0.1 implementation continues to refuse every CM3 group that declares a bounded lifecycle
+protocol. The owner then selected an explicitly migrated, full Channel 0.2 redesign rather than a
+minimum binding-only correction; its mandatory design batch is Priority 1 above. Decisions 12 and 14
+through 16 await rulings and block no current work.
 
 ## Other planned areas
 
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Cooling/Catalog evidence exists; reusable Channel realization remains planned. |
+| Channel | [`Channel 0.2 redesign and migration plan`](./channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the contract-first 0.2 redesign is next and unimplemented. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

@@ -727,7 +727,8 @@ Binding 0.2. Options C and D rejected for this decision.** Recorded 2026-08-11 b
 
 The Composition handoff's `outOfScope` entry is a 0.1 version limitation, not a permanent boundary of
 the seam. Version 0.1 remains unchanged and fails closed for every protocol-bearing group so its
-published schemas, vectors, parity profiles, and pending PB8 independent-review target remain stable.
+published schemas, vectors, parity profiles, and then-pending PB8 independent-review target remain
+stable.
 The 0.2 contract will separate establishment from readiness and add distinct relational lifecycle
 traffic before Ready. That traffic carries the exact CM3-declared edge, direction, initiating and
 receiving members, Operation, Capability, and input Shape; anything not declared is refused before

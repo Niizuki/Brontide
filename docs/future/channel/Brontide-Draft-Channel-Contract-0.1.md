@@ -2,8 +2,10 @@
 
 ## Draft Channel Contract 0.1
 
-**Status:** Draft semantic contract for Architecture 0.8 evidence; not ratified, not Brontide Base,
-and not an implementation or wire-format claim.  
+**Status:** Retained, implemented experimental Channel 0.1 semantic contract; not ratified, not
+Brontide Base, and not an implementation or wire-format standard. Its provisional names will not be
+ratified in place; the explicitly migrated successor is planned in the
+[Channel 0.2 redesign and migration plan](./Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md).
 **Design source:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md).  
 **Decision ledger:**
 [Architecture 0.8 Channel requirements and risk ledger](./architecture-0.8-channel-requirements-and-risk-ledger.md).  
@@ -155,8 +157,11 @@ The draft is ready for Portable Binding implementation evidence when:
 2. the C7 strong-Kleene and C8 polarity-flip vectors run at the Channel authority boundary;
 3. one fixed-contract and one negotiated realization map their local codes to this taxonomy;
 4. direct-call and process-isolated realizations report the same semantic observations; and
-5. the architecture review either ratifies these provisional Shape/category names or replaces them
-   with an explicitly migrated revision.
+5. the architecture review dispositions these provisional Shape/category names.
+
+That fifth gate closed on 2026-08-11 by selecting an explicitly migrated, fully redesigned Channel
+0.2 rather than ratifying the 0.1 names. This contract remains the executable predecessor evidence
+and migration source; it is not the template the successor must preserve.
 
 Until those gates pass, this document resolves planning questions but makes no Channel conformance
 or ratification claim.

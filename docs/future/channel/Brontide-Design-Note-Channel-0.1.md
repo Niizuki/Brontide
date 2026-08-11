@@ -275,6 +275,13 @@ Channel-providing Component required by another Component — without implementi
 
 ## Recorded direction
 
+**Successor direction, recorded 2026-08-11.** Channel 0.1 remains retained experimental evidence;
+its provisional Shape and category names will not be ratified in place. The next work is the
+[Channel 0.2 redesign and migration plan](./Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md),
+which preserves the invariants evidenced here while reconsidering the capability boundary, state
+models, taxonomy, observation provenance, and extension seams before replacement schemas or public
+surfaces are authored.
+
 - Channel is the recorded first-cycle communication extension: the request/Outcome representation,
   correlation, error propagation, and delivery semantics that §13.6 needs and Base withholds. It
   remains a provisional extension name outside Base and is not ratified.

@@ -54,5 +54,6 @@ decisions invisibly — the same boundary PB7's four refusal vectors enforce.
 **The limit of this entry.** This review was performed by the session that implemented PB7, which is
 the weakest form the practice can take: the reader who wrote the contract is the least likely to
 notice what it does not say. It found five silences anyway, which suggests the practice is worth
-more when run by someone else. PB8's outstanding independent review is the natural place for a second
-pass, and a reviewer who disagrees with a disposition here should say so there.
+more when run by someone else. At the time of this review, PB8's independent review was the natural
+place for a second pass. That sequence is now complete under [`reviews/`](reviews/README.md); its
+findings were corrected before the three closure attestations conformed.
