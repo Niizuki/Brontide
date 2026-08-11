@@ -356,6 +356,40 @@ if ($null -ne $registry -and $null -ne $currentMaster) {
     }
 }
 
+# Both 0.3 stack plans are pinned by the closed implementation-correction review snapshot, so their
+# own status lines are frozen at that review's target commit and cannot track delivery. The future
+# index must therefore route a reader to the milestone ledger that does, and must say why. Without
+# this the row reverts to "Planned work with retained delivery evidence", which is how a reader came
+# to believe no 0.7 work had started.
+$futureIndexPath = Join-Path $repositoryRoot 'docs\future\README.md'
+if (-not (Test-Path -LiteralPath $futureIndexPath)) {
+    $failures.Add('The future-work index does not exist at docs/future/README.md.')
+}
+else {
+    $futureIndex = Get-Content -Raw -LiteralPath $futureIndexPath -Encoding UTF8
+    if ($futureIndex.IndexOf('### Frozen review evidence inside `future`', [StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The future-work index must explain why a review-pinned document is not updated as delivery proceeds.')
+    }
+
+    $planRowExpectations = @(
+        @{ Row = '| Reference 0.3 plan |'; Ledger = 'Reference/docs/milestone-evidence.md' },
+        @{ Row = '| Minimal 0.3 plan |'; Ledger = 'Minimal/docs/milestone-evidence.md' }
+    )
+    foreach ($planRow in $planRowExpectations) {
+        $row = @($futureIndex -split "`r?`n" | Where-Object { $_.StartsWith($planRow.Row, [StringComparison]::Ordinal) })
+        if ($row.Count -ne 1) {
+            $failures.Add("The future-work index must carry exactly one '$($planRow.Row.Trim('|', ' '))' row; found $($row.Count).")
+            continue
+        }
+        if ($row[0].IndexOf($planRow.Ledger, [StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("The '$($planRow.Row.Trim('|', ' '))' row must route phase state to '$($planRow.Ledger)'.")
+        }
+        if ($row[0].IndexOf('frozen review evidence', [StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("The '$($planRow.Row.Trim('|', ' '))' row must say the plan's status line is frozen review evidence.")
+        }
+    }
+}
+
 if ($failures.Count -gt 0) {
     $failures | ForEach-Object { Write-Error $_ }
     exit 1
