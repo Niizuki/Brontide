@@ -96,10 +96,12 @@ implementations on partial-match and count semantics, which the fixture contract
 PB-70 and PB-71 settle both, with the rules derived from the declared Shapes rather than adopted from
 whichever implementation was read first, and Minimal brought to them.
 
-Three questions remain open, and none is one of the eight: whether to ratify the provisional Channel
-Shape and category names or publish an explicitly migrated revision, Decision 12, raised by CBI20 on
-2026-08-01, and Decision 13, raised by CBI21 the same day — the only one of the three that blocks
-implementation work, since it holds every CM3 group declaring a bounded lifecycle protocol.
+Three questions were open after CBI21: whether to ratify the provisional Channel Shape and category
+names or publish an explicitly migrated revision, and Decisions 12 and 13, raised by CBI20 and CBI21
+on 2026-08-01. Decision 13 was recorded on 2026-08-11: Portable Binding 0.1 retains its fail-closed
+refusal of every CM3 group declaring a bounded lifecycle protocol, and a versioned 0.2 will separate
+establishment from readiness and add exact declared relational lifecycle traffic before Ready. The
+Channel naming question and Decision 12 remain open.
 
 **PB7 added the Composition handoff**: the narrow seam by which a resolved Component requirement and
 an offered provision produce a Binding Plan during activation preflight. It consumes a resolution and
@@ -532,9 +534,10 @@ The three questions this item recorded — what a bounded protocol means for the
 whether lifecycle-traffic authority is CBI13's admission or a separate one, and what a handshake
 failing midway leaves behind — are therefore **unreachable rather than undecided**, and answering them
 here would settle a Portable Binding contract question inside a Component Management slice. What the
-seam would need is **Decision 13**, raised 2026-08-01 and open: leave the stage out of scope, or split
-readiness from establishment and add a declared-protocol verb, which is a version boundary's work
-rather than a slice's. CBI12's plan refusal also stops reporting one code for four conditions. The
+seam needs was recorded as **Decision 13** on 2026-08-11: 0.1 keeps the refusal unchanged, while a
+versioned 0.2 splits readiness from establishment and adds exact declared-protocol traffic before
+Ready. That follow-on begins only after PB8 reviews the stable 0.1 evidence. CBI12's plan refusal also
+stops reporting one code for four conditions. The
 [`CBI21 capability contract`](../../component-management/cbi21-capability-contract.md) and
 [`contract-completeness review`](../../component-management/cbi21-contract-completeness-review.md)
 bound it to protocol-free strongly connected groups over one activation.
@@ -1462,9 +1465,10 @@ bound it to cooperating hosts over one shared filesystem: a host that opens the 
 acquiring is caught by the fence at its next write rather than excluded, nothing expires or is
 renewed, and a lock over a path an adversary can write is no stronger than CBI42's custody limit.
 
-PB8's independent reviews remain a separate governance prerequisite rather than implementation work;
-Decision 11 was ruled on and delivered on 2026-07-30, and Decisions 12 through 16 await rulings —
-Decision 13 still blocks every activation of a CM3 group that declares a bounded lifecycle protocol.
+PB8's independent reviews remain a separate governance prerequisite rather than implementation work.
+Decision 13 was recorded on 2026-08-11: the current 0.1 implementation continues to refuse every CM3
+group that declares a bounded lifecycle protocol, and 0.2 is the planned versioned correction after
+the reviews. Decisions 12 and 14 through 16 await rulings and block no current work.
 
 ## Other planned areas
 
