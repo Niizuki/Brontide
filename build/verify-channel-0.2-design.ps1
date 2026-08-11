@@ -102,6 +102,10 @@ Assert-ContainsAll 'Channel 0.2 recipient authority-denial path' $interaction @(
 Assert-ContainsAll 'Channel 0.2 recipient cancellation-refusal path' $interaction @(
     '| `executing` | structurally valid cancellation control is denied by local cancellation authority | `executing` | possible/already occurred; emit nonterminal `refused` acknowledgement |'
 )
+Assert-ContainsAll 'Channel 0.2 complete cancellation terminal paths' $interaction @(
+    '| `dispatched` or `cancel-pending` | valid correlated peer protocol fault | `peer-fault` |',
+    '| `executing` or `cancel-requested` | structurally invalid, unrecognized, unsupported, or wrongly scoped cancellation control | `faulted` | possible/already occurred; emit one interaction-scoped protocol fault and ignore a later handler terminal |'
+)
 
 Assert-ContainsAll 'Channel 0.2 responsibility matrix' $responsibility @(
     'Channel contract version',
@@ -201,6 +205,15 @@ foreach ($row in $vectorRows) {
         $failures.Add("Channel 0.1 vector migration '$($cells[0])' uses undeclared disposition '$disposition'.")
     }
 }
+$featureMigrationSection = ($migration -split '## Feature migration', 2)[1] -split '## Observation-field migration', 2 | Select-Object -First 1
+$featureRows = @($featureMigrationSection -split "`r?`n" | Where-Object { $_ -match '^\| [^`-]' -and $_ -notmatch '^\| ---' -and $_ -notmatch '^\| 0\.1 feature ' })
+foreach ($row in $featureRows) {
+    $cells = @($row.Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+    $disposition = $cells[1].Trim('*').ToLowerInvariant()
+    if ($disposition -notin $allowedDispositions) {
+        $failures.Add("Channel 0.1 feature migration '$($cells[0])' uses undeclared disposition '$disposition'.")
+    }
+}
 
 if ([regex]::Matches($plan, '(?m)^\| .*maintainers \| Confirm the proposed ruling:').Count -ne 0) {
     $failures.Add('The active redesign plan must not retain proposed owner rulings after owner resolution.')
@@ -210,6 +223,14 @@ Assert-ContainsAll 'Channel 0.2 resolved owner rulings' $plan @(
     'Session-state ownership:**',
     'Relational initialization representation:**',
     'Extension invariants:**'
+)
+Assert-ContainsAll 'Channel 0.2 exact Ready ownership' $plan @(
+    'Portable Binding owns Interconnection, Release, withdrawal, and cleanup; Composition owns the Relational Initialisation phase; Component Management owns Ready.'
+)
+Assert-ContainsAll 'Channel 0.2 Ready migration owner' $migration @(
+    'readiness report carried by Portable Binding and semantically owned by Component Management',
+    'Component Management external Ready fact; not Channel session state',
+    'Component Management fact, separate from Channel establishment'
 )
 Assert-ContainsAll 'Channel 0.2 completeness review' $completeness @(
     '## Findings closed in the first-batch contract',
@@ -227,7 +248,7 @@ Assert-ContainsAll 'Channel 0.2 neutral brief' $neutralBrief @(
 )
 Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
     'four owner rulings resolved',
-    'fresh independent closure review is pending',
+    'fresh independent final closure review is pending',
     '## Required review scope',
     '## Required verdicts',
     '## Closure'
@@ -235,10 +256,10 @@ Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 correction pin must retain exactly the review README and original negative design-foundation attestation before closure re-review.')
+    $failures.Add('The Channel 0.2 N1-N3 correction pin must retain exactly the review README and both negative attestations before final closure re-review.')
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'channel\0.2')) {

@@ -282,12 +282,14 @@ control is legal.
 authority. Accepting cancellation does not erase effects already performed.
 
 **Failure and uncertainty.** Duplicate terminal facts are protocol faults and do not replace the
-first accepted terminal history. Loss after cancellation acceptance retains unknown effects unless
-stronger evidence exists.
+first accepted terminal history. A structurally invalid, unrecognized, unsupported, or wrongly
+scoped cancellation control produces one interaction-scoped peer protocol fault; because invocation
+may already be executing, effect certainty remains unknown unless stronger evidence exists. Loss
+after cancellation acceptance retains unknown effects unless stronger evidence exists.
 
 **Named scenarios.** `C8-semantic-failure-is-not-protocol-fault`,
 `C8-cancel-accepted-still-awaits-outcome`, `C8-cancel-unsupported-at-profile`, and
-`C8-duplicate-terminal-rejected`.
+`C8-invalid-cancel-control-peer-fault`, and `C8-duplicate-terminal-rejected`.
 
 **Property C8-P1.** Every interaction has at most one accepted terminal history, and no cancellation
 control, drain, timeout, or protocol rejection is recorded as semantic success.

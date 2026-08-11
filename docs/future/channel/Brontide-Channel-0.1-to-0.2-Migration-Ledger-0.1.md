@@ -2,9 +2,9 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch migration disposition; B4 corrected after the first independent review
-and subject to fresh independent closure review. Serialized spellings remain unselected until the
-neutral contract batch.
+Status: proposed first-batch migration disposition; B4 and N1/N3 corrected after independent review
+and subject to fresh independent final closure review. Serialized spellings remain unselected until
+the neutral contract batch.
 
 Sources inventoried:
 
@@ -69,7 +69,7 @@ spelling.
 | --- | --- | --- |
 | `establish` | **replaced** | Channel establishment proposal. |
 | `establish-accepted` | **replaced** | Channel establishment acceptance with exact immutable profile. |
-| `ready` | **moved** | Portable Binding/Composition readiness fact or profile-specific readiness report; never a Channel session transition and never inferred from acceptance. |
+| `ready` | **moved** | readiness report carried by Portable Binding and semantically owned by Component Management; never a Channel session transition and never inferred from acceptance. |
 | `request` | **replaced** | Channel interaction request with declared class. |
 | `outcome` | **retained** | Channel interaction Outcome with exact interaction identity. |
 | `protocol-error` | **replaced** | Peer protocol fault with explicit scope and provenance. |
@@ -85,7 +85,7 @@ spelling.
 | `unestablished` | **retained** | Channel session `unestablished`. |
 | `establishing` | **retained** | Channel session `establishing` for negotiated mechanics only. |
 | `established` | **retained** | Channel session `established`; admits interactions subject to class/phase/authority. |
-| `ready` | **moved** | Component/Portable Binding external Ready fact; not Channel session state. |
+| `ready` | **moved** | Component Management external Ready fact; not Channel session state. |
 | `active` | **replaced** | Per-interaction initiator `dispatched` and recipient `executing`; several may coexist. |
 | `withdrawn` | **replaced** | Binding withdrawal externally owned; Channel session `draining` refuses new interactions while preserving in-flight histories. |
 | `terminated` | **replaced** | Channel session `closed`; external Component/process termination remains separate. |
@@ -161,15 +161,15 @@ the new profile declares finite values and the neutral vectors test their consis
 | 0.1 feature | Disposition | 0.2 treatment |
 | --- | --- | --- |
 | establishment | **retained** | C1 profile establishment. |
-| readiness signal | **moved** | Portable Binding/Composition profile fact, separate from Channel establishment. |
+| readiness signal | **moved** | Component Management fact, separate from Channel establishment; Portable Binding may carry its observation. |
 | single invocation | **replaced** | Finite declared `max-in-flight`; a profile may still choose 1. |
 | clean withdrawal | **replaced** | Binding withdrawal externally; Channel drain controls new admission. |
 | clean termination | **replaced** | Channel orderly close after drain. |
 | retry unsupported | **replaced** | Channel core makes no retry promise; exact Distributed/host facet may create a new attempt with a new identity. |
 | cancellation unsupported | **replaced** | Optional Channel core cancellation contract; profile declares support/requirement per class. |
-| streaming unsupported | **retained as non-promise** | Flow/profile facet only; unary core is not reinterpreted. |
-| ordering guarantee unsupported | **retained as non-promise** | No cross-interaction order; extension facet required. |
-| exactly-once unsupported | **retained as non-promise** | Replay protection remains distinct from exactly-once effects. |
+| streaming unsupported | **retained** | Retained as a non-promise: Flow/profile facet only; unary core is not reinterpreted. |
+| ordering guarantee unsupported | **retained** | Retained as a non-promise: no cross-interaction order; extension facet required. |
+| exactly-once unsupported | **retained** | Retained as a non-promise: replay protection remains distinct from exactly-once effects. |
 
 ## Observation-field migration
 

@@ -2,8 +2,8 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; B1/B2 corrected after the first independent review and
-subject to fresh independent closure review.
+Status: proposed first-batch design artifact; B1/B2 and N2 corrected after independent review and
+subject to fresh independent final closure review.
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 
@@ -60,7 +60,7 @@ with the same provenance, not a fictional global state.
 | `admitting` | all checks pass and complete request commits to seam | `dispatched` | `unknown` until evidence narrows it |
 | `dispatched` | valid correlated success | `outcome-succeeded` | profile-owned known details when supplied, otherwise `known` without fabricated count |
 | `dispatched` | valid correlated semantic failure | `outcome-failed` | as reported by the profile; failure does not imply zero |
-| `dispatched` | valid correlated peer protocol fault | `peer-fault` | `known-none` only when fault explicitly proves handler did not begin; otherwise `unknown` |
+| `dispatched` or `cancel-pending` | valid correlated peer protocol fault | `peer-fault` | `known-none` only when fault explicitly proves handler did not begin; otherwise `unknown` |
 | `dispatched` | valid cancellation request commits | `cancel-pending` | remains unchanged/unknown |
 | `cancel-pending` | cancellation accepted or refused acknowledgement | `cancel-pending` | acknowledgement is nonterminal and proves no effect fact |
 | `cancel-pending` | valid correlated success/failure/cancelled Outcome | matching Outcome terminal | profile-owned evidence; acceptance is not retroactive rollback |
@@ -79,6 +79,7 @@ with the same provenance, not a fictional global state.
 | `executing` | handler returns shaped failure | `outcome-failed` | possible; failure is not rollback |
 | `executing` | valid cancellation control arrives | `cancel-requested` | possible/already occurred |
 | `executing` | structurally valid cancellation control is denied by local cancellation authority | `executing` | possible/already occurred; emit nonterminal `refused` acknowledgement |
+| `executing` or `cancel-requested` | structurally invalid, unrecognized, unsupported, or wrongly scoped cancellation control | `faulted` | possible/already occurred; emit one interaction-scoped protocol fault and ignore a later handler terminal |
 | `cancel-requested` | handler reports cancellation completed | `outcome-cancelled` | possible; report exact evidence |
 | `cancel-requested` | handler completes normally or with failure | matching Outcome terminal | possible; cancellation was not guaranteed |
 | `executing` or `cancel-requested` | internal Channel failure before terminal commit | `faulted` | `unknown` unless handler boundary evidence narrows it |

@@ -3,9 +3,9 @@
 ## Channel 0.2 Redesign and Migration Plan 0.1
 
 **Status:** First-batch design foundation drafted and its four owner rulings resolved. The first
-independent review found four blocking defects; all four have a contract-first correction and await
-fresh independent closure review before Batch 2. No Channel 0.2 implementation or ratification is
-claimed.
+independent review's B1-B4 are closed; the first closure review found N1-N3, which now have a
+contract-first correction and await fresh final closure review before Batch 2. No Channel 0.2
+implementation or ratification is claimed.
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),
 [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md), and the
@@ -448,9 +448,7 @@ still identify questions that require owners before closure.
   supported and choose their finite concurrency bound; they do not redefine correlation or
   terminality.
 - **2026-08-11 — Session-state ownership:** Channel owns only `unestablished`, `establishing`,
-  `established`, `draining`, `closed`, and `faulted`. Portable Binding and Composition own
-  Interconnection, Ready, Release, withdrawal, and cleanup facts and consume Channel observations
-  across their neutral seams.
+  `established`, `draining`, `closed`, and `faulted`. Portable Binding owns Interconnection, Release, withdrawal, and cleanup; Composition owns the Relational Initialisation phase; Component Management owns Ready. Each consumes or supplies Channel observations across a neutral seam without sharing semantic ownership.
 - **2026-08-11 — Relational initialization representation:** relational initialization is an exact,
   state-gated interaction class using the ordinary Channel interaction form, not a distinct envelope
   family. Lifecycle and Component Management retain ownership of the declaration and readiness

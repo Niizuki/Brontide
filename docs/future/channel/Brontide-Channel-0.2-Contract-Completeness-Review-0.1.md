@@ -2,9 +2,9 @@
 
 Date: 2026-08-11
 
-Status: first author pass complete; its four independent-review findings have a correction pass and
-fresh independent closure review remains required. This review asks what the proposed contract does
-not say. It is separate from conformance review and does not claim the contract is correct.
+Status: author pass plus B1-B4 and N1-N3 correction passes complete; fresh independent final closure
+review remains required. This review asks what the proposed contract does not say. It is separate
+from conformance review and does not claim the contract is correct.
 
 Reviewed artifacts:
 
@@ -224,3 +224,17 @@ This correction does not close the first batch. A fresh reviewer must assess the
 the original findings, current Architecture 0.8, predecessor evidence, Decision 13, every property
 and state transition, the responsibility matrix, this silence review, the migration ledger, and the
 neutral brief. No schema or public surface may be created until a closure attestation conforms.
+
+The first closure review at `e863bf15fca30466d6e262b0ea66b3c05bc384eb` closed B1-B4 but recorded
+three new blockers in the retained
+[closure attestation](./reviews/channel-0.2-design-foundation-closure-attestation.md). N1 is corrected
+by carrying the exact Ready owner consistently: Portable Binding owns Interconnection, Release,
+withdrawal, and cleanup; Composition owns the Relational Initialisation phase; Component Management
+owns Ready. N2 is corrected by accepting a peer fault from `cancel-pending` and making invalid
+cancellation control an interaction-scoped recipient fault with post-dispatch uncertainty. N3 is
+corrected by using the declared `retained` disposition while describing the three retained
+non-promises in the treatment column. The verifier was extended first and observed all N1-N3 checks
+failing against the pre-correction artifacts.
+
+These corrections likewise require a fresh independent final closure review and do not authorize
+Batch 2 by themselves.
