@@ -43,7 +43,7 @@ public sealed record PortableObservation(
     PortableFailureDomain? FailureDomain,
     PortableTerminalStatus TerminalStatus,
     PortableCorrelationMapping CorrelationMapping,
-    long ProviderEffectCount,
+    long? ProviderEffectCount,
     PortableTiming Timing,
     string? LocalCode,
     string? LocalMessage)
@@ -76,9 +76,14 @@ public sealed record PortableObservation(
             throw new InvalidOperationException("Crossed boundaries are reported, using 'none' when nothing was crossed.");
         }
 
-        if (ProviderEffectCount < 0 || CopyCount < 0)
+        if (ProviderEffectCount is < 0 || CopyCount < 0)
         {
             throw new InvalidOperationException("Effect and copy counts are never negative.");
+        }
+
+        if (succeeded && !ProviderEffectCount.HasValue)
+        {
+            throw new InvalidOperationException("A succeeded observation has a known provider effect count.");
         }
 
         if (CorrelationMapping.HostNativeExecution.Value == CorrelationMapping.RequestId.Value ||
@@ -104,7 +109,7 @@ public sealed record PortableObservation(
         builder["authorityDecisionPoint"] = AuthorityDecisionPoint.Token();
         builder["terminalStatus"] = TerminalStatus.Token();
         builder["failureDomain"] = FailureDomain?.Token() ?? "absent";
-        builder["providerEffectCount"] = ProviderEffectCount.ToString(CultureInfo.InvariantCulture);
+        builder["providerEffectCount"] = ProviderEffectCount?.ToString(CultureInfo.InvariantCulture) ?? "unknown";
         builder["negotiatedOperations"] = string.Join(", ", NegotiatedOperations.Select(operation => operation.ToString()));
         builder["negotiatedContractVersion"] = NegotiatedContractVersion.ToString(CultureInfo.InvariantCulture);
         builder["mappingObligations"] = string.Join(", ", MappingObligations);

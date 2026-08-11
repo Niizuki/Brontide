@@ -58,7 +58,7 @@ declare itself instead of silently becoming a malformed contract.
 
 ## Boundary
 
-This changes neither stack's Architecture 0.7 implementation target and asserts no Architecture 0.8
-conformance. It is its own build boundary with its own `Directory.Build.props` and
+Both stacks now state Architecture 0.8 as their local implementation target. This provider asserts
+no architecture conformance of its own. It is its own build boundary with its own `Directory.Build.props` and
 `Directory.Packages.props`, because being buildable without either stack's build files is part of
 what it demonstrates.

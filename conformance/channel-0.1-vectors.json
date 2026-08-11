@@ -3,7 +3,7 @@
   "contract": {
     "version": "0.1-draft",
     "path": "docs/future/channel/Brontide-Draft-Channel-Contract-0.1.md",
-    "status": "authored semantic vectors; stack harnesses pending; not ratified"
+    "status": "authored semantic vectors; executed by both stack harnesses through a conforming realization; not ratified"
   },
   "conventions": {
     "appliesTo": ["Reference", "Minimal"],

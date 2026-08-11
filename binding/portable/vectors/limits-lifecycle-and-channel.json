@@ -217,6 +217,16 @@
       "then": ["It selects exactly one declared failure domain", "No domain value claims global topology"],
       "cases": ["local-endpoint", "transport", "remote-endpoint", "remote-provider", "unknown"],
       "expected": { "frameDecision": "none", "resultClass": "process-failure", "effectCountNotAsserted": "The vector varies the observer, not the effect; the count is not what it fixes." }
+    },
+    {
+      "id": "PB-84-OUTCOME-AFTER-WITHDRAWAL-REFUSED",
+      "capabilities": ["C8", "C9"],
+      "channelVectors": ["CH-21-STATE-VIOLATION"],
+      "classification": "adversarial",
+      "given": ["A binding with one active request", "The binding is withdrawn before its correlated Outcome arrives"],
+      "when": ["The late Outcome arrives after withdrawal"],
+      "then": ["The Outcome is refused as a state violation because no request remains active in the withdrawn state", "No success is fabricated", "Whether the peer performed an effect before withdrawal is reported as unknown rather than zero"],
+      "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "state-violation", "failureDomain": "local-endpoint", "effectCountNotAsserted": "Withdrawal ended the active request at this endpoint, so the late Outcome cannot establish whether the peer performed an effect before withdrawal." }
     }
   ]
 }

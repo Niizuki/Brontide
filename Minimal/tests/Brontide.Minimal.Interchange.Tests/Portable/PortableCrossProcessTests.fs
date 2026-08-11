@@ -120,7 +120,7 @@ type PortableCrossProcessTests() =
 
             assertAll (fun () ->
                 Assert.That(result.ResultClass, Is.EqualTo ResultClass.OutcomeSucceeded)
-                Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo 1L)
+                Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo(Some 1L))
                 // A copied blob crosses the process seam exactly once.
                 Assert.That(result.Observation.CopyCount, Is.EqualTo 1L)
                 Assert.That(result.Observation.CrossedBoundaries, Contains.Item "process")
@@ -151,7 +151,7 @@ type PortableCrossProcessTests() =
                 Assert.That(result.FrameDecision, Is.EqualTo FrameDecision.Accept)
                 Assert.That(result.ResultClass, Is.EqualTo ResultClass.OutcomeFailed)
                 Assert.That(result.Observation.FailureDomain, Is.EqualTo(Some FailureDomain.RemoteProvider))
-                Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo 0L))
+                Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo(Some 0L)))
         finally
             stop provider
 
@@ -179,6 +179,6 @@ type PortableCrossProcessTests() =
             assertAll (fun () ->
                 Assert.That(result.FrameDecision, Is.EqualTo FrameDecision.None)
                 Assert.That(result.ResultClass, Is.EqualTo ResultClass.Denial)
-                Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo 0L))
+                Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo(Some 0L)))
         finally
             stop provider

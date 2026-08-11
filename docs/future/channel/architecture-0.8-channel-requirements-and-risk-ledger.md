@@ -38,8 +38,8 @@ encoding (its own §18.1 work, realising this frame).
 Each requirement is what the `Channel` extension must eventually settle. Disposition is one of
 `open`, `decided-in-note` (the design note records the semantic answer; the portable form remains
 open), `decided-in-draft` (the draft contract records a reviewable semantic answer without
-ratification), `vectors-authored` (shared data-only vectors exist but stack harnesses remain
-evidence-gated), `realisation-executed` (a conforming realisation executes the vectors in both
+ratification), `vectors-authored` (shared data-only vectors exist but have not yet been executed by
+both stack harnesses), `realisation-executed` (a conforming realisation executes the vectors in both
 stacks; the semantics are evidenced but not ratified), or `evidence-gated` (answerable only against
 a running conformance realisation).
 

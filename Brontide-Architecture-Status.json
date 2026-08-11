@@ -4,7 +4,7 @@
     "revision": "0.8",
     "status": "Complete Draft (document and implementation evidence complete; not ratified)",
     "path": "docs/current/architecture/Brontide-Architecture-0.8.md",
-    "sha256": "6D844F5FA4D0D3CF09188765A912A13B30889A6ED1F232A28351F179016A8B2F"
+    "sha256": "CAC9A02EA1221C3EE73C482D0624AE8DA45757B31A35C1EFD1061D4028B18579"
   },
   "latestRatifiedArchitecture": {
     "revision": null,
@@ -31,11 +31,11 @@
       "currentDelivery": {
         "requirements": {
           "path": "conformance/architecture-0.8-requirements.json",
-          "sha256": "B4D0B9532C379DCB236F5A3315B749A8452F0F8DE78A4D3227CA7F9EE914F756"
+          "sha256": "50ECD79A74144CF8D73E285E11CF4FC8DF48799FD04FC600514EC7EA00988845"
         },
         "matrix": {
           "path": "Reference/conformance/architecture-0.8.json",
-          "sha256": "B3F6EC509F9354BBF9FF90CA884C1B5B323B9CFBEE0AD34A608EB967DC23C63D"
+          "sha256": "04203CA6684D48B23A30B46B558D6879A3E1A08697228E84BFEF5F3EB0285D42"
         },
         "plan": {
           "path": "Reference/README.md",
@@ -57,11 +57,11 @@
       "currentDelivery": {
         "requirements": {
           "path": "conformance/architecture-0.8-requirements.json",
-          "sha256": "B4D0B9532C379DCB236F5A3315B749A8452F0F8DE78A4D3227CA7F9EE914F756"
+          "sha256": "50ECD79A74144CF8D73E285E11CF4FC8DF48799FD04FC600514EC7EA00988845"
         },
         "matrix": {
           "path": "Minimal/conformance/architecture-0.8.json",
-          "sha256": "2A2DAD3C4A429ADD07FE7EE5F98461F32072E0BBA0A948B4B8F5D3E034F79C02"
+          "sha256": "C27819D79130CC723FE0D48338F9E68B4A1567D6E06DC2A0AA5EFD811ADF6D15"
         },
         "plan": {
           "path": "Minimal/README.md",

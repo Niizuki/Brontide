@@ -678,8 +678,8 @@ be released, which the Local Initialisation case reaches. The two stacks state i
 4. Run `build/verify-portable-binding.ps1`, then the complete repository gate
    `build/verify-interchange.ps1` from a clean worktree.
 5. Obtain fresh independent reviews of Reference, Minimal, and the neutral contract. Reviewers must
-   evaluate C1-C10 and the current Architecture 0.8 draft while respecting each stack's stated 0.7
-   implementation target.
+   evaluate C1-C10 and the current Architecture 0.8 draft while respecting each stack's locally
+   stated Architecture 0.8 implementation target and limitations.
 6. Move every answered question to `Resolved questions`; retain only actual blockers under `Open
    questions (owners needed)`.
 

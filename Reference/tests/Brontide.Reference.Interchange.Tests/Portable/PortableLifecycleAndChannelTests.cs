@@ -133,6 +133,26 @@ public sealed class PortableLifecycleAndChannelTests
         });
     }
 
+    // PB-84-OUTCOME-AFTER-WITHDRAWAL-REFUSED
+    [Test]
+    public void An_outcome_after_withdrawal_is_refused_because_no_request_remains_active()
+    {
+        var lifecycle = new PortableLifecycle(replayProtectionDeclared: true);
+        lifecycle.Apply(PortableEnvelopeKind.Establish);
+        lifecycle.Apply(PortableEnvelopeKind.EstablishAccepted);
+        lifecycle.Apply(PortableEnvelopeKind.Ready);
+        lifecycle.Apply(PortableEnvelopeKind.Request);
+        lifecycle.Apply(PortableEnvelopeKind.Withdraw);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(lifecycle.State, Is.EqualTo(PortableLifecycleState.Withdrawn));
+            Assert.That(
+                Fault(() => lifecycle.Apply(PortableEnvelopeKind.Outcome)).Category,
+                Is.EqualTo(PortableProtocolCategory.StateViolation));
+        });
+    }
+
     // PB-39-ESTABLISH-ON-ESTABLISHED-BINDING
     [Test]
     public void A_second_establish_on_the_same_binding_is_refused_rather_than_renegotiated_in_place()

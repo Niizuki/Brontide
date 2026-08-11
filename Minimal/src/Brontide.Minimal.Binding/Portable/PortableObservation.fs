@@ -37,7 +37,7 @@ type Observation =
       FailureDomain: FailureDomain option
       TerminalStatus: TerminalStatus
       Correlation: CorrelationMapping
-      ProviderEffectCount: int64
+      ProviderEffectCount: int64 option
       Timing: Timing
       LocalCode: string option
       LocalMessage: string option }
@@ -56,8 +56,10 @@ module Observation =
               "A failure domain is present exactly when the terminal status is not 'succeeded'."
           if List.isEmpty observation.CrossedBoundaries then
               "Crossed boundaries are reported, using 'none' when nothing was crossed."
-          if observation.ProviderEffectCount < 0L || observation.CopyCount < 0L then
+          if observation.ProviderEffectCount |> Option.exists (fun count -> count < 0L) || observation.CopyCount < 0L then
               "Effect and copy counts are never negative."
+          if observation.TerminalStatus = TerminalStatus.Succeeded && observation.ProviderEffectCount.IsNone then
+              "A succeeded observation has a known provider effect count."
           if
               HostExecutionId.value observation.Correlation.HostNativeExecution = ChannelRequestId.value
                   observation.Correlation.Request
@@ -82,7 +84,7 @@ module Observation =
               (match observation.FailureDomain with
                | Some domain -> FailureDomain.token domain
                | None -> "absent")
-              "providerEffectCount", string observation.ProviderEffectCount
+              "providerEffectCount", (observation.ProviderEffectCount |> Option.map string |> Option.defaultValue "unknown")
               "negotiatedOperations",
               System.String.Join(", ", observation.NegotiatedOperations |> List.map PortableOperationRef.text)
               "negotiatedContractVersion", string observation.NegotiatedContractVersion
@@ -162,7 +164,7 @@ module ObservationBuilder =
           FailureDomain = failureDomain
           TerminalStatus = terminalStatus
           Correlation = correlation
-          ProviderEffectCount = providerEffectCount
+          ProviderEffectCount = Some providerEffectCount
           Timing = timing
           LocalCode = localCode
           LocalMessage = localMessage }
@@ -186,7 +188,7 @@ module ObservationBuilder =
           FailureDomain = Some FailureDomain.LocalEndpoint
           TerminalStatus = TerminalStatus.Denied
           Correlation = correlation
-          ProviderEffectCount = 0L
+          ProviderEffectCount = Some 0L
           Timing = timing
           LocalCode = Some "local-denial"
           LocalMessage = Some reason }

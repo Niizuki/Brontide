@@ -13,10 +13,10 @@ Brontide-Architecture-Change-History.md)
 notation; explanatory examples may use locally resolvable shorthand.
 
 Implementations and focused experiments state locally which architecture revision they were devised
-against. The Reference and Minimal stacks currently target Architecture 0.7; their 0.3
-implementation notes record the 0.8 handoff without claiming to implement this draft. Experimental
-work designed for 0.8 states that target in its own document. None changes this document's status by
-itself.
+against. The Reference and Minimal stacks currently target this Complete Draft Architecture 0.8;
+their local READMEs, limitations, matrices, and executable evidence state the scope of that claim.
+Experimental work designed for 0.8 states that target in its own document. Neither implementation
+evidence nor an experiment changes this document's ratification status by itself.
 
 ---
 

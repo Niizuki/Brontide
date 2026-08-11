@@ -91,9 +91,32 @@ type PortablePlanObservationAndParityTests() =
             Assert.That(observation.NegotiatedContractVersion, Is.EqualTo 1)
             Assert.That(observation.RetryCount, Is.EqualTo 0L)
             Assert.That(observation.Interrupted, Is.False)
-            Assert.That(observation.ProviderEffectCount, Is.EqualTo 1L)
+            Assert.That(observation.ProviderEffectCount, Is.EqualTo(Some 1L))
             // Timing is recorded but drives no semantic decision.
             Assert.That(observation.Timing.RequestElapsedMilliseconds, Is.GreaterThanOrEqualTo 0L))
+
+    [<Test>]
+    member _.``PB8 B3 an unobservable provider effect uses the declared unknown form``() =
+        let host = directCoolingHost ()
+
+        let succeeded =
+            invoke host CoolingFixture.setEnabled CoolingFixture.commandV1 (CoolingFixture.authorizedCommand "primary" true)
+
+        let unknown =
+            { succeeded.Observation with
+                TerminalStatus = TerminalStatus.ProcessFailure
+                FailureDomain = Some FailureDomain.Transport
+                ProviderEffectCount = None }
+
+        let invalidSuccess =
+            { unknown with
+                TerminalStatus = TerminalStatus.Succeeded
+                FailureDomain = None }
+
+        assertAll (fun () ->
+            Assert.That(Observation.completenessFailures unknown, Is.Empty)
+            Assert.That(Observation.parityProfile unknown |> Map.find "providerEffectCount", Is.EqualTo "unknown")
+            Assert.That(Observation.completenessFailures invalidSuccess, Is.Not.Empty))
 
     [<Test>]
     member _.``PB-58 both realizations report the same category-level profile on success``() =
@@ -189,8 +212,8 @@ type PortablePlanObservationAndParityTests() =
         assertAll (fun () ->
             Assert.That(directResult.Category, Is.EqualTo(Some ProtocolCategory.InvalidPayload))
             Assert.That(processResult.Category, Is.EqualTo(Some ProtocolCategory.InvalidPayload))
-            Assert.That(directResult.Observation.ProviderEffectCount, Is.EqualTo 0L)
-            Assert.That(processResult.Observation.ProviderEffectCount, Is.EqualTo 0L)
+            Assert.That(directResult.Observation.ProviderEffectCount, Is.EqualTo(Some 0L))
+            Assert.That(processResult.Observation.ProviderEffectCount, Is.EqualTo(Some 0L))
             // The declared transition to 'failed' is applied by the endpoint rather than by the
             // transport, so the same refusal leaves both realizations in the same state.
             Assert.That(processHost.State, Is.EqualTo direct.State)

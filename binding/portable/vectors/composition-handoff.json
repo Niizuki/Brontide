@@ -13,7 +13,7 @@
       "id": "HANDOFF-P1",
       "capabilities": ["C2"],
       "statement": "Over every vector in this group, a Binding Plan exists exactly when Interconnection completed — a preflight refusal leaves none behind, and a completed handoff always has one — and wherever a plan exists, the provider that answered is the provision the resolution selected.",
-      "why": "The seam's product is a plan, so 'a plan exists' has to be an invariant over every path rather than an expectation on the successful one. The substitution vector is where a per-vector expectation would not reach: it establishes a real binding and then refuses it, which is exactly the shape that could leave a half-established member behind."
+      "why": "The seam's product is a plan, so 'a plan exists' has to be an invariant over every path rather than an expectation on the successful one. The substitution vector is where a per-vector expectation would not reach: negotiation must refuse before a plan exists, which is exactly the path that could otherwise leave a half-established member behind."
     },
     {
       "id": "HANDOFF-P2",
@@ -96,7 +96,7 @@
       "classification": "adversarial",
       "given": ["A resolution that selected one provider", "An endpoint that offers the required Component contract but answers as a different provider"],
       "when": ["Interconnection negotiates the contract"],
-      "then": ["The contract negotiation succeeds, because version 0.1 matches the Component and never compares provider identity", "The handoff refuses the substitution, because which provision was selected is a composition fact", "The binding is not released and no ordinary interaction occurs"],
+      "then": ["Contract negotiation refuses the provider mismatch as Decision 11 requires", "No Binding Plan is produced, because the answering provider is not the one the required contract names", "The handoff's composition check remains a second fail-closed boundary for a resolution that selected a different provision", "The binding is not released and no ordinary interaction occurs"],
       "expected": { "frameDecision": "reject", "resultClass": "protocol-error", "category": "unsupported-contract", "failureDomain": "local-endpoint", "effectCount": 0 }
     },
     {

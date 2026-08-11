@@ -192,12 +192,13 @@ invent. A preflight refusal is `frameDecision: none` with `resultClass: protocol
 like a denial but a contract refusal rather than an authority decision; and a gate refusal reports
 `authorityDecision: unknown`, because the gate refuses before the authority boundary is reached.
 
-PB7 also found that **negotiation never compares provider identity**, so the Binding Plan's
-`provider` fact reports the required document's value — who the host asked for — rather than who
-answered. Every fixture here derives from one declaration, so the two have always agreed and nothing
-could have observed the difference. Decision 11 in [`open-decisions.md`](open-decisions.md) records
-it with its options; no schema or vector changed for it, because the provisional fix is a check at
-the composition seam rather than a contract change.
+PB7 also found that **negotiation never compared provider identity**, so the Binding Plan's
+`provider` fact reported the required document's value — who the host asked for — rather than who
+answered. Every fixture here derived from one declaration, so the two agreed and nothing observed the
+difference. Decision 11 in [`open-decisions.md`](open-decisions.md) corrected the contract:
+negotiation now refuses a provider mismatch, and the plan reads the provider from the offered
+document so the fact names who answered. The composition seam retains its separate check that the
+answering provision is the one resolution selected.
 
 ## What PB8 changed here
 
@@ -217,6 +218,7 @@ remaining step — fresh independent reviews — which is not the implementer's 
 
 ## Boundary
 
-Nothing here changes either stack's Architecture 0.7 implementation target or asserts Architecture
-0.8 conformance. This is planned experimental scaffolding; the reusable surface is refactored out
-of the existing Cooling/Catalog experiments rather than replacing them.
+Both stacks now state Architecture 0.8 as their local implementation target. Nothing here ratifies
+Architecture 0.8 or promotes Portable Binding into Brontide Base. This remains experimental
+scaffolding; the reusable surface is refactored out of the existing Cooling/Catalog experiments
+rather than replacing them.

@@ -164,6 +164,20 @@ type PortableLifecycleAndChannelTests() =
         Assert.That(refused.Category, Is.EqualTo(Some ProtocolCategory.StateViolation))
 
     [<Test>]
+    member _.``PB-84 an outcome after withdrawal is refused because no request remains active``() =
+        let lifecycle =
+            Lifecycle.create true
+            |> Lifecycle.apply EnvelopeKind.Establish
+            |> Result.bind (Lifecycle.apply EnvelopeKind.EstablishAccepted)
+            |> Result.bind (Lifecycle.apply EnvelopeKind.Ready)
+            |> Result.bind (Lifecycle.apply EnvelopeKind.Request)
+            |> Result.bind (Lifecycle.apply EnvelopeKind.Withdraw)
+            |> expectOk
+
+        Assert.That(Lifecycle.state lifecycle, Is.EqualTo LifecycleState.Withdrawn)
+        expectCategory ProtocolCategory.StateViolation (Lifecycle.apply EnvelopeKind.Outcome lifecycle) |> ignore
+
+    [<Test>]
     member _.``PB-38 a clean termination follows a withdrawal``() =
         let host, seam = processCoolingHost ()
         use _ = seam
@@ -298,7 +312,7 @@ type PortableLifecycleAndChannelTests() =
 
         assertAll (fun () ->
             Assert.That(result.Category, Is.EqualTo(Some ProtocolCategory.UnsupportedOperation))
-            Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo 0L))
+            Assert.That(result.Observation.ProviderEffectCount, Is.EqualTo(Some 0L)))
 
     [<Test>]
     member _.``PB-47 a shaped failed Outcome crosses without an exception``() =
