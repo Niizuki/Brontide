@@ -1,9 +1,9 @@
 # Public boundary operability and threat assumptions
 
 Status: implementation-owned operational contract for the Architecture 0.5 evidence baseline and
-experimental interchange projects. New architectural decisions come from
-[Architecture 0.7](../architecture/Brontide-Architecture-0.7.md). This document is not an architecture
-revision.
+experimental interchange projects. New architectural decisions come from the current architecture,
+[Architecture 0.8](../architecture/Brontide-Architecture-0.8.md). This document is not an architecture
+revision and does not ratify that Complete Draft.
 
 ## Base authority boundaries
 

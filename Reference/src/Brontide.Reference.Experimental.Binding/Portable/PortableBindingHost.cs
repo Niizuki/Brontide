@@ -311,7 +311,7 @@ public sealed class PortableBindingHost : IAsyncDisposable
                 Plan.AuthorityDecisionPoint,
                 correlation,
                 failure.Domain,
-                0,
+                null,
                 0,
                 [.. resources.Select(resource => resource.AsRefused())],
                 obligations,

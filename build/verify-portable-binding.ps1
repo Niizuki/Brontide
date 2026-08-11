@@ -381,10 +381,18 @@ foreach ($path in $targetClaimPaths) {
     if ($text -match 'currently\s+target\s+Architecture\s+0\.7|Architecture\s+0\.7\s+implementation\s+target|stated\s+0\.7\s+implementation\s+target') {
         $failures.Add("PB8 N1: '$path' still states the superseded Architecture 0.7 stack target.")
     }
+    if ($text -match 'New architectural decisions come from\s*\r?\n?\s*\[Architecture 0\.7\]') {
+        $failures.Add("PB8 N3: '$path' still directs new architectural decisions to Architecture 0.7.")
+    }
 }
 
 if ([string]$channelInventory.contract.status -match 'harnesses pending') {
     $failures.Add('PB8 N2: Channel vector metadata still says stack harnesses are pending after executed evidence was recorded.')
+}
+
+$channelLedger = Get-Content -LiteralPath (Join-Path $repositoryRoot 'docs\future\channel\architecture-0.8-channel-requirements-and-risk-ledger.md') -Raw
+if ($channelLedger -match 'none is\s*\r?\n?\s*implemented here') {
+    $failures.Add('PB8 N2: the Channel ledger still says no recorded target is implemented despite executed realization evidence.')
 }
 
 # ---------------------------------------------------------------------------

@@ -132,7 +132,7 @@ module InteractionResult =
 [<RequireQualifiedAccess>]
 module ObservationBuilder =
 
-    let build
+    let private create
         plan
         terminalStatus
         authorityDecision
@@ -164,10 +164,74 @@ module ObservationBuilder =
           FailureDomain = failureDomain
           TerminalStatus = terminalStatus
           Correlation = correlation
-          ProviderEffectCount = Some providerEffectCount
+          ProviderEffectCount = providerEffectCount
           Timing = timing
           LocalCode = localCode
           LocalMessage = localMessage }
+
+    let build
+        plan
+        terminalStatus
+        authorityDecision
+        authorityDecisionPoint
+        correlation
+        failureDomain
+        providerEffectCount
+        copyCount
+        resources
+        mappingObligations
+        interrupted
+        timing
+        localCode
+        localMessage
+        =
+        create
+            plan
+            terminalStatus
+            authorityDecision
+            authorityDecisionPoint
+            correlation
+            failureDomain
+            (Some providerEffectCount)
+            copyCount
+            resources
+            mappingObligations
+            interrupted
+            timing
+            localCode
+            localMessage
+
+    /// Builds a failure observation when the local endpoint cannot attribute a provider effect.
+    let unknownEffect
+        plan
+        terminalStatus
+        authorityDecision
+        authorityDecisionPoint
+        correlation
+        failureDomain
+        copyCount
+        resources
+        mappingObligations
+        interrupted
+        timing
+        localCode
+        localMessage
+        =
+        create
+            plan
+            terminalStatus
+            authorityDecision
+            authorityDecisionPoint
+            correlation
+            failureDomain
+            None
+            copyCount
+            resources
+            mappingObligations
+            interrupted
+            timing
+            localCode
+            localMessage
 
     /// The denial profile: a local denial produces a complete observation even though no frame was
     /// emitted, and it crosses no boundary because it never left the host.

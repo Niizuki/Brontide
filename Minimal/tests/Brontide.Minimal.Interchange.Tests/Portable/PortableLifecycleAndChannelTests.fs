@@ -403,7 +403,12 @@ type PortableLifecycleAndChannelTests() =
             Assert.That(result.ResultClass, Is.EqualTo ResultClass.ProcessFailure)
             Assert.That(result.ProcessCategory, Is.EqualTo(Some ProcessCategory.PeerTerminated))
             Assert.That(result.Observation.FailureDomain, Is.EqualTo(Some FailureDomain.RemoteProvider))
-            Assert.That(result.Observation.TerminalStatus, Is.EqualTo TerminalStatus.ProcessFailure))
+            Assert.That(result.Observation.TerminalStatus, Is.EqualTo TerminalStatus.ProcessFailure)
+            Assert.That(
+                result.Observation.ProviderEffectCount,
+                Is.EqualTo None,
+                "A terminated peer cannot prove whether its provider performed the requested effect."
+            ))
 
     [<Test>]
     member _.``PB-51 the process-failure categories are exactly the neutral set``() =

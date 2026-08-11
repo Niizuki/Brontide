@@ -77,14 +77,13 @@ type PortableBindingHost
           ProcessCategory = Some failure.Category
           Value = None
           Observation =
-            ObservationBuilder.build
+            ObservationBuilder.unknownEffect
                 plan
                 TerminalStatus.ProcessFailure
                 AuthorityDecision.Permitted
                 (BindingPlan.authorityDecisionPoint plan)
                 correlation
                 (Some failure.Domain)
-                0L
                 0L
                 resources
                 obligations

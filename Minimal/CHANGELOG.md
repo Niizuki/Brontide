@@ -7,6 +7,7 @@
 - **Breaking:** `PortableObservation.ProviderEffectCount` is now `int64 option`. `None` means the
   observing endpoint cannot truthfully determine whether the provider performed an effect; callers
   must handle that state instead of interpreting an unavailable count as zero.
+- Process loss after a request now emits `None` through the production host path.
 - Refuse a late `Outcome` after withdrawal and cover the corrected lifecycle contract with native
   regression evidence.
 

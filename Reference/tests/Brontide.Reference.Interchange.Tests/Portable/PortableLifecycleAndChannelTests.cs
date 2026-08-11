@@ -440,6 +440,10 @@ public sealed class PortableLifecycleAndChannelTests
             Assert.That(result.ProcessCategory, Is.EqualTo(PortableProcessCategory.PeerTerminated));
             Assert.That(result.Observation.FailureDomain, Is.EqualTo(PortableFailureDomain.RemoteProvider));
             Assert.That(result.Observation.TerminalStatus, Is.EqualTo(PortableTerminalStatus.ProcessFailure));
+            Assert.That(
+                result.Observation.ProviderEffectCount,
+                Is.Null,
+                "A terminated peer cannot prove whether its provider performed the requested effect.");
         });
     }
 

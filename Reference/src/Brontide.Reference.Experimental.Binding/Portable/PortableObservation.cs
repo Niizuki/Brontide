@@ -155,7 +155,7 @@ public sealed class PortableObservationBuilder(PortableBindingPlan plan)
         PortableAuthorityDecisionPoint authorityDecisionPoint,
         PortableCorrelationMapping correlation,
         PortableFailureDomain? failureDomain,
-        long providerEffectCount,
+        long? providerEffectCount,
         long copyCount,
         ImmutableArray<PortableResourceObservation> resources,
         ImmutableArray<string> mappingObligations,
