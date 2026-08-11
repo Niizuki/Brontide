@@ -784,8 +784,8 @@ promotion, and an Architecture 0.8 implementation claim remain separate decision
 
 ## Open questions (owners needed)
 
-None. Decisions 12 and 14 through 16 in the integration ledger remain open but block no Portable
-Binding 0.1 work and are not questions owned by this completed plan.
+None. Decisions 12 and 14 through 16 in the integration ledger were recorded on 2026-08-11; they
+blocked no Portable Binding 0.1 work and were never questions owned by this completed plan.
 
 ## Resolved questions
 

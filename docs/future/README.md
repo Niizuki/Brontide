@@ -1498,7 +1498,8 @@ PB8's independent reviews and owner closure are complete. Decision 13 was record
 the current 0.1 implementation continues to refuse every CM3 group that declares a bounded lifecycle
 protocol. The owner then selected an explicitly migrated, full Channel 0.2 redesign rather than a
 minimum binding-only correction; its mandatory design batch is Priority 1 above. Decisions 12 and 14
-through 16 await rulings and block no current work.
+through 16 were recorded on 2026-08-11; each confirms the option already running, and Decisions 12
+and 16 create follow-on work tracked in that file.
 
 ## Other planned areas
 

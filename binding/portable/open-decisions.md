@@ -1,8 +1,9 @@
 # Portable Binding — open owner decisions
 
-**Status:** Decisions 1 through 11 and Decision 13 are **recorded**; **Decisions 12 and 14 through 16
-are open**, raised 2026-08-01 by CBI20 and 2026-08-02 by CBI23, CBI24, CBI26, and CBI27. The four
-open decisions block nothing. Portable Binding 0.1 still refuses every activation of a CM3 group
+**Status:** **All sixteen decisions are recorded.** Decisions 12 and 14 through 16, raised 2026-08-01
+by CBI20 and 2026-08-02 by CBI23, CBI24, CBI26, and CBI27, were recorded on 2026-08-11; each confirms
+the option already running, and Decisions 12 and 16 create follow-on work tracked below. Portable
+Binding 0.1 still refuses every activation of a CM3 group
 that declares a bounded lifecycle protocol; Decision 13 records that this is a version limitation
 and schedules the missing capability for a versioned 0.2 contract after PB8 review. Decisions 1 and
 2 (the PB0 exit blockers) were
@@ -13,7 +14,7 @@ tracked under [Work the rulings create](#work-the-rulings-create).
 **Decision 11 was raised later, by PB7, and was recorded on 2026-07-30**: negotiation now compares
 provider identity and the Binding Plan reports the provider that answered. **Decisions 12 and 13 were raised by
 CBI20 and CBI21 on 2026-08-01, and Decisions 14, 15, and 16 by CBI23, CBI24, CBI26, and CBI27 on
-2026-08-02. Decision 13 was recorded on 2026-08-11; the other four await rulings.** Non-pinned.
+2026-08-02. All five were recorded on 2026-08-11.** Non-pinned.
 
 **How to read this file.** Every decision below is written to be answerable without any other
 context: it states what was observed, what was running when the question was raised and why, what the
@@ -37,11 +38,11 @@ reader can see what was rejected and on what grounds.
 | 9 | The resource floor leaves three C6 conditions unrepresentable | PB6 | **Recorded** 2026-07-28 — accepted; C6's text narrowed |
 | 10 | What supplements independent implementation as a safeguard | PB6 | **Recorded** 2026-07-28 — property tests and completeness review |
 | 11 | The plan's provider fact names who was asked, not who answered | PB7 | **Recorded** 2026-07-30 — negotiation compares the provider; the plan reports who answered |
-| 12 | A receiving-domain Actor freed by a dropped member, taken by a different party | CBI20 | **Open** — raised 2026-08-01; Option A running |
+| 12 | A receiving-domain Actor freed by a dropped member, taken by a different party | CBI20 | **Recorded** 2026-08-11 — Option A; the cutover window is written down |
 | 13 | Relational Initialisation is declared out of scope, and CM4 needs it | CBI21 | **Recorded** 2026-08-11 — Option A retained for 0.1; Option B selected for 0.2 |
-| 14 | Nothing records that a restart scope has children | CBI23, CBI24 | **Open** - raised 2026-08-02; Option A running |
-| 15 | CM2 can declare a Mediation that owns authority; CM5 cannot represent one | CBI26 | **Open** - raised 2026-08-02; Option A running |
-| 16 | A CM binding scope holds many bindings; a portable one names a single binding | CBI27 | **Open** - raised 2026-08-02; Option A running |
+| 14 | Nothing records that a restart scope has children | CBI23, CBI24 | **Recorded** 2026-08-11 — Option A, until the registry outlives a process |
+| 15 | CM2 can declare a Mediation that owns authority; CM5 cannot represent one | CBI26 | **Recorded** 2026-08-11 — Option A; the declaration is refused, not approximated |
+| 16 | A CM binding scope holds many bindings; a portable one names a single binding | CBI27 | **Recorded** 2026-08-11 — Option A now, Option C at the next digest repin |
 
 ---
 
@@ -124,7 +125,7 @@ inherited.
 
 ## Work the rulings create
 
-Four rulings confirm what was running and change nothing: Decisions 3, 4, 7, and 8. The other four
+Six rulings confirm what was running and change nothing: Decisions 3, 4, 7, 8, 14, and 15. The others
 create work, listed here so a reader can tell a recorded decision from a discharged one:
 
 | Ruling | Work it creates | State |
@@ -133,6 +134,8 @@ create work, listed here so a reader can tell a recorded decision from a dischar
 | 6 | Declare the annotation mechanism in `schemas/component-contract.json` | Done |
 | 9 | Narrow C6's text so borrow, lifetime, release, and fallback read as declared-but-unexercised | Done |
 | 10 | Adopt property-per-capability and phase-boundary completeness review as standing practice | Done |
+| 12 | State in the CBI19 and CBI20 contracts that the cutover overlap is a deliberate window in which a receiving-domain identity may be reused | Open |
+| 16 | Take the portable binding scope explicitly in every `ComponentBindingSelection` (Option C) on the next occasion that repins the CBI4 digests | Open, deferred by the ruling |
 
 ---
 
@@ -664,7 +667,12 @@ nothing else uses. What A is missing is not a refusal but a record: the overlap 
 window, and neither the CBI19 nor the CBI20 contract says a receiving-domain identity may be reused
 inside it.
 
-**Decision:** **Open.** Raised 2026-08-01.
+**Decision (recorded):** **Option A. The distinctness rule is checked over the successor's membership
+alone, and reuse of a local Actor held by a surviving participant stays refused. Options B, C, and D
+rejected for this decision.** Recorded 2026-08-11 by user:JakHoh. The ruling adopts the
+recommendation in full, including its condition: the cutover overlap is a deliberate window and must
+be written down, so the CBI19 and CBI20 contracts state that a receiving-domain identity may be
+reused inside it.
 
 **What would settle it.** Not a vector, on current evidence — the window is inside one call, so both
 options produce identical observations, which is the shape Decision 10 warns about. It would become
@@ -792,7 +800,12 @@ second root made. The question worth putting to owners is whether the guarantee 
 make CM4 stateful across attempts, and that is a Component Management decision rather than an
 integration one.
 
-**Decision:** **Open.** Raised 2026-08-02.
+**Decision (recorded):** **Option A. The composition root acts on the attachments it is told about
+and reports exactly those; CM4 does not become stateful across attempts. Options B, C, and D rejected
+for this decision.** Recorded 2026-08-11 by user:JakHoh. The ruling carries the recommendation's
+condition — *until the registry has a home that outlives a process* — so B is not rejected on its
+merits but deferred until a supervisor, status projection, or forest-rebuilding restart needs to
+enumerate a scope's children.
 
 **What would settle it.** A vector cannot: both options produce identical observations for every
 attachment the caller does name, and the difference is only visible for one it does not — which is
@@ -838,7 +851,11 @@ weakens a rule that CBI3, CBI6, CBI13, and CBI20 all lean on. D is the cheapest 
 destructive: the flag is CM2 saying something true about mediation, and removing it to resolve a
 downstream limitation would be the wrong direction.
 
-**Decision:** **Open.** Raised 2026-08-02.
+**Decision (recorded):** **Option A. A Mediation declaring `OwnsAuthority` has no integration path and
+is refused; every other Mediation is admitted for what its mediator does itself. Options B, C, and D
+rejected for this decision.** Recorded 2026-08-11 by user:JakHoh. The ruling keeps the disagreement
+between CM2 and CM5 visible rather than approximated, and leaves `OwnsAuthority` in CM2 because it
+states something true about mediation.
 
 **What would settle it.** A consumer. The question is decidable the moment a Mediation that owns
 authority has to actually work — a real arbitration or aggregation mediator whose members cannot hold
@@ -900,7 +917,11 @@ worth spending a cross-stack repin on by itself, and D trades a latent identity 
 of something CM2 allows. What A costs is precision in CBI1's C4, which this slice's contract now states
 explicitly rather than leaving to a reader.
 
-**Decision:** **Open.** Raised 2026-08-02.
+**Decision (recorded):** **Option A now: CBI1 keeps its mapping and CBI27 takes one portable scope per
+member. Option C is selected for the next occasion that repins the CBI4 digests for another reason.
+Options B and D rejected.** Recorded 2026-08-11 by user:JakHoh. C is the correct shape — the portable
+scope belongs to the composition's identity space and every other portable identity here is supplied
+rather than derived — but it is not worth a cross-stack repin by itself, so it rides the next one.
 
 **What would settle it.** Anything that reads a binding by its portable scope. Today nothing does —
 withdrawal, replacement, and the gate all work from a member the caller already holds — so two members
