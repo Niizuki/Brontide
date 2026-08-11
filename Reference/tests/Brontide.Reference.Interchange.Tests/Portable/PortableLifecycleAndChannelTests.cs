@@ -273,6 +273,10 @@ public sealed class PortableLifecycleAndChannelTests
         {
             Assert.That(result.Category, Is.EqualTo(PortableProtocolCategory.CorrelationMismatch));
             Assert.That(result.Observation.FailureDomain, Is.EqualTo(PortableFailureDomain.LocalEndpoint));
+            Assert.That(
+                result.Observation.ProviderEffectCount,
+                Is.Null,
+                "A mismatched Outcome cannot attribute the peer provider's effect.");
         });
     }
 

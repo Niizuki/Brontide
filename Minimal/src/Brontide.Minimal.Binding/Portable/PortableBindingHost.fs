@@ -42,31 +42,60 @@ type PortableBindingHost
     let advance kind =
         Lifecycle.apply kind lifecycle |> Result.map (fun next -> lifecycle <- next)
 
-    let rejected (fault: PortableFault) correlation obligations resources started =
+    // These categories mean the endpoint cannot associate the peer's response with a trustworthy
+    // request outcome. Other rejections still prove that validation stopped before provider effect.
+    let effectCountAfterRequest (fault: PortableFault) =
+        match fault.Category with
+        | ProtocolCategory.CorrelationMismatch
+        | ProtocolCategory.MalformedMessage
+        | ProtocolCategory.UnsupportedKind
+        | ProtocolCategory.StateViolation
+        | ProtocolCategory.InternalProtocolFailure -> None
+        | _ -> Some 0L
+
+    let rejected (fault: PortableFault) correlation obligations resources providerEffectCount started =
         let resources = resources |> List.map PortableResource.asRefused
+
+        let observation =
+            match providerEffectCount with
+            | Some count ->
+                ObservationBuilder.build
+                    plan
+                    TerminalStatus.ProtocolError
+                    AuthorityDecision.Permitted
+                    (BindingPlan.authorityDecisionPoint plan)
+                    correlation
+                    (Some fault.Domain)
+                    count
+                    0L
+                    resources
+                    obligations
+                    false
+                    (timing (clock.ElapsedMilliseconds - started))
+                    (Some fault.LocalCode)
+                    (Some fault.Message)
+            | None ->
+                ObservationBuilder.unknownEffect
+                    plan
+                    TerminalStatus.ProtocolError
+                    AuthorityDecision.Permitted
+                    (BindingPlan.authorityDecisionPoint plan)
+                    correlation
+                    (Some fault.Domain)
+                    0L
+                    resources
+                    obligations
+                    false
+                    (timing (clock.ElapsedMilliseconds - started))
+                    (Some fault.LocalCode)
+                    (Some fault.Message)
 
         { FrameDecision = FrameDecision.Reject
           ResultClass = ResultClass.ProtocolError
           Category = Some fault.Category
           ProcessCategory = None
           Value = None
-          Observation =
-            ObservationBuilder.build
-                plan
-                TerminalStatus.ProtocolError
-                AuthorityDecision.Permitted
-                (BindingPlan.authorityDecisionPoint plan)
-                correlation
-                (Some fault.Domain)
-                // A rejection never produces a partial provider effect.
-                0L
-                0L
-                resources
-                obligations
-                false
-                (timing (clock.ElapsedMilliseconds - started))
-                (Some fault.LocalCode)
-                (Some fault.Message) }
+          Observation = observation }
 
     let interrupted (failure: ProcessFailure) correlation obligations resources started =
         let resources = resources |> List.map PortableResource.asRefused
@@ -216,7 +245,7 @@ type PortableBindingHost
             match decision with
             | Error(Refused fault) ->
                 lifecycle <- Lifecycle.fail lifecycle
-                return rejected fault correlation [] resourceObservations started
+                return rejected fault correlation [] resourceObservations (Some 0L) started
             | Error(Interrupted failure) ->
                 lifecycle <- Lifecycle.fail lifecycle
                 return interrupted failure correlation [] resourceObservations started
@@ -257,7 +286,7 @@ type PortableBindingHost
                 match opened with
                 | Error(Refused fault) ->
                     lifecycle <- Lifecycle.fail lifecycle
-                    return rejected fault correlation obligations resourceObservations started
+                    return rejected fault correlation obligations resourceObservations (Some 0L) started
                 | Error(Interrupted failure) ->
                     lifecycle <- Lifecycle.fail lifecycle
                     return interrupted failure correlation obligations resourceObservations started
@@ -304,7 +333,14 @@ type PortableBindingHost
                     match completed with
                     | Error(Refused fault) ->
                         lifecycle <- Lifecycle.fail lifecycle
-                        return rejected fault correlation obligations resourceObservations started
+                        return
+                            rejected
+                                fault
+                                correlation
+                                obligations
+                                resourceObservations
+                                (effectCountAfterRequest fault)
+                                started
                     | Error(Interrupted failure) ->
                         lifecycle <- Lifecycle.fail lifecycle
                         return interrupted failure correlation obligations resourceObservations started

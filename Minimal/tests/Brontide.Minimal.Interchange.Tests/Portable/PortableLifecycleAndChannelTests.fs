@@ -272,7 +272,12 @@ type PortableLifecycleAndChannelTests() =
             Assert.That(result.FrameDecision, Is.EqualTo FrameDecision.Reject)
             Assert.That(result.Category, Is.EqualTo(Some ProtocolCategory.CorrelationMismatch))
             // The failure is attributed to the endpoint that observed it.
-            Assert.That(result.Observation.FailureDomain, Is.EqualTo(Some FailureDomain.LocalEndpoint)))
+            Assert.That(result.Observation.FailureDomain, Is.EqualTo(Some FailureDomain.LocalEndpoint))
+            Assert.That(
+                result.Observation.ProviderEffectCount,
+                Is.EqualTo None,
+                "A mismatched Outcome cannot attribute the peer provider's effect."
+            ))
 
     [<Test>]
     member _.``PB-44 an outcome without a request identity is refused rather than matched by position``() =

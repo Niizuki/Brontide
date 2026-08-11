@@ -22,7 +22,7 @@
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/CatalogPortableFixture.cs", "layer": "portable", "manualSourceLines": 226 },
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/CoolingPortableFixture.cs", "layer": "portable", "manualSourceLines": 350 },
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableAuthority.cs", "layer": "portable", "manualSourceLines": 285 },
-        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableBindingHost.cs", "layer": "portable", "manualSourceLines": 325 },
+        { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableBindingHost.cs", "layer": "portable", "manualSourceLines": 343 },
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableBindingPlan.cs", "layer": "portable", "manualSourceLines": 271 },
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCbor.cs", "layer": "portable", "manualSourceLines": 555 },
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableCborAccess.cs", "layer": "portable", "manualSourceLines": 90 },
@@ -44,10 +44,10 @@
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableValue.cs", "layer": "portable", "manualSourceLines": 142 },
         { "path": "Reference/src/Brontide.Reference.Experimental.Binding/Portable/PortableValueCodec.cs", "layer": "portable", "manualSourceLines": 525 }
       ],
-      "layerSourceLines": { "retained-experiment": 2219, "portable": 7383 },
-      "manualSourceLines": 9602,
+      "layerSourceLines": { "retained-experiment": 2219, "portable": 7401 },
+      "manualSourceLines": 9620,
       "generatedSourceLines": 0,
-      "totalSourceLines": 9602
+      "totalSourceLines": 9620
     },
     {
       "name": "Minimal",
@@ -58,7 +58,7 @@
         { "path": "Minimal/src/Brontide.Minimal.Binding/CoolingBindingHost.fs", "layer": "retained-experiment", "manualSourceLines": 406 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/CatalogBinding.fs", "layer": "retained-experiment", "manualSourceLines": 673 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableAuthority.fs", "layer": "portable", "manualSourceLines": 185 },
-        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableBindingHost.fs", "layer": "portable", "manualSourceLines": 356 },
+        { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableBindingHost.fs", "layer": "portable", "manualSourceLines": 392 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableBindingPlan.fs", "layer": "portable", "manualSourceLines": 224 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableCbor.fs", "layer": "portable", "manualSourceLines": 447 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableCompositionHandoff.fs", "layer": "portable", "manualSourceLines": 488 },
@@ -80,16 +80,16 @@
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableValue.fs", "layer": "portable", "manualSourceLines": 130 },
         { "path": "Minimal/src/Brontide.Minimal.Binding/Portable/PortableValueCodec.fs", "layer": "portable", "manualSourceLines": 404 }
       ],
-      "layerSourceLines": { "retained-experiment": 2498, "portable": 6494 },
-      "manualSourceLines": 8992,
+      "layerSourceLines": { "retained-experiment": 2498, "portable": 6530 },
+      "manualSourceLines": 9028,
       "generatedSourceLines": 0,
-      "totalSourceLines": 8992
+      "totalSourceLines": 9028
     }
   ],
   "sourceCostComparison": {
     "note": "The two portable layers differ by about 13% in source lines while sharing no code. That is a cost comparison between two independent implementations of one contract, not a quality measure. Fixtures are inside both counts, because each stack carries Cooling and Catalog as declaration data plus a handler.",
-    "referencePortableLines": 7383,
-    "minimalPortableLines": 6494
+    "referencePortableLines": 7401,
+    "minimalPortableLines": 6530
   },
   "portableRealizationFacts": {
     "note": "Representation, allocation, copy, and payload-bound facts for both realizations, as plan section 5 PB8 requires. Each fact states how it is known: 'declared' is fixed by the neutral contract, 'asserted' is checked by a named vector in both stacks, and 'measured' is counted from the artifacts.",
