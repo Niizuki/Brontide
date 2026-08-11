@@ -68,7 +68,7 @@ The author correction pass and ordinary documentation gates are not independent 
 The next agent closes the first batch; it does **not** begin schemas or implementation.
 
 1. Review the immutable T1-T4 correction pin
-   `2d00cbb08df58e255d89d2d8ffba6b6f33cc440e` from a fresh isolated clone and a reviewer
+   `11ba93bddbd38f03df59b4afc5166d7c6991c865` from a fresh isolated clone and a reviewer
    identity distinct from the correction author and all five retained reviewers. Read `AGENTS.md`,
    this policy, all five retained attestations, and every artifact in the required scope. Enumerate
    the complete session/initiator/recipient state-event grid independently, attempt to falsify at
@@ -119,9 +119,10 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   reviewed `5cf42c4d97083324ffb8d6bd68491a145b8e611a`; `does-not-conform`; D1-D5 closed, blocking T1
   and nonblocking T2-T4 retained for closure re-review comparison.
 
-The T1-T4 correction pin is `2d00cbb08df58e255d89d2d8ffba6b6f33cc440e`
-(`docs(channel): close totality review findings`, committed 2026-08-11T20:37:48+02:00). Review that
-commit or any later commit whose design artifacts hash identically to it.
+The T1-T4 correction pin is `11ba93bddbd38f03df59b4afc5166d7c6991c865`
+(`docs(channel): widen the invalid cancelled terminal to its class`, committed
+2026-08-11T20:42:21+02:00). Review that commit or any later commit whose design artifacts hash
+identically to it.
 
 No conforming closure attestation exists yet. The corrected artifacts remain nonconforming evidence
 until a fresh reviewer closes every retained finding and reports no new blocker.

@@ -320,7 +320,7 @@ Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
     '## Required verdicts',
     '## Closure',
     '## Exact next work',
-    '`2d00cbb08df58e255d89d2d8ffba6b6f33cc440e`',
+    '`11ba93bddbd38f03df59b4afc5166d7c6991c865`',
     '`channel-0.2-design-foundation-closure-re-review-attestation.md`',
     '`channel-0.2-design-foundation-closure-record.md`',
     '`build/verify-channel-0.2-design.ps1`',
