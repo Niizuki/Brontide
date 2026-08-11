@@ -1,6 +1,6 @@
 # Channel 0.2 design-foundation reviews
 
-Status: fresh independent design review pending.
+Status: four owner rulings resolved; fresh independent design review pending.
 
 This directory retains independent attestations for the complete Channel 0.2 first-batch design
 foundation. A review is independent only when its reviewer identity differs from the design author,
@@ -35,7 +35,8 @@ An attestation records:
 - one verdict and rationale for each C1-C12;
 - session-state, interaction-state, responsibility, completeness, migration-coverage, and neutral-
   brief verdicts;
-- a decision on each of the four proposed owner rulings still listed in the plan;
+- confirmation that each of the four resolved owner rulings is represented consistently throughout
+  the first-batch design;
 - every blocking and nonblocking finding with exact artifact/section evidence; and
 - checks/probes performed, including at least one attempt to falsify a capability-wide property.
 

@@ -176,9 +176,15 @@ Assert-ContainsAll 'Channel 0.1 observation migration' $migration @(
     '`localMessage`'
 )
 
-if ([regex]::Matches($plan, '(?m)^\| .*maintainers \| Confirm the proposed ruling:').Count -ne 4) {
-    $failures.Add('The active redesign plan must retain exactly four proposed owner rulings before review closure.')
+if ([regex]::Matches($plan, '(?m)^\| .*maintainers \| Confirm the proposed ruling:').Count -ne 0) {
+    $failures.Add('The active redesign plan must not retain proposed owner rulings after owner resolution.')
 }
+Assert-ContainsAll 'Channel 0.2 resolved owner rulings' $plan @(
+    'Core concurrency and cancellation:**',
+    'Session-state ownership:**',
+    'Relational initialization representation:**',
+    'Extension invariants:**'
+)
 Assert-ContainsAll 'Channel 0.2 completeness review' $completeness @(
     '## Findings closed in the first-batch contract',
     '## Required silence probes and dispositions',
@@ -194,6 +200,7 @@ Assert-ContainsAll 'Channel 0.2 neutral brief' $neutralBrief @(
     '## Batch 2 entry gate'
 )
 Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
+    'four owner rulings resolved',
     'fresh independent design review pending',
     '## Required review scope',
     '## Required verdicts',
@@ -217,4 +224,4 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host 'Channel 0.2 design-foundation verification passed: 10 required artifacts, C1-C12 with properties/scenarios/silence, 6 session states, all 24 predecessor vectors dispositioned, 4 owner rulings open, and independent review still pending.'
+Write-Host 'Channel 0.2 design-foundation verification passed: 10 required artifacts, C1-C12 with properties/scenarios/silence, 6 session states, all 24 predecessor vectors dispositioned, 4 owner rulings resolved, and independent review still pending.'

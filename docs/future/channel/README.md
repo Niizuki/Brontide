@@ -3,8 +3,8 @@
 Channel 0.1 is retained, implemented experimental evidence. It is not ratified and its provisional
 logical vocabulary is not the stable successor contract.
 
-Channel 0.2 is the current Priority 1 redesign. Its implementation remains gated on a complete,
-freshly reviewed design foundation.
+Channel 0.2 is the current Priority 1 redesign. Its four first-batch owner rulings were resolved on
+2026-08-11. Implementation remains gated on a complete, freshly reviewed design foundation.
 
 ## Channel 0.2 design foundation
 
@@ -18,10 +18,10 @@ freshly reviewed design foundation.
 | [Contract-completeness review](./Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md) | Separate review of silence and extension pressure | Author pass complete; independent challenge pending |
 | [0.1-to-0.2 migration ledger](./Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md) | Disposition of predecessor Shapes, fields, states, categories, limits, observations, vectors, and goldens | Author pass drafted |
 | [Neutral contract/vector brief](./Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md) | Batch 2 data-only artifact, identity, property, vector, observation, and golden boundaries | Author pass drafted |
-| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | Review pending |
+| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | Owner rulings resolved; review pending |
 
-No Channel 0.2 schema, public type, package, host, provider, or encoding is authorized while a
-first-batch owner question or blocking independent-review finding remains open.
+No Channel 0.2 schema, public type, package, host, provider, or encoding is authorized while the
+independent review is pending or a blocking independent-review finding remains open.
 
 ## Retained Channel 0.1 evidence
 

@@ -2,8 +2,9 @@
 
 ## Channel 0.2 Redesign and Migration Plan 0.1
 
-**Status:** First-batch design foundation drafted; four owner confirmations and fresh independent
-design review remain before Batch 2. No Channel 0.2 implementation or ratification is claimed.
+**Status:** First-batch design foundation drafted and its four owner rulings resolved; fresh
+independent design review remains before Batch 2. No Channel 0.2 implementation or ratification is
+claimed.
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),
 [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md), and the
@@ -436,15 +437,26 @@ stable extension.
 
 ## Open questions (owners needed)
 
-| Owner | Question | Needed by |
-| --- | --- | --- |
-| Channel architecture maintainers | Confirm the proposed ruling: core defines finite bounded unary concurrency and optional cancellation terminal semantics; profiles select their support/bound. | Before independent-review closure |
-| Channel and Portable Binding maintainers | Confirm the proposed ruling: Channel owns only unestablished/establishing/established/draining/closed/faulted; binding/composition own Interconnection, Ready, Release, withdrawal, and cleanup. | Before independent-review closure |
-| Channel, Lifecycle, and Component Management maintainers | Confirm the proposed ruling: relational initialization is an exact state-gated interaction class, not a distinct envelope family. | Before independent-review closure |
-| Flow, Distributed, Realtime, and Channel maintainers | Confirm the proposed ruling: exact profile facets may add classes/evidence but cannot redefine Channel identities, authority, terminal provenance, or effect certainty. | Before independent-review closure |
+There are no unresolved owner decisions in the first-batch design foundation. Independent review may
+still identify questions that require owners before closure.
 
 ## Resolved questions
 
+- **2026-08-11 — Core concurrency and cancellation:** Channel 0.2 core defines finite bounded unary
+  concurrency and optional cancellation terminal semantics. Profiles select whether cancellation is
+  supported and choose their finite concurrency bound; they do not redefine correlation or
+  terminality.
+- **2026-08-11 — Session-state ownership:** Channel owns only `unestablished`, `establishing`,
+  `established`, `draining`, `closed`, and `faulted`. Portable Binding and Composition own
+  Interconnection, Ready, Release, withdrawal, and cleanup facts and consume Channel observations
+  across their neutral seams.
+- **2026-08-11 — Relational initialization representation:** relational initialization is an exact,
+  state-gated interaction class using the ordinary Channel interaction form, not a distinct envelope
+  family. Lifecycle and Component Management retain ownership of the declaration and readiness
+  semantics carried by that interaction.
+- **2026-08-11 — Extension invariants:** exact profile facets may add interaction classes and
+  evidence, but cannot redefine Channel identities, authority, terminal provenance, or effect
+  certainty. A design that needs to change those invariants requires a new Channel contract version.
 - **2026-08-11 — Ratify Channel 0.1 names or migrate:** publish an explicitly migrated revision.
   Channel 0.1 remains experimental evidence; its provisional logical names are not ratified as the
   lasting public contract.
