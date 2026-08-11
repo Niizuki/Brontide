@@ -1511,8 +1511,20 @@ through 16 await rulings and block no current work.
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |
 | Persistent Information | [`Persistent Information Design Note`](./persistent-information/Brontide-Design-Note-Persistent-Information-0.1.md) | R4/M4 experimental Opaque Corpus, Dataset, Store-role, declared-concurrency, and Router-guarantee evidence exists independently in both stacks; durable media and the wider design remain planned. |
 | Topology and Guardians | [`Topology Design Note`](./topology/Brontide-Design-Note-Topology-0.1.md) | Recorded design direction; not ratified. |
-| Reference 0.3 plan | [`Reference implementation plan`](../../Reference/docs/future/Brontide-Reference-Stack-Implementation-Plan-0.3.md) | Planned work with retained delivery evidence. |
-| Minimal 0.3 plan | [`Minimal implementation plan`](../../Minimal/docs/future/Brontide-Minimal-Stack-Implementation-Plan-0.3.md) | Planned work with retained delivery evidence. |
+| Reference 0.3 plan | [`Reference implementation plan`](../../Reference/docs/future/Brontide-Reference-Stack-Implementation-Plan-0.3.md) | R0 audited, R1-R5 delivered, R6 handoff complete; the pinned 0.7 matrix still records R3-R4 as planned. The plan's own status line is frozen review evidence — read [`Reference milestone evidence`](../../Reference/docs/milestone-evidence.md) for phase state. |
+| Minimal 0.3 plan | [`Minimal implementation plan`](../../Minimal/docs/future/Brontide-Minimal-Stack-Implementation-Plan-0.3.md) | M0 audited, M1-M5 delivered, M6 handoff complete; the pinned 0.7 matrix still records M3-M4 as planned. The plan's own status line is frozen review evidence — read [`Minimal milestone evidence`](../../Minimal/docs/milestone-evidence.md) for phase state. |
+
+### Frozen review evidence inside `future`
+
+Both 0.3 stack plans are pinned by SHA-256 in
+[`conformance/reviews/snapshots/implementation-correction-architecture-status.json`](../../conformance/reviews/snapshots/implementation-correction-architecture-status.json),
+the frozen copy of the architecture registry that the closed implementation-correction review
+inspected. Their `Status: Planned` lines were true at that review's target commit and are not
+updated as delivery proceeds: rewriting a pinned source changes what the reviewer was asked to
+inspect, which `conformance/reviews/README.md` forbids, and it would require an authorized repin plus
+fresh independent attestations for both stacks. Phase state therefore lives in the registry-pinned
+milestone ledgers, and this table routes readers there. The same rule applies to any other document a
+review snapshot pins.
 
 Planned documents must state what is already implemented separately from what remains. When a plan
 is completed, move it to `docs/archive/<area>/` and move lasting operational guidance or evidence to
