@@ -57,6 +57,43 @@ Batch 2 may begin only after:
 
 The author correction pass and ordinary documentation gates are not independent review.
 
+## Exact next work
+
+The next agent closes the first batch; it does **not** begin schemas or implementation.
+
+1. Review the immutable correction pin
+   `5cf42c4d97083324ffb8d6bd68491a145b8e611a` from a fresh isolated clone and a reviewer identity
+   distinct from the author and all four retained reviewers. Read `AGENTS.md`, this policy, all four
+   retained attestations, and every artifact in the required scope. Enumerate the complete
+   session/initiator/recipient state-event grid independently, attempt to falsify at least one Cn-P1
+   property, explicitly decide B1-B4, N1-N3, F1-F3, and D1-D5, and search for new blockers.
+2. The reviewer writes only
+   `channel-0.2-design-foundation-totality-closure-attestation.md`. It records the full pin,
+   isolation, per-capability/area/ruling verdicts, retained-finding decisions, probes, and either
+   `conforms` or exact new findings. It does not repair the design or create a closure record.
+3. If the verdict is negative, retain the attestation unchanged, add failing verifier/model checks
+   for each new finding, correct the design in a later commit, and obtain another fresh review. Batch
+   2 remains closed.
+4. If the verdict conforms, retain and commit the attestation unchanged, calculate its SHA-256, then
+   create `channel-0.2-design-foundation-closure-record.md`. The record contains the reviewed commit,
+   attestation path and hash, reviewer identity/date/verdict, all four owner rulings, confirmation
+   that every retained finding closed with no new blocker, and the exact validation results. Update
+   this README, the Channel index, the redesign plan, `docs/future/README.md`, and the design verifier
+   so they accept exactly the conforming attestation and closure record and say Batch 2 is open.
+5. Run, in order:
+
+   - `build/verify-channel-0.2-design.ps1`;
+   - `build/verify-channel-0.2-design.ps1 -NegativeProbe` and confirm it fails only because
+     `C12-P1` was removed in memory;
+   - `build/verify-doc-links.ps1`;
+   - `build/verify-text.ps1`; and
+   - `build/verify-interchange.ps1`.
+
+Only after the conforming attestation, closure record, documentation/status updates, and clean full
+gate are committed may the next agent start Batch 2 from the
+[neutral contract brief](../Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md). This closure
+authorizes planned schema work; it does not ratify Channel 0.2 or claim implementation conformance.
+
 ## Retained attestations
 
 - [Original design-foundation review](./channel-0.2-design-foundation-attestation.md) — reviewed

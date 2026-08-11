@@ -29,10 +29,13 @@ contract-completeness and silence review, a complete 0.1-to-0.2 migration ledger
 brief, and fresh independent design review. Neither stack implements Channel 0.2 until that package
 agrees and its review has no blocking finding.
 
-The [first-batch author pass](./channel/README.md) now drafts C1-C12, both state machines, the
-responsibility matrix, silence review, migration ledger, and neutral-artifact brief. Four proposed
-architecture rulings still need owner confirmation, and the required fresh independent design review
-has not yet occurred. No Channel 0.2 schema or implementation is therefore authorized yet.
+The [first-batch design package](./channel/README.md) now includes C1-C12, both state machines, a
+closed state/event grid, the responsibility matrix, silence review, migration ledger, neutral-
+artifact brief, four resolved owner rulings, and four retained independent review cycles. Every
+finding through D1-D5 has a contract-first correction at the current pin. The exact next work is a
+fresh totality closure review and closure record under the
+[review handoff](./channel/reviews/README.md#exact-next-work). No Channel 0.2 schema or implementation
+is authorized until that handoff closes cleanly.
 
 ## Completed predecessor — Portable Component Binding 0.1
 

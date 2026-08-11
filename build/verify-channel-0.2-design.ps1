@@ -301,7 +301,13 @@ Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
     'fresh independent totality closure review is pending',
     '## Required review scope',
     '## Required verdicts',
-    '## Closure'
+    '## Closure',
+    '## Exact next work',
+    '`5cf42c4d97083324ffb8d6bd68491a145b8e611a`',
+    '`channel-0.2-design-foundation-totality-closure-attestation.md`',
+    '`channel-0.2-design-foundation-closure-record.md`',
+    '`build/verify-channel-0.2-design.ps1`',
+    '`build/verify-interchange.ps1`'
 )
 
 $reviewDirectory = Join-Path $channelPath 'reviews'

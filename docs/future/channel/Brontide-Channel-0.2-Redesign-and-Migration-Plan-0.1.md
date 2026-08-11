@@ -290,13 +290,17 @@ not derive expectations from one implementation's public API.
 
 ### 7.8 Fresh independent design review
 
-Review policy and future attestations: [`reviews/`](./reviews/README.md). No independent attestation
-exists yet; the author pass does not satisfy this step.
+Review policy, retained negative attestations, and the exact continuation instructions:
+[`reviews/`](./reviews/README.md#exact-next-work). Four independent negative attestations are
+retained. Their findings through D1-D5 have correction passes at
+`5cf42c4d97083324ffb8d6bd68491a145b8e611a`; a fresh conforming totality attestation and closure
+record are still required.
 
 Obtain a fresh-context review of the complete first batch before implementation. Reviewers assess
 Architecture 0.8, both local implementation targets, the retained 0.1 evidence, Decision 13, every
-C-item, both state machines, the responsibility matrix, the silence review, and the migration
-ledger. A finding is corrected in the design package before public surfaces are created.
+C-item, both state machines, the closed state/event grid, the responsibility matrix, the silence
+review, and the migration ledger. A finding is corrected in the design package before public
+surfaces are created.
 
 ### 7.9 First-batch exit gate
 
