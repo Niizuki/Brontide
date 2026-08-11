@@ -67,11 +67,14 @@ is complete and archived: the previously pinned root and `docs/` documents now l
 classified locations, every dependent path and hash pin has been repinned, and fresh independent
 reviews and an authorized closure confirm the move changed no architecture or implementation
 semantics. [`Portable Component Binding`](./future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
-is now the head of planned implementation work.
+records the completed experimental predecessor. The
+[`Channel 0.2 Redesign and Migration Plan`](./future/channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md)
+is now the head of planned work.
 
 The principal planned areas are:
 
-- [`Portable Component Binding`](./future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md);
+- [`Channel 0.2 redesign and migration`](./future/channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md);
+- completed experimental [`Portable Component Binding 0.1`](./future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md);
 - [`Component Management`](./future/component-management/Brontide-Design-Note-Component-Management-0.1.md)
   and its completed, evidence-path-retained
   [`implementation plan`](./future/component-management/Brontide-Component-Management-Implementation-Plan-0.1.md);

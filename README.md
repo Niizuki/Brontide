@@ -57,22 +57,24 @@ limit. They test Brontide substitutability without sharing private CLR types or 
 experimental binding protocol as ratified architecture. Run the retained gate with
 `.\build\verify-interchange.ps1`.
 
-The first extension of the Architecture 0.8 evidence cycle, `Channel`, is extracted from those two
+The first extension of the Architecture 0.8 evidence cycle, `Channel`, was extracted from those two
 interchange proofs and recorded in
 [Channel Design Note 0.1](./docs/future/channel/Brontide-Design-Note-Channel-0.1.md): the request/Outcome
 representation, correlation, error propagation, and delivery semantics the invocation principle
-needs and Base withholds. It fixes semantics rather than a wire format, keeps Capabilities from
-crossing a trust boundary, and precedes the Portable Component Binding, which becomes its first
-conforming realisation. It remains a recorded direction outside Base, not a ratified extension. Its
-open questions and risks are tracked in
+needs and Base withholds. Channel 0.1 fixes semantics rather than a wire format, keeps Capabilities
+from crossing a trust boundary, and has Portable Component Binding 0.1 as its first implemented
+experimental realization. It remains outside Base and is not ratified. Its evidence and risks are
+tracked in
 [`Channel requirements and risk ledger`](./docs/future/channel/architecture-0.8-channel-requirements-and-risk-ledger.md).
 
-With the Priority 0 documentation relocation carried out, the next implementation goal is the
-[Portable Component Binding Implementation Plan 0.1](./docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md).
-It turns the retained Cooling and Catalog experiments into a reusable, independently implemented
-Binding Plan and Channel realization with direct/process parity, neutral vectors, bounded resource
-semantics, and both cross-stack directions. The work remains experimental and does not enlarge Base
-or change either stack's Architecture 0.7 target.
+The next work is the contract-first
+[Channel 0.2 Redesign and Migration Plan](./docs/future/channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md).
+Its required first batch defines a fresh capability contract, explicit session and interaction state
+machines, responsibility and migration artifacts, a silence review, and a neutral-artifact brief,
+then obtains fresh independent design review before either stack adds a 0.2 surface. The completed
+[Portable Component Binding 0.1 plan](./docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
+remains the executable predecessor evidence. Neither programme enlarges Base or ratifies Channel or
+Architecture 0.8.
 
 The provisional generational lifecycle, multiple-source acquisition model, trust separation,
 scoped restart, and dependency-cycle policy are recorded in

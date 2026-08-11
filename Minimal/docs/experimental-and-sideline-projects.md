@@ -125,7 +125,10 @@ The following work is deliberately outside Brontide Minimal Stack Base conforman
   reads the fact from the offered document. PB8 has since recorded this layer's executed evidence,
   re-measured its source cost (6,429 portable lines against Reference's 7,378, two independent
   implementations of one contract), and documented the portable seam's operational assumptions; its
-  fresh independent reviews remain outstanding. Nothing here is an Architecture 0.8
+  independent review sequence corrected contract, lifecycle, and unknown-effect attribution findings
+  before three fresh closure reviewers conformed. The owner then selected an explicitly migrated,
+  full [Channel 0.2 redesign](../../docs/future/channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md)
+  rather than ratifying the provisional Channel 0.1 vocabulary. Nothing here is an Architecture 0.8
   conformance claim or part of Brontide Minimal Stack Base.
 - Reference/Minimal entanglement is a future cross-process experiment. Neither implementation is allowed
   to become the other's in-process compatibility layer.

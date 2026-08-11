@@ -4,6 +4,10 @@ Status: non-runtime planning evidence for the Architecture 0.8 `Channel` directi
 requirements and risk register, not a ratified Channel contract, an extension specification, or an
 implementation claim. It adds no Brontide Base term.
 
+Successor plan: [Channel 0.2 Redesign and Migration Plan 0.1](./Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md).
+This ledger remains the retained Channel 0.1 evidence source and must be dispositioned item by item
+in the successor's migration ledger; it is not presumed to define the 0.2 structure.
+
 Design source: [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md).
 Draft semantic contract: [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md).
 Shared vectors: [Channel 0.1 conformance vectors](../../../conformance/channel-0.1-vectors.json).

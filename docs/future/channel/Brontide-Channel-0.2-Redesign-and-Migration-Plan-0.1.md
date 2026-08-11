@@ -1,0 +1,440 @@
+# BRONTIDE
+
+## Channel 0.2 Redesign and Migration Plan 0.1
+
+**Status:** Planned next work. Contract-first redesign; no Channel 0.2 implementation or
+ratification is claimed.
+**Designed against:** Brontide Architecture 0.8, Complete Draft.
+**Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),
+[Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md), and the
+[Architecture 0.8 Channel requirements and risk ledger](./architecture-0.8-channel-requirements-and-risk-ledger.md).
+**First realization:** [Portable Component Binding 0.1](../binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md),
+retained as experimental evidence rather than treated as the 0.2 design template.
+
+## 1. Decision and purpose
+
+Channel 0.1 has useful implementation evidence but remains provisional. Its naming question is
+resolved by choosing an explicitly migrated revision rather than ratifying the 0.1 Shape and category
+names. The successor is not limited to renaming those Shapes. Channel 0.2 will reconsider the
+capability boundary, state models, message taxonomy, attribution model, and extension seams before
+any replacement schema or public API is written.
+
+This is a deliberate redesign, not a presumption that the existing contract is wrong. Channel 0.1
+was extracted from two working interchange protocols, then exercised by two independent Portable
+Binding implementations and an implementation-neutral peer. It therefore provides unusually strong
+evidence about invariants and failure cases. It also carries the structure of synchronous,
+single-request process protocols from which it was extracted. Channel 0.2 must preserve the former
+without accepting the latter as architecture by default.
+
+The intended outcome is one coherent semantic foundation that can support the next binding revision
+and later Channel realizations without another foundational migration. This does not mean pulling
+streaming, durable delivery, distributed trust, or long-running workflow into Channel. It means
+settling Channel's ownership and extension points so those capabilities can compose with it without
+silently changing its meanings.
+
+## 2. Why a redesign is warranted
+
+Decision 13 requires more than an additive message. Portable Binding 0.1 makes establishment imply
+readiness, while Component Management requires exact relational lifecycle traffic after
+interconnection and before Ready. Correcting that requires a separate readiness transition and a
+new class of pre-Ready interaction.
+
+That break exposes wider questions in the 0.1 model:
+
+- one envelope taxonomy combines contract negotiation, request/Outcome traffic, session shutdown,
+  and peer-reported protocol faults;
+- the same surrounding taxonomy describes local process or transport observations that are not wire
+  messages at all;
+- `Lifecycle` currently means orderly session shutdown, while the missing relational lifecycle is
+  an authorized Operation between group members;
+- Channel, Portable Binding, Composition, and lifecycle gating do not yet have a complete ownership
+  boundary;
+- establishment may be negotiated or statically fixed, but the semantic equivalence those paths must
+  establish is not one explicit artifact;
+- optional `execution` and `occurrence` positions may be attribution context rather than Channel
+  correlation identities;
+- `unsupported-kind` also classifies an unknown protocol-error category, conflating two distinct
+  protocol faults; and
+- cancellation, concurrency, draining, streaming, retry, and delivery are non-promises, but 0.1 does
+  not always distinguish “not provided by this version” from “owned by a compatible extension seam.”
+
+None of those observations preselects a replacement. They define questions the first design batch
+must answer.
+
+## 3. Design stance
+
+Channel 0.2 begins from observable capability and responsibility, not from CLR types, schemas, CBOR
+tags, or the two existing host implementations.
+
+The redesign follows these rules:
+
+1. **Preserve proven semantics, not accidental structure.** A 0.1 rule survives when its meaning is
+   still required, even if its representation moves or disappears.
+2. **Keep peer statements separate from observer facts.** What a peer reports, what a transport
+   proves, and what the local host infers must never share a form that permits one to masquerade as
+   another.
+3. **Make state and authority explicit before effects.** Every interaction class has a legal state,
+   initiator, recipient, exact authority requirement, and failure behavior.
+4. **Design extension seams without claiming extension semantics.** Channel may declare where Flow,
+   Distributed, Realtime, Lifecycle, or a transport profile composes; it does not inherit their
+   delivery or trust guarantees.
+5. **Fail closed across versions.** Channel 0.1 and 0.2 are distinct contracts. No decoder or adapter
+   silently treats one as the other.
+6. **Keep the stacks independent.** The neutral contract is data-only; Reference and Minimal
+   implement it natively and meet only through external artifacts and process seams.
+7. **Treat silence as a design finding.** Each capability has a property over all of its vectors,
+   and the first batch includes a completeness review that asks what the contract does not say.
+
+## 4. Semantics expected to survive
+
+The redesign starts with a rebuttable presumption that these 0.1 semantics remain necessary:
+
+- contract compatibility is established before an interaction may cause provider effects;
+- unknown required versions, features, Shapes, Operations, authority forms, and control values fail
+  closed;
+- payload positions and authority/control positions remain distinct, with projection allowed only
+  where the declared plane permits it;
+- a Capability never crosses a trust boundary as though possession or serialization conveyed
+  authority;
+- a local authority denial causes no far-side effect and is not fabricated as a peer observation;
+- semantic failure, peer protocol fault, and local transport/process failure remain different facts;
+- no foreign exception, runtime type, stack trace, or private identity crosses the seam;
+- correlation is exact, bounded, and type-distinct from Actor, Execution, Occurrence, and other
+  identity spaces;
+- framing and parsing are bounded before allocation or effect;
+- known zero provider effects and an unattributable effect count remain different observations; and
+- interruption, retry, fallback, and delivery are never converted into fabricated success.
+
+The first-batch migration ledger may retain, replace, move, or remove the representation of any of
+these. Removing the semantic invariant itself requires an explicit owner decision and rationale.
+
+## 5. Candidate conceptual decomposition
+
+The following decomposition is the starting hypothesis, not a completed contract.
+
+### 5.1 Contract profile
+
+One immutable, inspectable profile states the exact contract identity and version, endpoint roles,
+interaction classes, control features, authority-presentation mode, representations, limits,
+correlation requirements, concurrency declaration, and extension points. Negotiated and statically
+fixed realizations must establish the same semantic facts even when their mechanics differ.
+
+### 5.2 Session control
+
+Session control owns establishment, acceptance or refusal, readiness signaling, draining, orderly
+closure, and terminal protocol fault. It has an explicit state machine and does not carry an
+application Outcome. A session-control message cannot silently authorize an Operation.
+
+The design must decide whether interconnection is a Channel state, a Portable Binding state mapped
+onto Channel, or an external composition fact. It must not appear in two state machines with subtly
+different transition rules.
+
+### 5.3 Interaction
+
+An interaction is one typed, correlated exchange admitted by the established profile and current
+state. Ordinary invocation and relational initialization may share a general interaction form, but
+their classes, authority, legal windows, and gates remain exact. The design must compare that model
+with a dedicated relational envelope kind before selecting either.
+
+Relational initialization carries the exact CM3 declaration: edge, direction, initiating and
+receiving members, Operation, Capability, and input Shape. It occurs after interconnection and before
+Ready. Undeclared or mismatched traffic is refused before delivery. Ordinary interaction remains
+closed until Release.
+
+### 5.4 Local observation
+
+Local observation records what this endpoint can establish about framing, transport, process loss,
+timeouts, peer termination, retry, fallback, boundary crossings, and provider effects. It is not a
+wire message and cannot be treated as a peer admission. Unknown attribution is retained with a
+reason instead of replaced by zero or a guessed failure domain.
+
+A peer-reported protocol fault remains a peer statement inside the protocol. Its local receipt may
+produce an observation, but the two forms and their provenance stay distinct.
+
+## 6. Responsibility boundaries to settle
+
+The first batch must produce an explicit responsibility matrix covering at least these areas:
+
+| Concern | Candidate owner | Boundary question |
+| --- | --- | --- |
+| Contract/profile establishment | Channel | What exact facts must fixed and negotiated realizations establish equally? |
+| Frame encoding and transport adapter | Realization/profile | Which bounds are Channel invariants and which are declared realization choices? |
+| Payload and resource representation | Portable Binding | Which representation facts must Channel carry without owning resource semantics? |
+| Authority evaluation and grants | Authority domain / Component Management | What presentation or attributable context may Channel carry without constituting authority? |
+| Session establishment, readiness, drain, close | Channel or Portable Binding, selected once | Which transitions are protocol facts and which are composition facts? |
+| Relational initialization | Lifecycle declaration + composition, transported by Channel | How is exact declared traffic represented and authorized without inventing a Component-to-Component binding? |
+| Ordinary interaction gate | Portable Binding / composition | Which Channel state is necessary but not sufficient for Release? |
+| Semantic Outcome | Operation contract | Which failures are application facts rather than protocol faults? |
+| Protocol fault | Channel | Which faults may a peer report, and what provenance accompanies them? |
+| Transport/process failure observation | Local host | How is uncertainty preserved without turning an observation into a wire claim? |
+| Concurrency, cancellation, and flow control | Channel core or declared extension | What must 0.2 settle so a later extension does not reinterpret correlation or terminality? |
+| Delivery, retry, ordering, persistence | Distributed/Flow/Realtime profiles | What are Channel's explicit non-promises and compatible attachment points? |
+
+No implementation phase begins while one concern has two semantic owners or no owner.
+
+## 7. Required first batch: design foundation
+
+The first batch is mandatory and lands before a Channel 0.2 schema, public type, package, host, or
+provider implementation. Its artifacts form one review unit because each constrains the others.
+
+### 7.1 Fresh C1-Cn capability contract
+
+Write a new behavioral contract from observable inputs, states, effects, outcomes, and failures. It
+must not copy C1-C10 merely because Portable Binding 0.1 used them. Each capability item includes:
+
+- the observable property being promised;
+- its authority and effect boundary;
+- legal and illegal state transitions;
+- failure and uncertainty behavior;
+- at least one named scenario and one property over all of that capability's vectors;
+- the evidence required from each native implementation, a neutral peer, and process pairing; and
+- explicit silence: nearby behavior the item intentionally does not specify.
+
+The contract must cover contract establishment, session control, interaction admission and
+terminality, relational initialization, correlation, authority-plane handling, failure provenance,
+observation/effect attribution, bounds, compatibility, and closure. It may add or split items where
+the completeness review shows one property has multiple owners.
+
+### 7.2 Explicit session state machine
+
+Specify states, events, guards, effects, terminal states, and illegal transitions. At minimum, test
+the distinctions among unestablished, established, interconnected where applicable, ready, released
+where applicable, draining/withdrawing, closed, and faulted states. The model must say which of those
+are Channel states and which are external facts projected into Channel guards.
+
+Every transition states who may initiate it, what is transmitted, whether provider effects may have
+occurred, and what late or duplicate traffic means. Readiness is never inferred from establishment.
+
+### 7.3 Explicit interaction state machine
+
+Specify the lifecycle of one interaction independently from the session. Cover admission, dispatch,
+peer acceptance where present, semantic Outcome, peer protocol fault, cancellation or its explicit
+absence, timeout, interruption, duplicate/late terminal traffic, and effect uncertainty.
+
+The model must define whether one session permits one, sequential, or concurrent interactions and
+how correlation and draining behave for the selected rule. It must also define the pre-Ready window
+for relational initialization and the post-Release window for ordinary invocation.
+
+### 7.4 Responsibility matrix
+
+Complete the matrix begun in section 6 against Channel, Portable Binding, Component Management,
+Composition, Lifecycle, Flow, Distributed, Realtime, authority domains, and concrete transports.
+For every shared boundary, name the direction of dependency and the neutral artifact crossing it.
+
+### 7.5 Contract-completeness and silence review
+
+Conduct a review separate from conformance review. It asks, per capability, what the contract does
+not say. At minimum it probes:
+
+- simultaneous and sequential interactions;
+- cancellation before dispatch, during possible effects, and after a terminal response;
+- half-close, drain, late traffic, duplicate traffic, and peer loss in every nonterminal state;
+- partial frames, oversized declarations, resource exhaustion, and allocation failure;
+- replay and idempotency without accidentally promising exactly-once execution;
+- version skew, optional features, unknown extensions, and downgrade behavior;
+- authority revocation or replacement between establishment and dispatch;
+- effect attribution when a response is missing, malformed, mismatched, or rejected locally;
+- referenced-resource lifetime and cleanup when the transport is lost;
+- how streaming, delivery, and long-running extensions attach without redefining terminality; and
+- recovery or reconnection without equating a new session with the old one.
+
+Each finding is corrected in the contract or recorded as an explicit non-goal with an owner and
+extension seam. Agreement between the two existing stacks is not evidence that silence is safe.
+
+### 7.6 Channel 0.1 to 0.2 migration ledger
+
+Inventory every 0.1 logical Shape, field, message kind, state, category, failure domain, limit,
+vector, and observation field. Give each one exactly one disposition:
+
+- **retained** — same semantic meaning, with its 0.2 location;
+- **replaced** — new meaning or structure, with the incompatibility explained;
+- **moved** — same fact but a different semantic owner, including wire-to-local moves;
+- **removed** — no 0.2 equivalent, with the safe migration behavior; or
+- **legacy-only** — retained solely to execute or diagnose 0.1 evidence.
+
+The ledger also maps every 0.1 vector to retained evidence, a revised 0.2 vector, or a documented
+retirement. It identifies which golden encodings and parity digests must change and which historical
+pins remain untouched.
+
+### 7.7 Neutral contract and vector design brief
+
+Before authoring schemas, define the data-only artifact boundaries, identifier representations,
+version-negotiation rule, vector grouping, capability-wide property format, expected observations,
+and golden-encoding policy. The brief must be implementable without importing either stack and must
+not derive expectations from one implementation's public API.
+
+### 7.8 Fresh independent design review
+
+Obtain a fresh-context review of the complete first batch before implementation. Reviewers assess
+Architecture 0.8, both local implementation targets, the retained 0.1 evidence, Decision 13, every
+C-item, both state machines, the responsibility matrix, the silence review, and the migration
+ledger. A finding is corrected in the design package before public surfaces are created.
+
+### 7.9 First-batch exit gate
+
+The batch is complete only when:
+
+1. every C-item has a falsifiable property, named scenarios, and an evidence owner;
+2. session and interaction state machines agree with the contract and each other;
+3. every semantic concern has exactly one owner;
+4. every 0.1 contract element and vector has a migration disposition;
+5. version mismatch and downgrade behavior fail closed;
+6. the silence review has no unowned finding;
+7. the neutral artifact brief can be implemented without either stack; and
+8. independent design review records no unresolved blocking finding.
+
+## 8. Subsequent batches
+
+The exact phase names may change after the first batch. The required order does not.
+
+### Batch 2 — neutral Channel 0.2 contract
+
+Author versioned, data-only schemas, shared vectors, capability-wide properties, and deterministic
+golden encodings. Add a neutral verifier that loads neither stack. Prove every new test can fail by
+running it against an intentionally incomplete or incorrect neutral endpoint before accepting it.
+
+### Batch 3 — Reference native realization
+
+Implement the contract natively outside Reference Core. Write each C-item's named tests with the
+behavior and observe them fail before completing the path. Preserve strongly typed identities and
+the existing dependency direction.
+
+### Batch 4 — Minimal native realization
+
+Implement independently outside Minimal Model/Kernel, using Minimal-owned algebraic types and
+explicit results. Do not translate the Reference public surface or reuse its runtime.
+
+### Batch 5 — process, neutral-peer, and cross-stack evidence
+
+Run both hosts against their native providers, the implementation-neutral provider, and each
+other's provider in both directions. Compare declared semantic profiles rather than private types.
+Exercise every state transition and failure class across a real process seam, including the cases
+where provider-effect attribution must remain unknown.
+
+### Batch 6 — Portable Binding migration
+
+Create an explicit Portable Binding 0.2 profile over Channel 0.2. Preserve the 0.1 profile as a
+versioned experimental endpoint while required by retained evidence. Do not add an in-process
+compatibility layer between the stacks. Any compatibility adapter is an external, bounded gateway
+that declares both versions and cannot broaden authority or fabricate observations.
+
+Integrate Decision 13's relational initialization through the exact CM3 declarations and CM4 stage
+order. Establishment, relational interaction, readiness, Release, withdrawal, and cleanup evidence
+must be derived from executed transitions rather than caller claims.
+
+### Batch 7 — closure and ratification recommendation
+
+Run the complete repository gate, refresh measurements and governed documentation, perform a second
+contract-completeness review against implementation findings, and obtain fresh conformance reviews
+of the neutral contract and both stacks. Only then may the project decide whether the Channel 0.2
+logical contract is ready for ratification or needs another draft revision.
+
+Ratification, stable package publication, and Architecture 0.8 ratification remain separate owner
+decisions.
+
+## 9. Compatibility and migration policy
+
+- Channel 0.1 remains executable, historical experimental evidence. It is not retroactively renamed
+  or described as a stable public contract.
+- Channel 0.2 uses a distinct contract version. Unknown or mismatched versions fail before provider
+  effects.
+- There is no field-by-field “best effort” downgrade. An endpoint either establishes an exact
+  supported profile or refuses.
+- A dual-version host keeps each version behind its own decoder, state machine, limits, and
+  observation mapping. Shared private helpers may implement mechanics but never decide semantics for
+  both versions implicitly.
+- A 0.1 observation may be projected into 0.2 only where the migration ledger proves the meaning is
+  identical. Missing 0.2 facts remain unknown or unavailable; they are never synthesized.
+- Retained evidence files and direct or transitive pins are not moved or rewritten merely to make
+  the new plan tidy. Any required evidence relocation follows the repository's explicit repinning
+  and independent-review policy.
+- The migration ends only when every known consumer and fixture names its selected version and the
+  remaining lifetime of the 0.1 endpoint is documented.
+
+## 10. Required design questions
+
+The first batch must answer or explicitly disposition these questions:
+
+1. What is the smallest Channel capability independent of Portable Binding and process transport?
+2. Which state belongs to a Channel session, and which belongs to binding or composition?
+3. Is relational initialization a distinct message kind or a state-gated interaction class?
+4. Which exact facts make negotiated and fixed establishment semantically equivalent?
+5. What constitutes Channel correlation, and what is merely carried attribution context?
+6. Which peer-reported faults are legal, and how are they distinguished from local observations?
+7. What are the terminality rules when provider effects may have occurred but no valid Outcome is
+   available?
+8. What concurrency does core 0.2 support or declare, and how does drain interact with it?
+9. Does core represent cancellation, or only declare that a selected extension/profile supplies it?
+10. How do Flow, Distributed, Realtime, and Lifecycle attach without redefining Channel identities,
+    terminality, or authority?
+11. Which representation and resource facts are carried by Channel but owned by Portable Binding?
+12. What is the exact compatibility and retirement policy for the 0.1 realization?
+
+## 11. Non-goals
+
+This plan does not itself:
+
+- ratify Channel, Portable Binding, Architecture 0.8, or a standard vocabulary;
+- choose a wire encoding, media type, package name, or numeric tag allocation;
+- add cross-domain identity, attestation, key distribution, or authority federation;
+- promise reliable delivery, ordering, exactly-once effects, automatic retry, persistence, or
+  recovery;
+- require streaming, backpressure, cancellation, or concurrent multiplexing in core 0.2 before the
+  first batch decides their correct ownership;
+- introduce a Component-to-Component binding merely to carry relational initialization;
+- move Channel into Reference Core or Minimal Model/Kernel; or
+- optimize the hot path before the semantic and observation model is evidenced.
+
+## 12. Risks and controls
+
+| Risk | Control |
+| --- | --- |
+| “Full redesign” becomes unbounded feature accumulation | Responsibility matrix and explicit non-goals; extension seams are designed without implementing extension semantics. |
+| The 0.2 contract is 0.1 with renamed types | Migration ledger requires a reasoned disposition and owner for every retained structure. |
+| Valuable 0.1 failure lessons are lost | Preserved-invariant list, vector-by-vector migration, and retained executable 0.1 profile. |
+| Both stacks repeat the same silent defect | Capability-wide properties, separate silence review, neutral peer, and fresh design/conformance reviewers. |
+| State is duplicated across Channel and Binding | Responsibility matrix and first-batch gate require one semantic owner per transition. |
+| Compatibility broadens authority or fabricates facts | Exact profile establishment, external bounded adapters, and unknown rather than synthesized observation data. |
+| The redesign freezes a wire accident | Semantics and state machines precede schemas, encodings, and public APIs. |
+| Historical evidence is invalidated during cleanup | Stable-path discipline and explicit repinning authorization for any evidence-bearing move. |
+
+## 13. Completion conditions
+
+The redesign programme is complete when:
+
+- the first-batch design package and its independent review are closed;
+- the neutral Channel 0.2 contract is self-contained and fully property/vector verified;
+- Reference and Minimal implement every capability independently;
+- direct, process, neutral-peer, and both cross-stack directions agree on portable observations;
+- Decision 13's protocol-bearing group reaches the exact CM3/CM4 stage order without caller-claimed
+  readiness or authority;
+- every 0.1 item and consumer has an explicit migration disposition;
+- dependency guards, complete stack suites, and the repository gate pass without warnings;
+- documentation distinguishes retained 0.1 evidence, implemented 0.2 behavior, and remaining
+  non-goals; and
+- fresh independent reviewers find no unresolved contract, migration, or implementation defect.
+
+Completion establishes implementation evidence. It does not by itself ratify Channel or publish a
+stable extension.
+
+## Open questions (owners needed)
+
+| Owner | Question | Needed by |
+| --- | --- | --- |
+| Channel architecture maintainers | Which concurrency and cancellation facts belong to core 0.2 versus a declared extension profile? | First-batch state machines |
+| Channel and Portable Binding maintainers | Which session states are Channel-native, and which binding/composition facts merely gate Channel interactions? | First-batch responsibility matrix |
+| Channel, Lifecycle, and Component Management maintainers | Is relational initialization represented as a distinct message kind or a state-gated interaction class? | First-batch interaction model |
+| Flow, Distributed, Realtime, and Channel maintainers | What minimum extension hooks preserve Channel correlation, authority, and terminality without importing those extensions' guarantees? | First-batch completeness review |
+
+## Resolved questions
+
+- **2026-08-11 — Ratify Channel 0.1 names or migrate:** publish an explicitly migrated revision.
+  Channel 0.1 remains experimental evidence; its provisional logical names are not ratified as the
+  lasting public contract.
+- **2026-08-11 — Scope of the successor:** conduct a full Channel 0.2 redesign rather than limiting
+  the revision to Decision 13's minimum lifecycle delta. Preserve proven invariants, but reconsider
+  capability boundaries, state machines, taxonomy, observations, and extension seams before schemas
+  or public surfaces.
+- **2026-08-11 — Required first work:** the capability contract, session and interaction state
+  machines, responsibility matrix, silence review, migration ledger, neutral-artifact brief, and
+  fresh independent design review form one mandatory first batch before implementation.

@@ -6,7 +6,8 @@ for direct-versus-process parity in each (PB4), paired across the stacks and aga
 Composition handoff by which composition machinery reaches the layer (PB7). PB8's evidence and
 documentation work is complete, and Decision 11 was ruled on 2026-07-30: negotiation compares
 provider identity and the Binding Plan reports the provider that answered. Its independent review
-sequence is complete; only PB8's owner-held Channel naming question remains.
+sequence and PB8 owner closure are complete. Channel 0.1 remains experimental; its explicitly
+migrated successor is the planned full Channel 0.2 redesign.
 Planned experimental work; not ratified; not part of Brontide Base.
 **Designed for:** Brontide Architecture 0.8 §16 and §18.1 (Complete Draft).
 **Plan:** [Portable Component Binding Implementation Plan 0.1](../../docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
@@ -218,7 +219,9 @@ allocation, copy, and payload-bound facts for both realizations with their prove
 has since been ruled on. The fresh independent review sequence is complete and retained under
 [`reviews/`](reviews/README.md); its findings added capability-wide properties, corrected lifecycle
 and provider-attribution claims, and made unknowable provider effects explicit in both production
-hosts. Only the owner-held Channel naming question remains for PB8.
+hosts. The owner ruling selected an explicitly migrated, fully redesigned Channel 0.2 rather than
+ratifying Channel 0.1's provisional names, so PB8 is complete and successor work is tracked by the
+[Channel 0.2 redesign plan](../../docs/future/channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md).
 
 ## Boundary
 
