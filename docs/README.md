@@ -74,7 +74,8 @@ is now the head of planned work.
 The principal planned areas are:
 
 - [`Channel 0.2 redesign and migration`](./future/channel/README.md), with its first-batch design
-  foundation drafted and awaiting owner confirmations plus fresh independent review;
+  foundation complete, its four owner rulings resolved, and a fresh independent closure re-review
+  outstanding;
 - completed experimental [`Portable Component Binding 0.1`](./future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md);
 - [`Component Management`](./future/component-management/Brontide-Design-Note-Component-Management-0.1.md)
   and its completed, evidence-path-retained

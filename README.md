@@ -68,11 +68,11 @@ tracked in
 [`Channel requirements and risk ledger`](./docs/future/channel/architecture-0.8-channel-requirements-and-risk-ledger.md).
 
 The next work is the contract-first
-[Channel 0.2 redesign](./docs/future/channel/README.md). Its required first-batch author pass now
-drafts a fresh C1-C12 capability contract, explicit session and interaction state machines,
-responsibility and migration artifacts, a silence review, and a neutral-artifact brief. Four
-architecture rulings and fresh independent design review remain before either stack may add a 0.2
-surface. The completed
+[Channel 0.2 redesign](./docs/future/channel/README.md). Its first-batch design package is complete:
+a fresh C1-C12 capability contract, explicit session and interaction state machines, a closed
+state/event grid, responsibility and migration artifacts, a silence review, and a neutral-artifact
+brief. Its four architecture rulings are resolved and five independent reviews are retained; a fresh
+independent closure re-review must conform before either stack may add a 0.2 surface. The completed
 [Portable Component Binding 0.1 plan](./docs/future/binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
 remains the executable predecessor evidence. Neither programme enlarges Base or ratifies Channel or
 Architecture 0.8.

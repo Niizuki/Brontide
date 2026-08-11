@@ -342,15 +342,25 @@ function Get-StatusBlock {
     return $Content.Substring(0, $firstSection)
 }
 
+# Prose status claims wrap across lines at the author's discretion, so every phrase check below runs
+# against whitespace-collapsed text. Without this a required phrase disappears the moment a sentence
+# reflows, and a forbidden one hides in the same way, which is a check that fails for the wrong reason
+# and passes for the wrong reason respectively.
+function Get-FlowedText {
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Content)
+
+    return [regex]::Replace($Content, '\s+', ' ')
+}
+
 $statusArtifacts = [ordered]@{
-    'Channel 0.2 capability contract status'   = Get-StatusBlock $contract
-    'Channel 0.2 session state machine status' = Get-StatusBlock $session
-    'Channel 0.2 interaction machine status'   = Get-StatusBlock $interaction
-    'Channel 0.2 state/event coverage status'  = Get-StatusBlock $stateEventCoverage
-    'Channel 0.2 responsibility matrix status' = Get-StatusBlock $responsibility
-    'Channel 0.2 completeness review status'   = Get-StatusBlock $completeness
-    'Channel 0.2 migration ledger status'      = Get-StatusBlock $migration
-    'Channel 0.2 index status'                 = $channelReadme
+    'Channel 0.2 capability contract status'   = Get-FlowedText (Get-StatusBlock $contract)
+    'Channel 0.2 session state machine status' = Get-FlowedText (Get-StatusBlock $session)
+    'Channel 0.2 interaction machine status'   = Get-FlowedText (Get-StatusBlock $interaction)
+    'Channel 0.2 state/event coverage status'  = Get-FlowedText (Get-StatusBlock $stateEventCoverage)
+    'Channel 0.2 responsibility matrix status' = Get-FlowedText (Get-StatusBlock $responsibility)
+    'Channel 0.2 completeness review status'   = Get-FlowedText (Get-StatusBlock $completeness)
+    'Channel 0.2 migration ledger status'      = Get-FlowedText (Get-StatusBlock $migration)
+    'Channel 0.2 index status'                 = Get-FlowedText $channelReadme
 }
 foreach ($statusArtifact in $statusArtifacts.GetEnumerator()) {
     Assert-ContainsAll $statusArtifact.Key $statusArtifact.Value @('fresh independent closure re-review')
@@ -361,30 +371,51 @@ foreach ($statusArtifact in $statusArtifacts.GetEnumerator()) {
     }
 }
 
-# The future-work index carries Channel's state twice: once in the Priority 1 prose and once in the
-# Other planned areas table. The table row is the one a reader reaches from another area's entry, and
-# it is the row that went stale for four review cycles, so it is pinned separately here.
-$futureIndexPath = Join-Path $repositoryRoot 'docs\future\README.md'
-if (-not (Test-Path -LiteralPath $futureIndexPath)) {
-    $failures.Add("The future-work index does not exist at 'docs/future/README.md'.")
+# Three entry-point documents state Channel's status for a reader who never opens the design package,
+# and each went stale independently: the future-work index kept an "author pass" table row for four
+# review cycles while its own Priority 1 prose was current. A phrase-anywhere check passes on the
+# strength of one current sentence, so each document is pinned for the claims it must not make.
+$statusIndexPaths = [ordered]@{
+    'Repository README Channel status'  = 'README.md'
+    'Documentation map Channel status'  = 'docs\README.md'
+    'Future-work index Channel status'  = 'docs\future\README.md'
 }
-else {
-    $futureIndex = Get-Content -Raw -LiteralPath $futureIndexPath -Encoding UTF8
-    $channelAreaRows = @($futureIndex -split "`r?`n" | Where-Object { $_ -match '^\| Channel \|' })
-    if ($channelAreaRows.Count -ne 1) {
-        $failures.Add("The future-work index must carry exactly one Channel row in Other planned areas; found $($channelAreaRows.Count).")
+$staleChannelClaims = @(
+    'author pass',
+    'owner confirmations',
+    'owner confirmation',
+    'architecture rulings and fresh independent design review remain',
+    'independent review pending',
+    'independent review has not yet occurred'
+)
+foreach ($statusIndex in $statusIndexPaths.GetEnumerator()) {
+    $statusIndexPath = Join-Path $repositoryRoot $statusIndex.Value
+    if (-not (Test-Path -LiteralPath $statusIndexPath)) {
+        $failures.Add("A Channel status index does not exist at '$($statusIndex.Value)'.")
+        continue
     }
-    else {
-        Assert-ContainsAll 'Channel row in the future-work index' $channelAreaRows[0] @(
-            'four resolved owner rulings',
-            'fresh independent closure re-review'
-        )
-        foreach ($stale in @('owner confirmations', 'author pass is drafted', 'independent review pending')) {
-            if ($channelAreaRows[0].IndexOf($stale, [System.StringComparison]::Ordinal) -ge 0) {
-                $failures.Add("The future-work index's Channel row still says '$stale'.")
-            }
+
+    $statusIndexText = Get-FlowedText (Get-Content -Raw -LiteralPath $statusIndexPath -Encoding UTF8)
+    Assert-ContainsAll $statusIndex.Key $statusIndexText @('fresh independent closure re-review')
+    foreach ($staleClaim in $staleChannelClaims) {
+        if ($statusIndexText.IndexOf($staleClaim, [System.StringComparison]::Ordinal) -ge 0) {
+            $failures.Add("$($statusIndex.Key) still claims '$staleClaim'.")
         }
     }
+}
+
+# The future-work index states Channel's status twice. The Other planned areas row is the one a
+# reader reaches from another area's entry, so it is pinned for its own content as well.
+$futureIndex = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot 'docs\future\README.md') -Encoding UTF8
+$channelAreaRows = @($futureIndex -split "`r?`n" | Where-Object { $_ -match '^\| Channel \|' })
+if ($channelAreaRows.Count -ne 1) {
+    $failures.Add("The future-work index must carry exactly one Channel row in Other planned areas; found $($channelAreaRows.Count).")
+}
+else {
+    Assert-ContainsAll 'Channel row in the future-work index' $channelAreaRows[0] @(
+        'four resolved owner rulings',
+        'fresh independent closure re-review'
+    )
 }
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
