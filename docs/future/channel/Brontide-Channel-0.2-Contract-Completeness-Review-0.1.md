@@ -1,0 +1,212 @@
+# Channel 0.2 contract-completeness and silence review 0.1
+
+Date: 2026-08-11
+
+Status: first author pass complete; fresh independent design review remains required. This review
+asks what the proposed contract does not say. It is separate from conformance review and does not
+claim the contract is correct.
+
+Reviewed artifacts:
+
+- [C1-C12 capability contract](./Brontide-Channel-0.2-Capability-Contract-0.1.md);
+- [session state machine](./Brontide-Channel-0.2-Session-State-Machine-0.1.md);
+- [interaction state machine](./Brontide-Channel-0.2-Interaction-State-Machine-0.1.md); and
+- [responsibility matrix](./Brontide-Channel-0.2-Responsibility-Matrix-0.1.md).
+
+## Method
+
+For each capability the review looked for:
+
+- an input, state, sequence, or perspective the contract leaves without an answer;
+- two owners for one fact or no owner;
+- a terminal path without effect certainty;
+- a peer claim that could be manufactured locally;
+- a future extension that would have to reinterpret a core identity or terminal fact; and
+- a property that could pass without exercising the behavior it claims.
+
+## Findings closed in the first-batch contract
+
+### C1 — fixed establishment was an assertion, not an equivalence
+
+Channel 0.1 allowed negotiation to be optional but did not define the complete record a fixed path
+must establish. That permits fixed and negotiated realizations to agree on calls while disagreeing
+on unsupported features, roles, limits, or authority mode. C1 now requires one canonical established
+profile and byte/semantic equality between the two paths. A vector mutates one fixed-only fact.
+
+### C2 — Ready cannot be both Channel and Composition state
+
+The predecessor's global lifecycle treated Ready as a Channel state, while Architecture 0.8 makes it
+the last Establishment stage of a Component group. Keeping both would allow a peer signal to create a
+composition fact. The session machine removes Interconnection, Ready, Release, and binding withdrawal
+from Channel state and consumes them only as explicit profile guard inputs.
+
+### C2 — drain needed an answer for existing work
+
+“No new requests after withdrawal” did not say whether admitted interactions finish, are cancelled,
+or become unknown. Drain now freezes the admitted set, refuses new interactions, permits existing
+ones to terminate, and faults if close arrives while they remain nonterminal.
+
+### C3/C7 — relational initialization should not create a parallel invocation system
+
+Decision 13 selected a new traffic capability, and its wording suggested a new envelope kind. A
+dedicated kind would duplicate Operation, Capability, Shape, correlation, cancellation, terminality,
+and observation. The contract instead makes it a distinct interaction class under the same machine,
+with exact declaration and pre-Ready guard. This preserves the semantic ruling while changing its
+representation.
+
+### C4 — “single invocation” hid the future concurrency break
+
+The predecessor fixed one active request and therefore never answered outcome ordering, drain with
+siblings, replay reservation, or session failure across siblings. C4 supports a finite declared
+bound and specifies independent terminal histories, out-of-order completion, atomic admission, and
+drain/fault behavior. A profile may still select one.
+
+### C4 — reconnect cannot inherit identity silently
+
+Without an answer, a new transport could reuse a Channel identity and accidentally inherit replay or
+in-flight state. Closed/faulted sessions never resume; reconnect creates a new session identity. A
+future resumption contract must state durable identity and replay semantics explicitly.
+
+### C5 — environmental limits could reject a negotiated profile invisibly
+
+Channel 0.1 froze one limit set from two fixtures. A 0.2 implementation with a tighter environmental
+limit might otherwise accept a profile and fail later. C5 requires every effective normative bound
+to be exposed and accepted at establishment. Profile/resource limits stay with their owner.
+
+### C6 — phase eligibility and delivery are not authority
+
+A class admitted in the correct activation phase might be treated as authorized because the
+composition root initiated it. C3 and C6 now require separate exact phase and local authority
+decisions. Relational authority is narrow and does not flow into ordinary interaction.
+
+### C7 — failed relational work cannot be projected as an incomplete “not Ready” alone
+
+If an interaction may have performed effects and its Outcome is lost, merely withholding Ready loses
+the cleanup evidence CM4 needs. C7 returns the actual terminal provenance and C10 certainty to the
+composition owner; unknown remains unknown and rollback is not fabricated.
+
+### C8 — cancellation acknowledgement is not terminal
+
+Treating cancellation acceptance as terminal would claim the handler stopped and erase possible
+effects. The interaction stays nonterminal until a semantic Outcome, peer fault, or local loss. The
+contract also separates cancellation authority from invocation authority.
+
+### C8 — terminal races require a first accepted history
+
+Cancellation, timeout, peer fault, and Outcome can race. C8 now admits at most one terminal history;
+late facts are recorded without replacing it. Endpoint perspectives may differ after transport loss,
+so the contract does not invent a global winner neither endpoint can prove.
+
+### C9 — unknown fault categories otherwise create fault loops
+
+The 0.1 rule mapped an unknown error category to `unsupported-kind`, inviting the receiver to answer
+an error with another error. C9 records local `unrecognized-peer-fault`, faults the session, and sends
+no answering fault.
+
+### C9 — process failure cannot be a peer message
+
+The predecessor documented process categories beside envelope categories. The redesign gives local
+loss a separate artifact and moves peer-unavailable to the launcher/binding owner when no Channel
+session exists.
+
+### C10 — a universal provider effect count is not a Channel fact
+
+PB8 showed both stacks fabricated zero where the endpoint lacked evidence. Even a nullable count is
+profile-specific: many Channel interactions have no meaningful universal “provider effect.” Channel
+now owns effect certainty; Portable Binding or another profile owns counts/details. Known-none
+requires proof before dispatch or explicit handler evidence.
+
+### C11 — extension seams need invariants, not only non-promises
+
+Saying streaming, retry, and delivery belong elsewhere did not prevent a later extension from
+redefining correlation, terminality, or authority. C11 permits exact facets but forbids them to change
+core identity, authority, provenance, and certainty. Retry is a new interaction identity with causal
+attribution, never replay of the old one.
+
+### C12 — capability properties need negative probes
+
+A property can quantify all vectors and still assert something no implementation can violate. The
+neutral brief requires one named mutation per property and retained failing output before the
+property counts as evidence.
+
+## Required silence probes and dispositions
+
+| Probe | Contract answer | Owner if future behavior is added |
+| --- | --- | --- |
+| two interactions complete out of order | legal; independent terminal histories | Channel core |
+| concurrency bound races at admission | reserve atomically; one refusal, no lasting replay entry | Channel core/runtime mechanism |
+| cancel before dispatch | local refusal/no cancel frame; admission may itself be abandoned locally | Channel core |
+| cancel during possible effects | accepted/refused nonterminal ack; final Outcome/fault/loss required | Channel + Operation profile |
+| cancel after terminal | late control; terminal history unchanged | Channel core |
+| drain with in-flight work | no new admission; existing work terminates | Channel core |
+| peer closes before drained work ends | session fault; each interaction local loss/unknown as applicable | Channel core/local observer |
+| half-close | loss unless a future exact simplex profile exists | transport profile/future Channel version |
+| partial frame | no interaction; bounded local/peer structural failure | realization + Channel provenance |
+| oversized profile declaration | establishment refusal, known-none | Channel profile validator |
+| allocation failure | sanitized local loss/fault at exact stage | local realization |
+| replay after semantic failure | replay remains replay; no redispatch | Channel core |
+| retry after local loss | new identity/attempt; old remains lost | Distributed/host facet |
+| unknown optional extension | ignored only with declared additive absence rule | Channel profile |
+| downgrade request | refused; no nearest-version selection | Channel core |
+| authority revoked between profile establishment and dispatch | local authority re-evaluated per interaction; deny | authority domain |
+| authority revoked after dispatch | Channel records resulting evidence; no implicit cancellation/rollback | authority/Lifecycle/Operation owner |
+| malformed/mismatched terminal after dispatch | terminal not accepted; local loss/fault with unknown effects | Channel core |
+| resource held when transport is lost | Channel reports loss; profile/resource owner cleans up or records inability | Portable Binding/Resource |
+| stream wants several partial results | requires Flow/profile facet; cannot call partial values Outcomes | Flow |
+| durable delivery repeats attempt | new interaction identity and causal link; no exactly-once claim | Distributed |
+| long-running work outlives interaction | semantic Outcome may hand off an Activity reference under Lifecycle facet | Lifecycle |
+| reconnect after fault | new session identity; no inherited replay/in-flight state | future resumption contract |
+
+## Per-capability property audit
+
+| Capability | Universal property present | Named mutation that must fail |
+| --- | --- | --- |
+| C1 | C1-P1 exact profile or known-none | remove one required facet from fixed profile only |
+| C2 | C2-P1 legal transition/terminal monotonicity | accept new interaction while draining |
+| C3 | C3-P1 exact class/direction/phase | mark unknown phase as true |
+| C4 | C4-P1 one dispatch/terminal and bounded concurrency | redispatch replayed identity or exceed bound |
+| C5 | C5-P1 all positional/bound checks before dispatch | project an authority value or dispatch oversized payload |
+| C6 | C6-P1 exact permitted local authority | treat compatibility/delivery as permission |
+| C7 | C7-P1 exact declaration/pre-Ready/no phase creation | admit wrong edge or let success create Ready |
+| C8 | C8-P1 one terminal; controls never success | make cancel acknowledgement terminal success |
+| C9 | C9-P1 exactly one provenance form | map local loss to peer fault |
+| C10 | C10-P1 no unsupported known-none after dispatch | replace unknown effect certainty with known-none |
+| C11 | C11-P1 required facets exact/core invariants stable | extension changes interaction identity or authority result |
+| C12 | C12-P1 deterministic data and independent runtimes | remove a property group or add stack dependency |
+
+## Deliberate non-goals confirmed
+
+- The contract does not choose a wire encoding or transport.
+- It does not define streaming, backpressure, durable delivery, ordering, resumption, persistence, or
+  exactly-once effects.
+- It does not define cross-domain identity, attestation, or Capability transport.
+- It does not define resource lifetime, release, fallback, or universal effect details.
+- It does not define Component resolution, activation, Ready, Release, cleanup, or rollback.
+- It does not standardize logging, metrics, tracing, or clocks.
+
+Each non-goal has an owner or requires a future Channel version. None is represented as an
+implementation-defined hole inside a core C-item.
+
+## Residual review risks
+
+These are not unowned contract holes, but the independent reviewer must challenge them:
+
+1. Supporting optional cancellation in core may be more surface than the first profile can evidence;
+   the reviewer should test whether reserving the semantics without implementing a positive path
+   creates an unfalsifiable capability.
+2. Bounded concurrency greater than one is intended to prevent another foundational break; the
+   reviewer should test whether it accidentally imports scheduling or ordering promises.
+3. The external phase predicate may be too generic and permit profiles to smuggle arbitrary policy
+   into Channel. Batch 2 must keep it a small, closed fact/predicate form.
+4. Effect certainty `known` with profile-owned details needs a precise neutral representation that
+   does not let a peer claim become locally verified evidence.
+5. The peer/local structural-error boundary depends on whether a complete frame reached the peer;
+   process vectors must force both perspectives.
+
+## Review disposition
+
+The author pass finds no unowned semantic concern in C1-C12. It does not close the first batch. A
+fresh reviewer must assess the current Architecture 0.8, predecessor evidence, Decision 13, every
+property and state transition, the responsibility matrix, this silence review, the migration ledger,
+and the neutral brief. Any blocking finding changes these artifacts before schemas or public surfaces
+are created.

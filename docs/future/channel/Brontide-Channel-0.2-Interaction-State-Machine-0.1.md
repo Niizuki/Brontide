@@ -1,0 +1,171 @@
+# Channel 0.2 interaction state machine 0.1
+
+Date: 2026-08-11
+
+Status: proposed first-batch design artifact; subject to fresh independent review.
+
+Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
+
+## Boundary
+
+One interaction is a bounded unary exchange under one established session profile. It has one
+interaction identity, one class, one initiator role, one recipient role, one Operation/input
+contract, one authority decision, and at most one accepted terminal history.
+
+“Unary” means one admitted input and one semantic terminal Outcome. Channel 0.2 may carry several
+unary interactions concurrently up to the profile's finite bound. Streaming and long-running
+activity require a declared extension facet and cannot reinterpret this state machine.
+
+## Local initiator states
+
+| State | Terminal | Meaning |
+| --- | --- | --- |
+| `candidate` | no | Local caller has proposed an interaction; no Channel admission is complete. |
+| `admitting` | no | Class, phase, Shape, bounds, authority, concurrency, and replay checks are running. |
+| `refused-local` | yes | Admission refused before dispatch; no request frame emitted and effects are `known-none`. |
+| `dispatched` | no | A complete request was committed to the transport/direct seam; provider effects may be possible. |
+| `cancel-pending` | no | A cancellation request was dispatched; the interaction still awaits a terminal fact. |
+| `outcome-succeeded` | yes | One valid correlated semantic success was accepted. |
+| `outcome-failed` | yes | One valid correlated semantic failure was accepted. |
+| `outcome-cancelled` | yes | One valid correlated semantic cancelled Outcome was accepted. |
+| `peer-fault` | yes | One valid correlated peer protocol fault was accepted. |
+| `lost` | yes | No valid peer terminal fact is available and a local loss closed the interaction. |
+
+## Local recipient states
+
+| State | Terminal | Meaning |
+| --- | --- | --- |
+| `unseen` | no | No request with this identity has been accepted. |
+| `validating` | no | Frame, profile, state, Shape, phase, authority, concurrency, and replay checks are running. |
+| `rejected-protocol` | yes | Validation failed and a bounded peer protocol fault may be emitted; handler did not begin. |
+| `executing` | no | Handler dispatch occurred. |
+| `cancel-requested` | no | A valid cancellation request was received while execution remains nonterminal. |
+| `outcome-succeeded` | yes | Handler produced semantic success and one Outcome was committed. |
+| `outcome-failed` | yes | Handler produced shaped semantic failure and one Outcome was committed. |
+| `outcome-cancelled` | yes | Handler completed through the supported cancellation contract and one Outcome was committed. |
+| `faulted` | yes | Channel cannot continue the interaction and one protocol fault was committed or local loss occurred. |
+
+The two endpoint histories need not end with the same local label when transport is lost after a peer
+commits a terminal frame. Each reports only what it can establish. Portable parity compares facts
+with the same provenance, not a fictional global state.
+
+## Initiator transitions
+
+| From | Event and guard | To | Effect certainty |
+| --- | --- | --- | --- |
+| `candidate` | begin admission under established, non-draining session | `admitting` | `known-none` |
+| `admitting` | any class/phase/Shape/authority/bound/replay/concurrency refusal | `refused-local` | `known-none` |
+| `admitting` | all checks pass and complete request commits to seam | `dispatched` | `unknown` until evidence narrows it |
+| `dispatched` | valid correlated success | `outcome-succeeded` | profile-owned known details when supplied, otherwise `known` without fabricated count |
+| `dispatched` | valid correlated semantic failure | `outcome-failed` | as reported by the profile; failure does not imply zero |
+| `dispatched` | valid correlated peer protocol fault | `peer-fault` | `known-none` only when fault explicitly proves handler did not begin; otherwise `unknown` |
+| `dispatched` | valid cancellation request commits | `cancel-pending` | remains unchanged/unknown |
+| `cancel-pending` | cancellation accepted or refused acknowledgement | `cancel-pending` | acknowledgement is nonterminal and proves no effect fact |
+| `cancel-pending` | valid correlated success/failure/cancelled Outcome | matching Outcome terminal | profile-owned evidence; acceptance is not retroactive rollback |
+| `dispatched` or `cancel-pending` | timeout, interruption, peer close, or unusable terminal frame | `lost` | `unknown` unless explicit evidence proves otherwise |
+| any terminal | any further terminal/control | unchanged terminal | duplicate/late traffic recorded; first accepted history remains authoritative |
+
+## Recipient transitions
+
+| From | Event and guard | To | Handler effect possible? |
+| --- | --- | --- | --- |
+| `unseen` | complete request for an established session arrives | `validating` | no |
+| `validating` | structural/profile/state/class/phase/Shape/authority/bound/replay/concurrency check fails | `rejected-protocol` | no |
+| `validating` | all checks pass and dispatch boundary is crossed | `executing` | yes |
+| `executing` | handler returns success | `outcome-succeeded` | yes/known by profile evidence |
+| `executing` | handler returns shaped failure | `outcome-failed` | possible; failure is not rollback |
+| `executing` | valid cancellation control arrives | `cancel-requested` | possible/already occurred |
+| `cancel-requested` | handler reports cancellation completed | `outcome-cancelled` | possible; report exact evidence |
+| `cancel-requested` | handler completes normally or with failure | matching Outcome terminal | possible; cancellation was not guaranteed |
+| `executing` or `cancel-requested` | internal Channel failure before terminal commit | `faulted` | `unknown` unless handler boundary evidence narrows it |
+| any terminal | repeated request with same identity | unchanged terminal | no redispatch; replay fault/observation |
+
+## Admission order
+
+The local and peer admission pipelines use the same semantic order so a lower-level malformed value
+cannot be reclassified by a later policy decision:
+
+1. bounded frame completeness and structural decoding;
+2. exact Channel version and established session identity;
+3. recognized message/control kind;
+4. interaction identity syntax, scope, replay, and concurrency bound;
+5. exact profile and interaction class/direction;
+6. external phase predicate;
+7. payload Shape and declared bounds;
+8. authority/control structure without projection;
+9. local authority decision; and
+10. handler dispatch.
+
+Steps 1-9 cannot cause a provider/application handler effect. An implementation may combine passes
+mechanically, but its observable classification and zero-effect boundary must match this order.
+
+## Concurrent interactions
+
+- Admission reserves one in-flight position atomically before dispatch.
+- A refusal caused by the bound emits no local request and does not consume a lasting replay entry.
+- Accepted interaction identities enter the replay set before handler dispatch.
+- Outcomes may arrive in any order and close only their named interaction.
+- Drain snapshots the admitted set and refuses new candidates; it does not reorder or cancel the set.
+- A fatal session fault maps every nonterminal local initiator interaction to `lost` and every
+  nonterminal local recipient interaction to `faulted`, each with its own effect evidence.
+
+The contract promises no fairness. A finite bound is a safety/resource fact, not a scheduling policy.
+
+## Cancellation
+
+Cancellation is optional in the profile and exact when present:
+
+1. the profile declares whether cancellation is unsupported, optional, or required for a class;
+2. required cancellation unsupported by either endpoint refuses C1 establishment;
+3. cancellation has a distinct authority requirement and may be denied independently;
+4. a request is legal only for `dispatched`/`executing` nonterminal interaction;
+5. `accepted` means the recipient has accepted responsibility to request cancellation from the
+   handler, not that the handler has stopped and not that effects are zero;
+6. `refused` means execution continues under the ordinary terminal contract;
+7. only a semantic Outcome, peer fault, or local loss is terminal; and
+8. a cancel request racing a terminal Outcome accepts whichever terminal fact is valid first, while
+   the late control is recorded and does not replace it.
+
+## Relational initialization
+
+`relational-initialisation` is an interaction class, not a session state and not a separate terminal
+model. Its admission record additionally contains the exact lifecycle declaration identity, edge,
+direction, initiating member, receiving member, Operation, Capability requirement, and input Shape.
+
+The external predicate is `interconnected && !ready`. Success is evidence consumed by the
+composition root; Channel does not mark the member Ready. Any other terminal form blocks that root
+from claiming relational completion. Ordinary interaction uses the same machine with a different
+class and `released` predicate.
+
+## Terminal provenance
+
+| Terminal history | Peer semantic statement? | Peer Channel statement? | Local observation? |
+| --- | --- | --- | --- |
+| `refused-local` | no | no | yes |
+| `outcome-succeeded/failed/cancelled` | yes | no | receipt/commit also observed locally |
+| `peer-fault` / recipient `rejected-protocol` | no | yes | receipt/commit also observed locally |
+| `lost` | no | no | yes |
+
+No adapter may translate horizontally between these columns merely because its local API has one
+error union.
+
+## Capability-wide properties
+
+- **I1.** One interaction identity crosses the dispatch boundary at most once per session.
+- **I2.** Every accepted interaction has at most one terminal history.
+- **I3.** No cancellation acknowledgement, drain event, timeout, or protocol fault becomes semantic
+  success.
+- **I4.** Every pre-dispatch refusal is `known-none`; every possible post-dispatch loss is `unknown`
+  unless explicit evidence narrows it.
+- **I5.** Concurrency never exceeds the established finite bound under any generated interleaving.
+- **I6.** A relational interaction matches exactly one declaration and never creates Ready/Release.
+- **I7.** A terminal fact for one interaction changes no sibling interaction's terminal history.
+
+## Deliberate limits
+
+Core 0.2 does not define bidirectional streams, server-initiated unsolicited events, partial Outcomes,
+or persistent activity. A profile needing them must declare a facet whose design preserves the core
+session identity, authority regime, and terminal provenance or use a later Channel version.
+
+Core cancellation is cooperative and observable. It is not preemption, transaction rollback, or an
+exactly-once guarantee.

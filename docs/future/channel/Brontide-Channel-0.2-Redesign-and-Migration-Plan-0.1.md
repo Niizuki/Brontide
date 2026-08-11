@@ -2,8 +2,8 @@
 
 ## Channel 0.2 Redesign and Migration Plan 0.1
 
-**Status:** Planned next work. Contract-first redesign; no Channel 0.2 implementation or
-ratification is claimed.
+**Status:** First-batch design foundation drafted; four owner confirmations and fresh independent
+design review remain before Batch 2. No Channel 0.2 implementation or ratification is claimed.
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),
 [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md), and the
@@ -179,6 +179,8 @@ provider implementation. Its artifacts form one review unit because each constra
 
 ### 7.1 Fresh C1-Cn capability contract
 
+Author-pass artifact: [Channel 0.2 C1-C12 capability contract](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
+
 Write a new behavioral contract from observable inputs, states, effects, outcomes, and failures. It
 must not copy C1-C10 merely because Portable Binding 0.1 used them. Each capability item includes:
 
@@ -197,6 +199,8 @@ the completeness review shows one property has multiple owners.
 
 ### 7.2 Explicit session state machine
 
+Author-pass artifact: [Channel 0.2 session state machine](./Brontide-Channel-0.2-Session-State-Machine-0.1.md).
+
 Specify states, events, guards, effects, terminal states, and illegal transitions. At minimum, test
 the distinctions among unestablished, established, interconnected where applicable, ready, released
 where applicable, draining/withdrawing, closed, and faulted states. The model must say which of those
@@ -206,6 +210,8 @@ Every transition states who may initiate it, what is transmitted, whether provid
 occurred, and what late or duplicate traffic means. Readiness is never inferred from establishment.
 
 ### 7.3 Explicit interaction state machine
+
+Author-pass artifact: [Channel 0.2 interaction state machine](./Brontide-Channel-0.2-Interaction-State-Machine-0.1.md).
 
 Specify the lifecycle of one interaction independently from the session. Cover admission, dispatch,
 peer acceptance where present, semantic Outcome, peer protocol fault, cancellation or its explicit
@@ -217,11 +223,15 @@ for relational initialization and the post-Release window for ordinary invocatio
 
 ### 7.4 Responsibility matrix
 
+Author-pass artifact: [Channel 0.2 responsibility matrix](./Brontide-Channel-0.2-Responsibility-Matrix-0.1.md).
+
 Complete the matrix begun in section 6 against Channel, Portable Binding, Component Management,
 Composition, Lifecycle, Flow, Distributed, Realtime, authority domains, and concrete transports.
 For every shared boundary, name the direction of dependency and the neutral artifact crossing it.
 
 ### 7.5 Contract-completeness and silence review
+
+Author-pass artifact: [Channel 0.2 contract-completeness review](./Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md).
 
 Conduct a review separate from conformance review. It asks, per capability, what the contract does
 not say. At minimum it probes:
@@ -243,6 +253,8 @@ extension seam. Agreement between the two existing stacks is not evidence that s
 
 ### 7.6 Channel 0.1 to 0.2 migration ledger
 
+Author-pass artifact: [Channel 0.1-to-0.2 migration ledger](./Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md).
+
 Inventory every 0.1 logical Shape, field, message kind, state, category, failure domain, limit,
 vector, and observation field. Give each one exactly one disposition:
 
@@ -258,12 +270,17 @@ pins remain untouched.
 
 ### 7.7 Neutral contract and vector design brief
 
+Author-pass artifact: [Channel 0.2 neutral contract/vector brief](./Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md).
+
 Before authoring schemas, define the data-only artifact boundaries, identifier representations,
 version-negotiation rule, vector grouping, capability-wide property format, expected observations,
 and golden-encoding policy. The brief must be implementable without importing either stack and must
 not derive expectations from one implementation's public API.
 
 ### 7.8 Fresh independent design review
+
+Review policy and future attestations: [`reviews/`](./reviews/README.md). No independent attestation
+exists yet; the author pass does not satisfy this step.
 
 Obtain a fresh-context review of the complete first batch before implementation. Reviewers assess
 Architecture 0.8, both local implementation targets, the retained 0.1 evidence, Decision 13, every
@@ -421,10 +438,10 @@ stable extension.
 
 | Owner | Question | Needed by |
 | --- | --- | --- |
-| Channel architecture maintainers | Which concurrency and cancellation facts belong to core 0.2 versus a declared extension profile? | First-batch state machines |
-| Channel and Portable Binding maintainers | Which session states are Channel-native, and which binding/composition facts merely gate Channel interactions? | First-batch responsibility matrix |
-| Channel, Lifecycle, and Component Management maintainers | Is relational initialization represented as a distinct message kind or a state-gated interaction class? | First-batch interaction model |
-| Flow, Distributed, Realtime, and Channel maintainers | What minimum extension hooks preserve Channel correlation, authority, and terminality without importing those extensions' guarantees? | First-batch completeness review |
+| Channel architecture maintainers | Confirm the proposed ruling: core defines finite bounded unary concurrency and optional cancellation terminal semantics; profiles select their support/bound. | Before independent-review closure |
+| Channel and Portable Binding maintainers | Confirm the proposed ruling: Channel owns only unestablished/establishing/established/draining/closed/faulted; binding/composition own Interconnection, Ready, Release, withdrawal, and cleanup. | Before independent-review closure |
+| Channel, Lifecycle, and Component Management maintainers | Confirm the proposed ruling: relational initialization is an exact state-gated interaction class, not a distinct envelope family. | Before independent-review closure |
+| Flow, Distributed, Realtime, and Channel maintainers | Confirm the proposed ruling: exact profile facets may add classes/evidence but cannot redefine Channel identities, authority, terminal provenance, or effect certainty. | Before independent-review closure |
 
 ## Resolved questions
 
