@@ -2,9 +2,9 @@
 
 Date: 2026-08-11
 
-Status: author pass plus B1-B4, N1-N3, F1-F3, and D1-D5 correction passes complete; fresh independent
-totality closure review remains required. This review asks what the proposed contract does not say.
-It is separate from conformance review and does not claim the contract is correct.
+Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, and T1-T4 correction passes complete.
+A fresh independent closure re-review remains required. This review asks what the proposed contract
+does not say. It is separate from conformance review and does not claim the contract is correct.
 
 Reviewed artifacts:
 
@@ -265,5 +265,26 @@ terminal. D5 moves the predecessor delivery-fallback observation to its owning d
 
 The new [state/event coverage grid](./Brontide-Channel-0.2-State-Event-Coverage-0.1.md) closes the
 event domain across every session, initiator, recipient, and terminal state. The verifier was
-extended before correction and observed D1-D5 plus the missing grid fail. These changes still need a
-fresh independent totality closure review and do not authorize Batch 2 themselves.
+extended before correction and observed D1-D5 plus the missing grid fail.
+
+The totality review at `5cf42c4d97083324ffb8d6bd68491a145b8e611a` closed every retained finding
+through D1-D5 and confirmed the closed event domain by independent enumeration, but recorded one
+blocking and three nonblocking findings in the retained
+[totality closure attestation](./reviews/channel-0.2-design-foundation-totality-closure-attestation.md).
+T1 is corrected by removing the migration ledger's permission for a peer fault on an external phase
+refusal, which contradicted the D3 correction it was part of; the fault is now stated as never
+applying to a phase predicate. T2 is corrected by binding `replay-detected` to the nonterminal window
+and naming the late-traffic latch for a repeat after terminal. T3 is corrected by giving a
+handler-reported `cancelled` terminal after an acknowledged cancellation refusal one explicit result —
+an interaction-scoped `internal-channel-failure` at the recipient and a peer fault at the initiator —
+instead of leaving it to the wrong-state catch-all, which would have left a finished handler's
+interaction nonterminal until loss. T4 is corrected by giving every first-batch status block one
+stable phrase for the review it awaits.
+
+The escalating cycle adjectives are themselves the cause of T4: four successive reviews were named
+"closure", "final closure", "definitive closure", and "totality closure", and three status blocks
+were left pointing at a cycle that had already run. The verifier now pins one stable phrase and
+rejects the superseded names in a status block, so the next cycle cannot repeat the drift.
+
+These changes still need a fresh independent closure re-review and do not authorize Batch 2
+themselves.

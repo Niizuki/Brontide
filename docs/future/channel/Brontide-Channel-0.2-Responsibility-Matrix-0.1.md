@@ -3,7 +3,8 @@
 Date: 2026-08-11
 
 Status: proposed first-batch ownership contract; B3 and cross-artifact N1 corrected after independent
-review and subject to fresh independent final closure review.
+review and confirmed unchanged by the fourth and fifth reviews. It is subject to
+a fresh independent closure re-review.
 
 ## Rule
 

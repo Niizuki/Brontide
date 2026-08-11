@@ -2,8 +2,8 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch totality artifact; added after D1-D4 and subject to fresh independent
-totality closure review.
+Status: proposed first-batch totality artifact; added after D1-D4, corrected for T3, and subject to a
+fresh independent closure re-review.
 
 Normative companions:
 
@@ -64,7 +64,7 @@ one route.
 | `unseen` / `validating` | validation rows | wrong class/state → `rejected-protocol` | impossible local action | structural/local-refusal split | local session route | `rejected-protocol` |
 | `executing` | live replay → `peer-fault` | authorized → `cancel-requested`; denied → `cancel-refused`; invalid → `peer-fault` | success/failure accepted | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-requested` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure/cancelled accepted | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
-| `cancel-refused` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure accepted; cancelled is invalid | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
+| `cancel-refused` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | any terminal | late-traffic latch | late-traffic latch | late-traffic latch | terminal preserved | local observation; terminal preserved | local record; no reply loop |
 
 ## Late-traffic latch

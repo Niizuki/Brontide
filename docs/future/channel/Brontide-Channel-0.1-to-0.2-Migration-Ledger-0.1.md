@@ -2,8 +2,8 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch migration disposition; B4, N1/N3, F3, and D5 corrected after independent
-review and subject to fresh independent totality closure review. Serialized spellings remain
+Status: proposed first-batch migration disposition; B4, N1/N3, F3, D5, and T1/T2 corrected after
+independent review and subject to a fresh independent closure re-review. Serialized spellings remain
 unselected until the neutral contract batch.
 
 Sources inventoried:
@@ -108,9 +108,9 @@ The labels below are logical design names, not serialized spellings.
 | `correlation-mismatch` | **replaced** | `invalid-interaction-correlation`, including missing, extra, wrong-session, reused, or mismatched identities as the detailed reason. Replay remains separately classified when reuse is known. |
 | `invalid-payload` | **retained** | Interaction-scoped, before handler dispatch. |
 | `invalid-authority-presentation` | **retained** | Interaction-scoped, before handler dispatch; no authority projection. |
-| `replay-detected` | **retained** | Same session/interaction identity already accepted; no redispatch. |
+| `replay-detected` | **retained** | A repeated accepted identity received while its original interaction is nonterminal; no redispatch. A repeat arriving after that interaction is terminal follows the late-traffic latch as `state-violation` instead. |
 | `limit-exceeded` | **retained** | Scope identifies session establishment, frame, interaction, or declared profile bound. |
-| `state-violation` | **retained** | Scope identifies session versus interaction; external phase refusal may be local frameless or peer fault depending where detected. |
+| `state-violation` | **retained** | Scope identifies session versus interaction. An external phase refusal is never this fault: a false or unknown predicate is a frameless local refusal at either endpoint under C3. |
 | `internal-protocol-failure` | **replaced** | `internal-channel-failure`, sanitized and scoped; never a runtime exception transport. |
 
 New local-only classification: `unrecognized-peer-fault`. It records that the incoming peer-fault

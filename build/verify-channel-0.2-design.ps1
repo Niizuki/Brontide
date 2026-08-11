@@ -60,6 +60,7 @@ $responsibility = Read-RequiredText 'Brontide-Channel-0.2-Responsibility-Matrix-
 $completeness = Read-RequiredText 'Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md'
 $migration = Read-RequiredText 'Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md'
 $neutralBrief = Read-RequiredText 'Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md'
+$channelReadme = Read-RequiredText 'README.md'
 $reviewReadme = Read-RequiredText 'reviews\README.md'
 
 if ($NegativeProbe) {
@@ -136,6 +137,9 @@ Assert-ContainsAll 'Channel 0.2 duplicate terminal fault action' $interaction @(
     '`fault-unavailable`',
     'first duplicate semantic terminal or late non-fault control',
     'one interaction-scoped `state-violation` peer fault'
+)
+Assert-ContainsAll 'Channel 0.2 invalid cancelled handler terminal' $interaction @(
+    '| `cancel-refused` | handler reports cancellation completed after the refusal was acknowledged | `peer-fault` | possible; commit one interaction-scoped `internal-channel-failure` and record the discarded handler terminal |'
 )
 Assert-ContainsAll 'Channel 0.2 state/event coverage' $stateEventCoverage @(
     '## Closed-world totality rule',
@@ -237,6 +241,18 @@ Assert-ContainsAll 'Channel 0.1 observation migration' $migration @(
 Assert-ContainsAll 'Channel 0.1 delivery fallback migration' $migration @(
     '| delivery `fallback` | **moved** | Delivery/retry facet observation; exact `none` remains a valid attributable value and Channel core does not infer another attempt. |'
 )
+Assert-ContainsAll 'Channel 0.2 external phase refusal provenance' $migration @(
+    '| `state-violation` | **retained** | Scope identifies session versus interaction. An external phase refusal is never this fault: a false or unknown predicate is a frameless local refusal at either endpoint under C3. |'
+)
+# T1: the ledger may not offer an adapter author a peer-fault reading of a refusal that C3 and the
+# recipient machine require to be frameless at both endpoints.
+if ($migration.IndexOf('external phase refusal may be local frameless or peer fault', [System.StringComparison]::Ordinal) -ge 0) {
+    $failures.Add('The migration ledger must not permit a peer fault for an external phase refusal.')
+}
+Assert-ContainsAll 'Channel 0.2 replay window migration' $migration @(
+    '| `replay-detected` | **retained** | A repeated accepted identity received while its original interaction is nonterminal; no redispatch. A repeat arriving after that interaction is terminal follows the late-traffic latch as `state-violation` instead. |'
+)
+
 $vectorMigrationSection = ($migration -split '## Channel 0.1 vector migration', 2)[1] -split '## New evidence required by redesign', 2 | Select-Object -First 1
 $allowedDispositions = @('retained', 'replaced', 'moved', 'removed', 'legacy-only')
 $allDispositionRows = @($migration -split "`r?`n" | Where-Object { $_ -match '^\| .* \| \*\*[^*]+\*\* \|' })
@@ -298,24 +314,57 @@ Assert-ContainsAll 'Channel 0.2 neutral brief' $neutralBrief @(
 )
 Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
     'four owner rulings resolved',
-    'fresh independent totality closure review is pending',
+    'fresh independent closure re-review is pending',
     '## Required review scope',
     '## Required verdicts',
     '## Closure',
     '## Exact next work',
-    '`5cf42c4d97083324ffb8d6bd68491a145b8e611a`',
-    '`channel-0.2-design-foundation-totality-closure-attestation.md`',
+    '`channel-0.2-design-foundation-closure-re-review-attestation.md`',
     '`channel-0.2-design-foundation-closure-record.md`',
     '`build/verify-channel-0.2-design.ps1`',
     '`build/verify-interchange.ps1`'
 )
 
+# T4: every first-batch artifact's own status block names the review cycle it is actually waiting
+# for. The escalating adjectives of the earlier cycles ("final", "definitive", "totality") left three
+# status blocks pointing at a review that had already happened, so the phrase is now one stable
+# string. Only the status block is constrained; the completeness review's history of earlier cycles
+# is retained evidence and names them deliberately.
+function Get-StatusBlock {
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Content)
+
+    $firstSection = $Content.IndexOf("`n## ", [System.StringComparison]::Ordinal)
+    if ($firstSection -lt 0) {
+        return $Content
+    }
+    return $Content.Substring(0, $firstSection)
+}
+
+$statusArtifacts = [ordered]@{
+    'Channel 0.2 capability contract status'   = Get-StatusBlock $contract
+    'Channel 0.2 session state machine status' = Get-StatusBlock $session
+    'Channel 0.2 interaction machine status'   = Get-StatusBlock $interaction
+    'Channel 0.2 state/event coverage status'  = Get-StatusBlock $stateEventCoverage
+    'Channel 0.2 responsibility matrix status' = Get-StatusBlock $responsibility
+    'Channel 0.2 completeness review status'   = Get-StatusBlock $completeness
+    'Channel 0.2 migration ledger status'      = Get-StatusBlock $migration
+    'Channel 0.2 index status'                 = $channelReadme
+}
+foreach ($statusArtifact in $statusArtifacts.GetEnumerator()) {
+    Assert-ContainsAll $statusArtifact.Key $statusArtifact.Value @('fresh independent closure re-review')
+    foreach ($supersededCycle in @('definitive closure review', 'final closure review', 'totality closure review')) {
+        if ($statusArtifact.Value.IndexOf($supersededCycle, [System.StringComparison]::Ordinal) -ge 0) {
+            $failures.Add("$($statusArtifact.Key) still names the superseded '$supersededCycle'.")
+        }
+    }
+}
+
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 D1-D5 correction pin must retain exactly the review README and all four negative attestations before totality closure re-review.')
+    $failures.Add('The Channel 0.2 T1-T4 correction pin must retain exactly the review README and all five negative attestations before the closure re-review.')
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'channel\0.2')) {

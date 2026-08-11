@@ -31,9 +31,9 @@ agrees and its review has no blocking finding.
 
 The [first-batch design package](./channel/README.md) now includes C1-C12, both state machines, a
 closed state/event grid, the responsibility matrix, silence review, migration ledger, neutral-
-artifact brief, four resolved owner rulings, and four retained independent review cycles. Every
-finding through D1-D5 has a contract-first correction at the current pin. The exact next work is a
-fresh totality closure review and closure record under the
+artifact brief, four resolved owner rulings, and five retained independent review cycles. Every
+finding through T1-T4 has a contract-first correction at the current pin. The exact next work is a
+fresh independent closure re-review and closure record under the
 [review handoff](./channel/reviews/README.md#exact-next-work). No Channel 0.2 schema or implementation
 is authorized until that handoff closes cleanly.
 

@@ -1,7 +1,13 @@
 # Channel 0.2 design-foundation reviews
 
-Status: four owner rulings resolved; four negative independent reviews retained; B1-B4, N1-N3,
-F1-F3, and D1-D5 have correction passes and fresh independent totality closure review is pending.
+Status: four owner rulings resolved; five negative independent reviews retained; B1-B4, N1-N3,
+F1-F3, D1-D5, and T1-T4 have correction passes and a fresh independent closure re-review is pending.
+
+Review cycles are numbered from here rather than named. The first four were called "closure",
+"final closure", "definitive closure", and "totality closure", and that escalation is what produced
+T4: three artifacts were left naming a cycle that had already run. Every artifact now says it awaits
+"a fresh independent closure re-review", and the design verifier rejects a status block that names a
+superseded cycle.
 
 This directory retains independent attestations for the complete Channel 0.2 first-batch design
 foundation. A review is independent only when its reviewer identity differs from the design author,
@@ -61,14 +67,15 @@ The author correction pass and ordinary documentation gates are not independent 
 
 The next agent closes the first batch; it does **not** begin schemas or implementation.
 
-1. Review the immutable correction pin
-   `5cf42c4d97083324ffb8d6bd68491a145b8e611a` from a fresh isolated clone and a reviewer identity
-   distinct from the author and all four retained reviewers. Read `AGENTS.md`, this policy, all four
-   retained attestations, and every artifact in the required scope. Enumerate the complete
-   session/initiator/recipient state-event grid independently, attempt to falsify at least one Cn-P1
-   property, explicitly decide B1-B4, N1-N3, F1-F3, and D1-D5, and search for new blockers.
+1. Review the immutable T1-T4 correction pin recorded under
+   [retained attestations](#retained-attestations) from a fresh isolated clone and a reviewer
+   identity distinct from the correction author and all five retained reviewers. Read `AGENTS.md`,
+   this policy, all five retained attestations, and every artifact in the required scope. Enumerate
+   the complete session/initiator/recipient state-event grid independently, attempt to falsify at
+   least one Cn-P1 property, explicitly decide B1-B4, N1-N3, F1-F3, D1-D5, and T1-T4, and search for
+   new blockers.
 2. The reviewer writes only
-   `channel-0.2-design-foundation-totality-closure-attestation.md`. It records the full pin,
+   `channel-0.2-design-foundation-closure-re-review-attestation.md`. It records the full pin,
    isolation, per-capability/area/ruling verdicts, retained-finding decisions, probes, and either
    `conforms` or exact new findings. It does not repair the design or create a closure record.
 3. If the verdict is negative, retain the attestation unchanged, add failing verifier/model checks
@@ -108,6 +115,23 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
 - [Definitive closure review](./channel-0.2-design-foundation-definitive-closure-attestation.md) —
   reviewed `1b7c5fdea0dc555a64152eea055fcebad053cf90`; `does-not-conform`; all earlier findings closed and
   D1-D5 retained for totality closure comparison.
+- [Totality closure review](./channel-0.2-design-foundation-totality-closure-attestation.md) —
+  reviewed `5cf42c4d97083324ffb8d6bd68491a145b8e611a`; `does-not-conform`; D1-D5 closed, blocking T1
+  and nonblocking T2-T4 retained for closure re-review comparison.
+
+The T1-T4 correction pin is recorded in the handoff line at the end of this section once the
+correction commit exists; review that commit, not this README's own commit.
 
 No conforming closure attestation exists yet. The corrected artifacts remain nonconforming evidence
 until a fresh reviewer closes every retained finding and reports no new blocker.
+
+## Disclosed process deviation in the T1-T4 correction
+
+The totality review and the T1-T4 correction pass were performed in one session by
+`agent:claude-opus-5-channel-0.2-totality-closure-2026-08-11-5cf42c4`, on the repository owner's
+explicit instruction, rather than by separate reviewer and author actors. This departs from the rule
+above that a reviewer does not repair the design it reviews, and it is recorded here so the next
+reviewer weighs the T1-T4 corrections knowing their author also wrote the attestation that found
+them. The retained attestation itself is unmodified, and the independence requirement on the next
+cycle is unchanged: its reviewer must differ from that identity and from all five retained
+reviewers.
