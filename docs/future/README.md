@@ -29,6 +29,14 @@ contract-completeness and silence review, a complete 0.1-to-0.2 migration ledger
 brief, and fresh independent design review. Neither stack implements Channel 0.2 until that package
 agrees and its review has no blocking finding.
 
+The [first-batch design package](./channel/README.md) now includes C1-C12, both state machines, a
+closed state/event grid, the responsibility matrix, silence review, migration ledger, neutral-
+artifact brief, four resolved owner rulings, and four retained independent review cycles. Every
+finding through D1-D5 has a contract-first correction at the current pin. The exact next work is a
+fresh totality closure review and closure record under the
+[review handoff](./channel/reviews/README.md#exact-next-work). No Channel 0.2 schema or implementation
+is authorized until that handoff closes cleanly.
+
 ## Completed predecessor — Portable Component Binding 0.1
 
 [Portable Component Binding Implementation Plan 0.1](./binding/Brontide-Portable-Component-Binding-Implementation-Plan-0.1.md)
@@ -1497,7 +1505,7 @@ through 16 await rulings and block no current work.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign and migration plan`](./channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the contract-first 0.2 redesign is next and unimplemented. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch author pass is drafted, with owner confirmations and independent review pending before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

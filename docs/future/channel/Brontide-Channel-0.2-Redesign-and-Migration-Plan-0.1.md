@@ -2,8 +2,10 @@
 
 ## Channel 0.2 Redesign and Migration Plan 0.1
 
-**Status:** Planned next work. Contract-first redesign; no Channel 0.2 implementation or
-ratification is claimed.
+**Status:** First-batch design foundation drafted and its four owner rulings resolved. B1-B4,
+N1-N3, and F1-F3 are closed as framed; the definitive review found D1-D5, which now have a
+contract-first correction plus a closed state/event grid and await fresh totality closure review
+before Batch 2. No Channel 0.2 implementation or ratification is claimed.
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),
 [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md), and the
@@ -179,6 +181,8 @@ provider implementation. Its artifacts form one review unit because each constra
 
 ### 7.1 Fresh C1-Cn capability contract
 
+Author-pass artifact: [Channel 0.2 C1-C12 capability contract](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
+
 Write a new behavioral contract from observable inputs, states, effects, outcomes, and failures. It
 must not copy C1-C10 merely because Portable Binding 0.1 used them. Each capability item includes:
 
@@ -197,6 +201,8 @@ the completeness review shows one property has multiple owners.
 
 ### 7.2 Explicit session state machine
 
+Author-pass artifact: [Channel 0.2 session state machine](./Brontide-Channel-0.2-Session-State-Machine-0.1.md).
+
 Specify states, events, guards, effects, terminal states, and illegal transitions. At minimum, test
 the distinctions among unestablished, established, interconnected where applicable, ready, released
 where applicable, draining/withdrawing, closed, and faulted states. The model must say which of those
@@ -207,6 +213,8 @@ occurred, and what late or duplicate traffic means. Readiness is never inferred 
 
 ### 7.3 Explicit interaction state machine
 
+Author-pass artifact: [Channel 0.2 interaction state machine](./Brontide-Channel-0.2-Interaction-State-Machine-0.1.md).
+
 Specify the lifecycle of one interaction independently from the session. Cover admission, dispatch,
 peer acceptance where present, semantic Outcome, peer protocol fault, cancellation or its explicit
 absence, timeout, interruption, duplicate/late terminal traffic, and effect uncertainty.
@@ -215,13 +223,26 @@ The model must define whether one session permits one, sequential, or concurrent
 how correlation and draining behave for the selected rule. It must also define the pre-Ready window
 for relational initialization and the post-Release window for ordinary invocation.
 
+### 7.3a Closed state/event coverage
+
+Correction-pass artifact: [Channel 0.2 state/event coverage](./Brontide-Channel-0.2-State-Event-Coverage-0.1.md).
+
+The first-batch machines additionally carry a closed-world state/event grid. Every recognized event
+family in every session, initiator, recipient, and terminal state maps to exactly one detailed row,
+named catch-all, or finite late-traffic rule. Generated Batch 2 model vectors must enumerate this
+grid. An unlisted event may not be ignored or assigned implementation-specific behavior.
+
 ### 7.4 Responsibility matrix
+
+Author-pass artifact: [Channel 0.2 responsibility matrix](./Brontide-Channel-0.2-Responsibility-Matrix-0.1.md).
 
 Complete the matrix begun in section 6 against Channel, Portable Binding, Component Management,
 Composition, Lifecycle, Flow, Distributed, Realtime, authority domains, and concrete transports.
 For every shared boundary, name the direction of dependency and the neutral artifact crossing it.
 
 ### 7.5 Contract-completeness and silence review
+
+Author-pass artifact: [Channel 0.2 contract-completeness review](./Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md).
 
 Conduct a review separate from conformance review. It asks, per capability, what the contract does
 not say. At minimum it probes:
@@ -243,6 +264,8 @@ extension seam. Agreement between the two existing stacks is not evidence that s
 
 ### 7.6 Channel 0.1 to 0.2 migration ledger
 
+Author-pass artifact: [Channel 0.1-to-0.2 migration ledger](./Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md).
+
 Inventory every 0.1 logical Shape, field, message kind, state, category, failure domain, limit,
 vector, and observation field. Give each one exactly one disposition:
 
@@ -258,6 +281,8 @@ pins remain untouched.
 
 ### 7.7 Neutral contract and vector design brief
 
+Author-pass artifact: [Channel 0.2 neutral contract/vector brief](./Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md).
+
 Before authoring schemas, define the data-only artifact boundaries, identifier representations,
 version-negotiation rule, vector grouping, capability-wide property format, expected observations,
 and golden-encoding policy. The brief must be implementable without importing either stack and must
@@ -265,10 +290,17 @@ not derive expectations from one implementation's public API.
 
 ### 7.8 Fresh independent design review
 
+Review policy, retained negative attestations, and the exact continuation instructions:
+[`reviews/`](./reviews/README.md#exact-next-work). Four independent negative attestations are
+retained. Their findings through D1-D5 have correction passes at
+`5cf42c4d97083324ffb8d6bd68491a145b8e611a`; a fresh conforming totality attestation and closure
+record are still required.
+
 Obtain a fresh-context review of the complete first batch before implementation. Reviewers assess
 Architecture 0.8, both local implementation targets, the retained 0.1 evidence, Decision 13, every
-C-item, both state machines, the responsibility matrix, the silence review, and the migration
-ledger. A finding is corrected in the design package before public surfaces are created.
+C-item, both state machines, the closed state/event grid, the responsibility matrix, the silence
+review, and the migration ledger. A finding is corrected in the design package before public
+surfaces are created.
 
 ### 7.9 First-batch exit gate
 
@@ -419,15 +451,24 @@ stable extension.
 
 ## Open questions (owners needed)
 
-| Owner | Question | Needed by |
-| --- | --- | --- |
-| Channel architecture maintainers | Which concurrency and cancellation facts belong to core 0.2 versus a declared extension profile? | First-batch state machines |
-| Channel and Portable Binding maintainers | Which session states are Channel-native, and which binding/composition facts merely gate Channel interactions? | First-batch responsibility matrix |
-| Channel, Lifecycle, and Component Management maintainers | Is relational initialization represented as a distinct message kind or a state-gated interaction class? | First-batch interaction model |
-| Flow, Distributed, Realtime, and Channel maintainers | What minimum extension hooks preserve Channel correlation, authority, and terminality without importing those extensions' guarantees? | First-batch completeness review |
+There are no unresolved owner decisions in the first-batch design foundation. Independent review may
+still identify questions that require owners before closure.
 
 ## Resolved questions
 
+- **2026-08-11 — Core concurrency and cancellation:** Channel 0.2 core defines finite bounded unary
+  concurrency and optional cancellation terminal semantics. Profiles select whether cancellation is
+  supported and choose their finite concurrency bound; they do not redefine correlation or
+  terminality.
+- **2026-08-11 — Session-state ownership:** Channel owns only `unestablished`, `establishing`,
+  `established`, `draining`, `closed`, and `faulted`. Portable Binding owns Interconnection, Release, withdrawal, and cleanup; Composition owns the Relational Initialisation phase; Component Management owns Ready. Each consumes or supplies Channel observations across a neutral seam without sharing semantic ownership.
+- **2026-08-11 — Relational initialization representation:** relational initialization is an exact,
+  state-gated interaction class using the ordinary Channel interaction form, not a distinct envelope
+  family. Lifecycle and Component Management retain ownership of the declaration and readiness
+  semantics carried by that interaction.
+- **2026-08-11 — Extension invariants:** exact profile facets may add interaction classes and
+  evidence, but cannot redefine Channel identities, authority, terminal provenance, or effect
+  certainty. A design that needs to change those invariants requires a new Channel contract version.
 - **2026-08-11 — Ratify Channel 0.1 names or migrate:** publish an explicitly migrated revision.
   Channel 0.1 remains experimental evidence; its provisional logical names are not ratified as the
   lasting public contract.

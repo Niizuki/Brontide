@@ -5,6 +5,7 @@ requirements and risk register, not a ratified Channel contract, an extension sp
 implementation claim. It adds no Brontide Base term.
 
 Successor plan: [Channel 0.2 Redesign and Migration Plan 0.1](./Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md).
+First-batch package: [Channel future-work index](./README.md).
 This ledger remains the retained Channel 0.1 evidence source and must be dispositioned item by item
 in the successor's migration ledger; it is not presumed to define the 0.2 structure.
 

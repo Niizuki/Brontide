@@ -6,6 +6,8 @@
 Brontide Base, and not an implementation or wire-format standard. Its provisional names will not be
 ratified in place; the explicitly migrated successor is planned in the
 [Channel 0.2 redesign and migration plan](./Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md).
+The successor's current first-batch artifacts and review status are indexed in the
+[Channel future-work README](./README.md).
 **Design source:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md).  
 **Decision ledger:**
 [Architecture 0.8 Channel requirements and risk ledger](./architecture-0.8-channel-requirements-and-risk-ledger.md).  
