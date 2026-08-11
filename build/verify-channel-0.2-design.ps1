@@ -361,6 +361,32 @@ foreach ($statusArtifact in $statusArtifacts.GetEnumerator()) {
     }
 }
 
+# The future-work index carries Channel's state twice: once in the Priority 1 prose and once in the
+# Other planned areas table. The table row is the one a reader reaches from another area's entry, and
+# it is the row that went stale for four review cycles, so it is pinned separately here.
+$futureIndexPath = Join-Path $repositoryRoot 'docs\future\README.md'
+if (-not (Test-Path -LiteralPath $futureIndexPath)) {
+    $failures.Add("The future-work index does not exist at 'docs/future/README.md'.")
+}
+else {
+    $futureIndex = Get-Content -Raw -LiteralPath $futureIndexPath -Encoding UTF8
+    $channelAreaRows = @($futureIndex -split "`r?`n" | Where-Object { $_ -match '^\| Channel \|' })
+    if ($channelAreaRows.Count -ne 1) {
+        $failures.Add("The future-work index must carry exactly one Channel row in Other planned areas; found $($channelAreaRows.Count).")
+    }
+    else {
+        Assert-ContainsAll 'Channel row in the future-work index' $channelAreaRows[0] @(
+            'four resolved owner rulings',
+            'fresh independent closure re-review'
+        )
+        foreach ($stale in @('owner confirmations', 'author pass is drafted', 'independent review pending')) {
+            if ($channelAreaRows[0].IndexOf($stale, [System.StringComparison]::Ordinal) -ge 0) {
+                $failures.Add("The future-work index's Channel row still says '$stale'.")
+            }
+        }
+    }
+}
+
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
 $expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md')
