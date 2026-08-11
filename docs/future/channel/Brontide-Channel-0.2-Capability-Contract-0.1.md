@@ -299,9 +299,9 @@ interaction-scoped `state-violation` peer fault and settles a finite late-traffi
 or later late traffic receives no answering frame. A structurally invalid, unrecognized, unsupported, or wrongly
 scoped cancellation control produces one interaction-scoped peer protocol fault; because invocation
 may already be executing, effect certainty remains unknown unless stronger evidence exists. A
-`cancelled` Outcome after an acknowledged cancellation refusal contradicts that accepted history and
-is invalid at both endpoints: the recipient commits an `internal-channel-failure` instead of the
-Outcome and the initiator records a peer fault. Loss after cancellation acceptance retains unknown
+`cancelled` Outcome with no cancellation request in force contradicts the accepted history and is
+invalid at both endpoints: the recipient commits an `internal-channel-failure` instead of the Outcome
+and the initiator records a peer fault. Loss after cancellation acceptance retains unknown
 effects unless stronger evidence exists.
 
 **Named scenarios.** `C8-semantic-failure-is-not-protocol-fault`,

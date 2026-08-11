@@ -274,11 +274,13 @@ blocking and three nonblocking findings in the retained
 T1 is corrected by removing the migration ledger's permission for a peer fault on an external phase
 refusal, which contradicted the D3 correction it was part of; the fault is now stated as never
 applying to a phase predicate. T2 is corrected by binding `replay-detected` to the nonterminal window
-and naming the late-traffic latch for a repeat after terminal. T3 is corrected by giving a
-handler-reported `cancelled` terminal after an acknowledged cancellation refusal one explicit result —
-an interaction-scoped `internal-channel-failure` at the recipient and a peer fault at the initiator —
-instead of leaving it to the wrong-state catch-all, which would have left a finished handler's
-interaction nonterminal until loss. T4 is corrected by giving every first-batch status block one
+and naming the late-traffic latch for a repeat after terminal. T3 is corrected by giving a `cancelled`
+terminal with no cancellation request in force one explicit result — an interaction-scoped
+`internal-channel-failure` at the recipient and a peer fault at the initiator — instead of leaving it
+to the wrong-state catch-all, which would have left a finished handler's interaction nonterminal
+until loss. The finding named the recipient's `cancel-refused` state; the correction covers the class,
+because `executing` with no cancellation control at all, and the initiator receiving such an Outcome,
+are the same contradiction and were equally unrouted. T4 is corrected by giving every first-batch status block one
 stable phrase for the review it awaits.
 
 The escalating cycle adjectives are themselves the cause of T4: four successive reviews were named

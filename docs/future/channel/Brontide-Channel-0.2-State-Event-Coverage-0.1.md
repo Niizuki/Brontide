@@ -51,7 +51,7 @@ one route.
 | Initiator state group | Local request/cancel action | Cancellation acknowledgement | Semantic terminal | Peer fault | Local loss | Other peer control |
 | --- | --- | --- | --- | --- | --- | --- |
 | `candidate` / `admitting` | admission rows; wrong-state local cancel refuses | unsolicited peer event → `peer-fault` | unsolicited → `peer-fault` | `peer-fault` with `known-none` | local refusal/loss before dispatch | `peer-fault` |
-| `dispatched` | exactly one cancel commit → `cancel-pending` | unsolicited → `peer-fault` | declared terminal accepted | `peer-fault` | `lost` | `state-violation` → `peer-fault` |
+| `dispatched` | exactly one cancel commit → `cancel-pending` | unsolicited → `peer-fault` | success/failure accepted; cancelled → `peer-fault` | `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-pending` | second local cancel refuses without a frame | first accepted/refused selects distinct state | declared race terminal accepted | `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-accepted` | further local cancel refuses | any later acknowledgement → `peer-fault` | success/failure/cancelled accepted | `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-refused` | further local cancel refuses | any later acknowledgement → `peer-fault` | success/failure accepted; cancelled → `peer-fault` | `peer-fault` | `lost` | `state-violation` → `peer-fault` |
@@ -62,7 +62,7 @@ one route.
 | Recipient state group | Request | Cancellation control | Handler terminal | Local protocol failure | Local loss | Other peer event |
 | --- | --- | --- | --- | --- | --- | --- |
 | `unseen` / `validating` | validation rows | wrong class/state → `rejected-protocol` | impossible local action | structural/local-refusal split | local session route | `rejected-protocol` |
-| `executing` | live replay → `peer-fault` | authorized → `cancel-requested`; denied → `cancel-refused`; invalid → `peer-fault` | success/failure accepted | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
+| `executing` | live replay → `peer-fault` | authorized → `cancel-requested`; denied → `cancel-refused`; invalid → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-requested` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure/cancelled accepted | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-refused` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | any terminal | late-traffic latch | late-traffic latch | late-traffic latch | terminal preserved | local observation; terminal preserved | local record; no reply loop |

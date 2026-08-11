@@ -138,8 +138,9 @@ Assert-ContainsAll 'Channel 0.2 duplicate terminal fault action' $interaction @(
     'first duplicate semantic terminal or late non-fault control',
     'one interaction-scoped `state-violation` peer fault'
 )
-Assert-ContainsAll 'Channel 0.2 invalid cancelled handler terminal' $interaction @(
-    '| `cancel-refused` | handler reports cancellation completed after the refusal was acknowledged | `peer-fault` | possible; commit one interaction-scoped `internal-channel-failure` and record the discarded handler terminal |'
+Assert-ContainsAll 'Channel 0.2 invalid cancelled terminal' $interaction @(
+    '| `executing` or `cancel-refused` | handler reports cancellation completed with no cancellation request in force | `peer-fault` | possible; commit one interaction-scoped `internal-channel-failure` and record the discarded handler terminal |',
+    '| `dispatched` or `cancel-refused` | correlated cancelled Outcome | `peer-fault` | `unknown`; cancelled contradicts a history with no cancellation request in force |'
 )
 Assert-ContainsAll 'Channel 0.2 state/event coverage' $stateEventCoverage @(
     '## Closed-world totality rule',
