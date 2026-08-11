@@ -1,9 +1,11 @@
 # Portable Binding — open owner decisions
 
-**Status:** Decisions 1 through 11 are **recorded**; **Decisions 12 through 16 are open**, raised
-2026-08-01 by CBI20 and CBI21 and 2026-08-02 by CBI23, CBI24, CBI26, and CBI27. Decisions 12, 14, 15,
-and 16 block nothing; Decision 13 blocks every activation of a CM3 group that declares a bounded
-lifecycle protocol. Decisions 1 and 2 (the PB0 exit blockers) were
+**Status:** Decisions 1 through 11 and Decision 13 are **recorded**; **Decisions 12 and 14 through 16
+are open**, raised 2026-08-01 by CBI20 and 2026-08-02 by CBI23, CBI24, CBI26, and CBI27. The four
+open decisions block nothing. Portable Binding 0.1 still refuses every activation of a CM3 group
+that declares a bounded lifecycle protocol; Decision 13 records that this is a version limitation
+and schedules the missing capability for a versioned 0.2 contract after PB8 review. Decisions 1 and
+2 (the PB0 exit blockers) were
 recorded 2026-07-24. Decisions 3 through 10 were raised by evidence in PB4, PB5, or PB6, ran on a
 provisional implementer choice while each phase proceeded, and were recorded 2026-07-28. Four of
 those eight confirm the provisional choice unchanged; four confirm it and create follow-on work,
@@ -11,7 +13,7 @@ tracked under [Work the rulings create](#work-the-rulings-create).
 **Decision 11 was raised later, by PB7, and was recorded on 2026-07-30**: negotiation now compares
 provider identity and the Binding Plan reports the provider that answered. **Decisions 12 and 13 were raised by
 CBI20 and CBI21 on 2026-08-01, and Decisions 14, 15, and 16 by CBI23, CBI24, CBI26, and CBI27 on
-2026-08-02; all five await rulings.** Non-pinned.
+2026-08-02. Decision 13 was recorded on 2026-08-11; the other four await rulings.** Non-pinned.
 
 **How to read this file.** Every decision below is written to be answerable without any other
 context: it states what was observed, what was running when the question was raised and why, what the
@@ -36,7 +38,7 @@ reader can see what was rejected and on what grounds.
 | 10 | What supplements independent implementation as a safeguard | PB6 | **Recorded** 2026-07-28 — property tests and completeness review |
 | 11 | The plan's provider fact names who was asked, not who answered | PB7 | **Recorded** 2026-07-30 — negotiation compares the provider; the plan reports who answered |
 | 12 | A receiving-domain Actor freed by a dropped member, taken by a different party | CBI20 | **Open** — raised 2026-08-01; Option A running |
-| 13 | Relational Initialisation is declared out of scope, and CM4 needs it | CBI21 | **Open** — raised 2026-08-01; Option A running |
+| 13 | Relational Initialisation is declared out of scope, and CM4 needs it | CBI21 | **Recorded** 2026-08-11 — Option A retained for 0.1; Option B selected for 0.2 |
 | 14 | Nothing records that a restart scope has children | CBI23, CBI24 | **Open** - raised 2026-08-02; Option A running |
 | 15 | CM2 can declare a Mediation that owns authority; CM5 cannot represent one | CBI26 | **Open** - raised 2026-08-02; Option A running |
 | 16 | A CM binding scope holds many bindings; a portable one names a single binding | CBI27 | **Open** - raised 2026-08-02; Option A running |
@@ -677,9 +679,10 @@ each of them argues for B; none is in scope for version 0.1.
 
 **Owner:** Portable Binding contract maintainers, with the Component Management integration owners.
 **Raised by:** CBI21, on finding that the seam and CM4 disagree about whether the stage exists.
-**Blocks:** any activation of a CM3 group that declares a bounded lifecycle protocol. CBI21 refuses
-those as `relational-initialisation-unsupported`; nothing else is blocked, because a strongly
-connected group that declares no protocol activates today.
+**Blocks:** no owner ruling remains. Portable Binding 0.1 continues to refuse any activation of a
+CM3 group that declares a bounded lifecycle protocol as `relational-initialisation-unsupported`.
+The recorded 0.2 work is required before those groups can activate through this seam; nothing else
+is blocked, because a strongly connected group that declares no protocol activates today.
 
 **Context.** CM3 plans a group carrying bounded lifecycle protocols with four stages — local
 initialisation, interconnection, **relational initialisation**, ready — and CM4 admits a lifecycle
@@ -707,8 +710,8 @@ the part of this decision with the widest blast radius.
 
 | Option | What it is | Pros | Cons |
 | --- | --- | --- | --- |
-| **A. Leave it out of scope** *(running)* | Version 0.1 keeps the declaration; CBI21's refusal names it and a composition needing a handshake does not use this seam for it | No contract change; the published schemas, vectors, and the pending independent review stay as they are; strongly connected groups that need no handshake are already delivered | CM3 and CM4 model a stage the integration can never reach, so a whole class of CM4 plan is permanently unactivatable through Portable Binding, and the two models stay knowingly out of step |
-| **B. Split readiness from establishment, and add a declared-protocol verb** | Interconnection stops implying Ready; a `relational` stage sits between them, carrying an Operation, Capability, and input Shape drawn from the group's CM3 protocols and refused otherwise; Ready becomes a separate signal | Matches CM4's stage order exactly, so the derived observations stay derived rather than claimed; the refusal rules already exist in CM4 and would be mirrored, not invented | The largest change in the layer: a new stage in the published contract, a new envelope kind, new neutral vectors in both directions, and re-measurement of the parity profiles; the pending PB8 independent reviews would be reviewing a moved target |
+| **A. Leave it out of scope** *(retained for 0.1)* | Version 0.1 keeps the declaration; CBI21's refusal names it and a composition needing a handshake does not use this seam for it | No contract change; the published schemas, vectors, and the pending independent review stay as they are; strongly connected groups that need no handshake are already delivered | CM3 and CM4 model a stage the integration can never reach through 0.1, so a whole class of CM4 plan stays unactivatable through that version |
+| **B. Split readiness from establishment, and add a declared-protocol verb** *(selected for 0.2)* | Interconnection stops implying Ready; a `relational` stage sits between them, carrying an Operation, Capability, and input Shape drawn from the group's CM3 protocols and refused otherwise; Ready becomes a separate signal | Matches CM4's stage order exactly, so the derived observations stay derived rather than claimed; the refusal rules already exist in CM4 and would be mirrored, not invented | The largest change in the layer: a new stage in the published contract, a new envelope kind, new neutral vectors in both directions, and re-measurement of the parity profiles; it therefore follows rather than moves the pending PB8 review target |
 | **C. Add the verb without splitting readiness** | A pre-Release traffic verb admitted while interconnected, with the handshake running after Ready | Much smaller than B; no envelope or stage change | Produces the wrong order: a handshake after Ready cannot be projected into CM4 as a Relational Initialisation interaction without claiming a sequence that did not happen, which is the class of false projection CBI10 and CBI16 exist to refuse. Not recommended in any form |
 | **D. Model a Component-to-Component binding** | A binding whose two ends are both provisions, of which the protocol is ordinary traffic | Puts peer traffic where peer traffic belongs and would serve more than this stage | A new binding kind in a layer built end-to-end around one host and one provider; far beyond what the stage needs and not obviously required, since the composition root can initiate on a member's behalf |
 
@@ -719,12 +722,29 @@ the observation honest, and it is a version boundary's worth of work rather than
 should be planned with the PB8 reviews rather than landed under them. C is listed only to record why
 the cheap option is wrong, since it is the one a later implementer will reach for first.
 
-**Decision:** **Open.** Raised 2026-08-01.
+**Decision (recorded):** **Option A retained for Portable Binding 0.1; Option B selected for Portable
+Binding 0.2. Options C and D rejected for this decision.** Recorded 2026-08-11 by user:JakHoh.
 
-**What would settle it.** Whether the Composition handoff's `outOfScope` list is a statement about
-version 0.1 or about the seam. If the former, B is scheduling; if the latter, CM4's relational stage
-needs a different realisation than Portable Binding, and the integration's answer is A permanently —
-which should then be said in CM4's own contract rather than left as an integration refusal.
+The Composition handoff's `outOfScope` entry is a 0.1 version limitation, not a permanent boundary of
+the seam. Version 0.1 remains unchanged and fails closed for every protocol-bearing group so its
+published schemas, vectors, parity profiles, and pending PB8 independent-review target remain stable.
+The 0.2 contract will separate establishment from readiness and add distinct relational lifecycle
+traffic before Ready. That traffic carries the exact CM3-declared edge, direction, initiating and
+receiving members, Operation, Capability, and input Shape; anything not declared is refused before
+delivery. Ordinary request traffic remains closed until Release.
+
+The composition root may initiate the lifecycle Operation on a Component's behalf, as it already
+stands in for the consumer at the PB7 seam. This ruling does not introduce a Component-to-Component
+binding kind. Lifecycle authority must be explicit and exact rather than inferred from participant
+admission or ordinary-interaction authority. A failed relational interaction prevents Ready and
+Release, preserves any effects that actually occurred in the observation, and returns cleanup or
+rollback to CM4 instead of fabricating a completed stage.
+
+**Consequence for sequencing.** PB8 reviews the unchanged 0.1 evidence first. The 0.2 work then begins
+with its own C1-Cn behavioural contract and phase-boundary completeness review before any public
+surface or schema is added; it requires a migrated neutral contract, new envelope and lifecycle
+transitions, independent native implementations and named tests in both stacks, parity remeasurement,
+and integration evidence that a CM3 protocol-bearing group reaches CM4's exact stage order.
 
 ---
 
