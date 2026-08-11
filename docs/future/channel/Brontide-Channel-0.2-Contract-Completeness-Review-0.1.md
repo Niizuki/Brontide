@@ -2,9 +2,9 @@
 
 Date: 2026-08-11
 
-Status: first author pass complete; fresh independent design review remains required. This review
-asks what the proposed contract does not say. It is separate from conformance review and does not
-claim the contract is correct.
+Status: first author pass complete; its four independent-review findings have a correction pass and
+fresh independent closure review remains required. This review asks what the proposed contract does
+not say. It is separate from conformance review and does not claim the contract is correct.
 
 Reviewed artifacts:
 
@@ -205,8 +205,22 @@ These are not unowned contract holes, but the independent reviewer must challeng
 
 ## Review disposition
 
-The author pass finds no unowned semantic concern in C1-C12. It does not close the first batch. A
-fresh reviewer must assess the current Architecture 0.8, predecessor evidence, Decision 13, every
-property and state transition, the responsibility matrix, this silence review, the migration ledger,
-and the neutral brief. Any blocking finding changes these artifacts before schemas or public surfaces
-are created.
+The first independent review at `66729b097b032febf498dd907dd2387e2aebc2c5` refuted the original
+author-pass conclusion and recorded four blockers in the retained
+[design-foundation attestation](./reviews/channel-0.2-design-foundation-attestation.md):
+
+1. recipient local authority denial could become a peer protocol statement;
+2. recipient cancellation refusal had no producer transition;
+3. responsibility rows did not select exactly one semantic owner; and
+4. 13 predecessor-vector rows used dispositions outside the declared vocabulary.
+
+The correction pass separates authority structure from the local authority decision and adds a
+frameless recipient `refused-local` path; adds the nonterminal cancellation-denial/`refused`
+acknowledgement transition; assigns one exact owner identifier per responsibility row; and maps every
+vector disposition to the declared five-value vocabulary. The strengthened design verifier pins all
+four corrections and was observed failing on the pre-correction artifacts.
+
+This correction does not close the first batch. A fresh reviewer must assess the corrected commit,
+the original findings, current Architecture 0.8, predecessor evidence, Decision 13, every property
+and state transition, the responsibility matrix, this silence review, the migration ledger, and the
+neutral brief. No schema or public surface may be created until a closure attestation conforms.

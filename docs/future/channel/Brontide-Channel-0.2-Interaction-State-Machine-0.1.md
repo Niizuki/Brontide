@@ -2,7 +2,8 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; subject to fresh independent review.
+Status: proposed first-batch design artifact; B1/B2 corrected after the first independent review and
+subject to fresh independent closure review.
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 
@@ -37,6 +38,7 @@ activity require a declared extension facet and cannot reinterpret this state ma
 | --- | --- | --- |
 | `unseen` | no | No request with this identity has been accepted. |
 | `validating` | no | Frame, profile, state, Shape, phase, authority, concurrency, and replay checks are running. |
+| `refused-local` | yes | Local policy denied a structurally valid request before dispatch; no peer frame is emitted. |
 | `rejected-protocol` | yes | Validation failed and a bounded peer protocol fault may be emitted; handler did not begin. |
 | `executing` | no | Handler dispatch occurred. |
 | `cancel-requested` | no | A valid cancellation request was received while execution remains nonterminal. |
@@ -70,11 +72,13 @@ with the same provenance, not a fictional global state.
 | From | Event and guard | To | Handler effect possible? |
 | --- | --- | --- | --- |
 | `unseen` | complete request for an established session arrives | `validating` | no |
-| `validating` | structural/profile/state/class/phase/Shape/authority/bound/replay/concurrency check fails | `rejected-protocol` | no |
+| `validating` | structural/profile/state/class/phase/Shape/authority-structure/bound/replay/concurrency check fails | `rejected-protocol` | no |
+| `validating` | structurally valid authority presentation is denied by local policy | `refused-local` | no |
 | `validating` | all checks pass and dispatch boundary is crossed | `executing` | yes |
 | `executing` | handler returns success | `outcome-succeeded` | yes/known by profile evidence |
 | `executing` | handler returns shaped failure | `outcome-failed` | possible; failure is not rollback |
 | `executing` | valid cancellation control arrives | `cancel-requested` | possible/already occurred |
+| `executing` | structurally valid cancellation control is denied by local cancellation authority | `executing` | possible/already occurred; emit nonterminal `refused` acknowledgement |
 | `cancel-requested` | handler reports cancellation completed | `outcome-cancelled` | possible; report exact evidence |
 | `cancel-requested` | handler completes normally or with failure | matching Outcome terminal | possible; cancellation was not guaranteed |
 | `executing` or `cancel-requested` | internal Channel failure before terminal commit | `faulted` | `unknown` unless handler boundary evidence narrows it |
@@ -141,7 +145,7 @@ class and `released` predicate.
 
 | Terminal history | Peer semantic statement? | Peer Channel statement? | Local observation? |
 | --- | --- | --- | --- |
-| `refused-local` | no | no | yes |
+| initiator or recipient `refused-local` | no | no | yes |
 | `outcome-succeeded/failed/cancelled` | yes | no | receipt/commit also observed locally |
 | `peer-fault` / recipient `rejected-protocol` | no | yes | receipt/commit also observed locally |
 | `lost` | no | no | yes |

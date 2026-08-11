@@ -2,8 +2,9 @@
 
 ## Channel 0.2 Redesign and Migration Plan 0.1
 
-**Status:** First-batch design foundation drafted and its four owner rulings resolved; fresh
-independent design review remains before Batch 2. No Channel 0.2 implementation or ratification is
+**Status:** First-batch design foundation drafted and its four owner rulings resolved. The first
+independent review found four blocking defects; all four have a contract-first correction and await
+fresh independent closure review before Batch 2. No Channel 0.2 implementation or ratification is
 claimed.
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),

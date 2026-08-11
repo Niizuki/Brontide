@@ -94,6 +94,14 @@ Assert-ContainsAll 'Channel 0.2 interaction state machine' $interaction @(
     '| `peer-fault` |',
     '| `lost` |'
 )
+Assert-ContainsAll 'Channel 0.2 recipient authority-denial path' $interaction @(
+    '| `refused-local` | yes | Local policy denied a structurally valid request before dispatch; no peer frame is emitted. |',
+    '| `validating` | structural/profile/state/class/phase/Shape/authority-structure/bound/replay/concurrency check fails | `rejected-protocol` | no |',
+    '| `validating` | structurally valid authority presentation is denied by local policy | `refused-local` | no |'
+)
+Assert-ContainsAll 'Channel 0.2 recipient cancellation-refusal path' $interaction @(
+    '| `executing` | structurally valid cancellation control is denied by local cancellation authority | `executing` | possible/already occurred; emit nonterminal `refused` acknowledgement |'
+)
 
 Assert-ContainsAll 'Channel 0.2 responsibility matrix' $responsibility @(
     'Channel contract version',
@@ -107,6 +115,14 @@ Assert-ContainsAll 'Channel 0.2 responsibility matrix' $responsibility @(
     'Streaming and backpressure',
     'Long-running activity'
 )
+$ownershipSection = ($responsibility -split '## Ownership matrix', 2)[1] -split '## Selected boundary rulings', 2 | Select-Object -First 1
+$ownershipRows = @($ownershipSection -split "`r?`n" | Where-Object { $_ -match '^\| ' -and $_ -notmatch '^\| ---' })
+foreach ($row in $ownershipRows) {
+    $cells = @($row.Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+    if ($cells.Count -ge 2 -and $cells[0] -ne 'Concern' -and $cells[1] -notmatch '^`[a-z0-9-]+`$') {
+        $failures.Add("Channel 0.2 responsibility owner must be one exact owner identifier: '$($cells[0])' has '$($cells[1])'.")
+    }
+}
 
 $migrationVectorMatches = [regex]::Matches($migration, '(?m)^\| CH-([0-9]{2}) ')
 $migrationVectorNumbers = @($migrationVectorMatches | ForEach-Object { [int]$_.Groups[1].Value })
@@ -175,6 +191,16 @@ Assert-ContainsAll 'Channel 0.1 observation migration' $migration @(
     '`localCode`',
     '`localMessage`'
 )
+$vectorMigrationSection = ($migration -split '## Channel 0.1 vector migration', 2)[1] -split '## New evidence required by redesign', 2 | Select-Object -First 1
+$allowedDispositions = @('retained', 'replaced', 'moved', 'removed', 'legacy-only')
+$vectorRows = @($vectorMigrationSection -split "`r?`n" | Where-Object { $_ -match '^\| CH-[0-9]{2} ' })
+foreach ($row in $vectorRows) {
+    $cells = @($row.Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+    $disposition = $cells[1].Trim('*').ToLowerInvariant()
+    if ($disposition -notin $allowedDispositions) {
+        $failures.Add("Channel 0.1 vector migration '$($cells[0])' uses undeclared disposition '$disposition'.")
+    }
+}
 
 if ([regex]::Matches($plan, '(?m)^\| .*maintainers \| Confirm the proposed ruling:').Count -ne 0) {
     $failures.Add('The active redesign plan must not retain proposed owner rulings after owner resolution.')
@@ -201,7 +227,7 @@ Assert-ContainsAll 'Channel 0.2 neutral brief' $neutralBrief @(
 )
 Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
     'four owner rulings resolved',
-    'fresh independent design review pending',
+    'fresh independent closure review is pending',
     '## Required review scope',
     '## Required verdicts',
     '## Closure'
@@ -209,8 +235,10 @@ Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-if ($reviewMarkdown.Count -ne 1 -or $reviewMarkdown[0].Name -cne 'README.md') {
-    $failures.Add('No Channel 0.2 attestation may exist before the requested fresh independent review; reviews must currently contain only README.md.')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md')
+$actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
+if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
+    $failures.Add('The Channel 0.2 correction pin must retain exactly the review README and original negative design-foundation attestation before closure re-review.')
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'channel\0.2')) {

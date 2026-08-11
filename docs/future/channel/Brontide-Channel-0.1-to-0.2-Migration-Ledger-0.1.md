@@ -2,8 +2,9 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch migration disposition; subject to fresh independent review. Serialized
-spellings remain unselected until the neutral contract batch.
+Status: proposed first-batch migration disposition; B4 corrected after the first independent review
+and subject to fresh independent closure review. Serialized spellings remain unselected until the
+neutral contract batch.
 
 Sources inventoried:
 
@@ -208,12 +209,12 @@ resource cleanup or integrity by implication.
 
 | 0.1 vector | Disposition | 0.2 evidence target |
 | --- | --- | --- |
-| CH-01 correlation echo | **revised** | C4 exact session/interaction correlation plus distinct local Execution attribution. |
-| CH-02 correlation mismatch | **revised** | C4 invalid terminal correlation after dispatch, effect certainty unknown unless narrowed. |
-| CH-03 unsupported version | **revised** | C1 separates Channel/profile/application versions and refuses downgrade pre-effect. |
-| CH-04 unsupported contract | **split** | C1 unsupported profile and unsupported application contract vectors. |
-| CH-05 unknown kind | **revised** | C9 unsupported message class; unknown peer-fault category gets separate no-loop vector. |
-| CH-06 malformed message | **revised** | C5 bounded structural refusal plus local-versus-peer provenance. |
+| CH-01 correlation echo | **replaced** | C4 exact session/interaction correlation plus distinct local Execution attribution. |
+| CH-02 correlation mismatch | **replaced** | C4 invalid terminal correlation after dispatch, effect certainty unknown unless narrowed. |
+| CH-03 unsupported version | **replaced** | C1 separates Channel/profile/application versions and refuses downgrade pre-effect. |
+| CH-04 unsupported contract | **replaced** | C1 unsupported profile and unsupported application contract vectors. |
+| CH-05 unknown kind | **replaced** | C9 unsupported message class; unknown peer-fault category gets separate no-loop vector. |
+| CH-06 malformed message | **replaced** | C5 bounded structural refusal plus local-versus-peer provenance. |
 | CH-07 payload covariance | **retained** | C5 Architecture 0.8 payload projection. |
 | CH-08 authority no projection | **retained** | C5/C6 authority/control position refuses without projection. |
 | CH-09 strong-Kleene fallback | **retained** | C6 exact local authority evaluation. |
@@ -222,20 +223,20 @@ resource cleanup or integrity by implication.
 | CH-12 denial is not a frame | **retained** | C6/C9 local refusal provenance. |
 | CH-13 semantic failed Outcome | **retained** | C8/C9 shaped failure distinct from peer fault/loss. |
 | CH-14 protocol code mapping | **retained** | C9 normative peer-fault category, non-normative local code. |
-| CH-15 replay declared | **revised** | C4 session-scoped accepted identity; no redispatch under concurrency. |
-| CH-16 declared limit | **revised** | C5 profile-negotiated finite bounds and no partial interaction. |
-| CH-17 peer terminated | **revised** | C9 local peer-closed/loss observation and C10 unknown effects after dispatch. |
+| CH-15 replay declared | **replaced** | C4 session-scoped accepted identity; no redispatch under concurrency. |
+| CH-16 declared limit | **replaced** | C5 profile-negotiated finite bounds and no partial interaction. |
+| CH-17 peer terminated | **replaced** | C9 local peer-closed/loss observation and C10 unknown effects after dispatch. |
 | CH-18 foreign runtime data forbidden | **retained** | C5/C9 sanitizer and positional classification. |
 | CH-19 unsupported Operation | **retained** | C3/C5 peer/local pre-dispatch refusal. |
 | CH-20 invalid payload | **retained** | C5 pre-dispatch known-none. |
-| CH-21 state violation | **split** | C2 session illegal transition and C3/C8 interaction/phase illegal transition vectors. |
-| CH-22 internal protocol failure | **revised** | C9 internal-channel-failure without runtime leakage. |
-| CH-23 process failure categories | **revised** | C9 local loss categories only; peer-unavailable moves to launcher profile. |
-| CH-24 failure-domain relativity | **revised** | C9 peer-statement provenance versus local detection point; no global topology claim. |
+| CH-21 state violation | **replaced** | C2 session illegal transition and C3/C8 interaction/phase illegal transition vectors. |
+| CH-22 internal protocol failure | **replaced** | C9 internal-channel-failure without runtime leakage. |
+| CH-23 process failure categories | **replaced** | C9 local loss categories only; peer-unavailable moves to launcher profile. |
+| CH-24 failure-domain relativity | **replaced** | C9 peer-statement provenance versus local detection point; no global topology claim. |
 
-No 0.1 vector is deleted. A retained vector is re-expressed under the 0.2 neutral shape; revised and
-split vectors keep the original vector identifier as provenance metadata rather than reusing it as a
-0.2 identity.
+No 0.1 vector is deleted. A retained vector is re-expressed under the 0.2 neutral shape. A replaced
+vector may map to one or several successor vectors; each keeps the original vector identifier as
+provenance metadata rather than reusing it as a 0.2 identity.
 
 ## New evidence required by redesign
 

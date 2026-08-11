@@ -2,7 +2,8 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch ownership contract; subject to fresh independent review.
+Status: proposed first-batch ownership contract; B3 corrected after the first independent review and
+subject to fresh independent closure review.
 
 ## Rule
 
@@ -12,45 +13,51 @@ only through a named neutral artifact. Carrying a fact does not transfer ownersh
 Dependency arrows below point from consumer to semantic owner. Reference and Minimal remain parallel
 native consumers of the neutral artifacts; neither appears as the other's dependency.
 
+The `Semantic owner` column uses one exact owner identifier per row. An identifier names the
+contract family that defines the fact; a concrete profile selects the one owner instance where the
+family is parameterized. Consumers and carriers remain separate columns and never become co-owners.
+
 ## Ownership matrix
 
 | Concern | Semantic owner | Consumers / dependency direction | Neutral artifact crossing the boundary | Explicitly not owned by |
 | --- | --- | --- | --- | --- |
-| Channel contract version | Channel | realization/profile → Channel | Channel profile identity/version | transport, Portable Binding |
-| Application/Component contract identity | owning profile / Portable Binding | Channel interaction admission → profile | exact canonical contract reference | Channel core |
-| Endpoint roles and allowed directions | Channel profile | Channel session/interaction → profile | role and interaction-class declarations | process topology |
-| Fixed/negotiated profile equivalence | Channel | profile realizations → Channel | immutable established-profile record | negotiation codec |
-| Wire encoding and frame mechanics | realization profile | Channel → realization declaration | encoding id, framing id, finite bounds | Channel logical contract |
-| Session establishment/drain/close/fault | Channel | profiles and hosts → Channel state machine | session control declarations/observations | Composition, Portable Binding |
-| Interconnection | Component Management / Portable Binding | Channel class admission → explicit phase predicate | activation member/binding phase observation | Channel session |
-| Relational Initialisation phase | Component Management / Composition | Portable Binding and Channel admission → CM3 declaration | exact lifecycle declaration and current phase | Channel session |
-| Ready | Component Management / Composition | Portable Binding gate → activation observation | explicit member-ready fact | Channel establishment |
-| Release / ordinary gate | Composition / Portable Binding | Channel ordinary-class admission → release fact | explicit released-member/binding fact | Channel session |
-| Binding withdrawal and cleanup | Portable Binding / Composition | Channel drain/loss observations → binding coordinator | binding identity, retained effect/resource observations | Channel core |
-| Interaction identity and terminality | Channel | profiles/extensions → Channel interaction machine | session-scoped interaction record | Execution/Occurrence identity |
-| Bounded unary concurrency | Channel profile under Channel rules | host/transport → established profile | finite max-in-flight declaration | scheduler |
-| Scheduling and fairness | host/runtime | Channel observes only | none in Channel core | Channel |
-| Cancellation control and terminal meaning | Channel core; class-specific cancellability in profile | Operation adapter → Channel cancellation contract | cancellation feature, authority and terminal declarations | transport abort alone |
-| Operation semantics and shaped Outcome | Operation contract | Channel → exact Operation/Shape declaration | canonical Operation, input/output/details Shapes | Channel protocol fault taxonomy |
-| Relational interaction declaration | CM3 lifecycle protocol | Channel/Portable Binding → CM3 | edge, direction, members, Operation, Capability, Shape | Channel inference |
-| Ordinary interaction eligibility | Portable Binding / Composition | Channel → explicit Release predicate | member/binding release observation | successful establishment |
-| Payload compatibility/projection | Shape contract | Channel/profile → Architecture 0.8 Shape rules | canonical Shape/Fragment refs and position classification | authority evaluator |
-| Payload/resource representation | Portable Binding or another profile | Channel carries declared positions → profile | representation/resource descriptor | Channel core |
-| Resource ownership/lifetime/release/fallback | Portable Binding or Resource extension | Channel loss/terminal observations → resource owner | profile-specific resource observation and cleanup result | Channel session close |
-| Intra-domain Capability evaluation | target authority domain | Channel dispatch → local authority result | recognized presentation plus attributable result | Channel compatibility |
-| Cross-trust admission and local grants | receiving authority domain / Component Management | Channel carries attributable evidence → local admission | no-capability-transfer mode, exact designations, admission result | sending peer |
-| Cross-domain identity and attestation | Identity / Distributed | Channel profile may require facet → extension | versioned evidence/admission facet | Channel core |
-| Local pre-dispatch refusal | local host/authority boundary | Channel observation consumes | local refusal observation | peer wire protocol |
-| Semantic failure | Operation contract / responding Actor | Channel carries exact Outcome | shaped failed Outcome | protocol fault |
-| Peer protocol fault | Channel | local observer consumes peer assertion | scoped fault category plus bounded diagnostics | transport/process observer |
-| Transport/process loss classification | local host/realization | Channel observation consumes | local loss category and detection point | peer |
-| Effect certainty | Channel form; effect details owned by profile | observations/extensions → Channel certainty | known-none / known(details ref) / unknown(reason) | adapters guessing zero |
-| Retry attempt policy | Distributed/host profile | Channel admits each attempt independently | new interaction id plus optional causal prior reference | reuse/replay of one id |
-| Delivery, persistence, ordering | Distributed/Flow/Realtime profile | Channel profile may require facet → extension | exact extension facet/version | Channel core |
-| Streaming and backpressure | Flow/profile | Channel profile may add interaction class/facet → Flow | stream identity subordinate to interaction, terminal bridge | unary core reinterpretation |
-| Long-running activity | Lifecycle | Channel Outcome may identify/start activity under exact extension | activity reference and lifecycle facet | keeping interaction forever nonterminal |
-| Timing constraints | Realtime/profile | Channel observes declared timing facts → Realtime | explicit timing facet and clock provenance | ambient Channel clock |
-| Logs, metrics, traces, storage | local observability systems | consume Channel observations | non-normative local projection | Channel semantics |
+| Channel contract version | `channel` | realization/profile → Channel | Channel profile identity/version | transport, Portable Binding |
+| Application/Component contract identity | `application-profile` | Channel interaction admission → profile | exact canonical contract reference | Channel core |
+| Endpoint roles and allowed directions | `channel-profile` | Channel session/interaction → profile | role and interaction-class declarations | process topology |
+| Fixed/negotiated profile equivalence | `channel` | profile realizations → Channel | immutable established-profile record | negotiation codec |
+| Wire encoding and frame mechanics | `realization-profile` | Channel → realization declaration | encoding id, framing id, finite bounds | Channel logical contract |
+| Session establishment/drain/close/fault | `channel` | profiles and hosts → Channel state machine | session control declarations/observations | Composition, Portable Binding |
+| Interconnection | `portable-binding` | Channel class admission → explicit phase predicate | activation member/binding phase observation | Channel session, Component Management |
+| Relational Initialisation phase | `composition` | Portable Binding and Channel admission → composition phase | exact lifecycle declaration and current phase | Channel session, Component Management |
+| Ready | `component-management` | Portable Binding gate → activation observation | explicit member-ready fact | Channel establishment, Composition |
+| Release / ordinary gate | `portable-binding` | Channel ordinary-class admission → release fact | explicit released-member/binding fact | Channel session, Composition |
+| Binding withdrawal and cleanup | `portable-binding` | Channel drain/loss observations → binding coordinator | binding identity, retained effect/resource observations | Channel core, Composition |
+| Interaction identity and terminality | `channel` | profiles/extensions → Channel interaction machine | session-scoped interaction record | Execution/Occurrence identity |
+| Bounded unary concurrency | `channel-profile` | host/transport → established profile | finite max-in-flight declaration | scheduler |
+| Scheduling and fairness | `host-runtime` | Channel observes only | none in Channel core | Channel |
+| Cancellation control and terminal meaning | `channel` | Operation adapter → Channel cancellation contract | cancellation authority and acknowledgement/terminal declarations | transport abort alone |
+| Class-specific cancellability | `channel-profile` | Channel establishment/admission → profile | unsupported/optional/required class declaration | Operation adapter |
+| Operation semantics and shaped Outcome | `operation-contract` | Channel → exact Operation/Shape declaration | canonical Operation, input/output/details Shapes | Channel protocol fault taxonomy |
+| Relational interaction declaration | `cm3-lifecycle-contract` | Channel/Portable Binding → CM3 | edge, direction, members, Operation, Capability, Shape | Channel inference |
+| Ordinary interaction eligibility | `portable-binding` | Channel → explicit Release predicate | member/binding release observation | successful establishment, Composition |
+| Payload compatibility/projection | `shape-contract` | Channel/profile → Architecture 0.8 Shape rules | canonical Shape/Fragment refs and position classification | authority evaluator |
+| Payload/resource representation | `resource-profile` | Channel carries declared positions → profile | representation/resource descriptor | Channel core |
+| Resource ownership/lifetime/release/fallback | `resource-profile` | Channel loss/terminal observations → resource owner | profile-specific resource observation and cleanup result | Channel session close |
+| Intra-domain Capability evaluation | `authority-domain` | Channel dispatch → local authority result | recognized presentation plus attributable result | Channel compatibility |
+| Cross-trust admission and local grants | `authority-domain` | Channel carries attributable evidence → local admission | no-capability-transfer mode, exact designations, admission result | sending peer, Component Management |
+| Cross-domain identity and attestation | `identity-facet` | Channel profile may require facet → extension | versioned evidence/admission facet | Channel core, Distributed transport |
+| Local pre-dispatch refusal | `local-authority-boundary` | Channel observation consumes | local refusal observation | peer wire protocol |
+| Semantic failure | `operation-contract` | Channel carries exact Outcome from responding Actor | shaped failed Outcome | protocol fault |
+| Peer protocol fault | `channel` | local observer consumes peer assertion | scoped fault category plus bounded diagnostics | transport/process observer |
+| Transport/process loss classification | `local-realization` | Channel observation consumes | local loss category and detection point | peer |
+| Effect certainty | `channel` | observations/extensions → Channel certainty | known-none / known(details ref) / unknown(reason) | adapters guessing zero |
+| Profile-owned effect details | `application-profile` | Channel observation references profile evidence | exact profile details reference | Channel certainty form |
+| Retry attempt policy | `retry-profile` | Channel admits each attempt independently | new interaction id plus optional causal prior reference | reuse/replay of one id |
+| Delivery, persistence, ordering | `delivery-facet` | Channel profile may require facet → extension | exact extension facet/version | Channel core |
+| Streaming and backpressure | `flow-facet` | Channel profile may add interaction class/facet → Flow | stream identity subordinate to interaction, terminal bridge | unary core reinterpretation |
+| Long-running activity | `lifecycle` | Channel Outcome may identify/start activity under exact extension | activity reference and lifecycle facet | keeping interaction forever nonterminal |
+| Timing constraints | `realtime-facet` | Channel observes declared timing facts → Realtime | explicit timing facet and clock provenance | ambient Channel clock |
+| Logs, metrics, traces, storage | `observability-system` | consume Channel observations | non-normative local projection | Channel semantics |
 
 ## Selected boundary rulings
 
@@ -60,6 +67,11 @@ Channel owns only `unestablished`, `establishing`, `established`, `draining`, `c
 Interconnection, Relational Initialisation, Ready, and Release are external phase facts. This prevents
 the 0.1 defect in which readiness was simultaneously a wire event, a binding state, and an activation
 claim.
+
+Their exact owners are not collective: Portable Binding owns Interconnection, Release, binding
+withdrawal, and binding cleanup; Composition owns the Relational Initialisation phase; Component
+Management owns Ready. Each crossing artifact in the matrix carries one of those facts without
+sharing its semantic ownership.
 
 Channel still enforces an interaction class's phase predicate. Enforcement consumes an explicit
 fact; it does not make Channel the fact's owner.

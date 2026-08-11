@@ -1,6 +1,7 @@
 # Channel 0.2 design-foundation reviews
 
-Status: four owner rulings resolved; fresh independent design review pending.
+Status: four owner rulings resolved; original independent review does not conform; B1-B4 have a
+correction pass and fresh independent closure review is pending.
 
 This directory retains independent attestations for the complete Channel 0.2 first-batch design
 foundation. A review is independent only when its reviewer identity differs from the design author,
@@ -53,5 +54,13 @@ Batch 2 may begin only after:
 - a fresh closure attestation conforms at the corrected commit; and
 - a small closure record pins the reviewed commit and attestation hash.
 
-No attestation exists yet. The author pass and ordinary documentation gates are not independent
-review.
+The author correction pass and ordinary documentation gates are not independent review.
+
+## Retained attestations
+
+- [Original design-foundation review](./channel-0.2-design-foundation-attestation.md) — reviewed
+  `66729b097b032febf498dd907dd2387e2aebc2c5`; `does-not-conform`; B1-B4 retained for closure
+  comparison.
+
+No closure attestation exists yet. The corrected artifacts remain nonconforming evidence until a
+fresh reviewer closes every original finding and reports no new blocker.
