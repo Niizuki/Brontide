@@ -3,10 +3,12 @@
 Date: 2026-08-11
 
 Status: proposed first-batch ownership contract; B3 and cross-artifact N1 corrected after independent
-review and confirmed unchanged by the fourth, fifth, sixth, and seventh reviews. Its
-`Delivery, persistence, ordering` row is the evidence for blocking finding S1, which is a defect in
-what other artifacts assert rather than in this matrix. It is subject to a fresh independent closure
-re-review.
+review and confirmed unchanged by the fourth, fifth, sixth, and seventh reviews, then corrected for
+S1. Its ordering row was the evidence for S1: the fact the `unseen` cancellation verdict depends on
+had no owner. Under the 2026-08-13 S1 ruling the delivery row is scoped to cross-interaction
+ordering and a new `Intra-interaction frame order` row assigns that fact to `channel-core`, carried
+by a per-interaction frame order declaration in the realization profile. It is subject to a fresh
+independent closure re-review.
 
 ## Rule
 
@@ -28,7 +30,7 @@ family is parameterized. Consumers and carriers remain separate columns and neve
 | Application/Component contract identity | `application-profile` | Channel interaction admission → profile | exact canonical contract reference | Channel core |
 | Endpoint roles and allowed directions | `channel-profile` | Channel session/interaction → profile | role and interaction-class declarations | process topology |
 | Fixed/negotiated profile equivalence | `channel` | profile realizations → Channel | immutable established-profile record | negotiation codec |
-| Wire encoding and frame mechanics | `realization-profile` | Channel → realization declaration | encoding id, framing id, finite bounds | Channel logical contract |
+| Wire encoding and frame mechanics | `realization-profile` | Channel → realization declaration | encoding id, framing id, finite bounds, per-interaction frame order declaration | Channel logical contract |
 | Session establishment/drain/close/fault | `channel` | profiles and hosts → Channel state machine | session control declarations/observations | Composition, Portable Binding |
 | Interconnection | `portable-binding` | Channel class admission → explicit phase predicate | activation member/binding phase observation | Channel session, Component Management |
 | Relational Initialisation phase | `composition` | Portable Binding and Channel admission → composition phase | exact lifecycle declaration and current phase | Channel session, Component Management |
@@ -56,7 +58,8 @@ family is parameterized. Consumers and carriers remain separate columns and neve
 | Effect certainty | `channel` | observations/extensions → Channel certainty | known-none / known(details ref) / unknown(reason) | adapters guessing zero |
 | Profile-owned effect details | `application-profile` | Channel observation references profile evidence | exact profile details reference | Channel certainty form |
 | Retry attempt policy | `retry-profile` | Channel admits each attempt independently | new interaction id plus optional causal prior reference | reuse/replay of one id |
-| Delivery, persistence, ordering | `delivery-facet` | Channel profile may require facet → extension | exact extension facet/version | Channel core |
+| Delivery, persistence, cross-interaction ordering | `delivery-facet` | Channel profile may require facet → extension | exact extension facet/version | Channel core |
+| Intra-interaction frame order | `channel-core` | realization declares conformance → profile verifies at establishment | per-interaction frame order declaration in the realization profile | `delivery-facet`, transport |
 | Streaming and backpressure | `flow-facet` | Channel profile may add interaction class/facet → Flow | stream identity subordinate to interaction, terminal bridge | unary core reinterpretation |
 | Long-running activity | `lifecycle` | Channel Outcome may identify/start activity under exact extension | activity reference and lifecycle facet | keeping interaction forever nonterminal |
 | Timing constraints | `realtime-facet` | Channel observes declared timing facts → Realtime | explicit timing facet and clock provenance | ambient Channel clock |

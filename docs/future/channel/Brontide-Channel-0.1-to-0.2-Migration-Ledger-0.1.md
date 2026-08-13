@@ -2,7 +2,7 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch migration disposition; B4, N1/N3, F3, D5, and T1/T2 corrected after
+Status: proposed first-batch migration disposition; B4, N1/N3, F3, D5, T1/T2, and S1 corrected after
 independent review and subject to a fresh independent closure re-review. Serialized spellings remain
 unselected until the neutral contract batch.
 
@@ -168,7 +168,7 @@ the new profile declares finite values and the neutral vectors test their consis
 | retry unsupported | **replaced** | Channel core makes no retry promise; exact Distributed/host facet may create a new attempt with a new identity. |
 | cancellation unsupported | **replaced** | Optional Channel core cancellation contract; profile declares support/requirement per class. |
 | streaming unsupported | **retained** | Retained as a non-promise: Flow/profile facet only; unary core is not reinterpreted. |
-| ordering guarantee unsupported | **retained** | Retained as a non-promise: no cross-interaction order; extension facet required. |
+| ordering guarantee unsupported | **replaced** | Replaced by a scoped non-promise plus one narrow promise. Cross-interaction and cross-session order remain unpromised and still require an extension facet; the 2026-08-13 S1 ruling adds intra-interaction frame order to 0.2 core, owned by C4 with `C4-P2` and declared by the realization profile. This is the one ordering fact 0.2 adds over 0.1, and the reason the disposition is not **retained**: the non-promise's scope changed. |
 | exactly-once unsupported | **retained** | Retained as a non-promise: replay protection remains distinct from exactly-once effects. |
 
 ## Observation-field migration

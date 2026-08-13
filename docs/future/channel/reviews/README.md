@@ -1,16 +1,15 @@
 # Channel 0.2 design-foundation reviews
 
 Status: four owner rulings resolved; seven negative independent reviews retained. B1-B4, N1-N3,
-F1-F3, D1-D5, T1-T4, R2, and R3 are closed in the artifacts they were raised against, each
-re-verified individually by the seventh review rather than taken from an index. **R1 is closed at
-recipient `validating` and not closed at `unseen`.** The seventh review's blocking finding S1 shows
-the correction holds that cell only by asserting a delivery-ordering guarantee in the state/event
-grid alone — a fact C4's silence disclaims, C11 disclaims, and the responsibility matrix assigns to
-`delivery-facet` with Channel core named as explicitly not the owner. S1 requires its own dated
-owner ruling before it can be corrected, so a fresh independent closure re-review is pending on a
-correction that does not yet exist. R1's resolution likewise required its own dated owner ruling,
-recorded in the redesign plan; both are correction rulings and neither joins the four first-batch
-rulings, which remain the fixed set recorded on 2026-08-11.
+F1-F3, D1-D5, T1-T4, and R1-R3 are closed in the artifacts they were raised against, R1-R3 having
+been re-verified individually by the seventh review rather than taken from an index. That review's
+blocking **S1** — the R1 correction kept `rejected-protocol` at recipient `unseen` while the fact
+making that sound, intra-interaction delivery order, was asserted in the state/event grid alone and
+disclaimed by C4 and C11 and assigned elsewhere by the responsibility matrix — is corrected under the
+2026-08-13 S1 ruling giving that fact an owner. Nonblocking S2 and S3 are dispositioned. A fresh
+independent closure re-review is pending on the S1 correction pin. R1 and S1 each required their own
+dated owner ruling, recorded in the redesign plan; both are correction rulings and neither joins the
+four first-batch rulings, which remain the fixed set recorded on 2026-08-11.
 
 The cycle is deliberately unnamed. Reviews are numbered, not titled, and every artifact says it awaits
 "a fresh independent closure re-review" whichever cycle is current — that phrase is the T4 correction
@@ -81,39 +80,34 @@ The author correction pass and ordinary documentation gates are not independent 
 The seventh review has run, from a fresh isolated clone, and returned `does-not-conform`; its
 retained record is `channel-0.2-design-foundation-closure-review-7-attestation.md`. It closed R2 and
 R3, confirmed every earlier finding still closed, and raised blocking **S1** with nonblocking **S2**
-and **S3**. **Step 1 is the live path, and it is blocked on the repository owner rather than on an
-agent.** No agent begins schemas or implementation, and none creates
+and **S3**. **Steps 1 through 3 are complete.** Step 4 is the live path. The next agent reviews the
+S1 correction; it does **not** begin schemas or implementation, and it does not create
 `channel-0.2-design-foundation-closure-record.md` unless its own verdict conforms.
 
-1. **Obtain an owner ruling on S1.** The correction direction is a design choice, not a repair an
-   author may pick, because either answer changes what Channel 0.2 core promises. The two options
-   the review sets out:
-
-   - **Core owns intra-interaction control ordering.** C4 states it as a promise with a property and
-     an evidence mode, C11's sentence narrows to match, the responsibility matrix gains a row naming
-     its owner and crossing artifact, and `realization-profile` gains a declaration a profile can
-     check. The `unseen` fault then becomes correct and provable.
-   - **Core does not own it.** The `unseen` cell gets the treatment `validating` received, and the
-     ruling's own unbounded-local-state objection must be answered — bounding held state by the
-     established `max-in-flight`, already a declared finite profile fact, is the obvious candidate.
-
-   Either way the resolution appears in C4, the responsibility matrix, the grid, and the completeness
-   review's silence inventory — **not in the grid alone**, which is what produced S1.
-2. Add a failing check for **S1** before correcting it, and read the failure. The R1 check is the
-   model to extend but not to copy: it compares whether four artifacts agree about one cell, and S1
-   survived it because agreement is not ownership. The S1 check asks **which artifact owns a fact the
-   grid asserts**.
-3. Correct S1 contract-first under the ruling, and disposition **S2** in the same pass: a held
-   control has no disposition when `validating` ends by loss or drain rather than by admission
-   resolving, and the interaction machine's three statements about pre-dispatch loss disagree about
-   whether `validating` is included. The same gap exists symmetrically for initiator
-   `candidate`/`admitting`.
-
-   **S3 is already closed**, in the commit that recorded this review rather than in a later
-   correction pass, because it was entirely index and status staleness — the plan's status block and
-   §7.8, the Channel index artifact table, the matrix status line, and a **102**-cell count the
-   corrected 108-cell grid invalidated. Leaving it while recording a seventh review would have
-   committed the very defect S3 names.
+1. ~~Obtain an owner ruling on S1.~~ **Done** on 2026-08-13: Channel 0.2 core owns intra-interaction
+   frame order, narrowly scoped. Holding at `unseen` was rejected because the hold has no bound —
+   admission at `validating` is local and terminates, while at `unseen` the recipient waits on a peer
+   frame that may never arrive and core has no timeout, deadline, or expiry concept. Requiring a
+   delivery facet of any cancelling profile was rejected as dragging persistence and retry into every
+   such profile. The option set is in the
+   [redesign plan's resolved questions](../Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md#resolved-questions).
+2. ~~Add a failing check for **S1** before correcting it.~~ **Done.** The design verifier now asks the
+   ownership question directly: it keys off the recipient grid's `unseen` cancellation verdict — the
+   thing that *depends* on the ordering fact, rather than the sentence that asserts it, so deleting
+   the sentence cannot make the check pass vacuously — and then requires C4 to promise the fact, C4's
+   silence and C11 not to disclaim it, the responsibility matrix to own it, the realization profile
+   to declare it, and C4 to carry a property and a mutation scenario for it. It failed with eight
+   findings before the correction and was mutation-tested afterwards by removing the matrix row,
+   reverting C4's promise, and renaming `C4-P2`, each of which fires it again.
+3. ~~Correct S1 contract-first, and disposition S2 and S3.~~ **Done.** The ordering promise is stated
+   in C4 with `C4-P2` and the `C4-control-precedes-request` mutation vector; C4's silence and C11 are
+   scoped to cross-interaction and cross-session ordering; the matrix carries an
+   `Intra-interaction frame order` row owned by `channel-core`; the realization profile declares
+   per-interaction frame order; the grid now carries the fact rather than owning it; and the
+   completeness review records both it and the held-control gap. S2 added `validating` loss and drain
+   rows and reconciled the pre-dispatch loss rule to any nonterminal state. S3 was closed in the
+   commit that recorded the review, because it was entirely index and status staleness and leaving it
+   while recording a seventh review would have committed the very defect it names.
 4. Obtain another fresh independent review of the corrected pin, from a reviewer identity distinct
    from the correction author and all seven retained reviewers, **in a fresh isolated clone**. Its
    scope, verdicts, and probe requirements are unchanged from the sections above. It writes only its
@@ -123,7 +117,11 @@ agent.** No agent begins schemas or implementation, and none creates
    now paid for is that **a correction resolving a contradiction by asserting a new fact must also
    say who owns it** — so the reviewer reads the contract, both machines, the grid, and the
    responsibility matrix as competing claims about the same facts, and checks ownership rather than
-   only agreement.
+   only agreement. Applied to this correction, the sharpest questions are whether promising
+   intra-interaction frame order has quietly created obligations elsewhere — what it means for a
+   realization that batches or multiplexes, whether `C4-P2` can actually fail in a stack that cannot
+   reorder, and whether the recipient-to-initiator direction needs the same promise the
+   initiator-to-recipient direction now has.
 5. If that verdict conforms, retain and commit the attestation unchanged, calculate its SHA-256, then
    create `channel-0.2-design-foundation-closure-record.md`. The record contains the reviewed commit,
    attestation path and hash, reviewer identity/date/verdict, all four owner rulings, confirmation
@@ -178,11 +176,11 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   primary target and three specific silence checks — and states that S1 was not among them and was
   reached independently.
 
-The S1 correction pin does not exist yet; S1 is blocked on an owner ruling. The current review pin is
-`3892c23a8dd4c7f298e877ba73710ee0ddc97bc4`
-(`fix(channel)!: hold a cancellation that races recipient admission`, committed
-2026-08-13T14:52:25+02:00), and it is nonconforming. Review the eventual S1 correction commit, or any
-later commit whose design artifacts hash identically to it.
+The S1 correction pin is the commit titled
+`fix(channel)!: give intra-interaction frame order an owner`, committed 2026-08-13, which is the
+current review target. Review that commit or any later commit whose design artifacts hash identically
+to it. The preceding pin `3892c23a8dd4c7f298e877ba73710ee0ddc97bc4` is what the seventh review
+assessed and is nonconforming.
 
 No conforming closure attestation exists yet. The corrected artifacts remain nonconforming evidence
 until a fresh reviewer closes every retained finding and reports no new blocker.
