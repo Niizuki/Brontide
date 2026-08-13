@@ -477,6 +477,7 @@ $statusArtifacts = [ordered]@{
     'Channel 0.2 responsibility matrix status' = Get-FlowedText (Get-StatusBlock $responsibility)
     'Channel 0.2 completeness review status'   = Get-FlowedText (Get-StatusBlock $completeness)
     'Channel 0.2 migration ledger status'      = Get-FlowedText (Get-StatusBlock $migration)
+    'Channel 0.2 neutral brief status'         = Get-FlowedText (Get-StatusBlock $neutralBrief)
     'Channel 0.2 index status'                 = Get-FlowedText $channelReadme
 }
 foreach ($statusArtifact in $statusArtifacts.GetEnumerator()) {
