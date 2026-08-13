@@ -2,7 +2,9 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet.
+Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet, and
+subject to a fresh independent closure re-review. Batch 2 opens only after that review conforms and
+its closure record exists.
 
 ## Purpose
 

@@ -136,6 +136,7 @@ property counts as evidence.
 | --- | --- | --- |
 | two interactions complete out of order | legal; independent terminal histories | Channel core |
 | concurrency bound races at admission | reserve atomically; one refusal, no lasting replay entry | Channel core/runtime mechanism |
+| direction scope of the in-flight bound | undeclared: C4, `C4-P1`, and `I5` state one count without saying whether it is per session or per initiating direction. The question is unreachable in the only named profile, where one endpoint initiates both classes, and the atomic reservation C4 describes is local with no cross-endpoint coordination | Channel profile + Batch 2 `established-profile` schema |
 | cancel before dispatch | local refusal/no cancel frame; admission may itself be abandoned locally | Channel core |
 | cancel during recipient admission | held, not faulted: exactly one control is retained while `validating` and applied when admission resolves; a refused admission discards it with no frame and does not fire the late-traffic latch | Channel core |
 | loss or drain while a control is held | the third exit from `validating`: held control discarded with no answering frame, late-traffic latch does not fire, and the interaction reaches whatever terminal it would have reached with no control outstanding; an interaction still admitting is outside the drain snapshot | Channel core |
@@ -199,7 +200,10 @@ These are not unowned contract holes, but the independent reviewer must challeng
    the reviewer should test whether reserving the semantics without implementing a positive path
    creates an unfalsifiable capability.
 2. Bounded concurrency greater than one is intended to prevent another foundational break; the
-   reviewer should test whether it accidentally imports scheduling or ordering promises.
+   reviewer should test whether it accidentally imports scheduling or ordering promises. The bound's
+   direction scope is deliberately undeclared rather than decided: no profile in which both endpoints
+   initiate yet exists, so no vector could falsify a rule chosen now. The reviewer should test whether
+   leaving it open is honest or whether one count already implies a scope the artifacts do not state.
 3. The external phase predicate may be too generic and permit profiles to smuggle arbitrary policy
    into Channel. Batch 2 must keep it a small, closed fact/predicate form.
 4. Effect certainty `known` with profile-owned details needs a precise neutral representation that
