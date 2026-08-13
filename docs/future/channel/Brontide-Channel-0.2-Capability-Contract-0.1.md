@@ -2,9 +2,9 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, and T3 corrected after independent
-review. No Channel 0.2 schema, API, implementation, or ratification is authorized until the complete
-design foundation receives a fresh independent closure re-review.
+Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, and R1 corrected after
+independent review. No Channel 0.2 schema, API, implementation, or ratification is authorized until
+the complete design foundation receives a fresh independent closure re-review.
 
 Designed for: Brontide Architecture 0.8, Complete Draft, especially sections 6.16, 13.6, 16.4,
 18.1, 19, and 24.
@@ -283,7 +283,21 @@ Outcome. A semantic Outcome may succeed, fail with shaped details, or report `ca
 established profile supports cancellation.
 
 Cancellation is an optional core control with fixed meaning. Exactly one cancellation request may be
-sent for a nonterminal dispatched interaction. The peer may acknowledge `accepted` or `refused`; the
+sent for a nonterminal dispatched interaction. `dispatched` is the initiator's own local state, and
+the recipient's admission is not observable from it: the recipient's admission transition emits no
+frame and Channel declares no request-accepted acknowledgement, so an initiator cannot know when the
+recipient has begun executing.
+
+A cancellation control that arrives while the recipient is still admitting the interaction is held,
+not faulted. The recipient retains exactly one held control and applies it when admission resolves.
+If admission succeeds, dispatch crosses the boundary first and the held control is then evaluated
+under local cancellation authority, reaching the same accepted or refused acknowledgement it would
+have reached had it arrived a moment later. If admission refuses, the interaction is already terminal,
+the held control is discarded with no answering frame, and the late-traffic latch does not fire — a
+control that was legal when it was sent does not become late traffic because the request it named was
+refused. A second control while one is held is an interaction-scoped `state-violation`.
+
+The peer may acknowledge `accepted` or `refused`; the
 initiator records those as distinct nonterminal states, and either proves nothing about effects. An
 unsolicited, duplicate, or contradictory acknowledgement/control is an interaction-scoped
 `state-violation`. The interaction remains nonterminal until a semantic Outcome, peer fault, or local
@@ -307,7 +321,8 @@ effects unless stronger evidence exists.
 **Named scenarios.** `C8-semantic-failure-is-not-protocol-fault`,
 `C8-cancel-accepted-still-awaits-outcome`, `C8-unsolicited-cancel-ack-fault`,
 `C8-contradictory-cancel-ack-fault`, `C8-cancel-unsupported-at-profile`,
-`C8-invalid-cancel-control-peer-fault`, and `C8-duplicate-terminal-rejected`.
+`C8-invalid-cancel-control-peer-fault`, `C8-cancel-during-admission-held`,
+`C8-cancel-held-then-admission-refused`, and `C8-duplicate-terminal-rejected`.
 
 **Property C8-P1.** Every interaction has at most one accepted terminal history, and no cancellation
 control, drain, timeout, or protocol rejection is recorded as semantic success.

@@ -481,3 +481,17 @@ still identify questions that require owners before closure.
 - **2026-08-11 — Required first work:** the capability contract, session and interaction state
   machines, responsibility matrix, silence review, migration ledger, neutral-artifact brief, and
   fresh independent design review form one mandatory first batch before implementation.
+- **2026-08-13 — R1 correction ruling, a cancellation that races recipient admission:** hold the
+  control until admission resolves. This is a correction ruling raised by the sixth independent
+  review; it does not join the four first-batch rulings above. Three options were weighed. **Option A,
+  selected:** the recipient holds exactly one valid cancellation control while `validating` and
+  applies it when admission resolves — no new wire traffic, no fault for conformant behaviour, and the
+  hold is bounded at one because C8 already permits only one control. **Option B, rejected:** refuse
+  the control framelessly; smallest change, but the initiator sits in `cancel-pending` never learning
+  its cancellation did nothing, and a silent drop is the contract-silence class this programme keeps
+  finding defects in. **Option C, rejected:** add a request-accepted acknowledgement so the race
+  becomes avoidable and the existing fault becomes correct; principled, but it puts a new control
+  frame on every interaction and enlarges a deliberately minimal bounded-unary protocol to settle a
+  corner case. The ruling also splits `unseen` from `validating` in the recipient grid: at `unseen`
+  there is no accepted identity to correlate and holding state would let a peer allocate unbounded
+  local state, so that control stays `rejected-protocol`.

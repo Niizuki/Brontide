@@ -1,9 +1,9 @@
-# Channel 0.2 state/event coverage 0.1
+﻿# Channel 0.2 state/event coverage 0.1
 
 Date: 2026-08-11
 
-Status: proposed first-batch totality artifact; added after D1-D4, corrected for T3, and subject to a
-fresh independent closure re-review.
+Status: proposed first-batch totality artifact; added after D1-D4, corrected for T3, R1, and R3, and
+subject to a fresh independent closure re-review.
 
 Normative companions:
 
@@ -61,11 +61,26 @@ one route.
 
 | Recipient state group | Request | Cancellation control | Handler terminal | Local protocol failure | Local loss | Other peer event |
 | --- | --- | --- | --- | --- | --- | --- |
-| `unseen` / `validating` | validation rows | wrong class/state → `rejected-protocol` | impossible local action | structural/local-refusal split | local session route | `rejected-protocol` |
+| `unseen` | validation rows | no identity to correlate → `rejected-protocol` | impossible local action | structural/local-refusal split | local session route | `rejected-protocol` |
+| `validating` | validation rows | valid control: hold exactly one, apply on admission; second control → `peer-fault` | impossible local action | structural/local-refusal split | local session route | `rejected-protocol` |
 | `executing` | live replay → `peer-fault` | authorized → `cancel-requested`; denied → `cancel-refused`; invalid → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-requested` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure/cancelled accepted | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-refused` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | any terminal | late-traffic latch | late-traffic latch | late-traffic latch | terminal preserved | local observation; terminal preserved | local record; no reply loop |
+
+`unseen` and `validating` are separate rows because a cancellation control means different things in
+each. At `validating` the identity is known and the interaction exists, so the control correlates and
+is held: the initiator sent it legally from `dispatched` and cannot observe when the recipient reaches
+`executing`, so faulting it would condemn a conformant endpoint for losing an unobservable race. At
+`unseen` there is no accepted identity to correlate against, and holding state for one would let a
+peer allocate unbounded local state by naming identities it never opens, so the control is refused as
+a peer statement. A realization delivers controls for one interaction identity in the order the peer
+committed them within one session; cross-interaction ordering remains unpromised under C4.
+
+A held control is covered by totality rule 1 — a matching detailed transition row wins — rather than
+by the `state-violation` catch-all, and it never reaches the late-traffic latch: if admission refuses,
+the held control is discarded with no answering frame, because a control that was legal when sent does
+not become late traffic when the request it named is refused.
 
 ## Late-traffic latch
 
