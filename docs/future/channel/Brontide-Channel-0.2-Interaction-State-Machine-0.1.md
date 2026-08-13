@@ -2,8 +2,10 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; B1/B2, N2, F1/F2, D2/D3/D4, T3, R1, and R2 corrected
-after independent review and subject to a fresh independent closure re-review.
+Status: proposed first-batch design artifact; B1/B2, N2, F1/F2, D2/D3/D4, T3, R1, R2, and S2
+corrected after independent review and subject to a fresh independent closure re-review. `validating`
+now carries loss and drain rows, and the pre-dispatch loss rule is reconciled to any nonterminal
+state.
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 
@@ -89,6 +91,8 @@ with the same provenance, not a fictional global state.
 | `validating` | any further cancellation control while one is held | `peer-fault` | no; emit one interaction-scoped `state-violation` |
 | `validating` | all checks pass and dispatch boundary is crossed | `executing` | yes |
 | `validating` | all checks pass, dispatch boundary is crossed, and one held cancellation control applies | `cancel-requested` or `cancel-refused` | yes; dispatch precedes the held control, which is then evaluated under local cancellation authority |
+| `validating` | local session or transport loss, with or without a held cancellation control | `lost` | no; any held control is discarded with no answering frame and the late-traffic latch does not fire |
+| `validating` | drain refuses this still-admitting interaction, with or without a held cancellation control | `refused-local` | no; an interaction whose admission has not resolved is outside the drain snapshot, and any held control is discarded with no answering frame |
 | `executing`, `cancel-requested`, or `cancel-refused` | handler returns success | `outcome-succeeded` | yes/known by profile evidence |
 | `executing`, `cancel-requested`, or `cancel-refused` | handler returns shaped failure | `outcome-failed` | possible; failure is not rollback |
 | `executing` | valid cancellation control arrives | `cancel-requested` | possible/already occurred |
@@ -184,7 +188,9 @@ peer event in a nonterminal interaction state without a more specific legal row 
 interaction-scoped `state-violation` and terminal `peer-fault`; certainty is `known-none` before
 dispatch and otherwise `unknown` unless explicit evidence narrows it. A wrong-state local action
 that has not emitted a frame is refused locally and leaves the interaction unchanged. Local loss in
-any post-dispatch nonterminal state selects `lost`. Terminal input follows the late-traffic latch.
+any nonterminal state selects `lost`, pre-dispatch states included, and certainty is what separates
+them rather than whether the rule applies: `known-none` before dispatch and `unknown` after it unless
+explicit evidence narrows it. Terminal input follows the late-traffic latch.
 No implementation may ignore an unlisted recognized event or invent another state.
 
 ## Relational initialization

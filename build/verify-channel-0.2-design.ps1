@@ -213,6 +213,67 @@ Assert-ContainsAll 'Channel 0.2 completeness silence inventory' $completeness @(
     'cancel during recipient admission'
 )
 
+# S1: the R1 correction keeps `rejected-protocol` at `unseen` and relies on the coverage grid's
+# assertion that a realization delivers one interaction's controls in commit order. The R1 check
+# above compares whether four artifacts agree about one cell; it cannot reach S1, because every
+# artifact is well formed and the disagreement is about who *owns* a fact rather than about what any
+# of them says. This check asks the ownership question directly, and it is written to key off the
+# grid's assertion rather than to assert any particular artifact exists: if the grid leans on
+# intra-interaction delivery order, the contract must promise it, the capabilities that disclaim
+# ordering must scope their disclaimers, and the matrix must name an owner and a crossing artifact a
+# profile can actually check.
+$flowedContract = Get-FlowedText $contract
+$flowedResponsibility = Get-FlowedText $responsibility
+$flowedCompleteness = Get-FlowedText $completeness
+
+# The condition is the grid cell that *depends* on the ordering fact, not the sentence that asserts
+# it. Keying off the assertion would let the check pass vacuously the moment someone deleted the
+# sentence while leaving the `unseen` fault standing -- which is S1 restored with the evidence for it
+# removed.
+$unseenFaultsCancellation = $false
+if ($unseenRow.Count -eq 1) {
+    $unseenCancelCells = @($unseenRow[0].Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+    if ($unseenCancelCells.Count -ge 3) {
+        $unseenFaultsCancellation = $unseenCancelCells[2].IndexOf('rejected-protocol', [System.StringComparison]::Ordinal) -ge 0
+    }
+}
+if ($unseenFaultsCancellation) {
+    if ($flowedContract.IndexOf('for one interaction identity, frames sent by one endpoint are delivered in the order that endpoint committed them', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The recipient grid faults a cancellation control at `unseen`, which is sound only if a conformant control cannot arrive there, but C4 does not promise the intra-interaction delivery order that makes it so. The fact the verdict depends on must be owned by the capability contract rather than asserted only in the coverage grid.')
+    }
+    if ($flowedContract.IndexOf('C4 promises neither fairness nor relative scheduling, transport ordering,', [System.StringComparison]::Ordinal) -ge 0) {
+        $failures.Add('C4 silence disclaims transport ordering without qualification while the grid relies on intra-interaction delivery order. One fact cannot be both promised and disclaimed; scope the silence to cross-interaction and cross-session ordering.')
+    }
+    if ($flowedContract.IndexOf('Channel core promises no retry, delivery, ordering, persistence, resumption, or exactly-once effect', [System.StringComparison]::Ordinal) -ge 0) {
+        $failures.Add('C11 disclaims ordering without qualification while the grid relies on intra-interaction delivery order. Scope the C11 non-promise so it does not contradict the promise C4 makes.')
+    }
+    if ($flowedResponsibility.IndexOf('Intra-interaction frame order', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The responsibility matrix has no row for intra-interaction frame order, so the fact the `unseen` verdict depends on has no owner. The matrix rule requires every semantic fact to have exactly one.')
+    }
+    if ($flowedResponsibility.IndexOf('per-interaction frame order', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The realization-profile crossing artifact declares no per-interaction frame order field, so a realization cannot state the obligation the grid places on it and a profile cannot verify it.')
+    }
+    if ($flowedContract.IndexOf('**Property C4-P2.**', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('C4 carries no property over the intra-interaction ordering promise. S1 survived seven review cycles because every Cn-P1 stayed green across it, so a new promise without a falsifiable property repeats exactly that failure.')
+    }
+    if ($flowedContract.IndexOf('`C4-control-precedes-request`', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('C4 names no scenario in which a control is delivered before the request it names, which is the exact mutation Property C4-P2 must be able to fail on.')
+    }
+    if ($flowedCompleteness.IndexOf('intra-interaction frame order', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The completeness review silence inventory does not record the intra-interaction ordering promise, although its own residual risk 2 asks whether the design accidentally imports ordering promises.')
+    }
+}
+
+# S2: a held control needs a disposition for the third exit from `validating`. Admission succeeding
+# and admission refusing are the only two C8 enumerates; loss and drain are neither.
+Assert-ContainsAll 'Channel 0.2 held control under loss or drain (C8)' $flowedContract @(
+    'If the session or transport is lost, or drain refuses the interaction, while a control is held'
+)
+Assert-ContainsAll 'Channel 0.2 held control under loss (interaction machine)' $interaction @(
+    '| `validating` | local session or transport loss, with or without a held cancellation control | `lost` | no; any held control is discarded with no answering frame and the late-traffic latch does not fire |',
+    '| `validating` | drain refuses this still-admitting interaction, with or without a held cancellation control | `refused-local` | no; an interaction whose admission has not resolved is outside the drain snapshot, and any held control is discarded with no answering frame |'
+)
+
 Assert-ContainsAll 'Channel 0.2 responsibility matrix' $responsibility @(
     'Channel contract version',
     'Session establishment/drain/close/fault',
@@ -382,8 +443,8 @@ Assert-ContainsAll 'Channel 0.2 review policy' (Get-FlowedText $reviewReadme) @(
     '## Required verdicts',
     '## Closure',
     '## Exact next work',
-    '`11ba93bddbd38f03df59b4afc5166d7c6991c865`',
-    '`channel-0.2-design-foundation-closure-re-review-attestation.md`',
+    '`3892c23a8dd4c7f298e877ba73710ee0ddc97bc4`',
+    '`channel-0.2-design-foundation-closure-review-7-attestation.md`',
     '`channel-0.2-design-foundation-closure-record.md`',
     '`build/verify-channel-0.2-design.ps1`',
     '`build/verify-interchange.ps1`'
@@ -476,10 +537,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 R1 correction pin must retain exactly the review README and all six negative attestations before the next closure review.')
+    $failures.Add('The Channel 0.2 S1 correction pin must retain exactly the review README and all seven negative attestations before the next closure review.')
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'channel\0.2')) {

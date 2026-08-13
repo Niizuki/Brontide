@@ -31,10 +31,11 @@ agrees and its review has no blocking finding.
 
 The [first-batch design package](./channel/README.md) now includes C1-C12, both state machines, a
 closed state/event grid, the responsibility matrix, silence review, migration ledger, neutral-
-artifact brief, four resolved owner rulings, and six retained independent review cycles. Every
-finding through T1-T4 has a contract-first correction, confirmed closed by the sixth review. No
-Channel 0.2 schema or implementation is authorized until the
-[review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
+artifact brief, four resolved owner rulings, and seven retained independent review cycles. Every
+finding through T1-T4, plus R2 and R3, is closed in the artifact it was raised against, each
+re-verified individually by the seventh review. R1 is closed at recipient `validating` and not at
+`unseen`, which is blocking finding S1. No Channel 0.2 schema or implementation is authorized until
+the [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
 ### Channel 0.2 first-batch remaining work
 
@@ -47,7 +48,8 @@ legal control was classified as a protocol violation by a race it could not see.
 as T1 — two artifacts assigning one fact different provenance — and it survived five reviews plus a
 passing verifier because every `Cn-P1` property stays green across it.
 
-**R1 is corrected as of 2026-08-13 by owner ruling: the control is held.** The recipient retains
+**R1 was corrected on 2026-08-13 by owner ruling: the control is held** — at recipient `validating`
+only, as the seventh review then established below. The recipient retains
 exactly one valid cancellation control while `validating` and applies it when admission resolves;
 dispatch precedes the held control, which is then evaluated under local cancellation authority. A
 refused admission discards the held control with no answering frame and does not fire the late-traffic
@@ -62,8 +64,71 @@ corrected in the same pass. `unseen` keeps `rejected-protocol`: there is no acce
 correlate, and holding state for one would let a peer allocate unbounded local state. The recipient
 grid is now six rows, and independent enumeration gives 108 cells with none empty.
 
-The batch remains open only for the review step: R1's correction has a failing-first check in the
-design verifier and needs a fresh independent closure re-review from an isolated clone.
+### The seventh review: R1 is closed at `validating`, not at `unseen`
+
+The seventh review ran on 2026-08-13 from a fresh isolated clone — the condition the sixth review
+missed — and returned `does-not-conform`. It confirmed R2, R3, and every earlier finding closed in
+the artifacts they were raised against, and it found that **the R1 correction fixed the cell it was
+aimed at and left its neighbour standing.**
+
+R1 was raised against a grid row covering `unseen` *and* `validating` together. The correction split
+the row and fixed `validating`. At `unseen` the `rejected-protocol` fault was deliberately kept, and
+the only thing stopping a conformant initiator's legal cancellation from landing there is a sentence
+added to the state/event grid in the same commit: *a realization delivers controls for one
+interaction identity in the order the peer committed them within one session.* That is a
+delivery-ordering promise. C4's explicit silence disclaims transport ordering, C11 says Channel core
+promises no ordering, and the responsibility matrix assigns ordering to `delivery-facet` with Channel
+core named in its `Explicitly not owned by` column — and the `realization-profile` crossing artifact
+has no ordering field, so a realization has no declared way to state the obligation and a profile no
+way to check it. One fact, three artifacts, three different owners, and the correction rests on the
+one artifact with no claim to it. Remove the guarantee and R1 reproduces verbatim one row down; the
+review executed that trace.
+
+This is blocking finding **S1**, and it is the same shape as T1 and R1 — two artifacts assigning one
+fact different provenance, each internally consistent — reached at a third point in the machine. It
+survived a purpose-built cross-artifact verifier check because that check asks whether four documents
+*agree* about a cell, not who *owns* the fact the cell depends on. Every `Cn-P1` property stays green
+across it: the review wrote an evaluator and ran the same conformant initiator under both delivery
+orders, and `C8-P1` and `C9-P1` returned true on both. Only cross-capability invariant 4, which is
+not a `Cn-P1` and has no negative probe, separates them. That is Decision 10's structural blindness
+to silence at the third location this programme has found it.
+
+Nonblocking **S2** records that a held control has no disposition when `validating` ends by loss or
+drain rather than by admission resolving. Nonblocking **S3** recorded index and status staleness,
+including a 102-cell count the corrected 108-cell grid invalidated; it is closed in the commit that
+recorded the review.
+
+**S1 is corrected as of 2026-08-13 by owner ruling: Channel 0.2 core owns intra-interaction frame
+order, narrowly scoped.** Within one session, for one interaction identity, frames sent by one
+endpoint are delivered in the order that endpoint committed them. C4 states it with `C4-P2` and the
+`C4-control-precedes-request` mutation vector; C4's silence and C11 are scoped to cross-interaction
+and cross-session ordering; the responsibility matrix gains an `Intra-interaction frame order` row
+owned by `channel-core`; and the realization profile declares per-interaction frame order so a
+profile can verify it. The `unseen` fault is then correct and provable, and the grid carries the fact
+instead of owning it.
+
+The obligation is small — one direction of one interaction carries at most a request and one
+cancellation control, so an unordered transport conforms by sequencing two frames. Two arguments
+decided it against the alternative of holding at `unseen`. The design already half-believed the
+promise: the contract's boundary section says core does not provide "ordering across interactions"
+and the migration ledger's non-promise read "no cross-interaction order", while C4 and C11 stated it
+unscoped — so those artifacts disagreed about the *scope* of the non-promise before R1 was touched.
+And holding at `unseen` has no bound: admission at `validating` is local and terminates, but at
+`unseen` the recipient waits on a peer frame that may never arrive, and core has no timeout,
+deadline, or expiry concept at all. Bounding by `max-in-flight` would let a peer consume the admitted
+budget with identities it never opens. The full option set, including the rejected variant that would
+have required a delivery facet of any cancelling profile, is in the
+[redesign plan's resolved questions](./channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md#resolved-questions).
+
+S2 is dispositioned in the same pass: loss and drain are the third and fourth exits from
+`validating`, a held control is discarded with no answering frame and does not fire the late-traffic
+latch, an interaction still admitting is outside the drain snapshot, and the interaction machine's
+pre-dispatch loss rule is reconciled to any nonterminal state with certainty rather than
+applicability separating pre- from post-dispatch.
+
+The batch remains open only for the review step: the S1 correction has a failing-first check in the
+design verifier — written before the correction, seen to fail with eight findings, and mutation-tested
+after — and needs a fresh independent closure re-review from an isolated clone.
 
 **Owner ruling, 2026-08-13 — what spends reviewer context freshness.** The sixth review declared its
 own isolation partial on two counts. The owner ruling separates them. Reading the future index, the
@@ -1544,7 +1609,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and six retained independent reviews, has correction passes through R1-R3, and awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and seven retained independent reviews, has correction passes through S1-S3, and awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

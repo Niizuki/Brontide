@@ -2,9 +2,11 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, and R1 corrected after
-independent review. No Channel 0.2 schema, API, implementation, or ratification is authorized until
-the complete design foundation receives a fresh independent closure re-review.
+Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, R1, S1, and S2 corrected
+after independent review. C4 now owns intra-interaction frame order with `C4-P2`, and C4's silence
+and C11 are scoped to cross-interaction and cross-session ordering. No Channel 0.2 schema, API,
+implementation, or ratification is authorized until the complete design foundation receives a fresh
+independent closure re-review.
 
 Designed for: Brontide Architecture 0.8, Complete Draft, especially sections 6.16, 13.6, 16.4,
 18.1, 19, and 24.
@@ -155,9 +157,16 @@ Portable Binding 0.2 profile may select one or a larger tested bound. Outcomes, 
 controls, and observations name the exact interaction. Reusing an accepted interaction identity in
 the same session is replay and never dispatches the handler again.
 
-No cross-interaction completion order is promised. Within one interaction, accepted events follow
-the interaction state machine. A new session has a new identity and cannot resume or inherit the
-replay window of an old session unless a later extension defines a distinct resumption contract.
+No cross-interaction completion order is promised. Within one session, for one interaction identity,
+frames sent by one endpoint are delivered in the order that endpoint committed them. This is the
+whole of the ordering Channel 0.2 core promises, and it is what lets a recipient distinguish a
+cancellation control that races its own admission from a control naming an identity it has never
+been asked to open. The obligation binds one direction of one interaction, where an initiator commits
+at most a request and one cancellation control, so a realization over an unordered transport
+satisfies it by sequencing those frames rather than by building a general reordering buffer. Within
+one interaction, accepted events follow the interaction state machine. A new session has a new
+identity and cannot resume or inherit the replay window of an old session unless a later extension
+defines a distinct resumption contract.
 
 **Authority and effect boundary.** Correlation and possession of an identity grant no authority.
 
@@ -172,17 +181,35 @@ is ignored, and effect certainty remains `unknown` unless explicit evidence narr
 an accepted terminal never replaces that first terminal history.
 
 **Named scenarios.** `C4-two-complete-out-of-order`, `C4-bound-exceeded`,
-`C4-replay-not-redispatched`, and `C4-terminal-correlation-mismatch`.
+`C4-replay-not-redispatched`, `C4-terminal-correlation-mismatch`, and
+`C4-control-precedes-request`.
+
+`C4-control-precedes-request` is a mutation vector rather than a legal path: a realization delivers
+one interaction's cancellation control before the request that opens it. A conforming realization
+cannot produce it, and the vector exists so that `C4-P2` has something to fail on. Its expected
+observation is that the vector is rejected as nonconforming evidence, not that the recipient answers
+it — which is exactly the distinction `C12` draws between an unspecified expectation and a declared
+refusal.
 
 **Property C4-P1.** Across every C4 vector, each accepted terminal fact closes exactly one admitted
 interaction, no interaction identity is dispatched twice, and the number of nonterminal interactions
 never exceeds the established finite bound.
 
-**Evidence.** Model-based state tests and generated interleavings in both stacks; neutral peer with
-out-of-order outcomes; replay and mismatch process vectors.
+**Property C4-P2.** Across every C4 vector, for each interaction identity the sequence of frames a
+recipient accepts from one endpoint is an order-preserving subsequence of the sequence that endpoint
+committed. Loss may drop a frame; nothing may deliver two frames of one interaction in an order the
+sender did not commit them in. `C4-control-precedes-request` is the mutation this property must go
+red on, and a run in which it stays green is a finding against the property rather than evidence for
+the design.
 
-**Silence.** C4 promises neither fairness nor relative scheduling, transport ordering, durable
-deduplication, or exactly-once effects.
+**Evidence.** Model-based state tests and generated interleavings in both stacks; neutral peer with
+out-of-order outcomes; replay and mismatch process vectors; and a realization-profile declaration of
+per-interaction frame order that a profile checks at establishment.
+
+**Silence.** C4 promises neither fairness nor relative scheduling, cross-interaction or cross-session
+ordering, durable deduplication, or exactly-once effects. The intra-interaction frame order stated
+above is the whole of what it promises about order: nothing here constrains how a realization
+interleaves distinct interactions, and no ordering survives a session boundary.
 
 ## C5 — payload compatibility and bounds are positional and pre-effect
 
@@ -296,6 +323,15 @@ have reached had it arrived a moment later. If admission refuses, the interactio
 the held control is discarded with no answering frame, and the late-traffic latch does not fire — a
 control that was legal when it was sent does not become late traffic because the request it named was
 refused. A second control while one is held is an interaction-scoped `state-violation`.
+
+Admission succeeding and admission refusing are not the only ways `validating` ends. If the session
+or transport is lost, or drain refuses the interaction, while a control is held, the interaction
+reaches `lost` or its drain refusal exactly as it would have with no control outstanding: the held
+control is discarded with no answering frame, and the late-traffic latch does not fire, for the same
+reason a refused admission does not fire it. A held control never changes which terminal an
+interaction reaches; it only supplies a cancellation decision when the interaction survives long
+enough to have one. An interaction still in `validating` when drain arrives is not in the drain
+snapshot, because the snapshot is taken over admitted interactions and admission has not resolved.
 
 The peer may acknowledge `accepted` or `refused`; the
 initiator records those as distinct nonterminal states, and either proves nothing about effects. An
@@ -415,7 +451,9 @@ the Channel core forms unless a future Channel version explicitly changes them.
 
 Retries are new attempts with new interaction identities and optional attributable causation to the
 prior attempt. Reusing one interaction identity is replay, not retry. Channel core promises no retry,
-delivery, ordering, persistence, resumption, or exactly-once effect.
+durable delivery, cross-interaction ordering, persistence, resumption, or exactly-once effect. The
+single ordering fact core does own is C4's intra-interaction frame order; a facet may add delivery
+and ordering guarantees beyond it but may not weaken it.
 
 **Authority and effect boundary.** An extension declaration grants nothing and cannot broaden C6.
 

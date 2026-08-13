@@ -2,8 +2,9 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch totality artifact; added after D1-D4, corrected for T3, R1, and R3, and
-subject to a fresh independent closure re-review.
+Status: proposed first-batch totality artifact; added after D1-D4, corrected for T3, R1, R3, S1, and
+S2, and subject to a fresh independent closure re-review. The intra-interaction ordering fact the
+`unseen` verdict depends on is carried here and owned by C4.
 
 Normative companions:
 
@@ -74,8 +75,13 @@ is held: the initiator sent it legally from `dispatched` and cannot observe when
 `executing`, so faulting it would condemn a conformant endpoint for losing an unobservable race. At
 `unseen` there is no accepted identity to correlate against, and holding state for one would let a
 peer allocate unbounded local state by naming identities it never opens, so the control is refused as
-a peer statement. A realization delivers controls for one interaction identity in the order the peer
-committed them within one session; cross-interaction ordering remains unpromised under C4.
+a peer statement. That verdict is sound only because a conformant control cannot arrive at `unseen`
+at all: **C4 owns** the rule that within one session, for one interaction identity, frames sent by one
+endpoint are delivered in the order that endpoint committed them, a realization profile declares
+per-interaction frame order, and `C4-P2` is the property that fails when it does not hold. This grid
+carries that fact and does not own it. Cross-interaction and cross-session ordering remain unpromised
+under C4, and a delivery facet may add guarantees beyond the intra-interaction one but may not weaken
+it.
 
 A held control is covered by totality rule 1 — a matching detailed transition row wins — rather than
 by the `state-violation` catch-all, and it never reaches the late-traffic latch: if admission refuses,
