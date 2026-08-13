@@ -1,7 +1,12 @@
 # Channel 0.2 design-foundation reviews
 
-Status: four owner rulings resolved; five negative independent reviews retained; B1-B4, N1-N3,
-F1-F3, D1-D5, and T1-T4 have correction passes and a fresh independent closure re-review is pending.
+Status: four owner rulings resolved; six negative independent reviews retained; B1-B4, N1-N3, F1-F3,
+D1-D5, and T1-T4 are closed. The sixth review raised one new blocking finding, R1, which has no
+correction pass yet, so a fresh independent closure re-review is pending on the corrected pin.
+
+The cycle is deliberately unnamed. Reviews are numbered, not titled, and every artifact says it awaits
+"a fresh independent closure re-review" whichever cycle is current — that phrase is the T4 correction
+and must survive each round rather than being escalated.
 
 Review cycles are numbered from here rather than named. The first four were called "closure",
 "final closure", "definitive closure", and "totality closure", and that escalation is what produced
@@ -65,23 +70,26 @@ The author correction pass and ordinary documentation gates are not independent 
 
 ## Exact next work
 
-The next agent closes the first batch; it does **not** begin schemas or implementation.
+The closure re-review has run and returned `does-not-conform`; its retained record is
+`channel-0.2-design-foundation-closure-re-review-attestation.md`. Steps 1-3 below are therefore the
+live path. The next agent corrects R1; it does **not** begin schemas or implementation, and it does
+not create `channel-0.2-design-foundation-closure-record.md`.
 
-1. Review the immutable T1-T4 correction pin
-   `11ba93bddbd38f03df59b4afc5166d7c6991c865` from a fresh isolated clone and a reviewer
-   identity distinct from the correction author and all five retained reviewers. Read `AGENTS.md`,
-   this policy, all five retained attestations, and every artifact in the required scope. Enumerate
-   the complete session/initiator/recipient state-event grid independently, attempt to falsify at
-   least one Cn-P1 property, explicitly decide B1-B4, N1-N3, F1-F3, D1-D5, and T1-T4, and search for
-   new blockers.
-2. The reviewer writes only
-   `channel-0.2-design-foundation-closure-re-review-attestation.md`. It records the full pin,
-   isolation, per-capability/area/ruling verdicts, retained-finding decisions, probes, and either
-   `conforms` or exact new findings. It does not repair the design or create a closure record.
-3. If the verdict is negative, retain the attestation unchanged, add failing verifier/model checks
-   for each new finding, correct the design in a later commit, and obtain another fresh review. Batch
-   2 remains closed.
-4. If the verdict conforms, retain and commit the attestation unchanged, calculate its SHA-256, then
+1. Add a failing check for **R1** before correcting it. The design verifier's structural checks cannot
+   reach R1 — it is a disagreement between C8's enumerated cancellation-fault conditions and the
+   recipient grid's `unseen` / `validating` cancellation-control cell, and every capability property
+   stays green across it. The check must compare what the two artifacts say about one event rather
+   than assert that either exists.
+2. Correct R1 contract-first. The resolution is an owner question, and the attestation records three
+   candidate shapes: hold the control until admission resolves, refuse it framelessly, or keep the
+   fault and add a request-accepted acknowledgement so the race becomes avoidable. Whichever is
+   chosen must land in C8, in a recipient transition row, in the grid cell, and in the completeness
+   review's silence inventory. R2 and R3 are nonblocking and should be dispositioned in the same pass.
+3. Obtain another fresh independent review of the corrected pin, from a reviewer identity distinct
+   from the correction author and all six retained reviewers, **in a fresh isolated clone** — the one
+   independence condition the sixth review did not meet. Its scope, verdicts, and probe requirements
+   are unchanged from the sections above. It writes only its own attestation.
+4. If that verdict conforms, retain and commit the attestation unchanged, calculate its SHA-256, then
    create `channel-0.2-design-foundation-closure-record.md`. The record contains the reviewed commit,
    attestation path and hash, reviewer identity/date/verdict, all four owner rulings, confirmation
    that every retained finding closed with no new blocker, and the exact validation results. Update
@@ -118,6 +126,14 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
 - [Totality closure review](./channel-0.2-design-foundation-totality-closure-attestation.md) —
   reviewed `5cf42c4d97083324ffb8d6bd68491a145b8e611a`; `does-not-conform`; D1-D5 closed, blocking T1
   and nonblocking T2-T4 retained for closure re-review comparison.
+- [Closure re-review](./channel-0.2-design-foundation-closure-re-review-attestation.md) — reviewed
+  `11ba93bddbd38f03df59b4afc5166d7c6991c865`; `does-not-conform`; T1-T4 closed, blocking R1 and
+  nonblocking R2-R3 retained for the next closure comparison. **Its isolation is partial and the
+  attestation says so**: no fresh isolated clone was used, and the reviewing session had already read
+  the future index and this policy while identifying the work. Under the owner ruling recorded in
+  [`docs/future/README.md`](../../README.md#channel-02-first-batch-remaining-work), navigational
+  reading of the indexes to locate the work does not by itself spend context freshness; the absent
+  isolated clone still does. It therefore establishes R1 but could not have closed the batch.
 
 The T1-T4 correction pin is `11ba93bddbd38f03df59b4afc5166d7c6991c865`
 (`docs(channel): widen the invalid cancelled terminal to its class`, committed

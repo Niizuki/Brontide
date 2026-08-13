@@ -31,11 +31,39 @@ agrees and its review has no blocking finding.
 
 The [first-batch design package](./channel/README.md) now includes C1-C12, both state machines, a
 closed state/event grid, the responsibility matrix, silence review, migration ledger, neutral-
-artifact brief, four resolved owner rulings, and five retained independent review cycles. Every
-finding through T1-T4 has a contract-first correction at the current pin. The exact next work is a
-fresh independent closure re-review and closure record under the
-[review handoff](./channel/reviews/README.md#exact-next-work). No Channel 0.2 schema or implementation
-is authorized until that handoff closes cleanly.
+artifact brief, four resolved owner rulings, and six retained independent review cycles. Every
+finding through T1-T4 has a contract-first correction, confirmed closed by the sixth review. No
+Channel 0.2 schema or implementation is authorized until the
+[review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
+
+### Channel 0.2 first-batch remaining work
+
+The sixth review found **R1**, a new blocking finding, so the batch stays open. C8 permits a
+cancellation from initiator state `dispatched`, which is a purely local condition, while the recipient
+coverage grid routes a cancellation arriving during `validating` to `rejected-protocol` — a peer
+Channel statement asserting the initiator erred. The recipient's admission transition emits no frame
+and no request-accepted acknowledgement exists, so the initiator cannot observe when cancellation
+becomes safe: a conformant endpoint's legal control is classified as a protocol violation by a race it
+cannot see. C8's four enumerated cancellation-fault conditions do not include it, and the recipient
+transition table has no row for the pair at all. This breaks C12 determinism and cross-capability
+invariant 4, and fails the neutral brief's Batch 2 entry-gate criterion 1.
+
+It is the same shape as T1 — two artifacts assigning one fact different provenance — and it survived
+five reviews plus a passing verifier because every `Cn-P1` property stays green across it. Nonblocking
+**R2** (the two endpoint cancellation preconditions are written as if simultaneous) and **R3**
+(`unseen` and `validating` share a grid row but are not alike for cancellation control) accompany it.
+The correction is an owner question with three candidate shapes, recorded in the
+[closure re-review attestation](./channel/reviews/channel-0.2-design-foundation-closure-re-review-attestation.md).
+
+**Owner ruling, 2026-08-13 — what spends reviewer context freshness.** The sixth review declared its
+own isolation partial on two counts. The owner ruling separates them. Reading the future index, the
+review policy, and the decisions file *to identify what work is next* is navigational, not design,
+reading: a workload that runs "find new work" → "found an item needing review" → "review it" still
+counts as a fresh context, because locating a task does not expose the reviewer to the design
+reasoning it must independently judge. Whether an isolated clone was used is a separate condition and
+is **not** waived — the sixth review did not use one, which is why it establishes R1 but could not
+have closed the batch. The next closure review must run from a fresh isolated clone at the corrected
+pin.
 
 ## Completed predecessor — Portable Component Binding 0.1
 
@@ -1506,7 +1534,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and five retained independent reviews, and awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and six retained independent reviews, carries one open blocking finding (R1), and awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

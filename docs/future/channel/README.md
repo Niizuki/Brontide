@@ -5,12 +5,16 @@ logical vocabulary is not the stable successor contract.
 
 Channel 0.2 is the current Priority 1 redesign. Its four first-batch owner rulings were resolved on
 2026-08-11. B1-B4, N1-N3, F1-F3, D1-D5, and T1-T4 have contract-first corrections, including a closed
-state/event grid; implementation remains gated on a conforming fresh independent closure re-review.
+state/event grid, and the sixth review confirmed all of them closed. That review raised one new
+blocking finding, R1, so implementation remains gated on a conforming fresh independent closure
+re-review of the R1 correction.
 
 ## Channel 0.2 design foundation
 
-Every artifact below awaits the same cycle: one fresh independent closure re-review of the T1-T4
-corrections.
+Every artifact below awaits the same cycle: one fresh independent closure re-review, now of the R1
+correction. R1 is a disagreement between C8 and the recipient state/event grid about a cancellation
+that races recipient admission; see the
+[review handoff](./reviews/README.md#exact-next-work) for the live path.
 
 | Artifact | Purpose | Current state |
 | --- | --- | --- |
