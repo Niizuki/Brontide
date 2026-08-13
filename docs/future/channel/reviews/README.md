@@ -1,8 +1,10 @@
 # Channel 0.2 design-foundation reviews
 
 Status: four owner rulings resolved; six negative independent reviews retained; B1-B4, N1-N3, F1-F3,
-D1-D5, and T1-T4 are closed. The sixth review raised one new blocking finding, R1, which has no
-correction pass yet, so a fresh independent closure re-review is pending on the corrected pin.
+D1-D5, T1-T4, and R1-R3 all have correction passes, so a fresh independent closure re-review is
+pending on the R1 correction pin. R1's resolution required its own dated owner ruling, recorded in
+the redesign plan; it is a correction ruling and does not join the four first-batch rulings, which
+remain the fixed set recorded on 2026-08-11.
 
 The cycle is deliberately unnamed. Reviews are numbered, not titled, and every artifact says it awaits
 "a fresh independent closure re-review" whichever cycle is current — that phrase is the T4 correction
@@ -71,24 +73,29 @@ The author correction pass and ordinary documentation gates are not independent 
 ## Exact next work
 
 The closure re-review has run and returned `does-not-conform`; its retained record is
-`channel-0.2-design-foundation-closure-re-review-attestation.md`. Steps 1-3 below are therefore the
-live path. The next agent corrects R1; it does **not** begin schemas or implementation, and it does
-not create `channel-0.2-design-foundation-closure-record.md`.
+`channel-0.2-design-foundation-closure-re-review-attestation.md`. **Steps 1 and 2 are complete.**
+Step 3 is the live path. The next agent reviews the R1 correction; it does **not** begin schemas or
+implementation, and it does not create `channel-0.2-design-foundation-closure-record.md` unless its
+own verdict conforms.
 
-1. Add a failing check for **R1** before correcting it. The design verifier's structural checks cannot
-   reach R1 — it is a disagreement between C8's enumerated cancellation-fault conditions and the
-   recipient grid's `unseen` / `validating` cancellation-control cell, and every capability property
-   stays green across it. The check must compare what the two artifacts say about one event rather
-   than assert that either exists.
-2. Correct R1 contract-first. The resolution is an owner question, and the attestation records three
-   candidate shapes: hold the control until admission resolves, refuse it framelessly, or keep the
-   fault and add a request-accepted acknowledgement so the race becomes avoidable. Whichever is
-   chosen must land in C8, in a recipient transition row, in the grid cell, and in the completeness
-   review's silence inventory. R2 and R3 are nonblocking and should be dispositioned in the same pass.
+1. ~~Add a failing check for **R1** before correcting it.~~ **Done.** The design verifier now compares
+   what C8, the interaction machine, the recipient grid, and the completeness review each say about a
+   cancellation control arriving during recipient admission, rather than asserting that any of them
+   exists. It failed with seven findings before the correction and was mutation-tested afterwards by
+   reverting the grid cell, which fires it again.
+2. ~~Correct R1 contract-first.~~ **Done** under the 2026-08-13 owner ruling: hold the control until
+   admission resolves. The rule is stated in C8, given two recipient transition rows plus a
+   second-control fault row, split across separate `unseen` and `validating` grid rows, and added to
+   the completeness review's silence inventory. R2 and R3 were dispositioned in the same pass.
 3. Obtain another fresh independent review of the corrected pin, from a reviewer identity distinct
    from the correction author and all six retained reviewers, **in a fresh isolated clone** — the one
    independence condition the sixth review did not meet. Its scope, verdicts, and probe requirements
    are unchanged from the sections above. It writes only its own attestation.
+
+   The reviewer should treat the R1 correction as the primary target and check specifically that
+   holding introduces no new silence: what bounds the hold if admission never resolves, whether a
+   held control interacts with drain or session loss, and whether dispatching before applying the
+   held control is the right zero-effect boundary or merely the conservative one.
 4. If that verdict conforms, retain and commit the attestation unchanged, calculate its SHA-256, then
    create `channel-0.2-design-foundation-closure-record.md`. The record contains the reviewed commit,
    attestation path and hash, reviewer identity/date/verdict, all four owner rulings, confirmation

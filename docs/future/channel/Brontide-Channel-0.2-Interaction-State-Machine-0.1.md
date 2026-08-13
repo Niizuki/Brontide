@@ -2,8 +2,8 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; B1/B2, N2, F1/F2, D2/D3/D4, and T3 corrected after
-independent review and subject to a fresh independent closure re-review.
+Status: proposed first-batch design artifact; B1/B2, N2, F1/F2, D2/D3/D4, T3, R1, and R2 corrected
+after independent review and subject to a fresh independent closure re-review.
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 
@@ -85,7 +85,10 @@ with the same provenance, not a fictional global state.
 | `validating` | structural/profile/state/class/direction/Shape/authority-structure/bound/replay/concurrency check fails | `rejected-protocol` | no |
 | `validating` | receiver-local external phase predicate is `false` or `unknown` | `refused-local` | no |
 | `validating` | structurally valid authority presentation is denied by local policy | `refused-local` | no |
+| `validating` | valid cancellation control for this admitted identity arrives | `validating` | no; hold exactly one control and apply it when admission resolves |
+| `validating` | any further cancellation control while one is held | `peer-fault` | no; emit one interaction-scoped `state-violation` |
 | `validating` | all checks pass and dispatch boundary is crossed | `executing` | yes |
+| `validating` | all checks pass, dispatch boundary is crossed, and one held cancellation control applies | `cancel-requested` or `cancel-refused` | yes; dispatch precedes the held control, which is then evaluated under local cancellation authority |
 | `executing`, `cancel-requested`, or `cancel-refused` | handler returns success | `outcome-succeeded` | yes/known by profile evidence |
 | `executing`, `cancel-requested`, or `cancel-refused` | handler returns shaped failure | `outcome-failed` | possible; failure is not rollback |
 | `executing` | valid cancellation control arrives | `cancel-requested` | possible/already occurred |
@@ -139,7 +142,13 @@ Cancellation is optional in the profile and exact when present:
 1. the profile declares whether cancellation is unsupported, optional, or required for a class;
 2. required cancellation unsupported by either endpoint refuses C1 establishment;
 3. cancellation has a distinct authority requirement and may be denied independently;
-4. exactly one cancellation request is legal, from initiator `dispatched` and recipient `executing`;
+4. exactly one cancellation request is legal. The initiator may send it from `dispatched`; the
+   recipient applies it from `executing`, or holds exactly one while `validating` and applies it when
+   admission resolves. The two preconditions are local to their own endpoints and no event
+   synchronises them — the recipient's admission transition emits no frame and there is no
+   request-accepted acknowledgement — so a control that arrives before admission completes has lost
+   no race, is not a fault, and is held. If admission then refuses, the held control is discarded
+   with no answering frame and the late-traffic latch does not fire;
 5. `accepted` means the recipient has accepted responsibility to request cancellation from the
    handler, not that the handler has stopped and not that effects are zero;
 6. `refused` means execution continues under the ordinary terminal contract, and a handler terminal

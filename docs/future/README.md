@@ -38,22 +38,32 @@ Channel 0.2 schema or implementation is authorized until the
 
 ### Channel 0.2 first-batch remaining work
 
-The sixth review found **R1**, a new blocking finding, so the batch stays open. C8 permits a
-cancellation from initiator state `dispatched`, which is a purely local condition, while the recipient
-coverage grid routes a cancellation arriving during `validating` to `rejected-protocol` — a peer
-Channel statement asserting the initiator erred. The recipient's admission transition emits no frame
-and no request-accepted acknowledgement exists, so the initiator cannot observe when cancellation
-becomes safe: a conformant endpoint's legal control is classified as a protocol violation by a race it
-cannot see. C8's four enumerated cancellation-fault conditions do not include it, and the recipient
-transition table has no row for the pair at all. This breaks C12 determinism and cross-capability
-invariant 4, and fails the neutral brief's Batch 2 entry-gate criterion 1.
+The sixth review found **R1**, a new blocking finding. C8 permitted a cancellation from initiator
+state `dispatched`, a purely local condition, while the recipient coverage grid routed a cancellation
+arriving during `validating` to `rejected-protocol` — a peer Channel statement asserting the initiator
+erred. The recipient's admission transition emits no frame and no request-accepted acknowledgement
+exists, so the initiator could not observe when cancellation became safe: a conformant endpoint's
+legal control was classified as a protocol violation by a race it could not see. It was the same shape
+as T1 — two artifacts assigning one fact different provenance — and it survived five reviews plus a
+passing verifier because every `Cn-P1` property stays green across it.
 
-It is the same shape as T1 — two artifacts assigning one fact different provenance — and it survived
-five reviews plus a passing verifier because every `Cn-P1` property stays green across it. Nonblocking
-**R2** (the two endpoint cancellation preconditions are written as if simultaneous) and **R3**
-(`unseen` and `validating` share a grid row but are not alike for cancellation control) accompany it.
-The correction is an owner question with three candidate shapes, recorded in the
-[closure re-review attestation](./channel/reviews/channel-0.2-design-foundation-closure-re-review-attestation.md).
+**R1 is corrected as of 2026-08-13 by owner ruling: the control is held.** The recipient retains
+exactly one valid cancellation control while `validating` and applies it when admission resolves;
+dispatch precedes the held control, which is then evaluated under local cancellation authority. A
+refused admission discards the held control with no answering frame and does not fire the late-traffic
+latch, because a control that was legal when sent does not become late traffic when the request it
+named is refused. A second control while one is held is an interaction-scoped `state-violation`. The
+option set and the rejected alternatives are recorded in the
+[redesign plan's resolved questions](./channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md#resolved-questions).
+
+Nonblocking **R2** (the two endpoint cancellation preconditions were written as if simultaneous) and
+**R3** (`unseen` and `validating` shared a grid row but are not alike for cancellation control) are
+corrected in the same pass. `unseen` keeps `rejected-protocol`: there is no accepted identity to
+correlate, and holding state for one would let a peer allocate unbounded local state. The recipient
+grid is now six rows, and independent enumeration gives 108 cells with none empty.
+
+The batch remains open only for the review step: R1's correction has a failing-first check in the
+design verifier and needs a fresh independent closure re-review from an isolated clone.
 
 **Owner ruling, 2026-08-13 — what spends reviewer context freshness.** The sixth review declared its
 own isolation partial on two counts. The owner ruling separates them. Reading the future index, the
@@ -1534,7 +1544,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and six retained independent reviews, carries one open blocking finding (R1), and awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and six retained independent reviews, has correction passes through R1-R3, and awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

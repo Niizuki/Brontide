@@ -2,7 +2,7 @@
 
 Date: 2026-08-11
 
-Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, and T1-T4 correction passes complete.
+Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, and R1-R3 correction passes complete.
 A fresh independent closure re-review remains required. This review asks what the proposed contract
 does not say. It is separate from conformance review and does not claim the contract is correct.
 
@@ -136,6 +136,7 @@ property counts as evidence.
 | two interactions complete out of order | legal; independent terminal histories | Channel core |
 | concurrency bound races at admission | reserve atomically; one refusal, no lasting replay entry | Channel core/runtime mechanism |
 | cancel before dispatch | local refusal/no cancel frame; admission may itself be abandoned locally | Channel core |
+| cancel during recipient admission | held, not faulted: exactly one control is retained while `validating` and applied when admission resolves; a refused admission discards it with no frame and does not fire the late-traffic latch | Channel core |
 | cancel during possible effects | accepted/refused nonterminal ack; final Outcome/fault/loss required | Channel + Operation profile |
 | cancel after terminal | late control; terminal history unchanged | Channel core |
 | drain with in-flight work | no new admission; existing work terminates | Channel core |

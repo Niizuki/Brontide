@@ -47,6 +47,15 @@ function Assert-ContainsAll {
     }
 }
 
+# Prose assertions must survive line wrapping: a normative sentence that reflows across a wrap is
+# still the same sentence. Table-row assertions keep asserting against raw text, where the exact
+# single-line form is the thing being pinned.
+function Get-FlowedText {
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Content)
+
+    return [regex]::Replace($Content, '\s+', ' ')
+}
+
 foreach ($artifactName in $artifactNames) {
     Read-RequiredText $artifactName | Out-Null
 }
@@ -149,6 +158,59 @@ Assert-ContainsAll 'Channel 0.2 state/event coverage' $stateEventCoverage @(
     '## Recipient interaction coverage grid',
     '## Late-traffic latch',
     'Every recognized event/state pair has exactly one route'
+)
+
+# R1: C8 and the recipient grid must agree about a cancellation control that arrives while the
+# recipient is still admitting. The structural checks above cannot reach this: both artifacts are
+# well formed and every Cn-P1 property stays green whichever provenance the event is given. This
+# check compares what the two say about one event, which is the class T1 and R1 both belong to.
+$recipientGridSection = ($stateEventCoverage -split '## Recipient interaction coverage grid', 2)[1] -split '## Late-traffic latch', 2 | Select-Object -First 1
+$recipientGridRows = @($recipientGridSection -split "`r?`n" | Where-Object { $_ -match '^\| ' -and $_ -notmatch '^\| ---' -and $_ -notmatch '^\| Recipient state group' })
+$validatingRow = @($recipientGridRows | Where-Object { $_ -match '^\| `validating` \|' })
+$unseenRow = @($recipientGridRows | Where-Object { $_ -match '^\| `unseen` \|' })
+
+# R3: the two states are not alike for cancellation control and may not share one verdict.
+if ($validatingRow.Count -ne 1 -or $unseenRow.Count -ne 1) {
+    $failures.Add('The recipient coverage grid must give `unseen` and `validating` separate rows, because a cancellation control correlates against a known identity in one and not the other.')
+}
+else {
+    $validatingCells = @($validatingRow[0].Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+    $unseenCells = @($unseenRow[0].Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+    if ($validatingCells.Count -ge 3) {
+        $validatingCancelCell = $validatingCells[2]
+        if ($validatingCancelCell.IndexOf('rejected-protocol', [System.StringComparison]::Ordinal) -ge 0) {
+            $failures.Add('The recipient coverage grid must not route a cancellation control arriving during `validating` to `rejected-protocol`: the initiator cannot observe when the recipient reaches `executing`, so a conformant control would be faulted for losing an unobservable race.')
+        }
+        if ($validatingCancelCell.IndexOf('hold', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The recipient coverage grid must state that a cancellation control arriving during `validating` is held until admission resolves.')
+        }
+    }
+    if ($unseenCells.Count -ge 3 -and $unseenCells[2].IndexOf('rejected-protocol', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The recipient coverage grid must keep a cancellation control for an unopened identity at `unseen` as `rejected-protocol`; holding state for an identity the recipient has never seen would let a peer allocate unbounded local state.')
+    }
+}
+
+# The contract must own the rule rather than leaving the grid as its only normative statement.
+Assert-ContainsAll 'Channel 0.2 cancellation admission race (C8)' (Get-FlowedText $contract) @(
+    'A cancellation control that arrives while the recipient is still admitting the interaction is held, not faulted',
+    'retains exactly one held control and applies it when admission resolves'
+)
+
+# The interaction machine must carry the two recipient rows the rule needs.
+Assert-ContainsAll 'Channel 0.2 cancellation admission race (interaction machine)' $interaction @(
+    '| `validating` | valid cancellation control for this admitted identity arrives | `validating` | no; hold exactly one control and apply it when admission resolves |',
+    '| `validating` | all checks pass, dispatch boundary is crossed, and one held cancellation control applies | `cancel-requested` or `cancel-refused` | yes; dispatch precedes the held control, which is then evaluated under local cancellation authority |'
+)
+
+# R2: the two endpoint preconditions are two local states with no synchronising event between them.
+Assert-ContainsAll 'Channel 0.2 cancellation precondition separation' (Get-FlowedText $interaction) @(
+    'The two preconditions are local to their own endpoints and no event synchronises them'
+)
+
+# The completeness review must carry the recipient-side race in its silence inventory, next to the
+# initiator-side one it already records.
+Assert-ContainsAll 'Channel 0.2 completeness silence inventory' $completeness @(
+    'cancel during recipient admission'
 )
 
 Assert-ContainsAll 'Channel 0.2 responsibility matrix' $responsibility @(
@@ -313,7 +375,7 @@ Assert-ContainsAll 'Channel 0.2 neutral brief' $neutralBrief @(
     '## Golden policy',
     '## Batch 2 entry gate'
 )
-Assert-ContainsAll 'Channel 0.2 review policy' $reviewReadme @(
+Assert-ContainsAll 'Channel 0.2 review policy' (Get-FlowedText $reviewReadme) @(
     'four owner rulings resolved',
     'fresh independent closure re-review is pending',
     '## Required review scope',
@@ -346,12 +408,6 @@ function Get-StatusBlock {
 # against whitespace-collapsed text. Without this a required phrase disappears the moment a sentence
 # reflows, and a forbidden one hides in the same way, which is a check that fails for the wrong reason
 # and passes for the wrong reason respectively.
-function Get-FlowedText {
-    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Content)
-
-    return [regex]::Replace($Content, '\s+', ' ')
-}
-
 $statusArtifacts = [ordered]@{
     'Channel 0.2 capability contract status'   = Get-FlowedText (Get-StatusBlock $contract)
     'Channel 0.2 session state machine status' = Get-FlowedText (Get-StatusBlock $session)
