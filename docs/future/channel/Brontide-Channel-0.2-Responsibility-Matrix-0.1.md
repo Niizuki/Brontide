@@ -3,8 +3,10 @@
 Date: 2026-08-11
 
 Status: proposed first-batch ownership contract; B3 and cross-artifact N1 corrected after independent
-review and confirmed unchanged by the fourth and fifth reviews. It is subject to
-a fresh independent closure re-review.
+review and confirmed unchanged by the fourth, fifth, sixth, and seventh reviews. Its
+`Delivery, persistence, ordering` row is the evidence for blocking finding S1, which is a defect in
+what other artifacts assert rather than in this matrix. It is subject to a fresh independent closure
+re-review.
 
 ## Rule
 
