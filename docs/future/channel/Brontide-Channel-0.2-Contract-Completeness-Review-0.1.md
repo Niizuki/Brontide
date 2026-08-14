@@ -389,5 +389,13 @@ predecessor did not list intra-interaction frame order or its two mutations, so 
 finding since S1 turns on was absent from the list of what Batch 2 must build; unlike the rest of the
 sequence this is not a defect a correction introduced but one they all went past.
 
+A sixth pass left the design package and asked what the entry points say, raising **AA1**-**AA3**.
+**AA1** and **AA2** — the Channel index and the future-work index had fallen behind every correction
+family since V2, the second still naming S1 as the open blocking finding and both understating the
+retained review count; the counts are now computed from the reviews directory and every family
+recorded in this disposition history must appear in both. **AA3** — the future-work index still
+attributed the ordering row to `channel-core`, the identifier U2 abolished, so the closed owner
+vocabulary was closed in one artifact only.
+
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.

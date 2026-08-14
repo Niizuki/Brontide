@@ -11,8 +11,8 @@ produces. Nonblocking **U2**-**U8** are now also corrected, as are **V1** and **
 [U1 correction iteration review](./channel-0.2-u1-correction-iteration-review.md) raised against the
 U1 correction itself, **W1**-**W6**, which two further iteration passes raised against those
 corrections in turn, **X1**-**X7**, which a third raised against the W corrections, **Y1**-**Y4**,
-which a fourth raised against the X corrections, and **Z1**-**Z4**, which a fifth raised against
-those. Every finding
+which a fourth raised against the X corrections, **Z1**-**Z4**, which a fifth raised against those,
+and **AA1**-**AA3**, which a sixth raised against the entry points rather than the design package. Every finding
 this programme has recorded is closed in the artifacts it was raised against, and none of that is a
 verdict: a fresh independent closure re-review is pending, and it is the only thing that can close the
 batch.
@@ -34,9 +34,11 @@ three fixes in turn depended on something no artifact said. Twenty layers, each 
 guarantee the one above it, and each of which had its own hole. Every one was found by asking what the
 previous fix *depends on* rather than whether it is worded correctly, and none was found by re-reading
 the contract. The reviewer should assume a twenty-first exists and hunt it that way, rather than
-checking whether the twenty are now right — and **Z4** is the warning against reading the sequence too
-narrowly: it is the one finding no correction introduced, a requirement missing from the ledger's
-inventory that every pass since S1 walked past while auditing each other's fixes. R1 and S1 each required their own
+checking whether the twenty are now right — and **Z4** and **AA1**-**AA3** are the warning against
+reading the sequence too narrowly. Z4 is a requirement missing from the ledger's inventory and the AA
+family is five cycles of index staleness; none was introduced by any correction, and every pass since
+S1 walked past all four while auditing each other's fixes. The layer under a fix is where these
+findings have been, but it is not the only place they are. R1 and S1 each required their own
 dated owner ruling, recorded in the redesign plan; both are correction rulings and neither joins the
 four first-batch rulings, which remain the fixed set recorded on 2026-08-11. The U1 correction needed
 no ruling: it was a property that could not fail, which is a defect rather than a choice.
@@ -156,6 +158,15 @@ schemas or implementation, and it does not create
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3g. ~~Correct AA1-AA3, found by a sixth iteration pass that left the design package and read the
+   entry points.~~ **Done.** **AA1** and **AA2** — the Channel index and the future-work index had
+   fallen behind every finding family since V2, the second still naming S1 as the open blocking
+   finding four families after it closed, and both understating the retained review count; the
+   verifier now computes both counts from the reviews directory and requires every family in the
+   disposition history to appear in both indexes. **AA3** — the future-work index still attributed
+   the ordering row to `channel-core`, the identifier U2 abolished, so the closed owner vocabulary
+   was closed in one artifact only; the identifier is now rejected in every Channel status entry
+   point.
 3f. ~~Correct Z1-Z4, found by a fifth iteration pass over the Y corrections.~~ **Done**, recorded in
    the same iteration review. **Z1** — the arrival ordinal Y4 added is observed arrival order, which
    W1 removed from the property language on purpose; it is restricted to identification and may never
@@ -328,7 +339,7 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   evaluator from the published prose and running the property's own named mutation through it. The
   attestation records that U1 answers a question its dispatching brief named, and that U2-U8 did not.
 
-The current review target is the commit titled `fix(channel): close Z1-Z4, the layer under the Y corrections`,
+The current review target is the commit titled `fix(channel): close AA1-AA3, the stale entry points`,
 committed 2026-08-14, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause

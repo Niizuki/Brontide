@@ -1,4 +1,4 @@
-# Future work
+﻿# Future work
 
 Architecture 0.8 is now the Complete Draft implementation target for both stacks. The implemented
 C1-C14 delivery inventory, all 33 runtime vectors, and the completed D1-D6 programme are indexed by
@@ -31,11 +31,15 @@ agrees and its review has no blocking finding.
 
 The [first-batch design package](./channel/README.md) now includes C1-C12, both state machines, a
 closed state/event grid, the responsibility matrix, silence review, migration ledger, neutral-
-artifact brief, four resolved owner rulings, and seven retained independent review cycles. Every
-finding through T1-T4, plus R2 and R3, is closed in the artifact it was raised against, each
-re-verified individually by the seventh review. R1 is closed at recipient `validating` and not at
-`unseen`, which is blocking finding S1. No Channel 0.2 schema or implementation is authorized until
-the [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
+artifact brief, four resolved owner rulings, and 8 retained independent reviews. Every finding
+through S1-S3 is closed in the artifact it was raised against, each re-verified individually by the
+eighth review, which then raised blocking **U1** and nonblocking **U2**-**U8**. Those are corrected,
+as are **V1**-**V3**, **W1**-**W6**, **X1**-**X7**, **Y1**-**Y4**, and **Z1**-**Z4**, raised by
+author-side iteration passes over each other's corrections. **AA1**-**AA3** are the same passes turned
+on the entry points: this index and the Channel index had fallen behind every family since V2, and
+this one still named S1 as the open blocking finding. No independent review has yet seen any of it,
+and no Channel 0.2 schema or implementation is authorized until the
+[review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
 ### Channel 0.2 first-batch remaining work
 
@@ -103,7 +107,8 @@ order, narrowly scoped.** Within one session, for one interaction identity, fram
 endpoint are delivered in the order that endpoint committed them. C4 states it with `C4-P2` and the
 `C4-control-precedes-request` mutation vector; C4's silence and C11 are scoped to cross-interaction
 and cross-session ordering; the responsibility matrix gains an `Intra-interaction frame order` row
-owned by `channel-core`; and the realization profile declares per-interaction frame order so a
+owned by `channel`, the one identifier the matrix's closed owner vocabulary gives that contract
+family under U2; and the realization profile declares per-interaction frame order so a
 profile can verify it. The `unseen` fault is then correct and provable, and the grid carries the fact
 instead of owning it.
 
@@ -1609,7 +1614,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and eight retained independent reviews, has correction passes through U1-U8 and V1-V2, and awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 8 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, and Z1-Z4 families, and awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

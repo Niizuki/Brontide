@@ -25,8 +25,8 @@ retained record for the W pass's dispositions as well as for its own.
 
 ## Verdict
 
-Fifteen findings across three passes — X1-X7, then Y1-Y4 against those corrections, then Z1-Z4 against
-those — all corrected. The review policy asks the next reviewer to assume a tenth layer exists under
+Eighteen findings across four passes — X1-X7, then Y1-Y4 against those corrections, then Z1-Z4 against
+those, then AA1-AA3 against the entry points rather than the design package — all corrected. The review policy asks the next reviewer to assume a tenth layer exists under
 the nine the U-V-W sequence found, and to hunt it by asking what each fix *depends on*. That method
 produced every one of the fifteen; none would have been found by re-reading `C4-P2`, which is now
 correct as a sentence and was correct as a sentence before any of these passes.
@@ -37,12 +37,13 @@ motivated W6 does not read the latch. **X5**: W4 abolished the state the propert
 quantifies over, and nothing distinguished the state it meant to abolish from the record it needed to
 keep.
 
-Three passes is where this stopped, and the reason is worth stating plainly: the third pass found four
-findings, one of which (**Z4**) was not introduced by any correction in this sequence but is a hole the
-whole sequence walked past. That is evidence the method still had reach when it was stopped, not
-evidence the artifacts are now clean. It stopped because each further pass was returning findings
-further from `C4-P2` and closer to inventory bookkeeping, and because none of it is a verdict either
-way — that is the closure reviewer's to give.
+Four passes is where this stopped, and the reason is worth stating plainly. The last two found things
+no correction in this sequence introduced: **Z4**, a required evidence group missing from the ledger's
+inventory, and **AA1**-**AA3**, five cycles of staleness in the two documents a reader meets before
+any artifact. Both are holes the whole sequence walked past while auditing each other's fixes. That is
+evidence the method still had reach when it was stopped, not evidence the artifacts are now clean. It
+stopped because none of this is a verdict either way — that is the closure reviewer's to give, and an
+author-side pass cannot substitute for it however many times it runs.
 
 ## First pass — X1-X7, the layer under the W corrections
 
@@ -281,6 +282,46 @@ corrections went past, and it was found by asking where else the mutations have 
 
 **Corrected** by listing the group, both mutations, the green cases, and the new observation fields
 that have no 0.1 field to migrate from.
+
+## Fourth pass — AA1-AA3, the entry points nobody re-read
+
+The first three passes audited each other's corrections and never left the design package. This pass
+asked a different question — what a reader who opens none of these artifacts is told — and found the
+two indexes had fallen behind every one of the five correction families.
+
+### AA1 — the Channel index stopped at V2 — corrected
+
+The index's summary named B1 through V1-V2 as the corrected set, called the pending cycle "the S1
+correction", said seven reviews were retained when the directory held eight attestations and two
+iteration reviews, and carried per-artifact state rows that stopped at S2. Every status check in the
+design verifier passed across all of it, because those checks ask whether the required phrase is
+present and whether a superseded cycle name is absent — and the index said "fresh independent closure
+re-review" throughout while being wrong about everything else.
+
+**Corrected**, and the two claims that can be checked structurally now are: the review counts are
+computed from the directory and compared as digits, and every finding family the completeness
+review's disposition history records must appear in the index. Prose staleness beyond that is still
+only caught by reading.
+
+### AA2 — the future-work index stopped one cycle earlier — corrected
+
+The same defect one document over, and worse: the future-work index is what a reader consults while
+choosing what to work on, and it said R1 was closed at `validating` and not at `unseen`, "which is
+blocking finding S1" — four correction families after S1 closed. Its review count was written as a
+word, which is how it went stale unnoticed.
+
+**Corrected**, with the same two structural checks applied to it.
+
+### AA3 — `channel-core` survived U2 in the index — corrected
+
+U2 closed the responsibility matrix's owner vocabulary because the S1 correction had introduced
+`channel-core` as a second identifier for the family every other row calls `channel`. The future-work
+index still attributed the ordering row to `channel-core`. A closed vocabulary that is closed in one
+artifact is not closed: a Batch 2 ownership inventory keyed by identifier would still find two names
+for one owner in the repository, which is the exact failure U2 was raised to prevent.
+
+**Corrected** in the index, and the identifier is now rejected in every Channel status entry point
+rather than only inside the matrix.
 
 ## Disposition of W1-W6, recorded here because their pass did not record it
 

@@ -953,6 +953,58 @@ else {
         }
     }
 
+    # AA1: the Channel index summarises the programme for a reader who never opens the design
+    # package, and it went stale across five correction passes at once -- naming U1-U8 and V1-V2 as
+    # the whole of the corrected set, "the S1 correction" as the pending cycle, and seven retained
+    # reviews when there were ten files. The status-phrase checks above cannot see any of it: every
+    # required phrase was present and every forbidden one absent. These two are structural instead,
+    # so the index cannot fall behind a pass without failing.
+    $indexReviewRow = @($channelReadme -split "`r?`n" | Where-Object { $_ -match '^\| \[Design reviews\]' })
+    $attestationCount = @($reviewMarkdown | Where-Object { $_.Name -match 'attestation\.md$' }).Count
+    $iterationCount = $iterationReviewFiles.Count
+    if ($indexReviewRow.Count -ne 1) {
+        $failures.Add('The Channel index must carry exactly one Design reviews row.')
+    }
+    else {
+        foreach ($required in @("$attestationCount negative attestations", "$iterationCount iteration reviews")) {
+            if ($indexReviewRow[0].IndexOf($required, [System.StringComparison]::Ordinal) -lt 0) {
+                $failures.Add("The Channel index's Design reviews row does not say '$required', which is what the reviews directory actually holds. A count in prose is a claim that goes stale the next time a review is retained.")
+            }
+        }
+    }
+    $dispositionFamilies = @([regex]::Matches($dispositionHistory, '\*\*([A-Z]{1,2})[0-9]+\*\*') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+    foreach ($family in $dispositionFamilies) {
+        if ($channelReadme -cnotmatch "\b$family[0-9]") {
+            $failures.Add("The Channel index names no finding in the '$family' family, although the completeness review's disposition history records one. The index is where a reader who opens nothing else learns what has been corrected.")
+        }
+    }
+
+    # AA2: the future-work index carries the longest Channel narrative of any entry point and the one
+    # a reader reaches while choosing what to work on. It stopped at the seventh review: seven
+    # retained cycles when there were eight, and S1 named as the open blocking finding four correction
+    # passes after it closed. Counted and family-checked here for the same reason as the index above.
+    $futureIndexText = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot 'docs\future\README.md') -Encoding UTF8
+    foreach ($family in $dispositionFamilies) {
+        if ($futureIndexText -cnotmatch "\b$family[0-9]") {
+            $failures.Add("The future-work index names no finding in the '$family' family, although the completeness review's disposition history records one. This is the entry point a reader reaches while choosing what to work on.")
+        }
+    }
+    if ($futureIndexText.IndexOf("$attestationCount retained independent reviews", [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add("The future-work index does not say '$attestationCount retained independent reviews', which is what the reviews directory holds. Its predecessor count was written as a word and went stale unnoticed for a full cycle.")
+    }
+
+    # AA3: U2 closed the owner vocabulary and abolished `channel-core` as a second name for `channel`.
+    # The future-work index still attributes the ordering row to it, so the identifier the matrix may
+    # not use survives in the document most readers meet first -- a closed vocabulary that is closed
+    # in one artifact only is not closed.
+    foreach ($statusIndexRelativePath in @('README.md', 'docs\README.md', 'docs\future\README.md', 'docs\future\channel\README.md')) {
+        $statusIndexFullPath = Join-Path $repositoryRoot $statusIndexRelativePath
+        if (-not (Test-Path -LiteralPath $statusIndexFullPath)) { continue }
+        if ((Get-Content -Raw -LiteralPath $statusIndexFullPath -Encoding UTF8).IndexOf('channel-core', [System.StringComparison]::Ordinal) -ge 0) {
+            $failures.Add("'$statusIndexRelativePath' names the owner identifier ``channel-core``, which U2 abolished when it closed the responsibility matrix's owner vocabulary. One owner has one identifier, or an ownership inventory keyed by identifier reads two owners.")
+        }
+    }
+
     $iterationRecords = @($iterationReviewFiles | ForEach-Object { Get-Content -Raw -LiteralPath $_.FullName -Encoding UTF8 })
     $flowedReviewPolicy = Get-FlowedText $reviewReadme
     foreach ($findingFamily in @('W1', 'W6')) {
