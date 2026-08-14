@@ -1,10 +1,18 @@
-# Channel 0.2 neutral contract and vector brief 0.1
+﻿# Channel 0.2 neutral contract and vector brief 0.1
 
 Date: 2026-08-11
 
 Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet, and
 subject to a fresh independent closure re-review. Batch 2 opens only after that review conforms and
-its closure record exists. U3, V1, V2, W1, W2, W5, and W6 corrected after independent review: the
+its closure record exists. Under AC2 the parity profile names the detailed reason
+`unopened-interaction-identity` instead of describing it, and compares the kind of frame refused where
+a refusal opens no interaction. U3, V1, V2, W1, W2, W5, W6, X1, X2, X4, Y1, Y4, Z1, and AC2 corrected after
+independent review, the last restricting that ordinal to identification so the property language does
+not regain the observed arrival order W1 removed from it: the parity profile compares the frame a late-traffic latch settled against rather
+than only the latch value, that reference carries the settling frame's arrival ordinal so a duplicate
+terminal cannot be mistaken for a reordering, the local-observation schema has positions for both, the
+latch's `not-applicable` value is compared rather than absent, the required
+adversarial groups carry one ordering mutation per `C4-P2` conjunct, and the
 property operator set gained the one bounded precedence relation `C4-P2` needs, stimulus steps name
 their committing endpoint so that relation has an operand, the parity profile compares the
 late-traffic latch the grid already required as evidence, and the established-profile
@@ -158,8 +166,15 @@ category fails local validation and generates no fault reply.
 ### Local observation
 
 Carries no peer-authored body. It records local provenance, state, admission decisions, dispatch
-boundary, terminal form, detection point, and effect certainty. Profile-owned details are nested
-under a versioned profile observation, never flattened into Channel core.
+boundary, terminal form, detection point, the late-traffic latch with the frame that settled it, and
+effect certainty. Profile-owned details are nested under a versioned profile observation, never
+flattened into Channel core.
+
+The latch position holds one of the three latch values or the explicit `not-applicable` a route
+reaching no terminal interaction asserts, never an absent field. The settling-frame position holds the
+frame's kind, its interaction identity, the endpoint that committed it, and its arrival ordinal within
+that interaction; it is absent only where no latch has settled. These are the fields `C4-P2`'s second
+conjunct reads and the parity profile compares, so the schema has to have somewhere to put them.
 
 ## External phase and authority inputs
 
@@ -210,12 +225,15 @@ groups include:
 - every legal and representative illegal session transition;
 - external phase false and unknown for each interaction class;
 - bounded concurrency interleavings, replay, mismatch, and out-of-order terminal facts;
-- intra-interaction frame order and its ordering mutation: conforming commit-order delivery in both
-  directions, loss of either frame, a cancellation control for an identity the peer never opened —
-  which is legal input from a nonconformant peer and must not fail `C4-P2` — and
-  `C4-control-precedes-request` itself, which requires the reordering injection declared under the
-  neutral provider boundary and is the only vector group whose expected observation is a property
-  going red;
+- intra-interaction frame order and **both** its ordering mutations: conforming commit-order delivery
+  in both directions, loss of either frame, a cancellation control for an identity the peer never
+  opened — which is legal input from a nonconformant peer and must not fail `C4-P2` — a legal late
+  control arriving after a peer's terminal and a duplicate terminal from a nonconformant peer, which
+  settle a latch and must also not fail it, and then `C4-control-precedes-request` and
+  `C4-outcome-precedes-ack`, one per conjunct. Both require the reordering injection declared under
+  the neutral provider boundary, and this is the only group whose expected observations include a
+  property going red. One mutation per conjunct is the requirement: a conjunct whose mutation no group
+  has to contain is unfalsifiable in the suite however well the contract names it;
 - payload projection versus authority non-projection and each declared bound class;
 - local denial, cross-trust forbidden authority, and deputy attribution;
 - relational exact/mismatched edge, direction, member, Operation, Capability, Shape, and phase;
@@ -244,6 +262,14 @@ implication, bounded “for all selected steps/vectors,” and **precedence betw
 vector's declared ordered stimulus sequence, for one endpoint and one interaction identity**. It may
 not call stack code or embed a general scripting language.
 
+The settling frame's arrival ordinal is used **as an identifier, never as an ordering operand**. It may be
+compared for equality, to say which received frame settled a latch and therefore which declared step
+the latch settled against; it may not be an operand of precedence or of any other comparison that
+reads it as an order. The distinction is the whole of the restriction below: an ordinal is observed
+arrival, and a property permitted to order by it could assert an ordering Channel does not promise —
+across endpoints, or against a frame the contract never sequenced — under cover of a field added to
+identify one frame.
+
 Precedence is deliberately the narrowest ordering relation that makes `C4-P2` writable. It compares
 two positions in a declared input sequence — data the vector author wrote down — and never an
 observed time, arrival order, or cross-endpoint relation. Channel promises no order across endpoints
@@ -269,10 +295,31 @@ Core normative comparison includes:
 - terminal provenance and peer-fault/local-loss category where present;
 - the peer-fault detailed reason wherever its category declares a closed set of them, so that two
   refusals sharing one category remain distinguishable — `C4-P2` quantifies over a recipient
-  `rejected-protocol` caused by a cancellation control naming an unopened identity, which is one
-  detailed reason of `invalid-interaction-correlation` and not the category as a whole;
+  `rejected-protocol` caused by a cancellation control naming an unopened identity, which is the
+  detailed reason `unopened-interaction-identity` of `invalid-interaction-correlation` and not the
+  category as a whole. The reason is named rather than described, because a value identified only by
+  description is not something a vector can compare;
+- the kind of frame refused where that refusal opens no interaction, because the same provenance and
+  the same detailed reason cover a cancellation control and any other control naming an unopened
+  identity, and the first conjunct quantifies over the cancellation control alone;
 - the terminal interaction's `late-traffic latch` value, which the state/event grid already requires
-  every generated cell to assert and which `C4-P2`'s second conjunct reads;
+  every generated cell to assert — including the explicit `not-applicable` a route reaching no
+  terminal interaction asserts, which is compared as a value and never as an absent field;
+- the **frame that settled the latch** wherever one is settled: its kind, its interaction identity,
+  its committing endpoint, and its **arrival ordinal** within that interaction. The ordinal is what
+  makes the reference unambiguous: one endpoint may commit two frames of the same kind for one
+  identity, which is exactly what a duplicate terminal is, and that case must leave `C4-P2` green.
+  Bound to the earlier of the two matching steps the property would read "committed before the
+  terminal frame" and go red on legal input. With the ordinal the settling frame maps to one declared
+  step — directly where no reordering is injected, and through the named injection where one is — and
+  the precedence relation compares that step and no other. The latch value is one of three enum
+  values and names no frame, and
+  `C4-P2`'s second conjunct is about which frame a latch settled against. The mutation it must fail on
+  and the two cases it must leave green — a legal late control arriving after a peer's terminal, and a
+  duplicate terminal from a nonconformant peer — all record `state-violation` with `fault-committed`,
+  and `state-violation` declares no closed detailed-reason set for the clause above to reach. The
+  settling frame is what separates them, and once it names its committing endpoint the property can
+  bind it to a declared stimulus step through the precedence relation;
 - effect certainty and unknown reason class; and
 - extension/profile-owned normative details selected by that profile's parity declaration.
 

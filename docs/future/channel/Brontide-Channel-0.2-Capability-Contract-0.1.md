@@ -1,14 +1,25 @@
-# Channel 0.2 capability contract 0.1
+﻿# Channel 0.2 capability contract 0.1
 
 Date: 2026-08-11
 
-Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, R1, S1, S2, U1, W2, W3, and
-W4 corrected after independent review. C4 now owns intra-interaction frame order with `C4-P2`, and
-C4's silence and C11 are scoped to cross-interaction and cross-session ordering. Under the U1
-correction `C4-P2` is stated over the refusal a reordering produces rather than over the accepted
-sequence, because the design refuses a reordered frame and the accepted sequence can therefore never
-be out of order. It carries one named mutation per conjunct under W3, and under W4 an identity
-refused at `unseen` retains no interaction history and no latch. No Channel 0.2 schema, API,
+Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, R1, S1, S2, U1, W2, W3, W4,
+X1, X5, Y1, Y2, Z3, AC2, and AC3 corrected after independent review. Under AC3 both `C4-P2` conjuncts
+name the committing endpoint as their subject, because "the same endpoint" resolved to the endpoint
+that records a refusal and never commits the frame in question, which made the conjuncts unsatisfiable
+and therefore unfalsifiable. Under AC2 C10 requires the observation of a frame that opens no
+interaction to record the kind of frame refused and the detailed reason
+`unopened-interaction-identity`. Under Y1 and Y2, C10 requires an observation to
+distinguish the late-traffic latch and the frame that settled it, and requires one for a recognized
+frame that opens no interaction — the two facts `C4-P2` reads and the capability that owns observation
+did not carry. C4 now owns intra-interaction frame order with
+`C4-P2`, and C4's silence and C11 are scoped to cross-interaction and cross-session ordering. Under
+the U1 correction `C4-P2` is stated over the refusal a reordering produces rather than over the
+accepted sequence, because the design refuses a reordered frame and the accepted sequence can
+therefore never be out of order. It carries one named mutation per conjunct under W3, and under W4 an
+identity refused at `unseen` retains no interaction history and no latch. Under X5 that refusal still
+records one local observation, which is the witness the property reads and is evidence rather than
+retained state; under X1 the second conjunct's witness is the frame a late-traffic latch settled
+against rather than the latch value. No Channel 0.2 schema, API,
 implementation, or ratification is authorized until the complete design foundation receives a fresh
 independent closure re-review.
 
@@ -198,14 +209,32 @@ fail on.
 
 Their expected observations are exactly what the receiving endpoint records: one `rejected-protocol`
 for a control naming an identity the recipient has never been asked to open, and one late-traffic
-`state-violation` for the displaced acknowledgement. Those recorded refusals are the witnesses
-`C4-P2` fails on. Each is complete data rather than an unspecified expectation, which is what `C12`
-requires of every vector.
+`state-violation` whose latch records the displaced acknowledgement as the frame that settled it.
+Those recorded refusals are the witnesses `C4-P2` fails on. Each is complete data rather than an
+unspecified expectation, which is what `C12` requires of every vector.
+
+The second witness is the settling frame and not the latch value. `fault-committed` is one of three
+enum values and names no frame, and the two cases the property must leave green — a legal late control
+arriving after a peer's terminal, and a duplicate terminal from a nonconformant peer — record that
+same value against the same `state-violation` category. What separates the mutation from them is which
+frame settled the latch and which endpoint committed it, so the latch records that frame and the
+parity profile compares it.
 
 **A control refused at `unseen` retains no interaction history and no latch.** The identity was never
 accepted, so it never enters the replay set, and the recipient commits one interaction-scoped peer
 fault and keeps nothing: no terminal history, no `late-traffic-fault` latch, and no reservation
-against the in-flight bound. This is what makes the `unseen` verdict bounded rather than merely
+against the in-flight bound.
+
+It does **record** one C10 local observation of the refusal, and recording is not retaining. An
+observation is written once as evidence and is **never consulted by a later admission, correlation,
+replay, or bound decision**; the state the R1 ruling refused is state a later decision would have to
+read, which is what made it accruable by a peer naming identities it never opens. The distinction is
+load-bearing in both directions and neither direction survives without it: a peer that names a
+million unopened identities still costs the recipient no retained per-identity state, and `C4-P2`'s
+first conjunct still has the recorded refusal it quantifies over. Abolishing the record instead of the
+retention would leave the property with no witness at all.
+
+Retaining nothing is what makes the `unseen` verdict bounded rather than merely
 frameless — holding *any* per-identity state there, including a terminal record, would let a peer
 accrue unbounded local state by naming identities it never opens, which is the exposure the 2026-08-13
 R1 ruling refused. A later request bearing that identity therefore arrives at `unseen` as any other
@@ -222,9 +251,19 @@ one endpoint committed in an order that endpoint did not commit them in. Loss ma
 Because the design refuses a reordered frame rather than accepting it, this is stated over the refusal
 that reordering produces rather than over the accepted sequence, which no reordering can leave out of
 order: no endpoint records a recipient `rejected-protocol` at `unseen` for a cancellation control
-whose request the same endpoint had already committed, and none records a late-traffic
-`state-violation` latched against a frame the same endpoint committed before the frame that made the
-interaction terminal. Restricting each conjunct to one endpoint's own frames is load-bearing: across
+whose committing endpoint had already committed the request naming that identity, and none records a
+late-traffic `state-violation` latched against a frame whose committing endpoint had committed it
+before that endpoint's own frame that made the interaction terminal.
+
+In both conjuncts the subject of "had already committed" and "had committed it" is the **committing
+endpoint** — the endpoint that committed the frame the refusal names, which is never the endpoint that
+records it. A recipient commits no requests and an initiator commits no acknowledgement its own latch
+settles against, so reading the subject as the recording endpoint would make both conjuncts quantify
+over an endpoint pair no vector can produce, which is a property that cannot fail. That is U1's defect
+arriving through a pronoun, and it is why the subject is named here rather than left to the nearest
+antecedent.
+
+Restricting each conjunct to one endpoint's own frames is load-bearing: across
 endpoints Channel promises no order, so a legal late control that arrives after a peer's terminal, and
 a duplicate terminal from a nonconformant peer, must both leave this property green.
 `C4-control-precedes-request` is the mutation this property must go red on, and a run in which it
@@ -434,7 +473,21 @@ error details.
 Every attempted establishment and interaction yields a local observation sufficient to distinguish
 profile, session and interaction identities, direction, class, admission and authority decisions,
 dispatch boundary, terminal provenance, peer-reported facts, local detection point, retry/fallback
-facts supplied by an owning extension, and effect certainty.
+facts supplied by an owning extension, the terminal interaction's **late-traffic latch and the frame
+that settled it**, and effect certainty. Where a route reaches no terminal interaction the latch is
+the explicit value `not-applicable`, which the observation carries like any other value; a route with
+no latch and a latch that has not settled are different facts and an absent field would conflate
+them.
+
+**A recognized frame that opens no interaction yields one too.** A cancellation control or other
+control naming an identity the recipient has never accepted is neither an attempted establishment nor
+an attempted interaction — under C4 no interaction exists there — and it is refused as a peer
+statement, so without this sentence the one record of that refusal would be required by C4 and by
+nothing that owns observation. The observation records the refusal, **the kind of frame refused**, and
+its provenance with the detailed reason `unopened-interaction-identity`; it retains no interaction
+state, because there is none to retain. The kind is required because provenance and detailed reason
+are identical for a cancellation control and for any other control naming an unopened identity, while
+`C4-P2`'s first conjunct quantifies over the cancellation control alone.
 
 Channel's portable effect field is certainty, not a provider-specific count:
 

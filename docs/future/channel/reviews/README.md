@@ -9,22 +9,50 @@ design refuses every reordered frame, so the accepted sequence was empty and the
 green on its own named mutation — is corrected by restating `C4-P2` over the refusal a reordering
 produces. Nonblocking **U2**-**U8** are now also corrected, as are **V1** and **V2**, which the
 [U1 correction iteration review](./channel-0.2-u1-correction-iteration-review.md) raised against the
-U1 correction itself, and **W1**-**W6**, which two further iteration passes raised against those
-corrections in turn. Every finding this programme has recorded is closed in the artifacts it was
-raised against, and none of that is a verdict: a fresh independent closure re-review is pending, and
-it is the only thing that can close the batch.
+U1 correction itself, **W1**-**W6**, which two further iteration passes raised against those
+corrections in turn, **X1**-**X7**, which a third raised against the W corrections, **Y1**-**Y4**,
+which a fourth raised against the X corrections, **Z1**-**Z4**, which a fifth raised against those,
+and **AA1**-**AA3**, which a sixth raised against the entry points rather than the design package,
+and **AB1**-**AB2**, which a seventh raised against the two artifacts the others never opened, and
+**AC1**-**AC4**, which an eighth raised by evaluating `C4-P2` rather than reading it, and
+**AD1**-**AD3**, which a ninth raised against the retained records rather than against the design.
+Every finding this programme has recorded is closed in the artifacts it was raised against **except
+AD2**, which is an open owner call and is described where it is raised. None of that is a verdict: a
+fresh independent closure re-review is pending, and it is the only thing that can close the batch.
 
-The U-V-W sequence is worth reading before the next review rather than after it. S1 found that the
+The U-through-AC sequence is worth reading before the next review rather than after it. S1 found that the
 fact had no owner; U1 that the property carrying it could not fail; V1 that the property's subject was
 not compared; V2 that the mutation carrying the property could not be run; W1 that the property could
 not be written in the declared language; W3 that half of it had no mutation at all; W4 that its
 expected observation rested on a retention rule no artifact stated; W5 that the operator W1 added had
-no operand in the vector schema; and W6 that its other conjunct read a fact required as evidence and
-excluded from comparison. Nine layers, each of which existed to guarantee the one above it, and each
-of which had its own hole. Every one was found by asking what the previous fix *depends on* rather
-than whether it is worded correctly, and none was found by re-reading the contract. The reviewer
-should assume a tenth exists and hunt it that way, rather than checking whether the nine are now
-right. R1 and S1 each required their own
+no operand in the vector schema; W6 that its other conjunct read a fact required as evidence and
+excluded from comparison; X1 that the fact W6 then made comparable was not the fact the conjunct
+reads; X3 that the state machine which is the detailed authority never routed the event at all; X4
+that W3's second mutation reached no required vector group; X5 that W4 abolished the record the first
+conjunct quantifies over; Y1 and Y2 that neither the capability owning observation nor the schema
+holding it carried what X1 and X5 had just made the property read; Y3 that the state X3 routed to was
+terminal and therefore latched after all; and Y4 that the settling frame X1 added could not be told
+apart from a duplicate terminal, which the property must leave green; and Z1-Z3 that each of those
+three fixes in turn depended on something no artifact said. Twenty layers, each of which existed to
+guarantee the one above it, and each of which had its own hole. Every one was found by asking what the
+previous fix *depends on* rather than whether it is worded correctly, and none was found by re-reading
+the contract. The reviewer should assume a further one exists and hunt it that way, rather than
+checking whether the rest are now right — and **AC1** is the caution against reading even that method
+too narrowly. It is not the layer under the most recent fix; it is the layer under Y4, five families
+back, and it was invisible to the six passes that ran after Y4 because each was auditing the artifact
+its predecessor had edited rather than the artifacts that own the fact. It was found by evaluating the
+property instead — which is what this document asks the closure reviewer to do, and what no iteration
+pass before the eighth had done. **Z4**, **AA1**-**AA3**, and **AB1**-**AB2** are the same
+warning against reading the sequence too narrowly. Z4 is a requirement missing from the ledger's
+inventory, the AA family and AB1 are six cycles of staleness in the three entry-point documents, and
+AB2 is S1 itself reappearing at the same place in the same artifact once three corrections had made
+the observation record load-bearing. None was introduced by any correction, and every pass since S1
+walked past all of them while auditing each other's fixes. The layer under a fix is where these
+findings have been, but it is not the only place they are. **AD1** is the third direction, and the one
+no pass had tried: audit the retained records against the artifacts rather than the artifacts against
+their records. It found the AC pass denying that the AA and AB evidence existed and referring the
+resulting non-gap to the owner — so a reviewer that trusts a roster entry, a scope line, or a residual
+note over the document it describes will reproduce the defect that produced it. R1 and S1 each required their own
 dated owner ruling, recorded in the redesign plan; both are correction rulings and neither joins the
 four first-batch rulings, which remain the fixed set recorded on 2026-08-11. The U1 correction needed
 no ruling: it was a property that could not fail, which is a defect rather than a choice.
@@ -144,6 +172,95 @@ schemas or implementation, and it does not create
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3j. ~~Correct AD1 and AD3, found by a ninth iteration pass over the retained records themselves.~~
+   **Done**, and retained as the
+   [AD correction iteration review](./channel-0.2-ad-correction-iteration-review.md). **AD1** — the AC
+   review's residual stated that the AA and AB passes had left no retained record and referred the
+   choice between reconstructing them and rescoping the requirement to the owner; the W iteration
+   review has recorded AA1-AA3 and AB1-AB2 under its fourth and fifth pass headings all along. Acting
+   on that residual would have produced duplicate records or rescoped a requirement nothing had
+   violated. It was made by reading the W review's roster entry and scope line instead of the
+   document — AC1 committed by the pass that raised AC1, one section below where it raised it.
+   **AD3** — those two descriptions and the residual gave three different accounts of what the W
+   review contains, none matching it; each is what some later pass consulted instead of opening it.
+   Both are corrected, and the verifier now derives each retained review's families from its own
+   finding headings, so a description cannot understate the document it describes without failing the
+   gate. **AD2** is **open**: the X7 comment names two halves of its class check, AC4 widened the
+   first, and the second is still written over two ids while the policy bolds thirty-six. There is no
+   live gap — every family does have a retained record — so it is an owner call on whether the
+   hardcoded pair is a defect or a deliberate narrowing the comment describes badly.
+3i. ~~Correct AC1-AC4, found by an eighth iteration pass.~~ **Done**, and retained as the
+   [AC correction iteration review](./channel-0.2-ac-correction-iteration-review.md). **AC1** — Y4's
+   arrival ordinal was stated in the neutral brief and nowhere else, and the brief is subordinate to
+   the contract, both state machines, and the grid, so the hierarchy resolved the contradiction
+   against the fix: the interaction machine that owns the latch, the grid that enumerates the cells
+   asserting it, and the matrix row AB2 had just added all still named X1's three fields. It was found
+   by evaluator rather than by reading — under the machine's fields the duplicate terminal the
+   property must leave green is undecidable. **AC2** — V1 made the peer-fault detailed reason
+   normative wherever its category declares a closed set, and the ledger's set for
+   `invalid-interaction-correlation` had five identity reasons, none of which covers an identity never
+   opened; the value the first conjunct quantifies over was absent from the closed set that carries
+   it, and both `unseen` cells recorded one provenance while the conjunct reads a cancellation control
+   alone. **AC3** — both conjuncts said "no endpoint records … the same endpoint had already
+   committed", whose nearest antecedent is the recording endpoint, which never commits the frame in
+   question; the literal reading was unsatisfiable and therefore unfalsifiable, which is U1 through a
+   pronoun. **AC4** — the check written over the X7 class matched one-letter finding families only, so
+   it could not see AA, AB, or the findings of the review that retains it.
+3h. ~~Correct AB1-AB2, found by a seventh iteration pass over the two artifacts the others never
+   opened.~~ **Done.** **AB1** — the redesign plan is the fourth entry point and the one status block
+   the T4 cycle-name check set never covered, and it had stopped at S3 while six passes ran. **AB2** —
+   X5, Y1, and Y2 made the local observation record what `C4-P2` reads, and the responsibility matrix
+   owned the observability system that consumes observations while the record itself had no owner row.
+   That is S1's defect at S1's place in S1's artifact, six families after S1 was called closed, and it
+   appeared because the passes that made the record load-bearing were the passes that could not see
+   it.
+3g. ~~Correct AA1-AA3, found by a sixth iteration pass that left the design package and read the
+   entry points.~~ **Done.** **AA1** and **AA2** — the Channel index and the future-work index had
+   fallen behind every finding family since V2, the second still naming S1 as the open blocking
+   finding four families after it closed, and both understating the retained review count; the
+   verifier now computes both counts from the reviews directory and requires every family in the
+   disposition history to appear in both indexes. **AA3** — the future-work index still attributed
+   the ordering row to `channel-core`, the identifier U2 abolished, so the closed owner vocabulary
+   was closed in one artifact only; the identifier is now rejected in every Channel status entry
+   point.
+3f. ~~Correct Z1-Z4, found by a fifth iteration pass over the Y corrections.~~ **Done**, recorded in
+   the same iteration review. **Z1** — the arrival ordinal Y4 added is observed arrival order, which
+   W1 removed from the property language on purpose; it is restricted to identification and may never
+   be an ordering operand. **Z2** — the grid's `unseen` cells still named `rejected-protocol` in the
+   format every other row uses for a next state, which Y3 had just settled is a provenance. **Z3** —
+   C10 gained the latch under Y1 and stopped at the terminal interaction's, leaving X2's
+   `not-applicable` compared and unowned. **Z4** — the migration ledger's inventory of 0.2 cases with
+   no 0.1 predecessor did not list intra-interaction frame order or its mutations, so the requirement
+   every finding since S1 turns on was missing from the list of what Batch 2 must build. Z4 is the
+   one finding in the sequence that no correction introduced; it is a hole all of them walked past.
+3e. ~~Correct Y1-Y4, found by a fourth iteration pass over the X corrections.~~ **Done**, recorded in
+   the same iteration review. Three of the four are one question — X1 and X5 made `C4-P2` read facts
+   and nothing had been asked to carry them. **Y1** — C10's enumeration and the brief's
+   local-observation schema named neither the latch nor its settling frame, so the parity profile
+   compared two fields no observation holds. **Y2** — C10 requires an observation for every attempted
+   establishment and interaction, and the `unseen` refusal is neither; the record X5 depends on was
+   owned by nothing. **Y3** — X3 routed the refusal to `rejected-protocol`, a terminal state, which
+   the `any terminal` rows claim and latch; the recipient's per-identity state remains `unseen` and
+   `rejected-protocol` is the provenance, which also makes W4's later-request sentence a consequence
+   rather than an assertion. **Y4** — the settling-frame reference could not separate two frames of
+   the same kind from one endpoint, which is what a duplicate terminal is and which must leave the
+   property green, so it carries the frame's arrival ordinal.
+3d. ~~Correct X1-X7, found by a third iteration pass over the W corrections.~~ **Done**, and retained
+   as the [W correction iteration review](./channel-0.2-w-correction-iteration-review.md). Each was
+   found by asking what a W fix *depends on*. **X1** — W6 made the late-traffic latch value
+   comparable, and `C4-P2`'s second conjunct reads the frame the latch settled *against*; the mutation
+   and the two cases the property must leave green all record `state-violation` with
+   `fault-committed`, so the settling frame is now recorded where the latch settles and compared in
+   the parity profile. **X2** — W4 created a route with no latch while the grid requires every
+   generated cell to assert one, so the absence is an explicit `not-applicable` value. **X3** — the
+   recipient transition table had no row for a control at `unseen`, so the machine's own totality rule
+   produced the terminal `peer-fault` with a latch that W4 refuses; the row now exists. **X4** —
+   `C4-outcome-precedes-ack` was in no required adversarial vector group. **X5** — the first conjunct
+   quantifies over a record W4 said the recipient does not keep; recording evidence is now
+   distinguished from retaining state, and the distinction is what makes both W4 and the property
+   true at once. **X6** — the pin clause that closed U6 went stale one commit later, and is now
+   checked against the repository rather than against its own wording. **X7** — the W passes left no
+   retained iteration review and V3's disposition was unrecorded.
 3c. ~~Correct W5 and W6.~~ **Done.** Both were found by asking what the W1 fix *reads* rather than
    whether it is worded correctly. **W5** — the precedence relation is defined over one endpoint's own
    frames, and the vector format recorded "ordered stimulus steps" with no committing endpoint, so the
@@ -204,6 +321,15 @@ schemas or implementation, and it does not create
    reordering the promise forbids unwitnessed; can the recipient's `rejected-protocol` at `unseen` be
    distinguished in the observation record from the other causes of that same terminal, given C10
    carries no frame-order field; and do **U2**-**U8**, all still open, interact with the correction.
+
+   Questions the X and Y passes raised and did not settle. The observation record is now load-bearing
+   for `C4-P2` and no artifact bounds it: X5 argues that recording is not retaining because nothing
+   consults the record, which is a claim about what reads it rather than about how much of it a peer
+   can cause, and Y1/Y2 then made two more capabilities depend on the record existing. Does a frame
+   refused before correlation consume an arrival ordinal? And is `not-applicable` the right
+   disposition for a latch on a route that reaches no terminal interaction, or does that route belong
+   outside the latch's column entirely — a second such route would today rest on the grid's prose to
+   be recognised as needing the value at all.
 5. If that verdict conforms, retain and commit the attestation unchanged, calculate its SHA-256, then
    create `channel-0.2-design-foundation-closure-record.md`. The record contains the reviewed commit,
    attestation path and hash, reviewer identity/date/verdict, all four owner rulings, confirmation
@@ -269,16 +395,43 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   evaluator from the published prose and running the property's own named mutation through it. The
   attestation records that U1 answers a question its dispatching brief named, and that U2-U8 did not.
 
-The current review target is the commit titled `fix(channel): close U2, U3, U4, U7, and U8`, committed
-2026-08-14, which is the head of the U1/U2-U8 correction sequence beginning at
+The current review target is the commit titled `fix(channel): close AD1 and AD3, the retained-record descriptions`,
+committed 2026-08-14, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
-artifacts hash identically to it — and check that claim rather than assuming it, because the
-preceding cycle's pin clause went stale exactly that way and the eighth review raised it as **U6**.
-The preceding pin `3892c23a8dd4c7f298e877ba73710ee0ddc97bc4` is what the seventh review assessed and
-is nonconforming.
+artifacts hash identically to it — and check that claim rather than assuming it, because this clause
+has now gone stale twice: the eighth review raised it as **U6**, and the rewrite that closed U6 was
+itself superseded one commit later and raised as **X6**. The design verifier now compares this
+sentence against the most recent commit that changed a design artifact, so a correction pass that
+forgets it fails the gate rather than misdirecting a reviewer. The preceding pins
+`3892c23a8dd4c7f298e877ba73710ee0ddc97bc4` and `3b27e3a85bf018bead6d226a13d075c7e6ed16fa` are what the
+seventh and eighth reviews assessed and are nonconforming.
 
 No conforming closure attestation exists yet. The corrected artifacts remain nonconforming evidence
 until a fresh reviewer closes every retained finding and reports no new blocker.
+
+## Retained iteration reviews
+
+These are author-side passes, not attestations. None of them can close the batch, and each says so.
+They are retained so a fresh reviewer can see what has already been examined and spend its cold
+context elsewhere — never as evidence that their conclusions are right.
+
+- [U1 correction iteration review](./channel-0.2-u1-correction-iteration-review.md) — the U1
+  correction; raised V1 and V2, corrected both, and recorded V3 as an owner call.
+- [W correction iteration review](./channel-0.2-w-correction-iteration-review.md) — the W1-W6
+  corrections; raised X1-X7 and corrected all seven, then turned the same method on its own
+  corrections four times more and raised Y1-Y4, Z1-Z4, AA1-AA3, and AB1-AB2, each recorded under its
+  own pass heading. It is also the retained record for the two W passes, which left none of their
+  own — that gap is X7. It is the longest of the three and the one a reader is most likely to
+  under-read: the AA and AB families are in its fourth and fifth passes, not in a separate document.
+- [AC correction iteration review](./channel-0.2-ac-correction-iteration-review.md) — the whole
+  sequence through AB2; raised AC1-AC4 and corrected all four. AC1 was found by writing a `C4-P2`
+  evaluator from the published prose, as the handoff below asks the closure reviewer to do, and
+  running it twice: once with the settling-frame fields the neutral brief states and once with the
+  fields the interaction machine states.
+- [AD correction iteration review](./channel-0.2-ad-correction-iteration-review.md) — the sequence at
+  `4a52a56`; raised AD1-AD3, corrected AD1 and AD3, and left AD2 as an owner call. It is the first
+  pass to audit the retained records against the artifacts rather than the artifacts against their
+  records, and all three findings came from that one question.
 
 ## Disclosed process deviation in the T1-T4 correction
 

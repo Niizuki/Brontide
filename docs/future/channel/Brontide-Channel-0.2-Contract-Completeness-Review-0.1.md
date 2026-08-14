@@ -1,9 +1,9 @@
-# Channel 0.2 contract-completeness and silence review 0.1
+﻿# Channel 0.2 contract-completeness and silence review 0.1
 
 Date: 2026-08-11
 
-Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, and U1/U4/U5/U7/W3 correction
-passes complete. The per-capability property audit now registers `C4-P2` and the mutation that must
+Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, U1/U4/U5/U7/W3, X7, and
+AC1-AC4 correction passes complete. The per-capability property audit now registers `C4-P2` and the mutation that must
 fail it; its silence is why an unfalsifiable property survived the correction that introduced it. The
 disposition history now runs to the eighth cycle rather than stopping at the fifth, and the in-flight
 bound's direction scope is recorded as session-wide-as-written against per-direction-as-enforced
@@ -336,7 +336,107 @@ artifacts they were raised against. The subsequent
 [U1 correction iteration review](./reviews/channel-0.2-u1-correction-iteration-review.md) then found V1
 and V2, both of which would have left the corrected property unfalsifiable in practice: the parity
 profile compared only the peer-fault category, and no endpoint was authorised to inject the reordering
-the mutation needs.
+the mutation needs. **V3** was raised in the same pass and deliberately not corrected: V1 and V2 were
+U3 being paid down one forced instalment at a time rather than dispositioned, and how much of the
+S1/U1 obligation the brief must carry before Batch 2 is an owner call about Batch 2's scope. U3 was
+subsequently corrected in full, which is V3's disposition.
+
+Two further author-side passes over those corrections raised **W1**-**W6**, and a third raised
+**X1**-**X7**; the retained record of both is the
+[W correction iteration review](./reviews/channel-0.2-w-correction-iteration-review.md). W1 gave the
+closed property operator set the bounded precedence relation `C4-P2` needs, W2 stated what the
+reordering provider declares at establishment, W3 added a second named mutation so each conjunct has
+one, W4 stated that an identity refused at `unseen` retains no history and no latch, W5 gave the
+precedence operator its operand in the vector format, and W6 added the late-traffic latch to the
+normative parity comparison.
+
+X1-X7 are the layer beneath those. **X1** — the parity profile compared the latch *value*, and the
+conjunct that motivated W6 reads the frame the latch settled against; the mutation and the two cases
+the property must leave green all record `state-violation` with `fault-committed`, and
+`state-violation` declares no detailed-reason set for V1's clause to reach. The settling frame is now
+recorded and compared. **X2** — W4 created a route with no latch while the grid requires every
+generated cell to assert one; the absence is now an explicit `not-applicable` value rather than an
+absent field. **X3** — the recipient transition table, which is the detailed authority, had no row for
+a control at `unseen`, so the machine's own totality rule produced a terminal `peer-fault` with a
+latch; the row now exists. **X4** — `C4-outcome-precedes-ack` was in no required adversarial vector
+group, so half of W3 did not reach the suite. **X5** — `C4-P2`'s first conjunct quantifies over a
+record W4 said the recipient does not keep; recording evidence is now distinguished from retaining
+state, in C4, the provenance table, and the grid. **X6** — the pin clause closing U6 went stale one
+commit later and is now checked against the repository rather than against its own wording. **X7** —
+the W passes left no retained iteration review, and V3's disposition was unrecorded; both are closed
+here and by a check written over the class.
+
+A fourth pass over the X corrections raised **Y1**-**Y4**, recorded in the same iteration review.
+**Y1** — W6 and X1 made the late-traffic latch and its settling frame normative comparisons, and
+neither C10's enumeration nor the brief's local-observation schema carried either, so the parity
+profile compared two fields no observation was required to hold. **Y2** — C10 requires an observation
+for every attempted establishment and interaction, and the `unseen` refusal is neither, so the record
+X5 depends on was mandated by the capability that reads it and by none that owns it. **Y3** — X3
+routed the refusal to `rejected-protocol`, which the recipient state table marks terminal and the
+`any terminal` rows therefore claim, reintroducing the latch W4 refuses; the recipient's per-identity
+state remains `unseen` and `rejected-protocol` is the provenance. **Y4** — the settling-frame
+reference named kind, identity, and committing endpoint, which do not separate two frames of the same
+kind from one endpoint; a duplicate terminal is exactly that and must leave `C4-P2` green, so the
+reference now carries the frame's arrival ordinal.
+
+A fifth pass raised **Z1**-**Z4**. **Z1** — that ordinal is observed arrival order, which W1 removed
+from the property language on purpose, so it is restricted to identification and may never be an
+ordering operand. **Z2** — the grid's `unseen` cells still named `rejected-protocol` in the format
+every other row uses for a next state, which Y3 had just settled is a provenance. **Z3** — C10 gained
+the latch under Y1 and stopped at the terminal interaction's, leaving the `not-applicable` value X2
+introduced compared and unowned. **Z4** — the migration ledger's inventory of 0.2 cases with no 0.1
+predecessor did not list intra-interaction frame order or its two mutations, so the requirement every
+finding since S1 turns on was absent from the list of what Batch 2 must build; unlike the rest of the
+sequence this is not a defect a correction introduced but one they all went past.
+
+A sixth pass left the design package and asked what the entry points say, raising **AA1**-**AA3**.
+**AA1** and **AA2** — the Channel index and the future-work index had fallen behind every correction
+family since V2, the second still naming S1 as the open blocking finding and both understating the
+retained review count; the counts are now computed from the reviews directory and every family
+recorded in this disposition history must appear in both. **AA3** — the future-work index still
+attributed the ordering row to `channel-core`, the identifier U2 abolished, so the closed owner
+vocabulary was closed in one artifact only.
+
+A seventh pass raised **AB1** and **AB2**. **AB1** — the redesign plan is the fourth entry point and
+the one status block the T4 cycle-name check never covered, and it had stopped at S3 while six
+correction passes ran. **AB2** — X5, Y1, and Y2 made the local observation record what `C4-P2` reads,
+and the responsibility matrix owned the peer fault, the loss classification, the effect certainty and
+the observability system that *consumes* observations, while the observation record itself had no
+owner row. A fact a property depends on with no owner is the S1 defect, in the artifact S1 was raised
+against, six families after S1 was called closed.
+
+An eighth pass raised **AC1**-**AC4**, retained as the
+[AC correction iteration review](./reviews/channel-0.2-ac-correction-iteration-review.md). **AC1** —
+Y4 added the settling frame's arrival ordinal to the neutral brief and to nothing else, while the
+interaction machine owns the latch, the grid enumerates the cells that assert it, and the matrix owns
+the observation record; because the brief is subordinate to all three, the hierarchy resolved the
+contradiction against Y4 and left the parity profile comparing a field no observation carries, which
+is Y1 restored by the fix for Y4. **AC2** — V1 made the peer-fault detailed reason normative wherever
+its category declares a closed set and named the `C4-P2` case as one reason of
+`invalid-interaction-correlation`; the ledger's closed set had five identity reasons and none of them
+covers an identity that was never opened, so the compared field had no value for the refusal the first
+conjunct reads. The same pass found that both `unseen` cells record one provenance while the conjunct
+quantifies over a cancellation control alone, so C10 now requires the kind of frame refused. **AC3** —
+both conjuncts opened with "no endpoint records" and continued "the same endpoint had already
+committed", whose nearest antecedent is the recording endpoint, which is never the committing one; the
+literal reading quantified over an endpoint pair no vector can produce, which is U1's unfalsifiable
+property arriving through a pronoun. **AC4** — the check written over the X7 class matched one-letter
+finding families only, so it could not see AA, AB, or the findings of the review retaining it.
+
+A ninth pass raised **AD1**-**AD3**, retained as the
+[AD correction iteration review](./reviews/channel-0.2-ad-correction-iteration-review.md), and is the
+first whose findings are in the evidence *about* the design rather than in the design. **AD1** — the
+AC review's residual stated that the AA and AB passes had left no retained record and referred the
+resulting gap to the owner, while the W correction iteration review records AA1-AA3 and AB1-AB2 under
+its fourth and fifth pass headings; acting on that residual would have meant authoring duplicate
+records or rescoping a requirement that was never violated. It was made by reading the W review's
+roster entry and scope line instead of the document, which is AC1 committed by the pass that raised
+AC1. **AD2** — the X7 comment names two halves of its class check and AC4 widened only the first; the
+second is written over two ids while the policy bolds thirty-six, so it cannot fail for AA, AB, AC, or
+AD. There is no live gap and it is left as an owner call rather than corrected by a second actor in
+the same week. **AD3** — the W review's scope line, the policy's roster entry, and the AC residual
+gave three different accounts of what that review contains, none matching it; each is what some later
+pass consulted instead of opening it, and AD1 is the proof that at least one did.
 
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.
