@@ -264,6 +264,36 @@ if ($unseenFaultsCancellation) {
     }
 }
 
+# U1: the S1 correction gave the ordering fact an owner and attached `C4-P2` to it, but a promise is
+# only as good as the property that can refute it. This check asks whether `C4-P2` can fail at all.
+# It is keyed off the claim that *depends* on falsifiability -- C4 asserting that
+# `C4-control-precedes-request` is the mutation the property must go red on -- rather than off the
+# property's own wording, so deleting the claim cannot make the check pass while leaving an
+# untestable promise standing.
+#
+# The defect it pins: `C4-P2` originally quantified over the frames a recipient *accepts*, and the
+# design refuses every reordered frame rather than accepting it, so the accepted sequence is empty
+# and trivially in order. The property was green on its own mutation. The fix quantifies over the
+# refusal the reordering produces instead, which the fault routing manufactures rather than destroys.
+if ($flowedContract.IndexOf('is the mutation this property must go red on', [System.StringComparison]::Ordinal) -ge 0) {
+    if ($flowedContract.IndexOf('stated over the refusal that reordering produces', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('C4-P2 claims `C4-control-precedes-request` is the mutation it must go red on, but it is not stated over the refusal that reordering produces. Quantified over the frames a recipient accepts, the property is green on that mutation: the reordered control is refused at `unseen` and the request is then latched, so the accepted sequence is empty and trivially an order-preserving subsequence.')
+    }
+    if ($flowedContract.IndexOf('for a cancellation control whose request the same endpoint had already committed', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('C4-P2 does not forbid the observation `C4-control-precedes-request` actually produces: a recipient `rejected-protocol` at `unseen` for a cancellation control whose request the sending endpoint had already committed. Without that conjunct the mutation leaves no witness the property can quantify over.')
+    }
+    if ($flowedContract.IndexOf('the same endpoint committed before the frame that made the interaction terminal', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('C4-P2 covers only the initiator-to-recipient direction. Reordering the recipient''s acknowledgement and terminal produces a late-traffic `state-violation` instead, and the conjunct must be restricted to frames one endpoint committed, or a legal late control after a peer terminal would falsely fail it.')
+    }
+    if ($flowedContract.IndexOf('the vector is rejected as nonconforming evidence', [System.StringComparison]::Ordinal) -ge 0) {
+        $failures.Add('C4 gives `C4-control-precedes-request` an expected observation of being rejected as nonconforming evidence, which contradicts C4-P2 going red on it: a vector rejected before it executes is never evaluated by the property. The mutation needs one deterministic expected observation under C12-P1.')
+    }
+    $completenessAudit = ($completeness -split '## Per-capability property audit', 2)[1] -split '## Deliberate non-goals', 2 | Select-Object -First 1
+    if ($completenessAudit -and (Get-FlowedText $completenessAudit).IndexOf('C4-P2', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The per-capability property audit does not register C4-P2 or the mutation that must fail it. That table is the register of property/mutation pairs, and its silence is why an unfalsifiable property survived the correction that introduced it.')
+    }
+}
+
 # S2: a held control needs a disposition for the third exit from `validating`. Admission succeeding
 # and admission refusing are the only two C8 enumerates; loss and drain are neither.
 Assert-ContainsAll 'Channel 0.2 held control under loss or drain (C8)' $flowedContract @(
@@ -445,6 +475,7 @@ Assert-ContainsAll 'Channel 0.2 review policy' (Get-FlowedText $reviewReadme) @(
     '## Exact next work',
     '`3892c23a8dd4c7f298e877ba73710ee0ddc97bc4`',
     '`channel-0.2-design-foundation-closure-review-7-attestation.md`',
+    '`channel-0.2-design-foundation-closure-review-8-attestation.md`',
     '`channel-0.2-design-foundation-closure-record.md`',
     '`build/verify-channel-0.2-design.ps1`',
     '`build/verify-interchange.ps1`'

@@ -2,8 +2,9 @@
 
 Date: 2026-08-11
 
-Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, and S1-S3 correction passes
-complete.
+Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, and U1 correction passes
+complete. The per-capability property audit now registers `C4-P2` and the mutation that must fail it;
+its silence is why an unfalsifiable property survived the correction that introduced it.
 A fresh independent closure re-review remains required. This review asks what the proposed contract
 does not say. It is separate from conformance review and does not claim the contract is correct.
 
@@ -140,7 +141,7 @@ property counts as evidence.
 | cancel before dispatch | local refusal/no cancel frame; admission may itself be abandoned locally | Channel core |
 | cancel during recipient admission | held, not faulted: exactly one control is retained while `validating` and applied when admission resolves; a refused admission discards it with no frame and does not fire the late-traffic latch | Channel core |
 | loss or drain while a control is held | the third exit from `validating`: held control discarded with no answering frame, late-traffic latch does not fire, and the interaction reaches whatever terminal it would have reached with no control outstanding; an interaction still admitting is outside the drain snapshot | Channel core |
-| control delivered before the request it names | impossible under C4 intra-interaction frame order, which core promises and a realization profile declares; `C4-control-precedes-request` exists as a mutation vector whose expected observation is rejection as nonconforming evidence, so `C4-P2` has something to fail on | Channel core + realization profile |
+| control delivered before the request it names | impossible under C4 intra-interaction frame order, which core promises and a realization profile declares; `C4-control-precedes-request` exists as a mutation vector whose expected observation is the recipient's recorded `rejected-protocol` at `unseen`, which is the witness `C4-P2` fails on | Channel core + realization profile |
 | cancel during possible effects | accepted/refused nonterminal ack; final Outcome/fault/loss required | Channel + Operation profile |
 | cancel after terminal | late control; terminal history unchanged | Channel core |
 | drain with in-flight work | no new admission; existing work terminates | Channel core |
@@ -169,7 +170,7 @@ property counts as evidence.
 | C1 | C1-P1 exact profile or known-none | remove one required facet from fixed profile only |
 | C2 | C2-P1 legal transition/terminal monotonicity | accept new interaction while draining |
 | C3 | C3-P1 exact class/direction/phase | mark unknown phase as true |
-| C4 | C4-P1 one dispatch/terminal and bounded concurrency | redispatch replayed identity or exceed bound |
+| C4 | C4-P1 one dispatch/terminal and bounded concurrency; C4-P2 intra-interaction frame order | redispatch replayed identity or exceed bound; `C4-control-precedes-request` delivers one interaction's control before the request that opens it |
 | C5 | C5-P1 all positional/bound checks before dispatch | project an authority value or dispatch oversized payload |
 | C6 | C6-P1 exact permitted local authority | treat compatibility/delivery as permission |
 | C7 | C7-P1 exact declaration/pre-Ready/no phase creation | admit wrong edge or let success create Ready |
