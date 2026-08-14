@@ -6,7 +6,8 @@ logical vocabulary is not the stable successor contract.
 Channel 0.2 is the current Priority 1 redesign. Its four first-batch owner rulings were resolved on
 2026-08-11. B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, U1-U8, V1-V3, W1-W6, X1-X7, Y1-Y4, and
 Z1-Z4 all have contract-first corrections, including a closed state/event grid. AA1-AA3 are corrected
-in this index and the future-work index, which had fallen behind every family since V2. The V through
+in this index and the future-work index, which had fallen behind every family since V2, and AB1-AB2 in
+the redesign plan and the responsibility matrix. The V through
 AA families were raised by author-side iteration passes over each other's corrections rather than by
 an independent review, each by asking what the previous fix depended on; that method has not yet
 stopped producing findings. Every recorded finding being closed is not a verdict; implementation remains gated

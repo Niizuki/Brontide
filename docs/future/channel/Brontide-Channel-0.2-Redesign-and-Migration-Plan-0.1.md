@@ -1,4 +1,4 @@
-# BRONTIDE
+﻿# BRONTIDE
 
 ## Channel 0.2 Redesign and Migration Plan 0.1
 
@@ -10,8 +10,13 @@ state/event grid alone, which C4 and C11 disclaimed and the responsibility matri
 `delivery-facet` — is corrected under the 2026-08-13 S1 ruling: Channel 0.2 core owns intra-interaction
 frame order, narrowly scoped, stated in C4 with `C4-P2` and a mutation vector, given an owner row in
 the responsibility matrix, and declared by the realization profile. Nonblocking S2 and S3 are
-dispositioned in the same pass. A fresh independent closure re-review of the S1 correction precedes
-Batch 2. No Channel 0.2 implementation or ratification is claimed.
+dispositioned in the same pass. The eighth review then found S1 closed as to ownership and not as to
+falsifiability and raised blocking **U1** with nonblocking **U2**-**U8**; those are corrected, as are
+**V1**-**V3**, **W1**-**W6**, **X1**-**X7**, **Y1**-**Y4**, **Z1**-**Z4**, **AA1**-**AA3**, and
+**AB1**-**AB2**, every one raised by an author-side iteration pass over the previous corrections and
+none by an independent review. AB1 is this status block, which had stopped at S3 while six passes ran.
+A fresh independent closure re-review of that whole sequence precedes Batch 2. No Channel 0.2
+implementation or ratification is claimed.
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),
 [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md), and the

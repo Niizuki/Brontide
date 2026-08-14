@@ -37,7 +37,8 @@ eighth review, which then raised blocking **U1** and nonblocking **U2**-**U8**. 
 as are **V1**-**V3**, **W1**-**W6**, **X1**-**X7**, **Y1**-**Y4**, and **Z1**-**Z4**, raised by
 author-side iteration passes over each other's corrections. **AA1**-**AA3** are the same passes turned
 on the entry points: this index and the Channel index had fallen behind every family since V2, and
-this one still named S1 as the open blocking finding. No independent review has yet seen any of it,
+this one still named S1 as the open blocking finding. **AB1**-**AB2** close the same gap in the
+redesign plan and give the local observation record an owner row now that `C4-P2` reads it. No independent review has yet seen any of it,
 and no Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
@@ -1614,7 +1615,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 8 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, and Z1-Z4 families, and awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 8 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, and AB1-AB2 families, and awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

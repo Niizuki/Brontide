@@ -3,8 +3,8 @@
 Reviewer identity: `agent:claude-opus-5-channel-0.2-w-correction-iteration-2026-08-14-3dc50cf`
 
 Reviewed work: the W1-W6 corrections, `fix(channel): close W1-W6, the layers under the U1 correction`,
-and the U1/U2-U8/V1-V2 corrections beneath them; then, in further passes, the X1-X7 and Y1-Y4
-corrections this document itself records
+and the U1/U2-U8/V1-V2 corrections beneath them; then, in four further passes, the X1-X7, Y1-Y4,
+Z1-Z4, and AA1-AA3 corrections this document itself records
 
 Date: 2026-08-14
 
@@ -25,11 +25,14 @@ retained record for the W pass's dispositions as well as for its own.
 
 ## Verdict
 
-Eighteen findings across four passes — X1-X7, then Y1-Y4 against those corrections, then Z1-Z4 against
-those, then AA1-AA3 against the entry points rather than the design package — all corrected. The review policy asks the next reviewer to assume a tenth layer exists under
-the nine the U-V-W sequence found, and to hunt it by asking what each fix *depends on*. That method
-produced every one of the fifteen; none would have been found by re-reading `C4-P2`, which is now
-correct as a sentence and was correct as a sentence before any of these passes.
+Twenty findings across five passes — X1-X7, then Y1-Y4 against those corrections, then Z1-Z4 against
+those, then AA1-AA3 against the entry points rather than the design package, then AB1-AB2 against the
+two artifacts none of the others had opened — all corrected.
+
+The review policy asks the next reviewer to assume a tenth layer exists under the nine the U-V-W
+sequence found, and to hunt it by asking what each fix *depends on*. That method produced every one of
+the twenty; none would have been found by re-reading `C4-P2`, which is now correct as a sentence and
+was correct as a sentence before any of these passes.
 
 Two are the same shape as U1 itself — a fix whose own dependency was never checked — and they are the
 two worth reading first. **X1**: W6 made the late-traffic latch comparable, and the conjunct that
@@ -37,10 +40,11 @@ motivated W6 does not read the latch. **X5**: W4 abolished the state the propert
 quantifies over, and nothing distinguished the state it meant to abolish from the record it needed to
 keep.
 
-Four passes is where this stopped, and the reason is worth stating plainly. The last two found things
-no correction in this sequence introduced: **Z4**, a required evidence group missing from the ledger's
-inventory, and **AA1**-**AA3**, five cycles of staleness in the two documents a reader meets before
-any artifact. Both are holes the whole sequence walked past while auditing each other's fixes. That is
+Five passes is where this stopped, and the reason is worth stating plainly. The last three found
+things no correction in this sequence introduced: **Z4**, a required evidence group missing from the
+ledger's inventory; **AA1**-**AA3** and **AB1**, six cycles of staleness in the three documents a
+reader meets before any artifact; and **AB2**, the S1 defect itself reappearing at the same place in
+the same artifact. All are holes the whole sequence walked past while auditing each other's fixes. That is
 evidence the method still had reach when it was stopped, not evidence the artifacts are now clean. It
 stopped because none of this is a verdict either way — that is the closure reviewer's to give, and an
 author-side pass cannot substitute for it however many times it runs.
@@ -322,6 +326,34 @@ for one owner in the repository, which is the exact failure U2 was raised to pre
 
 **Corrected** in the index, and the identifier is now rejected in every Channel status entry point
 rather than only inside the matrix.
+
+## Fifth pass — AB1-AB2, the two artifacts the other passes never opened
+
+### AB1 — the redesign plan stopped at S3 — corrected
+
+The AA pass fixed the two indexes and did not open the plan, which is the fourth entry point and the
+one the future-work index calls "the next work". Its status block still ended at S1-S3. It is also the
+one status block the T4 cycle-name check set never covered — nine artifacts are pinned there and the
+plan is not — so nothing had been watching it for six passes.
+
+**Corrected**, and the plan is now in the family check with the two indexes.
+
+### AB2 — the record `C4-P2` reads has no owner row — corrected
+
+S1 was raised because the fact the `unseen` verdict depended on had no owner in the responsibility
+matrix. X5, Y1, and Y2 have since made the local observation record exactly that kind of fact: it is
+what `C4-P2` reads, C10 says what it must distinguish, and the brief gives it schema positions. The
+matrix owned the peer fault, the loss classification, the effect certainty, and the observability
+system that *consumes* observations — the consumer had a row and the fact did not.
+
+So the S1 defect had reappeared at the same place in the same artifact, six families after S1 was
+called closed, because three corrections had made a previously incidental record load-bearing without
+anyone asking who owns it. That is the strongest single argument in this document for the closure
+requirement: the passes that created the dependency are the passes that could not see it.
+
+**Corrected** by a `Local observation content and provenance` row owned by `channel`, whose crossing
+artifact is the C10 record including the latch, its `not-applicable` value, the settling frame, and
+the refusal of a frame that opens no interaction.
 
 ## Disposition of W1-W6, recorded here because their pass did not record it
 

@@ -397,5 +397,13 @@ recorded in this disposition history must appear in both. **AA3** — the future
 attributed the ordering row to `channel-core`, the identifier U2 abolished, so the closed owner
 vocabulary was closed in one artifact only.
 
+A seventh pass raised **AB1** and **AB2**. **AB1** — the redesign plan is the fourth entry point and
+the one status block the T4 cycle-name check never covered, and it had stopped at S3 while six
+correction passes ran. **AB2** — X5, Y1, and Y2 made the local observation record what `C4-P2` reads,
+and the responsibility matrix owned the peer fault, the loss classification, the effect certainty and
+the observability system that *consumes* observations, while the observation record itself had no
+owner row. A fact a property depends on with no owner is the S1 defect, in the artifact S1 was raised
+against, six families after S1 was called closed.
+
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.

@@ -253,6 +253,16 @@ if ($unseenFaultsCancellation) {
     if ($flowedResponsibility.IndexOf('per-interaction frame order', [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add('The realization-profile crossing artifact declares no per-interaction frame order field, so a realization cannot state the obligation the grid places on it and a profile cannot verify it.')
     }
+
+    # AB2: S1 was a fact a verdict depended on with no owner row. X5, Y1, and Y2 have now made the
+    # local observation record load-bearing for `C4-P2` in exactly the same way -- it is what the
+    # property reads -- and the matrix owns the peer fault, the loss classification, the effect
+    # certainty and the observability system that *consumes* observations, while the observation
+    # record itself has no row. The consumer is owned and the fact is not, which is S1 at the same
+    # place in the same artifact.
+    if ($flowedResponsibility.IndexOf('Local observation content', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The responsibility matrix has no row owning local observation content, although `C4-P2` now reads it and the matrix already owns the observability system that consumes it. A fact a property depends on with no owner row is the S1 defect, in the artifact S1 was raised against.')
+    }
     if ($flowedContract.IndexOf('**Property C4-P2.**', [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add('C4 carries no property over the intra-interaction ordering promise. S1 survived seven review cycles because every Cn-P1 stayed green across it, so a new promise without a falsifiable property repeats exactly that failure.')
     }
@@ -991,6 +1001,15 @@ else {
     }
     if ($futureIndexText.IndexOf("$attestationCount retained independent reviews", [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add("The future-work index does not say '$attestationCount retained independent reviews', which is what the reviews directory holds. Its predecessor count was written as a word and went stale unnoticed for a full cycle.")
+    }
+
+    # AB1: the redesign plan is the fourth entry point -- the future-work index calls it "the next
+    # work" -- and it was the one status block the T4 check set never covered, so it went stale
+    # unnoticed through six correction passes while the checks watched the other nine.
+    foreach ($family in $dispositionFamilies) {
+        if ($plan -cnotmatch "\b$family[0-9]") {
+            $failures.Add("The redesign plan names no finding in the '$family' family, although the completeness review's disposition history records one. The plan is the entry point the future-work index sends a reader to first, and it is the one status block the cycle-name check never covered.")
+        }
     }
 
     # AA3: U2 closed the owner vocabulary and abolished `channel-core` as a second name for `channel`.

@@ -12,12 +12,13 @@ produces. Nonblocking **U2**-**U8** are now also corrected, as are **V1** and **
 U1 correction itself, **W1**-**W6**, which two further iteration passes raised against those
 corrections in turn, **X1**-**X7**, which a third raised against the W corrections, **Y1**-**Y4**,
 which a fourth raised against the X corrections, **Z1**-**Z4**, which a fifth raised against those,
-and **AA1**-**AA3**, which a sixth raised against the entry points rather than the design package. Every finding
+and **AA1**-**AA3**, which a sixth raised against the entry points rather than the design package,
+and **AB1**-**AB2**, which a seventh raised against the two artifacts the others never opened. Every finding
 this programme has recorded is closed in the artifacts it was raised against, and none of that is a
 verdict: a fresh independent closure re-review is pending, and it is the only thing that can close the
 batch.
 
-The U-V-W-X sequence is worth reading before the next review rather than after it. S1 found that the
+The U-through-AB sequence is worth reading before the next review rather than after it. S1 found that the
 fact had no owner; U1 that the property carrying it could not fail; V1 that the property's subject was
 not compared; V2 that the mutation carrying the property could not be run; W1 that the property could
 not be written in the declared language; W3 that half of it had no mutation at all; W4 that its
@@ -34,10 +35,12 @@ three fixes in turn depended on something no artifact said. Twenty layers, each 
 guarantee the one above it, and each of which had its own hole. Every one was found by asking what the
 previous fix *depends on* rather than whether it is worded correctly, and none was found by re-reading
 the contract. The reviewer should assume a twenty-first exists and hunt it that way, rather than
-checking whether the twenty are now right — and **Z4** and **AA1**-**AA3** are the warning against
-reading the sequence too narrowly. Z4 is a requirement missing from the ledger's inventory and the AA
-family is five cycles of index staleness; none was introduced by any correction, and every pass since
-S1 walked past all four while auditing each other's fixes. The layer under a fix is where these
+checking whether the twenty are now right — and **Z4**, **AA1**-**AA3**, and **AB1**-**AB2** are the
+warning against reading the sequence too narrowly. Z4 is a requirement missing from the ledger's
+inventory, the AA family and AB1 are six cycles of staleness in the three entry-point documents, and
+AB2 is S1 itself reappearing at the same place in the same artifact once three corrections had made
+the observation record load-bearing. None was introduced by any correction, and every pass since S1
+walked past all of them while auditing each other's fixes. The layer under a fix is where these
 findings have been, but it is not the only place they are. R1 and S1 each required their own
 dated owner ruling, recorded in the redesign plan; both are correction rulings and neither joins the
 four first-batch rulings, which remain the fixed set recorded on 2026-08-11. The U1 correction needed
@@ -158,6 +161,14 @@ schemas or implementation, and it does not create
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3h. ~~Correct AB1-AB2, found by a seventh iteration pass over the two artifacts the others never
+   opened.~~ **Done.** **AB1** — the redesign plan is the fourth entry point and the one status block
+   the T4 cycle-name check set never covered, and it had stopped at S3 while six passes ran. **AB2** —
+   X5, Y1, and Y2 made the local observation record what `C4-P2` reads, and the responsibility matrix
+   owned the observability system that consumes observations while the record itself had no owner row.
+   That is S1's defect at S1's place in S1's artifact, six families after S1 was called closed, and it
+   appeared because the passes that made the record load-bearing were the passes that could not see
+   it.
 3g. ~~Correct AA1-AA3, found by a sixth iteration pass that left the design package and read the
    entry points.~~ **Done.** **AA1** and **AA2** — the Channel index and the future-work index had
    fallen behind every finding family since V2, the second still naming S1 as the open blocking
@@ -339,7 +350,7 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   evaluator from the published prose and running the property's own named mutation through it. The
   attestation records that U1 answers a question its dispatching brief named, and that U2-U8 did not.
 
-The current review target is the commit titled `fix(channel): close AA1-AA3, the stale entry points`,
+The current review target is the commit titled `fix(channel): close AB1-AB2, the plan and the unowned observation record`,
 committed 2026-08-14, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
