@@ -1,10 +1,12 @@
-# Channel 0.1 to 0.2 migration ledger 0.1
+﻿# Channel 0.1 to 0.2 migration ledger 0.1
 
 Date: 2026-08-11
 
-Status: proposed first-batch migration disposition; B4, N1/N3, F3, D5, T1/T2, and S1 corrected after
-independent review and subject to a fresh independent closure re-review. Serialized spellings remain
-unselected until the neutral contract batch.
+Status: proposed first-batch migration disposition; B4, N1/N3, F3, D5, T1/T2, S1, and Z4 corrected
+after independent review and subject to a fresh independent closure re-review. Under Z4 the
+new-evidence inventory carries intra-interaction frame order, its two ordering mutations, and the
+observation fields they compare, none of which has a Channel 0.1 predecessor to migrate from.
+Serialized spellings remain unselected until the neutral contract batch.
 
 Sources inventoried:
 
@@ -251,8 +253,17 @@ The 0.1 set has no direct equivalents for these required 0.2 cases:
 - relational interaction exact declaration, direction, authority, and pre-Ready phase;
 - ordinary interaction before Release refusal;
 - session fault mapping each in-flight interaction separately;
-- extension facet unable to redefine authority or terminality; and
-- effect certainty separated from profile-owned effect details.
+- extension facet unable to redefine authority or terminality;
+- effect certainty separated from profile-owned effect details; and
+- intra-interaction frame order and its two ordering mutations. Channel 0.1 promised no order and
+  therefore has no predecessor vector, and this is the requirement every finding since S1 turns on, so
+  its absence here would leave Batch 2's inventory silent about the one group it exists to produce:
+  conforming commit-order delivery in both directions, loss of either frame, the legal
+  nonconformant-peer inputs `C4-P2` must leave green, and `C4-control-precedes-request` and
+  `C4-outcome-precedes-ack`, one per conjunct, both requiring the declared reordering injection.
+  The observation fields those vectors compare — the late-traffic latch, including its
+  `not-applicable` value, and the frame that settled it with its arrival ordinal — are likewise new in
+  0.2 and have no 0.1 observation field to migrate from.
 
 ## Golden encodings, parity profiles, and pins
 

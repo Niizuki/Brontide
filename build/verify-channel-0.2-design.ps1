@@ -482,6 +482,34 @@ if ($flowedContract.IndexOf('is the mutation this property must go red on', [Sys
         if ((Get-FlowedText $briefParity).IndexOf('arrival ordinal', [System.StringComparison]::Ordinal) -lt 0) {
             $failures.Add('The settling-frame reference names kind, interaction identity, and committing endpoint, which do not distinguish two frames of the same kind from one endpoint. A duplicate terminal is exactly that, and it is a case C4-P2 must leave green; bound to the earlier of the two steps the property goes red on legal input. The reference needs the settling frame''s arrival ordinal within the interaction.')
         }
+
+        # Z1: W1 made the precedence relation deliberately narrow -- declared steps only, never an
+        # observed time, arrival order, or cross-endpoint relation -- because Channel promises no
+        # order across endpoints and owns no clock. Y4 then made an arrival ordinal a compared
+        # normative field. It is there to identify which frame settled the latch, and nothing says so,
+        # so the property language now has an observed-order operand of exactly the kind W1 excluded.
+        if ($briefOperators -and (Get-FlowedText $briefOperators).IndexOf('never as an ordering operand', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The settling frame''s arrival ordinal is a compared normative field and the property format does not restrict how it may be used. W1 excluded observed arrival order from the operator set on purpose; an ordinal that may be an ordering operand hands it back, and a property could then assert an order Channel does not promise.')
+        }
+
+        # Z3: X2 introduced `not-applicable` and the parity profile compares it. Y1 gave C10 the latch
+        # and the settling frame and stopped at "the terminal interaction's" latch, so the one value a
+        # non-terminal route asserts is compared and unowned -- Y1's own defect, surviving in the
+        # corner Y1 did not sweep.
+        if ($flowedContract.IndexOf('`not-applicable`', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('C10 requires an observation to distinguish the terminal interaction''s latch, and the parity profile also compares the `not-applicable` value a route reaching no terminal interaction asserts. That value is compared and owned by nothing, which is what Y1 was raised about.')
+        }
+    }
+
+    # Z4: the ledger's new-evidence inventory is where Batch 2 learns which 0.2 cases have no 0.1
+    # predecessor, and intra-interaction frame order is the newest requirement in the batch and the
+    # subject of every finding since S1. It is absent, so the one evidence group this whole sequence
+    # exists to produce is missing from the inventory that lists what must be built.
+    if ($flowedContract.IndexOf('`C4-outcome-precedes-ack`', [System.StringComparison]::Ordinal) -ge 0) {
+        $ledgerNewEvidence = ($migration -split '## New evidence required by redesign', 2)[1] -split '## Golden encodings, parity profiles, and pins', 2 | Select-Object -First 1
+        if (-not $ledgerNewEvidence -or (Get-FlowedText $ledgerNewEvidence).IndexOf('intra-interaction frame order', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The migration ledger lists the 0.2 cases with no 0.1 equivalent and does not list intra-interaction frame order or its two ordering mutations. The requirement every finding since S1 turns on is absent from the inventory of what Batch 2 must build, and it has no 0.1 predecessor to carry it in by another route.')
+        }
     }
 
     # Y3: X3 routes the `unseen` refusal to `rejected-protocol`, and the recipient state table marks
@@ -489,6 +517,21 @@ if ($flowedContract.IndexOf('is the mutation this property must go red on', [Sys
     # the late-traffic latch -- the state W4 refuses and the grid says the `any terminal` row does not
     # reach. Adding the row fixed the routing and left the destination contradicting the rule.
     if ($unseenFaultsCancellation) {
+        # Z2: Y3 settled that the refusal leaves the recipient at `unseen` with `rejected-protocol` as
+        # provenance. The grid's `unseen` cells still read as a next state, in the same column format
+        # every other row uses for one -- one token, two meanings, two artifacts, which is S1's shape
+        # and the reason the grid needed an owner in the first place.
+        # Scoped to the cancellation-control cell rather than the row: mutation testing found the
+        # row-wide form satisfied by the neighbouring `Other peer event` cell, so reverting the cell
+        # under test left the check green.
+        $unseenCancellationCell = ''
+        if ($unseenRow.Count -eq 1) {
+            $unseenCancellationCells = @($unseenRow[0].Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+            if ($unseenCancellationCells.Count -ge 3) { $unseenCancellationCell = $unseenCancellationCells[2] }
+        }
+        if ($unseenCancellationCell.IndexOf('unchanged', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The recipient grid''s `unseen` row names `rejected-protocol` in the cell format every other row uses for a next state, while the interaction machine says the state is unchanged and `rejected-protocol` is the provenance the refusal is recorded under. The grid must say which it means.')
+        }
         if ($flowedInteraction.IndexOf('per-identity state remains `unseen`', [System.StringComparison]::Ordinal) -lt 0) {
             $failures.Add('The `unseen` refusal is routed to `rejected-protocol`, which the recipient state table marks terminal, so the machine''s `any terminal` rows apply and give the identity a late-traffic latch. W4 refuses exactly that state and the grid says the `any terminal` row does not reach it. The machine must say what state the recipient is left in, and the only answer consistent with retaining nothing is `unseen`.')
         }

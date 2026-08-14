@@ -4,8 +4,9 @@ Date: 2026-08-11
 
 Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet, and
 subject to a fresh independent closure re-review. Batch 2 opens only after that review conforms and
-its closure record exists. U3, V1, V2, W1, W2, W5, W6, X1, X2, X4, Y1, and Y4 corrected after
-independent review: the parity profile compares the frame a late-traffic latch settled against rather
+its closure record exists. U3, V1, V2, W1, W2, W5, W6, X1, X2, X4, Y1, Y4, and Z1 corrected after
+independent review, the last restricting that ordinal to identification so the property language does
+not regain the observed arrival order W1 removed from it: the parity profile compares the frame a late-traffic latch settled against rather
 than only the latch value, that reference carries the settling frame's arrival ordinal so a duplicate
 terminal cannot be mistaken for a reordering, the local-observation schema has positions for both, the
 latch's `not-applicable` value is compared rather than absent, the required
@@ -258,6 +259,14 @@ The operator set may compare equality, membership, counts, transition edges, set
 implication, bounded “for all selected steps/vectors,” and **precedence between two steps in one
 vector's declared ordered stimulus sequence, for one endpoint and one interaction identity**. It may
 not call stack code or embed a general scripting language.
+
+The settling frame's arrival ordinal is used **as an identifier, never as an ordering operand**. It may be
+compared for equality, to say which received frame settled a latch and therefore which declared step
+the latch settled against; it may not be an operand of precedence or of any other comparison that
+reads it as an order. The distinction is the whole of the restriction below: an ordinal is observed
+arrival, and a property permitted to order by it could assert an ordering Channel does not promise —
+across endpoints, or against a frame the contract never sequenced — under cover of a field added to
+identify one frame.
 
 Precedence is deliberately the narrowest ordering relation that makes `C4-P2` writable. It compares
 two positions in a declared input sequence — data the vector author wrote down — and never an

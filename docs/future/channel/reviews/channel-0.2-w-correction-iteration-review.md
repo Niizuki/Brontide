@@ -3,8 +3,8 @@
 Reviewer identity: `agent:claude-opus-5-channel-0.2-w-correction-iteration-2026-08-14-3dc50cf`
 
 Reviewed work: the W1-W6 corrections, `fix(channel): close W1-W6, the layers under the U1 correction`,
-and the U1/U2-U8/V1-V2 corrections beneath them; then, in a second pass, the X1-X7 corrections this
-document itself records
+and the U1/U2-U8/V1-V2 corrections beneath them; then, in further passes, the X1-X7 and Y1-Y4
+corrections this document itself records
 
 Date: 2026-08-14
 
@@ -25,18 +25,26 @@ retained record for the W pass's dispositions as well as for its own.
 
 ## Verdict
 
-Seven findings, all corrected. The review policy asks the next reviewer to assume a tenth layer exists
-under the nine the U-V-W sequence found, and to hunt it by asking what each fix *depends on*. That
-method produced all seven; none would have been found by re-reading `C4-P2`, which is now correct as a
-sentence and was correct as a sentence before this pass.
+Fifteen findings across three passes — X1-X7, then Y1-Y4 against those corrections, then Z1-Z4 against
+those — all corrected. The review policy asks the next reviewer to assume a tenth layer exists under
+the nine the U-V-W sequence found, and to hunt it by asking what each fix *depends on*. That method
+produced every one of the fifteen; none would have been found by re-reading `C4-P2`, which is now
+correct as a sentence and was correct as a sentence before any of these passes.
 
-Two of the seven are the same shape as U1 itself — a fix whose own dependency was never checked — and
-they are the two worth reading first. **X1**: W6 made the late-traffic latch comparable, and the
-conjunct that motivated W6 does not read the latch. **X5**: W4 abolished the state the property's
-first conjunct quantifies over, and nothing distinguished the state it meant to abolish from the
-record it needed to keep.
+Two are the same shape as U1 itself — a fix whose own dependency was never checked — and they are the
+two worth reading first. **X1**: W6 made the late-traffic latch comparable, and the conjunct that
+motivated W6 does not read the latch. **X5**: W4 abolished the state the property's first conjunct
+quantifies over, and nothing distinguished the state it meant to abolish from the record it needed to
+keep.
 
-## Findings
+Three passes is where this stopped, and the reason is worth stating plainly: the third pass found four
+findings, one of which (**Z4**) was not introduced by any correction in this sequence but is a hole the
+whole sequence walked past. That is evidence the method still had reach when it was stopped, not
+evidence the artifacts are now clean. It stopped because each further pass was returning findings
+further from `C4-P2` and closer to inventory bookkeeping, and because none of it is a verdict either
+way — that is the closure reviewer's to give.
+
+## First pass — X1-X7, the layer under the W corrections
 
 ### X1 — the parity profile compares the latch value; the conjunct reads the frame the latch settled against — corrected
 
@@ -225,6 +233,54 @@ policy draws between a hypothetical and a test case.
 **Corrected** by adding the settling frame's arrival ordinal within the interaction, which maps it to
 exactly one declared step — directly where no reordering is injected, and through the named injection
 where one is.
+
+## Third pass — Z1-Z4, the layer under the Y corrections
+
+### Z1 — the ordinal Y4 added is the observed order W1 excluded — corrected
+
+W1 made the precedence relation deliberately narrow: declared steps only, never an observed time,
+arrival order, or cross-endpoint relation, because Channel promises no order across endpoints and owns
+no clock. Y4 then made an arrival ordinal a compared normative field. It is there to identify which
+received frame settled a latch, and nothing said so, so the property language acquired an
+observed-arrival operand of exactly the kind W1 had removed — under cover of a field added for another
+purpose. A property could have ordered two endpoints' frames by ordinal and asserted an ordering the
+contract does not have.
+
+**Corrected** by restricting the ordinal to identification: compared for equality, never an operand of
+precedence or any other comparison that reads it as an order.
+
+### Z2 — the grid cell Y3 contradicted still reads as a next state — corrected
+
+Y3 settled that the refusal leaves the recipient's per-identity state at `unseen` and records
+`rejected-protocol` as provenance. The grid's `unseen` row still named `rejected-protocol` in the cell
+format every other row uses for a next state. One token, two meanings, two artifacts — which is S1's
+shape, in the artifact S1 was raised against.
+
+**Corrected** by naming the provenance as a provenance in both `unseen` cells, and by saying why the
+same token at `validating` does name a state: there an interaction exists to be in it.
+
+### Z3 — Y1 left the one latch value it introduced unowned — corrected
+
+X2 introduced `not-applicable` and the parity profile compares it. Y1 gave C10 the latch and the
+settling frame and stopped at "the terminal interaction's" latch, so the value a non-terminal route
+asserts was compared and owned by nothing — Y1's own defect surviving in the corner Y1 did not sweep.
+
+**Corrected** in C10, which now carries the value and the reason an absent field would conflate a
+route with no latch and a latch that has not settled.
+
+### Z4 — the evidence this whole sequence exists to produce is in no inventory — corrected
+
+The migration ledger's new-evidence section lists the 0.2 cases with no 0.1 predecessor, and that is
+where Batch 2 learns what must be built beyond the migrated set. Intra-interaction frame order was not
+in it. Channel 0.1 promised no order, so there is no predecessor vector to carry the requirement in by
+another route, and the vector group U3 added to the brief is a different inventory.
+
+So the requirement every finding since S1 turns on was absent from the list of what Batch 2 must
+build. This one was not introduced by any correction in the U-Y sequence; it is a hole those
+corrections went past, and it was found by asking where else the mutations have to be written down.
+
+**Corrected** by listing the group, both mutations, the green cases, and the new observation fields
+that have no 0.1 field to migrate from.
 
 ## Disposition of W1-W6, recorded here because their pass did not record it
 

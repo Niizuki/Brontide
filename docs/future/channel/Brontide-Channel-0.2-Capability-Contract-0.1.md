@@ -3,7 +3,7 @@
 Date: 2026-08-11
 
 Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, R1, S1, S2, U1, W2, W3, W4,
-X1, X5, Y1, and Y2 corrected after independent review. Under Y1 and Y2, C10 requires an observation to
+X1, X5, Y1, Y2, and Z3 corrected after independent review. Under Y1 and Y2, C10 requires an observation to
 distinguish the late-traffic latch and the frame that settled it, and requires one for a recognized
 frame that opens no interaction — the two facts `C4-P2` reads and the capability that owns observation
 did not carry. C4 now owns intra-interaction frame order with
@@ -459,7 +459,10 @@ Every attempted establishment and interaction yields a local observation suffici
 profile, session and interaction identities, direction, class, admission and authority decisions,
 dispatch boundary, terminal provenance, peer-reported facts, local detection point, retry/fallback
 facts supplied by an owning extension, the terminal interaction's **late-traffic latch and the frame
-that settled it**, and effect certainty.
+that settled it**, and effect certainty. Where a route reaches no terminal interaction the latch is
+the explicit value `not-applicable`, which the observation carries like any other value; a route with
+no latch and a latch that has not settled are different facts and an absent field would conflate
+them.
 
 **A recognized frame that opens no interaction yields one too.** A cancellation control or other
 control naming an identity the recipient has never accepted is neither an attempted establishment nor

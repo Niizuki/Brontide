@@ -3,10 +3,12 @@
 Date: 2026-08-11
 
 Status: proposed first-batch totality artifact; added after D1-D4, corrected for T3, R1, R3, S1, S2,
-U8, W4, X1, X2, and X5, and subject to a fresh independent closure re-review. Under W4 the `unseen`
-cancellation refusal retains no history and no latch, so the `any terminal` row does not reach it;
-under X2 its cell asserts the latch as an explicit `not-applicable` rather than leaving a required
-field absent, and under X5 it asserts the one local observation it does record. The intra-interaction ordering fact the
+U8, W4, X1, X2, X5, and Z2, and subject to a fresh independent closure re-review. Under W4 the
+`unseen` cancellation refusal retains no history and no latch, so the `any terminal` row does not
+reach it; under X2 its cell asserts the latch as an explicit `not-applicable` rather than leaving a
+required field absent, under X5 it asserts the one local observation it does record, and under Z2 its
+cells name `rejected-protocol` as the provenance it is rather than as the next state every other row's
+cells name. The intra-interaction ordering fact the
 `unseen` verdict depends on is carried here and owned by C4. Under U8 the pre-dispatch Local loss cell
 names `lost` like every other cell in that column, rather than leaving the state to be read out of the
 interaction machine's totality rule.
@@ -67,12 +69,18 @@ one route.
 
 | Recipient state group | Request | Cancellation control | Handler terminal | Local protocol failure | Local loss | Other peer event |
 | --- | --- | --- | --- | --- | --- | --- |
-| `unseen` | validation rows | no identity to correlate → `rejected-protocol` | impossible local action | structural/local-refusal split | local session route | `rejected-protocol` |
+| `unseen` | validation rows | no identity to correlate → state unchanged, recorded with `rejected-protocol` provenance | impossible local action | structural/local-refusal split | local session route | state unchanged, recorded with `rejected-protocol` provenance |
 | `validating` | validation rows | valid control: hold exactly one, apply on admission; second control → `peer-fault` | impossible local action | structural/local-refusal split | local session route | `rejected-protocol` |
 | `executing` | live replay → `peer-fault` | authorized → `cancel-requested`; denied → `cancel-refused`; invalid → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-requested` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure/cancelled accepted | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-refused` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | any terminal | late-traffic latch | late-traffic latch | late-traffic latch | terminal preserved | local observation; terminal preserved | local record; no reply loop |
+
+The `unseen` row names a provenance where every other row names a next state, and says so in the cell
+rather than leaving one token to mean two things in two artifacts. Nothing is retained there, so there
+is no state to move to: `rejected-protocol` is what the refusal is recorded under, and the recipient's
+per-identity state is still `unseen` when the next frame arrives. At `validating` the same token does
+name a state, because an interaction exists to be in it.
 
 `unseen` and `validating` are separate rows because a cancellation control means different things in
 each. At `validating` the identity is known and the interaction exists, so the control correlates and

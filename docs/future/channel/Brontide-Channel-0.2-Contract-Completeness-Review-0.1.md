@@ -379,5 +379,15 @@ reference named kind, identity, and committing endpoint, which do not separate t
 kind from one endpoint; a duplicate terminal is exactly that and must leave `C4-P2` green, so the
 reference now carries the frame's arrival ordinal.
 
+A fifth pass raised **Z1**-**Z4**. **Z1** — that ordinal is observed arrival order, which W1 removed
+from the property language on purpose, so it is restricted to identification and may never be an
+ordering operand. **Z2** — the grid's `unseen` cells still named `rejected-protocol` in the format
+every other row uses for a next state, which Y3 had just settled is a provenance. **Z3** — C10 gained
+the latch under Y1 and stopped at the terminal interaction's, leaving the `not-applicable` value X2
+introduced compared and unowned. **Z4** — the migration ledger's inventory of 0.2 cases with no 0.1
+predecessor did not list intra-interaction frame order or its two mutations, so the requirement every
+finding since S1 turns on was absent from the list of what Batch 2 must build; unlike the rest of the
+sequence this is not a defect a correction introduced but one they all went past.
+
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.

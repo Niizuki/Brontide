@@ -10,8 +10,9 @@ green on its own named mutation — is corrected by restating `C4-P2` over the r
 produces. Nonblocking **U2**-**U8** are now also corrected, as are **V1** and **V2**, which the
 [U1 correction iteration review](./channel-0.2-u1-correction-iteration-review.md) raised against the
 U1 correction itself, **W1**-**W6**, which two further iteration passes raised against those
-corrections in turn, **X1**-**X7**, which a third raised against the W corrections, and **Y1**-**Y4**,
-which a fourth raised against the X corrections. Every finding
+corrections in turn, **X1**-**X7**, which a third raised against the W corrections, **Y1**-**Y4**,
+which a fourth raised against the X corrections, and **Z1**-**Z4**, which a fifth raised against
+those. Every finding
 this programme has recorded is closed in the artifacts it was raised against, and none of that is a
 verdict: a fresh independent closure re-review is pending, and it is the only thing that can close the
 batch.
@@ -28,11 +29,14 @@ that W3's second mutation reached no required vector group; X5 that W4 abolished
 conjunct quantifies over; Y1 and Y2 that neither the capability owning observation nor the schema
 holding it carried what X1 and X5 had just made the property read; Y3 that the state X3 routed to was
 terminal and therefore latched after all; and Y4 that the settling frame X1 added could not be told
-apart from a duplicate terminal, which the property must leave green. Seventeen layers, each of which
-existed to guarantee the one above it, and each of which had its own hole. Every one was found by
-asking what the previous fix *depends on* rather than whether it is worded correctly, and none was
-found by re-reading the contract. The reviewer should assume an eighteenth exists and hunt it that
-way, rather than checking whether the seventeen are now right. R1 and S1 each required their own
+apart from a duplicate terminal, which the property must leave green; and Z1-Z3 that each of those
+three fixes in turn depended on something no artifact said. Twenty layers, each of which existed to
+guarantee the one above it, and each of which had its own hole. Every one was found by asking what the
+previous fix *depends on* rather than whether it is worded correctly, and none was found by re-reading
+the contract. The reviewer should assume a twenty-first exists and hunt it that way, rather than
+checking whether the twenty are now right — and **Z4** is the warning against reading the sequence too
+narrowly: it is the one finding no correction introduced, a requirement missing from the ledger's
+inventory that every pass since S1 walked past while auditing each other's fixes. R1 and S1 each required their own
 dated owner ruling, recorded in the redesign plan; both are correction rulings and neither joins the
 four first-batch rulings, which remain the fixed set recorded on 2026-08-11. The U1 correction needed
 no ruling: it was a property that could not fail, which is a defect rather than a choice.
@@ -152,6 +156,16 @@ schemas or implementation, and it does not create
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3f. ~~Correct Z1-Z4, found by a fifth iteration pass over the Y corrections.~~ **Done**, recorded in
+   the same iteration review. **Z1** — the arrival ordinal Y4 added is observed arrival order, which
+   W1 removed from the property language on purpose; it is restricted to identification and may never
+   be an ordering operand. **Z2** — the grid's `unseen` cells still named `rejected-protocol` in the
+   format every other row uses for a next state, which Y3 had just settled is a provenance. **Z3** —
+   C10 gained the latch under Y1 and stopped at the terminal interaction's, leaving X2's
+   `not-applicable` compared and unowned. **Z4** — the migration ledger's inventory of 0.2 cases with
+   no 0.1 predecessor did not list intra-interaction frame order or its mutations, so the requirement
+   every finding since S1 turns on was missing from the list of what Batch 2 must build. Z4 is the
+   one finding in the sequence that no correction introduced; it is a hole all of them walked past.
 3e. ~~Correct Y1-Y4, found by a fourth iteration pass over the X corrections.~~ **Done**, recorded in
    the same iteration review. Three of the four are one question — X1 and X5 made `C4-P2` read facts
    and nothing had been asked to carry them. **Y1** — C10's enumeration and the brief's
@@ -314,7 +328,7 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   evaluator from the published prose and running the property's own named mutation through it. The
   attestation records that U1 answers a question its dispatching brief named, and that U2-U8 did not.
 
-The current review target is the commit titled `fix(channel): close Y1-Y4, the layer under the X corrections`,
+The current review target is the commit titled `fix(channel): close Z1-Z4, the layer under the Y corrections`,
 committed 2026-08-14, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
@@ -337,9 +351,9 @@ context elsewhere — never as evidence that their conclusions are right.
 - [U1 correction iteration review](./channel-0.2-u1-correction-iteration-review.md) — the U1
   correction; raised V1 and V2, corrected both, and recorded V3 as an owner call.
 - [W correction iteration review](./channel-0.2-w-correction-iteration-review.md) — the W1-W6
-  corrections; raised X1-X7 and corrected all seven, then turned the same method on those corrections
-  in a second pass and raised Y1-Y4. It is also the retained record for the two W passes, which left
-  none of their own — that gap is X7.
+  corrections; raised X1-X7 and corrected all seven, then turned the same method on its own
+  corrections twice more and raised Y1-Y4 and Z1-Z4. It is also the retained record for the two W
+  passes, which left none of their own — that gap is X7.
 
 ## Disclosed process deviation in the T1-T4 correction
 
