@@ -292,6 +292,23 @@ if ($flowedContract.IndexOf('is the mutation this property must go red on', [Sys
     if ($completenessAudit -and (Get-FlowedText $completenessAudit).IndexOf('C4-P2', [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add('The per-capability property audit does not register C4-P2 or the mutation that must fail it. That table is the register of property/mutation pairs, and its silence is why an unfalsifiable property survived the correction that introduced it.')
     }
+
+    # V1: C4-P2's first conjunct turns on *which* refusal the recipient recorded. A property can only
+    # quantify over facts the parity profile actually compares, and that list carries the peer-fault
+    # category alone -- the detailed reason distinguishing a control for an unopened identity from the
+    # other correlation faults lives in the migration ledger's prose and is normative nowhere.
+    $flowedBrief = Get-FlowedText $neutralBrief
+    if ($flowedBrief.IndexOf('peer-fault detailed reason', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The neutral brief compares only the peer-fault category, so C4-P2 cannot distinguish a `rejected-protocol` caused by a cancellation control at `unseen` from any other `invalid-interaction-correlation`. A property may only quantify over facts the parity profile makes normative.')
+    }
+
+    # V2: the mutation must be executable. The neutral provider is authorised to inject faults and
+    # loss; `C4-control-precedes-request` needs deterministic reordering, which no artifact permits.
+    # A property whose named mutation cannot be run is unfalsifiable in practice, which is U1 again
+    # one layer down at the evidence boundary.
+    if ($flowedBrief.IndexOf('reordering injection', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The neutral provider boundary authorises deterministic fault/loss injection only, so no endpoint in the evidence set can produce `C4-control-precedes-request`. C4-P2 would carry a named mutation that nothing is permitted to execute.')
+    }
 }
 
 # S2: a held control needs a disposition for the third exit from `validating`. Admission succeeding
@@ -569,10 +586,23 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-u1-correction-iteration-review.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README and all eight negative attestations before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all eight negative attestations, and the U1 correction iteration review before the next closure review.')
+}
+
+# An iteration review is author-side work and may never be mistaken for a closing judgement. The file
+# naming carries that distinction, so the naming is checked rather than trusted: nothing may be named
+# an attestation without being one, and an iteration review must say what it cannot do.
+foreach ($reviewFile in $reviewMarkdown) {
+    if ($reviewFile.Name -notmatch 'iteration-review\.md$') { continue }
+    $iterationText = Get-FlowedText (Get-Content -Raw -LiteralPath $reviewFile.FullName -Encoding UTF8)
+    foreach ($required in @('This is an iteration review, not an attestation', 'does not close the first batch, does not authorize Batch 2')) {
+        if ($iterationText.IndexOf($required, [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("'$($reviewFile.Name)' is an iteration review but does not state that it cannot close the batch. An author-side pass that reads as a verdict is how a programme talks itself into closure.")
+        }
+    }
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'channel\0.2')) {

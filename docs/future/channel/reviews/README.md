@@ -28,6 +28,30 @@ foundation. A review is independent only when its reviewer identity differs from
 it runs in a fresh isolated context at one pinned commit, and it has no access to the author's private
 reasoning.
 
+## Two kinds of review
+
+The independence requirement exists to keep a *closing* judgement free of the bias that made the
+defect invisible in the first place. It was never a rule against working on the design. Conflating
+the two cost this programme a cycle, so the distinction is now explicit.
+
+**Iteration review.** An author-side pass over work in progress. It may share an actor and a context
+with the correction it examines, may iterate as many times as there are findings, and may correct
+what it finds in the same pass. It is retained as evidence, is named `*-iteration-review.md` rather
+than `*-attestation.md`, and states its own non-final status. It **cannot** close the first batch,
+cannot authorize Batch 2, cannot produce the closure record, and its verdict is never the conforming
+verdict the Closure section requires — however clean it is. Its value is that it finds and fixes
+defects cheaply, before a fresh reviewer spends its one shot of cold context on them.
+
+**Independent closure review.** The judgement that can close. It runs in a fresh isolated clone at one
+pinned commit, under a reviewer identity distinct from every retained reviewer and from every
+correction author, with no access to author private reasoning and no history of having worked on the
+artifacts. Only this kind produces an attestation, and only a conforming one opens Batch 2.
+
+Iterating in one context is therefore encouraged for as long as findings remain. What may not happen
+is an actor declaring its own work finished. Marking the batch closed is reserved to the independent
+closure review, and an iteration review that reports no findings means the work is ready *to be
+reviewed*, not that it passed.
+
 ## Required review scope
 
 The reviewer reads and assesses:
@@ -222,15 +246,18 @@ so this deviation was confined to the T1-T4 pass until the U1 pass below.
 
 The eighth review and the U1 correction pass were performed in one session by
 `agent:claude-opus-5-channel-0.2-closure-review-8-2026-08-14-3b27e3a`, on the repository owner's
-explicit instruction, rather than by separate reviewer and author actors. The reviewer stated the
-constraint before proceeding and the owner reaffirmed it; it is recorded here rather than left
-implicit, because an undisclosed reviewer-repairs-own-finding is precisely the defect class this
-programme exists to catch.
+explicit instruction, rather than by separate reviewer and author actors. It is recorded here rather
+than left implicit, because an undisclosed reviewer-repairs-own-finding is precisely the defect class
+this programme exists to catch.
 
-This is the second occurrence of the deviation the T1-T4 section describes, and it carries the same
-weight: the next reviewer weighs the U1 correction knowing its author also wrote the attestation that
-found it, and knowing that the author had already published a proposed fix before being asked to
-apply it — so the correction was not derived independently of the review that motivated it.
+Under the two-kinds-of-review section above, the correction pass and the
+[U1 correction iteration review](./channel-0.2-u1-correction-iteration-review.md) that followed it are
+legitimate author-side work rather than deviations. What remains a deviation is narrower and is the
+part that matters: the actor that wrote closure review 8's attestation then corrected the blocking
+finding that attestation raised. The next closure reviewer weighs the U1 correction knowing its author
+also wrote the attestation that found it, and knowing the author had published a proposed fix before
+being asked to apply it — so the correction was not derived independently of the review that motivated
+it.
 
 The retained attestation
 [`channel-0.2-design-foundation-closure-review-8-attestation.md`](./channel-0.2-design-foundation-closure-review-8-attestation.md)

@@ -4,7 +4,9 @@ Date: 2026-08-11
 
 Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet, and
 subject to a fresh independent closure re-review. Batch 2 opens only after that review conforms and
-its closure record exists.
+its closure record exists. V1 and V2 corrected during the U1 iteration pass: the parity profile now
+compares the peer-fault detailed reason, and the neutral provider may inject deterministic
+per-interaction reordering so a declared ordering mutation can actually be executed.
 
 ## Purpose
 
@@ -233,6 +235,10 @@ Core normative comparison includes:
 - Shape and authority decisions;
 - dispatch boundary crossed or not;
 - terminal provenance and peer-fault/local-loss category where present;
+- the peer-fault detailed reason wherever its category declares a closed set of them, so that two
+  refusals sharing one category remain distinguishable — `C4-P2` quantifies over a recipient
+  `rejected-protocol` caused by a cancellation control naming an unopened identity, which is one
+  detailed reason of `invalid-interaction-correlation` and not the category as a whole;
 - effect certainty and unknown reason class; and
 - extension/profile-owned normative details selected by that profile's parity declaration.
 
@@ -269,7 +275,11 @@ The implementation-neutral endpoint is built only after schemas/vectors exist. I
 
 - imports no Reference or Minimal assembly;
 - implements the profile and both state machines independently from data artifacts;
-- supports deterministic fault/loss injection named by vectors;
+- supports deterministic fault/loss injection named by vectors, and deterministic per-interaction
+  reordering injection for the mutation vectors that require it. Reordering injection exists only to
+  execute a declared mutation such as `C4-control-precedes-request`: it is never a legal delivery
+  mode, no conforming realization may offer it, and a vector that does not name it receives commit
+  order. Without it `C4-P2` would carry a named mutation nothing is permitted to produce;
 - never supplies semantic expectations to the stack adapters at runtime; and
 - exposes a process endpoint plus a fixed/direct pure test adapter where meaningful.
 
