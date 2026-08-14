@@ -3,7 +3,12 @@
 Date: 2026-08-11
 
 Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, R1, S1, S2, U1, W2, W3, W4,
-X1, X5, Y1, Y2, and Z3 corrected after independent review. Under Y1 and Y2, C10 requires an observation to
+X1, X5, Y1, Y2, Z3, AC2, and AC3 corrected after independent review. Under AC3 both `C4-P2` conjuncts
+name the committing endpoint as their subject, because "the same endpoint" resolved to the endpoint
+that records a refusal and never commits the frame in question, which made the conjuncts unsatisfiable
+and therefore unfalsifiable. Under AC2 C10 requires the observation of a frame that opens no
+interaction to record the kind of frame refused and the detailed reason
+`unopened-interaction-identity`. Under Y1 and Y2, C10 requires an observation to
 distinguish the late-traffic latch and the frame that settled it, and requires one for a recognized
 frame that opens no interaction — the two facts `C4-P2` reads and the capability that owns observation
 did not carry. C4 now owns intra-interaction frame order with
@@ -246,9 +251,19 @@ one endpoint committed in an order that endpoint did not commit them in. Loss ma
 Because the design refuses a reordered frame rather than accepting it, this is stated over the refusal
 that reordering produces rather than over the accepted sequence, which no reordering can leave out of
 order: no endpoint records a recipient `rejected-protocol` at `unseen` for a cancellation control
-whose request the same endpoint had already committed, and none records a late-traffic
-`state-violation` latched against a frame the same endpoint committed before the frame that made the
-interaction terminal. Restricting each conjunct to one endpoint's own frames is load-bearing: across
+whose committing endpoint had already committed the request naming that identity, and none records a
+late-traffic `state-violation` latched against a frame whose committing endpoint had committed it
+before that endpoint's own frame that made the interaction terminal.
+
+In both conjuncts the subject of "had already committed" and "had committed it" is the **committing
+endpoint** — the endpoint that committed the frame the refusal names, which is never the endpoint that
+records it. A recipient commits no requests and an initiator commits no acknowledgement its own latch
+settles against, so reading the subject as the recording endpoint would make both conjuncts quantify
+over an endpoint pair no vector can produce, which is a property that cannot fail. That is U1's defect
+arriving through a pronoun, and it is why the subject is named here rather than left to the nearest
+antecedent.
+
+Restricting each conjunct to one endpoint's own frames is load-bearing: across
 endpoints Channel promises no order, so a legal late control that arrives after a peer's terminal, and
 a duplicate terminal from a nonconformant peer, must both leave this property green.
 `C4-control-precedes-request` is the mutation this property must go red on, and a run in which it
@@ -468,8 +483,11 @@ them.
 control naming an identity the recipient has never accepted is neither an attempted establishment nor
 an attempted interaction — under C4 no interaction exists there — and it is refused as a peer
 statement, so without this sentence the one record of that refusal would be required by C4 and by
-nothing that owns observation. The observation records the refusal and its provenance; it retains no
-interaction state, because there is none to retain.
+nothing that owns observation. The observation records the refusal, **the kind of frame refused**, and
+its provenance with the detailed reason `unopened-interaction-identity`; it retains no interaction
+state, because there is none to retain. The kind is required because provenance and detailed reason
+are identical for a cancellation control and for any other control naming an unopened identity, while
+`C4-P2`'s first conjunct quantifies over the cancellation control alone.
 
 Channel's portable effect field is certainty, not a provider-specific count:
 

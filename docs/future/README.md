@@ -38,7 +38,13 @@ as are **V1**-**V3**, **W1**-**W6**, **X1**-**X7**, **Y1**-**Y4**, and **Z1**-**
 author-side iteration passes over each other's corrections. **AA1**-**AA3** are the same passes turned
 on the entry points: this index and the Channel index had fallen behind every family since V2, and
 this one still named S1 as the open blocking finding. **AB1**-**AB2** close the same gap in the
-redesign plan and give the local observation record an owner row now that `C4-P2` reads it. No independent review has yet seen any of it,
+redesign plan and give the local observation record an owner row now that `C4-P2` reads it.
+**AC1**-**AC4** are an eighth pass: Y4's arrival ordinal had been stated only in the neutral brief,
+which is subordinate to the three artifacts that own the fact and still named X1's three fields; the
+ledger's closed detailed-reason set had no value for the refusal `C4-P2`'s first conjunct reads; the
+property's own "the same endpoint" pointed at the endpoint that records a refusal rather than the one
+that committed the frame; and the check written over the X7 class matched one-letter finding families
+only. No independent review has yet seen any of it,
 and no Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 

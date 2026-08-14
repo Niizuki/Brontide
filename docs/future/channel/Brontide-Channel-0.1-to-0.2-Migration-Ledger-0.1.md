@@ -2,8 +2,11 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch migration disposition; B4, N1/N3, F3, D5, T1/T2, S1, and Z4 corrected
-after independent review and subject to a fresh independent closure re-review. Under Z4 the
+Status: proposed first-batch migration disposition; B4, N1/N3, F3, D5, T1/T2, S1, Z4, and AC2 corrected
+after independent review and subject to a fresh independent closure re-review. Under AC2 the closed
+detailed-reason set for `invalid-interaction-correlation` carries `unopened-interaction-identity`: the
+five identity reasons covered no refusal of a control naming an identity that was never opened, which
+is the reason `C4-P2`'s first conjunct quantifies over and the parity profile compares. Under Z4 the
 new-evidence inventory carries intra-interaction frame order, its two ordering mutations, and the
 observation fields they compare, none of which has a Channel 0.1 predecessor to migrate from.
 Serialized spellings remain unselected until the neutral contract batch.
@@ -107,7 +110,7 @@ The labels below are logical design names, not serialized spellings.
 | `unsupported-contract` | **replaced** | `unsupported-profile` or `unsupported-application-contract`, so Channel capability and domain contract mismatches are not conflated. |
 | `unsupported-kind` | **replaced** | `unsupported-message-class`. An unknown peer-fault category is not this fault; it faults locally without a reply loop. |
 | `unsupported-operation` | **retained** | Interaction-scoped peer fault before handler dispatch. |
-| `correlation-mismatch` | **replaced** | `invalid-interaction-correlation`, including missing, extra, wrong-session, reused, or mismatched identities as the detailed reason. Replay remains separately classified when reuse is known. |
+| `correlation-mismatch` | **replaced** | `invalid-interaction-correlation`, with a closed detailed-reason set: missing, extra, wrong-session, reused, or mismatched identities, and `unopened-interaction-identity` for a recognized control naming an identity the recipient has never accepted. That last reason is the one `C4-P2`'s first conjunct quantifies over and the five identity reasons do not cover it — the identity is neither absent, spurious, out of scope, reused, nor unequal to another, it was simply never opened. Replay remains separately classified when reuse is known. |
 | `invalid-payload` | **retained** | Interaction-scoped, before handler dispatch. |
 | `invalid-authority-presentation` | **retained** | Interaction-scoped, before handler dispatch; no authority projection. |
 | `replay-detected` | **retained** | A repeated accepted identity received while its original interaction is nonterminal; no redispatch. A repeat arriving after that interaction is terminal follows the late-traffic latch as `state-violation` instead. |

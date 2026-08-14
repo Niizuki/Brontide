@@ -3,7 +3,11 @@
 Date: 2026-08-11
 
 Status: proposed first-batch totality artifact; added after D1-D4, corrected for T3, R1, R3, S1, S2,
-U8, W4, X1, X2, X5, and Z2, and subject to a fresh independent closure re-review. Under W4 the
+U8, W4, X1, X2, X5, Z2, AC1, and AC2, and subject to a fresh independent closure re-review. Under AC1
+the latch section records the settling frame's arrival ordinal, which Y4 had stated in the neutral
+brief alone; under AC2 both `unseen` cells assert the detailed reason
+`unopened-interaction-identity` and the kind of frame refused, which one shared provenance could not
+distinguish. Under W4 the
 `unseen` cancellation refusal retains no history and no latch, so the `any terminal` row does not
 reach it; under X2 its cell asserts the latch as an explicit `not-applicable` rather than leaving a
 required field absent, under X5 it asserts the one local observation it does record, and under Z2 its
@@ -69,7 +73,7 @@ one route.
 
 | Recipient state group | Request | Cancellation control | Handler terminal | Local protocol failure | Local loss | Other peer event |
 | --- | --- | --- | --- | --- | --- | --- |
-| `unseen` | validation rows | no identity to correlate → state unchanged, recorded with `rejected-protocol` provenance | impossible local action | structural/local-refusal split | local session route | state unchanged, recorded with `rejected-protocol` provenance |
+| `unseen` | validation rows | no identity to correlate → state unchanged, recorded with `rejected-protocol` provenance, detailed reason `unopened-interaction-identity`, and frame kind `cancellation-control` | impossible local action | structural/local-refusal split | local session route | state unchanged, recorded with `rejected-protocol` provenance, detailed reason `unopened-interaction-identity`, and the refused control's own frame kind |
 | `validating` | validation rows | valid control: hold exactly one, apply on admission; second control → `peer-fault` | impossible local action | structural/local-refusal split | local session route | `rejected-protocol` |
 | `executing` | live replay → `peer-fault` | authorized → `cancel-requested`; denied → `cancel-refused`; invalid → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-requested` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure/cancelled accepted | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
@@ -104,7 +108,10 @@ request. The interaction machine carries the event as a detailed recipient trans
 rule 1 selects it; without that row rule 2 would claim it and produce the terminal `peer-fault` this
 paragraph refuses.
 
-One local observation is recorded there all the same, and this cell asserts it like any other.
+One local observation is recorded there all the same, and this cell asserts it like any other —
+including the detailed reason `unopened-interaction-identity` and the kind of frame refused, because
+both `unseen` cells otherwise record one indistinguishable refusal while `C4-P2`'s first conjunct
+quantifies over the cancellation control alone.
 Recording evidence is not retaining state: nothing consults the observation, so it cannot accrue into
 the per-identity state the refusal exists to avoid, and it is the record `C4-P2`'s first conjunct
 quantifies over. The cell's late-traffic latch assertion is the explicit value `not-applicable`,
@@ -124,9 +131,12 @@ fault. A late peer fault receives no answer. After the latch settles, every late
 locally without another frame. This makes the duplicate-terminal action finite and prevents a fault
 loop.
 
-Settling the latch records the frame that settled it — kind, interaction identity, and committing
-endpoint — because the three values name no frame and `C4-P2`'s second conjunct is about which frame
-a latch settled against.
+Settling the latch records the frame that settled it — kind, interaction identity, committing
+endpoint, and its **arrival ordinal** within the interaction — because the three latch values name no
+frame and `C4-P2`'s second conjunct is about which frame a latch settled against. The ordinal is
+required for the same reason the other three are insufficient: one endpoint may commit two frames of
+the same kind for one identity, which is what a duplicate terminal is, and that case must leave the
+property green. It identifies the frame and is never an ordering operand.
 
 A route that reaches no terminal interaction has no latch, and its cells assert the explicit value
 `not-applicable` rather than leaving the field absent. The `unseen` refusal is the only such route

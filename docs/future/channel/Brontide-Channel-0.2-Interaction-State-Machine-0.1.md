@@ -3,7 +3,10 @@
 Date: 2026-08-11
 
 Status: proposed first-batch design artifact; B1/B2, N2, F1/F2, D2/D3/D4, T3, R1, R2, S2, W4, X1, X3,
-X5, and Y3 corrected after independent review and subject to a fresh independent closure re-review.
+X5, Y3, AC1, and AC2 corrected after independent review and subject to a fresh independent closure
+re-review. Under AC1 the settling frame this machine records carries its arrival ordinal, which Y4 had
+added to the neutral brief alone while the brief is subordinate to this artifact; under AC2 the
+`unseen` refusal records its detailed reason and the kind of frame refused.
 Under Y3 the refusal leaves the recipient's per-identity state at `unseen` and records
 `rejected-protocol` as provenance, because routing it to that terminal state would hand it back to the
 `any terminal` rows and their latch.
@@ -91,7 +94,7 @@ with the same provenance, not a fictional global state.
 | From | Event and guard | To | Handler effect possible? |
 | --- | --- | --- | --- |
 | `unseen` | complete request for an established session arrives | `validating` | no |
-| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `unseen`, unchanged | no; commit one interaction-scoped peer fault with `rejected-protocol` provenance, record one local observation, and retain no history, no latch, and no in-flight reservation |
+| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `unseen`, unchanged | no; commit one interaction-scoped peer fault with `rejected-protocol` provenance and detailed reason `unopened-interaction-identity`, record one local observation carrying that reason and the kind of frame refused, and retain no history, no latch, and no in-flight reservation |
 | `validating` | structural/profile/state/class/direction/Shape/authority-structure/bound/replay/concurrency check fails | `rejected-protocol` | no |
 | `validating` | receiver-local external phase predicate is `false` or `unknown` | `refused-local` | no |
 | `validating` | structurally valid authority presentation is denied by local policy | `refused-local` | no |
@@ -210,7 +213,12 @@ The first duplicate semantic terminal or late non-fault control while the latch 
 the first accepted terminal history and attempts exactly one interaction-scoped `state-violation`
 peer fault. Successful commit sets `fault-committed`; inability to commit sets `fault-unavailable`.
 Settling the latch also **records the frame that settled it** — its kind, its interaction identity,
-and the endpoint that committed it — in the local observation. The three latch values name no frame,
+the endpoint that committed it, and its **arrival ordinal** within that interaction — in the local
+observation. The first three do not identify the frame when one endpoint commits two of the same kind
+for one identity, which is exactly what a duplicate terminal is and is a case `C4-P2` must leave
+green; the ordinal is what maps the settling frame to one declared stimulus step. It identifies and
+never orders: it may be compared for equality and may not be an operand of precedence, because
+observed arrival order is not an ordering Channel promises. The three latch values name no frame,
 and `C4-P2`'s second conjunct is about *which* frame a latch settled against: a displaced
 acknowledgement its own endpoint committed before the terminal frame fails the property, while a legal
 late control from the peer and a duplicate terminal committed after the terminal frame do not, and all

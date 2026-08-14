@@ -289,11 +289,27 @@ if ($flowedContract.IndexOf('is the mutation this property must go red on', [Sys
     if ($flowedContract.IndexOf('stated over the refusal that reordering produces', [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add('C4-P2 claims `C4-control-precedes-request` is the mutation it must go red on, but it is not stated over the refusal that reordering produces. Quantified over the frames a recipient accepts, the property is green on that mutation: the reordered control is refused at `unseen` and the request is then latched, so the accepted sequence is empty and trivially an order-preserving subsequence.')
     }
-    if ($flowedContract.IndexOf('for a cancellation control whose request the same endpoint had already committed', [System.StringComparison]::Ordinal) -lt 0) {
-        $failures.Add('C4-P2 does not forbid the observation `C4-control-precedes-request` actually produces: a recipient `rejected-protocol` at `unseen` for a cancellation control whose request the sending endpoint had already committed. Without that conjunct the mutation leaves no witness the property can quantify over.')
+    if ($flowedContract.IndexOf('for a cancellation control whose committing endpoint had already committed the request', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('C4-P2 does not forbid the observation `C4-control-precedes-request` actually produces: a recipient `rejected-protocol` at `unseen` for a cancellation control whose committing endpoint had already committed the request naming that identity. Without that conjunct the mutation leaves no witness the property can quantify over.')
     }
-    if ($flowedContract.IndexOf('the same endpoint committed before the frame that made the interaction terminal', [System.StringComparison]::Ordinal) -lt 0) {
+    if ($flowedContract.IndexOf('before that endpoint''s own frame that made the interaction terminal', [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add('C4-P2 covers only the initiator-to-recipient direction. Reordering the recipient''s acknowledgement and terminal produces a late-traffic `state-violation` instead, and the conjunct must be restricted to frames one endpoint committed, or a legal late control after a peer terminal would falsely fail it.')
+    }
+
+    # AC3: both conjuncts open with "no endpoint *records*" and then say "the same endpoint had
+    # already committed". The nearest antecedent is the recording endpoint, and the recording
+    # endpoint is never the committing one -- a recipient does not commit requests, and the
+    # initiator does not commit the acknowledgement its own latch settles against. Read literally
+    # each conjunct quantifies over an endpoint pair that cannot occur, which is a property that
+    # cannot fail: U1's defect reintroduced by a pronoun. The reviewer this programme asks for
+    # writes an evaluator from this prose, so the antecedent has to be in the prose.
+    foreach ($ambiguous in @('whose request the same endpoint had already committed', 'a frame the same endpoint committed before')) {
+        if ($flowedContract.IndexOf($ambiguous, [System.StringComparison]::Ordinal) -ge 0) {
+            $failures.Add("C4-P2 says '$ambiguous'. Its nearest antecedent is the endpoint that *records* the refusal, which is never the endpoint that committed the frame, so the conjunct reads as one no vector can satisfy. The property must name the committing endpoint as the subject.")
+        }
+    }
+    if ($flowedContract.IndexOf('the endpoint that committed the frame the refusal names, which is never the endpoint that records it', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('C4-P2 restricts both conjuncts to one endpoint''s own frames without saying which endpoint that is. The gloss has to be explicit, because the two candidate readings differ by whether the property can fail at all.')
     }
     if ($flowedContract.IndexOf('the vector is rejected as nonconforming evidence', [System.StringComparison]::Ordinal) -ge 0) {
         $failures.Add('C4 gives `C4-control-precedes-request` an expected observation of being rejected as nonconforming evidence, which contradicts C4-P2 going red on it: a vector rejected before it executes is never evaluated by the property. The mutation needs one deterministic expected observation under C12-P1.')
@@ -310,6 +326,38 @@ if ($flowedContract.IndexOf('is the mutation this property must go red on', [Sys
     $flowedBrief = Get-FlowedText $neutralBrief
     if ($flowedBrief.IndexOf('peer-fault detailed reason', [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add('The neutral brief compares only the peer-fault category, so C4-P2 cannot distinguish a `rejected-protocol` caused by a cancellation control at `unseen` from any other `invalid-interaction-correlation`. A property may only quantify over facts the parity profile makes normative.')
+    }
+
+    # AC2: V1 made the detailed reason normative "wherever its category declares a closed set of
+    # them" and named the C4-P2 case as one detailed reason of `invalid-interaction-correlation`.
+    # The only artifact that declares that set is the migration ledger, and its five values --
+    # missing, extra, wrong-session, reused, mismatched -- contain nothing for an identity that was
+    # never accepted. The set is closed and the value the conjunct reads is not in it, which is X1's
+    # `state-violation` finding one category over: there the category declared no reason set, here it
+    # declares one without the reason. V1 quoted those five values and did not ask whether they
+    # covered the case.
+    # Scoped to the category table rather than the artifact: mutation testing found the
+    # phrase-anywhere form satisfied by the ledger's own status block, which is a claim about the
+    # document rather than the closed set the document has to declare. U3 and X1 were weak the same
+    # way and were scoped for the same reason.
+    $migrationFaultCategories = Get-FlowedText ((($migration -split '## Protocol-fault category migration', 2)[1] -split '## Local loss category migration', 2 | Select-Object -First 1))
+    if (-not $migrationFaultCategories -or $migrationFaultCategories.IndexOf('`unopened-interaction-identity`', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The migration ledger declares the closed detailed-reason set for `invalid-interaction-correlation` as missing, extra, wrong-session, reused, or mismatched identities. A cancellation control naming an identity the recipient never accepted is none of them, and it is the reason C4-P2''s first conjunct quantifies over, so the compared field has no value for the refusal the property reads.')
+    }
+    $briefParityReasons = Get-FlowedText ((($neutralBrief -split '## Observation and parity profile', 2)[1] -split 'Excluded by default', 2 | Select-Object -First 1))
+    if ($briefParityReasons -and $briefParityReasons.IndexOf('`unopened-interaction-identity`', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The parity profile names the C4-P2 refusal as "one detailed reason of `invalid-interaction-correlation`" without naming which. A reason identified only by description is not a compared value; the closed set has to be reachable by name.')
+    }
+    # The conjunct quantifies over a *cancellation control*, and both `unseen` cells record the one
+    # provenance and now the one detailed reason. Which frame was refused is therefore a fact the
+    # property reads and C10 does not require, which is Y1's defect on the other conjunct.
+    # Scoped to C10, which owns observation content, for the reason above: the contract's status
+    # block names this correction and would satisfy a phrase-anywhere check with C10 reverted.
+    # ASCII-only split anchors: this script has no byte-order mark, so Windows PowerShell 5.1 reads
+    # it as ANSI and a literal em dash in a pattern would never match the UTF-8 artifacts.
+    $contractC10 = Get-FlowedText ((($contract -split '(?m)^## C10 ', 2)[1] -split '(?m)^## C11 ', 2 | Select-Object -First 1))
+    if (-not $contractC10 -or $contractC10.IndexOf('the kind of frame refused', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('C10 requires the observation of a frame that opens no interaction to record the refusal and its provenance, and not which kind of frame was refused. C4-P2''s first conjunct quantifies over a cancellation control specifically, and the grid gives the cancellation-control and other-control cells at `unseen` the same provenance, so the property reads a distinction the observation is not required to carry.')
     }
 
     # V2: the mutation must be executable. The neutral provider is authorised to inject faults and
@@ -491,6 +539,28 @@ if ($flowedContract.IndexOf('is the mutation this property must go red on', [Sys
         # matching step it reads "committed before the terminal frame" and goes red on legal input.
         if ((Get-FlowedText $briefParity).IndexOf('arrival ordinal', [System.StringComparison]::Ordinal) -lt 0) {
             $failures.Add('The settling-frame reference names kind, interaction identity, and committing endpoint, which do not distinguish two frames of the same kind from one endpoint. A duplicate terminal is exactly that, and it is a case C4-P2 must leave green; bound to the earlier of the two steps the property goes red on legal input. The reference needs the settling frame''s arrival ordinal within the interaction.')
+        }
+
+        # AC1: Y4 added the arrival ordinal to the neutral brief and to nothing else. The brief
+        # declares itself subordinate to the contract, both state machines, and the grid -- "if a
+        # convenient schema shape contradicts them, the schema changes" -- and the interaction
+        # machine, which owns the latch, and the grid, which enumerates the cells that assert it,
+        # both still name the three fields X1 gave them. The hierarchy therefore resolves the
+        # conflict against Y4: Batch 2 reads the machine, writes three fields, and the duplicate
+        # terminal the property must leave green stops being decidable, which is the whole of what
+        # Y4 was raised about. Scoped to the sections that produce the fact rather than to the
+        # artifacts, for the reason X1's own check was scoped that way.
+        $machineLatchSection = ($interaction -split '## Late terminal and control disposition', 2)[1] -split '## Interaction event totality', 2 | Select-Object -First 1
+        if (-not $machineLatchSection -or (Get-FlowedText $machineLatchSection).IndexOf('arrival ordinal', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The interaction machine records the settling frame as kind, interaction identity, and committing endpoint, while the parity profile compares those three and an arrival ordinal. The machine owns the latch and the brief is subordinate to it, so the contradiction resolves against the ordinal Y4 added -- and without it a duplicate terminal cannot be told from a reordering.')
+        }
+        $coverageLatchSection = ($stateEventCoverage -split '## Late-traffic latch', 2)[1] -split '## Evidence required', 2 | Select-Object -First 1
+        if (-not $coverageLatchSection -or (Get-FlowedText $coverageLatchSection).IndexOf('arrival ordinal', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The grid''s late-traffic latch section names the settling frame''s three X1 fields and not the arrival ordinal, so the generated models enumerate cells that assert less than the parity profile compares.')
+        }
+        $observationOwnerRow = @($responsibility -split "`r?`n" | Where-Object { $_ -match '^\| Local observation content' })
+        if ($observationOwnerRow.Count -eq 1 -and $observationOwnerRow[0].IndexOf('arrival ordinal', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The owner row AB2 added for local observation content lists the latch, its `not-applicable` value, and the settling frame, and not the settling frame''s arrival ordinal. The crossing artifact must carry every field the parity profile compares, or the owned fact and the compared fact are different facts.')
         }
 
         # Z1: W1 made the precedence relation deliberately narrow -- declared steps only, never an
@@ -922,10 +992,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all eight negative attestations, and both correction iteration reviews before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all eight negative attestations, and all three correction iteration reviews before the next closure review.')
 }
 
 # An iteration review is author-side work and may never be mistaken for a closing judgement. The file
@@ -955,11 +1025,24 @@ else {
     $iterationReviewFiles = @($reviewMarkdown | Where-Object { $_.Name -match 'iteration-review\.md$' })
     foreach ($reviewFile in $iterationReviewFiles) {
         $iterationRaw = Get-Content -Raw -LiteralPath $reviewFile.FullName -Encoding UTF8
-        foreach ($findingMatch in [regex]::Matches($iterationRaw, '(?m)^### ([A-Z][0-9]+) ')) {
+        # The family pattern is `[A-Z]{1,2}` rather than `[A-Z]`: the AA and AB families already
+        # existed when this check was written for X7 and it could not see either of them, so a
+        # two-letter family's findings could be raised in a retained iteration review and never
+        # reach the disposition history. A check written over a class has to match the whole class.
+        $findingMatches = @([regex]::Matches($iterationRaw, '(?m)^### ([A-Z]{1,2}[0-9]+) '))
+        foreach ($findingMatch in $findingMatches) {
             $findingId = $findingMatch.Groups[1].Value
             if ($dispositionHistory.IndexOf($findingId, [System.StringComparison]::Ordinal) -lt 0) {
                 $failures.Add("The completeness review's disposition history does not record '$findingId', which '$($reviewFile.Name)' raises. A finding whose only record is an iteration review has no disposition in the artifact the next reviewer reads.")
             }
+        }
+        # The loop above fails when a finding is missing from the history and is silent when it
+        # parses no findings at all, so narrowing the pattern disables it without failing anything --
+        # which is how it ran blind past the AA and AB families. A retained iteration review exists to
+        # record findings, so parsing none from one is the defect, and this is the assertion that
+        # makes the pattern itself falsifiable.
+        if ($findingMatches.Count -lt 1) {
+            $failures.Add("No finding heading could be parsed from '$($reviewFile.Name)'. Either the review records no finding, which is not what a retained iteration review is for, or the heading pattern no longer matches its finding ids and the disposition check above is passing by seeing nothing.")
         }
     }
 

@@ -4,7 +4,9 @@ Date: 2026-08-11
 
 Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet, and
 subject to a fresh independent closure re-review. Batch 2 opens only after that review conforms and
-its closure record exists. U3, V1, V2, W1, W2, W5, W6, X1, X2, X4, Y1, Y4, and Z1 corrected after
+its closure record exists. Under AC2 the parity profile names the detailed reason
+`unopened-interaction-identity` instead of describing it, and compares the kind of frame refused where
+a refusal opens no interaction. U3, V1, V2, W1, W2, W5, W6, X1, X2, X4, Y1, Y4, Z1, and AC2 corrected after
 independent review, the last restricting that ordinal to identification so the property language does
 not regain the observed arrival order W1 removed from it: the parity profile compares the frame a late-traffic latch settled against rather
 than only the latch value, that reference carries the settling frame's arrival ordinal so a duplicate
@@ -293,8 +295,13 @@ Core normative comparison includes:
 - terminal provenance and peer-fault/local-loss category where present;
 - the peer-fault detailed reason wherever its category declares a closed set of them, so that two
   refusals sharing one category remain distinguishable — `C4-P2` quantifies over a recipient
-  `rejected-protocol` caused by a cancellation control naming an unopened identity, which is one
-  detailed reason of `invalid-interaction-correlation` and not the category as a whole;
+  `rejected-protocol` caused by a cancellation control naming an unopened identity, which is the
+  detailed reason `unopened-interaction-identity` of `invalid-interaction-correlation` and not the
+  category as a whole. The reason is named rather than described, because a value identified only by
+  description is not something a vector can compare;
+- the kind of frame refused where that refusal opens no interaction, because the same provenance and
+  the same detailed reason cover a cancellation control and any other control naming an unopened
+  identity, and the first conjunct quantifies over the cancellation control alone;
 - the terminal interaction's `late-traffic latch` value, which the state/event grid already requires
   every generated cell to assert — including the explicit `not-applicable` a route reaching no
   terminal interaction asserts, which is compared as a value and never as an absent field;

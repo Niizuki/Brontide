@@ -2,8 +2,8 @@
 
 Date: 2026-08-11
 
-Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, U1/U4/U5/U7/W3, and X7
-correction passes complete. The per-capability property audit now registers `C4-P2` and the mutation that must
+Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, U1/U4/U5/U7/W3, X7, and
+AC1-AC4 correction passes complete. The per-capability property audit now registers `C4-P2` and the mutation that must
 fail it; its silence is why an unfalsifiable property survived the correction that introduced it. The
 disposition history now runs to the eighth cycle rather than stopping at the fifth, and the in-flight
 bound's direction scope is recorded as session-wide-as-written against per-direction-as-enforced
@@ -404,6 +404,24 @@ and the responsibility matrix owned the peer fault, the loss classification, the
 the observability system that *consumes* observations, while the observation record itself had no
 owner row. A fact a property depends on with no owner is the S1 defect, in the artifact S1 was raised
 against, six families after S1 was called closed.
+
+An eighth pass raised **AC1**-**AC4**, retained as the
+[AC correction iteration review](./reviews/channel-0.2-ac-correction-iteration-review.md). **AC1** —
+Y4 added the settling frame's arrival ordinal to the neutral brief and to nothing else, while the
+interaction machine owns the latch, the grid enumerates the cells that assert it, and the matrix owns
+the observation record; because the brief is subordinate to all three, the hierarchy resolved the
+contradiction against Y4 and left the parity profile comparing a field no observation carries, which
+is Y1 restored by the fix for Y4. **AC2** — V1 made the peer-fault detailed reason normative wherever
+its category declares a closed set and named the `C4-P2` case as one reason of
+`invalid-interaction-correlation`; the ledger's closed set had five identity reasons and none of them
+covers an identity that was never opened, so the compared field had no value for the refusal the first
+conjunct reads. The same pass found that both `unseen` cells record one provenance while the conjunct
+quantifies over a cancellation control alone, so C10 now requires the kind of frame refused. **AC3** —
+both conjuncts opened with "no endpoint records" and continued "the same endpoint had already
+committed", whose nearest antecedent is the recording endpoint, which is never the committing one; the
+literal reading quantified over an endpoint pair no vector can produce, which is U1's unfalsifiable
+property arriving through a pronoun. **AC4** — the check written over the X7 class matched one-letter
+finding families only, so it could not see AA, AB, or the findings of the review retaining it.
 
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.

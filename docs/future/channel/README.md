@@ -7,8 +7,10 @@ Channel 0.2 is the current Priority 1 redesign. Its four first-batch owner rulin
 2026-08-11. B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, U1-U8, V1-V3, W1-W6, X1-X7, Y1-Y4, and
 Z1-Z4 all have contract-first corrections, including a closed state/event grid. AA1-AA3 are corrected
 in this index and the future-work index, which had fallen behind every family since V2, and AB1-AB2 in
-the redesign plan and the responsibility matrix. The V through
-AA families were raised by author-side iteration passes over each other's corrections rather than by
+the redesign plan and the responsibility matrix. AC1-AC4 are corrected in the three artifacts that own
+the settling frame, in the ledger's closed detailed-reason set, in `C4-P2`'s own subject, and in the
+disposition check that could not see a two-letter finding family. The V through
+AC families were raised by author-side iteration passes over each other's corrections rather than by
 an independent review, each by asking what the previous fix depended on; that method has not yet
 stopped producing findings. Every recorded finding being closed is not a verdict; implementation remains gated
 on a conforming fresh independent closure re-review, which is the only judgement that can close the
@@ -27,7 +29,8 @@ that depends on it now says so. What followed is the part worth knowing before r
 below: U1 found that the property carrying that promise could not fail, and every family since has
 been a layer under the previous correction rather than a new subject — the property's subject not
 compared, its mutation not executable, its language unable to express it, its witness abolished by a
-neighbouring fix, and the evidence it needs missing from the inventory Batch 2 works from. See the
+neighbouring fix, the evidence it needs missing from the inventory Batch 2 works from, and most
+recently a fix stated only in the artifact that reads the fact rather than the ones that own it. See the
 [review handoff](./reviews/README.md#exact-next-work) for the live path.
 
 | Artifact | Purpose | Current state |
@@ -41,7 +44,7 @@ neighbouring fix, and the evidence it needs missing from the inventory Batch 2 w
 | [Contract-completeness review](./Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md) | Separate review of silence and extension pressure | All findings through T1-T4, R1-R3, S1-S3, U1-U8, and the V-Z iteration families corrected and dispositioned |
 | [0.1-to-0.2 migration ledger](./Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md) | Disposition of predecessor Shapes, fields, states, categories, limits, observations, vectors, and goldens | B4/N1/N3/F3/D5/T1/T2/S1/Z4 corrected; the ordering non-promise is **replaced**, and the new-evidence inventory carries the ordering mutations |
 | [Neutral contract/vector brief](./Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md) | Batch 2 data-only artifact, identity, property, vector, observation, and golden boundaries | Author pass plus U3/V1/V2/W1/W2/W5/W6/X1/X2/X4/Y1/Y4/Z1 corrections; property operators, vector format, parity profile, and provider boundary now carry what `C4-P2` needs |
-| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | 8 negative attestations retained, the seventh the first with complete isolation, plus 2 iteration reviews recording the author-side V-Z passes |
+| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | 8 negative attestations retained, the seventh the first with complete isolation, plus 3 iteration reviews recording the author-side V-Z and AC passes |
 
 No Channel 0.2 schema, public type, package, host, provider, or encoding is authorized while a fresh
 independent closure re-review is pending or a blocking independent-review finding remains open.

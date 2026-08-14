@@ -13,12 +13,13 @@ U1 correction itself, **W1**-**W6**, which two further iteration passes raised a
 corrections in turn, **X1**-**X7**, which a third raised against the W corrections, **Y1**-**Y4**,
 which a fourth raised against the X corrections, **Z1**-**Z4**, which a fifth raised against those,
 and **AA1**-**AA3**, which a sixth raised against the entry points rather than the design package,
-and **AB1**-**AB2**, which a seventh raised against the two artifacts the others never opened. Every finding
+and **AB1**-**AB2**, which a seventh raised against the two artifacts the others never opened, and
+**AC1**-**AC4**, which an eighth raised by evaluating `C4-P2` rather than reading it. Every finding
 this programme has recorded is closed in the artifacts it was raised against, and none of that is a
 verdict: a fresh independent closure re-review is pending, and it is the only thing that can close the
 batch.
 
-The U-through-AB sequence is worth reading before the next review rather than after it. S1 found that the
+The U-through-AC sequence is worth reading before the next review rather than after it. S1 found that the
 fact had no owner; U1 that the property carrying it could not fail; V1 that the property's subject was
 not compared; V2 that the mutation carrying the property could not be run; W1 that the property could
 not be written in the declared language; W3 that half of it had no mutation at all; W4 that its
@@ -34,8 +35,13 @@ apart from a duplicate terminal, which the property must leave green; and Z1-Z3 
 three fixes in turn depended on something no artifact said. Twenty layers, each of which existed to
 guarantee the one above it, and each of which had its own hole. Every one was found by asking what the
 previous fix *depends on* rather than whether it is worded correctly, and none was found by re-reading
-the contract. The reviewer should assume a twenty-first exists and hunt it that way, rather than
-checking whether the twenty are now right — and **Z4**, **AA1**-**AA3**, and **AB1**-**AB2** are the
+the contract. The reviewer should assume a further one exists and hunt it that way, rather than
+checking whether the rest are now right — and **AC1** is the caution against reading even that method
+too narrowly. It is not the layer under the most recent fix; it is the layer under Y4, five families
+back, and it was invisible to the six passes that ran after Y4 because each was auditing the artifact
+its predecessor had edited rather than the artifacts that own the fact. It was found by evaluating the
+property instead — which is what this document asks the closure reviewer to do, and what no iteration
+pass before the eighth had done. **Z4**, **AA1**-**AA3**, and **AB1**-**AB2** are the same
 warning against reading the sequence too narrowly. Z4 is a requirement missing from the ledger's
 inventory, the AA family and AB1 are six cycles of staleness in the three entry-point documents, and
 AB2 is S1 itself reappearing at the same place in the same artifact once three corrections had made
@@ -161,6 +167,23 @@ schemas or implementation, and it does not create
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3i. ~~Correct AC1-AC4, found by an eighth iteration pass.~~ **Done**, and retained as the
+   [AC correction iteration review](./channel-0.2-ac-correction-iteration-review.md). **AC1** — Y4's
+   arrival ordinal was stated in the neutral brief and nowhere else, and the brief is subordinate to
+   the contract, both state machines, and the grid, so the hierarchy resolved the contradiction
+   against the fix: the interaction machine that owns the latch, the grid that enumerates the cells
+   asserting it, and the matrix row AB2 had just added all still named X1's three fields. It was found
+   by evaluator rather than by reading — under the machine's fields the duplicate terminal the
+   property must leave green is undecidable. **AC2** — V1 made the peer-fault detailed reason
+   normative wherever its category declares a closed set, and the ledger's set for
+   `invalid-interaction-correlation` had five identity reasons, none of which covers an identity never
+   opened; the value the first conjunct quantifies over was absent from the closed set that carries
+   it, and both `unseen` cells recorded one provenance while the conjunct reads a cancellation control
+   alone. **AC3** — both conjuncts said "no endpoint records … the same endpoint had already
+   committed", whose nearest antecedent is the recording endpoint, which never commits the frame in
+   question; the literal reading was unsatisfiable and therefore unfalsifiable, which is U1 through a
+   pronoun. **AC4** — the check written over the X7 class matched one-letter finding families only, so
+   it could not see AA, AB, or the findings of the review that retains it.
 3h. ~~Correct AB1-AB2, found by a seventh iteration pass over the two artifacts the others never
    opened.~~ **Done.** **AB1** — the redesign plan is the fourth entry point and the one status block
    the T4 cycle-name check set never covered, and it had stopped at S3 while six passes ran. **AB2** —
@@ -350,7 +373,7 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   evaluator from the published prose and running the property's own named mutation through it. The
   attestation records that U1 answers a question its dispatching brief named, and that U2-U8 did not.
 
-The current review target is the commit titled `docs(channel): tighten the C4 retention passage`,
+The current review target is the commit titled `fix(channel): close AC1-AC4, the layer under the Y and V corrections`,
 committed 2026-08-14, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
@@ -376,6 +399,12 @@ context elsewhere — never as evidence that their conclusions are right.
   corrections; raised X1-X7 and corrected all seven, then turned the same method on its own
   corrections twice more and raised Y1-Y4 and Z1-Z4. It is also the retained record for the two W
   passes, which left none of their own — that gap is X7.
+- [AC correction iteration review](./channel-0.2-ac-correction-iteration-review.md) — the whole
+  sequence through AB2; raised AC1-AC4 and corrected all four. AC1 was found by writing a `C4-P2`
+  evaluator from the published prose, as the handoff below asks the closure reviewer to do, and
+  running it twice: once with the settling-frame fields the neutral brief states and once with the
+  fields the interaction machine states. It records that the AA and AB passes still have no retained
+  iteration review of their own, and declines to author one for passes it did not run.
 
 ## Disclosed process deviation in the T1-T4 correction
 
