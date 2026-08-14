@@ -229,7 +229,7 @@ million unopened identities still costs the recipient no retained per-identity s
 first conjunct still has the recorded refusal it quantifies over. Abolishing the record instead of the
 retention would leave the property with no witness at all.
 
-This is what makes the `unseen` verdict bounded rather than merely
+Retaining nothing is what makes the `unseen` verdict bounded rather than merely
 frameless — holding *any* per-identity state there, including a terminal record, would let a peer
 accrue unbounded local state by naming identities it never opens, which is the exposure the 2026-08-13
 R1 ruling refused. A later request bearing that identity therefore arrives at `unseen` as any other

@@ -350,7 +350,7 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   evaluator from the published prose and running the property's own named mutation through it. The
   attestation records that U1 answers a question its dispatching brief named, and that U2-U8 did not.
 
-The current review target is the commit titled `fix(channel): close AB1-AB2, the plan and the unowned observation record`,
+The current review target is the commit titled `docs(channel): tighten the C4 retention passage`,
 committed 2026-08-14, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
