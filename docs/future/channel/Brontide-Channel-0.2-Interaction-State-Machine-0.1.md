@@ -3,7 +3,10 @@
 Date: 2026-08-11
 
 Status: proposed first-batch design artifact; B1/B2, N2, F1/F2, D2/D3/D4, T3, R1, R2, S2, W4, X1, X3,
-and X5 corrected after independent review and subject to a fresh independent closure re-review.
+X5, and Y3 corrected after independent review and subject to a fresh independent closure re-review.
+Under Y3 the refusal leaves the recipient's per-identity state at `unseen` and records
+`rejected-protocol` as provenance, because routing it to that terminal state would hand it back to the
+`any terminal` rows and their latch.
 `validating` now carries loss and drain rows, the pre-dispatch loss rule is reconciled to any
 nonterminal state, and under W4 an identity refused at `unseen` is not a terminal interaction and owns
 no latch. Under X3 that event is a recipient transition row of its own, because the totality rule
@@ -88,7 +91,7 @@ with the same provenance, not a fictional global state.
 | From | Event and guard | To | Handler effect possible? |
 | --- | --- | --- | --- |
 | `unseen` | complete request for an established session arrives | `validating` | no |
-| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `rejected-protocol` | no; commit one interaction-scoped peer fault, record one local observation, and retain no history, no latch, and no in-flight reservation |
+| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `unseen`, unchanged | no; commit one interaction-scoped peer fault with `rejected-protocol` provenance, record one local observation, and retain no history, no latch, and no in-flight reservation |
 | `validating` | structural/profile/state/class/direction/Shape/authority-structure/bound/replay/concurrency check fails | `rejected-protocol` | no |
 | `validating` | receiver-local external phase predicate is `false` or `unknown` | `refused-local` | no |
 | `validating` | structurally valid authority presentation is denied by local policy | `refused-local` | no |
@@ -186,6 +189,15 @@ totality rule below, because the catch-all would route it to `state-violation` a
 One local observation of the refusal is recorded, which is evidence and not retained state: nothing
 consults it, and `C4-P2`'s first conjunct quantifies over it. Its provenance is the last row of the
 terminal-provenance table.
+
+**The recipient's per-identity state remains `unseen`**, and that is why the row's destination is not
+`rejected-protocol`. `rejected-protocol` is a terminal recipient state, every terminal state is
+claimed by the two `any terminal` rows above, and those rows apply the late-traffic latch — so routing
+the refusal *to* that state would reintroduce the latch by the back door, in the same table that
+refuses it. `rejected-protocol` is the provenance the refusal is recorded under, not a state the
+recipient sits in: nothing is retained, so there is nothing to be in. This is also what makes the
+already-stated consequence mechanical rather than asserted — a later request bearing that identity
+arrives at `unseen` like any other first request, because the recipient never left it.
 
 Every other terminal interaction owns a `late-traffic-fault` latch with exactly three values:
 

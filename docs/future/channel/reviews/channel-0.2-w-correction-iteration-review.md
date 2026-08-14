@@ -3,7 +3,8 @@
 Reviewer identity: `agent:claude-opus-5-channel-0.2-w-correction-iteration-2026-08-14-3dc50cf`
 
 Reviewed work: the W1-W6 corrections, `fix(channel): close W1-W6, the layers under the U1 correction`,
-and the U1/U2-U8/V1-V2 corrections beneath them
+and the U1/U2-U8/V1-V2 corrections beneath them; then, in a second pass, the X1-X7 corrections this
+document itself records
 
 Date: 2026-08-14
 
@@ -159,6 +160,72 @@ by a check written over the class rather than the instance: every finding a reta
 raises must appear in the disposition history, and a finding family the policy attributes to an
 iteration pass must have a retained record.
 
+## Second pass — Y1-Y4, the layer under the X corrections
+
+The same method was then turned on the X corrections, and found four more. Three of them are one
+question: **X1 and X5 made a property read facts, and nothing had been asked to carry them.**
+
+### Y1 — the facts the parity profile now compares are in no observation — corrected
+
+W6 added the late-traffic latch to the normative comparison and X1 added the frame that settled it.
+C10 owns what an observation must be sufficient to distinguish, and its enumeration named neither. The
+brief's local-observation schema — the Batch 2 artifact that would actually have the fields — named
+neither either: provenance, state, admission decisions, dispatch boundary, terminal form, detection
+point, effect certainty.
+
+So the parity profile compared two fields that no observation was required to carry, which is V1's
+defect moved down one floor: V1 was a fact the parity list did not compare, this is a fact the parity
+list compares and the record does not hold. Two implementations would have compared absence with
+absence and passed.
+
+**Corrected** in C10 and in the local-observation schema, with the latch position holding the explicit
+`not-applicable` X2 introduced rather than going absent.
+
+### Y2 — C10 does not reach the refusal X5 depends on — corrected
+
+C10 requires an observation for "every attempted establishment and interaction". The `unseen` refusal
+is neither: no interaction exists there, which is the whole of W4 and the reason X3 needed its own
+transition row. X5 asserted the observation in C4, in the provenance table, and in the grid — and left
+the capability that owns observation content silent about it, so the one record `C4-P2`'s first
+conjunct reads was mandated by the capability that reads it and by nothing that owns it. That is the
+S1 shape exactly, and S1 is the finding this entire sequence descends from.
+
+**Corrected** by giving C10 the case: a recognized frame that opens no interaction yields an
+observation too.
+
+### Y3 — the state X3 routes to is terminal, and every terminal state owns a latch — corrected
+
+X3 added the missing recipient transition row and sent it to `rejected-protocol`. The recipient state
+table marks `rejected-protocol` terminal; the two `any terminal` rows claim every terminal state; and
+what they do is apply the late-traffic latch. So the row that existed to keep the catch-all from
+manufacturing a latched terminal interaction manufactured one itself, at the destination instead of
+the route.
+
+The resolution is forced rather than chosen: W4 already says nothing is retained and that a later
+request bearing the identity arrives at `unseen` like any other first request. If nothing is retained
+there is no state to sit in, so the recipient's per-identity state remains `unseen` and
+`rejected-protocol` is the provenance the refusal is recorded under. That also turns W4's
+later-request sentence from an assertion into a consequence.
+
+**Corrected** in the transition row and in the late-terminal section.
+
+### Y4 — the settling-frame reference is ambiguous exactly where the property must stay green — corrected
+
+X1's reference named the settling frame by kind, interaction identity, and committing endpoint. One
+endpoint may commit two frames of the same kind for one identity, and that is not a corner case: it is
+the duplicate terminal from a nonconformant peer, which `C4-P2` must leave green and which the
+contract names as the reason each conjunct is restricted to one endpoint's own frames. Bound to the
+earlier of the two matching steps, the property reads "committed before the terminal frame" and goes
+red on legal input.
+
+This one was recorded as an open question at the end of the first pass rather than as a finding. It
+became a finding when the ambiguous case was named concretely, which is the difference the review
+policy draws between a hypothetical and a test case.
+
+**Corrected** by adding the settling frame's arrival ordinal within the interaction, which maps it to
+exactly one declared step — directly where no reordering is injected, and through the named injection
+where one is.
+
 ## Disposition of W1-W6, recorded here because their pass did not record it
 
 | Finding | Disposition |
@@ -186,12 +253,19 @@ latch that does not exist, that the `unseen` transition row is complete for ever
 that can arrive there, or that recording-is-not-retaining bounds the observation record as claimed —
 all four are this author's conclusions about this author's corrections.
 
-The sharpest unanswered question this pass leaves: **the observation record is now load-bearing for a
-property, and no artifact bounds it.** X5 argues it is not the state R1 refused because nothing
-consults it. That is a statement about what reads the record, not about how much of it there is, and a
-peer naming unopened identities still causes one observation per name. Whether the design owes an
-explicit bound on observation volume — or an explicit statement that observation volume is a host
-concern outside Channel — is an owner call this pass did not make.
+The sharpest unanswered question these passes leave: **the observation record is now load-bearing for
+a property, and no artifact bounds it.** X5 argues it is not the state R1 refused because nothing
+consults it, and Y1/Y2 then made C10 require the record and gave it fields. That is a statement about
+what reads the record, not about how much of it there is, and a peer naming unopened identities still
+causes one observation per name. Whether the design owes an explicit bound on observation volume — or
+an explicit statement that observation volume is a host concern outside Channel — is an owner call
+these passes did not make, and it is now larger than it was, because two more capabilities depend on
+the record existing.
+
+Two smaller ones. The arrival ordinal added under Y4 is an observation-local counter, and no artifact
+says whether a frame refused before correlation consumes one. And `not-applicable` is now a compared
+latch value on exactly one route; whether a second such route would be recognised as needing it, or
+would quietly go absent, rests on the grid's prose rather than on anything structural.
 
 ## Gates
 

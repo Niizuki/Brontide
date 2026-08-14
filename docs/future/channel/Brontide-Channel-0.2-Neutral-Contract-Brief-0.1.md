@@ -4,9 +4,11 @@ Date: 2026-08-11
 
 Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet, and
 subject to a fresh independent closure re-review. Batch 2 opens only after that review conforms and
-its closure record exists. U3, V1, V2, W1, W2, W5, W6, X1, X2, and X4 corrected after independent
-review: the parity profile compares the frame a late-traffic latch settled against rather than only
-the latch value, the latch's `not-applicable` value is compared rather than absent, the required
+its closure record exists. U3, V1, V2, W1, W2, W5, W6, X1, X2, X4, Y1, and Y4 corrected after
+independent review: the parity profile compares the frame a late-traffic latch settled against rather
+than only the latch value, that reference carries the settling frame's arrival ordinal so a duplicate
+terminal cannot be mistaken for a reordering, the local-observation schema has positions for both, the
+latch's `not-applicable` value is compared rather than absent, the required
 adversarial groups carry one ordering mutation per `C4-P2` conjunct, and the
 property operator set gained the one bounded precedence relation `C4-P2` needs, stimulus steps name
 their committing endpoint so that relation has an operand, the parity profile compares the
@@ -161,8 +163,15 @@ category fails local validation and generates no fault reply.
 ### Local observation
 
 Carries no peer-authored body. It records local provenance, state, admission decisions, dispatch
-boundary, terminal form, detection point, and effect certainty. Profile-owned details are nested
-under a versioned profile observation, never flattened into Channel core.
+boundary, terminal form, detection point, the late-traffic latch with the frame that settled it, and
+effect certainty. Profile-owned details are nested under a versioned profile observation, never
+flattened into Channel core.
+
+The latch position holds one of the three latch values or the explicit `not-applicable` a route
+reaching no terminal interaction asserts, never an absent field. The settling-frame position holds the
+frame's kind, its interaction identity, the endpoint that committed it, and its arrival ordinal within
+that interaction; it is absent only where no latch has settled. These are the fields `C4-P2`'s second
+conjunct reads and the parity profile compares, so the schema has to have somewhere to put them.
 
 ## External phase and authority inputs
 
@@ -281,7 +290,14 @@ Core normative comparison includes:
   every generated cell to assert — including the explicit `not-applicable` a route reaching no
   terminal interaction asserts, which is compared as a value and never as an absent field;
 - the **frame that settled the latch** wherever one is settled: its kind, its interaction identity,
-  and its committing endpoint. The latch value is one of three enum values and names no frame, and
+  its committing endpoint, and its **arrival ordinal** within that interaction. The ordinal is what
+  makes the reference unambiguous: one endpoint may commit two frames of the same kind for one
+  identity, which is exactly what a duplicate terminal is, and that case must leave `C4-P2` green.
+  Bound to the earlier of the two matching steps the property would read "committed before the
+  terminal frame" and go red on legal input. With the ordinal the settling frame maps to one declared
+  step — directly where no reordering is injected, and through the named injection where one is — and
+  the precedence relation compares that step and no other. The latch value is one of three enum
+  values and names no frame, and
   `C4-P2`'s second conjunct is about which frame a latch settled against. The mutation it must fail on
   and the two cases it must leave green — a legal late control arriving after a peer's terminal, and a
   duplicate terminal from a nonconformant peer — all record `state-violation` with `fault-committed`,

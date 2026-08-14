@@ -451,6 +451,47 @@ if ($flowedContract.IndexOf('is the mutation this property must go red on', [Sys
         if ($flowedCoverage.IndexOf('local observation is recorded', [System.StringComparison]::Ordinal) -lt 0) {
             $failures.Add('The grid states what the `unseen` refusal retains and not what it records, so the cell the generated recipient model enumerates has no observation to assert.')
         }
+
+        # Y2: C10 owns what an observation must be sufficient to distinguish, and its scope sentence
+        # covers "every attempted establishment and interaction". A control naming an identity never
+        # accepted is neither: W4 and X3 both insist no interaction exists there. So the one record X5
+        # relies on is required by C4 and not by the capability that owns observation.
+        if ($flowedContract.IndexOf('recognized frame that opens no interaction', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('C10 requires an observation for every attempted establishment and interaction, and the `unseen` refusal is neither -- no interaction exists there, which is the whole of W4. The record C4-P2 reads is therefore mandated by C4 alone and not by the capability that owns observation content.')
+        }
+    }
+
+    # Y1: a property may only read facts the observation carries. C10 enumerates what every
+    # observation must distinguish and the brief's local-observation schema enumerates what it holds;
+    # neither names the late-traffic latch or the frame that settled it, which W6 and X1 have now made
+    # normative comparisons. This is V1's defect at the schema boundary rather than the parity list:
+    # a compared field that no observation is required to carry is compared between two absences.
+    if ($briefParity -and (Get-FlowedText $briefParity).IndexOf('frame that settled the latch', [System.StringComparison]::Ordinal) -ge 0) {
+        if ($flowedContract.IndexOf('late-traffic latch and the frame that settled it', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('C10 does not require an observation to distinguish the late-traffic latch or the frame that settled it, although the parity profile now compares both and C4-P2 reads them. C10 owns observation content; a fact compared but not owned is the S1 shape again.')
+        }
+        $briefObservationSchema = ($neutralBrief -split '### Local observation', 2)[1] -split '## External phase and authority inputs', 2 | Select-Object -First 1
+        if (-not $briefObservationSchema -or (Get-FlowedText $briefObservationSchema).IndexOf('late-traffic latch', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The local-observation schema records provenance, state, admission decisions, dispatch boundary, terminal form, detection point, and effect certainty -- and not the latch or its settling frame. Batch 2 would author a schema with no position for the fields the parity profile compares.')
+        }
+
+        # Y4: kind, identity, and committing endpoint do not identify *which* frame settled the latch
+        # when one endpoint commits two frames of the same kind for one interaction -- which is
+        # precisely the duplicate-terminal case the property must leave green. Bound to the first
+        # matching step it reads "committed before the terminal frame" and goes red on legal input.
+        if ((Get-FlowedText $briefParity).IndexOf('arrival ordinal', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The settling-frame reference names kind, interaction identity, and committing endpoint, which do not distinguish two frames of the same kind from one endpoint. A duplicate terminal is exactly that, and it is a case C4-P2 must leave green; bound to the earlier of the two steps the property goes red on legal input. The reference needs the settling frame''s arrival ordinal within the interaction.')
+        }
+    }
+
+    # Y3: X3 routes the `unseen` refusal to `rejected-protocol`, and the recipient state table marks
+    # `rejected-protocol` terminal. The machine's `any terminal` rows then claim the identity and apply
+    # the late-traffic latch -- the state W4 refuses and the grid says the `any terminal` row does not
+    # reach. Adding the row fixed the routing and left the destination contradicting the rule.
+    if ($unseenFaultsCancellation) {
+        if ($flowedInteraction.IndexOf('per-identity state remains `unseen`', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The `unseen` refusal is routed to `rejected-protocol`, which the recipient state table marks terminal, so the machine''s `any terminal` rows apply and give the identity a late-traffic latch. W4 refuses exactly that state and the grid says the `any terminal` row does not reach it. The machine must say what state the recipient is left in, and the only answer consistent with retaining nothing is `unseen`.')
+        }
     }
 }
 

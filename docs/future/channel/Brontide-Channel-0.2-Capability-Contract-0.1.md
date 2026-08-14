@@ -3,7 +3,10 @@
 Date: 2026-08-11
 
 Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, R1, S1, S2, U1, W2, W3, W4,
-X1, and X5 corrected after independent review. C4 now owns intra-interaction frame order with
+X1, X5, Y1, and Y2 corrected after independent review. Under Y1 and Y2, C10 requires an observation to
+distinguish the late-traffic latch and the frame that settled it, and requires one for a recognized
+frame that opens no interaction — the two facts `C4-P2` reads and the capability that owns observation
+did not carry. C4 now owns intra-interaction frame order with
 `C4-P2`, and C4's silence and C11 are scoped to cross-interaction and cross-session ordering. Under
 the U1 correction `C4-P2` is stated over the refusal a reordering produces rather than over the
 accepted sequence, because the design refuses a reordered frame and the accepted sequence can
@@ -455,7 +458,15 @@ error details.
 Every attempted establishment and interaction yields a local observation sufficient to distinguish
 profile, session and interaction identities, direction, class, admission and authority decisions,
 dispatch boundary, terminal provenance, peer-reported facts, local detection point, retry/fallback
-facts supplied by an owning extension, and effect certainty.
+facts supplied by an owning extension, the terminal interaction's **late-traffic latch and the frame
+that settled it**, and effect certainty.
+
+**A recognized frame that opens no interaction yields one too.** A cancellation control or other
+control naming an identity the recipient has never accepted is neither an attempted establishment nor
+an attempted interaction — under C4 no interaction exists there — and it is refused as a peer
+statement, so without this sentence the one record of that refusal would be required by C4 and by
+nothing that owns observation. The observation records the refusal and its provenance; it retains no
+interaction state, because there is none to retain.
 
 Channel's portable effect field is certainty, not a provider-specific count:
 

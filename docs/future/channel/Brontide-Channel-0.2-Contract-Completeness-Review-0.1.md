@@ -366,5 +366,18 @@ commit later and is now checked against the repository rather than against its o
 the W passes left no retained iteration review, and V3's disposition was unrecorded; both are closed
 here and by a check written over the class.
 
+A fourth pass over the X corrections raised **Y1**-**Y4**, recorded in the same iteration review.
+**Y1** — W6 and X1 made the late-traffic latch and its settling frame normative comparisons, and
+neither C10's enumeration nor the brief's local-observation schema carried either, so the parity
+profile compared two fields no observation was required to hold. **Y2** — C10 requires an observation
+for every attempted establishment and interaction, and the `unseen` refusal is neither, so the record
+X5 depends on was mandated by the capability that reads it and by none that owns it. **Y3** — X3
+routed the refusal to `rejected-protocol`, which the recipient state table marks terminal and the
+`any terminal` rows therefore claim, reintroducing the latch W4 refuses; the recipient's per-identity
+state remains `unseen` and `rejected-protocol` is the provenance. **Y4** — the settling-frame
+reference named kind, identity, and committing endpoint, which do not separate two frames of the same
+kind from one endpoint; a duplicate terminal is exactly that and must leave `C4-P2` green, so the
+reference now carries the frame's arrival ordinal.
+
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.
