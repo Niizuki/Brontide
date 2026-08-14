@@ -17,7 +17,25 @@ Sources inventoried:
 - [`conformance/channel-0.1-vectors.json`](../../../conformance/channel-0.1-vectors.json);
 - [`channel-envelope.json`](../../../binding/portable/schemas/channel-envelope.json);
 - [`limits-and-lifecycle.json`](../../../binding/portable/schemas/limits-and-lifecycle.json); and
-- [`binding-observation.json`](../../../binding/portable/schemas/binding-observation.json).
+- [`binding-observation.json`](../../../binding/portable/schemas/binding-observation.json); and
+- the [Architecture 0.8 Channel requirements and risk ledger](./architecture-0.8-channel-requirements-and-risk-ledger.md),
+  which states of itself that it "must be dispositioned item by item in the successor's migration
+  ledger". It was absent from this list through nine review cycles, which is AE5.
+
+## Retained requirements register disposition
+
+`CH-R1` through `CH-R11` and `CH-K1` through `CH-K5` are carried in substance by the field, state,
+category, limit, and feature tables below, which is why no `CH-R` identifier appeared anywhere in the
+0.2 package until AE5 was raised. One entry is not bookkeeping and is dispositioned explicitly here.
+
+| Register entry | Disposition | Where 0.2 answers it |
+| --- | --- | --- |
+| `CH-R10` — "Non-promises: no delivery, **ordering**, or retry guarantee; interruption, retry, and fallback recorded as facts, success never fabricated" | **replaced** | **replaced** rather than **retained** for the same reason the feature row below carries it: the non-promise's scope changed, and a disposition names what happened to the entry as a whole. Its delivery, retry, and facts-not-fabrication clauses are unchanged. The ordering clause is narrowed by the 2026-08-13 S1 ruling: Channel 0.2 core promises intra-interaction frame order, owned by C4, stated by `C4-P2`, declared by the realization profile, and dispositioned in the feature row "ordering guarantee unsupported" below. Cross-interaction and cross-session ordering remain unpromised and still require an extension facet. `CH-K5`, which names over-scoping into ordering as a Medium risk and cites CH-R10, is **retained** and this narrowing is its one accepted instance |
+
+This is the register entry every finding since S1 turns on, and the reason its absence mattered: the
+feature row that carries the same fact is sourced from the Draft Channel Contract's feature list, so
+until now the register still held an undisposed statement of a non-promise that 0.2 core had already
+narrowed.
 
 Disposition meanings are those in the redesign plan: **retained**, **replaced**, **moved**,
 **removed**, and **legacy-only**. “Retained” means semantic identity, not necessarily serialized

@@ -31,7 +31,7 @@ agrees and its review has no blocking finding.
 
 The [first-batch design package](./channel/README.md) now includes C1-C12, both state machines, a
 closed state/event grid, the responsibility matrix, silence review, migration ledger, neutral-
-artifact brief, four resolved owner rulings, and 8 retained independent reviews. Every finding
+artifact brief, four resolved owner rulings, and 9 retained independent reviews. Every finding
 through S1-S3 is closed in the artifact it was raised against, each re-verified individually by the
 eighth review, which then raised blocking **U1** and nonblocking **U2**-**U8**. Those are corrected,
 as are **V1**-**V3**, **W1**-**W6**, **X1**-**X7**, **Y1**-**Y4**, and **Z1**-**Z4**, raised by
@@ -48,8 +48,17 @@ only. **AD1**-**AD3** are a ninth, and the first whose findings are in the evide
 rather than in the design: the AC pass's own residual denied that the AA and AB records existed and
 referred the gap to the owner, while the W iteration review has recorded both families all along, and
 three documents described that review's contents three different ways. AD1 and AD3 are corrected;
-**AD2**, the half of the X7 class check still written over two ids, is left as an owner call.
-No independent review has yet seen any of it,
+**AD2**, the half of the X7 class check still written over two ids, was left as an owner call.
+
+The ninth independent closure review then returned `does-not-conform` with blocking **AE1** and
+nonblocking **AE2**-**AE5**, and ruled AD2 a defect. **AE1** is the S1/U1 line failing from the other
+end: `C4-P2`'s first conjunct was red on a conforming realization whose request the transport lost,
+and a lost request was indistinguishable from a reordered one in every field the property may read. It
+is corrected under a 2026-08-14 owner ruling — the conjunct now reads the recipient's subsequent
+admission of the refused identity, which a reordering produces and a loss does not. **AE3** is the
+structural half and the reason ten cycles walked past it: nothing required a property to stay green,
+only to be able to fail. All six are corrected, with eleven required-green sets recorded as owed.
+No independent review has yet seen the AE corrections,
 and no Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
@@ -1626,7 +1635,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 8 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, and AD1-AD3 families with AD2 open as an owner call, and awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 9 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, and AE1-AE5 families, and awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

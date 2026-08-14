@@ -226,7 +226,9 @@ groups include:
 - external phase false and unknown for each interaction class;
 - bounded concurrency interleavings, replay, mismatch, and out-of-order terminal facts;
 - intra-interaction frame order and **both** its ordering mutations: conforming commit-order delivery
-  in both directions, loss of either frame, a cancellation control for an identity the peer never
+  in both directions, loss of either frame — **which is legal behaviour and must not fail `C4-P2`**,
+  and is the member this group carried with no stated expectation while the property went red on it —
+  a cancellation control for an identity the peer never
   opened — which is legal input from a nonconformant peer and must not fail `C4-P2` — a legal late
   control arriving after a peer's terminal and a duplicate terminal from a nonconformant peer, which
   settle a latch and must also not fail it, and then `C4-control-precedes-request` and
@@ -254,8 +256,18 @@ groups include:
 - fields/state facts quantified;
 - invariant expressed through a closed declarative operator set;
 - one named negative probe mutation;
-- expected failing vector/property report; and
+- expected failing vector/property report;
+- a **required-green set**: the named legal inputs from the property's own required vector group that
+  it must not fail on, each with the expectation that evaluating the property over that vector returns
+  green; and
 - evidence modes required to execute it.
+
+The required-green set is the format's answer to AE1 and is as normative as the mutation. A property
+declaring a mutation and no required-green set is only half specified, because nothing then states
+what a red verdict on legal input means: `C4-P2`'s adversarial group already required a lost-request
+vector, the group carried no expectation for it, and the property was red on it for ten cycles while
+satisfying every field this format then listed. A required-green vector that no incorrect
+implementation could turn red is a finding against the set rather than evidence for the property.
 
 The operator set may compare equality, membership, counts, transition edges, set uniqueness,
 implication, bounded “for all selected steps/vectors,” and **precedence between two steps in one
@@ -320,6 +332,14 @@ Core normative comparison includes:
   and `state-violation` declares no closed detailed-reason set for the clause above to reach. The
   settling frame is what separates them, and once it names its committing endpoint the property can
   bind it to a declared stimulus step through the precedence relation;
+- the **admission of an identity previously refused at `unseen`**, which is the fact `C4-P2`'s first
+  conjunct reads to separate a reordering from a loss. Both deliver a cancellation control to a
+  recipient that has not seen the request, and both record the same provenance, detailed reason,
+  refused frame kind, and `not-applicable` latch, so nothing already in this list distinguishes them.
+  What does is whether the request arrives afterwards: a reordering delivers it and the recipient
+  admits an interaction for that identity, exactly as C4's retention rule requires of any later
+  request bearing it; a loss never delivers it. The conjunct tests membership of the identity in the
+  set the recipient admits within the same vector, so that set is compared;
 - effect certainty and unknown reason class; and
 - extension/profile-owned normative details selected by that profile's parity declaration.
 

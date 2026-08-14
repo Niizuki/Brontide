@@ -868,6 +868,7 @@ Assert-ContainsAll 'Channel 0.2 review policy' (Get-FlowedText $reviewReadme) @(
     '`3892c23a8dd4c7f298e877ba73710ee0ddc97bc4`',
     '`channel-0.2-design-foundation-closure-review-7-attestation.md`',
     '`channel-0.2-design-foundation-closure-review-8-attestation.md`',
+    '`channel-0.2-design-foundation-closure-review-9-attestation.md`',
     '`channel-0.2-design-foundation-closure-record.md`',
     '`build/verify-channel-0.2-design.ps1`',
     '`build/verify-interchange.ps1`'
@@ -992,10 +993,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all eight negative attestations, and all four correction iteration reviews before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all nine negative attestations, and all four correction iteration reviews before the next closure review.')
 }
 
 # An iteration review is author-side work and may never be mistaken for a closing judgement. The file
@@ -1189,12 +1190,129 @@ else {
 
     $iterationRecords = @($iterationReviewFiles | ForEach-Object { Get-Content -Raw -LiteralPath $_.FullName -Encoding UTF8 })
     $flowedReviewPolicy = Get-FlowedText $reviewReadme
-    foreach ($findingFamily in @('W1', 'W6')) {
-        if ($flowedReviewPolicy.IndexOf("**$findingFamily**", [System.StringComparison]::Ordinal) -lt 0) { continue }
+    # AD2, ruled a defect by closure review 9. The comment above asserts this check is written over
+    # the general class; it was a membership test of two literals, evaluating 2 of the 36 finding ids
+    # the policy bolds, and could not fail for AA, AB, AC, or AD. The false comment was the worse
+    # half -- it is what a later reader trusts instead of reading the loop, which is AD1's mechanism.
+    #
+    # The class is derived rather than listed: the policy's own next-work steps say which families an
+    # iteration pass found, so only those carry the retained-record obligation. Families a closure
+    # review raised are excluded by construction, because no iteration pass owns them.
+    $iterationAttributions = @([regex]::Matches($flowedReviewPolicy, 'Correct ([^~]{1,60}?),? found by a[n]? [a-z]+ iteration pass'))
+    $iterationFamilies = @(
+        foreach ($attribution in $iterationAttributions) {
+            [regex]::Matches($attribution.Groups[1].Value, '[A-Z]{1,2}[0-9]+') | ForEach-Object { $_.Value }
+        }
+    ) | Sort-Object -Unique
+    if ($iterationFamilies.Count -lt 1) {
+        $failures.Add('No finding id could be parsed from the review policy''s iteration-pass attributions. Either the policy attributes nothing to an author-side pass, or the attribution wording changed and this check is passing by seeing nothing -- which is the failure mode AD2 was.')
+    }
+    foreach ($findingFamily in $iterationFamilies) {
         if (-not ($iterationRecords | Where-Object { $_.IndexOf($findingFamily, [System.StringComparison]::Ordinal) -ge 0 })) {
             $failures.Add("The review policy attributes '$findingFamily' to an author-side iteration pass, and no retained iteration review records it. The two-kinds-of-review section requires that pass to be retained as evidence; a commit message is not the evidence trail.")
         }
     }
+
+    # AE4: AD3's check covers a retained review's own scope line and its roster entry. The Channel
+    # index is a third surface describing the same documents, it is the entry point AA1 was raised
+    # against, and it named neither AA nor AB. The AA1 family check passes because it asks only that
+    # a family appear somewhere in the index, and both appear higher up.
+    if ($indexReviewRow.Count -eq 1) {
+        foreach ($family in $recordedFamilies) {
+            if ($indexReviewRow[0] -cnotmatch "\b$family[0-9]" -and $indexReviewRow[0] -cnotmatch "\b$family\b") {
+                $failures.Add("The Channel index's Design reviews row does not name the '$family' family, which a retained iteration review records. This is the third surface describing those documents, and a description that understates them is what sent the AC pass to deny records that existed.")
+            }
+        }
+    }
+}
+
+# AE1: closure review 9 found `C4-P2`'s first conjunct red on a conforming realization. When the
+# transport loses the request, the initiator legally commits its one cancellation control -- C8 says
+# recipient admission is not observable from `dispatched` -- and the control lands at `unseen`,
+# producing exactly the refusal the conjunct forbade of an endpoint that had already committed the
+# request. Loss of either frame is a *required* member of the property's adversarial group, and the
+# loss vector and `C4-control-precedes-request` presented identical values in every field the property
+# may read, so the design had no third option: either the property failed on legal behaviour or its
+# own mutation was green, which is U1 by another route.
+#
+# The 2026-08-14 owner ruling resolves it by reading the fact that already separates them: a
+# reordering delivers the request afterwards and the recipient admits an interaction for that
+# identity, while a loss never does. These pin the ruling at each artifact that has to carry it.
+$flowedContract = Get-FlowedText $contract
+$c4p2Index = $flowedContract.IndexOf('**Property C4-P2.**', [System.StringComparison]::Ordinal)
+if ($c4p2Index -lt 0) {
+    $failures.Add('The capability contract states no `C4-P2`, which is the property intra-interaction frame order rests on.')
+}
+else {
+    # Bounded at the start of C5 rather than by a character count: the AE1 correction added an
+    # explanation between the conjuncts and the required-green set, and a fixed window stopped short
+    # of the paragraph it was meant to read.
+    $c4SectionEnd = $flowedContract.IndexOf('## C5 ', $c4p2Index, [System.StringComparison]::Ordinal)
+    if ($c4SectionEnd -lt 0) { $c4SectionEnd = $flowedContract.Length }
+    $c4p2Text = $flowedContract.Substring($c4p2Index, $c4SectionEnd - $c4p2Index)
+
+    # The conjunct check reads the property's own statement paragraph, not the section: the paragraph
+    # explaining the ruling names the same fact, so a section-wide search passes after the conjunct
+    # itself has been gutted. The two checks in this block deliberately use different scopes, and
+    # widening one to fix its own miss is what broke the other.
+    $c4p2Statement = Get-FlowedText ([regex]::Match($contract, '(?ms)\*\*Property C4-P2\.\*\*(.*?)\r?\n\r?\n').Groups[1].Value)
+    if ($c4p2Statement.IndexOf('admits an interaction for that identity', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('`C4-P2`''s first conjunct does not require that the recipient later admits an interaction for the refused identity. Without it the conjunct is satisfied by a conforming realization whose request was lost, and it cannot be told apart from `C4-control-precedes-request`, which presents identical values in every field the property may read. This is AE1.')
+    }
+    # Scoped to the required-green paragraph, not to the property's whole window. Mutation testing
+    # found the window form passing on the surrounding explanation, which says "a lost request and a
+    # reordered one" -- the phrase-anywhere weakness X1's check was rescoped for.
+    $requiredGreen = [regex]::Match($c4p2Text, '\*\*Required green\.\*\*(.{0,700})')
+    if (-not $requiredGreen.Success) {
+        $failures.Add('`C4-P2` states no required-green set. C12 requires every property to name the legal inputs it must not fail on, and this is the property that was red on one of them.')
+    }
+    elseif ($requiredGreen.Groups[1].Value.IndexOf('lost', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('`C4-P2`''s required-green set does not name the lost-request case. "Loss may still drop a frame" is not expressible in the closed operator set -- there is no "was this lost" operand -- so the carve-out has to be a named green input an evaluator can run, not a sentence it cannot apply.')
+    }
+}
+
+# The conjunct now reads a fact, so the parity profile has to compare it. A property that reads a
+# fact the profile excludes is W6, and one that reads a fact no observation carries is Y1.
+$flowedBrief = Get-FlowedText $neutralBrief
+if ($flowedBrief.IndexOf('admission of an identity previously refused at `unseen`', [System.StringComparison]::Ordinal) -lt 0) {
+    $failures.Add('The normative parity profile does not compare the admission of an identity previously refused at `unseen`, which is the fact `C4-P2`''s corrected first conjunct reads. A conjunct reading a fact the profile does not compare is W6 restored.')
+}
+
+# AE3 is the structural half, and the reason ten passes audited falsifiability and none audited
+# soundness: C12 requires a property to be able to fail and nothing required one to stay green, so
+# the loss vector sat in the required group with no stated expectation at all.
+if ((Get-FlowedText $contract).IndexOf('must not fail against a conforming realization', [System.StringComparison]::Ordinal) -lt 0) {
+    $failures.Add('C12 requires every property to be able to fail and does not require it to hold on conforming input. Falsifiability and soundness are the same defect measured from opposite ends, and only one of them was ever written down as a rule. This is AE3.')
+}
+# Asserted against the format's bullet list rather than the brief at large, for the same reason: the
+# paragraph explaining the field also names it, so a whole-document search passes on the explanation
+# after the required field itself has been renamed away.
+if ($neutralBrief -cnotmatch '(?m)^- a \*\*required-green set\*\*') {
+    $failures.Add('The capability-wide property format does not list a required-green set as a field. Its other fields name one mutation that must fail and no input that must not, so a property that goes red on legal behaviour satisfies the format completely.')
+}
+$propertyAudit = ($completeness -split '## Per-capability property audit', 2)[1]
+if ($propertyAudit -and (($propertyAudit -split '(?m)^## ')[0]).IndexOf('Required-green', [System.StringComparison]::Ordinal) -lt 0) {
+    $failures.Add('The per-capability property audit has no required-green column. It asks whether each property has a mutation that must fail and never what must leave it green, which is the audit AE1 passed through ten times.')
+}
+
+# AE2: X3 and Y3 made the `unseen` refusal a detailed row precisely so the machine's totality rule
+# does not claim it -- and the totality rule is what supplied effect certainty. The grid requires
+# every cell to assert one and C10-P1 requires each observation to be complete for its provenance.
+foreach ($unseenArtifact in @(@{ Name = 'interaction state machine'; Text = $interaction }, @{ Name = 'state/event coverage grid'; Text = $stateEventCoverage })) {
+    $unseenRows = @($unseenArtifact.Text -split "`r?`n" | Where-Object { $_.IndexOf('`unseen`', [System.StringComparison]::Ordinal) -ge 0 -and $_.IndexOf('unopened-interaction-identity', [System.StringComparison]::Ordinal) -ge 0 })
+    foreach ($unseenRow in $unseenRows) {
+        if ($unseenRow.IndexOf('known-none', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("The $($unseenArtifact.Name)'s `unseen` refusal row does not state effect certainty. The grid requires every cell to assert one and C10-P1 requires each observation to be complete for its provenance form; one implementer writes ``known-none`` and another ``not-applicable``, which is not in C10's closed set, and both are defensible. This is AE2.")
+        }
+    }
+}
+
+# AE5: the retained requirements ledger states it "must be dispositioned item by item in the
+# successor's migration ledger". No `CH-R` id appeared anywhere in the 0.2 package, and CH-R10 is the
+# non-promise the S1 ruling narrowed -- the entry every finding since S1 turns on. This is Z4's class
+# one artifact further out.
+if ($migration.IndexOf('CH-R10', [System.StringComparison]::Ordinal) -lt 0) {
+    $failures.Add('The migration ledger does not disposition `CH-R10`, the retained requirements ledger''s ordering non-promise. That ledger instructs item-by-item disposition in the successor, and CH-R10 is the register entry the 2026-08-13 S1 ruling changed. This is AE5.')
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'channel\0.2')) {

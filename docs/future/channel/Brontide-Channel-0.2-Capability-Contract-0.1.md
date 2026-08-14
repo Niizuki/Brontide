@@ -251,9 +251,31 @@ one endpoint committed in an order that endpoint did not commit them in. Loss ma
 Because the design refuses a reordered frame rather than accepting it, this is stated over the refusal
 that reordering produces rather than over the accepted sequence, which no reordering can leave out of
 order: no endpoint records a recipient `rejected-protocol` at `unseen` for a cancellation control
-whose committing endpoint had already committed the request naming that identity, and none records a
+whose committing endpoint had already committed the request naming that identity **and whose
+recipient afterwards admits an interaction for that identity**, and none records a
 late-traffic `state-violation` latched against a frame whose committing endpoint had committed it
 before that endpoint's own frame that made the interaction terminal.
+
+The subsequent admission in the first conjunct is what makes it decide reordering rather than loss,
+and it is the 2026-08-14 owner ruling recorded in the redesign plan. Without it the conjunct is
+satisfied by a fully conforming realization: the initiator commits the request, the transport **loses**
+it, the initiator commits its one legal cancellation control — C8 states recipient admission is not
+observable from `dispatched` — and the control lands at `unseen` and produces exactly this refusal.
+That vector is a required member of the property's adversarial group, so the property would go red on
+legal behaviour. Worse, a lost request and a reordered one present identical values in every other
+field the property may read — same declared stimulus steps, same provenance, same detailed reason,
+same refused frame kind, same `not-applicable` latch — so no carve-out written over those fields could
+separate them, and declaring the loss vector green instead would leave the mutation green too. What
+separates them is what happens next: a reordering delivers the request afterwards and the recipient
+admits an interaction for that identity, exactly as the retention passage below says it must; a loss
+never delivers it and no admission ever occurs. The conjunct reads that, through a membership test
+over the identities the recipient admits in the same vector.
+
+**Required green.** `C4-P2` must not fail on a conforming realization. Named inputs it must leave
+green: a request **lost** while the cancellation control naming its identity is delivered; a
+cancellation control for an identity the peer never opened; a legal late control arriving after a
+peer's terminal; and a duplicate terminal from a nonconformant peer. The first of these is the case
+the property was previously red on.
 
 In both conjuncts the subject of "had already committed" and "had committed it" is the **committing
 endpoint** — the endpoint that committed the frame the refusal names, which is never the endpoint that
@@ -570,7 +592,17 @@ no private runtime objects.
 
 **Failure and uncertainty.** A vector with an unspecified expectation is invalid evidence rather
 than permission for each stack to choose. Every property must be able to fail against a named
-incorrect implementation.
+incorrect implementation, and every property **must not fail against a conforming realization**: it
+carries a named set of legal inputs it must leave green, drawn from its own required vector group.
+
+The second half is not the first half restated. A property that cannot fail and a property that
+cannot stay green are the same defect measured from opposite ends — in both the verdict carries no
+information about the behaviour the property names — but only falsifiability was ever written down as
+a requirement, so ten review cycles audited for it and none audited the converse. `C4-P2`'s first
+conjunct was red on a conforming realization through every one of them, and the vector it failed on
+was already a required member of its own group with no stated expectation at all. A required-green set
+that cannot be violated by any incorrect implementation is a finding against the set, the same way an
+unfalsifiable property is a finding against the property.
 
 **Named scenarios.** `C12-neutral-provider-no-stack-dependency`,
 `C12-direct-process-semantic-parity`, `C12-distinct-identity-spaces`, and

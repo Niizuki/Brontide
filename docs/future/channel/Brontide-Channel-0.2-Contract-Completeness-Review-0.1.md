@@ -168,20 +168,33 @@ property counts as evidence.
 
 ## Per-capability property audit
 
-| Capability | Universal property present | Named mutation that must fail |
-| --- | --- | --- |
-| C1 | C1-P1 exact profile or known-none | remove one required facet from fixed profile only |
-| C2 | C2-P1 legal transition/terminal monotonicity | accept new interaction while draining |
-| C3 | C3-P1 exact class/direction/phase | mark unknown phase as true |
-| C4 | C4-P1 one dispatch/terminal and bounded concurrency; C4-P2 intra-interaction frame order, one conjunct per direction | redispatch replayed identity or exceed bound; `C4-control-precedes-request` delivers one interaction's control before the request that opens it, and `C4-outcome-precedes-ack` delivers the recipient's Outcome before the acknowledgement it committed first — one named mutation per conjunct, because half a property with no mutation is half unfalsifiable |
-| C5 | C5-P1 all positional/bound checks before dispatch | project an authority value or dispatch oversized payload |
-| C6 | C6-P1 exact permitted local authority | treat compatibility/delivery as permission |
-| C7 | C7-P1 exact declaration/pre-Ready/no phase creation | admit wrong edge or let success create Ready |
-| C8 | C8-P1 one terminal; controls never success | make cancel acknowledgement terminal success |
-| C9 | C9-P1 exactly one provenance form | map local loss to peer fault |
-| C10 | C10-P1 no unsupported known-none after dispatch | replace unknown effect certainty with known-none |
-| C11 | C11-P1 required facets exact/core invariants stable | extension changes interaction identity or authority result |
-| C12 | C12-P1 deterministic data and independent runtimes | remove a property group or add stack dependency |
+| Capability | Universal property present | Named mutation that must fail | Required-green inputs |
+| --- | --- | --- | --- |
+| C1 | C1-P1 exact profile or known-none | remove one required facet from fixed profile only | **owed** |
+| C2 | C2-P1 legal transition/terminal monotonicity | accept new interaction while draining | **owed** |
+| C3 | C3-P1 exact class/direction/phase | mark unknown phase as true | **owed** |
+| C4 | C4-P1 one dispatch/terminal and bounded concurrency; C4-P2 intra-interaction frame order, one conjunct per direction | redispatch replayed identity or exceed bound; `C4-control-precedes-request` delivers one interaction's control before the request that opens it, and `C4-outcome-precedes-ack` delivers the recipient's Outcome before the acknowledgement it committed first — one named mutation per conjunct, because half a property with no mutation is half unfalsifiable | `C4-P2`: a request lost while the control naming its identity is delivered; a control for an identity the peer never opened; a legal late control after a peer's terminal; a duplicate terminal from a nonconformant peer. The first is AE1 — a required member of the group, carrying no expectation, that the property was red on |
+| C5 | C5-P1 all positional/bound checks before dispatch | project an authority value or dispatch oversized payload | **owed** |
+| C6 | C6-P1 exact permitted local authority | treat compatibility/delivery as permission | **owed** |
+| C7 | C7-P1 exact declaration/pre-Ready/no phase creation | admit wrong edge or let success create Ready | **owed** |
+| C8 | C8-P1 one terminal; controls never success | make cancel acknowledgement terminal success | **owed** |
+| C9 | C9-P1 exactly one provenance form | map local loss to peer fault | **owed** |
+| C10 | C10-P1 no unsupported known-none after dispatch | replace unknown effect certainty with known-none | **owed** |
+| C11 | C11-P1 required facets exact/core invariants stable | extension changes interaction identity or authority result | **owed** |
+| C12 | C12-P1 deterministic data and independent runtimes | remove a property group or add stack dependency | **owed** |
+
+The third column is the AE3 correction, and eleven of its twelve cells say `owed` rather than a
+plausible-looking set. That is deliberate. C12 now requires every property to carry a required-green
+set drawn from its own vector group, and no artifact currently states one for any capability but C4 —
+so filling these in from this desk would be inventing the expectations, which is the failure mode
+AGENTS.md names when it says a test written against a finished implementation asserts what the code
+does rather than what it should do. `owed` is a checkable claim about the design's present state; a
+guessed set is not, and would close AE3 in appearance while leaving exactly the gap AE1 fell through.
+
+**Batch 2 cannot author `capability-properties.json` until these are stated**, because the property
+format now lists the required-green set as a normative field. Deriving each from its capability's
+required vector group is bounded work, and it is the first thing the next correction pass should take
+if the closure reviewer does not raise it first.
 
 ## Deliberate non-goals confirmed
 
@@ -437,6 +450,34 @@ AD. There is no live gap and it is left as an owner call rather than corrected b
 the same week. **AD3** — the W review's scope line, the policy's roster entry, and the AC residual
 gave three different accounts of what that review contains, none matching it; each is what some later
 pass consulted instead of opening it, and AD1 is the proof that at least one did.
+
+The ninth independent closure review, at `9408948`, returned `does-not-conform` with blocking **AE1**
+and nonblocking **AE2**-**AE5**, and ruled the open **AD2** call a defect. **AE1** — `C4-P2`'s first
+conjunct was red on a conforming realization. Loss of either frame is a required member of the
+property's own adversarial group; when the transport loses the request the initiator legally commits
+its one cancellation control, because C8 states recipient admission is not observable from
+`dispatched`, and the control lands at `unseen` producing exactly the refusal the conjunct forbade of
+an endpoint that had already committed the request. A lost request and a reordered one presented
+identical values in every field the property may read, so the design had no third option: either the
+property failed on legal behaviour, or declaring the loss vector green left the named mutation green
+too, which is U1 by another route. The 2026-08-14 owner ruling resolves it by reading the fact that
+already separates them — a reordering delivers the request afterwards and the recipient admits an
+interaction for that identity, a loss never does — and the parity profile now compares that admission.
+**AE2** — X3 and Y3 made the `unseen` refusal a detailed row so the machine's totality rule would not
+claim it, and that rule was what supplied effect certainty; both artifacts now state `known-none`.
+**AE3** is the structural half and the reason ten cycles missed AE1: C12 required every property to be
+able to fail and nothing required one to stay green, so the loss vector sat in a required group with
+no stated expectation. C12 now carries the converse rule, the property format carries a required-green
+set, and the per-capability audit carries the column. **AE4** — the Channel index was a third surface
+describing the retained iteration reviews and omitted AA and AB behind a range; every family is now
+named and the AD3 check covers that surface. **AE5** — the retained requirements register instructs
+item-by-item disposition and no `CH-R` identifier appeared in the package; `CH-R10`, the ordering
+non-promise the S1 ruling narrowed, is now dispositioned explicitly. **AD2** — the X7 class check
+asserted a class in its comment and tested two literals; the class is now derived from the policy's
+own iteration-pass attributions.
+
+Eleven of the twelve required-green cells read `owed` rather than a guessed set, which is named
+residual work and is stated as such above.
 
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.
