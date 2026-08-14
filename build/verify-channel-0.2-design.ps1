@@ -377,6 +377,81 @@ if ($flowedContract.IndexOf('is the mutation this property must go red on', [Sys
     if (-not $briefParity -or (Get-FlowedText $briefParity).IndexOf('late-traffic latch', [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add('The state/event grid requires every generated cell to assert the late-traffic latch, but the normative parity profile never compares it. C4-P2''s second conjunct reads a latched `state-violation`, so the fact is demanded as evidence and excluded from comparison at the same time.')
     }
+
+    # X1: W6 made the latch *value* comparable, and the second conjunct does not read the latch value.
+    # It reads which frame the latch settled against, and which endpoint committed that frame. The
+    # latch is a three-valued enum that names nothing, and the migration ledger declares no detailed
+    # reason set for `state-violation`, so V1's detailed-reason clause -- conditional on the category
+    # declaring one -- does not reach this conjunct either. The mutation the conjunct must fail on and
+    # the two cases the contract says it must stay green on record the identical comparable
+    # observation: terminal preserved, category `state-violation`, latch `fault-committed`.
+    if ($flowedContract.IndexOf('`state-violation` latched against a frame', [System.StringComparison]::Ordinal) -ge 0) {
+        if (-not $briefParity -or (Get-FlowedText $briefParity).IndexOf('frame that settled the latch', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The parity profile compares the late-traffic latch value but not the frame that settled it. C4-P2''s second conjunct forbids a latch settled against a frame the same endpoint committed before the terminal frame, while a legal late control after a peer''s terminal and a duplicate terminal from a nonconformant peer must both leave it green -- and all three record `state-violation` with `fault-committed`. The conjunct cannot separate the mutation it must fail on from the cases it must not.')
+        }
+        # Scoped to the section that has to carry the rule, not to the artifact: mutation testing found
+        # the phrase-anywhere form satisfied by this artifact's own status block, which is a claim
+        # about the document rather than the rule the document must state. U3's check was weak the
+        # same way and was scoped for the same reason.
+        $latchSection = ($interaction -split '## Late terminal and control disposition', 2)[1] -split '## Interaction event totality', 2 | Select-Object -First 1
+        if (-not $latchSection -or (Get-FlowedText $latchSection).IndexOf('records the frame that settled it', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The interaction machine settles the late-traffic latch without recording which frame settled it, so the fact the parity profile is asked to compare is not produced by the machine that owns the latch.')
+        }
+    }
+
+    # X2: W4 created a route that reaches no terminal interaction, and the grid still requires every
+    # generated cell to assert a latch while W6 makes that value a normative comparison. A cell with a
+    # required field and no value is the silence Decision 10 names: two independent implementations
+    # pick `clear` and absent, and every cross-stack comparison passes.
+    $coverageEvidence = ($stateEventCoverage -split '## Evidence required', 2)[1]
+    if ($flowedCoverage.IndexOf('retains no history and no latch', [System.StringComparison]::Ordinal) -ge 0 -and
+        $coverageEvidence -and (Get-FlowedText $coverageEvidence).IndexOf('late-traffic latch', [System.StringComparison]::Ordinal) -ge 0) {
+        if ((Get-FlowedText $coverageEvidence).IndexOf('not-applicable', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The grid requires every generated cell to assert the late-traffic latch and W4 gave one cell no latch at all. The absent value must be an explicit `not-applicable`, or two implementations will differ between absent and `clear` with nothing to catch it.')
+        }
+    }
+
+    # X3: the grid is not the detailed authority and says so. The recipient transition table -- which
+    # is -- has exactly one row from `unseen`, for a request. A cancellation control at `unseen` has no
+    # detailed row, so the machine's own totality rule routes it to an interaction-scoped
+    # `state-violation` and terminal `peer-fault`, which is a terminal interaction, which owns a latch.
+    # That is three contradictions of W4 and of the grid cell, about the exact event C4-P2's first
+    # conjunct quantifies over.
+    if ($unseenFaultsCancellation) {
+        $recipientTransitions = ($interaction -split '## Recipient transitions', 2)[1] -split '## Admission order', 2 | Select-Object -First 1
+        $unseenTransitionRows = @($recipientTransitions -split "`r?`n" | Where-Object { $_ -match '^\| `unseen` \|' -and $_.IndexOf('rejected-protocol', [System.StringComparison]::Ordinal) -ge 0 })
+        if ($unseenTransitionRows.Count -lt 1) {
+            $failures.Add('The recipient transition table has no row for a recognized peer event at `unseen`, so the interaction machine''s own totality rule sends it to `state-violation` and terminal `peer-fault` -- a terminal interaction, which owns a latch. The grid says `rejected-protocol` with no latch and no history, and the grid is not the detailed authority.')
+        }
+    }
+
+    # X4: W3 added the second mutation so the recipient-to-initiator conjunct has something to fail
+    # on. U3 added the vector group that makes the first mutation exist in Batch 2. Nothing added the
+    # second to that group, so half of W3 does not reach the vector suite -- U3 one layer down.
+    if ($flowedContract.IndexOf('`C4-outcome-precedes-ack`', [System.StringComparison]::Ordinal) -ge 0) {
+        $briefVectorGroups = ($neutralBrief -split '## Vector groups', 2)[1] -split '## Capability-wide property format', 2 | Select-Object -First 1
+        if (-not $briefVectorGroups -or (Get-FlowedText $briefVectorGroups).IndexOf('`C4-outcome-precedes-ack`', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The required adversarial vector groups name `C4-control-precedes-request` and not `C4-outcome-precedes-ack`, so nothing requires the second conjunct''s mutation to be written. A named mutation absent from the required groups is a mutation no suite has to contain.')
+        }
+    }
+
+    # X5: W4 says the recipient "keeps nothing" for an identity refused at `unseen`, and C4-P2's first
+    # conjunct quantifies over what an endpoint *records* there. Either the witness does not exist or
+    # "keeps nothing" is false, and which one is meant is the difference between a bounded refusal and
+    # an unfalsifiable property. The distinction that reconciles them -- evidence recorded once and
+    # never consulted, versus per-identity state a later decision reads -- is stated nowhere, and the
+    # machine's terminal-provenance table covers only terminal histories, which W4 says this is not.
+    if ($flowedContract.IndexOf('retains no interaction history and no latch', [System.StringComparison]::Ordinal) -ge 0) {
+        if ($flowedContract.IndexOf('never consulted by a later admission', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('C4 says the `unseen` refusal keeps nothing and C4-P2 quantifies over the refusal the recipient records there. One local observation is evidence and not the per-identity state the R1 ruling refused, but only because nothing consults it -- and no artifact says so, so the property''s witness is a record the contract has just abolished.')
+        }
+        if ($flowedInteraction.IndexOf('for an identity never accepted', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The interaction machine''s terminal-provenance table has no row for the `unseen` refusal, because W4 says it is not a terminal history. The table is where an observation''s provenance is fixed, so the one record C4-P2 reads has no declared provenance.')
+        }
+        if ($flowedCoverage.IndexOf('local observation is recorded', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The grid states what the `unseen` refusal retains and not what it records, so the cell the generated recipient model enumerates has no observation to assert.')
+        }
+    }
 }
 
 # S2: a held control needs a disposition for the third exit from `validating`. Admission succeeding
@@ -634,6 +709,37 @@ Assert-ContainsAll 'Channel 0.2 review policy' (Get-FlowedText $reviewReadme) @(
     '`build/verify-interchange.ps1`'
 )
 
+# X6: U6 was a pin clause naming a commit that later work had superseded, and the clause rewritten to
+# close it went stale the same way one commit later: it names the U2-U8 correction as the current
+# review target while the W1-W6 commit changed six design artifacts after it. Prose cannot check
+# itself against history, so this check does, and it keys off the repository rather than off the
+# clause's wording. It is skipped only while the design artifacts have uncommitted edits, because a
+# pin cannot name a commit that does not exist yet; once the correction is committed the clause and
+# the commit that carries it must agree.
+$designArtifactPathspec = @(
+    'docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md',
+    'docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md',
+    'docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md',
+    'docs/future/channel/Brontide-Channel-0.2-State-Event-Coverage-0.1.md',
+    'docs/future/channel/Brontide-Channel-0.2-Responsibility-Matrix-0.1.md',
+    'docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md',
+    'docs/future/channel/Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md',
+    'docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md'
+)
+if (Test-Path -LiteralPath (Join-Path $repositoryRoot '.git')) {
+    $pendingDesignEdits = & git -C $repositoryRoot status --porcelain -- $designArtifactPathspec 2>$null
+    $latestDesignSubject = (& git -C $repositoryRoot log -1 --format=%s -- $designArtifactPathspec 2>$null)
+    if ($LASTEXITCODE -eq 0 -and $latestDesignSubject -and -not $pendingDesignEdits) {
+        $flowedReviewReadme = Get-FlowedText $reviewReadme
+        if ($flowedReviewReadme.IndexOf('The current review target is the commit titled', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add('The review policy names no current review target, so a fresh reviewer has nothing to pin its attestation to.')
+        }
+        elseif ($flowedReviewReadme.IndexOf("The current review target is the commit titled ``$latestDesignSubject``", [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("The review policy's current review target is not the most recent commit to change a design artifact, which is '$latestDesignSubject'. This is U6: the clause is written in the commit before the one that supersedes it, and the reviewer is sent at artifacts that have already moved.")
+        }
+    }
+}
+
 # T4: every first-batch artifact's own status block names the review cycle it is actually waiting
 # for. The escalating adjectives of the earlier cycles ("final", "definitive", "totality") left three
 # status blocks pointing at a review that had already happened, so the phrase is now one stable
@@ -722,10 +828,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-u1-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all eight negative attestations, and the U1 correction iteration review before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all eight negative attestations, and both correction iteration reviews before the next closure review.')
 }
 
 # An iteration review is author-side work and may never be mistaken for a closing judgement. The file
@@ -737,6 +843,38 @@ foreach ($reviewFile in $reviewMarkdown) {
     foreach ($required in @('This is an iteration review, not an attestation', 'does not close the first batch, does not authorize Batch 2')) {
         if ($iterationText.IndexOf($required, [System.StringComparison]::Ordinal) -lt 0) {
             $failures.Add("'$($reviewFile.Name)' is an iteration review but does not state that it cannot close the batch. An author-side pass that reads as a verdict is how a programme talks itself into closure.")
+        }
+    }
+}
+
+# X7: the two-kinds-of-review section requires an iteration review to be retained as evidence. The
+# W1-W6 passes left none: their record is a commit message and a step list, and the disposition
+# history that carries V1 and V2 stops before them. The check is written over the general class --
+# every finding a retained iteration review raises must appear in the disposition history, and a
+# finding family the review policy attributes to an iteration pass must have a retained record --
+# rather than over the six ids, so the next pass that skips its record fails here too.
+$dispositionHistory = ($completeness -split '## Review disposition', 2)[1]
+if (-not $dispositionHistory) {
+    $failures.Add('The completeness review carries no review-disposition history, which is where each cycle''s findings are recorded.')
+}
+else {
+    $iterationReviewFiles = @($reviewMarkdown | Where-Object { $_.Name -match 'iteration-review\.md$' })
+    foreach ($reviewFile in $iterationReviewFiles) {
+        $iterationRaw = Get-Content -Raw -LiteralPath $reviewFile.FullName -Encoding UTF8
+        foreach ($findingMatch in [regex]::Matches($iterationRaw, '(?m)^### ([A-Z][0-9]+) ')) {
+            $findingId = $findingMatch.Groups[1].Value
+            if ($dispositionHistory.IndexOf($findingId, [System.StringComparison]::Ordinal) -lt 0) {
+                $failures.Add("The completeness review's disposition history does not record '$findingId', which '$($reviewFile.Name)' raises. A finding whose only record is an iteration review has no disposition in the artifact the next reviewer reads.")
+            }
+        }
+    }
+
+    $iterationRecords = @($iterationReviewFiles | ForEach-Object { Get-Content -Raw -LiteralPath $_.FullName -Encoding UTF8 })
+    $flowedReviewPolicy = Get-FlowedText $reviewReadme
+    foreach ($findingFamily in @('W1', 'W6')) {
+        if ($flowedReviewPolicy.IndexOf("**$findingFamily**", [System.StringComparison]::Ordinal) -lt 0) { continue }
+        if (-not ($iterationRecords | Where-Object { $_.IndexOf($findingFamily, [System.StringComparison]::Ordinal) -ge 0 })) {
+            $failures.Add("The review policy attributes '$findingFamily' to an author-side iteration pass, and no retained iteration review records it. The two-kinds-of-review section requires that pass to be retained as evidence; a commit message is not the evidence trail.")
         }
     }
 }

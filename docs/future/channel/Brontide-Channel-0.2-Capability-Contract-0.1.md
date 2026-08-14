@@ -1,14 +1,17 @@
-# Channel 0.2 capability contract 0.1
+﻿# Channel 0.2 capability contract 0.1
 
 Date: 2026-08-11
 
-Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, R1, S1, S2, U1, W2, W3, and
-W4 corrected after independent review. C4 now owns intra-interaction frame order with `C4-P2`, and
-C4's silence and C11 are scoped to cross-interaction and cross-session ordering. Under the U1
-correction `C4-P2` is stated over the refusal a reordering produces rather than over the accepted
-sequence, because the design refuses a reordered frame and the accepted sequence can therefore never
-be out of order. It carries one named mutation per conjunct under W3, and under W4 an identity
-refused at `unseen` retains no interaction history and no latch. No Channel 0.2 schema, API,
+Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, R1, S1, S2, U1, W2, W3, W4,
+X1, and X5 corrected after independent review. C4 now owns intra-interaction frame order with
+`C4-P2`, and C4's silence and C11 are scoped to cross-interaction and cross-session ordering. Under
+the U1 correction `C4-P2` is stated over the refusal a reordering produces rather than over the
+accepted sequence, because the design refuses a reordered frame and the accepted sequence can
+therefore never be out of order. It carries one named mutation per conjunct under W3, and under W4 an
+identity refused at `unseen` retains no interaction history and no latch. Under X5 that refusal still
+records one local observation, which is the witness the property reads and is evidence rather than
+retained state; under X1 the second conjunct's witness is the frame a late-traffic latch settled
+against rather than the latch value. No Channel 0.2 schema, API,
 implementation, or ratification is authorized until the complete design foundation receives a fresh
 independent closure re-review.
 
@@ -198,14 +201,32 @@ fail on.
 
 Their expected observations are exactly what the receiving endpoint records: one `rejected-protocol`
 for a control naming an identity the recipient has never been asked to open, and one late-traffic
-`state-violation` for the displaced acknowledgement. Those recorded refusals are the witnesses
-`C4-P2` fails on. Each is complete data rather than an unspecified expectation, which is what `C12`
-requires of every vector.
+`state-violation` whose latch records the displaced acknowledgement as the frame that settled it.
+Those recorded refusals are the witnesses `C4-P2` fails on. Each is complete data rather than an
+unspecified expectation, which is what `C12` requires of every vector.
+
+The second witness is the settling frame and not the latch value. `fault-committed` is one of three
+enum values and names no frame, and the two cases the property must leave green — a legal late control
+arriving after a peer's terminal, and a duplicate terminal from a nonconformant peer — record that
+same value against the same `state-violation` category. What separates the mutation from them is which
+frame settled the latch and which endpoint committed it, so the latch records that frame and the
+parity profile compares it.
 
 **A control refused at `unseen` retains no interaction history and no latch.** The identity was never
 accepted, so it never enters the replay set, and the recipient commits one interaction-scoped peer
 fault and keeps nothing: no terminal history, no `late-traffic-fault` latch, and no reservation
-against the in-flight bound. This is what makes the `unseen` verdict bounded rather than merely
+against the in-flight bound.
+
+It does **record** one C10 local observation of the refusal, and recording is not retaining. An
+observation is written once as evidence and is **never consulted by a later admission, correlation,
+replay, or bound decision**; the state the R1 ruling refused is state a later decision would have to
+read, which is what made it accruable by a peer naming identities it never opens. The distinction is
+load-bearing in both directions and neither direction survives without it: a peer that names a
+million unopened identities still costs the recipient no retained per-identity state, and `C4-P2`'s
+first conjunct still has the recorded refusal it quantifies over. Abolishing the record instead of the
+retention would leave the property with no witness at all.
+
+This is what makes the `unseen` verdict bounded rather than merely
 frameless — holding *any* per-identity state there, including a terminal record, would let a peer
 accrue unbounded local state by naming identities it never opens, which is the exposure the 2026-08-13
 R1 ruling refused. A later request bearing that identity therefore arrives at `unseen` as any other

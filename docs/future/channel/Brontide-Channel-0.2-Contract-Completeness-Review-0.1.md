@@ -1,9 +1,9 @@
-# Channel 0.2 contract-completeness and silence review 0.1
+﻿# Channel 0.2 contract-completeness and silence review 0.1
 
 Date: 2026-08-11
 
-Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, and U1/U4/U5/U7/W3 correction
-passes complete. The per-capability property audit now registers `C4-P2` and the mutation that must
+Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, U1/U4/U5/U7/W3, and X7
+correction passes complete. The per-capability property audit now registers `C4-P2` and the mutation that must
 fail it; its silence is why an unfalsifiable property survived the correction that introduced it. The
 disposition history now runs to the eighth cycle rather than stopping at the fifth, and the in-flight
 bound's direction scope is recorded as session-wide-as-written against per-direction-as-enforced
@@ -336,7 +336,35 @@ artifacts they were raised against. The subsequent
 [U1 correction iteration review](./reviews/channel-0.2-u1-correction-iteration-review.md) then found V1
 and V2, both of which would have left the corrected property unfalsifiable in practice: the parity
 profile compared only the peer-fault category, and no endpoint was authorised to inject the reordering
-the mutation needs.
+the mutation needs. **V3** was raised in the same pass and deliberately not corrected: V1 and V2 were
+U3 being paid down one forced instalment at a time rather than dispositioned, and how much of the
+S1/U1 obligation the brief must carry before Batch 2 is an owner call about Batch 2's scope. U3 was
+subsequently corrected in full, which is V3's disposition.
+
+Two further author-side passes over those corrections raised **W1**-**W6**, and a third raised
+**X1**-**X7**; the retained record of both is the
+[W correction iteration review](./reviews/channel-0.2-w-correction-iteration-review.md). W1 gave the
+closed property operator set the bounded precedence relation `C4-P2` needs, W2 stated what the
+reordering provider declares at establishment, W3 added a second named mutation so each conjunct has
+one, W4 stated that an identity refused at `unseen` retains no history and no latch, W5 gave the
+precedence operator its operand in the vector format, and W6 added the late-traffic latch to the
+normative parity comparison.
+
+X1-X7 are the layer beneath those. **X1** — the parity profile compared the latch *value*, and the
+conjunct that motivated W6 reads the frame the latch settled against; the mutation and the two cases
+the property must leave green all record `state-violation` with `fault-committed`, and
+`state-violation` declares no detailed-reason set for V1's clause to reach. The settling frame is now
+recorded and compared. **X2** — W4 created a route with no latch while the grid requires every
+generated cell to assert one; the absence is now an explicit `not-applicable` value rather than an
+absent field. **X3** — the recipient transition table, which is the detailed authority, had no row for
+a control at `unseen`, so the machine's own totality rule produced a terminal `peer-fault` with a
+latch; the row now exists. **X4** — `C4-outcome-precedes-ack` was in no required adversarial vector
+group, so half of W3 did not reach the suite. **X5** — `C4-P2`'s first conjunct quantifies over a
+record W4 said the recipient does not keep; recording evidence is now distinguished from retaining
+state, in C4, the provenance table, and the grid. **X6** — the pin clause closing U6 went stale one
+commit later and is now checked against the repository rather than against its own wording. **X7** —
+the W passes left no retained iteration review, and V3's disposition was unrecorded; both are closed
+here and by a check written over the class.
 
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.

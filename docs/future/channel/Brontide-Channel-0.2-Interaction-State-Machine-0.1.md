@@ -1,11 +1,15 @@
-# Channel 0.2 interaction state machine 0.1
+﻿# Channel 0.2 interaction state machine 0.1
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; B1/B2, N2, F1/F2, D2/D3/D4, T3, R1, R2, S2, and W4
-corrected after independent review and subject to a fresh independent closure re-review. `validating`
-now carries loss and drain rows, the pre-dispatch loss rule is reconciled to any nonterminal state,
-and under W4 an identity refused at `unseen` is not a terminal interaction and owns no latch.
+Status: proposed first-batch design artifact; B1/B2, N2, F1/F2, D2/D3/D4, T3, R1, R2, S2, W4, X1, X3,
+and X5 corrected after independent review and subject to a fresh independent closure re-review.
+`validating` now carries loss and drain rows, the pre-dispatch loss rule is reconciled to any
+nonterminal state, and under W4 an identity refused at `unseen` is not a terminal interaction and owns
+no latch. Under X3 that event is a recipient transition row of its own, because the totality rule
+would otherwise make it the terminal interaction W4 refuses; under X5 the refusal records one local
+observation whose provenance this artifact fixes; and under X1 settling the late-traffic latch records
+the frame that settled it, which is what `C4-P2` reads and the latch value is not.
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 
@@ -84,6 +88,7 @@ with the same provenance, not a fictional global state.
 | From | Event and guard | To | Handler effect possible? |
 | --- | --- | --- | --- |
 | `unseen` | complete request for an established session arrives | `validating` | no |
+| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `rejected-protocol` | no; commit one interaction-scoped peer fault, record one local observation, and retain no history, no latch, and no in-flight reservation |
 | `validating` | structural/profile/state/class/direction/Shape/authority-structure/bound/replay/concurrency check fails | `rejected-protocol` | no |
 | `validating` | receiver-local external phase predicate is `false` or `unknown` | `refused-local` | no |
 | `validating` | structurally valid authority presentation is denied by local policy | `refused-local` | no |
@@ -175,6 +180,13 @@ request bearing that identity arrives at `unseen` like any other first request. 
 state for an identity a peer never opened is the unbounded-state exposure the 2026-08-13 R1 ruling
 refused, and a retained terminal record would be exactly that state.
 
+The recipient transition table carries that event as its own row rather than leaving it to the
+totality rule below, because the catch-all would route it to `state-violation` and a terminal
+`peer-fault` — a terminal interaction, which owns a latch, which is the state the rule above refuses.
+One local observation of the refusal is recorded, which is evidence and not retained state: nothing
+consults it, and `C4-P2`'s first conjunct quantifies over it. Its provenance is the last row of the
+terminal-provenance table.
+
 Every other terminal interaction owns a `late-traffic-fault` latch with exactly three values:
 
 - `clear`: no post-terminal violation has been handled;
@@ -185,6 +197,12 @@ Every other terminal interaction owns a `late-traffic-fault` latch with exactly 
 The first duplicate semantic terminal or late non-fault control while the latch is `clear` preserves
 the first accepted terminal history and attempts exactly one interaction-scoped `state-violation`
 peer fault. Successful commit sets `fault-committed`; inability to commit sets `fault-unavailable`.
+Settling the latch also **records the frame that settled it** — its kind, its interaction identity,
+and the endpoint that committed it — in the local observation. The three latch values name no frame,
+and `C4-P2`'s second conjunct is about *which* frame a latch settled against: a displaced
+acknowledgement its own endpoint committed before the terminal frame fails the property, while a legal
+late control from the peer and a duplicate terminal committed after the terminal frame do not, and all
+three settle the same latch to the same value.
 A late peer fault never receives an answering fault, and no late input after either settled value
 emits another frame. Effect certainty and the semantic terminal remain those of the first history.
 
@@ -219,9 +237,15 @@ class and `released` predicate.
 | `outcome-succeeded/failed/cancelled` | yes | no | receipt/commit also observed locally |
 | initiator `peer-fault` / recipient `peer-fault` / recipient `rejected-protocol` | no | yes | receipt/commit also observed locally |
 | initiator or recipient `lost` | no | no | yes |
+| recipient `rejected-protocol` for an identity never accepted | no | yes | yes; one observation is recorded although no interaction state is retained |
 
 No adapter may translate horizontally between these columns merely because its local API has one
 error union.
+
+The last row is not a terminal history and is listed anyway, because it is the one refusal that
+produces a peer statement and a local observation while retaining nothing. Leaving it out of this
+table would leave the record `C4-P2` reads with no declared provenance, and a table of terminal
+histories is exactly where a reader looks for one.
 
 ## Capability-wide properties
 

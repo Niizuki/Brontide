@@ -1,10 +1,13 @@
-# Channel 0.2 neutral contract and vector brief 0.1
+﻿# Channel 0.2 neutral contract and vector brief 0.1
 
 Date: 2026-08-11
 
 Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet, and
 subject to a fresh independent closure re-review. Batch 2 opens only after that review conforms and
-its closure record exists. U3, V1, V2, W1, W2, W5, and W6 corrected after independent review: the
+its closure record exists. U3, V1, V2, W1, W2, W5, W6, X1, X2, and X4 corrected after independent
+review: the parity profile compares the frame a late-traffic latch settled against rather than only
+the latch value, the latch's `not-applicable` value is compared rather than absent, the required
+adversarial groups carry one ordering mutation per `C4-P2` conjunct, and the
 property operator set gained the one bounded precedence relation `C4-P2` needs, stimulus steps name
 their committing endpoint so that relation has an operand, the parity profile compares the
 late-traffic latch the grid already required as evidence, and the established-profile
@@ -210,12 +213,15 @@ groups include:
 - every legal and representative illegal session transition;
 - external phase false and unknown for each interaction class;
 - bounded concurrency interleavings, replay, mismatch, and out-of-order terminal facts;
-- intra-interaction frame order and its ordering mutation: conforming commit-order delivery in both
-  directions, loss of either frame, a cancellation control for an identity the peer never opened —
-  which is legal input from a nonconformant peer and must not fail `C4-P2` — and
-  `C4-control-precedes-request` itself, which requires the reordering injection declared under the
-  neutral provider boundary and is the only vector group whose expected observation is a property
-  going red;
+- intra-interaction frame order and **both** its ordering mutations: conforming commit-order delivery
+  in both directions, loss of either frame, a cancellation control for an identity the peer never
+  opened — which is legal input from a nonconformant peer and must not fail `C4-P2` — a legal late
+  control arriving after a peer's terminal and a duplicate terminal from a nonconformant peer, which
+  settle a latch and must also not fail it, and then `C4-control-precedes-request` and
+  `C4-outcome-precedes-ack`, one per conjunct. Both require the reordering injection declared under
+  the neutral provider boundary, and this is the only group whose expected observations include a
+  property going red. One mutation per conjunct is the requirement: a conjunct whose mutation no group
+  has to contain is unfalsifiable in the suite however well the contract names it;
 - payload projection versus authority non-projection and each declared bound class;
 - local denial, cross-trust forbidden authority, and deputy attribution;
 - relational exact/mismatched edge, direction, member, Operation, Capability, Shape, and phase;
@@ -272,7 +278,16 @@ Core normative comparison includes:
   `rejected-protocol` caused by a cancellation control naming an unopened identity, which is one
   detailed reason of `invalid-interaction-correlation` and not the category as a whole;
 - the terminal interaction's `late-traffic latch` value, which the state/event grid already requires
-  every generated cell to assert and which `C4-P2`'s second conjunct reads;
+  every generated cell to assert — including the explicit `not-applicable` a route reaching no
+  terminal interaction asserts, which is compared as a value and never as an absent field;
+- the **frame that settled the latch** wherever one is settled: its kind, its interaction identity,
+  and its committing endpoint. The latch value is one of three enum values and names no frame, and
+  `C4-P2`'s second conjunct is about which frame a latch settled against. The mutation it must fail on
+  and the two cases it must leave green — a legal late control arriving after a peer's terminal, and a
+  duplicate terminal from a nonconformant peer — all record `state-violation` with `fault-committed`,
+  and `state-violation` declares no closed detailed-reason set for the clause above to reach. The
+  settling frame is what separates them, and once it names its committing endpoint the property can
+  bind it to a declared stimulus step through the precedence relation;
 - effect certainty and unknown reason class; and
 - extension/profile-owned normative details selected by that profile's parity declaration.
 
