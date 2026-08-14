@@ -21,7 +21,9 @@ stated only in the artifact that reads it, a closed detailed-reason set with no 
 to two-letter finding families. **AD1**-**AD3** then turned the same method on the retained records
 themselves: AD1 is the AC pass's residual denying that the AA and AB evidence existed and referring
 the gap to the owner, AD3 the three disagreeing accounts of what the W iteration review contains, and
-AD2 the half of the X7 class check still written over two ids, which is left open as an owner call.
+AD2 the half of the X7 class check still written over two ids. The ninth closure review then returned
+`does-not-conform` with blocking **AE1** and nonblocking **AE2**-**AE5**, and ruled AD2 a defect; all
+six are corrected, AE1 under the dated ruling recorded below.
 A fresh independent closure re-review of that whole sequence precedes Batch 2. No Channel 0.2
 implementation or ratification is claimed.
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
@@ -565,3 +567,42 @@ still identify questions that require owners before closure.
   interaction whose admission has not resolved is outside the drain snapshot. The interaction
   machine's pre-dispatch loss rule is reconciled to "any nonterminal state", with certainty rather
   than applicability as what separates pre- from post-dispatch.
+- **2026-08-14 — AE1 correction ruling, how `C4-P2` separates a reordering from a loss:** the first
+  conjunct reads the recipient's subsequent admission of the refused identity. This is a correction
+  ruling raised by the ninth independent review; like the R1 and S1 rulings it does not join the four
+  first-batch rulings above. The S1 ruling gave intra-interaction frame order an owner and the U1
+  correction gave it a property that could fail; AE1 is that property failing on behaviour the design
+  permits. Loss of either frame is a required member of the property's own adversarial group, and a
+  conforming realization whose request is lost produces exactly the refusal the conjunct forbade — the
+  initiator cannot know the request was lost, because C8 states recipient admission is not observable
+  from `dispatched`. The two vectors were also indistinguishable in every field the property may read,
+  so this was not a missing exemption: either the property was red on legal input, or declaring the
+  loss vector green made the named mutation green too, which is U1 restored.
+
+  **Option A, selected:** the conjunct additionally requires that the recipient afterwards admits an
+  interaction for that identity. A reordering delivers the request second and the recipient admits it,
+  which C4's retention rule already requires of any later request bearing that identity; a loss never
+  delivers it. The distinguishing fact was therefore already in the design and already recorded — only
+  the property did not read it. The parity profile now compares that admission, and the conjunct tests
+  membership of the identity in the set the recipient admits within the vector, which the closed
+  operator set already permits.
+
+  **Option B, rejected:** scope the conjunct to vectors that declare a reordering injection. The
+  smallest edit, and it leaves the property's subject alone, but it makes the property read harness
+  metadata rather than recorded observations — the operand class W1 narrowed the operator set
+  specifically to keep out, and one where a property's verdict depends on how a vector was authored
+  rather than on what the implementation did.
+
+  **Option C, rejected:** drop the first conjunct and rely on the second, which the ninth review's
+  exhaustive probe found already catches every reordering of one endpoint's own frames. It is the
+  simplest property, but it retires the initiator-to-recipient direction as a named promise and
+  reopens W3, which added the second mutation precisely because a conjunct with no mutation of its own
+  is half unfalsifiable. Narrowing a promise to fit a property that could not express it is the
+  inverse of what the S1 line has been doing.
+
+  Nonblocking AE3 is dispositioned in the same pass rather than by ruling, because it needed a rule
+  rather than a choice: C12 required every property to be able to fail and nothing required one to
+  stay green, which is why ten cycles audited falsifiability and none audited soundness. C12 now
+  states the converse, the neutral brief's property format carries a required-green set as a normative
+  field, and the per-capability audit carries the column. Eleven of its twelve cells read `owed`,
+  which is named residual work rather than a guessed set.
