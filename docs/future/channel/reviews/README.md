@@ -9,9 +9,22 @@ design refuses every reordered frame, so the accepted sequence was empty and the
 green on its own named mutation — is corrected by restating `C4-P2` over the refusal a reordering
 produces. Nonblocking **U2**-**U8** are now also corrected, as are **V1** and **V2**, which the
 [U1 correction iteration review](./channel-0.2-u1-correction-iteration-review.md) raised against the
-U1 correction itself. Every finding this programme has recorded is closed in the artifacts it was
-raised against, and none of that is a verdict: a fresh independent closure re-review is pending on
-the U2-U8 correction pin, and it is the only thing that can close the batch. R1 and S1 each required their own
+U1 correction itself, and **W1**-**W6**, which two further iteration passes raised against those
+corrections in turn. Every finding this programme has recorded is closed in the artifacts it was
+raised against, and none of that is a verdict: a fresh independent closure re-review is pending, and
+it is the only thing that can close the batch.
+
+The U-V-W sequence is worth reading before the next review rather than after it. S1 found that the
+fact had no owner; U1 that the property carrying it could not fail; V1 that the property's subject was
+not compared; V2 that the mutation carrying the property could not be run; W1 that the property could
+not be written in the declared language; W3 that half of it had no mutation at all; W4 that its
+expected observation rested on a retention rule no artifact stated; W5 that the operator W1 added had
+no operand in the vector schema; and W6 that its other conjunct read a fact required as evidence and
+excluded from comparison. Nine layers, each of which existed to guarantee the one above it, and each
+of which had its own hole. Every one was found by asking what the previous fix *depends on* rather
+than whether it is worded correctly, and none was found by re-reading the contract. The reviewer
+should assume a tenth exists and hunt it that way, rather than checking whether the nine are now
+right. R1 and S1 each required their own
 dated owner ruling, recorded in the redesign plan; both are correction rulings and neither joins the
 four first-batch rulings, which remain the fixed set recorded on 2026-08-11. The U1 correction needed
 no ruling: it was a property that could not fail, which is a defect rather than a choice.
@@ -131,6 +144,29 @@ schemas or implementation, and it does not create
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3c. ~~Correct W5 and W6.~~ **Done.** Both were found by asking what the W1 fix *reads* rather than
+   whether it is worded correctly. **W5** — the precedence relation is defined over one endpoint's own
+   frames, and the vector format recorded "ordered stimulus steps" with no committing endpoint, so the
+   operator had no operand; steps now name theirs. **W6** — the state/event grid requires every
+   generated cell to assert the late-traffic latch and the normative parity profile never compared it,
+   so `C4-P2`'s second conjunct read a fact that was demanded as evidence and excluded from comparison
+   at once; the parity profile now carries it.
+3b. ~~Correct W1-W4, found by a second iteration pass over the U1/U2-U8 corrections.~~ **Done.** Each
+   is the U1 family one layer further down, and each was found by asking a different question than
+   "is this worded correctly". **W1** — `C4-P2` turns on "had already committed" and "committed
+   before", and the closed property operator set had no ordering relation at all, so the property was
+   not *writable* in the form the brief requires of every property. A bounded precedence relation over
+   one endpoint's declared stimulus steps is added, deliberately the narrowest one that makes `C4-P2`
+   expressible and explicitly not comparable across endpoints or against anything observed. **W2** —
+   nothing said what the reordering provider declares at establishment; it declares per-interaction
+   frame order and then violates it, and establishment verifies the declaration is present rather than
+   true, which is precisely why the S1 correction needed both a declaration and a property. **W3** —
+   `C4-P2` had two conjuncts and one named mutation, so the recipient-to-initiator conjunct was
+   unfalsifiable by name; `C4-outcome-precedes-ack` is added. **W4** — nothing said whether a
+   recipient retains a terminal history for an identity refused at `unseen`. It retains none: the
+   identity never entered the replay set, and a retained record would be the unbounded state the R1
+   ruling refused. That rule now appears in C4, the interaction machine, and the grid, because the
+   latch otherwise claims every terminal interaction.
 3a. ~~Correct the nonblocking findings U2, U3, U4, U7, and U8.~~ **Done**, each with a failing check
    written first and mutation-tested after. The responsibility matrix now declares a closed
    owner-identifier vocabulary and the ordering row is owned by `channel`, not a second name for the

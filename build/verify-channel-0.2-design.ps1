@@ -309,6 +309,74 @@ if ($flowedContract.IndexOf('is the mutation this property must go red on', [Sys
     if ($flowedBrief.IndexOf('reordering injection', [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add('The neutral provider boundary authorises deterministic fault/loss injection only, so no endpoint in the evidence set can produce `C4-control-precedes-request`. C4-P2 would carry a named mutation that nothing is permitted to execute.')
     }
+
+    # W1: the property must be writable in the form the brief requires of every property. C4-P2 turns
+    # on "had already committed" and "committed before", which are precedence comparisons between two
+    # positions in one endpoint's declared step sequence. The closed operator set offers equality,
+    # membership, counts, transition edges, set uniqueness, implication and bounded for-all -- no
+    # ordering relation at all. U1 was a property that could not fail and V2 a mutation that could not
+    # run; this is the same family again, at the property language.
+    $briefOperators = ($neutralBrief -split '## Capability-wide property format', 2)[1] -split '## Observation and parity profile', 2 | Select-Object -First 1
+    if (-not $briefOperators -or (Get-FlowedText $briefOperators).IndexOf('precedence between two steps', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The closed property operator set has no ordering relation, so C4-P2''s "had already committed" and "committed before" cannot be expressed in the form the brief requires of every property. A property that cannot be written is not falsifiable however well it is worded.')
+    }
+
+    # W2: a mutation run has to establish before it can reorder, and C4 requires a realization to
+    # declare per-interaction frame order at establishment. Nothing said what the injecting
+    # realization declares, so the fixture was either internally inconsistent or unable to establish.
+    if ($flowedBrief.IndexOf('declares per-interaction frame order and then violates it', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('Nothing states what the reordering realization declares at establishment. C4 requires the declaration, so an injecting provider either declares conformance and lies -- which must be said, because it is the whole reason the property is needed alongside the declaration -- or cannot establish and the mutation cannot run.')
+    }
+
+    # W3: C4-P2 has two conjuncts and one named mutation, and that mutation exercises the
+    # initiator-to-recipient direction only. C12 requires every property to be failable against a
+    # named incorrect implementation; half a property with no named mutation is half unfalsifiable.
+    if ($flowedContract.IndexOf('`C4-outcome-precedes-ack`', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('C4-P2''s second conjunct covers the recipient-to-initiator direction and has no named mutation. `C4-control-precedes-request` reorders a request and a control, which the first conjunct catches; nothing named reorders an acknowledgement and its terminal.')
+    }
+
+    # W4: the mutation's expected observation depends on what the recipient keeps after refusing a
+    # control at `unseen`. Only accepted identities enter the replay set, so an identity refused at
+    # `unseen` was never accepted -- yet the late-traffic latch belongs to "every terminal
+    # interaction", which would mean retaining state for identities a peer never opened. That is the
+    # exact exposure the R1 ruling refused when it rejected holding at `unseen`.
+    if ($flowedContract.IndexOf('retains no interaction history and no latch', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('Nothing says whether a recipient retains a terminal history for an identity refused at `unseen`. Retaining one lets a peer accrue unbounded state by naming identities it never opens, which is what the R1 ruling refused; not retaining one must be stated, because the late-traffic latch otherwise claims every terminal interaction.')
+    }
+
+    # The retention rule is exactly the kind of fact S1 was raised about: stated in one artifact and
+    # contradicted by another. The interaction machine says every terminal interaction owns a latch
+    # and the grid routes every terminal through it, so both must carry the exception or C4 disagrees
+    # with them.
+    $flowedInteraction = Get-FlowedText $interaction
+    $flowedCoverage = Get-FlowedText $stateEventCoverage
+    if ($flowedInteraction.IndexOf('An identity refused at `unseen` is not a terminal interaction', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The interaction machine gives every terminal interaction a late-traffic latch without excepting an identity refused at `unseen`, which C4 says retains nothing. One fact, two artifacts, two answers.')
+    }
+    if ($flowedCoverage.IndexOf('retains no history and no latch', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The recipient coverage grid routes an `unseen` cancellation control to `rejected-protocol` and routes every terminal through the late-traffic latch, without recording that this particular refusal retains nothing.')
+    }
+    if ($flowedCompleteness.IndexOf('`C4-outcome-precedes-ack`', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The per-capability property audit registers only one of C4-P2''s two named mutations.')
+    }
+
+    # W5: the precedence operator is defined "for one endpoint", but the vector format records only
+    # "ordered stimulus steps" with no committing endpoint. The operator's operand does not exist in
+    # the vector schema, so the property still cannot be written -- W1 solved in the operator set and
+    # unsolved in the data the operator reads.
+    $briefVectorFormat = ($neutralBrief -split '## Vector format', 2)[1] -split '## Vector groups', 2 | Select-Object -First 1
+    if (-not $briefVectorFormat -or (Get-FlowedText $briefVectorFormat).IndexOf('committing endpoint', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The vector format records ordered stimulus steps without saying which endpoint committed each one. C4-P2''s precedence relation is defined for one endpoint''s own frames, so without that attribution the operator has no operand and the property is unwritable for the same reason W1 named.')
+    }
+
+    # W6: the coverage grid requires every generated cell to assert the late-traffic latch, and the
+    # normative parity profile does not compare it. C4-P2's second conjunct quantifies over a latched
+    # `state-violation`, so the fact it reads is required as evidence in one artifact and absent from
+    # the comparison set in another -- the V1 defect again, on the other conjunct.
+    $briefParity = ($neutralBrief -split '## Observation and parity profile', 2)[1] -split 'Excluded by default', 2 | Select-Object -First 1
+    if (-not $briefParity -or (Get-FlowedText $briefParity).IndexOf('late-traffic latch', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The state/event grid requires every generated cell to assert the late-traffic latch, but the normative parity profile never compares it. C4-P2''s second conjunct reads a latched `state-violation`, so the fact is demanded as evidence and excluded from comparison at the same time.')
+    }
 }
 
 # S2: a held control needs a disposition for the third exit from `validating`. Admission succeeding

@@ -2,7 +2,7 @@
 
 Date: 2026-08-11
 
-Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, and U1/U4/U5/U7 correction
+Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, and U1/U4/U5/U7/W3 correction
 passes complete. The per-capability property audit now registers `C4-P2` and the mutation that must
 fail it; its silence is why an unfalsifiable property survived the correction that introduced it. The
 disposition history now runs to the eighth cycle rather than stopping at the fifth, and the in-flight
@@ -173,7 +173,7 @@ property counts as evidence.
 | C1 | C1-P1 exact profile or known-none | remove one required facet from fixed profile only |
 | C2 | C2-P1 legal transition/terminal monotonicity | accept new interaction while draining |
 | C3 | C3-P1 exact class/direction/phase | mark unknown phase as true |
-| C4 | C4-P1 one dispatch/terminal and bounded concurrency; C4-P2 intra-interaction frame order | redispatch replayed identity or exceed bound; `C4-control-precedes-request` delivers one interaction's control before the request that opens it |
+| C4 | C4-P1 one dispatch/terminal and bounded concurrency; C4-P2 intra-interaction frame order, one conjunct per direction | redispatch replayed identity or exceed bound; `C4-control-precedes-request` delivers one interaction's control before the request that opens it, and `C4-outcome-precedes-ack` delivers the recipient's Outcome before the acknowledgement it committed first — one named mutation per conjunct, because half a property with no mutation is half unfalsifiable |
 | C5 | C5-P1 all positional/bound checks before dispatch | project an authority value or dispatch oversized payload |
 | C6 | C6-P1 exact permitted local authority | treat compatibility/delivery as permission |
 | C7 | C7-P1 exact declaration/pre-Ready/no phase creation | admit wrong edge or let success create Ready |

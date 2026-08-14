@@ -2,10 +2,10 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; B1/B2, N2, F1/F2, D2/D3/D4, T3, R1, R2, and S2
+Status: proposed first-batch design artifact; B1/B2, N2, F1/F2, D2/D3/D4, T3, R1, R2, S2, and W4
 corrected after independent review and subject to a fresh independent closure re-review. `validating`
-now carries loss and drain rows, and the pre-dispatch loss rule is reconciled to any nonterminal
-state.
+now carries loss and drain rows, the pre-dispatch loss rule is reconciled to any nonterminal state,
+and under W4 an identity refused at `unseen` is not a terminal interaction and owns no latch.
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 
@@ -168,7 +168,14 @@ Cancellation is optional in the profile and exact when present:
 
 ## Late terminal and control disposition
 
-Every terminal interaction owns a `late-traffic-fault` latch with exactly three values:
+An identity refused at `unseen` is not a terminal interaction and owns no latch. No request with that
+identity was ever accepted, so no interaction exists to be terminal: the recipient commits one
+interaction-scoped peer fault, retains no history, no latch, and no in-flight reservation, and a later
+request bearing that identity arrives at `unseen` like any other first request. Holding per-identity
+state for an identity a peer never opened is the unbounded-state exposure the 2026-08-13 R1 ruling
+refused, and a retained terminal record would be exactly that state.
+
+Every other terminal interaction owns a `late-traffic-fault` latch with exactly three values:
 
 - `clear`: no post-terminal violation has been handled;
 - `fault-committed`: one interaction-scoped `state-violation` peer fault was committed; and
