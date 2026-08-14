@@ -102,8 +102,9 @@ disposition history. Its pattern matches one letter followed by digits. The AA a
 existed when it was written, so it could not see them, and it could not have seen this review's own
 findings either — a retained record whose enforcement silently skips it.
 
-**Corrected** by widening the family pattern to one or two letters. This did not require retroactive
-records for the AA and AB passes and none were written; see the residual note below.
+**Corrected** by widening the family pattern to one or two letters. No retroactive records were
+needed: the AA and AB families already have retained records in the W correction iteration review.
+The residual note below originally claimed otherwise and is corrected in place.
 
 ## Checks
 
@@ -141,14 +142,22 @@ where two were needed, or that the committing-endpoint gloss covers every quanti
 
 ## Residual, not corrected
 
-**The AA and AB passes still have no retained iteration review.** The two-kinds-of-review section
-requires an author-side pass to be retained as evidence — that requirement is X7 — and the sixth and
-seventh passes left commit messages and step lists, which is the gap X7 named for the W passes. AC4
-widened the check that should have caught it, but the check only fires on findings *inside* a retained
-review, so it does not fire on a pass that retained none. Writing those records now would mean
-authoring an account of passes this actor did not run, which is worse than the gap. It is left for the
-owner: either the AA/AB reasoning is reconstructed by whoever ran it, or the requirement is scoped to
-say that the disposition history is the retained record when a pass raises no separate findings.
+**This section claimed that the AA and AB passes had left no retained record of their own, and
+referred the resulting gap to the owner. The claim was false.** It is corrected in place rather than deleted,
+because a residual that asks the owner to decide something is exactly the kind of claim a later pass
+acts on, and the correction is worth more as a record than the original was.
+
+The W correction iteration review records AA1-AA3 and AB1-AB2 under its fourth and fifth pass
+headings, each with the mechanism-and-disposition treatment its X, Y, and Z findings get. The
+requirement X7 states is therefore met for every pass in the sequence; nothing needs reconstructing
+and nothing is referred to the owner.
+
+How the error was made is the part worth keeping. This pass checked the W review's roster entry and
+its scope line — both of which stopped short of AA and AB — and did not open the document itself. That
+is AC1 in miniature: auditing an artifact's description rather than the artifact. Both descriptions
+are now corrected, and the design verifier derives each retained review's families from its own
+finding headings, so a roster entry or scope line cannot understate what a review records without
+failing the gate.
 
 **Two questions this pass did not settle**, both inherited and both now slightly larger. The
 observation record is load-bearing for `C4-P2` and no artifact bounds its volume; AC2 has just added

@@ -44,7 +44,12 @@ which is subordinate to the three artifacts that own the fact and still named X1
 ledger's closed detailed-reason set had no value for the refusal `C4-P2`'s first conjunct reads; the
 property's own "the same endpoint" pointed at the endpoint that records a refusal rather than the one
 that committed the frame; and the check written over the X7 class matched one-letter finding families
-only. No independent review has yet seen any of it,
+only. **AD1**-**AD3** are a ninth, and the first whose findings are in the evidence about the design
+rather than in the design: the AC pass's own residual denied that the AA and AB records existed and
+referred the gap to the owner, while the W iteration review has recorded both families all along, and
+three documents described that review's contents three different ways. AD1 and AD3 are corrected;
+**AD2**, the half of the X7 class check still written over two ids, is left as an owner call.
+No independent review has yet seen any of it,
 and no Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
@@ -1621,7 +1626,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 8 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, and AB1-AB2 families, and awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 8 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, and AD1-AD3 families with AD2 open as an owner call, and awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

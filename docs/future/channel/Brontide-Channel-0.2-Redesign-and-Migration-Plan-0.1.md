@@ -18,7 +18,10 @@ previous corrections and none by an independent review. AB1 is this status block
 S3 while six passes ran. AC1-AC4 are the layer under the Y and V corrections — the arrival ordinal
 stated only in the artifact that reads it, a closed detailed-reason set with no value for the refusal
 `C4-P2` quantifies over, the property's own subject naming the wrong endpoint, and a class check blind
-to two-letter finding families.
+to two-letter finding families. **AD1**-**AD3** then turned the same method on the retained records
+themselves: AD1 is the AC pass's residual denying that the AA and AB evidence existed and referring
+the gap to the owner, AD3 the three disagreeing accounts of what the W iteration review contains, and
+AD2 the half of the X7 class check still written over two ids, which is left open as an owner call.
 A fresh independent closure re-review of that whole sequence precedes Batch 2. No Channel 0.2
 implementation or ratification is claimed.
 **Designed against:** Brontide Architecture 0.8, Complete Draft.

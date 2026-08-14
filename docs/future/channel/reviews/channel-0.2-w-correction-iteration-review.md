@@ -3,8 +3,8 @@
 Reviewer identity: `agent:claude-opus-5-channel-0.2-w-correction-iteration-2026-08-14-3dc50cf`
 
 Reviewed work: the W1-W6 corrections, `fix(channel): close W1-W6, the layers under the U1 correction`,
-and the U1/U2-U8/V1-V2 corrections beneath them; then, in four further passes, the X1-X7, Y1-Y4,
-Z1-Z4, and AA1-AA3 corrections this document itself records
+and the U1/U2-U8/V1-V2 corrections beneath them; then, in five further passes, the X1-X7, Y1-Y4,
+Z1-Z4, AA1-AA3, and AB1-AB2 corrections this document itself records
 
 Date: 2026-08-14
 

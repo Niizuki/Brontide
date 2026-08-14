@@ -14,10 +14,11 @@ corrections in turn, **X1**-**X7**, which a third raised against the W correctio
 which a fourth raised against the X corrections, **Z1**-**Z4**, which a fifth raised against those,
 and **AA1**-**AA3**, which a sixth raised against the entry points rather than the design package,
 and **AB1**-**AB2**, which a seventh raised against the two artifacts the others never opened, and
-**AC1**-**AC4**, which an eighth raised by evaluating `C4-P2` rather than reading it. Every finding
-this programme has recorded is closed in the artifacts it was raised against, and none of that is a
-verdict: a fresh independent closure re-review is pending, and it is the only thing that can close the
-batch.
+**AC1**-**AC4**, which an eighth raised by evaluating `C4-P2` rather than reading it, and
+**AD1**-**AD3**, which a ninth raised against the retained records rather than against the design.
+Every finding this programme has recorded is closed in the artifacts it was raised against **except
+AD2**, which is an open owner call and is described where it is raised. None of that is a verdict: a
+fresh independent closure re-review is pending, and it is the only thing that can close the batch.
 
 The U-through-AC sequence is worth reading before the next review rather than after it. S1 found that the
 fact had no owner; U1 that the property carrying it could not fail; V1 that the property's subject was
@@ -47,7 +48,11 @@ inventory, the AA family and AB1 are six cycles of staleness in the three entry-
 AB2 is S1 itself reappearing at the same place in the same artifact once three corrections had made
 the observation record load-bearing. None was introduced by any correction, and every pass since S1
 walked past all of them while auditing each other's fixes. The layer under a fix is where these
-findings have been, but it is not the only place they are. R1 and S1 each required their own
+findings have been, but it is not the only place they are. **AD1** is the third direction, and the one
+no pass had tried: audit the retained records against the artifacts rather than the artifacts against
+their records. It found the AC pass denying that the AA and AB evidence existed and referring the
+resulting non-gap to the owner — so a reviewer that trusts a roster entry, a scope line, or a residual
+note over the document it describes will reproduce the defect that produced it. R1 and S1 each required their own
 dated owner ruling, recorded in the redesign plan; both are correction rulings and neither joins the
 four first-batch rulings, which remain the fixed set recorded on 2026-08-11. The U1 correction needed
 no ruling: it was a property that could not fail, which is a defect rather than a choice.
@@ -167,6 +172,23 @@ schemas or implementation, and it does not create
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3j. ~~Correct AD1 and AD3, found by a ninth iteration pass over the retained records themselves.~~
+   **Done**, and retained as the
+   [AD correction iteration review](./channel-0.2-ad-correction-iteration-review.md). **AD1** — the AC
+   review's residual stated that the AA and AB passes had left no retained record and referred the
+   choice between reconstructing them and rescoping the requirement to the owner; the W iteration
+   review has recorded AA1-AA3 and AB1-AB2 under its fourth and fifth pass headings all along. Acting
+   on that residual would have produced duplicate records or rescoped a requirement nothing had
+   violated. It was made by reading the W review's roster entry and scope line instead of the
+   document — AC1 committed by the pass that raised AC1, one section below where it raised it.
+   **AD3** — those two descriptions and the residual gave three different accounts of what the W
+   review contains, none matching it; each is what some later pass consulted instead of opening it.
+   Both are corrected, and the verifier now derives each retained review's families from its own
+   finding headings, so a description cannot understate the document it describes without failing the
+   gate. **AD2** is **open**: the X7 comment names two halves of its class check, AC4 widened the
+   first, and the second is still written over two ids while the policy bolds thirty-six. There is no
+   live gap — every family does have a retained record — so it is an owner call on whether the
+   hardcoded pair is a defect or a deliberate narrowing the comment describes badly.
 3i. ~~Correct AC1-AC4, found by an eighth iteration pass.~~ **Done**, and retained as the
    [AC correction iteration review](./channel-0.2-ac-correction-iteration-review.md). **AC1** — Y4's
    arrival ordinal was stated in the neutral brief and nowhere else, and the brief is subordinate to
@@ -373,7 +395,7 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   evaluator from the published prose and running the property's own named mutation through it. The
   attestation records that U1 answers a question its dispatching brief named, and that U2-U8 did not.
 
-The current review target is the commit titled `fix(channel): close AC1-AC4, the layer under the Y and V corrections`,
+The current review target is the commit titled `fix(channel): close AD1 and AD3, the retained-record descriptions`,
 committed 2026-08-14, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
@@ -397,14 +419,19 @@ context elsewhere — never as evidence that their conclusions are right.
   correction; raised V1 and V2, corrected both, and recorded V3 as an owner call.
 - [W correction iteration review](./channel-0.2-w-correction-iteration-review.md) — the W1-W6
   corrections; raised X1-X7 and corrected all seven, then turned the same method on its own
-  corrections twice more and raised Y1-Y4 and Z1-Z4. It is also the retained record for the two W
-  passes, which left none of their own — that gap is X7.
+  corrections four times more and raised Y1-Y4, Z1-Z4, AA1-AA3, and AB1-AB2, each recorded under its
+  own pass heading. It is also the retained record for the two W passes, which left none of their
+  own — that gap is X7. It is the longest of the three and the one a reader is most likely to
+  under-read: the AA and AB families are in its fourth and fifth passes, not in a separate document.
 - [AC correction iteration review](./channel-0.2-ac-correction-iteration-review.md) — the whole
   sequence through AB2; raised AC1-AC4 and corrected all four. AC1 was found by writing a `C4-P2`
   evaluator from the published prose, as the handoff below asks the closure reviewer to do, and
   running it twice: once with the settling-frame fields the neutral brief states and once with the
-  fields the interaction machine states. It records that the AA and AB passes still have no retained
-  iteration review of their own, and declines to author one for passes it did not run.
+  fields the interaction machine states.
+- [AD correction iteration review](./channel-0.2-ad-correction-iteration-review.md) — the sequence at
+  `4a52a56`; raised AD1-AD3, corrected AD1 and AD3, and left AD2 as an owner call. It is the first
+  pass to audit the retained records against the artifacts rather than the artifacts against their
+  records, and all three findings came from that one question.
 
 ## Disclosed process deviation in the T1-T4 correction
 

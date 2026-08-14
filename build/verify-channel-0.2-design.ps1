@@ -992,10 +992,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all eight negative attestations, and all three correction iteration reviews before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all eight negative attestations, and all four correction iteration reviews before the next closure review.')
 }
 
 # An iteration review is author-side work and may never be mistaken for a closing judgement. The file
@@ -1104,6 +1104,86 @@ else {
         if (-not (Test-Path -LiteralPath $statusIndexFullPath)) { continue }
         if ((Get-Content -Raw -LiteralPath $statusIndexFullPath -Encoding UTF8).IndexOf('channel-core', [System.StringComparison]::Ordinal) -ge 0) {
             $failures.Add("'$statusIndexRelativePath' names the owner identifier ``channel-core``, which U2 abolished when it closed the responsibility matrix's owner vocabulary. One owner has one identifier, or an ownership inventory keyed by identifier reads two owners.")
+        }
+    }
+
+    # AD1/AD3: three documents gave three different accounts of what one retained iteration review
+    # contains, and one of them was false. The W review records AA1-AA3 and AB1-AB2 as headed
+    # findings with corrected dispositions; its own scope line stopped at AA, the policy's roster
+    # entry for it stopped at Z, and the AC review's residual note said the AA and AB passes "still
+    # have no retained iteration review" and referred the resulting gap to the owner. A retained
+    # record whose own description understates it sends the next reviewer to reconstruct evidence
+    # that already exists, which is the opposite of what retaining it is for.
+    #
+    # Checked as a class rather than over these three statements: every family a review records must
+    # be named by that review's scope line and by its roster entry, and no review may deny a record
+    # that exists. A pass that extends a retained review and forgets to say so fails here.
+    # Bounded at the next heading: the disclosed-deviation sections below the roster link the same
+    # files, and an unbounded section reads those links as roster entries.
+    $iterationRoster = [regex]::Match($reviewReadme, '(?ms)^## Retained iteration reviews\r?\n(.+?)(?=^## |\z)').Groups[1].Value
+    if (-not $iterationRoster) {
+        $failures.Add('The review policy carries no retained-iteration-review roster. That section is where a reader learns which author-side passes left evidence, and the two-kinds-of-review section requires each to be retained.')
+    }
+    $recordedFamilies = @()
+    foreach ($reviewFile in $iterationReviewFiles) {
+        $iterationRaw = Get-Content -Raw -LiteralPath $reviewFile.FullName -Encoding UTF8
+        $families = @([regex]::Matches($iterationRaw, '(?m)^### ([A-Z]{1,2})[0-9]+ ') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+        $recordedFamilies += $families
+
+        # The scope line is the review's own account of what it covers. Two conventions are in use
+        # and both are legitimate: naming the corrections reviewed, or enumerating the families the
+        # document records. Only a *partial* enumeration is the defect, so this fires when a scope
+        # line names some of its own families and not the rest.
+        $scopeMatch = [regex]::Match($iterationRaw, '(?ms)^Reviewed[^:\r\n]*:(.+?)\r?\n\r?\n')
+        if (-not $scopeMatch.Success) {
+            $failures.Add("'$($reviewFile.Name)' carries no 'Reviewed' scope line, so nothing states which corrections it examined.")
+        }
+        else {
+            $scopeText = Get-FlowedText $scopeMatch.Groups[1].Value
+            $enumerated = @($families | Where-Object { $scopeText -cmatch "\b$_[0-9]" })
+            if ($enumerated.Count -gt 0) {
+                foreach ($family in $families) {
+                    if ($scopeText -cnotmatch "\b$family[0-9]") {
+                        $failures.Add("'$($reviewFile.Name)' enumerates the families it records and omits '$family', which it also records. A partial enumeration is read as the whole of it, and the omitted family looks like a pass that left no evidence.")
+                    }
+                }
+            }
+        }
+
+        if ($iterationRoster) {
+            $rosterEntry = @($iterationRoster -split '(?m)^- ' | Where-Object { $_.IndexOf($reviewFile.Name, [System.StringComparison]::Ordinal) -ge 0 })
+            if ($rosterEntry.Count -ne 1) {
+                $failures.Add("The retained-iteration-review roster does not carry exactly one entry for '$($reviewFile.Name)'.")
+            }
+            else {
+                $rosterText = Get-FlowedText $rosterEntry[0]
+                foreach ($family in $families) {
+                    if ($rosterText -cnotmatch "\b$family[0-9]") {
+                        $failures.Add("The roster entry for '$($reviewFile.Name)' does not name the '$family' family, which that review records. The roster is what tells a fresh reviewer where a family's reasoning already lives.")
+                    }
+                }
+            }
+        }
+    }
+
+    # A retained review may not deny a record that exists. The claim's subject precedes the phrase,
+    # so the window before each occurrence is what carries the families being denied.
+    #
+    # This reads assertion and quotation alike: a later pass retracting such a claim must not restate
+    # it verbatim beside the families it names, which is a constraint on how a retraction is worded
+    # rather than a defect in it. Detecting the difference would mean parsing negation, and a check
+    # that guesses at that would fail open on the assertions this exists to catch.
+    $recordedFamilies = @($recordedFamilies | Sort-Object -Unique)
+    foreach ($reviewFile in $iterationReviewFiles) {
+        $flowedIteration = Get-FlowedText (Get-Content -Raw -LiteralPath $reviewFile.FullName -Encoding UTF8)
+        foreach ($denial in @([regex]::Matches($flowedIteration, 'no retained iteration review'))) {
+            $windowStart = [Math]::Max(0, $denial.Index - 160)
+            $window = $flowedIteration.Substring($windowStart, $denial.Index - $windowStart)
+            foreach ($family in $recordedFamilies) {
+                if ($window -cmatch "\b$family\b") {
+                    $failures.Add("'$($reviewFile.Name)' states that the '$family' pass left no retained iteration review, and a retained review records that family's findings under its own headings. The next reviewer is sent to reconstruct evidence that already exists, or to re-decide a question that is already answered.")
+                }
+            }
         }
     }
 

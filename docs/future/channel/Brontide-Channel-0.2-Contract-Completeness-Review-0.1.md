@@ -423,5 +423,20 @@ literal reading quantified over an endpoint pair no vector can produce, which is
 property arriving through a pronoun. **AC4** — the check written over the X7 class matched one-letter
 finding families only, so it could not see AA, AB, or the findings of the review retaining it.
 
+A ninth pass raised **AD1**-**AD3**, retained as the
+[AD correction iteration review](./reviews/channel-0.2-ad-correction-iteration-review.md), and is the
+first whose findings are in the evidence *about* the design rather than in the design. **AD1** — the
+AC review's residual stated that the AA and AB passes had left no retained record and referred the
+resulting gap to the owner, while the W correction iteration review records AA1-AA3 and AB1-AB2 under
+its fourth and fifth pass headings; acting on that residual would have meant authoring duplicate
+records or rescoping a requirement that was never violated. It was made by reading the W review's
+roster entry and scope line instead of the document, which is AC1 committed by the pass that raised
+AC1. **AD2** — the X7 comment names two halves of its class check and AC4 widened only the first; the
+second is written over two ids while the policy bolds thirty-six, so it cannot fail for AA, AB, AC, or
+AD. There is no live gap and it is left as an owner call rather than corrected by a second actor in
+the same week. **AD3** — the W review's scope line, the policy's roster entry, and the AC residual
+gave three different accounts of what that review contains, none matching it; each is what some later
+pass consulted instead of opening it, and AD1 is the proof that at least one did.
+
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.
