@@ -4,11 +4,13 @@ Date: 2026-08-11
 
 Status: proposed first-batch ownership contract; B3 and cross-artifact N1 corrected after independent
 review and confirmed unchanged by the fourth, fifth, sixth, and seventh reviews, then corrected for
-S1. Its ordering row was the evidence for S1: the fact the `unseen` cancellation verdict depends on
-had no owner. Under the 2026-08-13 S1 ruling the delivery row is scoped to cross-interaction
-ordering and a new `Intra-interaction frame order` row assigns that fact to `channel-core`, carried
-by a per-interaction frame order declaration in the realization profile. It is subject to a fresh
-independent closure re-review.
+S1, then for U2. Its ordering row was the evidence for S1: the fact the `unseen` cancellation verdict
+depends on had no owner. Under the 2026-08-13 S1 ruling the delivery row is scoped to cross-interaction
+ordering and a new `Intra-interaction frame order` row assigns that fact to `channel`, carried
+by a per-interaction frame order declaration in the realization profile. U2 closed the owner
+vocabulary: that row first used `channel-core`, a second identifier for the contract family every
+other Channel-core row already called `channel`, and the identifiers are now declared once and used
+only from that list. It is subject to a fresh independent closure re-review.
 
 ## Rule
 
@@ -21,6 +23,40 @@ native consumers of the neutral artifacts; neither appears as the other's depend
 The `Semantic owner` column uses one exact owner identifier per row. An identifier names the
 contract family that defines the fact; a concrete profile selects the one owner instance where the
 family is parameterized. Consumers and carriers remain separate columns and never become co-owners.
+
+One owner also has exactly one identifier. B3 required one owner per row and got it, but nothing kept
+the vocabulary closed, so the S1 correction was able to introduce `channel-core` for a fact whose
+contract family every other row already called `channel`. A machine-readable ownership inventory keyed
+by identifier would have read those as two owners, which is the duplicate the neutral verifier is
+required to reject. The vocabulary below is therefore closed: every identifier the matrix uses appears
+in it, and a new owner is added here before it is used in a row.
+
+## Owner identifiers
+
+- `channel` — the Channel 0.2 core contract itself. Every fact C1-C12 defines and core owns uses this
+  identifier, including intra-interaction frame order; there is no separate `channel-core` owner.
+- `channel-profile` — a concrete Channel profile's declarations, such as the finite `max-in-flight`
+  and per-class cancellability.
+- `realization-profile` — a declared encoding, framing, and transport realization of Channel.
+- `local-realization` — the local host's own observation of transport and process conditions.
+- `local-authority-boundary` — the local pre-dispatch refusal boundary.
+- `application-profile` — the application/Component contract conducted through a Channel profile.
+- `operation-contract` — the exact Operation, its Shapes, and its semantic Outcome.
+- `shape-contract` — Architecture 0.8 Shape compatibility and projection.
+- `authority-domain` — the evaluating authority domain, intra-domain and cross-trust.
+- `identity-facet` — cross-domain identity and attestation, as a declared extension facet.
+- `portable-binding` — Portable Binding's own phases and binding lifecycle.
+- `composition` — the Composition phase owner.
+- `component-management` — Component Management, which owns Ready.
+- `cm3-lifecycle-contract` — the CM3 relational lifecycle declaration.
+- `resource-profile` — payload/resource representation, ownership, and lifetime.
+- `retry-profile` — attempt policy above Channel.
+- `delivery-facet` — delivery, persistence, and cross-interaction ordering, as a declared facet.
+- `flow-facet` — streaming and backpressure, as a declared facet.
+- `realtime-facet` — timing constraints, as a declared facet.
+- `lifecycle` — long-running activity beyond one interaction.
+- `host-runtime` — scheduling and fairness.
+- `observability-system` — logs, metrics, traces, and storage.
 
 ## Ownership matrix
 
@@ -59,7 +95,7 @@ family is parameterized. Consumers and carriers remain separate columns and neve
 | Profile-owned effect details | `application-profile` | Channel observation references profile evidence | exact profile details reference | Channel certainty form |
 | Retry attempt policy | `retry-profile` | Channel admits each attempt independently | new interaction id plus optional causal prior reference | reuse/replay of one id |
 | Delivery, persistence, cross-interaction ordering | `delivery-facet` | Channel profile may require facet → extension | exact extension facet/version | Channel core |
-| Intra-interaction frame order | `channel-core` | realization declares conformance → profile verifies at establishment | per-interaction frame order declaration in the realization profile | `delivery-facet`, transport |
+| Intra-interaction frame order | `channel` | realization declares conformance → profile verifies at establishment | per-interaction frame order declaration in the realization profile | `delivery-facet`, transport |
 | Streaming and backpressure | `flow-facet` | Channel profile may add interaction class/facet → Flow | stream identity subordinate to interaction, terminal bridge | unary core reinterpretation |
 | Long-running activity | `lifecycle` | Channel Outcome may identify/start activity under exact extension | activity reference and lifecycle facet | keeping interaction forever nonterminal |
 | Timing constraints | `realtime-facet` | Channel observes declared timing facts → Realtime | explicit timing facet and clock provenance | ambient Channel clock |

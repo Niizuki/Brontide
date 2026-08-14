@@ -518,7 +518,9 @@ still identify questions that require owners before closure.
   `C4-P2` and the `C4-control-precedes-request` mutation vector, C4's silence and C11 are scoped to
   cross-interaction and cross-session ordering, the matrix gains an `Intra-interaction frame order`
   row owned by `channel-core`, and the realization profile declares per-interaction frame order so a
-  profile can verify it. The `unseen` fault is then correct and provable. The obligation is small:
+  profile can verify it. *(The identifier recorded in this ruling was later normalised to `channel`
+  under U2, which found `channel-core` to be a second name for one contract family. The owner is
+  unchanged; the ruling text is retained as issued.)* The `unseen` fault is then correct and provable. The obligation is small:
   one direction of one interaction carries at most a request and one cancellation control, so an
   unordered transport conforms by sequencing two frames rather than by building a reordering buffer.
 

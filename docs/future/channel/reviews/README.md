@@ -7,8 +7,11 @@ index. That review's blocking **U1** — the S1 correction gave intra-interactio
 but attached `C4-P2` to it, and `C4-P2` quantified over the frames a recipient *accepts* while the
 design refuses every reordered frame, so the accepted sequence was empty and the property stayed
 green on its own named mutation — is corrected by restating `C4-P2` over the refusal a reordering
-produces. Nonblocking **U2**-**U8** remain open and are recorded in the eighth attestation. A fresh
-independent closure re-review is pending on the U1 correction pin. R1 and S1 each required their own
+produces. Nonblocking **U2**-**U8** are now also corrected, as are **V1** and **V2**, which the
+[U1 correction iteration review](./channel-0.2-u1-correction-iteration-review.md) raised against the
+U1 correction itself. Every finding this programme has recorded is closed in the artifacts it was
+raised against, and none of that is a verdict: a fresh independent closure re-review is pending on
+the U2-U8 correction pin, and it is the only thing that can close the batch. R1 and S1 each required their own
 dated owner ruling, recorded in the redesign plan; both are correction rulings and neither joins the
 four first-batch rulings, which remain the fixed set recorded on 2026-08-11. The U1 correction needed
 no ruling: it was a property that could not fail, which is a defect rather than a choice.
@@ -128,6 +131,18 @@ schemas or implementation, and it does not create
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3a. ~~Correct the nonblocking findings U2, U3, U4, U7, and U8.~~ **Done**, each with a failing check
+   written first and mutation-tested after. The responsibility matrix now declares a closed
+   owner-identifier vocabulary and the ordering row is owned by `channel`, not a second name for the
+   same family (U2). The neutral brief's establishment rule carries the realization's per-interaction
+   frame order declaration and the required adversarial groups include one owning the ordering
+   mutation (U3). The completeness review's disposition history runs to the eighth cycle instead of
+   stopping at the fifth (U4), and its in-flight direction-scope row records that `C4-P1` and `I5`
+   read session-wide while the reservation mechanism can enforce only per-direction, rather than
+   calling the scope undeclared (U7). The initiator grid's pre-dispatch Local loss cell names `lost`
+   like every other cell in that column (U8). One of these checks was itself found weak by mutation
+   testing — a phrase-anywhere test that the artifact's own status block satisfied — and was scoped to
+   the section that has to carry the rule.
 3. ~~Correct U1 contract-first.~~ **Done.** `C4-P2` is restated over the refusal reordering produces
    rather than over the accepted sequence: no endpoint records a recipient `rejected-protocol` at
    `unseen` for a cancellation control whose request the same endpoint had already committed, and none
@@ -218,8 +233,9 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   evaluator from the published prose and running the property's own named mutation through it. The
   attestation records that U1 answers a question its dispatching brief named, and that U2-U8 did not.
 
-The U1 correction pin is the commit titled `fix(channel): make C4-P2 falsifiable`, committed
-2026-08-14, which is the current review target. Review that commit or any later commit whose design
+The current review target is the commit titled `fix(channel): close U2, U3, U4, U7, and U8`, committed
+2026-08-14, which is the head of the U1/U2-U8 correction sequence beginning at
+`fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because the
 preceding cycle's pin clause went stale exactly that way and the eighth review raised it as **U6**.
 The preceding pin `3892c23a8dd4c7f298e877ba73710ee0ddc97bc4` is what the seventh review assessed and

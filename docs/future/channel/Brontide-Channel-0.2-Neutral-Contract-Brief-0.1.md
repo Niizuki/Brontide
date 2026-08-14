@@ -4,7 +4,9 @@ Date: 2026-08-11
 
 Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet, and
 subject to a fresh independent closure re-review. Batch 2 opens only after that review conforms and
-its closure record exists. V1 and V2 corrected during the U1 iteration pass: the parity profile now
+its closure record exists. U3, V1, and V2 corrected after independent review: the established-profile
+image carries the realization's per-interaction frame order declaration, the required adversarial
+groups include one owning intra-interaction frame order and its ordering mutation, the parity profile
 compares the peer-fault detailed reason, and the neutral provider may inject deterministic
 per-interaction reordering so a declared ordering mutation can actually be executed.
 
@@ -119,6 +121,14 @@ A fixed realization supplies the exact same profile image locally and validates 
 rules. The vector suite compares the resulting canonical established-profile image byte for byte
 after semantic canonicalization.
 
+The established-profile image also carries the realization's **per-interaction frame order**
+declaration. C4 promises intra-interaction frame order, the responsibility matrix makes that
+declaration the artifact crossing the boundary from the realization, and C4's evidence requires a
+profile to check it at establishment — so `established-profile.json` gives it a normative position and
+a realization that does not declare it refuses establishment exactly as an unknown required facet
+does. It is a realization fact, not an extension facet: a profile with no facets at all still has it,
+because core promises the ordering rather than a `delivery-facet` supplying it.
+
 Unknown required facets or any version mismatch refuse before interaction dispatch. Optional facets
 may be absent only when their declaration states that absence changes no core identity, authority,
 terminal, or uncertainty meaning.
@@ -193,6 +203,12 @@ groups include:
 - every legal and representative illegal session transition;
 - external phase false and unknown for each interaction class;
 - bounded concurrency interleavings, replay, mismatch, and out-of-order terminal facts;
+- intra-interaction frame order and its ordering mutation: conforming commit-order delivery in both
+  directions, loss of either frame, a cancellation control for an identity the peer never opened —
+  which is legal input from a nonconformant peer and must not fail `C4-P2` — and
+  `C4-control-precedes-request` itself, which requires the reordering injection declared under the
+  neutral provider boundary and is the only vector group whose expected observation is a property
+  going red;
 - payload projection versus authority non-projection and each declared bound class;
 - local denial, cross-trust forbidden authority, and deputy attribution;
 - relational exact/mismatched edge, direction, member, Operation, Capability, Shape, and phase;

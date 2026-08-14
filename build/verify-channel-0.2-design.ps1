@@ -342,6 +342,74 @@ foreach ($row in $ownershipRows) {
     }
 }
 
+# U2: B3 required one owner identifier per row and got it, but nothing kept the *vocabulary* closed.
+# The S1 correction introduced `channel-core` for a fact whose contract family every other row calls
+# `channel`, so one owner acquired two names and a Batch 2 ownership inventory keyed by identifier
+# would read them as two owners. The matrix must therefore declare its identifiers and use only those.
+$ownerGlossarySection = ($responsibility -split '## Owner identifiers', 2)[1]
+if (-not $ownerGlossarySection) {
+    $failures.Add('The responsibility matrix declares no owner-identifier vocabulary, so nothing stops a correction inventing a synonym for an existing owner. B3 fixed one owner per row; it did not fix one name per owner.')
+}
+else {
+    $ownerGlossarySection = ($ownerGlossarySection -split '## Ownership matrix', 2) | Select-Object -First 1
+    $declaredOwners = @([regex]::Matches($ownerGlossarySection, '(?m)^- `([a-z0-9-]+)`') | ForEach-Object { $_.Groups[1].Value })
+    $usedOwners = @($ownershipRows | ForEach-Object { ($_.Trim('|').Split('|')[1]).Trim().Trim('`') } | Where-Object { $_ -match '^[a-z0-9-]+$' } | Sort-Object -Unique)
+    foreach ($usedOwner in $usedOwners) {
+        if ($declaredOwners -notcontains $usedOwner) {
+            $failures.Add("Channel 0.2 responsibility owner '$usedOwner' is used in the ownership matrix but is not declared in the owner-identifier vocabulary.")
+        }
+    }
+    if ($declaredOwners -contains 'channel' -and $declaredOwners -contains 'channel-core') {
+        $failures.Add('The owner vocabulary declares both `channel` and `channel-core`. They name one contract family, and two identifiers for one owner is the duplicate the neutral ownership inventory must reject.')
+    }
+}
+
+# U3: the neutral brief is where every Batch 2 boundary is fixed, and the S1 correction created an
+# establishment-time obligation and a mutation vector that it never carried. V1 and V2 paid part of
+# this; the establishment declaration and the vector group are the rest.
+# Scoped to the establishment section rather than the whole brief: a phrase-anywhere check here is
+# satisfied by the status block, which is a claim about the artifact rather than the rule the artifact
+# has to state. Mutation-testing this check is what exposed that -- it stayed green with the
+# establishment paragraph deleted.
+$briefEstablishment = ($neutralBrief -split '## Version and establishment rule', 2)[1] -split '## Message-schema separation', 2 | Select-Object -First 1
+if (-not $briefEstablishment -or (Get-FlowedText $briefEstablishment).IndexOf('per-interaction frame order', [System.StringComparison]::Ordinal) -lt 0) {
+    $failures.Add('The neutral brief''s establishment rule does not carry the per-interaction frame order declaration, although C4 requires a profile to check it at establishment and the responsibility matrix makes it the crossing artifact. The brief fixes the established-profile boundary, so an obligation absent from it does not reach Batch 2.')
+}
+if ($flowedBrief.IndexOf('intra-interaction frame order and its ordering mutation', [System.StringComparison]::Ordinal) -lt 0) {
+    $failures.Add('The neutral brief lists no adversarial vector group owning intra-interaction frame order, so `C4-control-precedes-request` has no home among the required groups.')
+}
+
+# U4: the completeness review narrates a disposition paragraph per review cycle, and stopped after the
+# fifth while its own status block claimed R1-R3 and S1-S3 complete. A disposition history that
+# silently stops is the staleness class S3 named.
+$dispositionSection = ($completeness -split '## Review disposition', 2)[1]
+foreach ($cyclePin in @('11ba93bddbd38f03df59b4afc5166d7c6991c865', '3892c23a8dd4c7f298e877ba73710ee0ddc97bc4', '3b27e3a85bf018bead6d226a13d075c7e6ed16fa')) {
+    if ($dispositionSection -and $dispositionSection.IndexOf($cyclePin, [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add("The completeness review's disposition history does not record the cycle reviewed at '$cyclePin', although its status block claims that cycle's findings are corrected.")
+    }
+}
+
+# U7: the silence row added for the in-flight bound's direction scope attributes the atomic
+# reservation to C4, which describes no reservation -- the interaction machine does. In a correction
+# class whose whole subject is which artifact states which fact, the attribution has to be exact.
+if ($flowedCompleteness.IndexOf('the atomic reservation C4 describes', [System.StringComparison]::Ordinal) -ge 0) {
+    $failures.Add('The in-flight direction-scope row attributes the atomic in-flight reservation to C4. C4 states the bound; the interaction state machine states the reservation.')
+}
+if ($flowedCompleteness.IndexOf('state one count without saying whether it is per session or per initiating direction', [System.StringComparison]::Ordinal) -ge 0) {
+    $failures.Add('The in-flight direction-scope row says C4-P1 and I5 do not say which scope they mean. Both count nonterminal interactions with no direction restriction, which reads session-wide, while the only mechanism the design provides is a local reservation that can enforce a per-direction count. The row should say that rather than call the scope undeclared.')
+}
+
+# U8: every Local loss cell in the initiator grid names the state it selects except the pre-dispatch
+# one, which is the cell S2's reconciliation was about.
+$initiatorGridSection = ($stateEventCoverage -split '## Initiator interaction coverage grid', 2)[1] -split '## Recipient interaction coverage grid', 2 | Select-Object -First 1
+$preDispatchRow = @($initiatorGridSection -split "`r?`n" | Where-Object { $_ -match '^\| `candidate` / `admitting` \|' })
+if ($preDispatchRow.Count -eq 1) {
+    $preDispatchCells = @($preDispatchRow[0].Trim('|').Split('|') | ForEach-Object { $_.Trim() })
+    if ($preDispatchCells.Count -ge 6 -and $preDispatchCells[5].IndexOf('`lost`', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The initiator grid''s pre-dispatch Local loss cell names no state, while every other Local loss cell names `lost`. The interaction machine selects `lost` in any nonterminal state including pre-dispatch ones, which is exactly what S2 reconciled.')
+    }
+}
+
 $migrationVectorMatches = [regex]::Matches($migration, '(?m)^\| CH-([0-9]{2}) ')
 $migrationVectorNumbers = @($migrationVectorMatches | ForEach-Object { [int]$_.Groups[1].Value })
 if (($migrationVectorNumbers -join ',') -cne ((1..24) -join ',')) {
