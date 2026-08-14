@@ -2,8 +2,12 @@
 
 Date: 2026-08-11
 
-Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, and S1-S3 correction passes
-complete.
+Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, and U1/U4/U5/U7/W3 correction
+passes complete. The per-capability property audit now registers `C4-P2` and the mutation that must
+fail it; its silence is why an unfalsifiable property survived the correction that introduced it. The
+disposition history now runs to the eighth cycle rather than stopping at the fifth, and the in-flight
+bound's direction scope is recorded as session-wide-as-written against per-direction-as-enforced
+rather than as undeclared.
 A fresh independent closure re-review remains required. This review asks what the proposed contract
 does not say. It is separate from conformance review and does not claim the contract is correct.
 
@@ -136,11 +140,11 @@ property counts as evidence.
 | --- | --- | --- |
 | two interactions complete out of order | legal; independent terminal histories | Channel core |
 | concurrency bound races at admission | reserve atomically; one refusal, no lasting replay entry | Channel core/runtime mechanism |
-| direction scope of the in-flight bound | undeclared: C4, `C4-P1`, and `I5` state one count without saying whether it is per session or per initiating direction. The question is unreachable in the only named profile, where one endpoint initiates both classes, and the atomic reservation C4 describes is local with no cross-endpoint coordination | Channel profile + Batch 2 `established-profile` schema |
+| direction scope of the in-flight bound | session-wide as written, per-direction as enforced: `C4-P1` bounds "the number of nonterminal interactions" and `I5` bounds "concurrency" with no direction restriction, which reads session-wide, while the only mechanism the design provides — the interaction machine's atomic one-position reservation at admission — is local and has no cross-endpoint coordination, so it can enforce only a per-direction count. The gap is unreachable in the only named profile, where one endpoint initiates both classes and the two readings coincide; a profile in which both endpoints initiate must state which it means before its vectors can be written | Channel profile + Batch 2 `established-profile` schema |
 | cancel before dispatch | local refusal/no cancel frame; admission may itself be abandoned locally | Channel core |
 | cancel during recipient admission | held, not faulted: exactly one control is retained while `validating` and applied when admission resolves; a refused admission discards it with no frame and does not fire the late-traffic latch | Channel core |
 | loss or drain while a control is held | the third exit from `validating`: held control discarded with no answering frame, late-traffic latch does not fire, and the interaction reaches whatever terminal it would have reached with no control outstanding; an interaction still admitting is outside the drain snapshot | Channel core |
-| control delivered before the request it names | impossible under C4 intra-interaction frame order, which core promises and a realization profile declares; `C4-control-precedes-request` exists as a mutation vector whose expected observation is rejection as nonconforming evidence, so `C4-P2` has something to fail on | Channel core + realization profile |
+| control delivered before the request it names | impossible under C4 intra-interaction frame order, which core promises and a realization profile declares; `C4-control-precedes-request` exists as a mutation vector whose expected observation is the recipient's recorded `rejected-protocol` at `unseen`, which is the witness `C4-P2` fails on | Channel core + realization profile |
 | cancel during possible effects | accepted/refused nonterminal ack; final Outcome/fault/loss required | Channel + Operation profile |
 | cancel after terminal | late control; terminal history unchanged | Channel core |
 | drain with in-flight work | no new admission; existing work terminates | Channel core |
@@ -169,7 +173,7 @@ property counts as evidence.
 | C1 | C1-P1 exact profile or known-none | remove one required facet from fixed profile only |
 | C2 | C2-P1 legal transition/terminal monotonicity | accept new interaction while draining |
 | C3 | C3-P1 exact class/direction/phase | mark unknown phase as true |
-| C4 | C4-P1 one dispatch/terminal and bounded concurrency | redispatch replayed identity or exceed bound |
+| C4 | C4-P1 one dispatch/terminal and bounded concurrency; C4-P2 intra-interaction frame order, one conjunct per direction | redispatch replayed identity or exceed bound; `C4-control-precedes-request` delivers one interaction's control before the request that opens it, and `C4-outcome-precedes-ack` delivers the recipient's Outcome before the acknowledgement it committed first — one named mutation per conjunct, because half a property with no mutation is half unfalsifiable |
 | C5 | C5-P1 all positional/bound checks before dispatch | project an authority value or dispatch oversized payload |
 | C6 | C6-P1 exact permitted local authority | treat compatibility/delivery as permission |
 | C7 | C7-P1 exact declaration/pre-Ready/no phase creation | admit wrong edge or let success create Ready |
@@ -200,10 +204,13 @@ These are not unowned contract holes, but the independent reviewer must challeng
    the reviewer should test whether reserving the semantics without implementing a positive path
    creates an unfalsifiable capability.
 2. Bounded concurrency greater than one is intended to prevent another foundational break; the
-   reviewer should test whether it accidentally imports scheduling or ordering promises. The bound's
-   direction scope is deliberately undeclared rather than decided: no profile in which both endpoints
-   initiate yet exists, so no vector could falsify a rule chosen now. The reviewer should test whether
-   leaving it open is honest or whether one count already implies a scope the artifacts do not state.
+   reviewer should test whether it accidentally imports scheduling or ordering promises. On the
+   bound's direction scope the eighth review answered the question this risk used to ask: one count
+   does already imply a scope. `C4-P1` and `I5` read session-wide and the reservation mechanism can
+   enforce only per-direction, so the two disagree the moment a profile lets both endpoints initiate.
+   No such profile exists, so no vector can falsify either reading today. The reviewer should test
+   whether recording the disagreement is still the right disposition, or whether core must pick a
+   scope before a second initiating direction is designed rather than after.
 3. The external phase predicate may be too generic and permit profiles to smuggle arbitrary policy
    into Channel. Batch 2 must keep it a small, closed fact/predicate form.
 4. Effect certainty `known` with profile-owned details needs a precise neutral representation that
@@ -295,6 +302,41 @@ The escalating cycle adjectives are themselves the cause of T4: four successive 
 "closure", "final closure", "definitive closure", and "totality closure", and three status blocks
 were left pointing at a cycle that had already run. The verifier now pins one stable phrase and
 rejects the superseded names in a status block, so the next cycle cannot repeat the drift.
+
+The closure re-review at `11ba93bddbd38f03df59b4afc5166d7c6991c865` closed T1-T4 but recorded R1-R3 in
+the retained
+[closure re-review attestation](./reviews/channel-0.2-design-foundation-closure-re-review-attestation.md).
+R1 is corrected under the 2026-08-13 ruling that a cancellation control racing recipient admission is
+held rather than faulted: the recipient retains exactly one control while `validating` and applies it
+when admission resolves. R2 is corrected by stating that the two endpoint preconditions are local and
+that no event synchronises them. R3 is corrected by giving `unseen` and `validating` separate recipient
+grid rows, because a control correlates against a known identity in one and not the other. That
+attestation's isolation is partial and it says so; it established R1 but could not have closed the
+batch.
+
+The seventh review at `3892c23a8dd4c7f298e877ba73710ee0ddc97bc4` re-verified R1-R3 individually and
+recorded S1-S3 in the retained
+[closure review 7 attestation](./reviews/channel-0.2-design-foundation-closure-review-7-attestation.md).
+S1 — the R1 correction kept `rejected-protocol` at `unseen` while the fact making that sound was
+asserted in the state/event grid alone, disclaimed by C4 and C11 and assigned to `delivery-facet` by
+the responsibility matrix — is corrected under the 2026-08-13 S1 ruling giving intra-interaction frame
+order an owner. S2 added the `validating` loss and drain rows and reconciled the pre-dispatch loss rule
+to any nonterminal state. S3 was index and status staleness, closed in the commit that recorded the
+review.
+
+The eighth review at `3b27e3a85bf018bead6d226a13d075c7e6ed16fa` verified every retained finding through
+S1-S3 closed individually and recorded U1-U8 in the retained
+[closure review 8 attestation](./reviews/channel-0.2-design-foundation-closure-review-8-attestation.md).
+It found S1 closed as to ownership but not as to falsifiability: `C4-P2` quantified over the frames a
+recipient *accepts*, the design refuses every reordered frame, so the accepted sequence was empty and
+the property stayed green on its own named mutation. U1 is corrected by restating `C4-P2` over the
+refusal a reordering produces, with each conjunct restricted to one endpoint's own frames. U5 is
+corrected in this table, U6 by rewriting the review policy's pin clause, and U2, U3, U7, and U8 in the
+artifacts they were raised against. The subsequent
+[U1 correction iteration review](./reviews/channel-0.2-u1-correction-iteration-review.md) then found V1
+and V2, both of which would have left the corrected property unfalsifiable in practice: the parity
+profile compared only the peer-fault category, and no endpoint was authorised to inject the reordering
+the mutation needs.
 
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.

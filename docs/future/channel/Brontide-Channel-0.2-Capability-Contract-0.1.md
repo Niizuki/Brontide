@@ -2,9 +2,13 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, R1, S1, and S2 corrected
-after independent review. C4 now owns intra-interaction frame order with `C4-P2`, and C4's silence
-and C11 are scoped to cross-interaction and cross-session ordering. No Channel 0.2 schema, API,
+Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, R1, S1, S2, U1, W2, W3, and
+W4 corrected after independent review. C4 now owns intra-interaction frame order with `C4-P2`, and
+C4's silence and C11 are scoped to cross-interaction and cross-session ordering. Under the U1
+correction `C4-P2` is stated over the refusal a reordering produces rather than over the accepted
+sequence, because the design refuses a reordered frame and the accepted sequence can therefore never
+be out of order. It carries one named mutation per conjunct under W3, and under W4 an identity
+refused at `unseen` retains no interaction history and no latch. No Channel 0.2 schema, API,
 implementation, or ratification is authorized until the complete design foundation receives a fresh
 independent closure re-review.
 
@@ -181,26 +185,50 @@ is ignored, and effect certainty remains `unknown` unless explicit evidence narr
 an accepted terminal never replaces that first terminal history.
 
 **Named scenarios.** `C4-two-complete-out-of-order`, `C4-bound-exceeded`,
-`C4-replay-not-redispatched`, `C4-terminal-correlation-mismatch`, and
-`C4-control-precedes-request`.
+`C4-replay-not-redispatched`, `C4-terminal-correlation-mismatch`, `C4-control-precedes-request`, and
+`C4-outcome-precedes-ack`.
 
-`C4-control-precedes-request` is a mutation vector rather than a legal path: a realization delivers
-one interaction's cancellation control before the request that opens it. A conforming realization
-cannot produce it, and the vector exists so that `C4-P2` has something to fail on. Its expected
-observation is that the vector is rejected as nonconforming evidence, not that the recipient answers
-it — which is exactly the distinction `C12` draws between an unspecified expectation and a declared
-refusal.
+`C4-control-precedes-request` and `C4-outcome-precedes-ack` are mutation vectors rather than legal
+paths, one per direction, because `C4-P2` binds both. In the first a realization delivers one
+interaction's cancellation control before the request that opens it; in the second it delivers the
+recipient's semantic Outcome before the cancellation acknowledgement the recipient committed first,
+so the acknowledgement lands on an interaction the Outcome has already made terminal. A conforming
+realization can produce neither, and they exist so that each conjunct of `C4-P2` has something to
+fail on.
+
+Their expected observations are exactly what the receiving endpoint records: one `rejected-protocol`
+for a control naming an identity the recipient has never been asked to open, and one late-traffic
+`state-violation` for the displaced acknowledgement. Those recorded refusals are the witnesses
+`C4-P2` fails on. Each is complete data rather than an unspecified expectation, which is what `C12`
+requires of every vector.
+
+**A control refused at `unseen` retains no interaction history and no latch.** The identity was never
+accepted, so it never enters the replay set, and the recipient commits one interaction-scoped peer
+fault and keeps nothing: no terminal history, no `late-traffic-fault` latch, and no reservation
+against the in-flight bound. This is what makes the `unseen` verdict bounded rather than merely
+frameless — holding *any* per-identity state there, including a terminal record, would let a peer
+accrue unbounded local state by naming identities it never opens, which is the exposure the 2026-08-13
+R1 ruling refused. A later request bearing that identity therefore arrives at `unseen` as any other
+first request does, and is admitted on its own merits; the earlier fault does not bar it, because a
+refusal the recipient did not retain cannot bar anything. Under a conforming realization the sequence
+never arises, and under a reordering one `C4-P2` has already gone red on the recorded refusal.
 
 **Property C4-P1.** Across every C4 vector, each accepted terminal fact closes exactly one admitted
 interaction, no interaction identity is dispatched twice, and the number of nonterminal interactions
 never exceeds the established finite bound.
 
-**Property C4-P2.** Across every C4 vector, for each interaction identity the sequence of frames a
-recipient accepts from one endpoint is an order-preserving subsequence of the sequence that endpoint
-committed. Loss may drop a frame; nothing may deliver two frames of one interaction in an order the
-sender did not commit them in. `C4-control-precedes-request` is the mutation this property must go
-red on, and a run in which it stays green is a finding against the property rather than evidence for
-the design.
+**Property C4-P2.** Across every C4 vector, for each interaction identity, nothing delivers two frames
+one endpoint committed in an order that endpoint did not commit them in. Loss may still drop a frame.
+Because the design refuses a reordered frame rather than accepting it, this is stated over the refusal
+that reordering produces rather than over the accepted sequence, which no reordering can leave out of
+order: no endpoint records a recipient `rejected-protocol` at `unseen` for a cancellation control
+whose request the same endpoint had already committed, and none records a late-traffic
+`state-violation` latched against a frame the same endpoint committed before the frame that made the
+interaction terminal. Restricting each conjunct to one endpoint's own frames is load-bearing: across
+endpoints Channel promises no order, so a legal late control that arrives after a peer's terminal, and
+a duplicate terminal from a nonconformant peer, must both leave this property green.
+`C4-control-precedes-request` is the mutation this property must go red on, and a run in which it
+stays green is a finding against the property rather than evidence for the design.
 
 **Evidence.** Model-based state tests and generated interleavings in both stacks; neutral peer with
 out-of-order outcomes; replay and mismatch process vectors; and a realization-profile declaration of

@@ -1,15 +1,33 @@
 # Channel 0.2 design-foundation reviews
 
-Status: four owner rulings resolved; seven negative independent reviews retained. B1-B4, N1-N3,
-F1-F3, D1-D5, T1-T4, and R1-R3 are closed in the artifacts they were raised against, R1-R3 having
-been re-verified individually by the seventh review rather than taken from an index. That review's
-blocking **S1** — the R1 correction kept `rejected-protocol` at recipient `unseen` while the fact
-making that sound, intra-interaction delivery order, was asserted in the state/event grid alone and
-disclaimed by C4 and C11 and assigned elsewhere by the responsibility matrix — is corrected under the
-2026-08-13 S1 ruling giving that fact an owner. Nonblocking S2 and S3 are dispositioned. A fresh
-independent closure re-review is pending on the S1 correction pin. R1 and S1 each required their own
+Status: four owner rulings resolved; eight negative independent reviews retained. B1-B4, N1-N3,
+F1-F3, D1-D5, T1-T4, R1-R3, and S1-S3 are closed in the artifacts they were raised against, the
+eighth review having re-verified every one of them individually rather than taking closure from an
+index. That review's blocking **U1** — the S1 correction gave intra-interaction frame order an owner
+but attached `C4-P2` to it, and `C4-P2` quantified over the frames a recipient *accepts* while the
+design refuses every reordered frame, so the accepted sequence was empty and the property stayed
+green on its own named mutation — is corrected by restating `C4-P2` over the refusal a reordering
+produces. Nonblocking **U2**-**U8** are now also corrected, as are **V1** and **V2**, which the
+[U1 correction iteration review](./channel-0.2-u1-correction-iteration-review.md) raised against the
+U1 correction itself, and **W1**-**W6**, which two further iteration passes raised against those
+corrections in turn. Every finding this programme has recorded is closed in the artifacts it was
+raised against, and none of that is a verdict: a fresh independent closure re-review is pending, and
+it is the only thing that can close the batch.
+
+The U-V-W sequence is worth reading before the next review rather than after it. S1 found that the
+fact had no owner; U1 that the property carrying it could not fail; V1 that the property's subject was
+not compared; V2 that the mutation carrying the property could not be run; W1 that the property could
+not be written in the declared language; W3 that half of it had no mutation at all; W4 that its
+expected observation rested on a retention rule no artifact stated; W5 that the operator W1 added had
+no operand in the vector schema; and W6 that its other conjunct read a fact required as evidence and
+excluded from comparison. Nine layers, each of which existed to guarantee the one above it, and each
+of which had its own hole. Every one was found by asking what the previous fix *depends on* rather
+than whether it is worded correctly, and none was found by re-reading the contract. The reviewer
+should assume a tenth exists and hunt it that way, rather than checking whether the nine are now
+right. R1 and S1 each required their own
 dated owner ruling, recorded in the redesign plan; both are correction rulings and neither joins the
-four first-batch rulings, which remain the fixed set recorded on 2026-08-11.
+four first-batch rulings, which remain the fixed set recorded on 2026-08-11. The U1 correction needed
+no ruling: it was a property that could not fail, which is a defect rather than a choice.
 
 The cycle is deliberately unnamed. Reviews are numbered, not titled, and every artifact says it awaits
 "a fresh independent closure re-review" whichever cycle is current — that phrase is the T4 correction
@@ -25,6 +43,30 @@ This directory retains independent attestations for the complete Channel 0.2 fir
 foundation. A review is independent only when its reviewer identity differs from the design author,
 it runs in a fresh isolated context at one pinned commit, and it has no access to the author's private
 reasoning.
+
+## Two kinds of review
+
+The independence requirement exists to keep a *closing* judgement free of the bias that made the
+defect invisible in the first place. It was never a rule against working on the design. Conflating
+the two cost this programme a cycle, so the distinction is now explicit.
+
+**Iteration review.** An author-side pass over work in progress. It may share an actor and a context
+with the correction it examines, may iterate as many times as there are findings, and may correct
+what it finds in the same pass. It is retained as evidence, is named `*-iteration-review.md` rather
+than `*-attestation.md`, and states its own non-final status. It **cannot** close the first batch,
+cannot authorize Batch 2, cannot produce the closure record, and its verdict is never the conforming
+verdict the Closure section requires — however clean it is. Its value is that it finds and fixes
+defects cheaply, before a fresh reviewer spends its one shot of cold context on them.
+
+**Independent closure review.** The judgement that can close. It runs in a fresh isolated clone at one
+pinned commit, under a reviewer identity distinct from every retained reviewer and from every
+correction author, with no access to author private reasoning and no history of having worked on the
+artifacts. Only this kind produces an attestation, and only a conforming one opens Batch 2.
+
+Iterating in one context is therefore encouraged for as long as findings remain. What may not happen
+is an actor declaring its own work finished. Marking the batch closed is reserved to the independent
+closure review, and an iteration review that reports no findings means the work is ready *to be
+reviewed*, not that it passed.
 
 ## Required review scope
 
@@ -77,51 +119,91 @@ The author correction pass and ordinary documentation gates are not independent 
 
 ## Exact next work
 
-The seventh review has run, from a fresh isolated clone, and returned `does-not-conform`; its
-retained record is `channel-0.2-design-foundation-closure-review-7-attestation.md`. It closed R2 and
-R3, confirmed every earlier finding still closed, and raised blocking **S1** with nonblocking **S2**
-and **S3**. **Steps 1 through 3 are complete.** Step 4 is the live path. The next agent reviews the
-S1 correction; it does **not** begin schemas or implementation, and it does not create
+The eighth review has run, from a fresh isolated clone, and returned `does-not-conform`; its retained
+record is `channel-0.2-design-foundation-closure-review-8-attestation.md`, and the seventh review's
+remains `channel-0.2-design-foundation-closure-review-7-attestation.md`. It verified every retained
+finding through S1-S3 closed individually, found S1 closed as to ownership but not as to
+falsifiability, and raised blocking **U1** with nonblocking **U2**-**U8**. **Steps 1 through 3 are
+complete.** Step 4 is the live path. The next agent reviews the U1 correction; it does **not** begin
+schemas or implementation, and it does not create
 `channel-0.2-design-foundation-closure-record.md` unless its own verdict conforms.
 
-1. ~~Obtain an owner ruling on S1.~~ **Done** on 2026-08-13: Channel 0.2 core owns intra-interaction
-   frame order, narrowly scoped. Holding at `unseen` was rejected because the hold has no bound —
-   admission at `validating` is local and terminates, while at `unseen` the recipient waits on a peer
-   frame that may never arrive and core has no timeout, deadline, or expiry concept. Requiring a
-   delivery facet of any cancelling profile was rejected as dragging persistence and retry into every
-   such profile. The option set is in the
-   [redesign plan's resolved questions](../Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md#resolved-questions).
-2. ~~Add a failing check for **S1** before correcting it.~~ **Done.** The design verifier now asks the
-   ownership question directly: it keys off the recipient grid's `unseen` cancellation verdict — the
-   thing that *depends* on the ordering fact, rather than the sentence that asserts it, so deleting
-   the sentence cannot make the check pass vacuously — and then requires C4 to promise the fact, C4's
-   silence and C11 not to disclaim it, the responsibility matrix to own it, the realization profile
-   to declare it, and C4 to carry a property and a mutation scenario for it. It failed with eight
-   findings before the correction and was mutation-tested afterwards by removing the matrix row,
-   reverting C4's promise, and renaming `C4-P2`, each of which fires it again.
-3. ~~Correct S1 contract-first, and disposition S2 and S3.~~ **Done.** The ordering promise is stated
-   in C4 with `C4-P2` and the `C4-control-precedes-request` mutation vector; C4's silence and C11 are
-   scoped to cross-interaction and cross-session ordering; the matrix carries an
-   `Intra-interaction frame order` row owned by `channel-core`; the realization profile declares
-   per-interaction frame order; the grid now carries the fact rather than owning it; and the
-   completeness review records both it and the held-control gap. S2 added `validating` loss and drain
-   rows and reconciled the pre-dispatch loss rule to any nonterminal state. S3 was closed in the
-   commit that recorded the review, because it was entirely index and status staleness and leaving it
-   while recording a seventh review would have committed the very defect it names.
+1. ~~Obtain an owner ruling on U1.~~ **Not required, and this is the reason.** S1 and R1 were choices
+   between defensible designs and each needed a ruling. U1 was not: `C4-P2` asserted that
+   `C4-control-precedes-request` was the mutation it must go red on, and it stayed green on it. A
+   property that cannot fail is a defect against C12's own rule that "every property must be able to
+   fail against a named incorrect implementation", so the correction restores what the design already
+   claimed rather than selecting between options.
+2. ~~Add a failing check for **U1** before correcting it.~~ **Done.** The design verifier keys off the
+   claim that *depends* on falsifiability — C4 asserting that `C4-control-precedes-request` is the
+   mutation `C4-P2` must go red on — rather than off the property's own wording, so deleting that
+   claim cannot make the check pass while leaving an untestable promise standing. It then requires
+   `C4-P2` to be stated over the refusal a reordering produces, to carry both direction conjuncts
+   restricted to one endpoint's own frames, not to give the mutation a contradictory "rejected as
+   nonconforming evidence" expectation, and the per-capability property audit to register the pair. It
+   failed with five findings before the correction and was mutation-tested afterwards by weakening
+   each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
+   `C4-P2` — each of which fires it again.
+3c. ~~Correct W5 and W6.~~ **Done.** Both were found by asking what the W1 fix *reads* rather than
+   whether it is worded correctly. **W5** — the precedence relation is defined over one endpoint's own
+   frames, and the vector format recorded "ordered stimulus steps" with no committing endpoint, so the
+   operator had no operand; steps now name theirs. **W6** — the state/event grid requires every
+   generated cell to assert the late-traffic latch and the normative parity profile never compared it,
+   so `C4-P2`'s second conjunct read a fact that was demanded as evidence and excluded from comparison
+   at once; the parity profile now carries it.
+3b. ~~Correct W1-W4, found by a second iteration pass over the U1/U2-U8 corrections.~~ **Done.** Each
+   is the U1 family one layer further down, and each was found by asking a different question than
+   "is this worded correctly". **W1** — `C4-P2` turns on "had already committed" and "committed
+   before", and the closed property operator set had no ordering relation at all, so the property was
+   not *writable* in the form the brief requires of every property. A bounded precedence relation over
+   one endpoint's declared stimulus steps is added, deliberately the narrowest one that makes `C4-P2`
+   expressible and explicitly not comparable across endpoints or against anything observed. **W2** —
+   nothing said what the reordering provider declares at establishment; it declares per-interaction
+   frame order and then violates it, and establishment verifies the declaration is present rather than
+   true, which is precisely why the S1 correction needed both a declaration and a property. **W3** —
+   `C4-P2` had two conjuncts and one named mutation, so the recipient-to-initiator conjunct was
+   unfalsifiable by name; `C4-outcome-precedes-ack` is added. **W4** — nothing said whether a
+   recipient retains a terminal history for an identity refused at `unseen`. It retains none: the
+   identity never entered the replay set, and a retained record would be the unbounded state the R1
+   ruling refused. That rule now appears in C4, the interaction machine, and the grid, because the
+   latch otherwise claims every terminal interaction.
+3a. ~~Correct the nonblocking findings U2, U3, U4, U7, and U8.~~ **Done**, each with a failing check
+   written first and mutation-tested after. The responsibility matrix now declares a closed
+   owner-identifier vocabulary and the ordering row is owned by `channel`, not a second name for the
+   same family (U2). The neutral brief's establishment rule carries the realization's per-interaction
+   frame order declaration and the required adversarial groups include one owning the ordering
+   mutation (U3). The completeness review's disposition history runs to the eighth cycle instead of
+   stopping at the fifth (U4), and its in-flight direction-scope row records that `C4-P1` and `I5`
+   read session-wide while the reservation mechanism can enforce only per-direction, rather than
+   calling the scope undeclared (U7). The initiator grid's pre-dispatch Local loss cell names `lost`
+   like every other cell in that column (U8). One of these checks was itself found weak by mutation
+   testing — a phrase-anywhere test that the artifact's own status block satisfied — and was scoped to
+   the section that has to carry the rule.
+3. ~~Correct U1 contract-first.~~ **Done.** `C4-P2` is restated over the refusal reordering produces
+   rather than over the accepted sequence: no endpoint records a recipient `rejected-protocol` at
+   `unseen` for a cancellation control whose request the same endpoint had already committed, and none
+   records a late-traffic `state-violation` latched against a frame the same endpoint committed before
+   the frame that made the interaction terminal. Restricting each conjunct to one endpoint's own
+   frames is load-bearing, and was found by probe rather than by reading: without it a legal late
+   control after a peer's terminal, and a duplicate terminal from a nonconformant peer, both fail the
+   property. The mutation vector's expected observation is now the recipient's recorded refusal, which
+   is a determinate portable observation under C12-P1, rather than the vector being rejected before it
+   executes. The per-capability property audit registers `C4-P2` and its mutation.
 4. Obtain another fresh independent review of the corrected pin, from a reviewer identity distinct
-   from the correction author and all seven retained reviewers, **in a fresh isolated clone**. Its
+   from the correction author and all eight retained reviewers, **in a fresh isolated clone**. Its
    scope, verdicts, and probe requirements are unchanged from the sections above. It writes only its
    own attestation.
 
-   The reviewer should treat the S1 correction as the primary target. The lesson three cycles have
-   now paid for is that **a correction resolving a contradiction by asserting a new fact must also
-   say who owns it** — so the reviewer reads the contract, both machines, the grid, and the
-   responsibility matrix as competing claims about the same facts, and checks ownership rather than
-   only agreement. Applied to this correction, the sharpest questions are whether promising
-   intra-interaction frame order has quietly created obligations elsewhere — what it means for a
-   realization that batches or multiplexes, whether `C4-P2` can actually fail in a stack that cannot
-   reorder, and whether the recipient-to-initiator direction needs the same promise the
-   initiator-to-recipient direction now has.
+   The reviewer should treat the U1 correction as the primary target, and should treat the disclosed
+   process deviation below as a reason to weigh it harder rather than less. The lesson four cycles
+   have now paid for is that **a correction is not finished when the fact has an owner; it is finished
+   when a property can refute it** — so the reviewer should not read `C4-P2` and agree with it, but
+   write an evaluator from the published prose and run the mutation through it, as the eighth review
+   did. The sharpest questions: does the refusal-based formulation admit a reordering that produces
+   neither named fault; does restricting both conjuncts to one endpoint's own frames leave any
+   reordering the promise forbids unwitnessed; can the recipient's `rejected-protocol` at `unseen` be
+   distinguished in the observation record from the other causes of that same terminal, given C10
+   carries no frame-order field; and do **U2**-**U8**, all still open, interact with the correction.
 5. If that verdict conforms, retain and commit the attestation unchanged, calculate its SHA-256, then
    create `channel-0.2-design-foundation-closure-record.md`. The record contains the reviewed commit,
    attestation path and hash, reviewer identity/date/verdict, all four owner rulings, confirmation
@@ -176,11 +258,24 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   primary target and three specific silence checks — and states that S1 was not among them and was
   reached independently.
 
-The S1 correction pin is the commit titled
-`fix(channel)!: give intra-interaction frame order an owner`, committed 2026-08-13, which is the
-current review target. Review that commit or any later commit whose design artifacts hash identically
-to it. The preceding pin `3892c23a8dd4c7f298e877ba73710ee0ddc97bc4` is what the seventh review
-assessed and is nonconforming.
+- [Closure review 8](./channel-0.2-design-foundation-closure-review-8-attestation.md) — reviewed
+  `3b27e3a85bf018bead6d226a13d075c7e6ed16fa`; `does-not-conform`; every retained finding through
+  S1-S3 verified closed individually, S1 closed as to ownership but **not** as to falsifiability,
+  blocking **U1** and nonblocking **U2**-**U8** retained for the next closure comparison. **Its
+  isolation is complete**: a fresh isolated clone at a short path, 881 tracked paths materialised,
+  reviewer identity distinct from all seven earlier reviewers and from every correction author, and
+  no author private reasoning available. It reproduced the grid enumeration independently (108
+  published-row cells, 180 underlying state/event pairs) and reached U1 by writing a property
+  evaluator from the published prose and running the property's own named mutation through it. The
+  attestation records that U1 answers a question its dispatching brief named, and that U2-U8 did not.
+
+The current review target is the commit titled `fix(channel): close U2, U3, U4, U7, and U8`, committed
+2026-08-14, which is the head of the U1/U2-U8 correction sequence beginning at
+`fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
+artifacts hash identically to it — and check that claim rather than assuming it, because the
+preceding cycle's pin clause went stale exactly that way and the eighth review raised it as **U6**.
+The preceding pin `3892c23a8dd4c7f298e877ba73710ee0ddc97bc4` is what the seventh review assessed and
+is nonconforming.
 
 No conforming closure attestation exists yet. The corrected artifacts remain nonconforming evidence
 until a fresh reviewer closes every retained finding and reports no new blocker.
@@ -197,4 +292,32 @@ cycle is unchanged: its reviewer must differ from that identity and from all sev
 reviewers.
 
 The sixth and seventh reviews were both performed by reviewers separate from the correction author,
-so this deviation is confined to the T1-T4 pass and has not recurred.
+so this deviation was confined to the T1-T4 pass until the U1 pass below.
+
+## Disclosed process deviation in the U1 correction
+
+The eighth review and the U1 correction pass were performed in one session by
+`agent:claude-opus-5-channel-0.2-closure-review-8-2026-08-14-3b27e3a`, on the repository owner's
+explicit instruction, rather than by separate reviewer and author actors. It is recorded here rather
+than left implicit, because an undisclosed reviewer-repairs-own-finding is precisely the defect class
+this programme exists to catch.
+
+Under the two-kinds-of-review section above, the correction pass and the
+[U1 correction iteration review](./channel-0.2-u1-correction-iteration-review.md) that followed it are
+legitimate author-side work rather than deviations. What remains a deviation is narrower and is the
+part that matters: the actor that wrote closure review 8's attestation then corrected the blocking
+finding that attestation raised. The next closure reviewer weighs the U1 correction knowing its author
+also wrote the attestation that found it, and knowing the author had published a proposed fix before
+being asked to apply it — so the correction was not derived independently of the review that motivated
+it.
+
+The retained attestation
+[`channel-0.2-design-foundation-closure-review-8-attestation.md`](./channel-0.2-design-foundation-closure-review-8-attestation.md)
+is **unmodified** by this pass and still reads as it did when the verdict was returned, including its
+sentence that the design was not repaired there. That sentence was true of the review commit and is
+superseded by this one; the attestation is retained rather than corrected, which is the policy for
+every retained attestation.
+
+The independence requirement on the next cycle is unchanged and now stricter by one name: its
+reviewer must differ from all eight retained reviewers and from this correction author, which are the
+same identity.

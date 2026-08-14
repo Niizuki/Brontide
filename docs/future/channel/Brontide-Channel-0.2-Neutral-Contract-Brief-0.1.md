@@ -4,7 +4,14 @@ Date: 2026-08-11
 
 Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet, and
 subject to a fresh independent closure re-review. Batch 2 opens only after that review conforms and
-its closure record exists.
+its closure record exists. U3, V1, V2, W1, W2, W5, and W6 corrected after independent review: the
+property operator set gained the one bounded precedence relation `C4-P2` needs, stimulus steps name
+their committing endpoint so that relation has an operand, the parity profile compares the
+late-traffic latch the grid already required as evidence, and the established-profile
+image carries the realization's per-interaction frame order declaration, the required adversarial
+groups include one owning intra-interaction frame order and its ordering mutation, the parity profile
+compares the peer-fault detailed reason, and the neutral provider may inject deterministic
+per-interaction reordering so a declared ordering mutation can actually be executed.
 
 ## Purpose
 
@@ -117,6 +124,14 @@ A fixed realization supplies the exact same profile image locally and validates 
 rules. The vector suite compares the resulting canonical established-profile image byte for byte
 after semantic canonicalization.
 
+The established-profile image also carries the realization's **per-interaction frame order**
+declaration. C4 promises intra-interaction frame order, the responsibility matrix makes that
+declaration the artifact crossing the boundary from the realization, and C4's evidence requires a
+profile to check it at establishment — so `established-profile.json` gives it a normative position and
+a realization that does not declare it refuses establishment exactly as an unknown required facet
+does. It is a realization fact, not an extension facet: a profile with no facets at all still has it,
+because core promises the ordering rather than a `delivery-facet` supplying it.
+
 Unknown required facets or any version mismatch refuse before interaction dispatch. Optional facets
 may be absent only when their declaration states that absence changes no core identity, authority,
 terminal, or uncertainty meaning.
@@ -168,7 +183,11 @@ Every vector contains:
 - profile and initial session/interaction state;
 - endpoint perspective and role;
 - explicit external phase and authority inputs;
-- ordered stimulus steps;
+- ordered stimulus steps, each naming its **committing endpoint** and, where it carries one, its
+  interaction identity. Attribution is not bookkeeping: `C4-P2`'s precedence relation is defined over
+  one endpoint's own frames for one identity, and without it the operator has no operand. It also
+  keeps the sequence honest about what it is — a record of what each side committed, not a global
+  order, which Channel does not have;
 - expected accepted/refused transitions;
 - expected frame decision and peer/local provenance;
 - expected terminal history and effect certainty;
@@ -191,6 +210,12 @@ groups include:
 - every legal and representative illegal session transition;
 - external phase false and unknown for each interaction class;
 - bounded concurrency interleavings, replay, mismatch, and out-of-order terminal facts;
+- intra-interaction frame order and its ordering mutation: conforming commit-order delivery in both
+  directions, loss of either frame, a cancellation control for an identity the peer never opened —
+  which is legal input from a nonconformant peer and must not fail `C4-P2` — and
+  `C4-control-precedes-request` itself, which requires the reordering injection declared under the
+  neutral provider boundary and is the only vector group whose expected observation is a property
+  going red;
 - payload projection versus authority non-projection and each declared bound class;
 - local denial, cross-trust forbidden authority, and deputy attribution;
 - relational exact/mismatched edge, direction, member, Operation, Capability, Shape, and phase;
@@ -215,8 +240,17 @@ groups include:
 - evidence modes required to execute it.
 
 The operator set may compare equality, membership, counts, transition edges, set uniqueness,
-implication, and bounded “for all selected steps/vectors.” It may not call stack code or embed a
-general scripting language.
+implication, bounded “for all selected steps/vectors,” and **precedence between two steps in one
+vector's declared ordered stimulus sequence, for one endpoint and one interaction identity**. It may
+not call stack code or embed a general scripting language.
+
+Precedence is deliberately the narrowest ordering relation that makes `C4-P2` writable. It compares
+two positions in a declared input sequence — data the vector author wrote down — and never an
+observed time, arrival order, or cross-endpoint relation. Channel promises no order across endpoints
+and owns no clock, so a property that could compare one endpoint's step against another's, or against
+anything observed rather than declared, would let the property language assert an ordering the
+contract does not have. Restricting precedence to one endpoint's own declared steps is the same
+restriction `C4-P2`'s two conjuncts carry, and for the same reason.
 
 Every property is run once against an intentionally mutated declaration/model and the failure output
 is retained in the Batch 2 implementation record. A property that cannot be made to fail is a review
@@ -233,6 +267,12 @@ Core normative comparison includes:
 - Shape and authority decisions;
 - dispatch boundary crossed or not;
 - terminal provenance and peer-fault/local-loss category where present;
+- the peer-fault detailed reason wherever its category declares a closed set of them, so that two
+  refusals sharing one category remain distinguishable — `C4-P2` quantifies over a recipient
+  `rejected-protocol` caused by a cancellation control naming an unopened identity, which is one
+  detailed reason of `invalid-interaction-correlation` and not the category as a whole;
+- the terminal interaction's `late-traffic latch` value, which the state/event grid already requires
+  every generated cell to assert and which `C4-P2`'s second conjunct reads;
 - effect certainty and unknown reason class; and
 - extension/profile-owned normative details selected by that profile's parity declaration.
 
@@ -269,7 +309,21 @@ The implementation-neutral endpoint is built only after schemas/vectors exist. I
 
 - imports no Reference or Minimal assembly;
 - implements the profile and both state machines independently from data artifacts;
-- supports deterministic fault/loss injection named by vectors;
+- supports deterministic fault/loss injection named by vectors, and deterministic per-interaction
+  reordering injection for the mutation vectors that require it. Reordering injection exists only to
+  execute a declared mutation such as `C4-control-precedes-request` or `C4-outcome-precedes-ack`: it
+  is never a legal delivery mode, no conforming realization may offer it, and a vector that does not
+  name it receives commit order. Without it `C4-P2` would carry named mutations nothing is permitted
+  to produce.
+
+  In such a run the provider **declares per-interaction frame order and then violates it**. That is
+  not an inconsistency in the fixture; it is the fixture's point. Establishment verifies the
+  declaration is *present*, never that it is *true* — a declaration is a claim a realization makes
+  about itself, and C1 has no way to test it. This is exactly why the S1 correction needed both a
+  declaration and a property: the declaration makes a conforming realization state its obligation, and
+  `C4-P2` is the only thing that can catch one whose statement is false. A mutation provider that
+  refused to declare would fail establishment instead, and the ordering property would never be
+  reached;
 - never supplies semantic expectations to the stack adapters at runtime; and
 - exposes a process endpoint plus a fixed/direct pure test adapter where meaningful.
 
