@@ -280,8 +280,17 @@ field the property may read — same declared stimulus steps, same provenance, s
 same refused frame kind, same `not-applicable` latch — so no carve-out written over those fields could
 separate them, and declaring the loss vector green instead would leave the mutation green too. What
 separates them is what happens next: a reordering delivers the request afterwards and the recipient
-admits an interaction for that identity, exactly as the retention passage below says it must; a loss
-never delivers it and no admission ever occurs. The conjunct reads that, through a membership test
+judges it on its own merits, as the retention passage below requires — the earlier refusal does not
+bar it — so a conforming recipient admits it and the admission is recorded; a loss never delivers it
+and no admission can occur at all.
+
+**The two are not the same claim, and AH6 was reading one as the other.** The retention rule says the
+request is *not barred*, not that it must be admitted, so a reordering whose displaced request is
+refused on its own merits — an unknown Operation, a failed authority check, an exceeded bound — leaves
+this conjunct green. That is a coverage limit rather than an unfalsifiable property: the named mutation
+`C4-control-precedes-request` delivers a request that a conforming recipient admits, so the conjunct
+still goes red on it, and the required-green set is unaffected. A reordering hidden behind an
+independent refusal is not witnessed by this conjunct, and no artifact claims otherwise. The conjunct reads that, through a membership test
 over the identities the recipient admits **in the same session**. The scope is the session and not
 the vector: an interaction identity is unique within a session and a new session may legitimately
 reuse the value, so a two-session vector could otherwise hold one identity refused at `unseen` in one

@@ -26,7 +26,10 @@ AD2 the half of the X7 class check still written over two ids. The ninth closure
 six are corrected, AE1 under the dated ruling recorded below. The tenth closure review then returned
 `does-not-conform` with blocking **AF1** and nonblocking **AF2**-**AF8**: it confirmed the AE1
 property fix works and found the correction incomplete one artifact below itself, in the passage
-stating what the mutation vectors' expected observations are. All eight are corrected.
+stating what the mutation vectors' expected observations are. The eleventh raised blocking **AG1**
+with nonblocking **AG2**-**AG5**, and the twelfth returned `conforms-with-nonblocking-findings` with
+**AH1**-**AH6** and no blocking finding — the first non-negative verdict in the programme. All are
+corrected.
 A fresh independent closure re-review of that whole sequence precedes Batch 2. No Channel 0.2
 implementation or ratification is claimed.
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
@@ -618,3 +621,26 @@ still identify questions that require owners before closure.
   states the converse, the neutral brief's property format carries a required-green set as a normative
   field, and the per-capability audit carries the column. Eleven of its twelve cells read `owed`,
   which is named residual work rather than a guessed set.
+- **2026-08-15 — What verdict closes the first batch:** an unqualified `conforms`. The Closure section
+  requires "a fresh closure attestation conforms at the corrected commit", and the verdict vocabulary
+  offers `conforms`, `conforms-with-nonblocking-findings`, and `does-not-conform`; whether the middle
+  value satisfies that sentence had never been ruled on, and the twelfth review returned it. This is a
+  first-batch ruling on the closure standard rather than a correction ruling, and it does not join the
+  four design rulings recorded on 2026-08-11.
+
+  **Selected:** only `conforms` closes. A verdict carrying findings is a verdict that the reviewer
+  found something, and this programme has now twice had a nonblocking finding turn out to be the
+  visible half of a blocking one — AF5 rated nonblocking became AH2, and the twelfth review itself
+  states that if AF5 was under-rated then its own verdict is wrong. Closure authorizes Batch 2 to
+  author `capability-properties.json`, and AH2 was live in the artifact that file is authored from.
+
+  **Rejected:** treating `conforms-with-nonblocking-findings` as sufficient and carrying the findings
+  into Batch 2. It is defensible — the vocabulary exists so a reviewer can distinguish "sound with
+  remarks" from "sound" — and it would have closed the batch on 2026-08-15. It was rejected because it
+  decides the standard after seeing the result, which is the one move this programme has been careful
+  never to make, and because the reviewer that returned the verdict explicitly flagged the escalation
+  call it turned on rather than presenting it as settled.
+
+  The consequence is recorded plainly: the twelfth review's verdict stands as issued and is retained
+  unchanged; it did not close the batch, and its six findings are corrected in the commit that follows
+  it.

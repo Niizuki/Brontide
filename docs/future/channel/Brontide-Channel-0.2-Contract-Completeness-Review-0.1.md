@@ -140,7 +140,7 @@ property counts as evidence.
 | --- | --- | --- |
 | two interactions complete out of order | legal; independent terminal histories | Channel core |
 | concurrency bound races at admission | reserve atomically; one refusal, no lasting replay entry | Channel core/runtime mechanism |
-| direction scope of the in-flight bound | session-wide as written, per-direction as enforced: `C4-P1` bounds "the number of nonterminal interactions" and `I5` bounds "concurrency" with no direction restriction, which reads session-wide, while the only mechanism the design provides — the interaction machine's atomic one-position reservation at admission — is local and has no cross-endpoint coordination, so it can enforce only a per-direction count. The gap is unreachable in the only named profile, where one endpoint initiates both classes and the two readings coincide; a profile in which both endpoints initiate must state which it means before its vectors can be written | Channel profile + Batch 2 `established-profile` schema |
+| direction scope of the in-flight bound | session-wide as written, per-direction as enforced: `C4-P1` bounds "the number of nonterminal interactions" and `I5` bounds "concurrency" with no direction restriction, which reads session-wide, while the only mechanism the design provides — the interaction machine's atomic one-position reservation at admission — is local and has no cross-endpoint coordination, so it can enforce only a per-direction count. The gap is unreachable in the only named profile, where one endpoint initiates both classes and the two readings coincide; a profile in which both endpoints initiate must state which it means before its vectors can be written. **Under AE3 this is a known conforming-realization exposure, not merely an undeclared scope.** The disposition was made when C12 required only that a property be able to fail; AE3 added the converse, and under it a realization enforcing exactly what the design provides may take `C4-P1` and `I5` red in a both-endpoints-initiating profile. Their required-green cells read `owed`, which reads as "not yet written" — this row is what makes it "known to have a red case", and a pass filling either set in without settling the direction scope first would reproduce the omission. That connection was absent until AH5 | Channel profile + Batch 2 `established-profile` schema |
 | cancel before dispatch | local refusal/no cancel frame; admission may itself be abandoned locally | Channel core |
 | cancel during recipient admission | held, not faulted: exactly one control is retained while `validating` and applied when admission resolves; a refused admission discards it with no frame and does not fire the late-traffic latch | Channel core |
 | loss or drain while a control is held | the third exit from `validating`: held control discarded with no answering frame, late-traffic latch does not fire, and the interaction reaches whatever terminal it would have reached with no control outstanding; an interaction still admitting is outside the drain snapshot | Channel core |
@@ -173,7 +173,7 @@ property counts as evidence.
 | C1 | C1-P1 exact profile or known-none | remove one required facet from fixed profile only | **owed** |
 | C2 | C2-P1 legal transition/terminal monotonicity | accept new interaction while draining | **owed** |
 | C3 | C3-P1 exact class/direction/phase | mark unknown phase as true | **owed** |
-| C4 | C4-P1 one dispatch/terminal and bounded concurrency; C4-P2 intra-interaction frame order, one conjunct per direction | redispatch replayed identity or exceed bound; `C4-control-precedes-request` delivers one interaction's control before the request that opens it, and `C4-outcome-precedes-ack` delivers the recipient's Outcome before the acknowledgement it committed first — one named mutation per conjunct, because half a property with no mutation is half unfalsifiable | `C4-P2`: a request lost while the control naming its identity is delivered; a control for an identity the peer never opened; a legal late control after a peer's terminal; a duplicate terminal from a nonconformant peer. The first is AE1 — a required member of the group, carrying no expectation, that the property was red on |
+| C4 | C4-P1 one dispatch/terminal and bounded concurrency; C4-P2 intra-interaction frame order, one conjunct per direction | redispatch replayed identity or exceed bound; `C4-control-precedes-request` delivers one interaction's control before the request that opens it, and `C4-outcome-precedes-ack` delivers the recipient's Outcome before the acknowledgement it committed first — one named mutation per conjunct, because half a property with no mutation is half unfalsifiable | `C4-P2`, all seven legal members of its required vector group: conforming commit-order delivery in the initiator direction; conforming commit-order delivery in the recipient direction; a request lost while the control naming its identity is delivered; a lost acknowledgement; a control for an identity the peer never opened; a legal late control after a peer's terminal; a duplicate terminal from a nonconformant peer. The lost request is AE1 — a required member carrying no expectation that the property was red on. This cell named four of the seven until AH2: AF5 corrected the set in the contract and the brief and not here, and this is the artifact Batch 2 authors the property file from. `C4-P1`: **owed**, and see the direction-scope disposition below before filling it |
 | C5 | C5-P1 all positional/bound checks before dispatch | project an authority value or dispatch oversized payload | **owed** |
 | C6 | C6-P1 exact permitted local authority | treat compatibility/delivery as permission | **owed** |
 | C7 | C7-P1 exact declaration/pre-Ready/no phase creation | admit wrong edge or let success create Ready | **owed** |
@@ -564,6 +564,33 @@ AE, AF, and AG, and AG1 and AG4 are what the sweep confirms was left. The per-ar
 state their position against the newest family explicitly — naming it or declaring the artifact
 unchanged by it — so a row cannot go stale by being left alone, and cross-artifact claims are pinned
 against the artifact they describe so AG2's class cannot be written again.
+
+The twelfth independent closure review, at `f451f55`, returned **`conforms-with-nonblocking-findings`**
+— the first non-negative verdict in the programme — with **AH1**-**AH6** and no blocking finding, and
+verified AG1-AG5 closed in the artifacts their evidence named, AG1 by evaluator rather than by reading.
+Under the 2026-08-15 ruling recorded in the redesign plan, only an unqualified `conforms` closes the
+batch, so that verdict stands as issued and did not close it. **AH1** — AG2 scoped the precedence
+relation to a session and left the declared stimulus step unable to name one, which is W5's defect
+inside the correction written to close AG2; underneath it sat a question no artifact answered, and the
+vector format now states that a vector **may carry more than one session** and gives each step its
+session. **AH2** — AF5's required-green correction was closed in the contract and the brief and left
+here, in the audit Batch 2 authors the property file from, still naming four of seven members. It is
+the fifth instance of the closed-in-the-first-artifact pattern and the one the AG sweep could not
+reach, because that sweep enumerated the artifacts each finding's *evidence cites* and AF5's evidence
+never cited this document. **AH3** — three narrative surfaces stopped one family short, one of them
+stating affirmatively that no independent review had seen the AF corrections after the eleventh had.
+**AH4** — the AG4 row check's escape clause was the bare phrase `unchanged by`, bound to no family, so
+five of nine rows would have satisfied every future family's check without making a claim; the escape
+now has to name the family it escapes. **AH5** — U7's direction-scope disposition predates AE3's
+converse rule, and under that rule the disagreement it discloses is a known conforming-realization
+exposure for `C4-P1` and `I5` rather than an undeclared scope; the row now says so, because `owed`
+reads as "not yet written" and not as "known to have a red case". **AH6** — two sentences cited the
+retention rule as *requiring* the later admission when it says the request is admitted on its own
+merits and the earlier refusal does not bar it; both now state the coverage limit that follows.
+
+**The sweep's own limit is worth carrying forward.** AH2 was unreachable by the AG sweep's method, and
+the fix is to enumerate the artifacts a correction *touches* rather than the artifacts a finding's
+author happened to cite.
 
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.
