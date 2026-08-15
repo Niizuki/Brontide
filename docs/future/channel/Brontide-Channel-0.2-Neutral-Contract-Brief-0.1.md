@@ -195,12 +195,21 @@ Every vector contains:
 
 - stable vector id and capability id;
 - predecessor 0.1 vector ids where applicable;
-- profile and initial session/interaction state;
+- profile, and the initial session/interaction state of **each session the vector carries**. A vector
+  **may carry more than one session**: C2's reconnect and new-session cases require it, and the
+  identity rules make it observable, because an interaction identity is unique within a session and a
+  new session may legitimately reuse the value. This is AH1's second half, stated here because two
+  corrections had already been written to defend against a two-session vector while this list read
+  singular — on the other reading AF8 and AG2 defend against a vector no author can write;
 - endpoint perspective and role;
 - explicit external phase and authority inputs;
-- ordered stimulus steps, each naming its **committing endpoint** and, where it carries one, its
+- ordered stimulus steps, each naming its **committing endpoint**, its **session**, and, where it
+  carries one, its
   interaction identity. Attribution is not bookkeeping: `C4-P2`'s precedence relation is defined over
-  one endpoint's own frames for one identity, and without it the operator has no operand. It also
+  one endpoint's own frames for one identity within one session, and without all three the operator
+  has no operand. The session was added under AH1: AG2 scoped the relation to a session and left the
+  step unable to say which one, which is W5's defect — an operator whose operand does not exist —
+  inside the correction written to close AG2. It also
   keeps the sequence honest about what it is — a record of what each side committed, not a global
   order, which Channel does not have;
 - expected accepted/refused transitions;
@@ -344,8 +353,14 @@ Core normative comparison includes:
   recipient that has not seen the request, and both record the same provenance, detailed reason,
   refused frame kind, and `not-applicable` latch, so nothing already in this list distinguishes them.
   What does is whether the request arrives afterwards: a reordering delivers it and the recipient
-  admits an interaction for that identity, exactly as C4's retention rule requires of any later
-  request bearing it; a loss never delivers it. The conjunct tests membership of the identity in the
+  judges it on its own merits, which is what C4's retention rule says of any later request bearing
+  that identity — the earlier refusal does not bar it — so a conforming recipient admits it and the
+  admission is recorded; a loss never delivers it at all. Under AH6 those are distinct claims, and the
+  earlier wording read "not barred" as "must be admitted": a reordering whose displaced request is
+  refused on its own merits is not witnessed here, which is a coverage limit rather than an
+  unfalsifiable property, since the named mutation delivers a request a conforming recipient admits.
+  The conjunct
+  tests membership of the identity in the
   set the recipient admits **within the same session**, so that set is compared. The scope is the
   session rather than the vector because an interaction identity is unique only within one, and a
   vector carrying two sessions may hold the same identity value in both;

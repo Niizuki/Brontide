@@ -993,10 +993,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all eleven negative attestations, and all four correction iteration reviews before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all twelve negative attestations, and all four correction iteration reviews before the next closure review.')
 }
 
 # An iteration review is author-side work and may never be mistaken for a closing judgement. The file
@@ -1060,7 +1060,10 @@ else {
         $failures.Add('The Channel index must carry exactly one Design reviews row.')
     }
     else {
-        foreach ($required in @("$attestationCount negative attestations", "$iterationCount iteration reviews")) {
+        # "retained attestations" rather than "negative attestations": review 12 returned
+        # `conforms-with-nonblocking-findings`, so the count is no longer a count of negatives and a
+        # phrase saying otherwise is a false claim in the index that reports it.
+        foreach ($required in @("$attestationCount retained attestations", "$iterationCount iteration reviews")) {
             if ($indexReviewRow[0].IndexOf($required, [System.StringComparison]::Ordinal) -lt 0) {
                 $failures.Add("The Channel index's Design reviews row does not say '$required', which is what the reviews directory actually holds. A count in prose is a claim that goes stale the next time a review is retained.")
             }
@@ -1502,8 +1505,11 @@ if ($latestDispositionFamily) {
     }
     foreach ($artifactRow in $artifactRows) {
         $rowName = [regex]::Match($artifactRow, '^\| \[([^\]]+)\]').Groups[1].Value
-        if ($artifactRow -cnotmatch "\b$($latestDispositionFamily[0])[0-9]" -and $artifactRow -notmatch 'unchanged by') {
-            $failures.Add("The Channel index row for '$rowName' neither names the '$($latestDispositionFamily[0])' family nor states the artifact is unchanged by it. A per-artifact row that is silent about the newest family is indistinguishable from one that went stale, which is what AG4 found in all seven of them.")
+        # AH4: the escape was the bare phrase `unchanged by`, bound to no family, so a row reading
+        # "unchanged by AF and AG" satisfied the check for AH, AI, and everything after -- five of
+        # nine rows passed only through it. The escape now has to name the family it is escaping.
+        if ($artifactRow -cnotmatch "\b$($latestDispositionFamily[0])[0-9]" -and $artifactRow -cnotmatch "unchanged by[^|]*\b$($latestDispositionFamily[0])\b") {
+            $failures.Add("The Channel index row for '$rowName' neither names the '$($latestDispositionFamily[0])' family nor states the artifact is unchanged by that family specifically. A row that is silent about the newest family is indistinguishable from one that went stale, and an escape clause naming no family satisfies every future check without making a claim.")
         }
     }
 }
@@ -1514,6 +1520,81 @@ if ($latestDispositionFamily) {
     $futureChannelRow = @($futureIndexText -split "`r?`n" | Where-Object { $_ -match '^\| Channel \|' })
     if ($futureChannelRow.Count -eq 1 -and $futureChannelRow[0] -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
         $failures.Add("The future-work index's Channel row enumerates the correction families and does not reach '$($latestDispositionFamily[0])'. This is the row a reader consults while choosing what to work on. This is AG5.")
+    }
+}
+
+# AH3: three narrative surfaces stopped one family short, and one asserted that no independent review
+# had seen the AF corrections after review 11 had. The plan's status block is AB1's own surface, stale
+# a second time. Each must reach the newest family the disposition history records.
+if ($latestDispositionFamily) {
+    $planStatus = [regex]::Match($plan, '(?ms)^\*\*Status:\*\*(.+?)(?=^\*\*Designed against)').Groups[1].Value
+    if ($planStatus -and (Get-FlowedText $planStatus) -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
+        $failures.Add("The redesign plan's status block does not reach the '$($latestDispositionFamily[0])' family. This block is the surface AB1 was raised against and it has now gone stale twice, while an index row declares AB1 corrected. This is AH3.")
+    }
+    if ($futureIndexText -match 'No independent review has yet seen the ([A-Z]{1,2}) corrections') {
+        $seenClaim = $Matches[1]
+        if ($seenClaim -cne $latestDispositionFamily[0]) {
+            $failures.Add("The future-work index states that no independent review has seen the '$seenClaim' corrections, and a later review has. An affirmative false claim about review coverage is worse than a stale one, because it tells a reader the newest work is unreviewed when it has been reviewed and corrected. This is AH3.")
+        }
+    }
+}
+
+# AH1: AG2 added a session qualifier to the precedence relation and did not add a session to the
+# operand it reads. Precedence is defined over declared stimulus steps, and a step named its
+# committing endpoint and interaction identity only -- which is W5's defect inside the correction
+# written to close AG2. Underneath it sat a question no artifact answered: may a vector carry more
+# than one session? Three normative passages assumed it may while the vector format read singular.
+# Bounded to the naming list itself: a wider window reached the sentence explaining why the step
+# carries a session, which says "session" and passed after the field had been removed.
+$stimulusStep = [regex]::Match($flowedBrief, 'ordered stimulus steps, each naming(.{0,110})')
+if (-not $stimulusStep.Success) {
+    $failures.Add('The vector format does not state what a declared stimulus step names, which is the operand every ordering relation reads.')
+}
+elseif ($stimulusStep.Groups[1].Value -notmatch 'session') {
+    $failures.Add('A declared stimulus step names its committing endpoint and interaction identity and no session, while the precedence relation is scoped "within one session". The operator has a qualifier its operand cannot supply, which is W5 restored inside the AG2 correction. This is AH1.')
+}
+if ($flowedBrief -notmatch 'more than one session') {
+    $failures.Add('The neutral brief does not state whether a Channel 0.2 vector may carry more than one session. Three normative passages defend against a two-session vector and the vector format reads singular; on one reading precedence is not evaluable, on the other AF8 and AG2 defend against a vector no author can write. This is AH1''s second half.')
+}
+
+# AH2: the fifth instance of the pattern, and the one the AG sweep could not reach -- it enumerated
+# artifacts each finding's *evidence* cites, and AF5's evidence never cited the completeness review.
+# The audit is the artifact Batch 2 authors `capability-properties.json` from.
+$auditC4Row = @($completeness -split "`r?`n" | Where-Object { $_ -match '^\| C4 \|' })
+if ($auditC4Row.Count -ne 1) {
+    $failures.Add('The per-capability property audit does not carry exactly one C4 row.')
+}
+else {
+    # The required-green cell, not the row: the mutation column already contains "acknowledgement"
+    # (it names `C4-outcome-precedes-ack`), so a row-wide search reports that member present while
+    # the cell that must list it does not.
+    $auditC4Cells = @($auditC4Row[0].Trim('|') -split '\|')
+    $auditC4Green = $auditC4Cells[$auditC4Cells.Count - 1]
+    foreach ($auditMember in @('conforming commit-order delivery', 'acknowledgement')) {
+        if ($auditC4Green.IndexOf($auditMember, [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("The property audit's C4 required-green cell does not name '$auditMember', which AF5 added to the set in the contract and the brief. The audit is what Batch 2 authors the property file from, so a cell naming four of seven members encodes four. This is AH2.")
+        }
+    }
+}
+
+# AH5: U7's direction-scope disposition was made when C12 required only that a property be able to
+# fail. AE3 added the converse, and under it the recorded disagreement is a named case where two
+# properties may go red on a conforming realization -- while both required-green cells read `owed`,
+# which reads as "not yet written" rather than "known to have a red case".
+$directionScopeRow = @($completeness -split "`r?`n" | Where-Object { $_ -match 'direction scope of the in-flight bound' })
+# The rule is that the row names AE3, not that it mentions required-green somewhere: the disjunction
+# was satisfied by the sentence about the `owed` cells after the AE3 connection itself was removed.
+if ($directionScopeRow.Count -eq 1 -and $directionScopeRow[0] -notmatch 'AE3') {
+    $failures.Add('The direction-scope disposition does not record its relationship to AE3''s converse rule. Under that rule the disagreement it discloses is a named conforming-realization exposure for `C4-P1` and `I5`, and nothing connects the two. This is AH5.')
+}
+
+# AH6: both sentences citing the retention rule convert "not barred" into "must be admitted". The
+# rule says a later request is admitted *on its own merits*; a reordering whose displaced request is
+# refused on its merits therefore leaves the first conjunct green. AG2's class with the cited text one
+# screen below the citation.
+foreach ($retentionCiter in @(@{ Name = 'capability contract'; Text = $flowedContract }, @{ Name = 'neutral brief'; Text = $flowedBrief })) {
+    if ($retentionCiter.Text -match 'admits an interaction for that identity, exactly as (the retention passage below says it must|C4''s retention rule requires)') {
+        $failures.Add("The $($retentionCiter.Name) says the retention rule requires the later admission. It says the request is admitted on its own merits and that the earlier refusal does not bar it, which is a different claim: a reordering whose displaced request is refused on its merits leaves `C4-P2`'s first conjunct green. This is AH6.")
     }
 }
 

@@ -1,6 +1,6 @@
 # Channel 0.2 design-foundation reviews
 
-Status: four owner rulings resolved; eleven negative independent reviews retained. B1-B4, N1-N3,
+Status: four owner rulings resolved; twelve retained independent reviews, eleven negative and the twelfth conforming with nonblocking findings. B1-B4, N1-N3,
 F1-F3, D1-D5, T1-T4, R1-R3, and S1-S3 are closed in the artifacts they were raised against, the
 eighth review having re-verified every one of them individually rather than taking closure from an
 index. That review's blocking **U1** — the S1 correction gave intra-interaction frame order an owner
@@ -19,7 +19,9 @@ and **AB1**-**AB2**, which a seventh raised against the two artifacts the others
 the design. The ninth independent closure review then raised blocking **AE1** with nonblocking
 **AE2**-**AE5** and ruled the open AD2 call a defect, and the tenth raised blocking **AF1** with
 nonblocking **AF2**-**AF8** against the AE corrections, and the eleventh raised blocking **AG1** with
-nonblocking **AG2**-**AG5** against those. Every finding this programme has recorded is
+nonblocking **AG2**-**AG5** against those, and the twelfth returned
+`conforms-with-nonblocking-findings` with **AH1**-**AH6** and no blocking finding. Every finding this
+programme has recorded is
 now closed in the artifacts it was raised against. One piece of named residual work is open and is not
 a finding: of the twenty-five properties the package states, eleven capabilities owe the required-green
 set that **AE3** made a normative field, and the thirteen state-machine properties AF7 brought into
@@ -139,6 +141,7 @@ dependency instead of narrowing it.
 | AE | closure-review | closure review 9 attestation |
 | AF | closure-review | closure review 10 attestation |
 | AG | closure-review | closure review 11 attestation |
+| AH | closure-review | closure review 12 attestation |
 
 ## Required review scope
 
@@ -191,9 +194,11 @@ The author correction pass and ordinary documentation gates are not independent 
 
 ## Exact next work
 
-The eleventh review has run, from a fresh isolated clone, and returned `does-not-conform`; its
-retained record is `channel-0.2-design-foundation-closure-review-11-attestation.md`. **Steps 1 through
-3m are complete.** Step 4 is the live path, and the next agent reviews the AG corrections.
+The twelfth review has run, from a fresh isolated clone, and returned
+`conforms-with-nonblocking-findings` — the first non-negative verdict here — with six findings and no
+blocking one. Its retained record is `channel-0.2-design-foundation-closure-review-12-attestation.md`.
+Under the 2026-08-15 closure-standard ruling that verdict did not close the batch. **Steps 1 through
+3n are complete.** Step 4 is the live path, and the next agent reviews the AH corrections.
 
 **Two method notes the eleventh review left, both about how corrections fail here rather than about
 the design.** First, four findings in a row were closed in the *first* artifact their evidence named
@@ -242,6 +247,21 @@ is exactly what the AD and AE passes found separately.
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3n. ~~Correct AH1-AH6, raised by the twelfth independent closure review, and rule the closure
+   standard.~~ **Done.** The twelfth review returned `conforms-with-nonblocking-findings` with no
+   blocking finding. **The 2026-08-15 ruling recorded in the redesign plan settles that only an
+   unqualified `conforms` closes the batch**, so that verdict stands as issued and did not close it;
+   the alternative and its rejection are recorded with the ruling. **AH1** gave the declared stimulus
+   step a session, which AG2's qualifier had no operand without — W5 inside the AG2 correction — and
+   settled the question underneath both: a vector **may** carry more than one session. **AH2** is the
+   fifth closed-in-the-first-artifact instance and the one the AG sweep structurally could not reach,
+   since that sweep read the artifacts each finding's *evidence cites* and AF5's evidence never cited
+   the audit. **AH3**, **AH4**, **AH5**, and **AH6** are corrected as the disposition history records.
+
+   The next reviewer should know the twelfth review reached a conforming-with-findings verdict and
+   that the bar was then set above it. That sequence is disclosed deliberately: the standard was ruled
+   after a verdict arrived that the ruling excludes, which is the one shape this programme avoids, and
+   the ruling says so and gives its reasons rather than leaving the timing unremarked.
 3m. ~~Correct AG1-AG5, raised by the eleventh independent closure review, and sweep every retained
    finding's named artifacts.~~ **Done.** **AG1** was blocking and is the fourth instance of one shape:
    AF1's evidence named two artifacts and quoted both, the correction closed C4 and stopped, and the
@@ -550,7 +570,20 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   so this review proved the finding still live rather than discovering it, and says so rather than
   claiming the credit. Its dispatch is disclosed below.
 
-The current review target is the commit titled `fix(channel): close AG1-AG5 and sweep every finding's named artifacts`,
+- [Closure review 12](./channel-0.2-design-foundation-closure-review-12-attestation.md) — reviewed
+  `f451f557ec51b9b878ddc0476c1cc7e0bd836679`; **`conforms-with-nonblocking-findings`**, the first
+  non-negative verdict in the programme; **AH1**-**AH6** and no blocking finding. **Its isolation is
+  complete**: a fresh isolated clone, 889 tracked paths, reviewer identity distinct from all eleven
+  earlier reviewers and every correction author. It verified AG1 closed by evaluator rather than by
+  reading — the same vector authored from the corrected row goes red where it went green at `57bb1d8`
+  — enumerated the grid to 108 cells and 180 pairs agreeing with reviews 7-11, recomputed all eleven
+  registry pins, and recorded two probes that found nothing. **It did not close the batch**: under the
+  2026-08-15 closure-standard ruling only an unqualified `conforms` does. It also flagged its own
+  closest call rather than presenting it as settled — that **AH2 is structurally what AG1 was**, and
+  that if the owner judged AF5 under-rated then AH2 is blocking and its verdict wrong. That flag is
+  why the ruling was made. Its dispatch is disclosed below.
+
+The current review target is the commit titled `fix(channel): close AH1-AH6 and rule the closure standard`,
 committed 2026-08-14, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
@@ -700,3 +733,22 @@ visible from the diff.
 
 The independence requirement on the next cycle is unchanged and now stricter by one name: its reviewer
 must differ from all eleven retained reviewers and from every correction author.
+
+## Disclosed dispatch provenance of closure review 12
+
+Closure review 12 was dispatched by the session that authored the commit it reviewed
+(`fix(channel): close AG1-AG5 and sweep every finding's named artifacts`), the three commits before it
+— the AF, AE, and AD corrections — and the AD correction iteration review, and that dispatched closure
+reviews 9, 10, and 11. The brief named no artifact defect and no area of suspicion, told the reviewer
+it was reviewing work whose author arranged its review, and told it explicitly that manufacturing a
+finding to avoid committing to a conforming verdict was as much a failure as suppressing one.
+
+**This is the cycle where that disclosure matters most**, because the verdict was favourable to the
+dispatching author. Three things bear on how much weight it should carry. The reviewer returned six
+findings rather than none, two of them in the correction it was reviewing. It flagged its own closest
+escalation call — AH2 — and stated the condition under which its own verdict would be wrong, which is
+not the behaviour of a review reaching for a clean result. And the owner then ruled the standard
+*above* the verdict rather than accepting it, so the favourable outcome did not close the batch.
+
+The independence requirement on the next cycle is unchanged and now stricter by one name: its reviewer
+must differ from all twelve retained reviewers and from every correction author.
