@@ -587,8 +587,17 @@ still identify questions that require owners before closure.
   which C4's retention rule already requires of any later request bearing that identity; a loss never
   delivers it. The distinguishing fact was therefore already in the design and already recorded — only
   the property did not read it. The parity profile now compares that admission, and the conjunct tests
-  membership of the identity in the set the recipient admits within the vector, which the closed
+  membership of the identity in the set the recipient admits **within one session**, which the closed
   operator set already permits.
+
+  **Issued with a vector-scoped operand, narrowed to the session under AF8 on 2026-08-15.** The ruling
+  as issued read "within the vector", and the tenth closure review found that scope reproduces the very
+  failure the ruling was made to fix: an interaction identity is unique only within a session, so a
+  two-session vector legitimately reusing one identity value satisfies the membership test across
+  sessions and takes the conjunct red on conforming behaviour. The scope above is the corrected one and
+  the original is recorded here rather than overwritten, as the S1 ruling records the `channel-core`
+  identifier it was issued with. AG3 was this note being absent while C4 already deferred to the
+  corrected scope, so the contract and the ruling it cites disagreed.
 
   **Option B, rejected:** scope the conjunct to vectors that declare a reordering injection. The
   smallest edit, and it leaves the property's subject alone, but it makes the property read harness

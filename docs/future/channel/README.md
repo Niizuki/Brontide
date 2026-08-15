@@ -1,4 +1,4 @@
-﻿# Channel future-work index
+# Channel future-work index
 
 Channel 0.1 is retained, implemented experimental evidence. It is not ratified and its provisional
 logical vocabulary is not the stable successor contract.
@@ -26,7 +26,7 @@ batch.
 ## Channel 0.2 design foundation
 
 Every artifact below awaits the same cycle: one fresh independent closure re-review, now of the
-correction sequence that runs from S1 through **AF8**. That range is stated here rather than in the
+correction sequence that runs from S1 through **AG5**. That range is stated here rather than in the
 Design reviews row alone because AE4 corrected the row and left this sentence naming a sequence five
 families stale, and AF2 was that omission — a count is not the only thing in an index that goes
 stale. R1 was a disagreement between C8 and the recipient state/event grid about a cancellation
@@ -45,16 +45,16 @@ recently a fix stated only in the artifact that reads the fact rather than the o
 
 | Artifact | Purpose | Current state |
 | --- | --- | --- |
-| [Redesign and migration plan](./Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md) | Programme boundary, batches, migration policy, and completion gate | Active plan |
-| [C1-C12 capability contract](./Brontide-Channel-0.2-Capability-Contract-0.1.md) | Observable capability, effects, failures, properties, evidence, and silence | N2/F1/F2/D1-D4/T3/R1/S1/S2/U1/W2-W4/X1/X5/Y1/Y2/Z3 corrected; C4 owns intra-interaction frame order with `C4-P2`, stated over the refusal a reordering produces |
-| [Session state machine](./Brontide-Channel-0.2-Session-State-Machine-0.1.md) | Exact Channel-owned session states and transitions | D1 corrected; unchanged by the sixth, seventh, and eighth reviews and by the U-Z correction passes |
-| [Interaction state machine](./Brontide-Channel-0.2-Interaction-State-Machine-0.1.md) | Admission, concurrency, cancellation, terminality, and effect certainty | B1/B2/N2/F1/F2/D2-D4/T3/R1/R2/S2/W4/X1/X3/X5/Y3 corrected; `validating` carries loss and drain rows, and an identity refused at `unseen` retains nothing and owns no latch |
-| [State/event coverage](./Brontide-Channel-0.2-State-Event-Coverage-0.1.md) | Closed-world coverage of every session, initiator, recipient, and terminal event family | Added for D1-D4; T3/R1/R3/S1/S2/U8/W4/X1/X2/X5/Z2 corrected; 108 cells enumerated independently, none empty; carries the ordering fact C4 owns |
-| [Responsibility matrix](./Brontide-Channel-0.2-Responsibility-Matrix-0.1.md) | One semantic owner and neutral crossing artifact per concern | B3/N1/S1/U2 corrected; `Intra-interaction frame order` added, owned by `channel`, and the owner-identifier vocabulary is now closed |
-| [Contract-completeness review](./Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md) | Separate review of silence and extension pressure | All findings through T1-T4, R1-R3, S1-S3, U1-U8, and the V-Z iteration families corrected and dispositioned |
-| [0.1-to-0.2 migration ledger](./Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md) | Disposition of predecessor Shapes, fields, states, categories, limits, observations, vectors, and goldens | B4/N1/N3/F3/D5/T1/T2/S1/Z4 corrected; the ordering non-promise is **replaced**, and the new-evidence inventory carries the ordering mutations |
-| [Neutral contract/vector brief](./Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md) | Batch 2 data-only artifact, identity, property, vector, observation, and golden boundaries | Author pass plus U3/V1/V2/W1/W2/W5/W6/X1/X2/X4/Y1/Y4/Z1 corrections; property operators, vector format, parity profile, and provider boundary now carry what `C4-P2` needs |
-| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | 10 negative attestations retained, the seventh the first with complete isolation, plus 4 iteration reviews recording the author-side V, X, Y, Z, AA, AB, AC, and AD passes — each family named rather than compressed to a range, because AE4 was this row omitting AA and AB behind "V-Z" |
+| [Redesign and migration plan](./Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md) | Programme boundary, batches, migration policy, and completion gate | Active plan; AB1 and AG3 corrected, the latter recording the AE1 ruling as issued and its AF8 narrowing |
+| [C1-C12 capability contract](./Brontide-Channel-0.2-Capability-Contract-0.1.md) | Observable capability, effects, failures, properties, evidence, and silence | N2/F1/F2/D1-D4/T3/R1/S1/S2/U1/W2-W4/X1/X5/Y1/Y2/Z3 corrected; C4 owns intra-interaction frame order with `C4-P2`, stated over the refusal a reordering produces; AE1/AE3/AF1/AF5/AF8 corrected, and AG2's cross-artifact claim is now pinned against the brief |
+| [Session state machine](./Brontide-Channel-0.2-Session-State-Machine-0.1.md) | Exact Channel-owned session states and transitions | D1 corrected; unchanged by the sixth, seventh, and eighth reviews and by the U-Z correction passes; unchanged by the AE, AF, and AG passes, though AF7 brought S1-S6 into the property audit |
+| [Interaction state machine](./Brontide-Channel-0.2-Interaction-State-Machine-0.1.md) | Admission, concurrency, cancellation, terminality, and effect certainty | B1/B2/N2/F1/F2/D2-D4/T3/R1/R2/S2/W4/X1/X3/X5/Y3 corrected; `validating` carries loss and drain rows, and an identity refused at `unseen` retains nothing and owns no latch; AE2 corrected; unchanged by AF and AG |
+| [State/event coverage](./Brontide-Channel-0.2-State-Event-Coverage-0.1.md) | Closed-world coverage of every session, initiator, recipient, and terminal event family | Added for D1-D4; T3/R1/R3/S1/S2/U8/W4/X1/X2/X5/Z2 corrected; 108 cells enumerated independently, none empty; carries the ordering fact C4 owns; AE2 corrected; unchanged by AF and AG |
+| [Responsibility matrix](./Brontide-Channel-0.2-Responsibility-Matrix-0.1.md) | One semantic owner and neutral crossing artifact per concern | B3/N1/S1/U2 corrected; `Intra-interaction frame order` added, owned by `channel`, and the owner-identifier vocabulary is now closed; unchanged by the AE, AF, and AG passes |
+| [Contract-completeness review](./Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md) | Separate review of silence and extension pressure | All findings through T1-T4, R1-R3, S1-S3, U1-U8, and the V-Z iteration families corrected and dispositioned; AE3/AF7 corrected, and AG1 closed the silence-probe row AF1's evidence named second |
+| [0.1-to-0.2 migration ledger](./Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md) | Disposition of predecessor Shapes, fields, states, categories, limits, observations, vectors, and goldens | B4/N1/N3/F3/D5/T1/T2/S1/Z4 corrected; the ordering non-promise is **replaced**, and the new-evidence inventory carries the ordering mutations; AE5/AF3/AF4 corrected; unchanged by AG |
+| [Neutral contract/vector brief](./Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md) | Batch 2 data-only artifact, identity, property, vector, observation, and golden boundaries | Author pass plus U3/V1/V2/W1/W2/W5/W6/X1/X2/X4/Y1/Y4/Z1 corrections; property operators, vector format, parity profile, and provider boundary now carry what `C4-P2` needs; AE1/AE3/AF5 corrected, and AG2 added the session qualifier to the precedence relation |
+| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | 11 negative attestations retained, the seventh the first with complete isolation, plus 4 iteration reviews recording the author-side V, X, Y, Z, AA, AB, AC, and AD passes — each family named rather than compressed to a range, because AE4 was this row omitting AA and AB behind "V-Z" |
 
 No Channel 0.2 schema, public type, package, host, provider, or encoding is authorized while a fresh
 independent closure re-review is pending or a blocking independent-review finding remains open.

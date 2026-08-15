@@ -993,10 +993,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all ten negative attestations, and all four correction iteration reviews before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all eleven negative attestations, and all four correction iteration reviews before the next closure review.')
 }
 
 # An iteration review is author-side work and may never be mistaken for a closing judgement. The file
@@ -1448,6 +1448,73 @@ $newEvidence = [regex]::Match($migration, '(?ms)^## New evidence required by red
 $comparedFields = [regex]::Match((Get-FlowedText $newEvidence), 'The observation fields those vectors compare(.{0,220})').Groups[1].Value
 if ($newEvidence -and $comparedFields -notmatch 'admi(ts|ssion)') {
     $failures.Add('The migration ledger''s new-evidence inventory enumerates the observation fields the ordering vectors compare and does not name the admission the AE1 correction added. Batch 2 builds its vector groups from this list. This is AF4.')
+}
+
+# AG1: AF1 named two artifacts and quoted both. The correction closed C4 and stopped, and the check
+# written for it searched the contract alone, so the completeness review's silence-probe row still
+# said the expected observation is the recorded refusal -- the U1 condition surviving in the commit
+# written to close it. This is the fourth instance of one shape: a correction closing the *first*
+# artifact a finding's evidence names. The check therefore reads the second artifact directly.
+$silenceProbeRow = @($completeness -split "`r?`n" | Where-Object { $_.IndexOf('control delivered before the request it names', [System.StringComparison]::Ordinal) -ge 0 })
+if ($silenceProbeRow.Count -ne 1) {
+    $failures.Add('The completeness review does not carry exactly one silence-probe row for a control delivered before the request it names. That row states the ordering mutation''s expected observation, and it is the second artifact AF1''s evidence named.')
+}
+elseif ([regex]::Match($silenceProbeRow[0], 'expected observation is(.{0,170})').Groups[1].Value -notmatch 'admi(ts|ssion)') {
+    $failures.Add('The completeness review''s silence-probe row states the ordering mutation''s expected observation without the recipient''s subsequent admission, which `C4-P2`''s first conjunct reads. A vector authored from this row takes the property green on its own named mutation, which is AF1 surviving in the artifact its own evidence named second. This is AG1.')
+}
+
+# AG2 is a different and sharper class: a correction asserting something about an artifact it did not
+# open. C4 claims the precedence relation carries AF8's session qualifier; the brief's operator set
+# did not carry it, and a conforming two-session vector goes red without it. Cross-artifact claims are
+# pinned here so a sentence about another document cannot be written without that document agreeing.
+$precedenceOperator = [regex]::Match($flowedBrief, 'precedence between two steps in one(.{0,160})')
+if (-not $precedenceOperator.Success) {
+    $failures.Add('The neutral brief''s closed operator set states no precedence relation, which is the operator `C4-P2` needs and W1 added.')
+}
+elseif ($precedenceOperator.Groups[1].Value -notmatch 'session') {
+    $failures.Add('The neutral brief''s precedence relation is scoped to one endpoint and one interaction identity with no session qualifier, while C4 asserts it carries AF8''s session qualifier. An interaction identity is unique only within a session, so a conforming two-session vector reusing one identity value goes red under the operator as published. This is AG2, and it is a claim one artifact makes about another it did not open.')
+}
+
+# AG3: the dated AE1 owner ruling still stated the operand scope AF8 corrected, and C4 defers to that
+# ruling, so the contract and the ruling it cites disagreed. The S1 ruling carries a retained-as-issued
+# note for exactly this situation; this requires the same treatment rather than a silent rewrite.
+$ae1Ruling = [regex]::Match((Get-FlowedText $plan), '2026-08-14.{0,6}AE1 correction ruling(.{0,2600})')
+if (-not $ae1Ruling.Success) {
+    $failures.Add('The redesign plan records no dated 2026-08-14 AE1 correction ruling, which is what C4 cites for the subsequent-admission clause.')
+}
+else {
+    if ($ae1Ruling.Groups[1].Value -match 'admits within the vector|membership of the identity in the set the recipient admits within the vector') {
+        $failures.Add('The dated AE1 owner ruling still states the membership operand is scoped within the vector, which AF8 corrected to the session. C4 defers to this ruling, so the contract and the ruling it cites disagree about the scope of the operand the conjunct reads. This is AG3.')
+    }
+    if ($ae1Ruling.Groups[1].Value.IndexOf('AF8', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The dated AE1 owner ruling carries no note that AF8 narrowed the operand scope it was issued with. A dated ruling is retained as issued and annotated, as the S1 ruling is for `channel-core`; a silent rewrite loses the fact that the scope was decided twice.')
+    }
+}
+
+# AG4: AE4 corrected the Channel index's Design reviews row, AF2 corrected its narrative, and its
+# seven per-artifact rows still stopped at Z3/Y3/Z2/U2/Z4/Z1. Three passes each closed one surface of
+# the same index. Each row must now make an explicit claim about the latest family -- either it names
+# it or it says the artifact is unchanged by it -- so a row cannot go stale by being left alone.
+if ($latestDispositionFamily) {
+    $artifactRows = @($channelReadme -split "`r?`n" | Where-Object { $_ -match '^\| \[.+\]\(\./Brontide-Channel-' })
+    if ($artifactRows.Count -lt 1) {
+        $failures.Add('The Channel index carries no per-artifact rows, which are what tell a reader the state of each design artifact.')
+    }
+    foreach ($artifactRow in $artifactRows) {
+        $rowName = [regex]::Match($artifactRow, '^\| \[([^\]]+)\]').Groups[1].Value
+        if ($artifactRow -cnotmatch "\b$($latestDispositionFamily[0])[0-9]" -and $artifactRow -notmatch 'unchanged by') {
+            $failures.Add("The Channel index row for '$rowName' neither names the '$($latestDispositionFamily[0])' family nor states the artifact is unchanged by it. A per-artifact row that is silent about the newest family is indistinguishable from one that went stale, which is what AG4 found in all seven of them.")
+        }
+    }
+}
+
+# AG5: the same staleness in the future-work index's Channel row, which is the one a reader meets
+# while choosing what to work on.
+if ($latestDispositionFamily) {
+    $futureChannelRow = @($futureIndexText -split "`r?`n" | Where-Object { $_ -match '^\| Channel \|' })
+    if ($futureChannelRow.Count -eq 1 -and $futureChannelRow[0] -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
+        $failures.Add("The future-work index's Channel row enumerates the correction families and does not reach '$($latestDispositionFamily[0])'. This is the row a reader consults while choosing what to work on. This is AG5.")
+    }
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'channel\0.2')) {

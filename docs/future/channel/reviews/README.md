@@ -1,6 +1,6 @@
 # Channel 0.2 design-foundation reviews
 
-Status: four owner rulings resolved; ten negative independent reviews retained. B1-B4, N1-N3,
+Status: four owner rulings resolved; eleven negative independent reviews retained. B1-B4, N1-N3,
 F1-F3, D1-D5, T1-T4, R1-R3, and S1-S3 are closed in the artifacts they were raised against, the
 eighth review having re-verified every one of them individually rather than taking closure from an
 index. That review's blocking **U1** — the S1 correction gave intra-interaction frame order an owner
@@ -18,7 +18,8 @@ and **AB1**-**AB2**, which a seventh raised against the two artifacts the others
 **AD1**-**AD3**, which a ninth iteration pass raised against the retained records rather than against
 the design. The ninth independent closure review then raised blocking **AE1** with nonblocking
 **AE2**-**AE5** and ruled the open AD2 call a defect, and the tenth raised blocking **AF1** with
-nonblocking **AF2**-**AF8** against the AE corrections. Every finding this programme has recorded is
+nonblocking **AF2**-**AF8** against the AE corrections, and the eleventh raised blocking **AG1** with
+nonblocking **AG2**-**AG5** against those. Every finding this programme has recorded is
 now closed in the artifacts it was raised against. One piece of named residual work is open and is not
 a finding: of the twenty-five properties the package states, eleven capabilities owe the required-green
 set that **AE3** made a normative field, and the thirteen state-machine properties AF7 brought into
@@ -137,6 +138,7 @@ dependency instead of narrowing it.
 | AD | iteration | AD correction iteration review |
 | AE | closure-review | closure review 9 attestation |
 | AF | closure-review | closure review 10 attestation |
+| AG | closure-review | closure review 11 attestation |
 
 ## Required review scope
 
@@ -189,9 +191,18 @@ The author correction pass and ordinary documentation gates are not independent 
 
 ## Exact next work
 
-The tenth review has run, from a fresh isolated clone, and returned `does-not-conform`; its retained
-record is `channel-0.2-design-foundation-closure-review-10-attestation.md`. **Steps 1 through 3l are
-complete.** Step 4 is the live path, and the next agent reviews the AF corrections.
+The eleventh review has run, from a fresh isolated clone, and returned `does-not-conform`; its
+retained record is `channel-0.2-design-foundation-closure-review-11-attestation.md`. **Steps 1 through
+3m are complete.** Step 4 is the live path, and the next agent reviews the AG corrections.
+
+**Two method notes the eleventh review left, both about how corrections fail here rather than about
+the design.** First, four findings in a row were closed in the *first* artifact their evidence named
+and left open in the second: AE4 to AF2, AE5 to AF3, AF1 to AG1, AF2 to AG4. A reviewer should take
+each retained finding's evidence sentences, not its title, and re-derive each one. Second, and newer:
+a correction asserted that another artifact carried a qualifier, and it did not. For every claim a
+correction makes about an artifact it did not edit, open that artifact — both of the eleventh
+review's independently reached findings came from that question, and neither was visible from the
+diff.
 
 The ninth review's retained
 record is `channel-0.2-design-foundation-closure-review-9-attestation.md`, the eighth review's remains
@@ -231,6 +242,26 @@ is exactly what the AD and AE passes found separately.
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3m. ~~Correct AG1-AG5, raised by the eleventh independent closure review, and sweep every retained
+   finding's named artifacts.~~ **Done.** **AG1** was blocking and is the fourth instance of one shape:
+   AF1's evidence named two artifacts and quoted both, the correction closed C4 and stopped, and the
+   check written for it read the contract alone. The completeness review's silence-probe row still gave
+   the mutation's expected observation as the recorded refusal, so a vector authored from it took
+   `C4-P2` green on its own named mutation — U1 surviving inside the commit written to close it.
+   **AG2** is a different and sharper class, and the one worth carrying forward: a correction asserted
+   that another artifact carried AF8's session qualifier, and that artifact did not. The qualifier is
+   now in the brief's operator set and the claim is pinned against it, so a sentence about another
+   document cannot be written without that document agreeing. **AG3** records the AE1 ruling as issued
+   and its AF8 narrowing, the treatment the S1 ruling already had. **AG4** and **AG5** are the third
+   and fourth surfaces of the index staleness AE4 and AF2 each closed one of; every per-artifact row
+   now states its position against the newest family or declares itself unchanged by it.
+
+   **The sweep.** All eleven retained attestations were parsed for every finding's own evidence
+   section: 47 findings cite artifacts and 23 cite more than one. Everything through AD had been
+   verified individually by reviews 8-11 in the artifacts it was raised against, so the live set was
+   AE, AF, and AG. A reviewer should treat that sweep as a starting point rather than a result — it is
+   mechanical extraction by the correction author, and the class it exists to catch is one that author
+   has now produced four times.
 3l. ~~Correct AF1-AF8, raised by the tenth independent closure review.~~ **Done.** **AF1** was
    blocking and is the one worth reading: the AE1 correction made `C4-P2`'s first conjunct read the
    recipient's subsequent admission, and the passage stating what the mutation vectors' expected
@@ -508,7 +539,18 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   dispatch is disclosed below, and is the strongest disclosure in this directory: the session that
   dispatched it had authored the very commit under review.
 
-The current review target is the commit titled `fix(channel): close AF1-AF8, the layer under the AE1 correction`,
+- [Closure review 11](./channel-0.2-design-foundation-closure-review-11-attestation.md) — reviewed
+  `57bb1d85292e5a0cf948f98c146131107cff1634`; `does-not-conform`; blocking **AG1** with nonblocking
+  **AG2**-**AG5**, and AF3-AF7 closed completely. **Its isolation is complete**: a fresh isolated clone
+  at a short path, 888 tracked paths, reviewer identity distinct from all ten earlier reviewers and
+  every correction author. It verified the pin by tree hash rather than by file list, enumerated the
+  grid independently to 108 cells and 180 pairs — agreeing with reviews 8, 9, and 10 — recomputed all
+  eleven registry SHA-256 pins, and recorded two probes that found nothing. It is also candid that
+  **AG1 was already documented by its predecessor**: review 10's AF1 named the artifact and quoted it,
+  so this review proved the finding still live rather than discovering it, and says so rather than
+  claiming the credit. Its dispatch is disclosed below.
+
+The current review target is the commit titled `fix(channel): close AG1-AG5 and sweep every finding's named artifacts`,
 committed 2026-08-14, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
@@ -634,3 +676,27 @@ and the next cycle should weigh it as evidence rather than as a guarantee.
 
 The independence requirement on the next cycle is unchanged and now stricter by one name: its reviewer
 must differ from all ten retained reviewers and from every correction author.
+
+## Disclosed dispatch provenance of closure review 11
+
+Closure review 11 was dispatched by the session that authored the commit it reviewed
+(`fix(channel): close AF1-AF8, the layer under the AE1 correction`), the two commits before it, and
+the AD correction iteration review, and that dispatched closure reviews 9 and 10. The brief named no
+artifact defect, no area of suspicion, and nothing about where the dispatching session believed the
+work was weak; it pointed the reviewer at `AGENTS.md` and this policy, told it that it was reviewing
+work whose author arranged its review, and told it to treat that as a reason to probe harder.
+
+The reviewer recorded the disclosure, recorded what the dispatch narrowed, and recorded something the
+two previous cycles could not: **its blocking finding was already documented by its predecessor.**
+Review 10's AF1 named the completeness review among its evidence and quoted the row; review 11 proved
+that row was still live rather than discovering it. The reviewer states this itself and draws the right
+conclusion — that this cycle's evidence for "the cold context did its own work" is weaker than the two
+before it, where the blocking finding sat in the dispatcher's own change and had not been named by
+anyone.
+
+Its two independently reached findings, AG2 and AG3, came from a question no earlier cycle had asked:
+for each claim a correction makes about an artifact it did not edit, open that artifact. Neither was
+visible from the diff.
+
+The independence requirement on the next cycle is unchanged and now stricter by one name: its reviewer
+must differ from all eleven retained reviewers and from every correction author.
