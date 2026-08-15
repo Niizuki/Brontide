@@ -993,10 +993,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all nine negative attestations, and all four correction iteration reviews before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all ten negative attestations, and all four correction iteration reviews before the next closure review.')
 }
 
 # An iteration review is author-side work and may never be mistaken for a closing judgement. The file
@@ -1198,18 +1198,31 @@ else {
     # The class is derived rather than listed: the policy's own next-work steps say which families an
     # iteration pass found, so only those carry the retained-record obligation. Families a closure
     # review raised are excluded by construction, because no iteration pass owns them.
-    $iterationAttributions = @([regex]::Matches($flowedReviewPolicy, 'Correct ([^~]{1,60}?),? found by a[n]? [a-z]+ iteration pass'))
-    $iterationFamilies = @(
-        foreach ($attribution in $iterationAttributions) {
-            [regex]::Matches($attribution.Groups[1].Value, '[A-Z]{1,2}[0-9]+') | ForEach-Object { $_.Value }
-        }
-    ) | Sort-Object -Unique
-    if ($iterationFamilies.Count -lt 1) {
-        $failures.Add('No finding id could be parsed from the review policy''s iteration-pass attributions. Either the policy attributes nothing to an author-side pass, or the attribution wording changed and this check is passing by seeing nothing -- which is the failure mode AD2 was.')
+    # AF6: the previous form derived this class from one sentence shape in the next-work steps, and
+    # two iteration-attributed groups did not carry it -- V, a whole family, and W5/W6. That is the
+    # defect AD2 was ruled for, an order of magnitude smaller: a comment claiming a class over code
+    # that tests a subset. The class is now *declared* rather than inferred from prose, and the
+    # declaration is required to be total, so a family cannot be added without being classified.
+    $provenanceTable = [regex]::Match($reviewReadme, '(?ms)^## Finding family provenance\r?\n(.+?)(?=^## |\z)').Groups[1].Value
+    $familyProvenance = @{}
+    foreach ($provenanceRow in [regex]::Matches($provenanceTable, '(?m)^\|\s*([A-Z]{1,2})\s*\|\s*(iteration|closure-review)\s*\|')) {
+        $familyProvenance[$provenanceRow.Groups[1].Value] = $provenanceRow.Groups[2].Value
     }
-    foreach ($findingFamily in $iterationFamilies) {
-        if (-not ($iterationRecords | Where-Object { $_.IndexOf($findingFamily, [System.StringComparison]::Ordinal) -ge 0 })) {
-            $failures.Add("The review policy attributes '$findingFamily' to an author-side iteration pass, and no retained iteration review records it. The two-kinds-of-review section requires that pass to be retained as evidence; a commit message is not the evidence trail.")
+    if ($familyProvenance.Count -lt 1) {
+        $failures.Add('The review policy declares no finding-family provenance table. That table is what makes the retained-record obligation checkable over the whole class rather than over whichever families a sentence shape happens to match.')
+    }
+    else {
+        $boldedFamilies = @([regex]::Matches($flowedReviewPolicy, '\*\*([A-Z]{1,2})[0-9]+\*\*') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+        foreach ($bolded in $boldedFamilies) {
+            if (-not $familyProvenance.ContainsKey($bolded)) {
+                $failures.Add("The finding-family provenance table does not classify '$bolded', which the review policy names. An unclassified family carries no retained-record obligation and is invisible to every check written over that class.")
+            }
+        }
+        foreach ($classified in $familyProvenance.GetEnumerator()) {
+            if ($classified.Value -ne 'iteration') { continue }
+            if (-not ($iterationRecords | Where-Object { $_ -cmatch "\b$($classified.Key)[0-9]" })) {
+                $failures.Add("The provenance table classifies '$($classified.Key)' as an author-side iteration family, and no retained iteration review records it. The two-kinds-of-review section requires that pass to be retained as evidence; a commit message is not the evidence trail.")
+            }
         }
     }
 
@@ -1262,7 +1275,10 @@ else {
     # Scoped to the required-green paragraph, not to the property's whole window. Mutation testing
     # found the window form passing on the surrounding explanation, which says "a lost request and a
     # reordered one" -- the phrase-anywhere weakness X1's check was rescoped for.
-    $requiredGreen = [regex]::Match($c4p2Text, '\*\*Required green\.\*\*(.{0,700})')
+    # Bounded at the paragraph, not by a character count: a 700-character window reached into the
+    # Evidence and Silence passages below, and AF5's missing members were reported present because a
+    # neighbouring paragraph happened to use the same words.
+    $requiredGreen = [regex]::Match($contract, '(?ms)\*\*Required green\.\*\*(.*?)\r?\n\r?\n')
     if (-not $requiredGreen.Success) {
         $failures.Add('`C4-P2` states no required-green set. C12 requires every property to name the legal inputs it must not fail on, and this is the property that was red on one of them.')
     }
@@ -1313,6 +1329,125 @@ foreach ($unseenArtifact in @(@{ Name = 'interaction state machine'; Text = $int
 # one artifact further out.
 if ($migration.IndexOf('CH-R10', [System.StringComparison]::Ordinal) -lt 0) {
     $failures.Add('The migration ledger does not disposition `CH-R10`, the retained requirements ledger''s ordering non-promise. That ledger instructs item-by-item disposition in the successor, and CH-R10 is the register entry the 2026-08-13 S1 ruling changed. This is AE5.')
+}
+
+# AF1, blocking in closure review 10. The AE1 correction made `C4-P2`'s first conjunct read a second
+# fact -- the recipient's subsequent admission -- and left untouched the two passages that say what
+# the mutation vector's expected observations *are*. A vector authored from those passages carries the
+# refusal alone, the membership test finds an empty admitted set, and the property is green on
+# `C4-control-precedes-request`. That is U1 restored, four paragraphs above the property it was fixed
+# in, and the two paragraphs of C4 contradict each other while both gates stayed green.
+$expectedObservations = [regex]::Match($flowedContract, 'Their expected observations(.{0,900})')
+if (-not $expectedObservations.Success) {
+    $failures.Add('C4 states no expected observations for its ordering mutation vectors. C12 requires every vector to carry complete data rather than an unspecified expectation, and these are the vectors `C4-P2` must go red on.')
+}
+else {
+    if ($expectedObservations.Groups[1].Value -notmatch 'admi(ts|ssion)') {
+        $failures.Add('C4''s expected-observation passage for the ordering mutation vectors does not include the recipient''s subsequent admission, which the corrected first conjunct reads. A vector authored from this passage leaves the membership test an empty set and the property green on its own named mutation. This is AF1, and it is U1 reached through the vector rather than through the property.')
+    }
+    # Two assertions, because a requirement-only check is satisfied while the superseded claim still
+    # stands beside it, and the superseded claim is the one a vector author would follow.
+    if ($expectedObservations.Groups[1].Value.IndexOf('exactly what the receiving endpoint records', [System.StringComparison]::Ordinal) -ge 0) {
+        $failures.Add('C4 still states that the ordering mutations'' expected observations are exactly what the receiving endpoint records. That is the AF1 wording: it names the refusal alone as complete data, and a vector authored from it takes `C4-P2` green on its own named mutation.')
+    }
+}
+
+# AF5: the field is defined as "the named legal inputs from the property's own required vector group",
+# and the group has seven legal members. The set named four. Conforming commit-order delivery is the
+# sharpest omission -- a property red on plain conforming delivery is the worst available failure and
+# was the one case unnamed. The previous check tested only that `lost` appeared, which is narrower
+# than the rule it guards; that is AD2's shape in the check written to close AE1.
+foreach ($requiredGreenMember in @(
+    @{ Phrase = 'conforming commit-order delivery'; Why = 'conforming commit-order delivery in either direction' },
+    @{ Phrase = 'acknowledgement'; Why = 'a lost acknowledgement, the second half of "loss of either frame"' },
+    @{ Phrase = 'never opened'; Why = 'a control for an identity the peer never opened' },
+    @{ Phrase = 'late control'; Why = 'a legal late control after a peer''s terminal' },
+    @{ Phrase = 'duplicate terminal'; Why = 'a duplicate terminal from a nonconformant peer' })) {
+    if ($requiredGreen.Success -and $requiredGreen.Groups[1].Value.IndexOf($requiredGreenMember.Phrase, [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add("``C4-P2``'s required-green set does not name $($requiredGreenMember.Why). C12 defines the field as the legal inputs drawn from the property's own required vector group, and a member with no stated expectation is the exact condition AE1 arose from.")
+    }
+}
+
+# AF8: the operand reads the vector and interaction identity is unique only per session, so a
+# two-session vector could carry one identity value twice -- a refusal at `unseen` in one and an
+# admission in the other -- and take the conjunct red on conforming behaviour. AE1's failure mode
+# reached through the operand's scope instead of through the missing clause.
+foreach ($membershipArtifact in @(@{ Name = 'capability contract'; Text = $flowedContract }, @{ Name = 'neutral brief'; Text = $flowedBrief })) {
+    # The window stops at the scope phrase itself. A wider one reached the paragraph explaining why
+    # the scope is the session, which says "session" and passed after the operand had been reverted.
+    $membershipScope = [regex]::Match($membershipArtifact.Text, 'the recipient admits\s*\*{0,2}(?:in|within) the same (\w+)')
+    if ($membershipScope.Success -and $membershipScope.Groups[1].Value -cne 'session') {
+        $failures.Add("The $($membershipArtifact.Name) scopes ``C4-P2``'s membership operand to the vector and not to the session. Interaction identity is unique within a session, so a vector carrying two sessions may hold one identity value twice and satisfy the test across them, taking the conjunct red on conforming behaviour. This is AF8.")
+    }
+}
+
+# AF7: C12's rule is written over "every property". The audit enforcing it has twelve rows, and the
+# design states thirteen more capability-wide properties under that exact heading in the two state
+# machines. AE4's mechanism -- a rule enforced over the surfaces one audit happens to enumerate.
+if ($propertyAudit) {
+    $auditSection = ($propertyAudit -split '(?m)^## ')[0]
+    # Asserted against the audit's own table rows. The prose introducing the section names these
+    # properties too, so a section-wide search passed after the rows had been renamed away.
+    foreach ($machineProperty in @('S1', 'S6', 'I1', 'I7')) {
+        if ($auditSection -cnotmatch "(?m)^\|\s*$machineProperty\s*\|") {
+            $failures.Add("The per-capability property audit does not cover '$machineProperty'. C12's soundness rule is written over every property and the state machines state thirteen more under the same heading; a rule visible over less than half the properties the package states is the gap AE3 exists to close.")
+        }
+    }
+}
+
+# AF2: AE4 corrected the Channel index's Design reviews row and left the narrative above it, which
+# still named a correction sequence five families stale and called a corrected finding an open owner
+# call. The review that raised it warned that a pass updating the counting sentence without reading
+# the narrative would let the finding survive the commit that closes it, because no check read those
+# lines. This one reads them: the design-foundation intro must name the latest disposition family.
+$latestDispositionFamily = @($dispositionFamilies | Sort-Object { $_.Length }, { $_ } | Select-Object -Last 1)
+$channelIntro = [regex]::Match($channelReadme, '(?ms)^## Channel 0\.2 design foundation\r?\n(.+?)(?=^\| Artifact)').Groups[1].Value
+if (-not $channelIntro) {
+    $failures.Add('The Channel index has no design-foundation introduction, which is the narrative a reader meets before the artifact table.')
+}
+elseif ($latestDispositionFamily) {
+    # The claim this reads is the stated *range* of the pending review, not a mention anywhere in the
+    # narrative: the passage that reports AF2 names the AF family while the range sentence beside it
+    # can still say Z4, which is the staleness AF2 was.
+    $sequenceRange = [regex]::Match((Get-FlowedText $channelIntro), 'runs from S1 through \*{0,2}([A-Z]{1,2})[0-9]')
+    if (-not $sequenceRange.Success) {
+        $failures.Add('The Channel index''s design-foundation narrative states no range for the correction sequence the pending review covers. That sentence is what tells a reader how far the programme has gone.')
+    }
+    elseif ($sequenceRange.Groups[1].Value -cne $latestDispositionFamily[0]) {
+        $failures.Add("The Channel index says the pending review covers the sequence through the '$($sequenceRange.Groups[1].Value)' family, and the disposition history records '$($latestDispositionFamily[0])'. AE4 corrected the counting row below this passage and left this sentence; a count is not the only thing in an index that goes stale. This is AF2.")
+    }
+}
+
+# AF3: the ledger's completion check enumerates what it claims to have inventoried and did not claim
+# the requirements register that AE5 had just added to its sources, and the new disposition understated
+# the register's own range. A coverage claim that does not cover is the AE5 class inside the AE5 fix.
+$ledgerCompletion = [regex]::Match($migration, '(?ms)^## Ledger completion check\r?\n(.+?)(?=^## |\z)').Groups[1].Value
+if ($ledgerCompletion -and (Get-FlowedText $ledgerCompletion) -notmatch 'requirements (?:and risk )?(?:ledger|register)') {
+    $failures.Add('The migration ledger''s completion check does not claim the retained requirements register among the sources it inventories, although that register is now listed as a source and instructs item-by-item disposition. This is AF3.')
+}
+$registerPath = Join-Path $channelPath 'architecture-0.8-channel-requirements-and-risk-ledger.md'
+if (Test-Path -LiteralPath $registerPath) {
+    $registerText = Get-Content -Raw -LiteralPath $registerPath -Encoding UTF8
+    foreach ($registerPrefix in @('CH-R', 'CH-K')) {
+        $registerIds = @([regex]::Matches($registerText, "$registerPrefix(\d+)") | ForEach-Object { [int]$_.Groups[1].Value } | Sort-Object -Unique)
+        if ($registerIds.Count -gt 0) {
+            $highest = $registerIds[-1]
+            if ($migration.IndexOf("$registerPrefix$highest", [System.StringComparison]::Ordinal) -lt 0) {
+                $failures.Add("The migration ledger's register disposition does not reach '$registerPrefix$highest', which is the highest '$registerPrefix' the retained register states. A coverage claim computed from a smaller range than the source it inventories understates exactly what it exists to account for.")
+            }
+        }
+    }
+}
+
+# AF4: Z4 put intra-interaction frame order into the new-evidence inventory and the bullet enumerates
+# the observation fields those vectors compare. AE1 added a third and the bullet was not updated --
+# Z4's class applied to the newest correction, in the artifact Z4 was raised against.
+$newEvidence = [regex]::Match($migration, '(?ms)^## New evidence required by redesign\r?\n(.+?)(?=^## |\z)').Groups[1].Value
+# Scoped to the enumeration clause, not the section: the sentence added below it explaining that the
+# admission needs no new field also says "admission", and satisfied a section-wide search.
+$comparedFields = [regex]::Match((Get-FlowedText $newEvidence), 'The observation fields those vectors compare(.{0,220})').Groups[1].Value
+if ($newEvidence -and $comparedFields -notmatch 'admi(ts|ssion)') {
+    $failures.Add('The migration ledger''s new-evidence inventory enumerates the observation fields the ordering vectors compare and does not name the admission the AE1 correction added. Batch 2 builds its vector groups from this list. This is AF4.')
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'channel\0.2')) {

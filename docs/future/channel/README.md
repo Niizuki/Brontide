@@ -10,7 +10,11 @@ in this index and the future-work index, which had fallen behind every family si
 the redesign plan and the responsibility matrix. AC1-AC4 are corrected in the three artifacts that own
 the settling frame, in the ledger's closed detailed-reason set, in `C4-P2`'s own subject, and in the
 disposition check that could not see a two-letter finding family. AD1 and AD3 are corrected in the
-retained reviews' own descriptions of themselves, with AD2 left as an owner call. The V through
+retained reviews' own descriptions of themselves. The ninth closure review raised **AE1**-**AE5**,
+ruling AD2 a defect and finding `C4-P2` red on a conforming realization whose request was lost; the
+tenth raised **AF1**-**AF8**, the blocking one being that the AE1 correction left the mutation
+vector's expected observations naming the refusal alone, so a vector authored from them took the
+property green on its own mutation. Both are corrected. The V through
 AD families were raised by author-side iteration passes over each other's corrections rather than by
 an independent review, each by asking what the previous fix depended on; that method has not yet
 stopped producing findings. AD is the first family found by turning the question around — auditing the
@@ -22,7 +26,10 @@ batch.
 ## Channel 0.2 design foundation
 
 Every artifact below awaits the same cycle: one fresh independent closure re-review, now of the
-correction sequence that runs from S1 through Z4. R1 was a disagreement between C8 and the recipient state/event grid about a cancellation
+correction sequence that runs from S1 through **AF8**. That range is stated here rather than in the
+Design reviews row alone because AE4 corrected the row and left this sentence naming a sequence five
+families stale, and AF2 was that omission — a count is not the only thing in an index that goes
+stale. R1 was a disagreement between C8 and the recipient state/event grid about a cancellation
 that races recipient admission; the 2026-08-13 owner ruling holds the control until admission
 resolves rather than faulting it. S1 was that the same correction kept the neighbouring `unseen` cell
 sound only by asserting, in the grid alone, a delivery-ordering guarantee C4 and C11 disclaimed and
@@ -47,7 +54,7 @@ recently a fix stated only in the artifact that reads the fact rather than the o
 | [Contract-completeness review](./Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md) | Separate review of silence and extension pressure | All findings through T1-T4, R1-R3, S1-S3, U1-U8, and the V-Z iteration families corrected and dispositioned |
 | [0.1-to-0.2 migration ledger](./Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md) | Disposition of predecessor Shapes, fields, states, categories, limits, observations, vectors, and goldens | B4/N1/N3/F3/D5/T1/T2/S1/Z4 corrected; the ordering non-promise is **replaced**, and the new-evidence inventory carries the ordering mutations |
 | [Neutral contract/vector brief](./Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md) | Batch 2 data-only artifact, identity, property, vector, observation, and golden boundaries | Author pass plus U3/V1/V2/W1/W2/W5/W6/X1/X2/X4/Y1/Y4/Z1 corrections; property operators, vector format, parity profile, and provider boundary now carry what `C4-P2` needs |
-| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | 9 negative attestations retained, the seventh the first with complete isolation, plus 4 iteration reviews recording the author-side V, X, Y, Z, AA, AB, AC, and AD passes — each family named rather than compressed to a range, because AE4 was this row omitting AA and AB behind "V-Z" |
+| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | 10 negative attestations retained, the seventh the first with complete isolation, plus 4 iteration reviews recording the author-side V, X, Y, Z, AA, AB, AC, and AD passes — each family named rather than compressed to a range, because AE4 was this row omitting AA and AB behind "V-Z" |
 
 No Channel 0.2 schema, public type, package, host, provider, or encoding is authorized while a fresh
 independent closure re-review is pending or a blocking independent-review finding remains open.

@@ -339,7 +339,9 @@ Core normative comparison includes:
   What does is whether the request arrives afterwards: a reordering delivers it and the recipient
   admits an interaction for that identity, exactly as C4's retention rule requires of any later
   request bearing it; a loss never delivers it. The conjunct tests membership of the identity in the
-  set the recipient admits within the same vector, so that set is compared;
+  set the recipient admits **within the same session**, so that set is compared. The scope is the
+  session rather than the vector because an interaction identity is unique only within one, and a
+  vector carrying two sessions may hold the same identity value in both;
 - effect certainty and unknown reason class; and
 - extension/profile-owned normative details selected by that profile's parity declaration.
 

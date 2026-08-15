@@ -16,7 +16,7 @@ Sources inventoried:
 - [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md);
 - [`conformance/channel-0.1-vectors.json`](../../../conformance/channel-0.1-vectors.json);
 - [`channel-envelope.json`](../../../binding/portable/schemas/channel-envelope.json);
-- [`limits-and-lifecycle.json`](../../../binding/portable/schemas/limits-and-lifecycle.json); and
+- [`limits-and-lifecycle.json`](../../../binding/portable/schemas/limits-and-lifecycle.json);
 - [`binding-observation.json`](../../../binding/portable/schemas/binding-observation.json); and
 - the [Architecture 0.8 Channel requirements and risk ledger](./architecture-0.8-channel-requirements-and-risk-ledger.md),
   which states of itself that it "must be dispositioned item by item in the successor's migration
@@ -24,7 +24,7 @@ Sources inventoried:
 
 ## Retained requirements register disposition
 
-`CH-R1` through `CH-R11` and `CH-K1` through `CH-K5` are carried in substance by the field, state,
+`CH-R1` through `CH-R11` and `CH-K1` through `CH-K7` are carried in substance by the field, state,
 category, limit, and feature tables below, which is why no `CH-R` identifier appeared anywhere in the
 0.2 package until AE5 was raised. One entry is not bookkeeping and is dispositioned explicitly here.
 
@@ -283,8 +283,12 @@ The 0.1 set has no direct equivalents for these required 0.2 cases:
   nonconformant-peer inputs `C4-P2` must leave green, and `C4-control-precedes-request` and
   `C4-outcome-precedes-ack`, one per conjunct, both requiring the declared reordering injection.
   The observation fields those vectors compare — the late-traffic latch, including its
-  `not-applicable` value, and the frame that settled it with its arrival ordinal — are likewise new in
-  0.2 and have no 0.1 observation field to migrate from.
+  `not-applicable` value, the frame that settled it with its arrival ordinal, and the recipient's
+  **admission of an identity previously refused at `unseen`**, which the AE1 correction made the
+  second fact the first conjunct reads — are likewise new in
+  0.2 and have no 0.1 observation field to migrate from. The admission is an ordinary admission
+  decision C10 already enumerates, so no implementer has to invent a field; it is listed because Batch
+  2 builds its vector groups from here, and omitting it was AF4.
 
 ## Golden encodings, parity profiles, and pins
 
@@ -316,5 +320,11 @@ This ledger covers every logical 0.1 envelope/Correlation/body Shape and field, 
 Binding 0.1 message kind and lifecycle state, all twelve protocol categories, seven process
 categories, five failure domains, ten declared limits, ten lifecycle feature declarations, every
 normative/non-normative observation field and resource subfield, all 24 Channel vectors, all six
-goldens as a group, and the known consumers. The independent design review must challenge both the
-coverage claim and every semantic disposition.
+goldens as a group, the known consumers, and the retained Architecture 0.8 Channel requirements and
+risk register — `CH-R1` through `CH-R11` and `CH-K1` through `CH-K7`, carried in substance by the
+tables above with `CH-R10` dispositioned explicitly. The independent design review must challenge both
+the coverage claim and every semantic disposition.
+
+The register was named in the sources list by the AE5 correction and left out of this claim, which is
+AF3: an inventory that lists a source and then enumerates its coverage without it makes the same
+omission one paragraph apart, and this enumeration is the half a reader checks.

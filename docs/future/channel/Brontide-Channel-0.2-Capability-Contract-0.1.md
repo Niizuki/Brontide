@@ -207,11 +207,24 @@ so the acknowledgement lands on an interaction the Outcome has already made term
 realization can produce neither, and they exist so that each conjunct of `C4-P2` has something to
 fail on.
 
-Their expected observations are exactly what the receiving endpoint records: one `rejected-protocol`
-for a control naming an identity the recipient has never been asked to open, and one late-traffic
-`state-violation` whose latch records the displaced acknowledgement as the frame that settled it.
-Those recorded refusals are the witnesses `C4-P2` fails on. Each is complete data rather than an
-unspecified expectation, which is what `C12` requires of every vector.
+Their expected observations are the complete set of records both endpoints produce under the vector,
+and **not the refusal alone**. For `C4-control-precedes-request` that set begins with the recipient's
+`rejected-protocol` for a control naming an identity it has never been asked to open, and continues
+with what the displaced request produces when it arrives: the recipient admits it at `unseen` as any
+first request bearing that identity does, dispatches it, and commits its terminal, while the initiator
+records what its own machine rows give it for a terminal arriving against the control it committed.
+For `C4-outcome-precedes-ack` the set contains one late-traffic `state-violation` whose latch records
+the displaced acknowledgement as the frame that settled it.
+
+**The subsequent admission is part of the expected observation, not a consequence left implicit.** It
+is the second fact `C4-P2`'s first conjunct reads, so a vector authored to stop at the refusal leaves
+the membership test an empty set and takes the property green on its own named mutation — which is U1
+reached through the vector rather than through the property, and is how AF1 was raised against the
+AE1 correction. What `C12` requires is that the vector state every one of these records as complete
+data rather than an unspecified expectation; it does not require this paragraph to enumerate the
+per-endpoint rows, which the two state machines already determine.
+
+These recorded facts, and not the refusals alone, are the witnesses `C4-P2` fails on.
 
 The second witness is the settling frame and not the latch value. `fault-committed` is one of three
 enum values and names no frame, and the two cases the property must leave green — a legal late control
@@ -269,13 +282,25 @@ separate them, and declaring the loss vector green instead would leave the mutat
 separates them is what happens next: a reordering delivers the request afterwards and the recipient
 admits an interaction for that identity, exactly as the retention passage below says it must; a loss
 never delivers it and no admission ever occurs. The conjunct reads that, through a membership test
-over the identities the recipient admits in the same vector.
+over the identities the recipient admits **in the same session**. The scope is the session and not
+the vector: an interaction identity is unique within a session and a new session may legitimately
+reuse the value, so a two-session vector could otherwise hold one identity refused at `unseen` in one
+session and admitted in another, satisfy the test across them, and take the conjunct red on conforming
+behaviour — AE1's own failure mode reached through the operand's scope instead of through a missing
+clause. That is AF8, and the precedence relation W1 added carries the same qualifier for the same
+reason.
 
-**Required green.** `C4-P2` must not fail on a conforming realization. Named inputs it must leave
-green: a request **lost** while the cancellation control naming its identity is delivered; a
-cancellation control for an identity the peer never opened; a legal late control arriving after a
-peer's terminal; and a duplicate terminal from a nonconformant peer. The first of these is the case
-the property was previously red on.
+**Required green.** `C4-P2` must not fail on a conforming realization. Its required vector group has
+seven legal members and the set names all seven, because a member with no stated expectation is the
+condition AE1 arose from: conforming commit-order delivery in the initiator direction; conforming
+commit-order delivery in the recipient direction; a request **lost** while the cancellation control
+naming its identity is delivered; a lost **acknowledgement**, the other half of "loss of either
+frame"; a cancellation control for an identity the peer never opened; a legal late control arriving
+after a peer's terminal; and a duplicate terminal from a nonconformant peer.
+
+The lost request is the case the property was previously red on. The two conforming-delivery members
+were the sharpest omission when AF5 was raised: a property that goes red on plain conforming delivery
+is the worst failure available to it, and it was the one case the set did not name.
 
 In both conjuncts the subject of "had already committed" and "had committed it" is the **committing
 endpoint** — the endpoint that committed the frame the refusal names, which is never the endpoint that
