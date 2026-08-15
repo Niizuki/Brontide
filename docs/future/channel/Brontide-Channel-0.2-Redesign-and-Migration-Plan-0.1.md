@@ -23,7 +23,10 @@ themselves: AD1 is the AC pass's residual denying that the AA and AB evidence ex
 the gap to the owner, AD3 the three disagreeing accounts of what the W iteration review contains, and
 AD2 the half of the X7 class check still written over two ids. The ninth closure review then returned
 `does-not-conform` with blocking **AE1** and nonblocking **AE2**-**AE5**, and ruled AD2 a defect; all
-six are corrected, AE1 under the dated ruling recorded below.
+six are corrected, AE1 under the dated ruling recorded below. The tenth closure review then returned
+`does-not-conform` with blocking **AF1** and nonblocking **AF2**-**AF8**: it confirmed the AE1
+property fix works and found the correction incomplete one artifact below itself, in the passage
+stating what the mutation vectors' expected observations are. All eight are corrected.
 A fresh independent closure re-review of that whole sequence precedes Batch 2. No Channel 0.2
 implementation or ratification is claimed.
 **Designed against:** Brontide Architecture 0.8, Complete Draft.

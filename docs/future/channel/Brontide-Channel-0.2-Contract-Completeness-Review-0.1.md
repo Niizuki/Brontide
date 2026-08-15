@@ -183,6 +183,42 @@ property counts as evidence.
 | C11 | C11-P1 required facets exact/core invariants stable | extension changes interaction identity or authority result | **owed** |
 | C12 | C12-P1 deterministic data and independent runtimes | remove a property group or add stack dependency | **owed** |
 
+### State-machine properties
+
+C12's soundness rule is written over **every** property, and the table above covers the twelve
+capability-wide ones. The two state machines state thirteen more under that same heading, and AF7 was
+that the rule was visible over less than half the properties the package states. They are audited here
+under the same three obligations, in this section rather than a separate one, because a rule enforced
+over the surfaces one audit happens to enumerate is the mechanism AF7 and AE4 share.
+
+| Property | Statement | Named mutation that must fail | Required-green inputs |
+| --- | --- | --- | --- |
+| S1 | every accepted transition is in the legal table | named negative probe in the neutral verifier | **owed** |
+| S2 | no interaction dispatches outside `established` | named negative probe in the neutral verifier | **owed** |
+| S3 | no new interaction is admitted after the first drain transition | named negative probe in the neutral verifier | **owed** |
+| S4 | a terminal session never becomes nonterminal or resumes under the same identity | named negative probe in the neutral verifier | **owed** |
+| S5 | fixed and negotiated establishment produce equal normative profiles | named negative probe in the neutral verifier | **owed** |
+| S6 | no session event creates Ready, Release, authority, or an application Outcome | named negative probe in the neutral verifier | **owed** |
+| I1 | one interaction identity crosses the dispatch boundary at most once per session | **owed** | **owed** |
+| I2 | every accepted interaction has at most one terminal history | **owed** | **owed** |
+| I3 | no cancellation acknowledgement, drain event, timeout, or protocol fault becomes a semantic Outcome | **owed** | **owed** |
+| I4 | every pre-dispatch refusal is `known-none`; every possible post-dispatch loss is `unknown` | **owed** | **owed** |
+| I5 | concurrency never exceeds the established finite bound under any generated interleaving | **owed** | **owed** |
+| I6 | a relational interaction matches exactly one declaration and never creates Ready/Release | **owed** | **owed** |
+| I7 | a terminal fact for one interaction changes no sibling interaction's terminal history | **owed** | **owed** |
+
+The two machines are not in the same state. The session machine commits each of `S1`-`S6` to a named
+negative probe in the neutral verifier, so those six satisfy C12's falsifiability half and owe only
+the required-green half. The interaction machine's `I1`-`I7` section carries no evidence sentence at
+all, so those seven **satisfy neither half** — which is a larger gap than the eleven `owed` cells
+above, and is recorded here rather than left to be discovered a third time.
+
+`I1`-`I7` largely restate the C-properties at interaction scope and the C-properties carry the
+normative weight, which is why AF7 was nonblocking. That is a reason to sequence this work, not to
+leave it uncounted.
+
+### Why so many cells read `owed`
+
 The third column is the AE3 correction, and eleven of its twelve cells say `owed` rather than a
 plausible-looking set. That is deliberate. C12 now requires every property to carry a required-green
 set drawn from its own vector group, and no artifact currently states one for any capability but C4 —
@@ -478,6 +514,31 @@ own iteration-pass attributions.
 
 Eleven of the twelve required-green cells read `owed` rather than a guessed set, which is named
 residual work and is stated as such above.
+
+The tenth independent closure review, at `c358464`, returned `does-not-conform` with blocking **AF1**
+and nonblocking **AF2**-**AF8**. It confirmed the AE1 correction works — its evaluator returns green
+on the lost-request vector and red on both named mutations — and then found the correction incomplete
+one artifact below itself. **AF1** — C4's passage stating the mutation vectors' expected observations
+said they are "exactly" the recorded refusals and called that complete data, while the corrected
+conjunct reads a second fact. A vector authored from that passage leaves the membership test an empty
+set and takes `C4-P2` green on `C4-control-precedes-request`, which is U1 reached through the vector
+rather than through the property, and two paragraphs of C4 contradicted each other while every gate
+stayed green. The passage now states the complete record set both endpoints produce and names the
+subsequent admission as part of it. **AF2** and **AF3** are second halves of the AE4 and AE5
+corrections: the Channel index's narrative still named a five-family-stale sequence and a closed
+finding as open, and the ledger's completion check still did not claim the register its own sources
+list had just gained, while the new disposition understated that register's `CH-K` range. **AF4** —
+the new-evidence inventory enumerates the observation fields the ordering vectors compare and omitted
+the admission AE1 added, which is Z4's class applied to the newest correction. **AF5** — the
+required-green set named four of its group's seven legal members, and conforming commit-order delivery
+in both directions was among the three missing; all seven are now named. **AF6** — the AD2 replacement
+derived its class from one sentence shape and could not see `V`, `W5`, or `W6`, so the classification
+is now declared in a totality-checked provenance table instead of inferred from prose. **AF7** — C12's
+soundness rule is written over every property and the audit enforced it over twelve of the twenty-five
+the package states; `S1`-`S6` and `I1`-`I7` are now audited under the same three obligations, and the
+record shows `I1`-`I7` satisfy neither half. **AF8** — the membership operand was scoped to the vector
+while interaction identity is unique only per session, so a two-session vector could satisfy it across
+sessions and take the conjunct red on conforming behaviour; the operand is now session-scoped.
 
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.
