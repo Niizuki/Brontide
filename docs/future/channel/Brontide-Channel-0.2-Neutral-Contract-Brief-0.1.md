@@ -271,8 +271,15 @@ implementation could turn red is a finding against the set rather than evidence 
 
 The operator set may compare equality, membership, counts, transition edges, set uniqueness,
 implication, bounded “for all selected steps/vectors,” and **precedence between two steps in one
-vector's declared ordered stimulus sequence, for one endpoint and one interaction identity**. It may
-not call stack code or embed a general scripting language.
+vector's declared ordered stimulus sequence, for one endpoint and one interaction identity within one
+session**. It may not call stack code or embed a general scripting language.
+
+The session qualifier is AG2 and carries the same reasoning as AF8's on the membership operand: an
+interaction identity is unique within a session and a new session may legitimately reuse the value, so
+without it a wholly conforming two-session vector reusing one identity puts two unrelated endpoints'
+steps in one precedence relation and takes `C4-P2` red. C4 asserted this qualifier was already here
+before it was, which is why the design verifier now pins the claim against this sentence rather than
+leaving one artifact to describe another.
 
 The settling frame's arrival ordinal is used **as an identifier, never as an ordering operand**. It may be
 compared for equality, to say which received frame settled a latch and therefore which declared step

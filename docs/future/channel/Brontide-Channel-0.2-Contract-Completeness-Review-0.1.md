@@ -144,7 +144,7 @@ property counts as evidence.
 | cancel before dispatch | local refusal/no cancel frame; admission may itself be abandoned locally | Channel core |
 | cancel during recipient admission | held, not faulted: exactly one control is retained while `validating` and applied when admission resolves; a refused admission discards it with no frame and does not fire the late-traffic latch | Channel core |
 | loss or drain while a control is held | the third exit from `validating`: held control discarded with no answering frame, late-traffic latch does not fire, and the interaction reaches whatever terminal it would have reached with no control outstanding; an interaction still admitting is outside the drain snapshot | Channel core |
-| control delivered before the request it names | impossible under C4 intra-interaction frame order, which core promises and a realization profile declares; `C4-control-precedes-request` exists as a mutation vector whose expected observation is the recipient's recorded `rejected-protocol` at `unseen`, which is the witness `C4-P2` fails on | Channel core + realization profile |
+| control delivered before the request it names | impossible under C4 intra-interaction frame order, which core promises and a realization profile declares; `C4-control-precedes-request` exists as a mutation vector whose expected observation is the complete record set both endpoints produce — the recipient's recorded `rejected-protocol` at `unseen` **and its subsequent admission of that identity when the displaced request arrives**, which together are the witness `C4-P2` fails on. The refusal alone is not the expectation: the first conjunct reads the admission too, and a vector authored without it takes the property green on this very mutation, which is AG1 | Channel core + realization profile |
 | cancel during possible effects | accepted/refused nonterminal ack; final Outcome/fault/loss required | Channel + Operation profile |
 | cancel after terminal | late control; terminal history unchanged | Channel core |
 | drain with in-flight work | no new admission; existing work terminates | Channel core |
@@ -539,6 +539,31 @@ the package states; `S1`-`S6` and `I1`-`I7` are now audited under the same three
 record shows `I1`-`I7` satisfy neither half. **AF8** — the membership operand was scoped to the vector
 while interaction identity is unique only per session, so a two-session vector could satisfy it across
 sessions and take the conjunct red on conforming behaviour; the operand is now session-scoped.
+
+The eleventh independent closure review, at `57bb1d8`, returned `does-not-conform` with blocking
+**AG1** and nonblocking **AG2**-**AG5**, and closed AF3-AF7 completely. **AG1** — AF1's evidence named
+two artifacts and quoted both; the correction closed C4 and stopped, and the check written for it
+searched the contract alone, so this review's silence-probe row still gave the ordering mutation's
+expected observation as the recorded refusal. A vector authored from that row takes `C4-P2` green on
+its own named mutation: the U1 condition, surviving in the commit written to close it. **AG2** is a
+sharper class than the omission — C4 asserted that the precedence relation carries AF8's session
+qualifier, and the brief's operator set did not carry it. That is a correction making a claim about an
+artifact it never opened, and a conforming two-session vector goes red under the operator as
+published. The qualifier is now in the brief and the claim is pinned against it. **AG3** — the dated
+AE1 ruling still stated the vector-scoped operand AF8 corrected, while C4 deferred to that ruling; the
+ruling now carries its scope corrected and the original recorded as issued, as the S1 ruling records
+`channel-core`. **AG4** and **AG5** are the third and fourth surfaces of the same index staleness AE4
+and AF2 each closed one of.
+
+**The pattern is the finding.** Four instances now share one shape — AE4→AF2, AE5→AF3, AF1→AG1,
+AF2→AG4 — a correction closing the *first* artifact a finding's evidence names and stopping. A sweep
+over all eleven retained attestations extracted, for every finding, the artifacts its own evidence
+section cites: 47 findings cite artifacts and 23 cite more than one. Everything through AD was
+verified individually by reviews 8 through 11 in the artifacts it was raised against; the live set was
+AE, AF, and AG, and AG1 and AG4 are what the sweep confirms was left. The per-artifact index rows now
+state their position against the newest family explicitly — naming it or declaring the artifact
+unchanged by it — so a row cannot go stale by being left alone, and cross-artifact claims are pinned
+against the artifact they describe so AG2's class cannot be written again.
 
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.
