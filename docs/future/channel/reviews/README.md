@@ -620,7 +620,7 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   why the ruling was made. Its dispatch is disclosed below.
 
 The current review target is the commit titled `fix(channel): close AI1-AI9 and sweep by concept`,
-committed 2026-08-15, which is the head of the correction sequence beginning at
+committed 2026-08-16, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
 has now gone stale twice: the eighth review raised it as **U6**, and the rewrite that closed U6 was
