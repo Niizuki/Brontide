@@ -15,7 +15,7 @@ ordering and a new `Intra-interaction frame order` row assigns that fact to `cha
 by a per-interaction frame order declaration in the realization profile. U2 closed the owner
 vocabulary: that row first used `channel-core`, a second identifier for the contract family every
 other Channel-core row already called `channel`, and the identifiers are now declared once and used
-only from that list. It is subject to a fresh independent closure re-review.
+only from that list. It is subject to a fresh independent closure re-review. Unchanged by every correction pass through **AI9**.
 
 ## Rule
 

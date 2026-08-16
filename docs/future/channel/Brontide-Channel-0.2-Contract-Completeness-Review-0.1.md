@@ -9,7 +9,7 @@ disposition history now runs to the eighth cycle rather than stopping at the fif
 bound's direction scope is recorded as session-wide-as-written against per-direction-as-enforced
 rather than as undeclared.
 A fresh independent closure re-review remains required. This review asks what the proposed contract
-does not say. It is separate from conformance review and does not claim the contract is correct.
+does not say. It is separate from conformance review and does not claim the contract is correct. Under **AI3** the `I5` row carries the AE3 connection its `C4` sibling already had, and the pointer added with it names its direction correctly.
 
 Reviewed artifacts:
 
@@ -173,7 +173,7 @@ property counts as evidence.
 | C1 | C1-P1 exact profile or known-none | remove one required facet from fixed profile only | **owed** |
 | C2 | C2-P1 legal transition/terminal monotonicity | accept new interaction while draining | **owed** |
 | C3 | C3-P1 exact class/direction/phase | mark unknown phase as true | **owed** |
-| C4 | C4-P1 one dispatch/terminal and bounded concurrency; C4-P2 intra-interaction frame order, one conjunct per direction | redispatch replayed identity or exceed bound; `C4-control-precedes-request` delivers one interaction's control before the request that opens it, and `C4-outcome-precedes-ack` delivers the recipient's Outcome before the acknowledgement it committed first — one named mutation per conjunct, because half a property with no mutation is half unfalsifiable | `C4-P2`, all seven legal members of its required vector group: conforming commit-order delivery in the initiator direction; conforming commit-order delivery in the recipient direction; a request lost while the control naming its identity is delivered; a lost acknowledgement; a control for an identity the peer never opened; a legal late control after a peer's terminal; a duplicate terminal from a nonconformant peer. The lost request is AE1 — a required member carrying no expectation that the property was red on. This cell named four of the seven until AH2: AF5 corrected the set in the contract and the brief and not here, and this is the artifact Batch 2 authors the property file from. `C4-P1`: **owed**, and see the direction-scope disposition below before filling it |
+| C4 | C4-P1 one dispatch/terminal and bounded concurrency; C4-P2 intra-interaction frame order, one conjunct per direction | redispatch replayed identity or exceed bound; `C4-control-precedes-request` delivers one interaction's control before the request that opens it, and `C4-outcome-precedes-ack` delivers the recipient's Outcome before the acknowledgement it committed first — one named mutation per conjunct, because half a property with no mutation is half unfalsifiable | `C4-P2`, all seven legal members of its required vector group: conforming commit-order delivery in the initiator direction; conforming commit-order delivery in the recipient direction; a request lost while the control naming its identity is delivered; a lost acknowledgement; a control for an identity the peer never opened; a legal late control after a peer's terminal; a duplicate terminal from a nonconformant peer. The lost request is AE1 — a required member carrying no expectation that the property was red on. This cell named four of the seven until AH2: AF5 corrected the set in the contract and the brief and not here, and this is the artifact Batch 2 authors the property file from. `C4-P1`: **owed**, and see the direction-scope disposition in the silence-probe table above before filling it — under AE3 it is a known conforming-realization exposure, not merely unwritten |
 | C5 | C5-P1 all positional/bound checks before dispatch | project an authority value or dispatch oversized payload | **owed** |
 | C6 | C6-P1 exact permitted local authority | treat compatibility/delivery as permission | **owed** |
 | C7 | C7-P1 exact declaration/pre-Ready/no phase creation | admit wrong edge or let success create Ready | **owed** |
@@ -203,7 +203,7 @@ over the surfaces one audit happens to enumerate is the mechanism AF7 and AE4 sh
 | I2 | every accepted interaction has at most one terminal history | **owed** | **owed** |
 | I3 | no cancellation acknowledgement, drain event, timeout, or protocol fault becomes a semantic Outcome | **owed** | **owed** |
 | I4 | every pre-dispatch refusal is `known-none`; every possible post-dispatch loss is `unknown` | **owed** | **owed** |
-| I5 | concurrency never exceeds the established finite bound under any generated interleaving | **owed** | **owed** |
+| I5 | concurrency never exceeds the established finite bound under any generated interleaving | **owed** | **owed**, and under AE3 a **known** conforming-realization exposure rather than merely unwritten: the direction-scope disposition in the silence-probe table above records that `I5` bounds concurrency with no direction restriction while the only mechanism the design provides enforces per-direction, so a both-endpoints-initiating profile may take it red on a conforming realization. AH5 recorded this against `C4-P1` and not against `I5`, which its own evidence named alongside it; that is AI3 |
 | I6 | a relational interaction matches exactly one declaration and never creates Ready/Release | **owed** | **owed** |
 | I7 | a terminal fact for one interaction changes no sibling interaction's terminal history | **owed** | **owed** |
 
@@ -591,6 +591,32 @@ merits and the earlier refusal does not bar it; both now state the coverage limi
 **The sweep's own limit is worth carrying forward.** AH2 was unreachable by the AG sweep's method, and
 the fix is to enumerate the artifacts a correction *touches* rather than the artifacts a finding's
 author happened to cite.
+
+The thirteenth independent closure review, at `e7bfeba`, returned `does-not-conform` with blocking
+**AI1** and nonblocking **AI2**-**AI9**. **AI1** is the AH1 decision propagated to one operand of two.
+AH1 declared multi-session vectors legal and gave the declared stimulus step a session so the
+precedence relation had its operand; the settling-frame reference — the other operand of the same
+property — stayed published in three places as four fields with no session, and both the brief and the
+interaction machine asserted it maps to one declared step. That assertion stops being true the moment
+two sessions may hold one identity value, and `C4-P2` then evaluates green on
+`C4-outcome-precedes-ack`. All three field lists now carry the session. **AI2** is the sixth instance
+of the first-artifact pattern and the one review 12's closing note predicted in writing. **AI3** — AH5
+closed in the audit's `C4` row and not the `I5` row its evidence names alongside it. **AI4** — six of
+eight artifacts' own status blocks were stale by one to four families while the Channel index claimed
+those corrections, and nothing read them. **AI5** — the AH1 ruling justified itself by citing
+reconnect cases C2 does not have, which is AG2's class inside the commit asserting that class closed;
+the citation is withdrawn rather than repaired. **AI6**, **AI7**, and **AI8** are corrected as their
+evidence describes. **AI9** is the sharpest: S3's own evidence named the redesign plan's section 7.8,
+which still reported seven retained negative attestations, so **a retained finding had been open for
+six cycles** while every entry point reported the programme's findings closed.
+
+**The sweep axis changed, and this is the record of why.** The AG sweep enumerated the artifacts each
+finding's *evidence cites*; AH2 and AI1 were both unreachable by it, because neither artifact was
+cited by the finding whose correction invalidated it. The correct axis is the concept: when a
+correction changes a fact, the impact set is every artifact asserting something about that fact. AI1
+was found that way by the reviewer and reproduced that way here, and AI4's check is written over every
+artifact's status block rather than over the ones a finding named. The AI4 and settling-frame checks
+are the first two written from a concept sweep rather than from a finding's citation list.
 
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.

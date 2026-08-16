@@ -15,7 +15,7 @@ cells name `rejected-protocol` as the provenance it is rather than as the next s
 cells name. The intra-interaction ordering fact the
 `unseen` verdict depends on is carried here and owned by C4. Under U8 the pre-dispatch Local loss cell
 names `lost` like every other cell in that column, rather than leaving the state to be read out of the
-interaction machine's totality rule.
+interaction machine's totality rule. Unchanged by every correction pass through **AI9**.
 
 Normative companions:
 
