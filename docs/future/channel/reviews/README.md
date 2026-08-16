@@ -1,6 +1,8 @@
 # Channel 0.2 design-foundation reviews
 
-Status: four owner rulings resolved; twelve retained independent reviews, eleven negative and the twelfth conforming with nonblocking findings. B1-B4, N1-N3,
+Status: four owner rulings resolved; thirteen retained independent reviews, twelve negative and one
+conforming with nonblocking findings — which under the 2026-08-15 closure-standard ruling did not
+close the batch. The thirteenth raised blocking **AI1** with nonblocking **AI2**-**AI9**. B1-B4, N1-N3,
 F1-F3, D1-D5, T1-T4, R1-R3, and S1-S3 are closed in the artifacts they were raised against, the
 eighth review having re-verified every one of them individually rather than taking closure from an
 index. That review's blocking **U1** — the S1 correction gave intra-interaction frame order an owner
@@ -142,6 +144,7 @@ dependency instead of narrowing it.
 | AF | closure-review | closure review 10 attestation |
 | AG | closure-review | closure review 11 attestation |
 | AH | closure-review | closure review 12 attestation |
+| AI | closure-review | closure review 13 attestation |
 
 ## Required review scope
 
@@ -194,7 +197,12 @@ The author correction pass and ordinary documentation gates are not independent 
 
 ## Exact next work
 
-The twelfth review has run, from a fresh isolated clone, and returned
+The thirteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
+blocking **AI1** and nonblocking **AI2**-**AI9**; its retained record is
+`channel-0.2-design-foundation-closure-review-13-attestation.md`. **Steps 1 through 3o are complete.**
+Step 4 is the live path, and the next agent reviews the AI corrections.
+
+The twelfth review returned
 `conforms-with-nonblocking-findings` — the first non-negative verdict here — with six findings and no
 blocking one. Its retained record is `channel-0.2-design-foundation-closure-review-12-attestation.md`.
 Under the 2026-08-15 closure-standard ruling that verdict did not close the batch. **Steps 1 through
@@ -247,6 +255,25 @@ is exactly what the AD and AE passes found separately.
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3o. ~~Correct AI1-AI9, raised by the thirteenth independent closure review, and change the sweep
+   axis.~~ **Done.** **AI1** was blocking: AH1 declared multi-session vectors legal and gave the
+   declared stimulus step a session so the precedence relation had its operand, and left the
+   settling-frame reference — the other operand of the same property — published in three places as
+   four fields with no session, still asserting it maps to one declared step. It stops mapping to one
+   the moment two sessions may hold one identity value, and `C4-P2` then goes green on
+   `C4-outcome-precedes-ack`. All three lists now carry the session. **AI9** is the one a reviewer
+   should weigh hardest: S3's evidence named the plan's section 7.8, which reported seven retained
+   negative attestations and stopped at the seventh review, so **a retained finding was open for six
+   cycles while every index said the programme's findings were closed**. **AI2**-**AI8** are corrected
+   as the disposition history records.
+
+   **The sweep axis changed.** The AG sweep enumerated the artifacts each finding's *evidence cites*,
+   and both AH2 and AI1 were unreachable by it — neither artifact was cited by the finding whose
+   correction invalidated it. The axis is now the concept: when a correction changes a fact, the impact
+   set is every artifact asserting something about that fact. AI4's check reads every artifact's status
+   block and the settling-frame check reads every published field list, rather than the ones a finding
+   named. A reviewer should treat that as a change of method with one round's evidence behind it, not
+   as a solved problem — the previous method was also introduced with a rationale.
 3n. ~~Correct AH1-AH6, raised by the twelfth independent closure review, and rule the closure
    standard.~~ **Done.** The twelfth review returned `conforms-with-nonblocking-findings` with no
    blocking finding. **The 2026-08-15 ruling recorded in the redesign plan settles that only an
@@ -570,6 +597,15 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   so this review proved the finding still live rather than discovering it, and says so rather than
   claiming the credit. Its dispatch is disclosed below.
 
+- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) — reviewed
+  `e7bfeba6ba58e2e4e9a48a5148e2461c187bf452`; `does-not-conform`; blocking **AI1** with nonblocking
+  **AI2**-**AI9**. **Its isolation is complete**: a fresh isolated clone, 890 tracked paths, reviewer
+  identity distinct from all twelve earlier reviewers and every correction author. It recomputed all
+  twelve registry pins, enumerated the grid to 108 cells and 180 pairs agreeing with reviews 7-12, and
+  recorded three probes that found nothing. **AI1** is the AH1 decision propagated to one operand of
+  two, and **AI9** is a retained finding — S3's own evidence surface — that had stayed open for six
+  cycles while every entry point reported the programme's findings closed. Its dispatch is disclosed
+  below.
 - [Closure review 12](./channel-0.2-design-foundation-closure-review-12-attestation.md) — reviewed
   `f451f557ec51b9b878ddc0476c1cc7e0bd836679`; **`conforms-with-nonblocking-findings`**, the first
   non-negative verdict in the programme; **AH1**-**AH6** and no blocking finding. **Its isolation is
@@ -583,8 +619,8 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   that if the owner judged AF5 under-rated then AH2 is blocking and its verdict wrong. That flag is
   why the ruling was made. Its dispatch is disclosed below.
 
-The current review target is the commit titled `fix(channel): close AH1-AH6 and rule the closure standard`,
-committed 2026-08-14, which is the head of the correction sequence beginning at
+The current review target is the commit titled `fix(channel): close AI1-AI9 and sweep by concept`,
+committed 2026-08-15, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
 has now gone stale twice: the eighth review raised it as **U6**, and the rewrite that closed U6 was
@@ -752,3 +788,26 @@ not the behaviour of a review reaching for a clean result. And the owner then ru
 
 The independence requirement on the next cycle is unchanged and now stricter by one name: its reviewer
 must differ from all twelve retained reviewers and from every correction author.
+
+## Disclosed dispatch provenance of closure review 13
+
+Closure review 13 was dispatched by the session that authored the commit it reviewed
+(`fix(channel): close AH1-AH6 and rule the closure standard`), the four commits before it — the AG,
+AF, AE, and AD corrections — and the AD correction iteration review, and that dispatched closure
+reviews 9 through 12. It also **recommended the 2026-08-15 closure-standard ruling, after the twelfth
+review's verdict was known**, and that disclosure was carried in the dispatch brief so the reviewer
+could weigh the standard it was operating under.
+
+The brief named no artifact defect and no area of suspicion. The reviewer recorded that its blocking
+finding was not in the set the brief pointed at, and it landed inside the dispatching author's own
+change — the AH1 correction, on the operand that correction did not reach.
+
+Two things the next cycle should carry. **AI9 means the programme's central claim was false for six
+cycles**: S3's evidence surface was open while every entry point reported all findings closed, so a
+reviewer should verify "every retained finding is closed" against the findings' own evidence rather
+than against the indexes that assert it. And the correction author has now produced the same
+propagation failure in six consecutive rounds; the sweep axis changed in this commit because of it,
+with one round of evidence behind the change.
+
+The independence requirement on the next cycle is unchanged and now stricter by one name: its reviewer
+must differ from all thirteen retained reviewers and from every correction author.

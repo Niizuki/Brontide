@@ -9,7 +9,7 @@ five identity reasons covered no refusal of a control naming an identity that wa
 is the reason `C4-P2`'s first conjunct quantifies over and the parity profile compares. Under Z4 the
 new-evidence inventory carries intra-interaction frame order, its two ordering mutations, and the
 observation fields they compare, none of which has a Channel 0.1 predecessor to migrate from.
-Serialized spellings remain unselected until the neutral contract batch.
+Serialized spellings remain unselected until the neutral contract batch. Unchanged by every correction pass through **AI9**.
 
 Sources inventoried:
 

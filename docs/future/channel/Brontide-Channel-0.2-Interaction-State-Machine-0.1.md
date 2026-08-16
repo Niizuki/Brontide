@@ -15,7 +15,7 @@ nonterminal state, and under W4 an identity refused at `unseen` is not a termina
 no latch. Under X3 that event is a recipient transition row of its own, because the totality rule
 would otherwise make it the terminal interaction W4 refuses; under X5 the refusal records one local
 observation whose provenance this artifact fixes; and under X1 settling the late-traffic latch records
-the frame that settled it, which is what `C4-P2` reads and the latch value is not.
+the frame that settled it, which is what `C4-P2` reads and the latch value is not. Under **AI1** the settling frame this machine records carries its **session**: AH1 declared a vector may carry more than one, an interaction identity is unique only within one, and without the session two steps in different sessions match every other published field.
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 
@@ -212,7 +212,7 @@ Every other terminal interaction owns a `late-traffic-fault` latch with exactly 
 The first duplicate semantic terminal or late non-fault control while the latch is `clear` preserves
 the first accepted terminal history and attempts exactly one interaction-scoped `state-violation`
 peer fault. Successful commit sets `fault-committed`; inability to commit sets `fault-unavailable`.
-Settling the latch also **records the frame that settled it** — its kind, its interaction identity,
+Settling the latch also **records the frame that settled it** — its kind, its **session**, its interaction identity,
 the endpoint that committed it, and its **arrival ordinal** within that interaction — in the local
 observation. The first three do not identify the frame when one endpoint commits two of the same kind
 for one identity, which is exactly what a duplicate terminal is and is a case `C4-P2` must leave

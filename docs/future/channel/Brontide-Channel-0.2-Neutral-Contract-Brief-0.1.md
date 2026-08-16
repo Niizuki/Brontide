@@ -19,7 +19,7 @@ late-traffic latch the grid already required as evidence, and the established-pr
 image carries the realization's per-interaction frame order declaration, the required adversarial
 groups include one owning intra-interaction frame order and its ordering mutation, the parity profile
 compares the peer-fault detailed reason, and the neutral provider may inject deterministic
-per-interaction reordering so a declared ordering mutation can actually be executed.
+per-interaction reordering so a declared ordering mutation can actually be executed. Under **AI1** the settling-frame reference carries its session, and under **AI7** the established-profile digest is compared per session the vector carries — the same list AH1 made per-session having left both singular.
 
 ## Purpose
 
@@ -172,8 +172,8 @@ flattened into Channel core.
 
 The latch position holds one of the three latch values or the explicit `not-applicable` a route
 reaching no terminal interaction asserts, never an absent field. The settling-frame position holds the
-frame's kind, its interaction identity, the endpoint that committed it, and its arrival ordinal within
-that interaction; it is absent only where no latch has settled. These are the fields `C4-P2`'s second
+frame's kind, its **session**, its interaction identity, the endpoint that committed it, and its
+arrival ordinal within that interaction; it is absent only where no latch has settled. These are the fields `C4-P2`'s second
 conjunct reads and the parity profile compares, so the schema has to have somewhere to put them.
 
 ## External phase and authority inputs
@@ -196,9 +196,12 @@ Every vector contains:
 - stable vector id and capability id;
 - predecessor 0.1 vector ids where applicable;
 - profile, and the initial session/interaction state of **each session the vector carries**. A vector
-  **may carry more than one session**: C2's reconnect and new-session cases require it, and the
-  identity rules make it observable, because an interaction identity is unique within a session and a
-  new session may legitimately reuse the value. This is AH1's second half, stated here because two
+  **may carry more than one session**, because the identity rules make the distinction observable: an
+  interaction identity is unique within a session and a new session may legitimately reuse the value,
+  so a vector exercising that reuse needs two sessions to express it. The justification originally
+  cited "C2's reconnect and new-session cases", which **AI5** found C2 does not have — its Silence
+  disclaims reconnect — and that citation is withdrawn rather than repaired, because the identity
+  argument stands on its own and did not need it. This is AH1's second half, stated here because two
   corrections had already been written to defend against a two-session vector while this list read
   singular — on the other reading AF8 and AG2 defend against a vector no author can write;
 - endpoint perspective and role;
@@ -314,7 +317,8 @@ finding.
 
 Core normative comparison includes:
 
-- exact established profile digest;
+- the exact established profile digest **of each session the vector carries**, which is AI7: the same
+  list AH1 made per-session left this entry singular;
 - session state transition/result;
 - session and interaction identity spaces (shape/scope, not opaque values across runs);
 - interaction class/direction and phase decision;
@@ -333,8 +337,12 @@ Core normative comparison includes:
 - the terminal interaction's `late-traffic latch` value, which the state/event grid already requires
   every generated cell to assert — including the explicit `not-applicable` a route reaching no
   terminal interaction asserts, which is compared as a value and never as an absent field;
-- the **frame that settled the latch** wherever one is settled: its kind, its interaction identity,
-  its committing endpoint, and its **arrival ordinal** within that interaction. The ordinal is what
+- the **frame that settled the latch** wherever one is settled: its kind, its **session**, its
+  interaction identity,
+  its committing endpoint, and its **arrival ordinal** within that interaction. The session is AI1: AH1
+  declared a vector may carry more than one, and an interaction identity is unique only within one, so
+  without it two steps in different sessions match every other field and the reference stops mapping
+  to one declared step — which takes `C4-P2` green on `C4-outcome-precedes-ack`. The ordinal is what
   makes the reference unambiguous: one endpoint may commit two frames of the same kind for one
   identity, which is exactly what a duplicate terminal is, and that case must leave `C4-P2` green.
   Bound to the earlier of the two matching steps the property would read "committed before the

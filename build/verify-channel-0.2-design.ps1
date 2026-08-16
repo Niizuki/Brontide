@@ -993,10 +993,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all twelve negative attestations, and all four correction iteration reviews before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all thirteen retained attestations, and all four correction iteration reviews before the next closure review.')
 }
 
 # An iteration review is author-side work and may never be mistaken for a closing judgement. The file
@@ -1596,6 +1596,74 @@ foreach ($retentionCiter in @(@{ Name = 'capability contract'; Text = $flowedCon
     if ($retentionCiter.Text -match 'admits an interaction for that identity, exactly as (the retention passage below says it must|C4''s retention rule requires)') {
         $failures.Add("The $($retentionCiter.Name) says the retention rule requires the later admission. It says the request is admitted on its own merits and that the earlier refusal does not bar it, which is a different claim: a reordering whose displaced request is refused on its merits leaves `C4-P2`'s first conjunct green. This is AH6.")
     }
+}
+
+# AI1: AH1 declared multi-session vectors legal and gave the declared stimulus step a session so the
+# precedence operand could carry AG2's qualifier. It did not give one to the *other* operand of the
+# same property. The settling-frame reference is published in three places as four fields and both the
+# brief and the machine assert it maps to one declared step -- which stops being true the moment two
+# sessions may hold one identity value. `C4-P2` then evaluates green on `C4-outcome-precedes-ack`.
+#
+# Found by sweeping the CONCEPT rather than the artifacts a finding cited: AH2 and AI1 both escaped a
+# sweep keyed to evidence citations, and both were reachable by searching for what asserts the changed
+# fact. The check is written over every published field list, not over the one the finding named.
+$settlingFrameLists = @()
+foreach ($settlingArtifact in @(@{ Name = 'neutral brief'; Text = $neutralBrief }, @{ Name = 'interaction state machine'; Text = $interaction })) {
+    # Anchored before the session field rather than after it, so the check keeps parsing the same
+    # three lists once they carry one -- the previous anchor included the words it was asserting.
+    # 95 characters: the field lists run 60-90, and every wider window reached the sentence explaining
+    # why the session is there, which says "session" and passed after the field had been removed. This
+    # is the sixth round in which a window check written by a correction pass was satisfied by the
+    # prose beside the rule it pins; the durable form is a structural anchor, and where the anchor has
+    # to be a window it is now sized to the field list and not to the paragraph.
+    foreach ($settlingMatch in [regex]::Matches((Get-FlowedText $settlingArtifact.Text), '(?:its|frame''s) kind, its(.{0,95})')) {
+        $settlingFrameLists += 1
+        if ($settlingMatch.Groups[1].Value -notmatch 'session') {
+            $failures.Add("The $($settlingArtifact.Name) publishes the settling-frame reference as a field list carrying no session, while the vector format now declares that a vector may carry more than one session and an interaction identity is unique only within one. Two steps in different sessions then match every published field, the reference no longer maps to one declared step, and `C4-P2` evaluates green on `C4-outcome-precedes-ack`. This is AI1.")
+        }
+    }
+}
+if ($settlingFrameLists.Count -lt 3) {
+    $failures.Add("Fewer than three settling-frame field lists were found ($($settlingFrameLists.Count)); the parity profile, the local-observation schema, and the interaction machine each publish one, and a check that parses none of them passes by seeing nothing.")
+}
+
+# AI4: six of eight design artifacts' own status blocks were stale by one to four families while the
+# Channel index rows claimed those corrections. No check read them -- T4 constrains only the cycle
+# phrase and AB1/AH3 covers the plan alone. This is the same class as AG4, one surface further in, and
+# it is checked here over every artifact rather than over the ones a finding happened to name.
+if ($latestDispositionFamily) {
+    foreach ($statusArtifactName in $artifactNames) {
+        $statusText = Read-RequiredText $statusArtifactName
+        # 3200 rather than 2200: the redesign plan's status block is the longest in the package and a
+        # shorter window stopped before its newest sentence, reporting the block stale when it was not.
+        $statusBlock = [regex]::Match($statusText, '(?ms)^(?:\*\*)?Status:(.{0,3200})')
+        if (-not $statusBlock.Success) { continue }
+        if ((Get-FlowedText $statusBlock.Groups[1].Value) -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
+            $failures.Add("'$statusArtifactName' has a status block that does not reach the '$($latestDispositionFamily[0])' family, while the Channel index claims corrections in it. An artifact's own status block is what a reader opening that artifact alone is told, and nothing was reading them. This is AI4.")
+        }
+    }
+}
+
+# AI7: the same lists AH1 made per-session left `profile` and the established-profile digest singular.
+# Asserted on the field itself rather than by a lookahead over the rest of the bullet: the sentence
+# explaining the change says "per-session" and satisfied the lookahead after the field was reverted.
+if ($flowedBrief -notmatch 'established profile digest \*\*of each session') {
+    $failures.Add('The parity profile compares one exact established profile digest while a vector may now carry more than one session, each with its own established profile. This is AI7, and it is the AI1 class in the field list beside it.')
+}
+
+# AI8: the pin clause dates the target commit, and the date has been wrong since the AG commit. The
+# X6 check reads the subject only, which is why two cycles passed over it.
+if ($latestDesignSubject -and $LASTEXITCODE -eq 0) {
+    $latestDesignDate = (& git -C $repositoryRoot log -1 --format=%ad --date=short -- $designArtifactPathspec 2>$null)
+    if ($latestDesignDate -and (Get-FlowedText $reviewReadme) -notmatch "committed $latestDesignDate") {
+        $failures.Add("The review policy's pin clause does not date the review target '$latestDesignDate', which is when the commit it names was made. The X6 check compares the subject and never the date, so a wrong date survives every correction that rewrites the sentence. This is AI8.")
+    }
+}
+
+# AI9: S3's evidence named the plan's section 7.8, which still reported seven retained negative
+# attestations. A retained finding was therefore open while every index said all findings were closed.
+if ($plan -match 'Seven independent negative attestations') {
+    $failures.Add('The redesign plan still reports seven retained negative attestations. S3''s own evidence named this passage, so a retained finding has been open while every entry point claimed the programme''s findings were all closed. This is AI9.')
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'channel\0.2')) {

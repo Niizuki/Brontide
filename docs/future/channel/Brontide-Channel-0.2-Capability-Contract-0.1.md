@@ -21,7 +21,7 @@ records one local observation, which is the witness the property reads and is ev
 retained state; under X1 the second conjunct's witness is the frame a late-traffic latch settled
 against rather than the latch value. No Channel 0.2 schema, API,
 implementation, or ratification is authorized until the complete design foundation receives a fresh
-independent closure re-review.
+independent closure re-review. Under **AI6** the membership sentence names its own subject rather than relying on the nearest antecedent, which is AC3's class in the paragraph AC3 was raised against.
 
 Designed for: Brontide Architecture 0.8, Complete Draft, especially sections 6.16, 13.6, 16.4,
 18.1, 19, and 24.
@@ -290,7 +290,11 @@ refused on its own merits — an unknown Operation, a failed authority check, an
 this conjunct green. That is a coverage limit rather than an unfalsifiable property: the named mutation
 `C4-control-precedes-request` delivers a request that a conforming recipient admits, so the conjunct
 still goes red on it, and the required-green set is unaffected. A reordering hidden behind an
-independent refusal is not witnessed by this conjunct, and no artifact claims otherwise. The conjunct reads that, through a membership test
+independent refusal is not witnessed by this conjunct, and no artifact claims otherwise.
+
+The conjunct reads **the recipient's subsequent admission of the refused identity** — named here rather
+than left to the nearest antecedent, which the AH6 insertion moved and AI6 caught, and which is AC3's
+defect in the paragraph AC3 was raised against — through a membership test
 over the identities the recipient admits **in the same session**. The scope is the session and not
 the vector: an interaction identity is unique within a session and a new session may legitimately
 reuse the value, so a two-session vector could otherwise hold one identity refused at `unseen` in one

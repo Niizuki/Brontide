@@ -32,6 +32,8 @@ with nonblocking **AG2**-**AG5**, and the twelfth returned `conforms-with-nonblo
 corrected.
 A fresh independent closure re-review of that whole sequence precedes Batch 2. No Channel 0.2
 implementation or ratification is claimed.
+Under **AI2**, **AI5**, and **AI9** this plan is corrected again: two narrative surfaces that stopped at the tenth review, the AH1 ruling's citation of reconnect cases C2 does not have, and section 7.8's report of seven retained negative attestations, which was S3's own evidence and had stayed open for six cycles while every index called the programme's findings closed.
+
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),
 [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md), and the
@@ -316,9 +318,12 @@ not derive expectations from one implementation's public API.
 
 ### 7.8 Fresh independent design review
 
-Review policy, retained negative attestations, and the exact continuation instructions:
-[`reviews/`](./reviews/README.md#exact-next-work). Seven independent negative attestations are
-retained. Their findings through T1-T4 and R1-R3 have correction passes, the last three confirmed
+Review policy, retained attestations, and the exact continuation instructions:
+[`reviews/`](./reviews/README.md#exact-next-work). Thirteen independent attestations are retained — twelve `does-not-conform` and one
+`conforms-with-nonblocking-findings`, which under the 2026-08-15 closure-standard ruling did not
+close the batch. This passage reported seven and stopped at the seventh review until **AI9**; it was
+S3's own evidence surface, so a retained finding stayed open for six cycles while every entry point
+reported the programme's findings closed. Their findings through T1-T4 and R1-R3 have correction passes, the last three confirmed
 closed by the seventh review at `3892c23a8dd4c7f298e877ba73710ee0ddc97bc4`. That review's blocking
 S1 and nonblocking S2 and S3 are corrected under the 2026-08-13 S1 ruling, with a failing-first
 design-verifier check written before the correction and mutation-tested after it. A fresh conforming
