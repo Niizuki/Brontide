@@ -21,7 +21,10 @@ records one local observation, which is the witness the property reads and is ev
 retained state; under X1 the second conjunct's witness is the frame a late-traffic latch settled
 against rather than the latch value. No Channel 0.2 schema, API,
 implementation, or ratification is authorized until the complete design foundation receives a fresh
-independent closure re-review. Under **AI6** the membership sentence names its own subject rather than relying on the nearest antecedent, which is AC3's class in the paragraph AC3 was raised against.
+independent closure re-review. Under **AI6** the membership sentence names its own subject rather than
+relying on the nearest antecedent, which is AC3's class in the paragraph AC3 was raised against. C10
+delegates the settling-frame field list to the artifacts that publish it and states the fact alone, so
+this contract is unchanged by the **AJ1**-**AJ7** corrections.
 
 Designed for: Brontide Architecture 0.8, Complete Draft, especially sections 6.16, 13.6, 16.4,
 18.1, 19, and 24.

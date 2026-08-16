@@ -15,7 +15,13 @@ cells name `rejected-protocol` as the provenance it is rather than as the next s
 cells name. The intra-interaction ordering fact the
 `unseen` verdict depends on is carried here and owned by C4. Under U8 the pre-dispatch Local loss cell
 names `lost` like every other cell in that column, rather than leaving the state to be read out of the
-interaction machine's totality rule. Unchanged by every correction pass through **AI9**.
+interaction machine's totality rule. Under **AJ1** the latch section's settling-frame reference carries
+its **session**, and under **AJ6** the sentence justifying the arrival ordinal names the fields it is
+about instead of counting them. This status block previously declared the artifact unchanged by every
+pass through AI9, which was false when it was written: AI1 changed the reference this grid publishes
+and the AI1 correction reached three of the five artifacts that publish it, leaving the two the design's
+own hierarchy resolves in favour of — this grid, which the neutral brief declares itself subordinate
+to, and the responsibility matrix row that owns the observation record.
 
 Normative companions:
 
@@ -131,12 +137,20 @@ fault. A late peer fault receives no answer. After the latch settles, every late
 locally without another frame. This makes the duplicate-terminal action finite and prevents a fault
 loop.
 
-Settling the latch records the frame that settled it — kind, interaction identity, committing
-endpoint, and its **arrival ordinal** within the interaction — because the three latch values name no
-frame and `C4-P2`'s second conjunct is about which frame a latch settled against. The ordinal is
-required for the same reason the other three are insufficient: one endpoint may commit two frames of
-the same kind for one identity, which is what a duplicate terminal is, and that case must leave the
-property green. It identifies the frame and is never an ordering operand.
+Settling the latch records the frame that settled it — its kind, its **session**, its interaction
+identity, its **committing endpoint**, and its **arrival ordinal** within the interaction — because the
+three latch values name no frame and `C4-P2`'s second conjunct is about which frame a latch settled
+against. The **session** is required because an interaction identity is unique only within one and a
+vector may carry more than one: without it the reference matches a step in either session and stops
+mapping to one declared stimulus step, which takes `C4-P2` green on `C4-outcome-precedes-ack`. The
+ordinal is required for the reason kind, session, interaction identity, and committing endpoint are
+together insufficient: one endpoint may commit two frames of the same kind for one identity, which is
+what a duplicate terminal is, and that case must leave the property green. It identifies the frame and
+is never an ordering operand. This grid publishes the reference in the same form as the interaction
+machine that owns the latch, the brief's local-observation schema and parity profile, the
+responsibility matrix row that owns the observation record, and the migration ledger's new-evidence
+inventory. A field carried by some of those six surfaces and not the others makes the owned fact and
+the compared fact different facts.
 
 A route that reaches no terminal interaction has no latch, and its cells assert the explicit value
 `not-applicable` rather than leaving the field absent. The `unseen` refusal is the only such route

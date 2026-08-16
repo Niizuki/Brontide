@@ -1,8 +1,9 @@
 # Channel 0.2 design-foundation reviews
 
-Status: four owner rulings resolved; thirteen retained independent reviews, twelve negative and one
+Status: four owner rulings resolved; fourteen retained independent reviews, thirteen negative and one
 conforming with nonblocking findings — which under the 2026-08-15 closure-standard ruling did not
-close the batch. The thirteenth raised blocking **AI1** with nonblocking **AI2**-**AI9**. B1-B4, N1-N3,
+close the batch. The fourteenth raised blocking **AJ1** with nonblocking **AJ2**-**AJ7**, and the
+thirteenth raised blocking **AI1** with nonblocking **AI2**-**AI9**. B1-B4, N1-N3,
 F1-F3, D1-D5, T1-T4, R1-R3, and S1-S3 are closed in the artifacts they were raised against, the
 eighth review having re-verified every one of them individually rather than taking closure from an
 index. That review's blocking **U1** — the S1 correction gave intra-interaction frame order an owner
@@ -22,9 +23,15 @@ the design. The ninth independent closure review then raised blocking **AE1** wi
 **AE2**-**AE5** and ruled the open AD2 call a defect, and the tenth raised blocking **AF1** with
 nonblocking **AF2**-**AF8** against the AE corrections, and the eleventh raised blocking **AG1** with
 nonblocking **AG2**-**AG5** against those, and the twelfth returned
-`conforms-with-nonblocking-findings` with **AH1**-**AH6** and no blocking finding. Every finding this
-programme has recorded is
-now closed in the artifacts it was raised against. One piece of named residual work is open and is not
+`conforms-with-nonblocking-findings` with **AH1**-**AH6** and no blocking finding, and the thirteenth
+raised blocking **AI1** with nonblocking **AI2**-**AI9** against the AH corrections, and the
+fourteenth raised blocking **AJ1** with nonblocking **AJ2**-**AJ7** against the AI corrections. Every
+finding this programme has recorded is
+now closed in the artifacts it was raised against — a claim a reviewer should verify against each
+finding's own evidence sentences rather than against this paragraph, since **AI9** established that it
+was false for six cycles while every entry point asserted it, and **AJ1**, **AJ2**, **AJ3**, and
+**AJ4** are four more findings whose disposition said closed while an artifact their evidence named
+was untouched. One piece of named residual work is open and is not
 a finding: of the twenty-five properties the package states, eleven capabilities owe the required-green
 set that **AE3** made a normative field, and the thirteen state-machine properties AF7 brought into
 the audit owe it too — with `I1`-`I7` owing a named mutation as well. None of that is a verdict: a
@@ -145,6 +152,7 @@ dependency instead of narrowing it.
 | AG | closure-review | closure review 11 attestation |
 | AH | closure-review | closure review 12 attestation |
 | AI | closure-review | closure review 13 attestation |
+| AJ | closure-review | closure review 14 attestation |
 
 ## Required review scope
 
@@ -197,10 +205,14 @@ The author correction pass and ordinary documentation gates are not independent 
 
 ## Exact next work
 
-The thirteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
+The fourteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
+blocking **AJ1** and nonblocking **AJ2**-**AJ7**; its retained record is
+`channel-0.2-design-foundation-closure-review-14-attestation.md`. **Steps 1 through 3p are complete.**
+Step 4 is the live path, and the next agent reviews the AJ corrections.
+
+The thirteenth review returned `does-not-conform` with
 blocking **AI1** and nonblocking **AI2**-**AI9**; its retained record is
 `channel-0.2-design-foundation-closure-review-13-attestation.md`. **Steps 1 through 3o are complete.**
-Step 4 is the live path, and the next agent reviews the AI corrections.
 
 The twelfth review returned
 `conforms-with-nonblocking-findings` — the first non-negative verdict here — with six findings and no
@@ -255,6 +267,38 @@ is exactly what the AD and AE passes found separately.
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3p. ~~Correct AJ1-AJ7, raised by the fourteenth independent closure review, and execute the sweep as a
+   search before editing anything.~~ **Done.** **AJ1** was blocking and is AI1 surviving the commit
+   written to close it. The settling-frame reference is published in **five** places and the AI1
+   correction reached three; the two it did not reach are the state/event grid, which the neutral brief
+   declares itself subordinate to, and the responsibility matrix row that *owns* the observation record
+   and whose own status block asserted that the fact it owns and the fact the parity profile compares
+   are the same fact. The reviewer reproduced AI1's exact false green on `C4-outcome-precedes-ack` from
+   both, with the field list as the only variable. The migration ledger's new-evidence inventory states
+   the same reference a sixth time. All six now publish it in one form — kind, session, interaction
+   identity, committing endpoint, arrival ordinal — and the check is written over the reference rather
+   than over an artifact list: every registered surface must carry the identical list, any
+   publication-shaped passage anywhere in the eleven artifacts must carry the whole list, and the count
+   is exact. The AI1 check iterated two artifacts and asserted its own completeness with `Count -lt 3`,
+   a bound set to the number of lists in its own scope, thirty lines below four AC1 checks that already
+   enumerated the correct four artifacts for the same reference.
+
+   **AJ2**-**AJ7** are corrected as the disposition history records. Two are worth carrying forward.
+   **AJ2** is the eighth consecutive cycle of entry-point staleness and the first in which the
+   disposition was recorded in an artifact the finding was never raised against — the plan claimed AI2
+   while AI2's two narratives were untouched — so the narratives are rewritten and the check now derives
+   from the declared provenance table that every numbered closure review is introduced by ordinal in
+   each narrative with its family named there. **AJ5** is a check passing a row it was written to fail:
+   `\bAI\b` does not match `AI9`, so four rows discharged a family obligation by naming one finding of
+   it, and two of those four were false for AJ1's reason.
+
+   **The sweep was executed as a search this time, before any artifact was edited.** `grep settl` over
+   `docs/future/channel/` returns all six settling-frame surfaces in one screen; the previous pass
+   changed the sweep axis to the concept and then computed the impact set from memory of the artifacts
+   it had been editing, which reproduced AI1's own two-artifact evidence list and called it the concept.
+   Each of the last three cycles' blocking findings — AG1, AI1, AJ1 — was one search away from the pass
+   that missed it. A reviewer should treat the search as the minimum rather than as the answer: it finds
+   surfaces that use the fact's vocabulary and would not find one that paraphrases it.
 3o. ~~Correct AI1-AI9, raised by the thirteenth independent closure review, and change the sweep
    axis.~~ **Done.** **AI1** was blocking: AH1 declared multi-session vectors legal and gave the
    declared stimulus step a session so the precedence relation had its operand, and left the
@@ -597,15 +641,6 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   so this review proved the finding still live rather than discovering it, and says so rather than
   claiming the credit. Its dispatch is disclosed below.
 
-- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) — reviewed
-  `e7bfeba6ba58e2e4e9a48a5148e2461c187bf452`; `does-not-conform`; blocking **AI1** with nonblocking
-  **AI2**-**AI9**. **Its isolation is complete**: a fresh isolated clone, 890 tracked paths, reviewer
-  identity distinct from all twelve earlier reviewers and every correction author. It recomputed all
-  twelve registry pins, enumerated the grid to 108 cells and 180 pairs agreeing with reviews 7-12, and
-  recorded three probes that found nothing. **AI1** is the AH1 decision propagated to one operand of
-  two, and **AI9** is a retained finding — S3's own evidence surface — that had stayed open for six
-  cycles while every entry point reported the programme's findings closed. Its dispatch is disclosed
-  below.
 - [Closure review 12](./channel-0.2-design-foundation-closure-review-12-attestation.md) — reviewed
   `f451f557ec51b9b878ddc0476c1cc7e0bd836679`; **`conforms-with-nonblocking-findings`**, the first
   non-negative verdict in the programme; **AH1**-**AH6** and no blocking finding. **Its isolation is
@@ -618,14 +653,41 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   closest call rather than presenting it as settled — that **AH2 is structurally what AG1 was**, and
   that if the owner judged AF5 under-rated then AH2 is blocking and its verdict wrong. That flag is
   why the ruling was made. Its dispatch is disclosed below.
+- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) — reviewed
+  `e7bfeba6ba58e2e4e9a48a5148e2461c187bf452`; `does-not-conform`; blocking **AI1** with nonblocking
+  **AI2**-**AI9**. **Its isolation is complete**: a fresh isolated clone, 890 tracked paths, reviewer
+  identity distinct from all twelve earlier reviewers and every correction author. It recomputed all
+  twelve registry pins, enumerated the grid to 108 cells and 180 pairs agreeing with reviews 7-12, and
+  recorded three probes that found nothing. **AI1** is the AH1 decision propagated to one operand of
+  two, and **AI9** is a retained finding — S3's own evidence surface — that had stayed open for six
+  cycles while every entry point reported the programme's findings closed. Its dispatch is disclosed
+  below.
 
-The current review target is the commit titled `fix(channel): close AI1-AI9 and sweep by concept`,
+- [Closure review 14](./channel-0.2-design-foundation-closure-review-14-attestation.md) — reviewed
+  `6cddb990f1f8aada3018a19c63b43116b83f05e6`; `does-not-conform`; blocking **AJ1** with nonblocking
+  **AJ2**-**AJ7**. **Its isolation is complete**: a fresh isolated clone, 891 tracked paths, clean
+  status, reviewer identity distinct from all thirteen earlier reviewers and every correction author,
+  and the author's working repository neither read nor executed against. It verified the pin in the
+  tree-hash form and as to date, enumerated the grid to 108 cells and 180 pairs agreeing with reviews
+  7-13, and recorded three falsification attempts that found nothing alongside the one that did.
+  **AJ1** is AI1 surviving the commit written to close it: the settling-frame reference is published
+  in five places, the correction reached three, and the reviewer reproduced AI1's exact false green on
+  `C4-outcome-precedes-ack` from the two it did not — the state/event grid the neutral brief declares
+  itself subordinate to, and the responsibility matrix row that owns the observation record. It also
+  ran the AI1 check's own regex over the four candidate artifacts and recorded that it matches none of
+  the lists in those two. **AJ2**, **AJ3**, and **AJ4** are re-derivations of AI2's, AI7's, and AI4's
+  own evidence sentences, which it credits to its dispatching brief rather than claiming as
+  discoveries. Its dispatch is disclosed below.
+
+The current review target is the commit titled `fix(channel): close AJ1-AJ7`,
 committed 2026-08-16, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
-has now gone stale twice: the eighth review raised it as **U6**, and the rewrite that closed U6 was
-itself superseded one commit later and raised as **X6**. The design verifier now compares this
-sentence against the most recent commit that changed a design artifact, so a correction pass that
+has now gone stale three times: the eighth review raised it as **U6**, the rewrite that closed U6 was
+itself superseded one commit later and raised as **X6**, and the same sentence carried the wrong date
+for two cycles as **AI8**. The design verifier now compares this
+sentence against the most recent commit that changed a design artifact and against that commit's own
+date, so a correction pass that
 forgets it fails the gate rather than misdirecting a reviewer. The preceding pins
 `3892c23a8dd4c7f298e877ba73710ee0ddc97bc4` and `3b27e3a85bf018bead6d226a13d075c7e6ed16fa` are what the
 seventh and eighth reviews assessed and are nonconforming.
@@ -811,3 +873,33 @@ with one round of evidence behind the change.
 
 The independence requirement on the next cycle is unchanged and now stricter by one name: its reviewer
 must differ from all thirteen retained reviewers and from every correction author.
+
+## Disclosed dispatch provenance of closure review 14
+
+Closure review 14 was dispatched by the session that authored the commit it reviewed
+(`fix(channel): close AI1-AI9 and sweep by concept`) and the follow-up commit that corrected the pin
+clause's date, the five commits before them — the AH, AG, AF, AE, and AD corrections — and the AD
+correction iteration review, and that dispatched closure reviews 9 through 13. It also recommended the
+2026-08-15 closure-standard ruling after the twelfth review's verdict was known. This is the same
+relationship the directory discloses for reviews 10 through 13, extended by one more correction commit
+and one more dispatch.
+
+The brief named no artifact defect and no area of suspicion, and told the reviewer it was assessing
+work whose author had arranged its review. The reviewer recorded, in its own words, four things the
+brief did narrow: verify the pin, run a property evaluator, check retained findings against their own
+evidence, and read the previous attestation for form. It attributes **AJ2**, **AJ3**, and **AJ4** to
+the third of those and claims no independent discovery of that class — only that it opened the
+sentences. **AJ1's location, AJ5, and AJ6 are in no retained record**, and AJ1 sits inside the
+dispatching author's own change, on the two artifacts that change's own check cannot read.
+
+Two things the next cycle should carry. The **correction pass has now produced the same propagation
+failure in seven consecutive rounds**, most recently inside the mechanism built to prevent it: the
+sweep axis was changed to the concept in the AI commit, and the AI commit then computed the concept's
+impact set from the artifacts it had been editing. The AJ pass executed the sweep as a recorded search
+before editing, which is a further narrowing of the same failure and not a solution to it. And the
+**AJ1 correction touched three artifacts the fourteenth review called correct**, normalising their
+field lists so all six publish the reference identically; the field set is unchanged, and a reviewer
+should confirm that rather than take it from this sentence.
+
+The independence requirement on the next cycle is unchanged and now stricter by one name: its reviewer
+must differ from all fourteen retained reviewers and from every correction author.

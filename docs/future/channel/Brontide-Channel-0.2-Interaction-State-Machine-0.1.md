@@ -15,7 +15,13 @@ nonterminal state, and under W4 an identity refused at `unseen` is not a termina
 no latch. Under X3 that event is a recipient transition row of its own, because the totality rule
 would otherwise make it the terminal interaction W4 refuses; under X5 the refusal records one local
 observation whose provenance this artifact fixes; and under X1 settling the late-traffic latch records
-the frame that settled it, which is what `C4-P2` reads and the latch value is not. Under **AI1** the settling frame this machine records carries its **session**: AH1 declared a vector may carry more than one, an interaction identity is unique only within one, and without the session two steps in different sessions match every other published field.
+the frame that settled it, which is what `C4-P2` reads and the latch value is not. Under **AI1** the
+settling frame this machine records carries its **session**: AH1 declared a vector may carry more than
+one, an interaction identity is unique only within one, and without the session two steps in different
+sessions match every other published field. Under **AJ1** this artifact publishes that reference in
+the one form every other publishing artifact uses, and under **AJ6** the paragraph beneath the field
+list names the fields its argument is about instead of counting them from the front — the AI1
+insertion had made "the first three" a set that omits the committing endpoint the claim is over.
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 
@@ -212,11 +218,15 @@ Every other terminal interaction owns a `late-traffic-fault` latch with exactly 
 The first duplicate semantic terminal or late non-fault control while the latch is `clear` preserves
 the first accepted terminal history and attempts exactly one interaction-scoped `state-violation`
 peer fault. Successful commit sets `fault-committed`; inability to commit sets `fault-unavailable`.
-Settling the latch also **records the frame that settled it** — its kind, its **session**, its interaction identity,
-the endpoint that committed it, and its **arrival ordinal** within that interaction — in the local
-observation. The first three do not identify the frame when one endpoint commits two of the same kind
-for one identity, which is exactly what a duplicate terminal is and is a case `C4-P2` must leave
-green; the ordinal is what maps the settling frame to one declared stimulus step. It identifies and
+Settling the latch also **records the frame that settled it** — its kind, its **session**, its
+interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction —
+in the local observation. Kind, session, interaction identity, and committing endpoint together do not
+identify the frame when one endpoint commits two of the same kind for one identity, which is exactly
+what a duplicate terminal is and is a case `C4-P2` must leave green; the ordinal is what maps the
+settling frame to one declared stimulus step. The fields are named here rather than counted, because a
+sentence that argues from an ordinal position in the list stops being an argument about the same set
+the moment a field is inserted ahead of it — which is what adding the session did to this passage, and
+is AJ6. It identifies and
 never orders: it may be compared for equality and may not be an operand of precedence, because
 observed arrival order is not an ordering Channel promises. The three latch values name no frame,
 and `C4-P2`'s second conjunct is about *which* frame a latch settled against: a displaced

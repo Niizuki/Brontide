@@ -993,10 +993,32 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all thirteen retained attestations, and all four correction iteration reviews before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all fourteen retained attestations, and all four correction iteration reviews before the next closure review.')
+}
+
+# AJ7: the retained-attestations list is what a reader scans for the most recent record, and it ran
+# 11, 13, 12 -- the thirteenth review's entry in the eleventh's place. Nothing is misstated in either
+# entry, which is why it was worth checking rather than reading: AI8 established that a defect of
+# exactly this weight, seen and dispositioned as "noted, not raised", is not something this
+# programme's machinery can act on. The list's numbered entries must be the numbered attestations the
+# directory holds, in ascending order, so an entry cannot be filed out of sequence or left out.
+$retainedSection = ($reviewReadme -split '(?m)^## Retained attestations', 2)[1] -split '(?m)^## ', 2 | Select-Object -First 1
+if (-not $retainedSection) {
+    $failures.Add('The review policy has no Retained attestations section, which is the list a reader scans for the most recent retained record.')
+}
+else {
+    $listedReviewNumbers = @([regex]::Matches($retainedSection, 'closure-review-([0-9]+)-attestation\.md') | ForEach-Object { [int]$_.Groups[1].Value } | Select-Object -Unique)
+    $heldReviewNumbers = @($reviewMarkdown.Name |
+        ForEach-Object { [regex]::Match($_, '^channel-0\.2-design-foundation-closure-review-([0-9]+)-attestation\.md$') } |
+        Where-Object { $_.Success } |
+        ForEach-Object { [int]$_.Groups[1].Value } |
+        Sort-Object)
+    if (($listedReviewNumbers -join ',') -cne ($heldReviewNumbers -join ',')) {
+        $failures.Add("The review policy's retained-attestations list gives the numbered reviews in the order '$($listedReviewNumbers -join ',')' and the directory holds '$($heldReviewNumbers -join ',')'. The list is read top to bottom for the newest record, so an entry out of sequence or missing is read as the state of the programme. This is AJ7.")
+    }
 }
 
 # An iteration review is author-side work and may never be mistaken for a closing judgement. The file
@@ -1508,8 +1530,19 @@ if ($latestDispositionFamily) {
         # AH4: the escape was the bare phrase `unchanged by`, bound to no family, so a row reading
         # "unchanged by AF and AG" satisfied the check for AH, AI, and everything after -- five of
         # nine rows passed only through it. The escape now has to name the family it is escaping.
-        if ($artifactRow -cnotmatch "\b$($latestDispositionFamily[0])[0-9]" -and $artifactRow -cnotmatch "unchanged by[^|]*\b$($latestDispositionFamily[0])\b") {
-            $failures.Add("The Channel index row for '$rowName' neither names the '$($latestDispositionFamily[0])' family nor states the artifact is unchanged by that family specifically. A row that is silent about the newest family is indistinguishable from one that went stale, and an escape clause naming no family satisfies every future check without making a claim.")
+        #
+        # AJ5: `\bAI\b` does not match `AI9` -- there is no word boundary before a digit -- so four
+        # rows reading "unchanged by AI9" fell through the escape clause and satisfied the *first*
+        # clause instead, which `AI9` does match. A row could then discharge a family obligation by
+        # declaring itself unchanged by one finding of that family, which is what AH4 was written to
+        # prevent; and two of the four rows were false, because the artifacts were changed by AI1 and
+        # had not been updated. The two clauses are therefore separated: an escape must name the
+        # family with no finding number after it, and a positive claim is read from the row with its
+        # escape clauses removed, so an escape can never be counted as naming the family.
+        $rowEscapePattern = "unchanged by[^;|]*\b$($latestDispositionFamily[0])\b(?![0-9])"
+        $rowWithoutEscapes = [regex]::Replace($artifactRow, 'unchanged by[^;|]*', '')
+        if ($artifactRow -cnotmatch $rowEscapePattern -and $rowWithoutEscapes -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
+            $failures.Add("The Channel index row for '$rowName' neither names a finding in the '$($latestDispositionFamily[0])' family outside an escape clause nor states the artifact is unchanged by that family. A row that is silent about the newest family is indistinguishable from one that went stale; an escape clause naming no family satisfies every future check without making a claim; and an escape naming one finding of the family -- 'unchanged by $($latestDispositionFamily[0])9' -- is a true statement about that finding and a false impression about the family. This is AJ5.")
         }
     }
 }
@@ -1535,6 +1568,51 @@ if ($latestDispositionFamily) {
         $seenClaim = $Matches[1]
         if ($seenClaim -cne $latestDispositionFamily[0]) {
             $failures.Add("The future-work index states that no independent review has seen the '$seenClaim' corrections, and a later review has. An affirmative false claim about review coverage is worse than a stale one, because it tells a reader the newest work is unreviewed when it has been reviewed and corrected. This is AH3.")
+        }
+    }
+}
+
+# AJ2: the entry-point narratives have now gone stale for eight consecutive cycles, and every
+# correction has been a token substitution -- a count, a family letter in one sentence -- because
+# every check reads a token. The AA2 check asks only that a family appear *somewhere* in the file,
+# which a table row satisfies; the AH3 check reads one sentence and the plan's status block; the AF2
+# check reads the Channel index's range sentence. Nothing read a narrative, so the future-work index
+# ran "ninth review -> AE, tenth review -> AF, all eight are corrected" and then jumped to a family
+# three reviews later that its prose never introduces.
+#
+# The requirement is derived from the declared provenance table rather than from any list written
+# here: every family that table attributes to a numbered independent closure review must be named in
+# each narrative, and the review that raised it must be introduced there by its ordinal. A narrative
+# that cannot say "the thirteenth review" has not been rewritten, whatever tokens it carries.
+$numberedReviewOrdinals = @{ 7 = 'seventh'; 8 = 'eighth'; 9 = 'ninth'; 10 = 'tenth'; 11 = 'eleventh'; 12 = 'twelfth'; 13 = 'thirteenth'; 14 = 'fourteenth'; 15 = 'fifteenth'; 16 = 'sixteenth'; 17 = 'seventeenth'; 18 = 'eighteenth'; 19 = 'nineteenth'; 20 = 'twentieth' }
+$channelNarrative = ($channelReadme -split '\| Artifact \| Purpose \| Current state \|', 2) | Select-Object -First 1
+$futureChannelNarrative = ($futureIndexText -split '## Priority 1 . Channel 0.2 redesign and migration', 2)[1] -split '(?m)^## ', 2 | Select-Object -First 1
+$planNarrative = [regex]::Match($plan, '(?ms)^\*\*Status:\*\*(.+?)(?=^\*\*Designed against)').Groups[1].Value
+$reviewNarratives = @(
+    @{ Name = 'the Channel index narrative'; Text = $channelNarrative },
+    @{ Name = "the future-work index's Priority 1 narrative"; Text = $futureChannelNarrative },
+    @{ Name = "the redesign plan's status block"; Text = $planNarrative }
+)
+foreach ($provenanceRow in [regex]::Matches($reviewReadme, '(?m)^\| ([A-Z]{1,2}) \| closure-review \|([^|]*)\|')) {
+    $provenanceFamily = $provenanceRow.Groups[1].Value
+    $numberedRecord = [regex]::Match($provenanceRow.Groups[2].Value, 'closure review ([0-9]+)')
+    if (-not $numberedRecord.Success) { continue }
+    $reviewNumber = [int]$numberedRecord.Groups[1].Value
+    if (-not $numberedReviewOrdinals.ContainsKey($reviewNumber)) {
+        $failures.Add("The finding-family provenance table attributes '$provenanceFamily' to closure review $reviewNumber and this check has no ordinal word for that number. Extend the map rather than leaving the narratives unchecked.")
+        continue
+    }
+    $reviewOrdinal = $numberedReviewOrdinals[$reviewNumber]
+    foreach ($reviewNarrative in $reviewNarratives) {
+        if (-not $reviewNarrative.Text) {
+            $failures.Add("$($reviewNarrative.Name) could not be located, so the narrative check would pass over it by seeing nothing.")
+            continue
+        }
+        if ($reviewNarrative.Text -cnotmatch "\b$provenanceFamily[0-9]") {
+            $failures.Add("$($reviewNarrative.Name) names no finding in the '$provenanceFamily' family, which the provenance table attributes to closure review $reviewNumber. A family reachable only from a table row or a status sentence is a family the prose never introduced, and this is the narrative half of AI2 -- AJ2.")
+        }
+        if ($reviewNarrative.Text -notmatch "(?i)\b$reviewOrdinal\b") {
+            $failures.Add("$($reviewNarrative.Name) never introduces the $reviewOrdinal independent closure review, whose findings it is required to carry. Substituting the newest family token into a sentence about an earlier review leaves the reader with a narrative that jumps from the tenth review to a family raised by the thirteenth. This is AJ2.")
         }
     }
 }
@@ -1598,33 +1676,90 @@ foreach ($retentionCiter in @(@{ Name = 'capability contract'; Text = $flowedCon
     }
 }
 
-# AI1: AH1 declared multi-session vectors legal and gave the declared stimulus step a session so the
-# precedence operand could carry AG2's qualifier. It did not give one to the *other* operand of the
-# same property. The settling-frame reference is published in three places as four fields and both the
-# brief and the machine assert it maps to one declared step -- which stops being true the moment two
-# sessions may hold one identity value. `C4-P2` then evaluates green on `C4-outcome-precedes-ack`.
+# AJ1, which supersedes the AI1 check written for the same reference. AI1 was that the settling-frame
+# reference is published as four fields with no session while a vector may now carry two sessions
+# holding one interaction identity value, so the reference stops mapping to one declared stimulus step
+# and `C4-P2` evaluates green on `C4-outcome-precedes-ack`. The correction reached three of the five
+# artifacts that publish it -- and its check reached two, iterating an artifact list and asserting its
+# own completeness with `Count -lt 3`, a guard set to the number of lists in its own scope. A guard
+# that counts what it can already see cannot report that its scope is wrong.
 #
-# Found by sweeping the CONCEPT rather than the artifacts a finding cited: AH2 and AI1 both escaped a
-# sweep keyed to evidence citations, and both were reachable by searching for what asserts the changed
-# fact. The check is written over every published field list, not over the one the finding named.
-$settlingFrameLists = @()
-foreach ($settlingArtifact in @(@{ Name = 'neutral brief'; Text = $neutralBrief }, @{ Name = 'interaction state machine'; Text = $interaction })) {
-    # Anchored before the session field rather than after it, so the check keeps parsing the same
-    # three lists once they carry one -- the previous anchor included the words it was asserting.
-    # 95 characters: the field lists run 60-90, and every wider window reached the sentence explaining
-    # why the session is there, which says "session" and passed after the field had been removed. This
-    # is the sixth round in which a window check written by a correction pass was satisfied by the
-    # prose beside the rule it pins; the durable form is a structural anchor, and where the anchor has
-    # to be a window it is now sized to the field list and not to the paragraph.
-    foreach ($settlingMatch in [regex]::Matches((Get-FlowedText $settlingArtifact.Text), '(?:its|frame''s) kind, its(.{0,95})')) {
-        $settlingFrameLists += 1
-        if ($settlingMatch.Groups[1].Value -notmatch 'session') {
-            $failures.Add("The $($settlingArtifact.Name) publishes the settling-frame reference as a field list carrying no session, while the vector format now declares that a vector may carry more than one session and an interaction identity is unique only within one. Two steps in different sessions then match every published field, the reference no longer maps to one declared step, and `C4-P2` evaluates green on `C4-outcome-precedes-ack`. This is AI1.")
+# This is written over the REFERENCE instead. Three things follow from that and each is load-bearing:
+#
+#   * the surface set is enumerated from a search for the fact (`grep settl` over the package returns
+#     all six in one screen), not from any finding's evidence citations, and it includes the two
+#     artifacts the design's own hierarchy resolves in favour of -- the grid the brief declares itself
+#     subordinate to, and the matrix row that *owns* the observation record -- plus the ledger
+#     inventory Batch 2 builds its vector groups from;
+#   * every surface must publish the same field list verbatim, so the guard is over the class "the
+#     reference's field set drifts between the artifacts that publish it" rather than over the session
+#     alone. AC1 was that class with the arrival ordinal, AI1 with the session, and a sixth field added
+#     in some surfaces and not others fails here without anyone writing a new check; and
+#   * the package-wide sweep below fails on a publication-shaped passage anywhere in the eleven
+#     artifacts, registered or not, so a seventh surface cannot appear silently.
+$settlingFramePhrases = '(?:frame that settled it|frame that settled the latch|settling-frame position)'
+$settlingFrameFields = @('kind', 'session', 'interaction identity', 'committing endpoint', 'arrival ordinal')
+$settlingFrameFieldList = 'its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal within the interaction'
+# Emphasis is stripped before comparison: the field list is marked up differently in a table cell than
+# in a paragraph, and the fields are the fact rather than the bolding.
+$settlingFramePlain = { param($Text) ((Get-FlowedText $Text) -replace '\*\*', '') }
+
+$settlingFrameSurfaces = @(
+    @{ Name = "the neutral brief's local-observation schema"
+       Text = ($neutralBrief -split '### Local observation', 2)[1] -split '## External phase and authority inputs', 2 | Select-Object -First 1 },
+    @{ Name = "the neutral brief's parity profile"
+       Text = ($neutralBrief -split '## Observation and parity profile', 2)[1] -split 'Excluded by default', 2 | Select-Object -First 1 },
+    @{ Name = "the interaction machine's late-traffic latch section"
+       Text = ($interaction -split '## Late terminal and control disposition', 2)[1] -split '## Interaction event totality', 2 | Select-Object -First 1 },
+    @{ Name = "the state/event grid's late-traffic latch section"
+       Text = ($stateEventCoverage -split '## Late-traffic latch', 2)[1] -split '## Evidence required', 2 | Select-Object -First 1 },
+    @{ Name = "the responsibility matrix's local-observation owner row"
+       Text = (@($responsibility -split "`r?`n" | Where-Object { $_ -match '^\| Local observation content' }) -join ' ') },
+    @{ Name = "the migration ledger's new-evidence inventory"
+       Text = [regex]::Match($migration, '(?ms)^## New evidence required by redesign\r?\n(.+?)(?=^## |\z)').Groups[1].Value }
+)
+
+foreach ($settlingSurface in $settlingFrameSurfaces) {
+    $settlingText = & $settlingFramePlain $settlingSurface.Text
+    if (-not $settlingText) {
+        $failures.Add("$($settlingSurface.Name) could not be located, so the settling-frame check would pass over it by seeing nothing. This is the failure mode the AI1 check had: a guard scoped to what it can already read certifies its own completeness.")
+        continue
+    }
+    if ($settlingText.IndexOf($settlingFrameFieldList, [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add("$($settlingSurface.Name) publishes the settling-frame reference without the exact field list '$settlingFrameFieldList'. Every artifact that publishes the reference publishes the same fields: an artifact carrying fewer of them binds the reference to more than one declared stimulus step -- with the session missing, to a step in another session, which takes `C4-P2` green on `C4-outcome-precedes-ack`. This is AJ1.")
+    }
+    # AJ6: the justification under a field list must name the fields it is about. Both latch sections
+    # argued from position -- "the first three", "the other three" -- and the AI1 insertion put the
+    # session second, so the machine's sentence silently became an argument about kind, session, and
+    # identity, a set that omits the committing endpoint the claim is over. A list that is counted from
+    # the front cannot be extended without breaking the sentence beneath it.
+    if ($settlingText -match '(?i)\bthe (?:first|other|last|remaining) (?:two|three|four|five)\b') {
+        $failures.Add("$($settlingSurface.Name) identifies part of the settling-frame field list by position rather than by name. Inserting a field renumbers every such sentence: the AI1 insertion left the interaction machine arguing that 'the first three' -- by then kind, session, and interaction identity -- do not identify the frame, which is a claim about a set that no longer contains the committing endpoint it is about. This is AJ6.")
+    }
+}
+
+# The class sweep: any passage anywhere in the eleven artifacts that reads as a publication of the
+# reference -- the phrase followed by four or more of its five field names -- must publish the whole
+# list. Four rather than five, because five is the answer and a check that requires the answer can
+# only confirm surfaces that are already right; four detects the abbreviated form AJ1 was, in an
+# artifact nobody registered. Prose *about* the reference names one or two of its fields and is not
+# reached: the disposition histories that record what Y4 and AC1 did are the sharpest such case.
+$settlingFramePublications = 0
+foreach ($settlingArtifactName in $artifactNames) {
+    $settlingArtifactText = & $settlingFramePlain (Read-RequiredText $settlingArtifactName)
+    foreach ($settlingMatch in [regex]::Matches($settlingArtifactText, "$settlingFramePhrases(.{0,200})")) {
+        $settlingWindow = $settlingMatch.Groups[1].Value
+        $namedFields = @($settlingFrameFields | Where-Object { $settlingWindow.IndexOf($_, [System.StringComparison]::Ordinal) -ge 0 })
+        if ($settlingWindow.IndexOf($settlingFrameFieldList, [System.StringComparison]::Ordinal) -ge 0) {
+            $settlingFramePublications++
+        }
+        elseif ($namedFields.Count -ge 4) {
+            $failures.Add("'$settlingArtifactName' has a passage that reads as a publication of the settling-frame reference -- the reference followed by $($namedFields.Count) of its five field names: $($namedFields -join ', ') -- without publishing the whole list. Either it is a surface that states the reference in an abbreviated form, which is AJ1's shape and is not reached by a check written over the surfaces that state it in full, or it is a new surface that has to be registered above.")
         }
     }
 }
-if ($settlingFrameLists.Count -lt 3) {
-    $failures.Add("Fewer than three settling-frame field lists were found ($($settlingFrameLists.Count)); the parity profile, the local-observation schema, and the interaction machine each publish one, and a check that parses none of them passes by seeing nothing.")
+if ($settlingFramePublications -ne $settlingFrameSurfaces.Count) {
+    $failures.Add("The design package publishes the settling-frame field list $settlingFramePublications times and $($settlingFrameSurfaces.Count) surfaces are registered above. An exact count rather than a lower bound: a lower bound is what let the AI1 check certify its own scope, and a surface that appears or disappears without being registered is the way this reference has gone out of agreement twice.")
 }
 
 # AI4: six of eight design artifacts' own status blocks were stale by one to four families while the
@@ -1634,9 +1769,11 @@ if ($settlingFrameLists.Count -lt 3) {
 if ($latestDispositionFamily) {
     foreach ($statusArtifactName in $artifactNames) {
         $statusText = Read-RequiredText $statusArtifactName
-        # 3200 rather than 2200: the redesign plan's status block is the longest in the package and a
-        # shorter window stopped before its newest sentence, reporting the block stale when it was not.
-        $statusBlock = [regex]::Match($statusText, '(?ms)^(?:\*\*)?Status:(.{0,3200})')
+        # Bounded by the artifact's first section heading rather than by a character count. The window
+        # was 2200, then 3200 because the redesign plan's block outgrew it and the check reported that
+        # block stale when it was not; a number that has to be raised whenever a status block grows is
+        # a check that fails for the wrong reason on exactly the pass that updated the block.
+        $statusBlock = [regex]::Match((Get-StatusBlock $statusText), '(?ms)^(?:\*\*)?Status:(.+)')
         if (-not $statusBlock.Success) { continue }
         if ((Get-FlowedText $statusBlock.Groups[1].Value) -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
             $failures.Add("'$statusArtifactName' has a status block that does not reach the '$($latestDispositionFamily[0])' family, while the Channel index claims corrections in it. An artifact's own status block is what a reader opening that artifact alone is told, and nothing was reading them. This is AI4.")
@@ -1649,6 +1786,71 @@ if ($latestDispositionFamily) {
 # explaining the change says "per-session" and satisfied the lookahead after the field was reverted.
 if ($flowedBrief -notmatch 'established profile digest \*\*of each session') {
     $failures.Add('The parity profile compares one exact established profile digest while a vector may now carry more than one session, each with its own established profile. This is AI7, and it is the AI1 class in the field list beside it.')
+}
+
+# AJ4, first half: AI4 was two findings and the check written for it caught one. The countable half --
+# does the block reach the newest family -- is checked above. The other half is a status block whose
+# self-description states a rule in the form it had before a correction changed it, which the family
+# token cannot see: the brief's block still said stimulus steps name their committing endpoint "so
+# that relation has an operand" after AH1 had added the session that relation needs, in the same block
+# that announces AI1's session.
+#
+# Written over the fact rather than over that sentence: every passage in the package that states what
+# a declared stimulus step names must name both operands, so a status block, a narrative, or a second
+# normative list cannot describe the step in its pre-AH1 form. AG2's class is exactly this one artifact
+# away, and it has now been raised three times.
+foreach ($statusArtifactName in $artifactNames) {
+    $stimulusText = (Get-FlowedText (Read-RequiredText $statusArtifactName)) -replace '\*\*', ''
+    # The window ends at the clause rather than after N characters. Sized to a paragraph this check
+    # passed its own mutation test: reverting the operand left the sentence explaining why the operand
+    # is there, and that sentence says "session". Six checks in this file have now been weakened the
+    # same way, so the boundary is the punctuation that ends the enumeration.
+    foreach ($stimulusMatch in [regex]::Matches($stimulusText, "stimulus steps?,?(?: each)? (?:names?|naming)([^.;$([char]0x2014)]{0,160})")) {
+        $stimulusWindow = $stimulusMatch.Groups[1].Value
+        $missingOperands = @(@('committing endpoint', 'session') | Where-Object { $stimulusWindow.IndexOf($_, [System.StringComparison]::Ordinal) -lt 0 })
+        if ($missingOperands.Count -gt 0) {
+            $failures.Add("'$statusArtifactName' states what a declared stimulus step names and omits its $($missingOperands -join ' and '). `C4-P2`'s precedence relation is defined over one endpoint's own frames for one identity within one session, so a step that names fewer operands than the relation reads leaves the operator without one -- which is W5, then AH1, and a description of the step in its pre-AH1 form is AJ4.")
+        }
+    }
+}
+
+# AJ4, second half: the completeness review's own status block said its disposition history "runs to
+# the eighth cycle" while the history ran to the thirteenth -- U4's defect restored as a
+# self-description, in the artifact that is the package's record of what has been fixed. A block
+# satisfies the family check above by appending a sentence naming the newest family and keeps the
+# stale count in the sentence beside it, which is what happened. A claim about how far the history
+# runs is therefore compared against how many review cycles there are.
+if ($attestationCount) {
+    $ordinalWords = @{ 'first' = 1; 'second' = 2; 'third' = 3; 'fourth' = 4; 'fifth' = 5; 'sixth' = 6; 'seventh' = 7; 'eighth' = 8; 'ninth' = 9; 'tenth' = 10; 'eleventh' = 11; 'twelfth' = 12; 'thirteenth' = 13; 'fourteenth' = 14; 'fifteenth' = 15; 'sixteenth' = 16; 'seventeenth' = 17; 'eighteenth' = 18; 'nineteenth' = 19; 'twentieth' = 20 }
+    foreach ($statusArtifactName in $artifactNames) {
+        $statusBlock = [regex]::Match((Get-StatusBlock (Read-RequiredText $statusArtifactName)), '(?ms)^(?:\*\*)?Status:(.+)')
+        if (-not $statusBlock.Success) { continue }
+        foreach ($cycleClaim in [regex]::Matches((Get-FlowedText $statusBlock.Groups[1].Value), '(?i)runs to the ([a-z]+) cycle')) {
+            $claimedWord = $cycleClaim.Groups[1].Value.ToLowerInvariant()
+            if (-not $ordinalWords.ContainsKey($claimedWord)) {
+                $failures.Add("'$statusArtifactName' says its disposition history runs to the '$claimedWord' cycle, which is not an ordinal this check can compare against the number of retained review cycles. State the cycle as an ordinal word so the claim is checkable.")
+            }
+            elseif ($ordinalWords[$claimedWord] -lt $attestationCount) {
+                $failures.Add("'$statusArtifactName' says its disposition history runs to the '$claimedWord' cycle and there are $attestationCount retained review cycles. A status block that understates its own document is what a reader opening that document alone is told, and appending the newest family to the block leaves the sentence beside it saying what it always said. This is AJ4.")
+            }
+        }
+    }
+}
+
+# AJ3: AI7's evidence named two entries in two lists and the correction reached the parity profile,
+# which the check above reads. The vector format's own entry still read "profile, and the initial
+# session/interaction state of each session the vector carries" -- the comma leaves `profile` outside
+# the distribution the same sentence just made plural, so a two-session vector declares one profile
+# for two sessions that establish independently.
+#
+# The class is "a field listed alongside a per-session distribution is inside it", not the one bullet:
+# every place the brief distributes over the sessions a vector carries is read, and a field separated
+# from the distribution by a comma fails. A lookahead for the words "each session" cannot see this --
+# they are present in the defective form, which is why AI7's own check passed on half its finding.
+foreach ($perSessionMatch in [regex]::Matches($flowedBrief, 'profile(.{0,120}?)(?:\*\*)?(?:of )?each session the vector carries')) {
+    if ($perSessionMatch.Groups[1].Value.IndexOf(',', [System.StringComparison]::Ordinal) -ge 0) {
+        $failures.Add("The neutral brief lists the profile as an item separate from a per-session distribution -- 'profile$($perSessionMatch.Groups[1].Value)each session the vector carries' -- so the distribution covers the fields after the comma and not the profile. A vector may carry more than one session and each establishes its own profile, so the entry states one profile for two sessions. This is AJ3.")
+    }
 }
 
 # AI8: the pin clause dates the target commit, and the date has been wrong since the AG commit. The

@@ -31,7 +31,7 @@ agrees and its review has no blocking finding.
 
 The [first-batch design package](./channel/README.md) now includes C1-C12, both state machines, a
 closed state/event grid, the responsibility matrix, silence review, migration ledger, neutral-
-artifact brief, four resolved owner rulings, and 13 retained independent reviews. Every finding
+artifact brief, four resolved owner rulings, and 14 retained independent reviews. Every finding
 through S1-S3 is closed in the artifact it was raised against, each re-verified individually by the
 eighth review, which then raised blocking **U1** and nonblocking **U2**-**U8**. Those are corrected,
 as are **V1**-**V3**, **W1**-**W6**, **X1**-**X7**, **Y1**-**Y4**, and **Z1**-**Z4**, raised by
@@ -65,8 +65,36 @@ artifact below itself: C4's passage stating what the ordering mutation vectors' 
 *are* still named the refusal alone, so a vector authored from it took `C4-P2` green on its own named
 mutation — U1 reached through the vector rather than through the property. **AF5**-**AF7** are the
 required-green rule finding its own gaps, which is the AE3 machinery working. All eight are corrected.
-No independent review has yet seen the AI corrections,
-and no Channel 0.2 schema or implementation is authorized until the
+
+The eleventh closure review returned `does-not-conform` with blocking **AG1** and nonblocking
+**AG2**-**AG5**. AG1 is the same passage's second surface: AF1's evidence had named the completeness
+review as well as the contract, the correction closed the contract, and a vector authored from the
+silence-probe row still took `C4-P2` green on its own mutation. **AG2** is the sharper class and the
+one the cycles since have kept producing — a correction asserting that another artifact carried a
+qualifier that it did not.
+
+The twelfth closure review returned **`conforms-with-nonblocking-findings`** with **AH1**-**AH6** and
+no blocking finding, the first non-negative verdict in the programme. It did not close the batch: the
+2026-08-15 closure-standard ruling, recorded in the redesign plan after that verdict was known and
+disclosed as having been made in that order, settles that only an unqualified `conforms` closes it.
+**AH1** settled a question underneath two earlier corrections — a vector **may** carry more than one
+session — and gave the declared stimulus step the session `C4-P2`'s precedence relation needs.
+
+The thirteenth closure review returned `does-not-conform` with blocking **AI1** and nonblocking
+**AI2**-**AI9**. **AI1** is AH1's decision propagated to one of `C4-P2`'s two operands and not the
+other: the settling-frame reference was still published as four fields with no session, so it stopped
+mapping to one declared step the moment two sessions could hold one interaction identity value.
+**AI9** is the one to weigh hardest — S3's own evidence surface, the redesign plan's section 7.8, had
+been open for six cycles while every index reported the programme's findings closed.
+
+The fourteenth closure review returned `does-not-conform` with blocking **AJ1** and nonblocking
+**AJ2**-**AJ7**. **AJ1** is AI1 surviving the commit written to close it: the reference is published
+in **five** places and the correction reached three, leaving the state/event grid the neutral brief
+declares itself subordinate to and the responsibility matrix row that *owns* the observation record,
+from both of which the reviewer reproduced AI1's exact false green. **AJ2** is this narrative and the
+Channel index's, stale for the eighth consecutive cycle and this time recorded as corrected in a third
+document that was never AI2's subject. All seven are corrected, and no independent review has yet seen
+the AJ corrections. No Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
 ### Channel 0.2 first-batch remaining work
@@ -1642,7 +1670,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 13 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, and AI1-AI9 families, and awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 14 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, and AJ1-AJ7 families, and awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |
