@@ -9,7 +9,12 @@ five identity reasons covered no refusal of a control naming an identity that wa
 is the reason `C4-P2`'s first conjunct quantifies over and the parity profile compares. Under Z4 the
 new-evidence inventory carries intra-interaction frame order, its two ordering mutations, and the
 observation fields they compare, none of which has a Channel 0.1 predecessor to migrate from.
-Serialized spellings remain unselected until the neutral contract batch. Unchanged by every correction pass through **AI9**.
+Serialized spellings remain unselected until the neutral contract batch. Under **AJ1** the
+new-evidence inventory states the settling-frame reference in the same form as the five other
+artifacts that publish it, including its **session**: this inventory is what Batch 2 builds its vector
+groups from, so a reference stated here with fewer fields than the parity profile compares is a vector
+group authored against the wrong observation. It is otherwise unchanged by the **AI1**-**AI9** and
+**AJ1**-**AJ7** families.
 
 Sources inventoried:
 
@@ -283,9 +288,10 @@ The 0.1 set has no direct equivalents for these required 0.2 cases:
   nonconformant-peer inputs `C4-P2` must leave green, and `C4-control-precedes-request` and
   `C4-outcome-precedes-ack`, one per conjunct, both requiring the declared reordering injection.
   The observation fields those vectors compare — the late-traffic latch, including its
-  `not-applicable` value, the frame that settled it with its arrival ordinal, and the recipient's
-  **admission of an identity previously refused at `unseen`**, which the AE1 correction made the
-  second fact the first conjunct reads — are likewise new in
+  `not-applicable` value, the recipient's **admission of an identity previously refused at `unseen`**,
+  which the AE1 correction made the second fact the first conjunct reads, and the frame that settled
+  the latch: its kind, its **session**, its interaction identity, its **committing endpoint**, and its
+  **arrival ordinal** within the interaction — are likewise new in
   0.2 and have no 0.1 observation field to migrate from. The admission is an ordinary admission
   decision C10 already enumerates, so no implementer has to invent a field; it is listed because Batch
   2 builds its vector groups from here, and omitting it was AF4.

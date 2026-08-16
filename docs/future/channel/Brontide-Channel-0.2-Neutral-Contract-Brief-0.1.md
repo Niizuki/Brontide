@@ -14,12 +14,20 @@ terminal cannot be mistaken for a reordering, the local-observation schema has p
 latch's `not-applicable` value is compared rather than absent, the required
 adversarial groups carry one ordering mutation per `C4-P2` conjunct, and the
 property operator set gained the one bounded precedence relation `C4-P2` needs, stimulus steps name
-their committing endpoint so that relation has an operand, the parity profile compares the
+their committing endpoint and their session so that relation has its operands — the session under AH1,
+which this sentence described in its pre-AH1 form until **AJ4** — the parity profile compares the
 late-traffic latch the grid already required as evidence, and the established-profile
 image carries the realization's per-interaction frame order declaration, the required adversarial
 groups include one owning intra-interaction frame order and its ordering mutation, the parity profile
 compares the peer-fault detailed reason, and the neutral provider may inject deterministic
-per-interaction reordering so a declared ordering mutation can actually be executed. Under **AI1** the settling-frame reference carries its session, and under **AI7** the established-profile digest is compared per session the vector carries — the same list AH1 made per-session having left both singular.
+per-interaction reordering so a declared ordering mutation can actually be executed. Under **AI1** the
+settling-frame reference carries its session, and under **AI7** the established-profile digest is
+compared per session the vector carries — the same list AH1 made per-session having left both
+singular. Under **AJ1** this artifact's two field lists publish that reference in the one form the
+interaction machine, the state/event grid, the responsibility matrix, and the migration ledger use;
+under **AJ3** the vector format's own profile entry is inside the per-session distribution rather than
+separated from it by a comma, which is AI7's second named entry; and under **AJ4** this block describes
+the declared stimulus step in its post-AH1 form.
 
 ## Purpose
 
@@ -171,10 +179,12 @@ effect certainty. Profile-owned details are nested under a versioned profile obs
 flattened into Channel core.
 
 The latch position holds one of the three latch values or the explicit `not-applicable` a route
-reaching no terminal interaction asserts, never an absent field. The settling-frame position holds the
-frame's kind, its **session**, its interaction identity, the endpoint that committed it, and its
-arrival ordinal within that interaction; it is absent only where no latch has settled. These are the fields `C4-P2`'s second
-conjunct reads and the parity profile compares, so the schema has to have somewhere to put them.
+reaching no terminal interaction asserts, never an absent field. The settling-frame position holds
+its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival
+ordinal** within the interaction; it is absent only where no latch has settled. These are the fields
+`C4-P2`'s second conjunct reads and the parity profile compares, so the schema has to have somewhere
+to put them, and they are the same five fields in the same order everywhere the reference is
+published.
 
 ## External phase and authority inputs
 
@@ -195,7 +205,11 @@ Every vector contains:
 
 - stable vector id and capability id;
 - predecessor 0.1 vector ids where applicable;
-- profile, and the initial session/interaction state of **each session the vector carries**. A vector
+- the established profile and initial session/interaction state of **each session the vector carries**.
+  `profile` was outside that distribution until AJ3, separated from it by a comma while the same
+  sentence made the state plural: two sessions establish independently and each has its own profile,
+  so one profile stated for both is the singular AI7 corrected in the parity profile and left here. A
+  vector
   **may carry more than one session**, because the identity rules make the distinction observable: an
   interaction identity is unique within a session and a new session may legitimately reuse the value,
   so a vector exercising that reuse needs two sessions to express it. The justification originally
@@ -338,8 +352,8 @@ Core normative comparison includes:
   every generated cell to assert — including the explicit `not-applicable` a route reaching no
   terminal interaction asserts, which is compared as a value and never as an absent field;
 - the **frame that settled the latch** wherever one is settled: its kind, its **session**, its
-  interaction identity,
-  its committing endpoint, and its **arrival ordinal** within that interaction. The session is AI1: AH1
+  interaction identity, its **committing endpoint**, and its **arrival ordinal** within the
+  interaction. The session is AI1: AH1
   declared a vector may carry more than one, and an interaction identity is unique only within one, so
   without it two steps in different sessions match every other field and the reference stops mapping
   to one declared step — which takes `C4-P2` green on `C4-outcome-precedes-ack`. The ordinal is what

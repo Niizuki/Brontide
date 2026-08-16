@@ -5,7 +5,9 @@ Date: 2026-08-11
 Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, U1/U4/U5/U7/W3, X7, and
 AC1-AC4 correction passes complete. The per-capability property audit now registers `C4-P2` and the mutation that must
 fail it; its silence is why an unfalsifiable property survived the correction that introduced it. The
-disposition history now runs to the eighth cycle rather than stopping at the fifth, and the in-flight
+disposition history now runs to the fourteenth cycle rather than stopping at the fifth — the count is
+this block's own claim about this document and went five cycles stale behind a family token, which is
+**AJ4** — and the in-flight
 bound's direction scope is recorded as session-wide-as-written against per-direction-as-enforced
 rather than as undeclared.
 A fresh independent closure re-review remains required. This review asks what the proposed contract
@@ -617,6 +619,47 @@ correction changes a fact, the impact set is every artifact asserting something 
 was found that way by the reviewer and reproduced that way here, and AI4's check is written over every
 artifact's status block rather than over the ones a finding named. The AI4 and settling-frame checks
 are the first two written from a concept sweep rather than from a finding's citation list.
+
+The fourteenth independent closure review, at `6cddb99`, returned `does-not-conform` with blocking
+**AJ1** and nonblocking **AJ2**-**AJ7**. **AJ1** is AI1 surviving the commit written to close it.
+The settling-frame reference is published in **five** places, not three: the two the AI1 correction
+did not reach are the state/event grid, which the neutral brief declares itself subordinate to, and
+the responsibility matrix row that *owns* the observation record — and the migration ledger's
+new-evidence inventory states the same reference a sixth time. The reviewer reproduced AI1's exact
+false green on `C4-outcome-precedes-ack` from both of the two, with the field list as the only
+variable. The check written for AI1 could not see it: it iterated two artifacts and asserted its own
+completeness with `Count -lt 3`, a bound set to the number of lists in its own scope, while four AC1
+checks thirty lines above it already enumerated the correct four artifacts for the same reference.
+All six surfaces now publish the reference in one form, and the check is written over the reference —
+every surface must publish the identical field list, any publication-shaped passage anywhere in the
+package must publish the whole list, and the count is exact rather than a lower bound.
+
+**AJ2**, **AJ3**, and **AJ4** are one shape at three scales: a finding closed in the surface a check
+can reach and left open in the surface its evidence quoted. **AJ2** — AI2's two narrative surfaces
+are unchanged and the redesign plan claimed the correction that neither of them received, which is
+AG2's cross-artifact class applied to a finding's own disposition; the claim is withdrawn, both
+narratives are rewritten rather than token-substituted, and the check now derives from the declared
+provenance table that every numbered closure review is introduced by ordinal in each narrative and its
+family named there. **AJ3** — AI7 named two entries and the correction reached one; `profile` sat
+outside the per-session distribution the same sentence made plural. **AJ4** — the AI4 check reads
+whether a status block reaches the newest family, and both sentences AI4 actually quoted were
+untouched: the brief's block described the declared stimulus step in its pre-AH1 form, and this
+document's block said its disposition history runs to the eighth cycle while it ran to the
+thirteenth. **AJ5** — AH4's escape clause is defeated by naming the family's last finding, because
+`\bAI\b` does not match `AI9`, and two of the four rows that used that wording were false for AJ1's
+reason. **AJ6** — the AI1 insertion put the session second in a five-field list whose next sentence
+counted from the front, so the machine's argument for the arrival ordinal became a claim about a set
+that omits the committing endpoint it is about; both latch sections now name the fields instead of
+counting them. **AJ7** — the retained-attestations list filed the thirteenth review in the eleventh's
+place.
+
+**What the sweep is, after this cycle.** The AG sweep read the artifacts each finding's evidence
+cites; the AI sweep read the concept but computed the impact set from memory of the artifacts it had
+been editing, and reproduced AI1's own two-artifact evidence list as though it were the concept. The
+sweep is now executed as a search over the repository for the changed fact's own vocabulary, with the
+result recorded, before any artifact is edited — `grep settl` over `docs/future/channel/` returns all
+six settling-frame surfaces in one screen. Each of the last three cycles' blocking findings, AG1, AI1,
+and AJ1, was one search away from the pass that missed it.
 
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.

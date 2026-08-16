@@ -4,9 +4,9 @@ Date: 2026-08-11
 
 Status: proposed first-batch ownership contract; B3 and cross-artifact N1 corrected after independent
 review and confirmed unchanged by the fourth, fifth, sixth, and seventh reviews, then corrected for
-S1, then for U2, then for AB2, then for AC1. Under AC1 that row's crossing artifact carries the
-settling frame's arrival ordinal and the refused frame's kind, so the fact this matrix owns and the
-fact the parity profile compares are the same fact. Under AB2 the matrix owns local observation content: `C4-P2` reads the
+S1, then for U2, then for AB2, then for AC1, then for AJ1. Under AC1 that row's crossing artifact
+carries the settling frame's arrival ordinal and the refused frame's kind, and under AJ1 its session,
+so the fact this matrix owns and the fact the parity profile compares are the same fact. Under AB2 the matrix owns local observation content: `C4-P2` reads the
 observation record, the matrix already owned the observability system that consumes it, and a fact a
 property depends on with no owner row is the defect S1 was raised for. Its ordering row was the
 evidence for S1: the fact the `unseen` cancellation verdict
@@ -15,7 +15,13 @@ ordering and a new `Intra-interaction frame order` row assigns that fact to `cha
 by a per-interaction frame order declaration in the realization profile. U2 closed the owner
 vocabulary: that row first used `channel-core`, a second identifier for the contract family every
 other Channel-core row already called `channel`, and the identifiers are now declared once and used
-only from that list. It is subject to a fresh independent closure re-review. Unchanged by every correction pass through **AI9**.
+only from that list. It is subject to a fresh independent closure re-review. Under **AJ1** the
+`Local observation content and provenance` row's crossing artifact carries the settling frame's
+**session** alongside its arrival ordinal, in the same form every other publishing artifact uses. This
+status block previously declared the artifact unchanged by every pass through AI9 while the sentence
+above it asserted that the fact this matrix owns and the fact the parity profile compares are the same
+fact; AI1 added the session to the parity profile and not to this row, so that sentence was false at
+the pin the fourteenth review assessed.
 
 ## Rule
 
@@ -104,7 +110,7 @@ in it, and a new owner is added here before it is used in a row.
 | Streaming and backpressure | `flow-facet` | Channel profile may add interaction class/facet → Flow | stream identity subordinate to interaction, terminal bridge | unary core reinterpretation |
 | Long-running activity | `lifecycle` | Channel Outcome may identify/start activity under exact extension | activity reference and lifecycle facet | keeping interaction forever nonterminal |
 | Timing constraints | `realtime-facet` | Channel observes declared timing facts → Realtime | explicit timing facet and clock provenance | ambient Channel clock |
-| Local observation content and provenance | `channel` | observability/host systems consume → non-normative projections | C10 local observation record, including the late-traffic latch with its `not-applicable` value, the frame that settled it with its arrival ordinal, and the kind and provenance of a refused frame that opens no interaction | `observability-system`, transport, host storage |
+| Local observation content and provenance | `channel` | observability/host systems consume → non-normative projections | C10 local observation record, including the late-traffic latch with its `not-applicable` value, the frame that settled it — its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction — and the kind and provenance of a refused frame that opens no interaction | `observability-system`, transport, host storage |
 | Logs, metrics, traces, storage | `observability-system` | consume Channel observations | non-normative local projection | Channel semantics |
 
 ## Selected boundary rulings
