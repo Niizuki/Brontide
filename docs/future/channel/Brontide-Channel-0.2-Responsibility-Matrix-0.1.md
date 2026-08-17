@@ -21,7 +21,12 @@ only from that list. It is subject to a fresh independent closure re-review. Und
 status block previously declared the artifact unchanged by every pass through AI9 while the sentence
 above it asserted that the fact this matrix owns and the fact the parity profile compares are the same
 fact; AI1 added the session to the parity profile and not to this row, so that sentence was false at
-the pin the fourteenth review assessed.
+the pin the fourteenth review assessed. Under **AK1**, **AK5** and **AK6** that row's crossing
+artifact carries two further frame references in the same five-field form: the frame refused where a
+refusal opens no interaction, which this row published as a kind and a provenance while `C4-P2`'s
+first conjunct scoped its membership test to a session the record did not name, and the frame a
+terminal history was accepted on, which is the second conjunct's other precedence operand and which
+this row — the row that owns the observation record — did not carry at all.
 
 ## Rule
 
@@ -110,7 +115,7 @@ in it, and a new owner is added here before it is used in a row.
 | Streaming and backpressure | `flow-facet` | Channel profile may add interaction class/facet → Flow | stream identity subordinate to interaction, terminal bridge | unary core reinterpretation |
 | Long-running activity | `lifecycle` | Channel Outcome may identify/start activity under exact extension | activity reference and lifecycle facet | keeping interaction forever nonterminal |
 | Timing constraints | `realtime-facet` | Channel observes declared timing facts → Realtime | explicit timing facet and clock provenance | ambient Channel clock |
-| Local observation content and provenance | `channel` | observability/host systems consume → non-normative projections | C10 local observation record, including the late-traffic latch with its `not-applicable` value, the frame that settled it — its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction — and the kind and provenance of a refused frame that opens no interaction | `observability-system`, transport, host storage |
+| Local observation content and provenance | `channel` | observability/host systems consume → non-normative projections | C10 local observation record, including the late-traffic latch with its `not-applicable` value, the frame that settled it — its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction — the terminal-frame reference, being its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction, and the provenance and refused-frame reference of a refusal that opens no interaction, being its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity | `observability-system`, transport, host storage |
 | Logs, metrics, traces, storage | `observability-system` | consume Channel observations | non-normative local projection | Channel semantics |
 
 ## Selected boundary rulings

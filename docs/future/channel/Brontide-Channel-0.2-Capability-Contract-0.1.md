@@ -24,7 +24,14 @@ implementation, or ratification is authorized until the complete design foundati
 independent closure re-review. Under **AI6** the membership sentence names its own subject rather than
 relying on the nearest antecedent, which is AC3's class in the paragraph AC3 was raised against. C10
 delegates the settling-frame field list to the artifacts that publish it and states the fact alone, so
-this contract is unchanged by the **AJ1**-**AJ7** corrections.
+this contract is unchanged by the **AJ1**-**AJ7** corrections. Under **AK1** and **AK5** the record
+`C4-P2`'s first conjunct quantifies over carries the refused-frame reference, so AF8's session
+qualifier, the identity the membership test is over, and the committing endpoint the precedence half
+reads all have operands; under **AK6** the observation names the frame an interaction's terminal
+history was accepted on, which is the second conjunct's other precedence operand and was published by
+nothing; and under **AK7** and **AK8** `C4-P1`, `C4-P2`, `C1-P1`, `C3-P1` and `C11-P1` name the session
+they mean, because AH1 made a vector able to carry more than one and C12 now declares which facts
+belong to one session each.
 
 Designed for: Brontide Architecture 0.8, Complete Draft, especially sections 6.16, 13.6, 16.4,
 18.1, 19, and 24.
@@ -92,9 +99,9 @@ established session.
 **Named scenarios.** `C1-fixed-negotiated-equivalence`, `C1-required-feature-unknown`,
 `C1-no-silent-downgrade`, and `C1-profile-change-needs-new-session`.
 
-**Property C1-P1.** For every C1 vector, either exactly one profile is established with every
-normative fact equal to the expected profile, or no interaction is dispatchable and effect certainty
-is `known-none`.
+**Property C1-P1.** For every C1 vector, either each session the vector carries has exactly one
+established profile with every normative fact equal to that session's expected profile, or no
+interaction is dispatchable and effect certainty is `known-none`.
 
 **Evidence.** Neutral profile vectors; native fixed and negotiated tests in each stack; process
 pairing against a neutral peer; direct/process profile parity.
@@ -159,7 +166,7 @@ protocol fault with no handler dispatch.
 `C3-unknown-class`, and `C3-wrong-direction`.
 
 **Property C3-P1.** No vector dispatches an interaction unless its class, direction, and external
-phase predicate all exactly match the established profile.
+phase predicate all exactly match the established profile of its own session.
 
 **Evidence.** Neutral class/phase table and adversarial vectors; both native roots; CM3/CM4 composed
 tests; both cross-stack directions.
@@ -236,15 +243,44 @@ same value against the same `state-violation` category. What separates the mutat
 frame settled the latch and which endpoint committed it, so the latch records that frame and the
 parity profile compares it.
 
+**The conjunct compares that frame against a second one, and the observation names it too.** The
+clause is a precedence between two of one endpoint's own frames: the frame the latch settled against,
+and that endpoint's own frame the interaction's terminal history was accepted on. The first has been
+published as a five-field reference since Y4 and carried its session since AI1; the second was
+published by nothing and left to be read off the terminal form, which identifies one frame only while
+an endpoint commits at most one frame of that form for one identity. A nonconformant peer commits two,
+which is exactly what a duplicate terminal is and is a required-green member of this property's own
+group, so the observation records **the terminal-frame reference** as well — the same fields, for the
+reason Y4 gave for the settling frame. That is **AK6**, and it is the shape W5, AH1, AI1, AJ1 and AK1
+all have: an operator qualifier whose operand the record it reads does not publish.
+
 **A control refused at `unseen` retains no interaction history and no latch.** The identity was never
 accepted, so it never enters the replay set, and the recipient commits one interaction-scoped peer
 fault and keeps nothing: no terminal history, no `late-traffic-fault` latch, and no reservation
 against the in-flight bound.
 
-It does **record** one C10 local observation of the refusal, and recording is not retaining. An
+It does **record** one C10 local observation of the refusal, carrying the **refused-frame reference**,
+and recording is not retaining. The reference is the first conjunct's operand and it names the same
+five facts the settling frame's does. Until **AK1** and **AK5** the record carried its provenance, its
+detailed reason, and the kind of frame refused and nothing else, so three of the conjunct's own
+qualifiers had no operand at all: AF8 scopes the membership test to **one session** and the record
+named no session, the test is over **that identity** and the record named no identity, and the
+precedence half is over **the committing endpoint's** own frames and the record named no endpoint.
+The first of those is the sharpest, because a property is red rather than merely unevaluable when its
+operand is missing: a two-session vector legitimately reusing one identity value, conforming at both
+endpoints, has the refusal in one session and the admission in the other, and the membership test
+finds the identity — which is AE1's own failure mode reached through the operand instead of through a
+clause, and is the failure AF8's sentence below was written to prevent. The arrival ordinal is AK5's
+other half and is Y4's argument on this operand: one endpoint may commit two controls naming one
+identity in one session, and the record has to say which of them it refused, or a control committed
+before the request binds to the one committed after it and the property goes red on delivery that
+matched commit order. An
 observation is written once as evidence and is **never consulted by a later admission, correlation,
 replay, or bound decision**; the state the R1 ruling refused is state a later decision would have to
-read, which is what made it accruable by a peer naming identities it never opens. The distinction is
+read, which is what made it accruable by a peer naming identities it never opens. Recording five
+facts about one refused frame is not retention for the same reason recording three was not: nothing
+reads them, and the bound the R1 ruling protects is on per-identity state a later decision consults,
+not on the size of a write-once record. The distinction is
 load-bearing in both directions and neither direction survives without it: a peer that names a
 million unopened identities still costs the recipient no retained per-identity state, and `C4-P2`'s
 first conjunct still has the recorded refusal it quantifies over. Abolishing the record instead of the
@@ -258,19 +294,20 @@ first request does, and is admitted on its own merits; the earlier fault does no
 refusal the recipient did not retain cannot bar anything. Under a conforming realization the sequence
 never arises, and under a reordering one `C4-P2` has already gone red on the recorded refusal.
 
-**Property C4-P1.** Across every C4 vector, each accepted terminal fact closes exactly one admitted
-interaction, no interaction identity is dispatched twice, and the number of nonterminal interactions
-never exceeds the established finite bound.
+**Property C4-P1.** Across every C4 vector and within each session that vector carries, each accepted
+terminal fact closes exactly one admitted interaction, no interaction identity is dispatched twice,
+and the number of nonterminal interactions never exceeds that session's established finite bound.
 
-**Property C4-P2.** Across every C4 vector, for each interaction identity, nothing delivers two frames
+**Property C4-P2.** Across every C4 vector, within one session and for each interaction identity,
+nothing delivers two frames
 one endpoint committed in an order that endpoint did not commit them in. Loss may still drop a frame.
 Because the design refuses a reordered frame rather than accepting it, this is stated over the refusal
 that reordering produces rather than over the accepted sequence, which no reordering can leave out of
 order: no endpoint records a recipient `rejected-protocol` at `unseen` for a cancellation control
 whose committing endpoint had already committed the request naming that identity **and whose
-recipient afterwards admits an interaction for that identity**, and none records a
+recipient afterwards admits an interaction for that identity in the same session**, and none records a
 late-traffic `state-violation` latched against a frame whose committing endpoint had committed it
-before that endpoint's own frame that made the interaction terminal.
+before that endpoint's own frame **the interaction's terminal history was accepted on**.
 
 The subsequent admission in the first conjunct is what makes it decide reordering rather than loss,
 and it is the 2026-08-14 owner ruling recorded in the redesign plan. Without it the conjunct is
@@ -305,6 +342,22 @@ session and admitted in another, satisfy the test across them, and take the conj
 behaviour — AE1's own failure mode reached through the operand's scope instead of through a missing
 clause. That is AF8, and the precedence relation W1 added carries the same qualifier for the same
 reason.
+
+**Both sides of that test publish the session, which is AK1 and is the half AF8 did not reach.** The
+admitted side always did: C10 requires every attempted establishment and interaction to yield an
+observation sufficient to distinguish session and interaction identities, and an admission is an
+attempted interaction. The refused side did not, because C10's next paragraph places the `unseen`
+refusal outside that class in terms — it is neither an attempted establishment nor an attempted
+interaction — and the record it does require named only the refusal's provenance, its detailed reason,
+and the kind of frame refused. A qualifier is worth nothing when only one of the two sets it scopes
+carries the field, so the refusal record now carries the refused-frame reference and the paragraph
+above says why. AF8, AH1, AI1 and AJ1 are four corrections that each added a session to something, and
+AF8 is the one that added the *requirement* of a session without adding the session anywhere.
+
+The conjunct itself now carries "in the same session" rather than deferring to this paragraph for it,
+which is the second half of **AK7** and was found by the check written for it: a property whose scope
+lives in the prose beside it is a property a vector author reads without the scope, and one artifact
+describing another's qualifier is AG2's class.
 
 **Required green.** `C4-P2` must not fail on a conforming realization. Its required vector group has
 seven legal members and the set names all seven, because a member with no stated expectation is the
@@ -537,20 +590,34 @@ Every attempted establishment and interaction yields a local observation suffici
 profile, session and interaction identities, direction, class, admission and authority decisions,
 dispatch boundary, terminal provenance, peer-reported facts, local detection point, retry/fallback
 facts supplied by an owning extension, the terminal interaction's **late-traffic latch and the frame
-that settled it**, and effect certainty. Where a route reaches no terminal interaction the latch is
-the explicit value `not-applicable`, which the observation carries like any other value; a route with
-no latch and a latch that has not settled are different facts and an absent field would conflate
+that settled it**, the **terminal-frame reference** naming that interaction's own frame its terminal
+history was accepted on, and effect certainty. Where a route reaches no terminal interaction the latch
+is the explicit value `not-applicable`, which the observation carries like any other value; a route
+with no latch and a latch that has not settled are different facts and an absent field would conflate
 them.
+
+The terminal-frame reference is required for the reason the settling frame's is, and is **AK6**:
+`C4-P2`'s second conjunct compares those two frames against each other, and the terminal form alone
+identifies one frame only while an endpoint commits at most one frame of that form for one identity —
+which a duplicate terminal from a nonconformant peer, a required-green member of that property's own
+group, is exactly the violation of. C10 states the fact and delegates the field list to the artifacts
+that publish it, as it does for the settling frame.
 
 **A recognized frame that opens no interaction yields one too.** A cancellation control or other
 control naming an identity the recipient has never accepted is neither an attempted establishment nor
 an attempted interaction — under C4 no interaction exists there — and it is refused as a peer
 statement, so without this sentence the one record of that refusal would be required by C4 and by
-nothing that owns observation. The observation records the refusal, **the kind of frame refused**, and
-its provenance with the detailed reason `unopened-interaction-identity`; it retains no interaction
-state, because there is none to retain. The kind is required because provenance and detailed reason
-are identical for a cancellation control and for any other control naming an unopened identity, while
-`C4-P2`'s first conjunct quantifies over the cancellation control alone.
+nothing that owns observation. The observation records the refusal, the **refused-frame reference**,
+and its provenance with the detailed reason `unopened-interaction-identity`; it retains no interaction
+state, because there is none to retain. The reference names the kind of frame refused, because
+provenance and detailed reason are identical for a cancellation control and for any other control
+naming an unopened identity while `C4-P2`'s first conjunct quantifies over the cancellation control
+alone — that much was AC2 — and it names the session, the interaction identity, the committing
+endpoint and the arrival ordinal, which are **AK1** and **AK5**. Those four are the operands of the
+conjunct's own qualifiers, and this paragraph is why they were absent: it places the record outside
+the class the paragraph above requires session and interaction identities of, and then states what the
+record does carry. An enumeration that excludes a record from the general rule owes that record its own
+complete list.
 
 Channel's portable effect field is certainty, not a provider-specific count:
 
@@ -607,8 +674,9 @@ refuses at establishment.
 **Named scenarios.** `C11-required-extension-unknown`, `C11-optional-additive-ignored`,
 `C11-retry-new-identity`, and `C11-extension-cannot-redefine-authority`.
 
-**Property C11-P1.** Every established profile has all required facets supported exactly, and no
-facet changes a core identity, authority, terminal-provenance, or uncertainty result.
+**Property C11-P1.** In each session the vector carries, every established profile has all required
+facets supported exactly, and no facet changes a core identity, authority, terminal-provenance, or
+uncertainty result.
 
 **Evidence.** Neutral feature-negotiation vectors; a deliberately unknown facet; a minimal additive
 facet; native profile validation and neutral peer.
@@ -644,6 +712,26 @@ conjunct was red on a conforming realization through every one of them, and the 
 was already a required member of its own group with no stated expectation at all. A required-green set
 that cannot be violated by any incorrect implementation is a finding against the set, the same way an
 unfalsifiable property is a finding against the property.
+
+**Facts a vector may hold more than one of.** AH1 settled that a vector **may carry more than one
+session**. These facts belong to one session each, so a property that names one names the session it
+means rather than counting or comparing it across the vector:
+
+- `established profile` — each session the vector carries establishes its own;
+- `interaction identity` — unique within one session, and a new session may legitimately reuse the
+  value;
+- `established finite bound` — declared by that session's own established profile; and
+- `nonterminal interactions` — counted against that session's own bound.
+
+This is the same rule as the two above and it is stated for the same reason. AH1 gave the declared
+stimulus step its session, AI1 and AJ1 gave the settling-frame reference its session across every
+artifact that publishes it, and AK1 gave the recorded `unseen` refusal its session; none of those
+reached the property *statements*, where `C4-P1` forbade an identity being dispatched twice, `C1-P1`
+required exactly one established profile, and `I5` bounded concurrency against the established finite
+bound, each without a session and each therefore red on a conforming two-session vector. A property
+that counts a per-session fact per vector is AE1's defect reached through the quantifier instead of
+through a clause, and the list above is declared rather than left to be inferred so that a fact added
+to it is covered without a new check being written.
 
 **Named scenarios.** `C12-neutral-provider-no-stack-dependency`,
 `C12-direct-process-semantic-parity`, `C12-distinct-identity-spaces`, and
