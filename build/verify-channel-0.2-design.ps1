@@ -1004,6 +1004,50 @@ if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -j
     $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all four correction iteration reviews before the next closure review.')
 }
 
+# The closure-cycle hold. The review policy tells an agent not to dispatch a closure review while the
+# hold stands, and an instruction in prose is exactly the kind of thing this programme has watched go
+# unread: an agent that never opens the policy is the case the instruction cannot reach.
+#
+# What this check can and cannot do, stated rather than implied. It cannot see a dispatch -- that
+# happens outside the repository, in someone else's clone -- so it catches the retention, which is the
+# first moment the work becomes visible here and the moment before it is committed. A review dispatched
+# and never retained costs a cold context and produces nothing this gate can observe. The instruction
+# in step 4 remains the primary control and this is the backstop.
+#
+# The state is read from the verification foundation plan, which is the artifact that owns the owner
+# decision, and the review policy carries a link to it rather than a second copy of it. That is W1 of
+# that plan applied to the plan's own fact: one owning artifact, citations elsewhere. A second copy
+# here would be the six-surface problem the plan exists to retire, one surface smaller.
+$verificationPlan = Read-RequiredText 'Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md'
+$holdDeclaration = [regex]::Match((Get-FlowedText $verificationPlan), 'Closure-cycle state: \*\*([a-z-]+)\*\* since ([0-9]{4}-[0-9]{2}-[0-9]{2}), at ([0-9]+) retained attestations')
+if (-not $holdDeclaration.Success) {
+    $failures.Add('The verification foundation plan declares no closure-cycle state. It is the artifact that owns the owner decision holding or resuming the cycle, and a hold that is stated only in prose is a hold no gate can enforce -- which is the condition this check was added to end.')
+}
+else {
+    $holdState = $holdDeclaration.Groups[1].Value
+    $holdCount = [int]$holdDeclaration.Groups[3].Value
+    $holdAttestationCount = @($reviewMarkdown | Where-Object { $_.Name -match 'attestation\.md$' }).Count
+    $reviewPolicyFlowed = Get-FlowedText $reviewReadme
+    $dispatchMarker = 'On hold since ' + $holdDeclaration.Groups[2].Value + ' - do not dispatch.'
+    # The dash between the date and the instruction is a dash of the author's choosing; this file
+    # stays ASCII, so the separator is matched rather than spelled.
+    $dispatchMarkerPresent = $reviewPolicyFlowed -match ('\*\*On hold since ' + $holdDeclaration.Groups[2].Value + '.{0,3}do not dispatch\.\*\*')
+    if ($holdState -ne 'on-hold' -and $holdState -ne 'open') {
+        $failures.Add("The verification foundation plan declares the closure-cycle state as '$holdState', which is outside the closed vocabulary ``on-hold``/``open``. A state outside a closed set cannot be acted on by this check or by a reader, which is the defect B4 was raised for in the migration ledger's categories.")
+    }
+    elseif ($holdState -eq 'on-hold') {
+        if ($holdAttestationCount -ne $holdCount) {
+            $failures.Add("The closure cycle is on hold at $holdCount retained attestations and the reviews directory holds $holdAttestationCount. A closure review was run and retained while the cycle was held. Lifting the hold is an owner decision recorded in the verification foundation plan against that plan's four stated conditions -- it is not this number being edited to match, and an attestation retained ahead of the decision cannot be un-run.")
+        }
+        if (-not $dispatchMarkerPresent) {
+            $failures.Add("The closure cycle is on hold and the review policy's step 4 does not carry the '$dispatchMarker' marker. The agent that dispatches a review reads that step, not this plan, so the hold has to be stated where the dispatch decision is made as well as where it is owned.")
+        }
+    }
+    elseif ($dispatchMarkerPresent) {
+        $failures.Add("The verification foundation plan declares the closure cycle ``open`` while the review policy's step 4 still carries the do-not-dispatch marker. One of the two is stale, and the dispatching agent reads the one that says stop -- so a resumed cycle that leaves this marker standing is a hold nobody lifted.")
+    }
+}
+
 # AJ7: the retained-attestations list is what a reader scans for the most recent record, and it ran
 # 11, 13, 12 -- the thirteenth review's entry in the eleventh's place. Nothing is misstated in either
 # entry, which is why it was worth checking rather than reading: AI8 established that a defect of

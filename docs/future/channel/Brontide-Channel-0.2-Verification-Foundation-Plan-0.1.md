@@ -7,6 +7,18 @@ artifact**, it is not part of the reviewed package, and no closure review assess
 the closure cycle is being paused, what has to exist before it resumes, and how to tell whether that
 work succeeded.
 
+Closure-cycle state: **on-hold** since 2026-08-17, at 16 retained attestations.
+
+That line is the declaration, and this document owns it. The design verifier reads the state from
+here, requires the review policy's step 4 to carry the matching do-not-dispatch marker, and **fails if
+the reviews directory holds more attestations than the number above** — so a closure review run and
+retained while the cycle is held fails the gate rather than being noticed later. What the gate cannot
+see is the dispatch itself, which happens in another clone; it catches the retention, which is the
+first moment the work becomes visible in this repository. The instruction in step 4 is still the
+primary control. Resuming the cycle means changing the state here, against the conditions in section 3,
+and removing the marker there; editing the number to match a retained attestation is not resuming the
+cycle, and the check says so.
+
 Owner decision, stated first because everything below follows from it: **the next independent closure
 review is on hold until verifying this design is stable and cheap.** Sixteen reviews have run and
 fifteen returned `does-not-conform`. The programme's throughput problem is not reviewer diligence or

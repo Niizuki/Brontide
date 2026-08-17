@@ -662,7 +662,10 @@ is exactly what the AD and AE passes found separately.
    property. The mutation vector's expected observation is now the recipient's recorded refusal, which
    is a determinate portable observation under C12-P1, rather than the vector being rejected before it
    executes. The per-capability property audit registers `C4-P2` and its mutation.
-4. **On hold since 2026-08-17 — do not dispatch.** Obtain another fresh independent review of the
+4. **On hold since 2026-08-17 — do not dispatch.** The state is declared in the
+   [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md) and the
+   design verifier reads it from there: while the hold stands, retaining a seventeenth attestation
+   fails the gate. Obtain another fresh independent review of the
    corrected pin, from a reviewer identity distinct from the correction author and all sixteen
    retained reviewers, **in a fresh isolated clone**. Its
    scope, verdicts, and probe requirements are unchanged from the sections above. It writes only its
