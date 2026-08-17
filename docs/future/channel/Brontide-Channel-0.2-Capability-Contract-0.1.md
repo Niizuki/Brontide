@@ -1,4 +1,4 @@
-﻿# Channel 0.2 capability contract 0.1
+# Channel 0.2 capability contract 0.1
 
 Date: 2026-08-11
 
@@ -31,7 +31,11 @@ reads all have operands; under **AK6** the observation names the frame an intera
 history was accepted on, which is the second conjunct's other precedence operand and was published by
 nothing; and under **AK7** and **AK8** `C4-P1`, `C4-P2`, `C1-P1`, `C3-P1` and `C11-P1` name the session
 they mean, because AH1 made a vector able to carry more than one and C12 now declares which facts
-belong to one session each.
+belong to one session each. Under **AL3** that declaration carries a fifth fact — the session's own
+state — and is checked against the neutral brief's vector format rather than against itself: its four
+members were the four facts read by the properties the AK pass had found red, and `S3` read a fifth
+through a transition of it and was reachable by no pattern built from those four. **AL1**, **AL2** and
+**AL4** are corrected in the session state machine and the state/event grid.
 
 Designed for: Brontide Architecture 0.8, Complete Draft, especially sections 6.16, 13.6, 16.4,
 18.1, 19, and 24.
@@ -720,8 +724,16 @@ means rather than counting or comparing it across the vector:
 - `established profile` — each session the vector carries establishes its own;
 - `interaction identity` — unique within one session, and a new session may legitimately reuse the
   value;
-- `established finite bound` — declared by that session's own established profile; and
-- `nonterminal interactions` — counted against that session's own bound.
+- `established finite bound` — declared by that session's own established profile;
+- `nonterminal interactions` — counted against that session's own bound; and
+- `session state` — each session the vector carries holds its own state and its own transitions
+  through the session state machine, including its establishment, its **first drain transition**, and
+  its terminal close or fault. This member is **AL3**, and the four above it were the four facts read
+  by the five properties the AK pass found red — a class derived from the members that happened to be
+  visible, which is AF6 one level up. It is not decorative: `S3` bounded admission by "the first drain
+  transition" with no session named, and read across a vector that carries two sessions the property
+  is red on a second session legally establishing and admitting after the first one drains. That is
+  **AL1**, and no pattern built from the four members above could have matched it.
 
 This is the same rule as the two above and it is stated for the same reason. AH1 gave the declared
 stimulus step its session, AI1 and AJ1 gave the settling-frame reference its session across every
@@ -732,6 +744,16 @@ bound, each without a session and each therefore red on a conforming two-session
 that counts a per-session fact per vector is AE1's defect reached through the quantifier instead of
 through a clause, and the list above is declared rather than left to be inferred so that a fact added
 to it is covered without a new check being written.
+
+**This list is checked against the vector rather than against itself.** Every fact the neutral brief's
+vector format distributes across "each session the vector carries" must appear above, so a fact the
+vector holds per session cannot stay outside the audit's trigger set — which is exactly what happened
+to the session's own state, and it is why AL1 survived a property audit that ran over all twenty-six
+properties. What that check cannot do is prove the list total: a property may read a per-session fact
+the vector format does not enumerate, and finding one is a finding rather than a typo. Two ways of
+reading a property therefore both stay live — the declared facts it *names*, which the recognizer
+audits, and the fact its subject *is*, which is why every property of the session state machine names
+its session whether or not it mentions one of the facts above.
 
 **Named scenarios.** `C12-neutral-provider-no-stack-dependency`,
 `C12-direct-process-semantic-parity`, `C12-distinct-identity-spaces`, and

@@ -26,7 +26,10 @@ artifact carries two further frame references in the same five-field form: the f
 refusal opens no interaction, which this row published as a kind and a provenance while `C4-P2`'s
 first conjunct scoped its membership test to a session the record did not name, and the frame a
 terminal history was accepted on, which is the second conjunct's other precedence operand and which
-this row — the row that owns the observation record — did not carry at all.
+this row — the row that owns the observation record — did not carry at all. Unchanged by
+**AL1**-**AL4**: this row is one of the five surfaces publishing the refused-frame reference and it
+publishes the whole list, which the sixteenth review verified surface by surface; the surface **AL2**
+found short is the state/event grid's two `unseen` cells.
 
 ## Rule
 

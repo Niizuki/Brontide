@@ -998,10 +998,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all fifteen retained attestations, and all four correction iteration reviews before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all four correction iteration reviews before the next closure review.')
 }
 
 # AJ7: the retained-attestations list is what a reader scans for the most recent record, and it ran
@@ -1743,6 +1743,13 @@ $machineLatchSection = ($interaction -split '## Late terminal and control dispos
 $gridLatchSection = ($stateEventCoverage -split '## Late-traffic latch', 2)[1] -split '## Evidence required', 2 | Select-Object -First 1
 $gridRecipientSection = ($stateEventCoverage -split '## Recipient interaction coverage grid', 2)[1] -split '## Late-traffic latch', 2 | Select-Object -First 1
 $machineUnseenRow = (@($interaction -split "`r?`n" | Where-Object { $_ -match '^\| .unseen. \| recognized peer event' }) -join ' ')
+# AL2: the grid's `unseen` row and the grid's prose are two surfaces, not one. Registering the section
+# that contains both let the prose satisfy the check for the cells, which is how the AK1 correction
+# reached four of the five surfaces its own evidence enumerated and the gate stayed green. The cells
+# are split out by the column separator so each is required to publish the reference on its own.
+$gridUnseenRow = (@($stateEventCoverage -split "`r?`n" | Where-Object { $_ -match '^\| .unseen. \| validation rows' }) -join ' ')
+$gridUnseenCells = @($gridUnseenRow -split '\|' | Where-Object { $_ -match 'unopened-interaction-identity' })
+$gridUnseenProse = ($gridRecipientSection -split "`r?`n" | Where-Object { $_ -notmatch '^\|' }) -join "`n"
 $matrixObservationRow = (@($responsibility -split "`r?`n" | Where-Object { $_ -match '^\| Local observation content' }) -join ' ')
 $ledgerNewEvidence = [regex]::Match($migration, '(?ms)^## New evidence required by redesign\r?\n(.+?)(?=^## |\z)').Groups[1].Value
 
@@ -1770,7 +1777,9 @@ $frameReferences = @(
            @{ Name = "the neutral brief's local-observation schema"; Artifact = 'neutral brief'; Text = $briefLocalObservation },
            @{ Name = "the neutral brief's parity profile"; Artifact = 'neutral brief'; Text = $briefParityProfile },
            @{ Name = "the interaction machine's ``unseen`` recipient transition row"; Artifact = 'interaction machine'; Text = $machineUnseenRow },
-           @{ Name = "the state/event grid's recipient ``unseen`` route"; Artifact = 'state/event grid'; Text = $gridRecipientSection },
+           @{ Name = "the state/event grid's recipient ``unseen`` cancellation-control cell"; Artifact = 'state/event grid'; Text = $(if ($gridUnseenCells.Count -ge 1) { $gridUnseenCells[0] } else { '' }) },
+           @{ Name = "the state/event grid's recipient ``unseen`` other-peer-event cell"; Artifact = 'state/event grid'; Text = $(if ($gridUnseenCells.Count -ge 2) { $gridUnseenCells[1] } else { '' }) },
+           @{ Name = "the state/event grid's recipient ``unseen`` prose"; Artifact = 'state/event grid'; Text = $gridUnseenProse },
            @{ Name = "the responsibility matrix's local-observation owner row"; Artifact = 'responsibility matrix'; Text = $matrixObservationRow },
            @{ Name = "the migration ledger's new-evidence inventory"; Artifact = 'migration ledger'; Text = $ledgerNewEvidence }) },
     @{ Key = 'terminal'
@@ -1845,6 +1854,43 @@ foreach ($reference in $frameReferences) {
     }
     if ($framePublications -ne $reference.Surfaces.Count) {
         $failures.Add("The design package publishes the field list of $($reference.Label) $framePublications times and $($reference.Surfaces.Count) surfaces are registered above. An exact count rather than a lower bound: a lower bound is what let the AI1 check certify its own scope, and a surface that appears or disappears without being registered is the way this class of reference has gone out of agreement three times.")
+    }
+}
+
+# AL2. Both halves of the check above are keyed to the reference's own NAME: the registered surfaces
+# are searched for the field list, and the package-wide sweep triggers on the phrase `refused-frame
+# reference`. A surface that publishes the record's contents without ever naming the reference is
+# invisible to both, and the state/event grid's two recipient `unseen` cells are exactly that -- they
+# enumerate provenance, detailed reason, frame kind and effect certainty, which is the pre-AK1 record,
+# and the AK1 correction reached the prose 35 lines below them instead. Registering the cells as their
+# own surfaces closes those two; this sweep closes the class.
+#
+# It is keyed to the record rather than to the reference. The detailed reason
+# `unopened-interaction-identity` is what identifies this record wherever it is stated, and a passage
+# that names it together with the record's provenance and its effect certainty is enumerating what the
+# record contains rather than talking about it -- a disposition history that says what AC2 or AK1 did
+# names the reason and neither of the other two. Every such passage must publish the whole reference.
+#
+# The sweep reaches the review policy as well as the design artifacts, and that is deliberate rather
+# than incidental: a disposition history is where an abbreviated form of a record is most likely to be
+# restated, and the AL2 correction's own account of what the cells used to contain tripped this check
+# on its first run. Prose about the record therefore describes it rather than listing its fields,
+# which is the same discipline the AJ6 rule imposes on the sentences under a field list.
+$refusalRecordFlowed = @{}
+foreach ($refusalArtifactName in $artifactNames) {
+    $refusalRecordFlowed[$refusalArtifactName] = & $framePlain (Read-RequiredText $refusalArtifactName)
+}
+$refusedReference = @($frameReferences | Where-Object { $_.Key -eq 'refused' })[0]
+foreach ($refusalArtifactName in $artifactNames) {
+    $refusalText = $refusalRecordFlowed[$refusalArtifactName]
+    foreach ($refusalMatch in [regex]::Matches($refusalText, '`unopened-interaction-identity`')) {
+        $windowStart = [Math]::Max(0, $refusalMatch.Index - 240)
+        $windowEnd = [Math]::Min($refusalText.Length, $refusalMatch.Index + 640)
+        $refusalWindow = $refusalText.Substring($windowStart, $windowEnd - $windowStart)
+        if ($refusalWindow -notmatch '(?i)provenance' -or $refusalWindow -notmatch '(?i)effect certainty') { continue }
+        if ($refusalWindow.IndexOf($refusedReference.FieldList, [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("'$refusalArtifactName' enumerates what the recipient ``unseen`` refusal record contains -- its detailed reason ``unopened-interaction-identity``, its provenance, and its effect certainty -- without publishing $($refusedReference.Label) with the field list '$($refusedReference.FieldList)'. That is the record ``C4-P2``'s first conjunct quantifies over, and a vector authored from an abbreviated statement of it carries no session, which takes the property red on the conforming two-session vector AK1 was raised for. This check is keyed to the record rather than to the words 'refused-frame reference', because the two surfaces AK1's own evidence named and the correction did not reach never use that phrase. This is AL2.")
+        }
     }
 }
 
@@ -2046,16 +2092,19 @@ else {
 # whichever members were visible when the check was written is not the class. A per-session fact added
 # to that declaration is covered without editing this loop, and a fact removed from it stops being
 # checked visibly rather than silently.
-$sessionScopeBlock = [regex]::Match($contract, '(?ms)\*\*Facts a vector may hold more than one of\.\*\*(.+?)(?=^\*\*|^## |\z)').Groups[1].Value
+# The recognizer, not the class: any of these phrasings names the session a clause means. Kept
+# generous on purpose, because a property that names the session in an unlisted way is correct and
+# failing it would train the next pass to reword rather than to scope. It is defined here rather than
+# beside its first use because the AL1 check below reads it too, and a qualifier that exists only
+# inside the branch where a declaration was found would leave that check unable to run in exactly the
+# case where the declaration is missing.
+$sessionQualifier = '(?i)(?:per session|per-session|session-scoped|(?:with)?in (?:one|each|that|its own|its|any|the same) session|(?:of|for|in) (?:each|its own|that|one|any) session|each session the vector carries|(?:that|its own) session''?s)'
+$sessionScopeBlock = [regex]::Match($contract,'(?ms)\*\*Facts a vector may hold more than one of\.\*\*(.+?)(?=^\*\*|^## |\z)').Groups[1].Value
 $sessionScopedFacts = @([regex]::Matches($sessionScopeBlock, '(?m)^- `([^`]+)` ') | ForEach-Object { $_.Groups[1].Value })
 if ($sessionScopedFacts.Count -lt 1) {
     $failures.Add('C12 declares no list of facts a vector may hold more than one of. AH1 made multi-session vectors legal, and the rule that a property naming a per-session fact names the session it means is unenforceable over a class nothing declares -- which is AF6''s finding applied to a rule instead of to a family.')
 }
 else {
-    # The recognizer, not the class: any of these phrasings names the session a clause means. Kept
-    # generous on purpose, because a property that names the session in an unlisted way is correct and
-    # failing it would train the next pass to reword rather than to scope.
-    $sessionQualifier = '(?i)(?:per session|per-session|session-scoped|(?:with)?in (?:one|each|that|its own|its|the same) session|(?:of|for|in) (?:each|its own|that|one) session|each session the vector carries|(?:that|its own) session''?s)'
     $allProperties = @()
     foreach ($propertyMatch in [regex]::Matches($contract, '(?ms)^\*\*Property (C[0-9]+-P[0-9]+)[^*]*\*\*(.+?)(?=\r?\n\r?\n)')) {
         $allProperties += @{ Id = $propertyMatch.Groups[1].Value; Where = 'capability contract'; Text = $propertyMatch.Groups[2].Value }
@@ -2096,6 +2145,67 @@ else {
                     }
                 }
             }
+        }
+    }
+}
+
+# AL1. The AK7 loop above is a recognizer: it matches a DECLARED fact's own words inside a property's
+# text. That is the right shape for a fact a property names, and it is blind by construction to a
+# property that reads a per-session fact without naming it. `S3` -- "no new interaction is admitted
+# after the first drain transition" -- reads one session's own state through the transition that
+# changed it, contains none of the declared facts' words, and is red on the two-session vector AK7 was
+# raised for: the first drain transition is not a fact of a vector, so a legal admission in a second
+# session violates it literally.
+#
+# This check is structural instead. Every property the session state machine states is a statement
+# about one session -- that is what the machine is, and the artifact's boundary section says so -- so
+# each of them must name the session it means. The class is total over that artifact by construction
+# rather than inferred from the members that were visible when it was written, which is AF6's
+# distinction and the reason this is not another list of facts.
+#
+# What it does not cover is stated rather than implied: the interaction machine's `I1`-`I7` are
+# statements about one interaction, which belongs to one session, and the same argument reaches them.
+# They are left to the declared-fact recognizer above because `interaction identity` is a declared
+# fact and their subject is that identity, so the two checks meet there. A later cycle that finds an
+# `I` property reading a per-session fact it does not name has found a finding, not a gap in this
+# comment.
+$sessionMachineProperties = @([regex]::Matches($session, '(?m)^- \*\*(S[0-9]+)\.\*\* (.+)$'))
+if ($sessionMachineProperties.Count -lt 1) {
+    $failures.Add('The session state machine states no capability-wide properties this check can read. Its properties are the population AL1 is about, and a check that reads none of them reports nothing while auditing nothing -- which is the AI1 failure mode this file has now corrected twice.')
+}
+foreach ($sessionProperty in $sessionMachineProperties) {
+    $sessionPropertyText = Get-FlowedText $sessionProperty.Groups[2].Value
+    if ($sessionPropertyText -notmatch $sessionQualifier) {
+        $failures.Add("Property '$($sessionProperty.Groups[1].Value)' in the session state machine names no session. Every property of that machine is a statement about one session's own state, a vector may carry more than one session under AH1, and a property that leaves the session unnamed is read across the vector: `S3` counted the first drain transition that way and went red on a vector conforming in both of its sessions. This is AL1, and it is AE1's defect reached through the quantifier -- the same class as AK7 and AK8, over the properties whose per-session fact is the machine's own subject rather than a fact they name.")
+    }
+}
+
+# AL3. The declared list above is the AK7 recognizer's trigger set, and the AK pass derived it from
+# the five properties that pass had found red. That is a class inferred from today's members, which is
+# AF6 one level up, and the omission it left is the session's own state -- the fact `S3` reads.
+#
+# The list is therefore checked against another artifact rather than against itself: the neutral
+# brief's vector format states what a vector distributes per session, and every fact it distributes
+# has to be declared here. That is a derivation from the artifact that defines the vector, so a fact
+# added to the vector format cannot stay outside the trigger set silently.
+#
+# It is still not a proof of totality, and claiming one here would be AD2's defect. A fact a property
+# reads that the vector format does not enumerate is caught by reading, as AL1 was.
+$vectorFormatSection = [regex]::Match($neutralBrief, '(?ms)^## Vector format\r?\n(.+?)(?=^## |\z)').Groups[1].Value
+$vectorDistributionBullet = [regex]::Match((Get-FlowedText $vectorFormatSection), '- ([^;]{0,200}?) of \*\*each session the vector carries\*\*')
+if (-not $vectorDistributionBullet.Success) {
+    $failures.Add("The neutral brief's vector format states no per-session distribution this check can read, so C12's declared list of facts a vector may hold more than one of is checked against nothing. AH1 made multi-session vectors legal and the vector format is where what a vector holds per session is stated; a list checked only against itself is the derivation AL3 was raised against.")
+}
+else {
+    $distributedFacts = @($vectorDistributionBullet.Groups[1].Value -replace '\*\*', '' -split '\s+and\s+' | ForEach-Object { ($_ -replace '^the\s+', '' -replace '^initial\s+', '').Trim().ToLowerInvariant() } | Where-Object { $_ })
+    foreach ($distributedFact in $distributedFacts) {
+        $isDeclared = $false
+        foreach ($fact in $sessionScopedFacts) {
+            $factWords = @($fact -split '\s+' | ForEach-Object { ($_ -replace 's$', '').ToLowerInvariant() })
+            if (@($factWords | Where-Object { $distributedFact.IndexOf($_, [System.StringComparison]::Ordinal) -ge 0 }).Count -eq $factWords.Count) { $isDeclared = $true }
+        }
+        if (-not $isDeclared) {
+            $failures.Add("The neutral brief's vector format distributes '$distributedFact' per session and C12 declares no matching fact in its list of facts a vector may hold more than one of. That list is the trigger set of the session-scope check above, so a fact the vector format holds per session and the declaration omits is a fact no property can be audited against -- which is how `S3` read one session's own state across the vector through fifteen review cycles and one complete property audit. This is AL3.")
         }
     }
 }

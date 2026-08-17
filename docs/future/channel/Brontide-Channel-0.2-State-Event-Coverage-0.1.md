@@ -1,4 +1,4 @@
-﻿# Channel 0.2 state/event coverage 0.1
+# Channel 0.2 state/event coverage 0.1
 
 Date: 2026-08-11
 
@@ -25,6 +25,14 @@ to, and the responsibility matrix row that owns the observation record. Under **
 recipient `unseen` route publishes the refused-frame reference rather than a reason and a frame kind,
 and under **AK6** the latch section publishes the terminal-frame reference, which is `C4-P2`'s second
 conjunct's other precedence operand and had no publishing artifact at all.
+
+That AK1 sentence was false when it was written, and **AL2** is the correction. The recipient `unseen`
+route is two cells and the prose beneath them; the AK1 pass changed the prose and left both cells
+publishing a provenance, a detailed reason, a bare frame kind and an effect certainty — the pre-AK1
+record, from which a vector carries no session and takes `C4-P2` red on the conforming two-session
+vector AK1 was raised for. Both cells now publish the refused-frame reference in the same five-field
+form as the other four surfaces, and the design verifier registers the cells as surfaces of their own
+rather than accepting one publication anywhere inside the route.
 
 Normative companions:
 
@@ -82,7 +90,7 @@ one route.
 
 | Recipient state group | Request | Cancellation control | Handler terminal | Local protocol failure | Local loss | Other peer event |
 | --- | --- | --- | --- | --- | --- | --- |
-| `unseen` | validation rows | no identity to correlate → state unchanged, recorded with `rejected-protocol` provenance, detailed reason `unopened-interaction-identity`, frame kind `cancellation-control`, and effect certainty `known-none` | impossible local action | structural/local-refusal split | local session route | state unchanged, recorded with `rejected-protocol` provenance, detailed reason `unopened-interaction-identity`, the refused control's own frame kind, and effect certainty `known-none` |
+| `unseen` | validation rows | no identity to correlate → state unchanged, recorded with `rejected-protocol` provenance, detailed reason `unopened-interaction-identity`, the **refused-frame reference** — its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity, the kind here being `cancellation-control` — and effect certainty `known-none` | impossible local action | structural/local-refusal split | local session route | state unchanged, recorded with `rejected-protocol` provenance, detailed reason `unopened-interaction-identity`, the **refused-frame reference** — its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity, the kind here being the refused control's own — and effect certainty `known-none` |
 | `validating` | validation rows | valid control: hold exactly one, apply on admission; second control → `peer-fault` | impossible local action | structural/local-refusal split | local session route | `rejected-protocol` |
 | `executing` | live replay → `peer-fault` | authorized → `cancel-requested`; denied → `cancel-refused`; invalid → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-requested` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure/cancelled accepted | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |

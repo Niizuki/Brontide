@@ -31,7 +31,7 @@ agrees and its review has no blocking finding.
 
 The [first-batch design package](./channel/README.md) now includes C1-C12, both state machines, a
 closed state/event grid, the responsibility matrix, silence review, migration ledger, neutral-
-artifact brief, four resolved owner rulings, and 15 retained independent reviews. Every finding
+artifact brief, four resolved owner rulings, and 16 retained independent reviews. Every finding
 through S1-S3 is closed in the artifact it was raised against, each re-verified individually by the
 eighth review, which then raised blocking **U1** and nonblocking **U2**-**U8**. Those are corrected,
 as are **V1**-**V3**, **W1**-**W6**, **X1**-**X7**, **Y1**-**Y4**, and **Z1**-**Z4**, raised by
@@ -115,8 +115,26 @@ operand, "that endpoint's own frame that made the interaction terminal", which n
 at all; and **AK7** with **AK8**, which are AH1's multi-session decision never having reached the
 property statements — `C4-P1`, `C4-P2`, `C1-P1`, `C3-P1` and `I5` each counted or compared a
 per-session fact across the vector. C12 now declares which facts belong to one session each, so that
-rule is enforced over a declared class rather than over today's members. No independent review has yet
-seen the AK corrections. No Channel 0.2 schema or implementation is authorized until the
+rule is enforced over a declared class rather than over today's members.
+
+The sixteenth closure review returned `does-not-conform` with blocking **AL1** and **AL2** and
+nonblocking **AL3** and **AL4**. It is the first review here to record a `C4-P2` evaluator that is
+correct on every input it was run over — both named mutations red, all seven required-green members
+green — so the property eight families have been about is sound at the pin it reviewed, and both
+blocking findings are elsewhere. **AL1** is AK7's own defect on a sixth property: `S3` bounded
+admission by "the first drain transition" and named no session, so a second session establishing and
+admitting after the first drains takes it red on conforming behaviour. The audit that produced AK7
+reported the session machine clean, and could not have done otherwise — it recognises a per-session
+fact by that fact's own words, `S3` reads one through a transition of it, and the session's own state
+was not among the four facts C12 declared, which is **AL3**. **AL2** is the refused-frame reference
+published in five surfaces and corrected in four; the missed surface is the state/event grid's two
+`unseen` cells, invisible to both halves of the AK1 check because each keys on the reference's name
+and the cells never used it. **AL4** is `S5` comparing a per-session profile across the vector. All
+four are corrected: every property of the session state machine now names its session and is checked
+structurally rather than lexically, the declared fact list is checked against the neutral brief's
+vector format rather than against itself, the grid's cells are registered as surfaces of their own,
+and the package-wide sweep is keyed to the record rather than to the reference's name. No independent
+review has yet seen the AL corrections. No Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
 ### Channel 0.2 first-batch remaining work
@@ -1692,7 +1710,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 15 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, and AK1-AK8 families, and awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, and AL1-AL4 families, and awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |
