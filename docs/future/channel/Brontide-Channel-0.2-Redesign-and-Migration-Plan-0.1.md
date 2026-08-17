@@ -47,6 +47,17 @@ The fourteenth review returned `does-not-conform` with blocking **AJ1** and nonb
 five places and the correction reached three, leaving the state/event grid the neutral brief is
 subordinate to and the responsibility matrix row that owns the observation record, from both of which
 the reviewer reproduced AI1's exact false green. All seven are corrected.
+The fifteenth review returned `does-not-conform` with blocking **AK1** and nonblocking
+**AK2**-**AK4**, and confirmed AJ1 closed by evaluator. **AK1** is the same shape as AI1 and AJ1 on
+`C4-P2`'s **other** conjunct: the recorded `unseen` refusal is that conjunct's operand, five surfaces
+published what it contains, and none named the session AF8's membership scope requires or the identity
+the test is over, so the property was red on a two-session vector conforming at both endpoints. All
+four are corrected. The correction pass then enumerated `C4-P1` and `C4-P2` completely instead of
+sampling one operand as the four previous cycles had, and that enumeration — retained in the
+completeness review — raised **AK5** and **AK6**, the rest of the first conjunct's operand and the
+second conjunct's second precedence operand, which no artifact published at all; and **AK7** and
+**AK8**, which are AH1's multi-session decision never having reached the property statements, so
+`C4-P1`, `C4-P2`, `C1-P1`, `C3-P1` and `I5` each counted a per-session fact across the vector.
 
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),
@@ -333,8 +344,8 @@ not derive expectations from one implementation's public API.
 ### 7.8 Fresh independent design review
 
 Review policy, retained attestations, and the exact continuation instructions:
-[`reviews/`](./reviews/README.md#exact-next-work). Fourteen independent attestations are retained —
-thirteen `does-not-conform` and one
+[`reviews/`](./reviews/README.md#exact-next-work). Fifteen independent attestations are retained —
+fourteen `does-not-conform` and one
 `conforms-with-nonblocking-findings`, which under the 2026-08-15 closure-standard ruling did not
 close the batch. This passage reported seven and stopped at the seventh review until **AI9**; it was
 S3's own evidence surface, so a retained finding stayed open for six cycles while every entry point
@@ -621,6 +632,20 @@ still identify questions that require owners before closure.
   the original is recorded here rather than overwritten, as the S1 ruling records the `channel-core`
   identifier it was issued with. AG3 was this note being absent while C4 already deferred to the
   corrected scope, so the contract and the ruling it cites disagreed.
+
+  **The narrowing had no operand until AK1, and this is where that is recorded.** AF8 scoped the
+  membership test to the session, and the record the conjunct quantifies over — the recipient's local
+  observation of a control refused at `unseen` — published its provenance, its detailed reason, and
+  the kind of frame refused, and named no session and no interaction identity. A qualifier is worth
+  nothing when one of the two sets it scopes does not carry the field: the admitted side carries it
+  under C10's general rule, the refused side was explicitly outside that rule, and the fifteenth
+  review's probe took the conjunct **red on a two-session vector conforming at both endpoints** —
+  which is the failure this narrowing was written to prevent, reproduced through the operand instead
+  of through the scope. The refusal record now carries the refused-frame reference, whose five fields
+  the artifacts that publish it state and which this ruling does not restate. The committing endpoint
+  and the arrival ordinal among them are **AK5**, since the conjunct's literal subject is the
+  committing endpoint and one endpoint may commit two controls naming one identity. This ruling is
+  otherwise unchanged and is recorded as issued.
 
   **Option B, rejected:** scope the conjunct to vectors that declare a reordering injection. The
   smallest edit, and it leaves the property's subject alone, but it makes the property read harness

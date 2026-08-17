@@ -3,10 +3,12 @@
 Date: 2026-08-11
 
 Status: proposed first-batch design artifact; D1 corrected after independent review and subject to a
-fresh independent closure re-review. Unchanged by every correction pass through the **AI1**-**AI9**
-and **AJ1**-**AJ7** families; the claim is stated over each family rather than over its last finding,
-because "unchanged by AI9" is a true statement about one finding and a false impression about the
-family, which is **AJ5**.
+fresh independent closure re-review. Unchanged by every correction pass through the **AI1**-**AI9**,
+**AJ1**-**AJ7** and **AK1**-**AK8** families; the claim is stated over each family rather than over
+its last finding, because "unchanged by AI9" is a true statement about one finding and a false
+impression about the family, which is **AJ5**. The AK pass audited `S1`-`S6` against C12's newly
+declared per-session facts along with every other property in the package, and none of the six names
+one: the session machine's properties are about one session by construction.
 
 Contract owner: [Channel 0.2 C2](./Brontide-Channel-0.2-Capability-Contract-0.1.md#c2--the-channel-session-has-one-small-explicit-state-machine).
 

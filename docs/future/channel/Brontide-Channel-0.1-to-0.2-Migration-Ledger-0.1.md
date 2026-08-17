@@ -10,11 +10,15 @@ is the reason `C4-P2`'s first conjunct quantifies over and the parity profile co
 new-evidence inventory carries intra-interaction frame order, its two ordering mutations, and the
 observation fields they compare, none of which has a Channel 0.1 predecessor to migrate from.
 Serialized spellings remain unselected until the neutral contract batch. Under **AJ1** the
-new-evidence inventory states the settling-frame reference in the same form as the five other
-artifacts that publish it, including its **session**: this inventory is what Batch 2 builds its vector
+new-evidence inventory states the settling-frame reference in the same form as the four other
+artifacts that publish it — five other lists, because the brief publishes it twice — including its
+**session**: this inventory is what Batch 2 builds its vector
 groups from, so a reference stated here with fewer fields than the parity profile compares is a vector
-group authored against the wrong observation. It is otherwise unchanged by the **AI1**-**AI9** and
-**AJ1**-**AJ7** families.
+group authored against the wrong observation. That count of artifacts was written as five until
+**AK4**, which matters only because the number of artifacts publishing this reference is the exact
+quantity AJ1 turned on. It is otherwise unchanged by the **AI1**-**AI9** and
+**AJ1**-**AJ7** families. Under **AK1**, **AK5** and **AK6** the inventory adds the refused-frame and
+terminal-frame references those vectors compare, in the same form and for the same reason.
 
 Sources inventoried:
 
@@ -295,6 +299,18 @@ The 0.1 set has no direct equivalents for these required 0.2 cases:
   0.2 and have no 0.1 observation field to migrate from. The admission is an ordinary admission
   decision C10 already enumerates, so no implementer has to invent a field; it is listed because Batch
   2 builds its vector groups from here, and omitting it was AF4.
+- Two further frames the same vectors compare, new in 0.2 and added here under **AK1**, **AK5** and
+  **AK6**, each published as a reference to one frame the way the settling frame is. The
+  terminal-frame reference names the frame an interaction's terminal history was accepted on: its
+  kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival
+  ordinal** within the interaction; it is what `C4-P2`'s second conjunct compares the settling frame
+  *against*, and it was published by no artifact at all. The refused-frame reference names the frame
+  refused where a refusal opens no interaction: its kind, its **session**, its interaction identity,
+  its **committing endpoint**, and its **arrival ordinal** for that interaction identity; it is the
+  first conjunct's own operand, and it carried neither AF8's session, nor the identity the membership
+  test is over, nor the committing endpoint the precedence half reads. A vector group authored from an
+  inventory that omits an operand is a group that cannot evaluate the property it exists for, which is
+  why both are listed here rather than left to the artifacts that own them.
 
 ## Golden encodings, parity profiles, and pins
 

@@ -5,11 +5,16 @@ Date: 2026-08-11
 Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, U1/U4/U5/U7/W3, X7, and
 AC1-AC4 correction passes complete. The per-capability property audit now registers `C4-P2` and the mutation that must
 fail it; its silence is why an unfalsifiable property survived the correction that introduced it. The
-disposition history now runs to the fourteenth cycle rather than stopping at the fifth — the count is
+disposition history now runs to the fifteenth cycle rather than stopping at the fifth — the count is
 this block's own claim about this document and went five cycles stale behind a family token, which is
 **AJ4** — and the in-flight
 bound's direction scope is recorded as session-wide-as-written against per-direction-as-enforced
-rather than as undeclared.
+rather than as undeclared. Under **AK2** the Channel index's Design reviews row names the `W` family
+this document's sibling record is named after; under **AK3** the counts of properties here are counts
+of properties rather than of audit rows, the package stating twenty-six and the audit covering
+thirteen capability-wide ones in twelve rows; and under **AK1**, **AK5**, **AK6**, **AK7** and **AK8**
+this document carries the complete enumeration of every operand `C4-P1` and `C4-P2` read, which is the
+durable half of the audit those five findings came from.
 A fresh independent closure re-review remains required. This review asks what the proposed contract
 does not say. It is separate from conformance review and does not claim the contract is correct. Under **AI3** the `I5` row carries the AE3 connection its `C4` sibling already had, and the pointer added with it names its direction correctly.
 
@@ -142,7 +147,7 @@ property counts as evidence.
 | --- | --- | --- |
 | two interactions complete out of order | legal; independent terminal histories | Channel core |
 | concurrency bound races at admission | reserve atomically; one refusal, no lasting replay entry | Channel core/runtime mechanism |
-| direction scope of the in-flight bound | session-wide as written, per-direction as enforced: `C4-P1` bounds "the number of nonterminal interactions" and `I5` bounds "concurrency" with no direction restriction, which reads session-wide, while the only mechanism the design provides — the interaction machine's atomic one-position reservation at admission — is local and has no cross-endpoint coordination, so it can enforce only a per-direction count. The gap is unreachable in the only named profile, where one endpoint initiates both classes and the two readings coincide; a profile in which both endpoints initiate must state which it means before its vectors can be written. **Under AE3 this is a known conforming-realization exposure, not merely an undeclared scope.** The disposition was made when C12 required only that a property be able to fail; AE3 added the converse, and under it a realization enforcing exactly what the design provides may take `C4-P1` and `I5` red in a both-endpoints-initiating profile. Their required-green cells read `owed`, which reads as "not yet written" — this row is what makes it "known to have a red case", and a pass filling either set in without settling the direction scope first would reproduce the omission. That connection was absent until AH5 | Channel profile + Batch 2 `established-profile` schema |
+| direction scope of the in-flight bound | session-wide as written, per-direction as enforced: `C4-P1` bounds "the number of nonterminal interactions" and `I5` bounds "concurrency" with no direction restriction, which reads session-wide, while the only mechanism the design provides — the interaction machine's atomic one-position reservation at admission — is local and has no cross-endpoint coordination, so it can enforce only a per-direction count. The gap is unreachable in the only named profile, where one endpoint initiates both classes and the two readings coincide; a profile in which both endpoints initiate must state which it means before its vectors can be written. Under **AK7** both properties now say *session-wide* in terms — `C4-P1` bounds "the number of nonterminal interactions" against "that session's established finite bound", and `I5` bounds concurrency "within each session the vector carries" — which settles the vector-versus-session question AH1 opened and leaves this direction question exactly where it was. **Under AE3 this is a known conforming-realization exposure, not merely an undeclared scope.** The disposition was made when C12 required only that a property be able to fail; AE3 added the converse, and under it a realization enforcing exactly what the design provides may take `C4-P1` and `I5` red in a both-endpoints-initiating profile. Their required-green cells read `owed`, which reads as "not yet written" — this row is what makes it "known to have a red case", and a pass filling either set in without settling the direction scope first would reproduce the omission. That connection was absent until AH5 | Channel profile + Batch 2 `established-profile` schema |
 | cancel before dispatch | local refusal/no cancel frame; admission may itself be abandoned locally | Channel core |
 | cancel during recipient admission | held, not faulted: exactly one control is retained while `validating` and applied when admission resolves; a refused admission discards it with no frame and does not fire the late-traffic latch | Channel core |
 | loss or drain while a control is held | the third exit from `validating`: held control discarded with no answering frame, late-traffic latch does not fire, and the interaction reaches whatever terminal it would have reached with no control outstanding; an interaction still admitting is outside the drain snapshot | Channel core |
@@ -175,7 +180,7 @@ property counts as evidence.
 | C1 | C1-P1 exact profile or known-none | remove one required facet from fixed profile only | **owed** |
 | C2 | C2-P1 legal transition/terminal monotonicity | accept new interaction while draining | **owed** |
 | C3 | C3-P1 exact class/direction/phase | mark unknown phase as true | **owed** |
-| C4 | C4-P1 one dispatch/terminal and bounded concurrency; C4-P2 intra-interaction frame order, one conjunct per direction | redispatch replayed identity or exceed bound; `C4-control-precedes-request` delivers one interaction's control before the request that opens it, and `C4-outcome-precedes-ack` delivers the recipient's Outcome before the acknowledgement it committed first — one named mutation per conjunct, because half a property with no mutation is half unfalsifiable | `C4-P2`, all seven legal members of its required vector group: conforming commit-order delivery in the initiator direction; conforming commit-order delivery in the recipient direction; a request lost while the control naming its identity is delivered; a lost acknowledgement; a control for an identity the peer never opened; a legal late control after a peer's terminal; a duplicate terminal from a nonconformant peer. The lost request is AE1 — a required member carrying no expectation that the property was red on. This cell named four of the seven until AH2: AF5 corrected the set in the contract and the brief and not here, and this is the artifact Batch 2 authors the property file from. `C4-P1`: **owed**, and see the direction-scope disposition in the silence-probe table above before filling it — under AE3 it is a known conforming-realization exposure, not merely unwritten |
+| C4 | C4-P1 one dispatch/terminal and bounded concurrency; C4-P2 intra-interaction frame order, one conjunct per direction | redispatch replayed identity or exceed bound; `C4-control-precedes-request` delivers one interaction's control before the request that opens it, and `C4-outcome-precedes-ack` delivers the recipient's Outcome before the acknowledgement it committed first — one named mutation per conjunct, because half a property with no mutation is half unfalsifiable | `C4-P2`, all seven legal members of its required vector group: conforming commit-order delivery in the initiator direction; conforming commit-order delivery in the recipient direction; a request lost while the control naming its identity is delivered; a lost acknowledgement; a control for an identity the peer never opened; a legal late control after a peer's terminal; a duplicate terminal from a nonconformant peer. The lost request is AE1 — a required member carrying no expectation that the property was red on. This cell named four of the seven until AH2: AF5 corrected the set in the contract and the brief and not here, and this is the artifact Batch 2 authors the property file from. `C4-P1`: **owed**, and see the direction-scope disposition in the silence-probe table above before filling it — under AE3 it is a known conforming-realization exposure, not merely unwritten, and under **AK7** its second and third clauses are session-scoped, so a set filled in against the pre-AK7 wording would have named a two-session member the property was red on. This cell is the twelfth capability that owes a required-green set; counting only the cells that read `owed` outright reports eleven, which is **AK3** |
 | C5 | C5-P1 all positional/bound checks before dispatch | project an authority value or dispatch oversized payload | **owed** |
 | C6 | C6-P1 exact permitted local authority | treat compatibility/delivery as permission | **owed** |
 | C7 | C7-P1 exact declaration/pre-Ready/no phase creation | admit wrong edge or let success create Ready | **owed** |
@@ -187,8 +192,12 @@ property counts as evidence.
 
 ### State-machine properties
 
-C12's soundness rule is written over **every** property, and the table above covers the twelve
-capability-wide ones. The two state machines state thirteen more under that same heading, and AF7 was
+C12's soundness rule is written over **every** property, and the table above covers the thirteen
+capability-wide ones in twelve rows, because the `C4` row carries `C4-P1` and `C4-P2` in one cell.
+That difference is **AK3**: three surfaces reported the package as stating twenty-five properties, all
+three were counting audit rows, and the property the count dropped is `C4-P2` — the one fifteen cycles
+of this programme have been about. The two state machines state thirteen more under that same heading,
+and AF7 was
 that the rule was visible over less than half the properties the package states. They are audited here
 under the same three obligations, in this section rather than a separate one, because a rule enforced
 over the surfaces one audit happens to enumerate is the mechanism AF7 and AE4 share.
@@ -205,7 +214,7 @@ over the surfaces one audit happens to enumerate is the mechanism AF7 and AE4 sh
 | I2 | every accepted interaction has at most one terminal history | **owed** | **owed** |
 | I3 | no cancellation acknowledgement, drain event, timeout, or protocol fault becomes a semantic Outcome | **owed** | **owed** |
 | I4 | every pre-dispatch refusal is `known-none`; every possible post-dispatch loss is `unknown` | **owed** | **owed** |
-| I5 | concurrency never exceeds the established finite bound under any generated interleaving | **owed** | **owed**, and under AE3 a **known** conforming-realization exposure rather than merely unwritten: the direction-scope disposition in the silence-probe table above records that `I5` bounds concurrency with no direction restriction while the only mechanism the design provides enforces per-direction, so a both-endpoints-initiating profile may take it red on a conforming realization. AH5 recorded this against `C4-P1` and not against `I5`, which its own evidence named alongside it; that is AI3 |
+| I5 | concurrency within each session the vector carries never exceeds that session's established finite bound under any generated interleaving | **owed** | **owed**, and under AE3 a **known** conforming-realization exposure rather than merely unwritten: the direction-scope disposition in the silence-probe table above records that `I5` bounds concurrency with no direction restriction while the only mechanism the design provides enforces per-direction, so a both-endpoints-initiating profile may take it red on a conforming realization. AH5 recorded this against `C4-P1` and not against `I5`, which its own evidence named alongside it; that is AI3. The session scope is **AK7**: the bound belongs to one session's established profile and this property counted across the vector, so a conforming two-session vector took it red for a second and unrelated reason |
 | I6 | a relational interaction matches exactly one declaration and never creates Ready/Release | **owed** | **owed** |
 | I7 | a terminal fact for one interaction changes no sibling interaction's terminal history | **owed** | **owed** |
 
@@ -233,6 +242,56 @@ guessed set is not, and would close AE3 in appearance while leaving exactly the 
 format now lists the required-green set as a normative field. Deriving each from its capability's
 required vector group is bounded work, and it is the first thing the next correction pass should take
 if the closure reviewer does not raise it first.
+
+## `C4-P1` and `C4-P2` operand enumeration
+
+Four families in a row were one shape: **an operator qualifier whose operand is not published by the
+record it reads.** W5 was the precedence relation with no committing endpoint on the declared stimulus
+step; AH1 was the same relation with no session on it; AI1 and AJ1 were the settling-frame reference
+with no session, in three publishing artifacts and then in two more; and **AK1** was AF8's membership
+scope over a refusal record that named neither the session nor the identity. Each was found by
+sampling one operand, and each cycle found one more.
+
+This table ends the sampling. It lists **every fact the two properties read**, the scope each clause
+claims over it, every artifact and section that publishes it, and whether what is published is enough
+to evaluate the clause at that scope. It is written here so the next cycle can check it rather than
+rediscover it, and the design verifier pins it: every declared frame reference and every fact C12
+declares a vector may hold more than one of has a row, no row may read `insufficient`, and every row
+names a publishing surface that resolves to an artifact.
+
+Three things were `insufficient` when the enumeration was made, and all three are corrected in this
+commit — **AK1** and **AK5** on the first conjunct's operand, **AK6** on the second conjunct's second
+operand. The enumeration also found the same shape one level up, in the properties' own quantifiers,
+which is **AK7** and **AK8** and is recorded in the session-scope rows below.
+
+| Operand | Read by | Scope the clause claims | Publishing surfaces | Sufficient |
+| --- | --- | --- | --- | --- |
+| accepted terminal fact, and the admitted interaction it closes | `C4-P1` clause 1 | one interaction, in one session | C10 first enumeration; interaction machine terminal states and terminal-provenance table; neutral brief parity profile (terminal provenance) | sufficient |
+| dispatch of an `interaction identity` | `C4-P1` clause 2 | not twice — **within one session**, which the property did not say until AK7 | C10 first enumeration (session and interaction identities, dispatch boundary); neutral brief parity profile (dispatch boundary crossed or not); interaction machine §Admission order and §Concurrent interactions | sufficient |
+| count of `nonterminal interactions` | `C4-P1` clause 3 | **within one session**, which the property did not say until AK7 | C10 first enumeration (state); interaction machine §Concurrent interactions; state/event grid initiator and recipient rows | sufficient |
+| the `established finite bound` | `C4-P1` clause 3 | that session's own established profile | C4 (`max-in-flight`); neutral brief §Version and establishment rule; responsibility matrix `Bounded unary concurrency` → `channel-profile`; migration ledger limits table | sufficient |
+| the `established profile` a bound and a class are read against | `C4-P1` clause 3 and `C3-P1` | one per session, per AK8 | neutral brief §Version and establishment rule and parity profile (digest of each session the vector carries); C1; responsibility matrix `Fixed/negotiated profile equivalence` | sufficient |
+| recorded recipient `rejected-protocol` provenance at `unseen` | `C4-P2` conjunct 1 | the recording endpoint's own observation | C10 second enumeration; interaction machine `unseen` transition row and terminal-provenance last row; state/event grid `unseen` cells and prose; neutral brief parity profile; responsibility matrix local-observation row | sufficient |
+| its detailed reason `unopened-interaction-identity` | `C4-P2` conjunct 1 | the closed set of `invalid-interaction-correlation` | migration ledger closed detailed-reason set (AC2); C10; interaction machine; state/event grid; neutral brief parity profile | sufficient |
+| the **refused-frame reference** (registered as `refused`; five fields, published in full by the surfaces beside it) | `C4-P2` conjunct 1 | one frame, one identity, **one session**, one committing endpoint | interaction machine `unseen` transition row; state/event grid recipient `unseen` route; neutral brief local-observation schema and parity profile; responsibility matrix local-observation row; migration ledger new-evidence inventory | sufficient |
+| effect certainty `known-none` on that refusal | `C4-P2` conjunct 1 | the refusal route | C10; interaction machine `unseen` row (AE2); state/event grid `unseen` cells (AE2) | sufficient |
+| the committed request naming that identity, as a declared stimulus step | `C4-P2` conjunct 1 | one endpoint, one identity, one session | neutral brief §Vector format (committing endpoint under W5, session under AH1) | sufficient |
+| precedence between that request step and the refused control | `C4-P2` conjunct 1 | one endpoint, one identity, within one session | neutral brief property-operator set (W1, session under AG2) | sufficient |
+| the recipient's subsequent admission of the refused identity | `C4-P2` conjunct 1 | membership over the identities admitted **in the same session** (AF8) | C10 first enumeration (every attempted interaction distinguishes session and interaction identities, admission decisions); neutral brief parity profile; migration ledger new-evidence inventory (AF4); C4 | sufficient |
+| the late-traffic latch value, including `not-applicable` | `C4-P2` conjunct 2 | one terminal interaction | C10 first enumeration; interaction machine latch section; state/event grid latch section; neutral brief local-observation schema and parity profile | sufficient |
+| the **settling-frame reference** (registered as `settling`; five fields, published in full by the surfaces beside it) | `C4-P2` conjunct 2 | one declared stimulus step, one endpoint, one session | interaction machine latch section; state/event grid latch section; neutral brief local-observation schema and parity profile; responsibility matrix local-observation row; migration ledger new-evidence inventory | sufficient |
+| the **terminal-frame reference** (registered as `terminal`; five fields, published in full by the surfaces beside it) | `C4-P2` conjunct 2 | that endpoint's own frame, one interaction, one session | interaction machine latch section; state/event grid latch section; neutral brief local-observation schema and parity profile; responsibility matrix local-observation row; migration ledger new-evidence inventory | sufficient |
+| precedence between the settling frame and the terminal frame | `C4-P2` conjunct 2 | one endpoint, one identity, within one session | neutral brief property-operator set | sufficient |
+| the `state-violation` category the latch settles under | `C4-P2` conjunct 2 | interaction scope | interaction machine latch section; state/event grid; migration ledger category table | sufficient |
+| the property's own selector "for each interaction identity" | `C4-P2` preamble | **within one session**, which the preamble did not say until AK7 | C4 common terms (identity unique within one session); C12 declared per-session facts | sufficient |
+
+**What the enumeration establishes, and what it does not.** Every operand above is now published at
+the scope its clause claims, and the three that were not are the AK1 family. What it does not
+establish is that the *reading* is complete: the rows were derived by reading the two properties
+clause by clause, and a fact a property reads without naming — the way conjunct 2 read the terminal
+frame under the words "that endpoint's own frame that made the interaction terminal" — is exactly what
+this method has to catch by reading rather than by parsing. A later cycle that finds a row missing
+should treat the omission as the finding and add the row, not repair the table quietly.
 
 ## Deliberate non-goals confirmed
 
@@ -536,8 +595,9 @@ required-green set named four of its group's seven legal members, and conforming
 in both directions was among the three missing; all seven are now named. **AF6** — the AD2 replacement
 derived its class from one sentence shape and could not see `V`, `W5`, or `W6`, so the classification
 is now declared in a totality-checked provenance table instead of inferred from prose. **AF7** — C12's
-soundness rule is written over every property and the audit enforced it over twelve of the twenty-five
-the package states; `S1`-`S6` and `I1`-`I7` are now audited under the same three obligations, and the
+soundness rule is written over every property and the audit enforced it over thirteen of the
+twenty-six the package states — AF7's own disposition said twelve of twenty-five, which is **AK3**;
+`S1`-`S6` and `I1`-`I7` are now audited under the same three obligations, and the
 record shows `I1`-`I7` satisfy neither half. **AF8** — the membership operand was scoped to the vector
 while interaction identity is unique only per session, so a two-session vector could satisfy it across
 sessions and take the conjunct red on conforming behaviour; the operand is now session-scoped.
@@ -660,6 +720,53 @@ sweep is now executed as a search over the repository for the changed fact's own
 result recorded, before any artifact is edited — `grep settl` over `docs/future/channel/` returns all
 six settling-frame surfaces in one screen. Each of the last three cycles' blocking findings, AG1, AI1,
 and AJ1, was one search away from the pass that missed it.
+
+The fifteenth independent closure review, at `5cfa5ed`, returned `does-not-conform` with blocking
+**AK1** and nonblocking **AK2**-**AK4**, and confirmed AJ1 closed by evaluator: all six settling-frame
+surfaces publish the identical list, and its probe reproduces AI1's false green from the pre-AI1 form
+and a correct red from the published one. It also recorded that this is the **first cycle in eight**
+with no finding closed in the first artifact its evidence named and left open in the second.
+
+**AK1** is the fourth instance of one shape on `C4-P2`, and the first on its **first** conjunct. Every
+cycle from AH1 through AJ1 audited the settling-frame reference; the recorded `unseen` refusal is the
+other conjunct's operand, five surfaces published what it contains, they agreed with each other
+exactly, and not one named the session AF8's membership scope requires or the interaction identity the
+test is over. The review's probe builds the two-session vector AF8's own text names as the failure it
+exists to prevent and takes the property **red on behaviour conforming at both endpoints in both
+sessions**. **AK2** is the Channel index's Design reviews row omitting the `W` family, which the
+policy's provenance table classifies as an iteration family and which the retained record it names is
+named after; the AE4 check derived its class from finding headings and the W findings are recorded in
+a table, so the check could not ask for it. **AK3** is three surfaces counting audit rows and
+reporting properties. **AK4** is the ledger's status block counting publishing surfaces as publishing
+artifacts.
+
+**The correction pass stopped sampling.** `C4-P1` and `C4-P2` were enumerated completely — every fact
+they read, the scope each clause claims, every publishing surface, and whether the published fields
+suffice — and the enumeration is retained above as the section this document now carries. It found
+three further operands short at the scope their clauses claim. **AK5** is the rest of AK1's own
+operand: the refusal record named no committing endpoint, which is the conjunct's literal subject, and
+no arrival ordinal, so a control committed *before* the request binds to one committed after it and
+the property goes red on delivery that matched commit order. **AK6** is the second conjunct's
+*second* precedence operand — "that endpoint's own frame that made the interaction terminal" — which
+no artifact published at all; it was read off the terminal form, and a form names one frame only while
+an endpoint commits at most one frame of that form for one identity, which a duplicate terminal from a
+nonconformant peer is exactly the violation of and is a required-green member of the property's own
+group. Both are corrected as frame references in the same five-field form, and the check is written
+over the class "a frame a property reads is published as a frame reference" rather than over any one
+reference, so a fourth is registered or fails the sweep.
+
+**AK7** and **AK8** are the same shape one level up, and are what the enumeration found by asking the
+question of the properties' own quantifiers rather than of their clauses. AH1 settled that a vector
+**may carry more than one session**, and the decision reached the declared stimulus step, the
+settling-frame reference and now the refusal record — but never the property statements. `C4-P1`
+forbade an identity being dispatched twice and bounded the number of nonterminal interactions with no
+session named, `C4-P2`'s preamble quantified "for each interaction identity" across the vector, and
+`I5` bounded concurrency against "the established finite bound" — each red on a conforming two-session
+vector (**AK7**). Outside C4 the same class holds `C1-P1`, which required exactly one established
+profile per vector, and `C3-P1`, which said "the established profile" where a vector may carry two
+(**AK8**). C12 now declares which facts belong to one session each, so the rule is enforced over a
+declared class rather than over the members that happened to be visible — which is AF6's correction
+applied to a rule instead of to a family.
 
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.

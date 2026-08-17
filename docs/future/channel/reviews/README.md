@@ -1,8 +1,9 @@
 # Channel 0.2 design-foundation reviews
 
-Status: four owner rulings resolved; fourteen retained independent reviews, thirteen negative and one
+Status: four owner rulings resolved; fifteen retained independent reviews, fourteen negative and one
 conforming with nonblocking findings — which under the 2026-08-15 closure-standard ruling did not
-close the batch. The fourteenth raised blocking **AJ1** with nonblocking **AJ2**-**AJ7**, and the
+close the batch. The fifteenth raised blocking **AK1** with nonblocking **AK2**-**AK4**, the
+fourteenth raised blocking **AJ1** with nonblocking **AJ2**-**AJ7**, and the
 thirteenth raised blocking **AI1** with nonblocking **AI2**-**AI9**. B1-B4, N1-N3,
 F1-F3, D1-D5, T1-T4, R1-R3, and S1-S3 are closed in the artifacts they were raised against, the
 eighth review having re-verified every one of them individually rather than taking closure from an
@@ -24,17 +25,23 @@ the design. The ninth independent closure review then raised blocking **AE1** wi
 nonblocking **AF2**-**AF8** against the AE corrections, and the eleventh raised blocking **AG1** with
 nonblocking **AG2**-**AG5** against those, and the twelfth returned
 `conforms-with-nonblocking-findings` with **AH1**-**AH6** and no blocking finding, and the thirteenth
-raised blocking **AI1** with nonblocking **AI2**-**AI9** against the AH corrections, and the
-fourteenth raised blocking **AJ1** with nonblocking **AJ2**-**AJ7** against the AI corrections. Every
+raised blocking **AI1** with nonblocking **AI2**-**AI9** against the AH corrections, the
+fourteenth raised blocking **AJ1** with nonblocking **AJ2**-**AJ7** against the AI corrections, and
+the fifteenth raised blocking **AK1** with nonblocking **AK2**-**AK4** against the AJ corrections. The
+correction pass for AK then enumerated `C4-P1` and `C4-P2` completely instead of sampling one operand,
+and raised **AK5**-**AK8** against the design by that audit. Every
 finding this programme has recorded is
 now closed in the artifacts it was raised against — a claim a reviewer should verify against each
 finding's own evidence sentences rather than against this paragraph, since **AI9** established that it
 was false for six cycles while every entry point asserted it, and **AJ1**, **AJ2**, **AJ3**, and
 **AJ4** are four more findings whose disposition said closed while an artifact their evidence named
 was untouched. One piece of named residual work is open and is not
-a finding: of the twenty-five properties the package states, eleven capabilities owe the required-green
+a finding: of the twenty-six properties the package states, twelve capabilities owe the required-green
 set that **AE3** made a normative field, and the thirteen state-machine properties AF7 brought into
-the audit owe it too — with `I1`-`I7` owing a named mutation as well. None of that is a verdict: a
+the audit owe it too — with `I1`-`I7` owing a named mutation as well. Twenty-five of the twenty-six
+owe it; only `C4-P2` has one. Those numbers were twenty-five and eleven until **AK3**, both being
+counts of the audit's twelve capability *rows* rather than of properties, and the property the first
+count dropped was `C4-P2`. None of that is a verdict: a
 fresh independent closure re-review is pending, and it is the only thing that can close the batch.
 
 The U-through-AC sequence is worth reading before the next review rather than after it. S1 found that the
@@ -153,6 +160,18 @@ dependency instead of narrowing it.
 | AH | closure-review | closure review 12 attestation |
 | AI | closure-review | closure review 13 attestation |
 | AJ | closure-review | closure review 14 attestation |
+| AK | closure-review | closure review 15 attestation (AK1-AK4); AK5-AK8 raised by the AK correction pass and recorded in the completeness review's operand enumeration |
+
+**The AK row is the one mixed entry and it is disclosed rather than smoothed over.** Closure review 15
+raised **AK1**-**AK4**. **AK5**-**AK8** were raised by the correction pass for AK1, which enumerated
+`C4-P1` and `C4-P2` completely rather than sampling one operand as the four cycles before it had, and
+they are in the design rather than in a pass over a correction. They have no separate
+`*-iteration-review.md` because they are not a review of the AK correction; they are what correcting
+AK1 properly turned out to require, and their durable record is the operand-enumeration table the
+correction added to the completeness review — a table a reviewer can check row by row, which is
+stronger evidence than a narrative of the same work. A reviewer that disagrees with that reading
+should say so: the alternative is that an author-side audit inside a correction pass owes its own
+retained record, and this row is where that question is visible.
 
 ## Required review scope
 
@@ -205,10 +224,14 @@ The author correction pass and ordinary documentation gates are not independent 
 
 ## Exact next work
 
-The fourteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
+The fifteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
+blocking **AK1** and nonblocking **AK2**-**AK4**; its retained record is
+`channel-0.2-design-foundation-closure-review-15-attestation.md`. **Steps 1 through 3q are complete.**
+Step 4 is the live path, and the next agent reviews the AK corrections.
+
+The fourteenth review returned `does-not-conform` with
 blocking **AJ1** and nonblocking **AJ2**-**AJ7**; its retained record is
 `channel-0.2-design-foundation-closure-review-14-attestation.md`. **Steps 1 through 3p are complete.**
-Step 4 is the live path, and the next agent reviews the AJ corrections.
 
 The thirteenth review returned `does-not-conform` with
 blocking **AI1** and nonblocking **AI2**-**AI9**; its retained record is
@@ -267,6 +290,58 @@ is exactly what the AD and AE passes found separately.
    failed with five findings before the correction and was mutation-tested afterwards by weakening
    each conjunct, restoring the contradictory sentence, reverting the audit row, and renaming
    `C4-P2` — each of which fires it again.
+3q. ~~Correct AK1-AK4, raised by the fifteenth independent closure review, and stop sampling: enumerate
+   `C4-P2` completely and audit every operand at once.~~ **Done.** **AK1** was blocking and is the
+   fourth instance of one shape on one property — an operator qualifier whose operand the record it
+   reads does not publish. W5 was precedence with no committing endpoint, AH1 was precedence with no
+   session, AI1 and AJ1 were the settling-frame reference with no session, and AK1 is AF8's membership
+   scope over a record that named neither the session nor the interaction identity. It is the first
+   instance on `C4-P2`'s **first** conjunct, whose operand no cycle had opened in fifteen reviews. The
+   record now carries the **refused-frame reference** across all six surfaces that publish what it
+   contains; its five fields are stated by those surfaces and are deliberately not restated here.
+
+   **The enumeration is the part worth carrying forward, and it produced four more findings.** Each of
+   the four previous instances was found by sampling one operand, so this pass listed every fact
+   `C4-P1` and `C4-P2` read, found every artifact and section publishing each, and checked sufficiency
+   at the scope each clause claims. The result is a table in the completeness review — operand, scope
+   claimed, publishing surfaces, sufficiency — that the next cycle can check rather than rediscover,
+   and the verifier pins it. Three rows came back `insufficient`. **AK5** is the rest of AK1's own
+   operand: the conjunct's literal subject is *the committing endpoint*, which the record did not name,
+   and one endpoint may commit two controls naming one identity in one session, so without an arrival
+   ordinal a control committed before the request binds to one committed after it and the property goes
+   red on delivery that matched commit order. **AK6** is the second conjunct's **second** precedence
+   operand — "that endpoint's own frame that made the interaction terminal" — which **no artifact
+   published at all**; it was read off the terminal form, and a form identifies one frame only while an
+   endpoint commits at most one frame of that form for one identity, which a duplicate terminal from a
+   nonconformant peer is exactly the violation of and is a required-green member of that property's own
+   group. Both are now frame references in the same five-field form, and **the check is written over
+   the class** "a frame a property reads is published as a frame reference" rather than over any one
+   reference, so a fourth reference is registered or fails the sweep.
+
+   **AK7** and **AK8** are the same shape one level up, and they are the answer to a question the
+   enumeration asked and no cycle had: AH1 settled that a vector **may carry more than one session**,
+   and that decision reached the declared stimulus step, the settling-frame reference and the refusal
+   record — but never the property *statements*. `C4-P1` forbade an identity being dispatched twice and
+   bounded the number of nonterminal interactions with no session named; `C4-P2`'s preamble quantified
+   "for each interaction identity" across the vector; `I5` bounded concurrency against "the established
+   finite bound"; `C1-P1` required exactly one established profile per vector; and `C3-P1` said "the
+   established profile" where a vector may carry two. Each is red on a conforming two-session vector.
+   C12 now **declares** which facts a vector may hold more than one of, and the check derives its
+   trigger set from that declaration rather than from the members that happened to be visible — which
+   is AF6's correction applied to a rule instead of to a family.
+
+   **AK2**-**AK4** are corrected as the disposition history records. **AK2** is worth one line: the
+   Channel index's reviews row has omitted the `W` family since AE4's own correction, and the AE4 check
+   could not ask for it because that check derived its class from `### <family><n> ` headings while the
+   W review records W1-W6 in a table. The class is declared in the provenance table above, so the check
+   now derives from the declaration and keeps the headings as a union.
+
+   **What this pass did not do, stated plainly.** It did not establish that the enumeration is total.
+   The rows were derived by reading the two properties clause by clause, and a fact a property reads
+   without naming — which is exactly what AK6 was — is caught by reading and not by parsing. The check
+   pins that the table exists, that every declared frame reference and every declared per-session fact
+   has a row, that no row reads `insufficient`, and that every row names a resolvable surface. A later
+   cycle that finds a row missing has found a finding, not a typo.
 3p. ~~Correct AJ1-AJ7, raised by the fourteenth independent closure review, and execute the sweep as a
    search before editing anything.~~ **Done.** **AJ1** was blocking and is AI1 surviving the commit
    written to close it. The settling-frame reference is published in **five** places and the AI1
@@ -679,8 +754,25 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   own evidence sentences, which it credits to its dispatching brief rather than claiming as
   discoveries. Its dispatch is disclosed below.
 
-The current review target is the commit titled `fix(channel): close AJ1-AJ7`,
-committed 2026-08-16, which is the head of the correction sequence beginning at
+- [Closure review 15](./channel-0.2-design-foundation-closure-review-15-attestation.md) — reviewed
+  `5cfa5ed71836082f0fb97e1be1873e49acde759d`; `does-not-conform`; blocking **AK1** with nonblocking
+  **AK2**-**AK4**. **Its isolation is complete**: a fresh isolated clone, 892 tracked paths, clean
+  status, reviewer identity distinct from all fourteen retained reviewers and every correction author,
+  and the author's working repository neither read nor executed against. It verified the pin in the
+  tree-hash form and as to date, enumerated the grid to 108 cells and 180 pairs agreeing with reviews
+  7-14, recomputed all twelve registry pins, and recorded three falsification attempts that found
+  nothing alongside the one that did. **AK1** is the fourth instance of the operator-with-no-operand
+  shape on `C4-P2` and the first on its *first* conjunct: the recorded `unseen` refusal is that
+  conjunct's operand, five surfaces publish what it contains, they agree with each other exactly, and
+  none names the session AF8 scoped the membership test to. Its probe builds the two-session vector
+  AF8's own text names as the failure it exists to prevent and takes the property red on behaviour
+  conforming at both endpoints in both sessions. It is also the **first review in eight** to record
+  that no finding was closed in the first artifact its evidence named and left open in the second, and
+  it says so as a positive result of the change of correction actor rather than as an absence. Its
+  dispatch is disclosed below.
+
+The current review target is the commit titled `fix(channel): close AK1-AK8 and audit every C4-P2 operand`,
+committed 2026-08-17, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
 has now gone stale three times: the eighth review raised it as **U6**, the rewrite that closed U6 was

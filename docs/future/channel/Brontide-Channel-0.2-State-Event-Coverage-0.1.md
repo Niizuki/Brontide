@@ -21,7 +21,10 @@ about instead of counting them. This status block previously declared the artifa
 pass through AI9, which was false when it was written: AI1 changed the reference this grid publishes
 and the AI1 correction reached three of the five artifacts that publish it, leaving the two the design's
 own hierarchy resolves in favour of — this grid, which the neutral brief declares itself subordinate
-to, and the responsibility matrix row that owns the observation record.
+to, and the responsibility matrix row that owns the observation record. Under **AK1** and **AK5** the
+recipient `unseen` route publishes the refused-frame reference rather than a reason and a frame kind,
+and under **AK6** the latch section publishes the terminal-frame reference, which is `C4-P2`'s second
+conjunct's other precedence operand and had no publishing artifact at all.
 
 Normative companions:
 
@@ -115,13 +118,27 @@ rule 1 selects it; without that row rule 2 would claim it and produce the termin
 paragraph refuses.
 
 One local observation is recorded there all the same, and this cell asserts it like any other —
-including the detailed reason `unopened-interaction-identity` and the kind of frame refused, because
+including the detailed reason `unopened-interaction-identity` and the **refused-frame reference** —
+its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival
+ordinal** for that interaction identity — because
 both `unseen` cells otherwise record one indistinguishable refusal while `C4-P2`'s first conjunct
 quantifies over the cancellation control alone.
 Recording evidence is not retaining state: nothing consults the observation, so it cannot accrue into
 the per-identity state the refusal exists to avoid, and it is the record `C4-P2`'s first conjunct
 quantifies over. The cell's late-traffic latch assertion is the explicit value `not-applicable`,
 because the route reaches no terminal interaction and there is no latch to be `clear`.
+
+The kind alone was AC2's correction, and the session, the interaction identity, the committing
+endpoint and the arrival ordinal are **AK1** and **AK5**. That conjunct scopes
+its membership test to one **session**, tests membership of one **interaction identity**, and takes
+its precedence half over the **committing endpoint's** own frames, and the cell published none of the
+three — so the property was red on a two-session vector conforming at both endpoints, which is AE1's
+failure mode reached through the operand. The **arrival ordinal** is Y4's argument on this operand: one
+endpoint may commit two controls naming one identity, and without it a control committed before the
+request binds to one committed after it. This grid publishes the reference in the same form as the
+interaction machine's `unseen` transition row, the brief's local-observation schema and parity profile,
+the responsibility matrix row that owns the observation record, and the migration ledger's
+new-evidence inventory.
 
 A held control is covered by totality rule 1 — a matching detailed transition row wins — rather than
 by the `state-violation` catch-all, and it never reaches the late-traffic latch: if admission refuses,
@@ -151,6 +168,14 @@ machine that owns the latch, the brief's local-observation schema and parity pro
 responsibility matrix row that owns the observation record, and the migration ledger's new-evidence
 inventory. A field carried by some of those six surfaces and not the others makes the owned fact and
 the compared fact different facts.
+
+Accepting a terminal history records the **terminal-frame reference** — its kind, its **session**, its
+interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction.
+That is the frame the settling frame is compared *against*, and until **AK6** no artifact published
+it: the observation carried the terminal form, and a form names one frame only while an endpoint
+commits at most one frame of that form for one identity. A duplicate terminal is an endpoint
+committing two, and it is a case `C4-P2` must leave green. The reference is published across the same
+six surfaces and for the same reason, and it identifies rather than orders.
 
 A route that reaches no terminal interaction has no latch, and its cells assert the explicit value
 `not-applicable` rather than leaving the field absent. The `unseen` refusal is the only such route

@@ -292,7 +292,12 @@ if ($flowedContract.IndexOf('is the mutation this property must go red on', [Sys
     if ($flowedContract.IndexOf('for a cancellation control whose committing endpoint had already committed the request', [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add('C4-P2 does not forbid the observation `C4-control-precedes-request` actually produces: a recipient `rejected-protocol` at `unseen` for a cancellation control whose committing endpoint had already committed the request naming that identity. Without that conjunct the mutation leaves no witness the property can quantify over.')
     }
-    if ($flowedContract.IndexOf('before that endpoint''s own frame that made the interaction terminal', [System.StringComparison]::Ordinal) -lt 0) {
+    # Asserted on the restriction rather than on the whole clause. AK6 renamed the second operand to
+    # match the reference that publishes it -- "that endpoint's own frame the interaction's terminal
+    # history was accepted on" -- and a check pinned to the old noun phrase would have failed for the
+    # wrong reason on the pass that gave the operand a publisher. What is load-bearing here, and what
+    # the message below is about, is that the operand is *that endpoint's own* frame.
+    if ($flowedContract.IndexOf('before that endpoint''s own frame', [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add('C4-P2 covers only the initiator-to-recipient direction. Reordering the recipient''s acknowledgement and terminal produces a late-traffic `state-violation` instead, and the conjunct must be restricted to frames one endpoint committed, or a legal late control after a peer terminal would falsely fail it.')
     }
 
@@ -993,10 +998,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all fourteen retained attestations, and all four correction iteration reviews before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all fifteen retained attestations, and all four correction iteration reviews before the next closure review.')
 }
 
 # AJ7: the retained-attestations list is what a reader scans for the most recent record, and it ran
@@ -1249,6 +1254,14 @@ else {
                 $failures.Add("The provenance table classifies '$($classified.Key)' as an author-side iteration family, and no retained iteration review records it. The two-kinds-of-review section requires that pass to be retained as evidence; a commit message is not the evidence trail.")
             }
         }
+        # AK2: the class "families a retained iteration review records" is DECLARED in the table above
+        # and was derived below from `### <family><n> ` headings inside those reviews. Those two
+        # populations differ by exactly one family -- `W`, whose findings the W review records in a
+        # table rather than under headings -- so the AE4 check could not ask the Channel index for the
+        # family the retained record is named after, and the row has omitted it since AE4's own
+        # correction. Deriving from the declaration is what AF6 already did for the check thirty lines
+        # above; the headings are kept as well, so a family recorded but not declared still counts.
+        $recordedFamilies = @($recordedFamilies + @($familyProvenance.GetEnumerator() | Where-Object { $_.Value -eq 'iteration' } | ForEach-Object { $_.Key }) | Sort-Object -Unique)
     }
 
     # AE4: AD3's check covers a retained review's own scope line and its roster entry. The Channel
@@ -1697,69 +1710,158 @@ foreach ($retentionCiter in @(@{ Name = 'capability contract'; Text = $flowedCon
 #     in some surfaces and not others fails here without anyone writing a new check; and
 #   * the package-wide sweep below fails on a publication-shaped passage anywhere in the eleven
 #     artifacts, registered or not, so a seventh surface cannot appear silently.
-$settlingFramePhrases = '(?:frame that settled it|frame that settled the latch|settling-frame position)'
-$settlingFrameFields = @('kind', 'session', 'interaction identity', 'committing endpoint', 'arrival ordinal')
-$settlingFrameFieldList = 'its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal within the interaction'
+# AK1, AK5, and AK6 generalise this check rather than replace its subject. AJ1's guard was exact and
+# total over ONE reference, and AK1 is the identical defect on `C4-P2`'s other conjunct: the recorded
+# `unseen` refusal was published by five surfaces that agreed with each other exactly and named
+# neither the session AF8's membership scope requires nor the interaction identity the test is over,
+# so the property went red on a conforming two-session vector. AK5 is the rest of that same operand --
+# the refused frame's committing endpoint, which the conjunct's own subject is, and its arrival
+# ordinal, without which the record binds to either of two controls one endpoint committed for one
+# identity. AK6 is the second conjunct's *second* operand, "that endpoint's own frame that made the
+# interaction terminal", which was published by nothing at all and left to be inferred from the
+# terminal form.
+#
+# The guard is therefore written over the class "a frame a property reads is published as a frame
+# reference", not over any one reference. Four things follow and each is load-bearing:
+#
+#   * every declared reference carries the same five field names, so a reference introduced with four
+#     of them fails here without anyone writing a new check -- which is exactly what AK1 and AK6 were;
+#   * every registered surface publishes its reference's exact field list, and the surface set is
+#     enumerated from a search for the fact rather than from any finding's evidence citations;
+#   * the package-wide sweep fails on a publication-shaped passage anywhere in the eleven artifacts,
+#     registered or not, so a new surface cannot appear silently; and
+#   * each reference's publication count is exact rather than a lower bound, which is what let the AI1
+#     check certify its own scope.
+$frameReferenceFields = @('kind', 'session', 'interaction identity', 'committing endpoint', 'arrival ordinal')
 # Emphasis is stripped before comparison: the field list is marked up differently in a table cell than
 # in a paragraph, and the fields are the fact rather than the bolding.
-$settlingFramePlain = { param($Text) ((Get-FlowedText $Text) -replace '\*\*', '') }
+$framePlain = { param($Text) ((Get-FlowedText $Text) -replace '\*\*', '') }
 
-$settlingFrameSurfaces = @(
-    @{ Name = "the neutral brief's local-observation schema"
-       Text = ($neutralBrief -split '### Local observation', 2)[1] -split '## External phase and authority inputs', 2 | Select-Object -First 1 },
-    @{ Name = "the neutral brief's parity profile"
-       Text = ($neutralBrief -split '## Observation and parity profile', 2)[1] -split 'Excluded by default', 2 | Select-Object -First 1 },
-    @{ Name = "the interaction machine's late-traffic latch section"
-       Text = ($interaction -split '## Late terminal and control disposition', 2)[1] -split '## Interaction event totality', 2 | Select-Object -First 1 },
-    @{ Name = "the state/event grid's late-traffic latch section"
-       Text = ($stateEventCoverage -split '## Late-traffic latch', 2)[1] -split '## Evidence required', 2 | Select-Object -First 1 },
-    @{ Name = "the responsibility matrix's local-observation owner row"
-       Text = (@($responsibility -split "`r?`n" | Where-Object { $_ -match '^\| Local observation content' }) -join ' ') },
-    @{ Name = "the migration ledger's new-evidence inventory"
-       Text = [regex]::Match($migration, '(?ms)^## New evidence required by redesign\r?\n(.+?)(?=^## |\z)').Groups[1].Value }
+$briefLocalObservation = ($neutralBrief -split '### Local observation', 2)[1] -split '## External phase and authority inputs', 2 | Select-Object -First 1
+$briefParityProfile = ($neutralBrief -split '## Observation and parity profile', 2)[1] -split 'Excluded by default', 2 | Select-Object -First 1
+$machineLatchSection = ($interaction -split '## Late terminal and control disposition', 2)[1] -split '## Interaction event totality', 2 | Select-Object -First 1
+$gridLatchSection = ($stateEventCoverage -split '## Late-traffic latch', 2)[1] -split '## Evidence required', 2 | Select-Object -First 1
+$gridRecipientSection = ($stateEventCoverage -split '## Recipient interaction coverage grid', 2)[1] -split '## Late-traffic latch', 2 | Select-Object -First 1
+$machineUnseenRow = (@($interaction -split "`r?`n" | Where-Object { $_ -match '^\| .unseen. \| recognized peer event' }) -join ' ')
+$matrixObservationRow = (@($responsibility -split "`r?`n" | Where-Object { $_ -match '^\| Local observation content' }) -join ' ')
+$ledgerNewEvidence = [regex]::Match($migration, '(?ms)^## New evidence required by redesign\r?\n(.+?)(?=^## |\z)').Groups[1].Value
+
+$frameReferences = @(
+    @{ Key = 'settling'
+       Label = 'the frame that settled the late-traffic latch'
+       Phrases = '(?:frame that settled it|frame that settled the latch|settling-frame position)'
+       FieldList = 'its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal within the interaction'
+       Surfaces = @(
+           @{ Name = "the neutral brief's local-observation schema"; Artifact = 'neutral brief'; Text = $briefLocalObservation },
+           @{ Name = "the neutral brief's parity profile"; Artifact = 'neutral brief'; Text = $briefParityProfile },
+           @{ Name = "the interaction machine's late-traffic latch section"; Artifact = 'interaction machine'; Text = $machineLatchSection },
+           @{ Name = "the state/event grid's late-traffic latch section"; Artifact = 'state/event grid'; Text = $gridLatchSection },
+           @{ Name = "the responsibility matrix's local-observation owner row"; Artifact = 'responsibility matrix'; Text = $matrixObservationRow },
+           @{ Name = "the migration ledger's new-evidence inventory"; Artifact = 'migration ledger'; Text = $ledgerNewEvidence }) },
+    @{ Key = 'refused'
+       Label = 'the frame refused at recipient `unseen`'
+       Phrases = '(?:refused-frame reference|refused-frame position)'
+       # The ordinal is scoped to the identity rather than to the interaction, and the difference is
+       # the fact rather than a wording slip: at `unseen` no interaction exists to be within, which is
+       # the whole of W4's retention rule. The five field NAMES are the same, which is what the class
+       # assertion below compares.
+       FieldList = 'its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal for that interaction identity'
+       Surfaces = @(
+           @{ Name = "the neutral brief's local-observation schema"; Artifact = 'neutral brief'; Text = $briefLocalObservation },
+           @{ Name = "the neutral brief's parity profile"; Artifact = 'neutral brief'; Text = $briefParityProfile },
+           @{ Name = "the interaction machine's ``unseen`` recipient transition row"; Artifact = 'interaction machine'; Text = $machineUnseenRow },
+           @{ Name = "the state/event grid's recipient ``unseen`` route"; Artifact = 'state/event grid'; Text = $gridRecipientSection },
+           @{ Name = "the responsibility matrix's local-observation owner row"; Artifact = 'responsibility matrix'; Text = $matrixObservationRow },
+           @{ Name = "the migration ledger's new-evidence inventory"; Artifact = 'migration ledger'; Text = $ledgerNewEvidence }) },
+    @{ Key = 'terminal'
+       Label = "the frame the interaction's terminal history was accepted on"
+       Phrases = '(?:terminal-frame reference|terminal-frame position)'
+       FieldList = 'its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal within the interaction'
+       Surfaces = @(
+           @{ Name = "the neutral brief's local-observation schema"; Artifact = 'neutral brief'; Text = $briefLocalObservation },
+           @{ Name = "the neutral brief's parity profile"; Artifact = 'neutral brief'; Text = $briefParityProfile },
+           @{ Name = "the interaction machine's late-traffic latch section"; Artifact = 'interaction machine'; Text = $machineLatchSection },
+           @{ Name = "the state/event grid's late-traffic latch section"; Artifact = 'state/event grid'; Text = $gridLatchSection },
+           @{ Name = "the responsibility matrix's local-observation owner row"; Artifact = 'responsibility matrix'; Text = $matrixObservationRow },
+           @{ Name = "the migration ledger's new-evidence inventory"; Artifact = 'migration ledger'; Text = $ledgerNewEvidence }) }
 )
 
-foreach ($settlingSurface in $settlingFrameSurfaces) {
-    $settlingText = & $settlingFramePlain $settlingSurface.Text
-    if (-not $settlingText) {
-        $failures.Add("$($settlingSurface.Name) could not be located, so the settling-frame check would pass over it by seeing nothing. This is the failure mode the AI1 check had: a guard scoped to what it can already read certifies its own completeness.")
-        continue
+$framePublicationArtifacts = @($frameReferences | ForEach-Object { $_.Surfaces } | ForEach-Object { $_.Artifact } | Sort-Object -Unique)
+
+foreach ($reference in $frameReferences) {
+    # The class assertion. A frame a property reads identifies one declared stimulus step, and the
+    # five fields are what it takes to do that: three families -- AC1's ordinal, AI1's session, AK1's
+    # identity and AK5's endpoint -- were each a reference published with fewer.
+    foreach ($frameField in $frameReferenceFields) {
+        if ($reference.FieldList.IndexOf($frameField, [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("The declared field list for $($reference.Label) omits '$frameField'. Every frame reference a property reads carries the same five fields, because fewer of them bind the reference to more than one declared stimulus step -- which is AC1 with the ordinal, AI1 with the session, and AK1 and AK5 with the identity and the committing endpoint.")
+        }
     }
-    if ($settlingText.IndexOf($settlingFrameFieldList, [System.StringComparison]::Ordinal) -lt 0) {
-        $failures.Add("$($settlingSurface.Name) publishes the settling-frame reference without the exact field list '$settlingFrameFieldList'. Every artifact that publishes the reference publishes the same fields: an artifact carrying fewer of them binds the reference to more than one declared stimulus step -- with the session missing, to a step in another session, which takes `C4-P2` green on `C4-outcome-precedes-ack`. This is AJ1.")
+
+    foreach ($frameSurface in $reference.Surfaces) {
+        $frameText = & $framePlain $frameSurface.Text
+        if (-not $frameText) {
+            $failures.Add("$($frameSurface.Name) could not be located, so the frame-reference check for $($reference.Label) would pass over it by seeing nothing. This is the failure mode the AI1 check had: a guard scoped to what it can already read certifies its own completeness.")
+            continue
+        }
+        if ($frameText.IndexOf($reference.FieldList, [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("$($frameSurface.Name) does not publish $($reference.Label) with the exact field list '$($reference.FieldList)'. Every artifact that publishes a frame reference publishes the same fields: an artifact carrying fewer of them binds the reference to more than one declared stimulus step -- with the session missing, to a step in another session, which takes ``C4-P2`` green on ``C4-outcome-precedes-ack`` (AJ1) or red on a conforming two-session vector (AK1).")
+        }
+        # AJ6: the justification under a field list must name the fields it is about. Both latch
+        # sections argued from position -- "the first three", "the other three" -- and the AI1
+        # insertion put the session second, so the machine's sentence silently became an argument
+        # about kind, session, and identity, a set that omits the committing endpoint the claim is
+        # over. A list that is counted from the front cannot be extended without breaking the sentence
+        # beneath it.
+        if ($frameText -match '(?i)\bthe (?:first|other|last|remaining) (?:two|three|four|five)\b') {
+            $failures.Add("$($frameSurface.Name) identifies part of a frame reference's field list by position rather than by name. Inserting a field renumbers every such sentence: the AI1 insertion left the interaction machine arguing that 'the first three' -- by then kind, session, and interaction identity -- do not identify the frame, which is a claim about a set that no longer contains the committing endpoint it is about. This is AJ6.")
+        }
     }
-    # AJ6: the justification under a field list must name the fields it is about. Both latch sections
-    # argued from position -- "the first three", "the other three" -- and the AI1 insertion put the
-    # session second, so the machine's sentence silently became an argument about kind, session, and
-    # identity, a set that omits the committing endpoint the claim is over. A list that is counted from
-    # the front cannot be extended without breaking the sentence beneath it.
-    if ($settlingText -match '(?i)\bthe (?:first|other|last|remaining) (?:two|three|four|five)\b') {
-        $failures.Add("$($settlingSurface.Name) identifies part of the settling-frame field list by position rather than by name. Inserting a field renumbers every such sentence: the AI1 insertion left the interaction machine arguing that 'the first three' -- by then kind, session, and interaction identity -- do not identify the frame, which is a claim about a set that no longer contains the committing endpoint it is about. This is AJ6.")
+
+    # The class sweep: any passage anywhere in the eleven artifacts that reads as a publication of the
+    # reference -- the phrase followed by four or more of its five field names -- must publish the
+    # whole list. Four rather than five, because five is the answer and a check that requires the
+    # answer can only confirm surfaces that are already right; four detects the abbreviated form AJ1
+    # was, in an artifact nobody registered. Prose *about* a reference names one or two of its fields
+    # and is not reached: the disposition histories that record what Y4 and AC1 did are the sharpest
+    # such case.
+    $framePublications = 0
+    foreach ($frameArtifactName in $artifactNames) {
+        $frameArtifactText = & $framePlain (Read-RequiredText $frameArtifactName)
+        # The window is a lookahead rather than part of the match. Consuming it hides a publication
+        # that follows a mention of the same reference inside 200 characters, which is how the ledger
+        # inventory's own bullet masked the list beneath it -- a sweep that reads one passage and
+        # therefore cannot see the next is the scope-certifies-itself failure this check replaced.
+        foreach ($frameMatch in [regex]::Matches($frameArtifactText, "$($reference.Phrases)(?=(.{0,200}))")) {
+            $frameWindow = $frameMatch.Groups[1].Value
+            $namedFields = @($frameReferenceFields | Where-Object { $frameWindow.IndexOf($_, [System.StringComparison]::Ordinal) -ge 0 })
+            if ($frameWindow.IndexOf($reference.FieldList, [System.StringComparison]::Ordinal) -ge 0) {
+                $framePublications++
+            }
+            elseif ($namedFields.Count -ge 4) {
+                $failures.Add("'$frameArtifactName' has a passage that reads as a publication of $($reference.Label) -- the reference followed by $($namedFields.Count) of its five field names: $($namedFields -join ', ') -- without publishing the whole list. Either it is a surface that states the reference in an abbreviated form, which is AJ1's shape and is not reached by a check written over the surfaces that state it in full, or it is a new surface that has to be registered above.")
+            }
+        }
+    }
+    if ($framePublications -ne $reference.Surfaces.Count) {
+        $failures.Add("The design package publishes the field list of $($reference.Label) $framePublications times and $($reference.Surfaces.Count) surfaces are registered above. An exact count rather than a lower bound: a lower bound is what let the AI1 check certify its own scope, and a surface that appears or disappears without being registered is the way this class of reference has gone out of agreement three times.")
     }
 }
 
-# The class sweep: any passage anywhere in the eleven artifacts that reads as a publication of the
-# reference -- the phrase followed by four or more of its five field names -- must publish the whole
-# list. Four rather than five, because five is the answer and a check that requires the answer can
-# only confirm surfaces that are already right; four detects the abbreviated form AJ1 was, in an
-# artifact nobody registered. Prose *about* the reference names one or two of its fields and is not
-# reached: the disposition histories that record what Y4 and AC1 did are the sharpest such case.
-$settlingFramePublications = 0
-foreach ($settlingArtifactName in $artifactNames) {
-    $settlingArtifactText = & $settlingFramePlain (Read-RequiredText $settlingArtifactName)
-    foreach ($settlingMatch in [regex]::Matches($settlingArtifactText, "$settlingFramePhrases(.{0,200})")) {
-        $settlingWindow = $settlingMatch.Groups[1].Value
-        $namedFields = @($settlingFrameFields | Where-Object { $settlingWindow.IndexOf($_, [System.StringComparison]::Ordinal) -ge 0 })
-        if ($settlingWindow.IndexOf($settlingFrameFieldList, [System.StringComparison]::Ordinal) -ge 0) {
-            $settlingFramePublications++
-        }
-        elseif ($namedFields.Count -ge 4) {
-            $failures.Add("'$settlingArtifactName' has a passage that reads as a publication of the settling-frame reference -- the reference followed by $($namedFields.Count) of its five field names: $($namedFields -join ', ') -- without publishing the whole list. Either it is a surface that states the reference in an abbreviated form, which is AJ1's shape and is not reached by a check written over the surfaces that state it in full, or it is a new surface that has to be registered above.")
+# AK4: the ledger's status block said the inventory states the reference "in the same form as the five
+# other artifacts that publish it". Four other artifacts publish it, in five other lists, because the
+# brief publishes it twice. The count of artifacts publishing this reference is the exact quantity AJ1
+# turned on, so a claim about it is checked against the registry rather than read.
+$numberWords = @{ 'one' = 1; 'two' = 2; 'three' = 3; 'four' = 4; 'five' = 5; 'six' = 6; 'seven' = 7; 'eight' = 8; 'nine' = 9; 'ten' = 10; 'eleven' = 11; 'twelve' = 12; 'thirteen' = 13; 'fourteen' = 14; 'fifteen' = 15; 'sixteen' = 16; 'seventeen' = 17; 'eighteen' = 18; 'nineteen' = 19; 'twenty' = 20; 'twenty-one' = 21; 'twenty-two' = 22; 'twenty-three' = 23; 'twenty-four' = 24; 'twenty-five' = 25; 'twenty-six' = 26; 'twenty-seven' = 27; 'twenty-eight' = 28; 'twenty-nine' = 29; 'thirty' = 30 }
+foreach ($frameCountArtifact in $artifactNames) {
+    $frameCountText = & $framePlain (Read-RequiredText $frameCountArtifact)
+    foreach ($frameCountClaim in [regex]::Matches($frameCountText, '(?i)\b([a-z]+(?:-[a-z]+)?) other artifacts that publish')) {
+        $claimedWord = $frameCountClaim.Groups[1].Value.ToLowerInvariant()
+        $expectedOthers = $framePublicationArtifacts.Count - 1
+        if (-not $numberWords.ContainsKey($claimedWord) -or $numberWords[$claimedWord] -ne $expectedOthers) {
+            $failures.Add("'$frameCountArtifact' says '$claimedWord other artifacts that publish' a frame reference, and $($framePublicationArtifacts.Count) artifacts publish one, so $expectedOthers others do. The brief publishes each reference twice, so the count of publishing surfaces and the count of publishing artifacts are different numbers and a reader who takes this one literally looks for an artifact that does not exist. This is AK4.")
         }
     }
-}
-if ($settlingFramePublications -ne $settlingFrameSurfaces.Count) {
-    $failures.Add("The design package publishes the settling-frame field list $settlingFramePublications times and $($settlingFrameSurfaces.Count) surfaces are registered above. An exact count rather than a lower bound: a lower bound is what let the AI1 check certify its own scope, and a surface that appears or disappears without being registered is the way this reference has gone out of agreement twice.")
 }
 
 # AI4: six of eight design artifacts' own status blocks were stale by one to four families while the
@@ -1855,7 +1957,12 @@ foreach ($perSessionMatch in [regex]::Matches($flowedBrief, 'profile(.{0,120}?)(
 
 # AI8: the pin clause dates the target commit, and the date has been wrong since the AG commit. The
 # X6 check reads the subject only, which is why two cycles passed over it.
-if ($latestDesignSubject -and $LASTEXITCODE -eq 0) {
+# Skipped while the design artifacts have uncommitted edits, for the same reason the X6 subject check
+# is: a pin cannot name a commit that does not exist yet, and a correction pass that rewrites the
+# clause ahead of its own commit would otherwise be told the date is wrong every time. The subject
+# check carried this guard and the date check added beside it did not, which made the gate unusable
+# mid-pass on any day the correction crossed midnight -- the exact condition AI8 was raised for.
+if ($latestDesignSubject -and $LASTEXITCODE -eq 0 -and -not $pendingDesignEdits) {
     $latestDesignDate = (& git -C $repositoryRoot log -1 --format=%ad --date=short -- $designArtifactPathspec 2>$null)
     if ($latestDesignDate -and (Get-FlowedText $reviewReadme) -notmatch "committed $latestDesignDate") {
         $failures.Add("The review policy's pin clause does not date the review target '$latestDesignDate', which is when the commit it names was made. The X6 check compares the subject and never the date, so a wrong date survives every correction that rewrites the sentence. This is AI8.")
@@ -1866,6 +1973,185 @@ if ($latestDesignSubject -and $LASTEXITCODE -eq 0) {
 # attestations. A retained finding was therefore open while every index said all findings were closed.
 if ($plan -match 'Seven independent negative attestations') {
     $failures.Add('The redesign plan still reports seven retained negative attestations. S3''s own evidence named this passage, so a retained finding has been open while every entry point claimed the programme''s findings were all closed. This is AI9.')
+}
+
+# The package's properties, counted from the artifacts that state them rather than from any sentence
+# that reports the number. The capability id pattern is deliberately open at the right-hand end so the
+# negative probe's renamed `C12-P1` still counts: the probe removes the *claim* that C12 has a
+# property, not the paragraph, and a count that moved with the probe would make the probe fail twice.
+$capabilityPropertyIds = @([regex]::Matches($contract, '(?m)^\*\*Property (C[0-9]+-P[0-9]+)') | ForEach-Object { $_.Groups[1].Value })
+$sessionPropertyIds = @([regex]::Matches($session, '(?m)^- \*\*(S[0-9]+)\.\*\*') | ForEach-Object { $_.Groups[1].Value })
+$interactionPropertyIds = @([regex]::Matches($interaction, '(?m)^- \*\*(I[0-9]+)\.\*\*') | ForEach-Object { $_.Groups[1].Value })
+$statedProperties = $capabilityPropertyIds.Count + $sessionPropertyIds.Count + $interactionPropertyIds.Count
+
+# AK3: three surfaces reported the package as stating twenty-five properties, and the property the
+# count dropped is `C4-P2` -- the one fifteen cycles of this programme have been about. All three
+# numbers were counts of *audit rows* presented as counts of properties, because the audit's `C4` row
+# carries two properties in one cell. Counted here from the property statements themselves, so a
+# sentence reporting the number cannot disagree with the artifacts that state them.
+foreach ($countArtifact in $artifactNames) {
+    $countText = Get-FlowedText (Read-RequiredText $countArtifact)
+    # Only a spelled number is compared. "the properties the package states" states no count and is
+    # not a claim; failing it would push the next pass to delete the sentence rather than to fix a
+    # number, which is the opposite of what AJ4 established about self-description.
+    foreach ($packageClaim in [regex]::Matches($countText, '(?i)\b([a-z]+(?:-[a-z]+)?)(?: properties)? the package states')) {
+        $claimedWord = $packageClaim.Groups[1].Value.ToLowerInvariant()
+        if (-not $numberWords.ContainsKey($claimedWord)) { continue }
+        if ($numberWords[$claimedWord] -ne $statedProperties) {
+            $failures.Add("'$countArtifact' says the package states '$claimedWord' properties and it states $statedProperties -- $($capabilityPropertyIds.Count) capability-wide, $($sessionPropertyIds.Count) session, $($interactionPropertyIds.Count) interaction. The per-capability audit has twelve capability rows and its `C4` row carries two properties, so a count of rows read as a count of properties drops `C4-P2`. This is AK3.")
+        }
+    }
+    foreach ($coverageClaim in [regex]::Matches($countText, '(?i)covers the ([a-z]+(?:-[a-z]+)?) capability-wide')) {
+        $claimedWord = $coverageClaim.Groups[1].Value.ToLowerInvariant()
+        if (-not $numberWords.ContainsKey($claimedWord)) { continue }
+        if ($numberWords[$claimedWord] -ne $capabilityPropertyIds.Count) {
+            $failures.Add("'$countArtifact' says the per-capability audit covers '$claimedWord' capability-wide properties and the contract states $($capabilityPropertyIds.Count). This is AK3.")
+        }
+    }
+}
+
+# AK3's other half: "eleven capabilities owe the required-green set" counts the cells that read `owed`
+# outright and misses that the `C4` cell ends "`C4-P1`: **owed**", so twelve capabilities owe at least
+# one set. Counted from the audit rows.
+$auditSection = [regex]::Match($completeness, '(?ms)^## Per-capability property audit\r?\n(.+?)(?=^### |^## |\z)').Groups[1].Value
+$auditRows = @([regex]::Matches($auditSection, '(?m)^\| (C[0-9]+) \|.*$') | ForEach-Object { $_.Value })
+if ($auditRows.Count -lt 12) {
+    $failures.Add("The per-capability property audit parses to $($auditRows.Count) capability rows and the contract states $($capabilityPropertyIds.Count) capability-wide properties across twelve capabilities. A row count this check cannot read is a count claim nothing compares against.")
+}
+else {
+    $owingCapabilities = @($auditRows | Where-Object { $_ -cmatch 'owed' }).Count
+    foreach ($owedArtifact in $artifactNames) {
+        $owedText = Get-FlowedText (Read-RequiredText $owedArtifact)
+        foreach ($owedClaim in [regex]::Matches($owedText, '(?i)\b([a-z]+(?:-[a-z]+)?) capabilities owe')) {
+            $claimedWord = $owedClaim.Groups[1].Value.ToLowerInvariant()
+            if (-not $numberWords.ContainsKey($claimedWord) -or $numberWords[$claimedWord] -ne $owingCapabilities) {
+                $failures.Add("'$owedArtifact' says '$claimedWord capabilities owe' a required-green set and $owingCapabilities of the audit's capability rows carry an `owed` cell. `C4`'s cell states `C4-P2`'s set and ends '`C4-P1`: **owed**', so counting the cells that read `owed` outright understates the residual work by one capability. This is AK3.")
+            }
+        }
+    }
+}
+
+# AK7 and AK8. AH1 settled that a vector **may carry more than one session**, and three families since
+# have been one operand of `C4-P2` catching up with that decision: AH1 gave the declared stimulus step
+# its session, AI1 and AJ1 gave the settling-frame reference its session across six surfaces, and AK1
+# is the same question on the refusal record. The audit that closed AK1 asked it of every fact `C4-P1`
+# and `C4-P2` read and then of every property in the package, and found the decision had never reached
+# the property *statements*: `C4-P1` forbade an identity being "dispatched twice" and bounded "the
+# number of nonterminal interactions" with no session named, `C1-P1` required "exactly one profile"
+# per vector, and `I5` bounded concurrency against "the established finite bound". Each is red on a
+# conforming two-session vector, which is AE1's defect reached through a quantifier instead of a
+# clause.
+#
+# The trigger set is DECLARED in C12 rather than listed here, for AF6's reason: a class inferred from
+# whichever members were visible when the check was written is not the class. A per-session fact added
+# to that declaration is covered without editing this loop, and a fact removed from it stops being
+# checked visibly rather than silently.
+$sessionScopeBlock = [regex]::Match($contract, '(?ms)\*\*Facts a vector may hold more than one of\.\*\*(.+?)(?=^\*\*|^## |\z)').Groups[1].Value
+$sessionScopedFacts = @([regex]::Matches($sessionScopeBlock, '(?m)^- `([^`]+)` ') | ForEach-Object { $_.Groups[1].Value })
+if ($sessionScopedFacts.Count -lt 1) {
+    $failures.Add('C12 declares no list of facts a vector may hold more than one of. AH1 made multi-session vectors legal, and the rule that a property naming a per-session fact names the session it means is unenforceable over a class nothing declares -- which is AF6''s finding applied to a rule instead of to a family.')
+}
+else {
+    # The recognizer, not the class: any of these phrasings names the session a clause means. Kept
+    # generous on purpose, because a property that names the session in an unlisted way is correct and
+    # failing it would train the next pass to reword rather than to scope.
+    $sessionQualifier = '(?i)(?:per session|per-session|session-scoped|(?:with)?in (?:one|each|that|its own|its|the same) session|(?:of|for|in) (?:each|its own|that|one) session|each session the vector carries|(?:that|its own) session''?s)'
+    $allProperties = @()
+    foreach ($propertyMatch in [regex]::Matches($contract, '(?ms)^\*\*Property (C[0-9]+-P[0-9]+)[^*]*\*\*(.+?)(?=\r?\n\r?\n)')) {
+        $allProperties += @{ Id = $propertyMatch.Groups[1].Value; Where = 'capability contract'; Text = $propertyMatch.Groups[2].Value }
+    }
+    foreach ($propertyMatch in [regex]::Matches($session, '(?m)^- \*\*(S[0-9]+)\.\*\* (.+)$')) {
+        $allProperties += @{ Id = $propertyMatch.Groups[1].Value; Where = 'session state machine'; Text = $propertyMatch.Groups[2].Value }
+    }
+    foreach ($propertyMatch in [regex]::Matches($interaction, '(?ms)^- \*\*(I[0-9]+)\.\*\* (.+?)(?=\r?\n- \*\*|\r?\n\r?\n)')) {
+        $allProperties += @{ Id = $propertyMatch.Groups[1].Value; Where = 'interaction state machine'; Text = $propertyMatch.Groups[2].Value }
+    }
+    if ($allProperties.Count -ne $statedProperties) {
+        $failures.Add("The session-scope check parses $($allProperties.Count) property statements and the package states $statedProperties. A property statement this loop cannot read is a property it cannot audit, which is how the audit came to cover twelve of the package's properties while claiming every one.")
+    }
+    foreach ($property in $allProperties) {
+        $propertyText = Get-FlowedText $property.Text
+        foreach ($fact in $sessionScopedFacts) {
+            # Words joined by a bounded gap rather than the exact phrase: `C1-P1` writes the
+            # established profile as "exactly one profile is established", and a check that matched
+            # only the declared word order would have passed the property AK8 was raised against.
+            $factWords = @($fact -split '\s+' | ForEach-Object { [regex]::Escape(($_ -replace 's$', '')) })
+            $factPatterns = @(($factWords -join '[^.;]{0,24}'))
+            if ($factWords.Count -eq 2) { $factPatterns += (($factWords[1], $factWords[0]) -join '[^.;]{0,24}') }
+            # The qualifier has to GOVERN each occurrence, not merely appear in the property. `C4-P1`
+            # reads three per-session facts in three clauses, and the first form of this check --
+            # "a qualifier somewhere in the property" -- passed the pre-AK7 wording with the session
+            # named only in the last clause, which is the defect with two thirds of it left standing.
+            # Governance is read as English does: a qualifier governs an occurrence if it appears
+            # anywhere from the start of the property through the end of the clause the occurrence
+            # sits in, so a leading "within each session that vector carries" covers every clause
+            # after it and a trailing one covers only its own.
+            foreach ($factPattern in $factPatterns) {
+                foreach ($factMatch in [regex]::Matches($propertyText, $factPattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)) {
+                    $clauseEnd = $propertyText.IndexOfAny([char[]](',', ';', '.'), $factMatch.Index + $factMatch.Length)
+                    if ($clauseEnd -lt 0) { $clauseEnd = $propertyText.Length - 1 }
+                    $factWindow = $propertyText.Substring(0, $clauseEnd + 1)
+                    if ($factWindow -notmatch $sessionQualifier) {
+                        $failures.Add("Property '$($property.Id)' in the $($property.Where) reads the per-session fact '$fact' in a clause that names no session. A vector may carry more than one session under AH1 and these facts belong to one session each, so the clause counts or compares across sessions and goes red on a conforming multi-session vector -- AE1's defect reached through the property's quantifier instead of through a clause. This is AK7 for `C4-P1`, `C4-P2` and `I5`, and AK8 for the properties outside C4 that share it.")
+                    }
+                }
+            }
+        }
+    }
+}
+
+# The durable half of the AK1 audit. Four families in a row -- W5, AH1, AI1/AJ1, and AK1 -- were one
+# shape: an operator qualifier whose operand the record it reads does not publish. Each was found by
+# sampling one operand, so the AK pass enumerated `C4-P1` and `C4-P2` completely and recorded the
+# enumeration in the completeness review as a table the next cycle can check rather than rediscover.
+#
+# What this check can and cannot do is worth stating plainly. It cannot prove the table is total over
+# the properties' operands -- that is a reading, and claiming otherwise here would be AD2's defect.
+# What it does pin is that the table exists, that every declared class of operand appears in it, that
+# no row is left recording an unpublished operand, and that every row names a surface that exists. A
+# fifth frame reference or a fifth per-session fact therefore cannot be declared without the table
+# growing to match.
+$operandSection = [regex]::Match($completeness, '(?ms)^## `C4-P1` and `C4-P2` operand enumeration\r?\n(.+?)(?=^## |\z)').Groups[1].Value
+if (-not $operandSection) {
+    $failures.Add('The completeness review carries no `C4-P1`/`C4-P2` operand enumeration. Four consecutive families were one shape -- an operator qualifier whose operand is not published by the record it reads -- and each was found by sampling one operand; the enumeration is what lets the next cycle check the rest instead of sampling again.')
+}
+else {
+    $operandRows = @([regex]::Matches($operandSection, '(?m)^\| (?!Operand \|)(?!-)(.+?) \| (.+?) \| (.+?) \| (.+?) \| (.+?) \|\s*$'))
+    if ($operandRows.Count -lt 1) {
+        $failures.Add('The `C4-P1`/`C4-P2` operand enumeration parses to no rows. A table this check cannot read is a table nothing compares against, which is the shape of every check in this file that certified its own scope.')
+    }
+    $operandSurfaceTokens = @('capability contract', 'C4', 'C10', 'C12', 'session state machine', 'interaction machine', 'state/event grid', 'responsibility matrix', 'neutral brief', 'migration ledger', 'redesign plan')
+    foreach ($operandRow in $operandRows) {
+        $operandName = $operandRow.Groups[1].Value.Trim()
+        $operandSurfaces = $operandRow.Groups[4].Value
+        $operandVerdict = ($operandRow.Groups[5].Value -replace '[*` ]', '').ToLowerInvariant()
+        if ($operandVerdict -ne 'sufficient' -and $operandVerdict -ne 'insufficient') {
+            $failures.Add("The operand-enumeration row '$operandName' records sufficiency as '$operandVerdict', which is outside the closed vocabulary `sufficient`/`insufficient`. A verdict outside a closed set is what the migration ledger's B4 finding was, and it makes the row uncountable.")
+        }
+        elseif ($operandVerdict -eq 'insufficient') {
+            $failures.Add("The operand-enumeration row '$operandName' records an operand the design does not publish at the scope its clause claims. That is AK1's defect standing open and recorded rather than corrected: a property whose operand is unpublished is red or green on facts no observation carries.")
+        }
+        if (($operandSurfaceTokens | Where-Object { $operandSurfaces.IndexOf($_, [System.StringComparison]::Ordinal) -ge 0 }).Count -lt 1) {
+            $failures.Add("The operand-enumeration row '$operandName' names no publishing surface this check can resolve to a design artifact. An operand whose surfaces are described rather than named is what AD1 acted on: a description consulted instead of the document.")
+        }
+    }
+    # The registered marker inside a row's own operand column, not the key anywhere in the section.
+    # The keys are bare words -- `settling`, `terminal`, `refused` -- and each occurs in several
+    # neighbouring rows, so the section-wide form could not fail: deleting the terminal-frame row
+    # outright left it green. That is the shape AI1's `Count -lt 3` guard had, in the check written to
+    # end that shape, and it was found by mutation-testing rather than by reading.
+    $operandNames = @($operandRows | ForEach-Object { $_.Groups[1].Value })
+    foreach ($reference in $frameReferences) {
+        $registeredMarker = "registered as ``$($reference.Key)``"
+        if (-not @($operandNames | Where-Object { $_.IndexOf($registeredMarker, [System.StringComparison]::Ordinal) -ge 0 })) {
+            $failures.Add("The `C4-P1`/`C4-P2` operand enumeration has no row registering the $($reference.Label) as '$($reference.Key)', which is a declared frame reference one of the two properties reads. A declared operand class missing from the enumeration is the sampling the enumeration exists to end.")
+        }
+    }
+    foreach ($fact in $sessionScopedFacts) {
+        if ($operandSection.IndexOf($fact, [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("The `C4-P1`/`C4-P2` operand enumeration has no row naming the per-session fact '$fact', which C12 declares and `C4-P1` or `C4-P2` reads.")
+        }
+    }
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot 'channel\0.2')) {

@@ -22,6 +22,11 @@ sessions match every other published field. Under **AJ1** this artifact publishe
 the one form every other publishing artifact uses, and under **AJ6** the paragraph beneath the field
 list names the fields its argument is about instead of counting them from the front — the AI1
 insertion had made "the first three" a set that omits the committing endpoint the claim is over.
+Under **AK1** and **AK5** the `unseen` refusal records the refused-frame reference rather than a
+reason and a frame kind, so all three of `C4-P2`'s first-conjunct qualifiers have operands; under
+**AK6** accepting a terminal history records the terminal-frame reference, which is the second
+conjunct's other precedence operand and was published by no artifact; and under **AK7** `I5` names the
+session whose bound it is about.
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 
@@ -100,7 +105,7 @@ with the same provenance, not a fictional global state.
 | From | Event and guard | To | Handler effect possible? |
 | --- | --- | --- | --- |
 | `unseen` | complete request for an established session arrives | `validating` | no |
-| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `unseen`, unchanged | no; commit one interaction-scoped peer fault with `rejected-protocol` provenance and detailed reason `unopened-interaction-identity`, record one local observation carrying that reason, the kind of frame refused, and effect certainty `known-none`, and retain no history, no latch, and no in-flight reservation |
+| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `unseen`, unchanged | no; commit one interaction-scoped peer fault with `rejected-protocol` provenance and detailed reason `unopened-interaction-identity`, record one local observation carrying that reason, the **refused-frame reference** — its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal for that interaction identity — and effect certainty `known-none`, and retain no history, no latch, and no in-flight reservation |
 | `validating` | structural/profile/state/class/direction/Shape/authority-structure/bound/replay/concurrency check fails | `rejected-protocol` | no |
 | `validating` | receiver-local external phase predicate is `false` or `unknown` | `refused-local` | no |
 | `validating` | structurally valid authority presentation is denied by local policy | `refused-local` | no |
@@ -197,7 +202,16 @@ totality rule below, because the catch-all would route it to `state-violation` a
 `peer-fault` — a terminal interaction, which owns a latch, which is the state the rule above refuses.
 One local observation of the refusal is recorded, which is evidence and not retained state: nothing
 consults it, and `C4-P2`'s first conjunct quantifies over it. Its provenance is the last row of the
-terminal-provenance table.
+terminal-provenance table, and the row above publishes the refused-frame reference it carries.
+
+That reference is **AK1** and **AK5**. Until they were raised the row recorded the refusal's reason,
+the kind of frame refused, and effect certainty, and `C4-P2`'s first conjunct scopes its membership
+test to one session, tests membership of one identity, and takes its precedence half over the
+committing endpoint's own frames — three qualifiers over a record naming none of the three. Recording
+five facts about the frame is not the retained state this section refuses: retained state is what a
+later admission, correlation, replay, or bound decision reads, and nothing reads an observation. The
+arrival ordinal is scoped to the interaction identity rather than to the interaction, because at
+`unseen` there is no interaction to be within — which is the whole of the rule above.
 
 **The recipient's per-identity state remains `unseen`**, and that is why the row's destination is not
 `rejected-protocol`. `rejected-protocol` is a terminal recipient state, every terminal state is
@@ -233,6 +247,16 @@ and `C4-P2`'s second conjunct is about *which* frame a latch settled against: a 
 acknowledgement its own endpoint committed before the terminal frame fails the property, while a legal
 late control from the peer and a duplicate terminal committed after the terminal frame do not, and all
 three settle the same latch to the same value.
+
+Accepting a terminal history likewise **records the terminal-frame reference** — its kind, its
+**session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** within
+the interaction — in the local observation. That is the other frame the sentence above compares
+against, and until **AK6** it was published by nothing: the observation recorded the terminal form,
+and a form identifies one frame only while an endpoint commits at most one frame of that form for one
+identity. A duplicate terminal is an endpoint committing two, it is a case `C4-P2` must leave green,
+and it is a required member of that property's own vector group — so the second conjunct had one
+operand identified to five fields and the other left to be inferred from an enum. The reference
+identifies and never orders, on the same terms as the settling frame's.
 A late peer fault never receives an answering fault, and no late input after either settled value
 emits another frame. Effect certainty and the semantic terminal remain those of the first history.
 
@@ -285,7 +309,8 @@ histories is exactly where a reader looks for one.
   success.
 - **I4.** Every pre-dispatch refusal is `known-none`; every possible post-dispatch loss is `unknown`
   unless explicit evidence narrows it.
-- **I5.** Concurrency never exceeds the established finite bound under any generated interleaving.
+- **I5.** Concurrency within each session the vector carries never exceeds that session's established
+  finite bound under any generated interleaving.
 - **I6.** A relational interaction matches exactly one declaration and never creates Ready/Release.
 - **I7.** A terminal fact for one interaction changes no sibling interaction's terminal history.
 

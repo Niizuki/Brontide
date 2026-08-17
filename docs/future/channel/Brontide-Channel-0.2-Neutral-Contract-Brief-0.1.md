@@ -27,7 +27,12 @@ singular. Under **AJ1** this artifact's two field lists publish that reference i
 interaction machine, the state/event grid, the responsibility matrix, and the migration ledger use;
 under **AJ3** the vector format's own profile entry is inside the per-session distribution rather than
 separated from it by a comma, which is AI7's second named entry; and under **AJ4** this block describes
-the declared stimulus step in its post-AH1 form.
+the declared stimulus step in its post-AH1 form. Under **AK1**, **AK5** and **AK6** the
+local-observation schema and the parity profile carry two further frame references in the same
+five-field form — the frame refused where a refusal opens no interaction, which is `C4-P2`'s first
+conjunct's operand and carried neither AF8's session nor the identity nor the committing endpoint, and
+the frame a terminal history was accepted on, which is the second conjunct's other precedence operand
+and was published by no artifact.
 
 ## Purpose
 
@@ -174,8 +179,9 @@ category fails local validation and generates no fault reply.
 ### Local observation
 
 Carries no peer-authored body. It records local provenance, state, admission decisions, dispatch
-boundary, terminal form, detection point, the late-traffic latch with the frame that settled it, and
-effect certainty. Profile-owned details are nested under a versioned profile observation, never
+boundary, terminal form, detection point, the late-traffic latch with the frame that settled it, the
+frame the terminal history was accepted on, the frame refused where a refusal opens no interaction,
+and effect certainty. Profile-owned details are nested under a versioned profile observation, never
 flattened into Channel core.
 
 The latch position holds one of the three latch values or the explicit `not-applicable` a route
@@ -185,6 +191,25 @@ ordinal** within the interaction; it is absent only where no latch has settled. 
 `C4-P2`'s second conjunct reads and the parity profile compares, so the schema has to have somewhere
 to put them, and they are the same five fields in the same order everywhere the reference is
 published.
+
+The terminal-frame position holds its kind, its **session**, its interaction identity, its
+**committing endpoint**, and its **arrival ordinal** within the interaction; it is absent only where
+no terminal history was accepted. It is the second operand of the same conjunct — the frame the
+settling frame is compared against — and until **AK6** the schema had a five-field position for one of
+the two and nothing for the other, which left the comparison resting on the terminal form. A form
+names one frame only while an endpoint commits at most one frame of that form for one identity, and a
+duplicate terminal is an endpoint committing two.
+
+The refused-frame position holds its kind, its **session**, its interaction identity, its **committing
+endpoint**, and its **arrival ordinal** for that interaction identity; it is absent only where the
+observation records no refusal that opens no interaction. It is `C4-P2`'s **first** conjunct's
+operand, and under **AK1** and **AK5** it replaces a record that carried the refusal's provenance, its
+detailed reason, and the kind of frame refused: that conjunct scopes its membership test to one
+session, tests one interaction identity, and takes its precedence half over the committing endpoint's
+own frames, so three of its qualifiers had no operand and the property went red on a conforming
+two-session vector. The ordinal is scoped to the interaction identity rather than to the interaction
+because at `unseen` no interaction exists; the five field names are the same five, which is the class
+every frame reference in this package belongs to.
 
 ## External phase and authority inputs
 
@@ -345,9 +370,17 @@ Core normative comparison includes:
   detailed reason `unopened-interaction-identity` of `invalid-interaction-correlation` and not the
   category as a whole. The reason is named rather than described, because a value identified only by
   description is not something a vector can compare;
-- the kind of frame refused where that refusal opens no interaction, because the same provenance and
-  the same detailed reason cover a cancellation control and any other control naming an unopened
-  identity, and the first conjunct quantifies over the cancellation control alone;
+- the **refused-frame reference** where a refusal opens no interaction: its kind, its **session**, its
+  interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction
+  identity. The kind is AC2 — the same provenance and the same detailed reason cover a cancellation
+  control and any other control naming an unopened identity, and the first conjunct quantifies over
+  the cancellation control alone. The session, the interaction identity, the committing endpoint and
+  the arrival ordinal are **AK1** and **AK5**: that conjunct scopes its
+  membership test to one session under AF8, tests membership of one interaction identity, and takes
+  its precedence half over the committing endpoint's own frames, and this list compared none of the
+  three, so a two-session vector conforming at both endpoints took the property red — AE1's failure
+  mode reached through the operand. The ordinal is Y4's argument on this operand: one endpoint may
+  commit two controls naming one identity, and the reference has to say which one was refused;
 - the terminal interaction's `late-traffic latch` value, which the state/event grid already requires
   every generated cell to assert — including the explicit `not-applicable` a route reaching no
   terminal interaction asserts, which is compared as a value and never as an absent field;
@@ -370,6 +403,14 @@ Core normative comparison includes:
   and `state-violation` declares no closed detailed-reason set for the clause above to reach. The
   settling frame is what separates them, and once it names its committing endpoint the property can
   bind it to a declared stimulus step through the precedence relation;
+- the **terminal-frame reference** wherever a terminal history was accepted: its kind, its **session**,
+  its interaction identity, its **committing endpoint**, and its **arrival ordinal** within the
+  interaction. This is the frame the settling frame is compared *against*, and under **AK6** it is
+  compared rather than inferred: the terminal form was the only published fact about it, and a form
+  identifies one frame only while an endpoint commits at most one frame of that form for one identity.
+  A duplicate terminal from a nonconformant peer is an endpoint committing two and is a required-green
+  member of this property's own group, so the conjunct had one operand identified to five fields and
+  the other to an enum value;
 - the **admission of an identity previously refused at `unseen`**, which is the fact `C4-P2`'s first
   conjunct reads to separate a reordering from a loss. Both deliver a cancellation control to a
   recipient that has not seen the request, and both record the same provenance, detailed reason,
