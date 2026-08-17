@@ -231,10 +231,25 @@ The author correction pass and ordinary documentation gates are not independent 
 
 ## Exact next work
 
+**The next closure review is on hold by owner decision of 2026-08-17, and step 4 is not the live path
+until it resumes.** The decision, its reasons, the work that has to land first, and the conditions that
+end the hold are in the
+[verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md). In one
+sentence: sixteen reviews have produced findings in every cycle, the only instrument here that finds a
+real defect is a person reading prose, and the surface that reading covers grows every time a defect is
+corrected — so the measuring instrument is being fixed before another cold context is spent.
+
+Nothing else in this policy changes. The independence requirements, the closure standard, the required
+scope and verdicts, and the retained records are all unchanged and apply unmodified to whichever review
+runs next. **No agent dispatches a closure review while this paragraph stands.** An author-side
+iteration pass over the plan's work is not a closure review and remains available, under the same rules
+as every other iteration pass.
+
 The sixteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
 blocking **AL1** and **AL2** and nonblocking **AL3** and **AL4**; its retained record is
 `channel-0.2-design-foundation-closure-review-16-attestation.md`. **Steps 1 through 3r are complete.**
-Step 4 is the live path, and the next agent reviews the AL corrections.
+Step 4 is the path the programme returns to when the hold ends, and the review that runs then reviews
+the AL corrections together with the verification work done under the hold.
 
 The fifteenth review returned `does-not-conform` with
 blocking **AK1** and nonblocking **AK2**-**AK4**; its retained record is
@@ -647,10 +662,16 @@ is exactly what the AD and AE passes found separately.
    property. The mutation vector's expected observation is now the recipient's recorded refusal, which
    is a determinate portable observation under C12-P1, rather than the vector being rejected before it
    executes. The per-capability property audit registers `C4-P2` and its mutation.
-4. Obtain another fresh independent review of the corrected pin, from a reviewer identity distinct
-   from the correction author and all eight retained reviewers, **in a fresh isolated clone**. Its
+4. **On hold since 2026-08-17 — do not dispatch.** The state is declared in the
+   [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md) and the
+   design verifier reads it from there: while the hold stands, retaining a seventeenth attestation
+   fails the gate. Obtain another fresh independent review of the
+   corrected pin, from a reviewer identity distinct from the correction author and all sixteen
+   retained reviewers, **in a fresh isolated clone**. Its
    scope, verdicts, and probe requirements are unchanged from the sections above. It writes only its
-   own attestation.
+   own attestation. The hold and the four conditions that end it are in the
+   [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md); this
+   step is unchanged in substance and resumes exactly as written when they are met.
 
    The reviewer should treat the U1 correction as the primary target, and should treat the disclosed
    process deviation below as a reason to weigh it harder rather than less. The lesson four cycles

@@ -137,6 +137,18 @@ and the package-wide sweep is keyed to the record rather than to the reference's
 review has yet seen the AL corrections. No Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
+**The next closure review is on hold by owner decision of 2026-08-17**, recorded in the
+[verification foundation plan](./channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Ten independent reviews have run since the batch was first believed finished and every one produced
+findings; nine consecutive cycles have carried one instance of a single shape, a fact changed and its
+edit reaching some of the six artifacts that publish it. The plan's diagnosis is that the design has no
+executable form, so the only detector for a real defect is a person reading prose, and that each
+correction enlarges what the next reading has to cover. Its ranked work is one owning artifact per
+fact with citations elsewhere, properties that execute in the gate along with the twenty-five owed
+required-green sets, and disposition history moved out of the status blocks. Batch 2 remains closed,
+no correction is withdrawn, and the independence rules and closure standard are unchanged for whichever
+review runs next.
+
 ### Channel 0.2 first-batch remaining work
 
 The sixth review found **R1**, a new blocking finding. C8 permitted a cancellation from initiator
