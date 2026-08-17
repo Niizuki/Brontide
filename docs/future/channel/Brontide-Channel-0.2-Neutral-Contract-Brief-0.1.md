@@ -32,7 +32,10 @@ local-observation schema and the parity profile carry two further frame referenc
 five-field form — the frame refused where a refusal opens no interaction, which is `C4-P2`'s first
 conjunct's operand and carried neither AF8's session nor the identity nor the committing endpoint, and
 the frame a terminal history was accepted on, which is the second conjunct's other precedence operand
-and was published by no artifact.
+and was published by no artifact. Unchanged by **AL1**-**AL4** as to its own content, and load-bearing
+for **AL3**: this brief's vector format is what a vector distributes per session, so C12's declared
+list of facts a vector may hold more than one of is now checked against this artifact rather than
+against the members that were visible when that list was written.
 
 ## Purpose
 

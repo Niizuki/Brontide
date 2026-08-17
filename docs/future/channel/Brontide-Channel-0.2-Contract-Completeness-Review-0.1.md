@@ -5,7 +5,7 @@ Date: 2026-08-11
 Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, U1/U4/U5/U7/W3, X7, and
 AC1-AC4 correction passes complete. The per-capability property audit now registers `C4-P2` and the mutation that must
 fail it; its silence is why an unfalsifiable property survived the correction that introduced it. The
-disposition history now runs to the fifteenth cycle rather than stopping at the fifth — the count is
+disposition history now runs to the sixteenth cycle rather than stopping at the fifth — the count is
 this block's own claim about this document and went five cycles stale behind a family token, which is
 **AJ4** — and the in-flight
 bound's direction scope is recorded as session-wide-as-written against per-direction-as-enforced
@@ -14,7 +14,12 @@ this document's sibling record is named after; under **AK3** the counts of prope
 of properties rather than of audit rows, the package stating twenty-six and the audit covering
 thirteen capability-wide ones in twelve rows; and under **AK1**, **AK5**, **AK6**, **AK7** and **AK8**
 this document carries the complete enumeration of every operand `C4-P1` and `C4-P2` read, which is the
-durable half of the audit those five findings came from.
+durable half of the audit those five findings came from. Under **AL1**, **AL2**, **AL3** and **AL4**
+the enumeration carries the `session state` operand that audit's own trigger set could not see, the
+`S3` and `S5` audit rows carry the session scopes their properties lacked, and the refused-frame
+reference's row records that a publishing surface named at the granularity of a route is satisfied by
+one passage inside it — which is how that row read `sufficient` while two cells on the route it named
+published the pre-AK1 record.
 A fresh independent closure re-review remains required. This review asks what the proposed contract
 does not say. It is separate from conformance review and does not claim the contract is correct. Under **AI3** the `I5` row carries the AE3 connection its `C4` sibling already had, and the pointer added with it names its direction correctly.
 
@@ -204,12 +209,12 @@ over the surfaces one audit happens to enumerate is the mechanism AF7 and AE4 sh
 
 | Property | Statement | Named mutation that must fail | Required-green inputs |
 | --- | --- | --- | --- |
-| S1 | every accepted transition is in the legal table | named negative probe in the neutral verifier | **owed** |
-| S2 | no interaction dispatches outside `established` | named negative probe in the neutral verifier | **owed** |
-| S3 | no new interaction is admitted after the first drain transition | named negative probe in the neutral verifier | **owed** |
-| S4 | a terminal session never becomes nonterminal or resumes under the same identity | named negative probe in the neutral verifier | **owed** |
-| S5 | fixed and negotiated establishment produce equal normative profiles | named negative probe in the neutral verifier | **owed** |
-| S6 | no session event creates Ready, Release, authority, or an application Outcome | named negative probe in the neutral verifier | **owed** |
+| S1 | in each session the vector carries, every accepted transition of that session is in the legal table | named negative probe in the neutral verifier | **owed** |
+| S2 | no interaction dispatches outside its own session's `established` state | named negative probe in the neutral verifier | **owed** |
+| S3 | within each session the vector carries, no new interaction is admitted after that session's first drain transition | named negative probe in the neutral verifier | **owed**, and the session scope is **AL1**: the property bounded admission by "the first drain transition" with no session named, which is not a fact of a vector that carries two, so a second session establishing and admitting after the first one drained took it red on conforming behaviour. The AK audit reported `S1`-`S6` clean because its trigger set was C12's declared fact list and the session's own state was absent from it (**AL3**) |
+| S4 | within each session the vector carries, a terminal session never becomes nonterminal or resumes under the same session identity | named negative probe in the neutral verifier | **owed** |
+| S5 | for each session the vector carries, fixed and negotiated establishment of that session's own declared profile produce equal normative profile records | named negative probe in the neutral verifier | **owed**, and the qualifier is **AL4**: `established profile` is a declared per-session fact, so a property comparing "equal normative profiles" across the vector is red on two sessions that legitimately declare different ones. It is the correction `C1-P1` received under AK8, one artifact over |
+| S6 | in any session the vector carries, no session event creates Ready, Release, authority, or an application Outcome | named negative probe in the neutral verifier | **owed** |
 | I1 | one interaction identity crosses the dispatch boundary at most once per session | **owed** | **owed** |
 | I2 | every accepted interaction has at most one terminal history | **owed** | **owed** |
 | I3 | no cancellation acknowledgement, drain event, timeout, or protocol fault becomes a semantic Outcome | **owed** | **owed** |
@@ -259,13 +264,24 @@ rediscover it, and the design verifier pins it: every declared frame reference a
 declares a vector may hold more than one of has a row, no row may read `insufficient`, and every row
 names a publishing surface that resolves to an artifact.
 
-Three things were `insufficient` when the enumeration was made, and all three are corrected in this
-commit — **AK1** and **AK5** on the first conjunct's operand, **AK6** on the second conjunct's second
-operand. The enumeration also found the same shape one level up, in the properties' own quantifiers,
-which is **AK7** and **AK8** and is recorded in the session-scope rows below.
+Three things were `insufficient` when the enumeration was made, and all three were corrected in the
+commit that made it — **AK1** and **AK5** on the first conjunct's operand, **AK6** on the second
+conjunct's second operand. The enumeration also found the same shape one level up, in the properties'
+own quantifiers, which is **AK7** and **AK8** and is recorded in the session-scope rows below.
+
+The sixteenth review audited this table row by row against its own reading of the two properties and
+found no row missing and none wrong, which is the strongest evidence the enumeration has. It also
+found what the table's own construction could not reach. **AL2**: the refused-frame reference's row
+named the state/event grid's recipient `unseen` route among its publishing surfaces and read
+`sufficient`, while the two cells on that route still published the pre-AK1 record — the row was
+verified against the artifact's prose, which does publish the reference, and a surface named at the
+granularity of a route is satisfied by any one passage inside it. The `session state` row above is
+**AL3** and is the other half: that fact is read by `C4-P1` and was in no row, because the enumeration
+took its per-session facts from C12's declared list and the declaration omitted it.
 
 | Operand | Read by | Scope the clause claims | Publishing surfaces | Sufficient |
 | --- | --- | --- | --- | --- |
+| the `session state` an interaction is admitted and dispatched in | `C4-P1` clauses 1 and 2 | that session's own state, and the vector may carry two | session state machine §States (the admits-a-new-interaction column) and §Drain protocol; state/event grid §Session coverage grid; C2 | sufficient |
 | accepted terminal fact, and the admitted interaction it closes | `C4-P1` clause 1 | one interaction, in one session | C10 first enumeration; interaction machine terminal states and terminal-provenance table; neutral brief parity profile (terminal provenance) | sufficient |
 | dispatch of an `interaction identity` | `C4-P1` clause 2 | not twice — **within one session**, which the property did not say until AK7 | C10 first enumeration (session and interaction identities, dispatch boundary); neutral brief parity profile (dispatch boundary crossed or not); interaction machine §Admission order and §Concurrent interactions | sufficient |
 | count of `nonterminal interactions` | `C4-P1` clause 3 | **within one session**, which the property did not say until AK7 | C10 first enumeration (state); interaction machine §Concurrent interactions; state/event grid initiator and recipient rows | sufficient |
@@ -739,6 +755,33 @@ named after; the AE4 check derived its class from finding headings and the W fin
 a table, so the check could not ask for it. **AK3** is three surfaces counting audit rows and
 reporting properties. **AK4** is the ledger's status block counting publishing surfaces as publishing
 artifacts.
+
+The sixteenth independent closure review, at `95c62c1`, returned `does-not-conform` with blocking
+**AL1** and **AL2** and nonblocking **AL3** and **AL4**. It confirmed the AK corrections sound where it
+could measure them: its `C4-P2` evaluator is red on both named mutations and green on all seven
+required-green members and on the AK1 and AK5 vectors, its row-by-row audit of the operand enumeration
+above found no row missing and none wrong, and it recorded that `AK6` moves no verdict on its own in
+any member of that property's group — an over-precise operand rather than a defect, raised as a note
+and not as a finding.
+
+**AL1** is AK7's defect on a sixth property, in the artifact the AK audit reported clean. `S3` bounded
+admission by "the first drain transition" and named no session; a vector may carry two, so a second
+session that legally establishes and admits after the first one drains violates it as written. The
+audit could not have found it, and that is **AL3**: its trigger set is C12's declared list of
+per-session facts, `S3` names none of them because it reads a session's state *through a transition of
+it*, and the session's own state was not declared — the four facts that were are exactly the four the
+AK pass had found red, which is a class derived from its own members. **AL2** is the refused-frame
+reference published in five surfaces and corrected in four; the state/event grid's two `unseen` cells
+still carried the pre-AK1 record, and both halves of the AK1 check key on the reference's name, which
+those cells never used. **AL4** is `S5` comparing an `established profile` — a declared per-session
+fact — across the vector.
+
+All four are corrected. Every property of the session state machine now names the session it means and
+is checked structurally, on the ground that the machine's properties are statements about one session
+by construction; C12's declared list carries the session's own state and is checked against the neutral
+brief's vector format rather than against itself; the grid's two cells are registered as surfaces of
+their own; and the package-wide sweep for that record is keyed to the record rather than to the
+reference's name.
 
 **The correction pass stopped sampling.** `C4-P1` and `C4-P2` were enumerated completely — every fact
 they read, the scope each clause claims, every publishing surface, and whether the published fields

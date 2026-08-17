@@ -18,7 +18,10 @@ group authored against the wrong observation. That count of artifacts was writte
 **AK4**, which matters only because the number of artifacts publishing this reference is the exact
 quantity AJ1 turned on. It is otherwise unchanged by the **AI1**-**AI9** and
 **AJ1**-**AJ7** families. Under **AK1**, **AK5** and **AK6** the inventory adds the refused-frame and
-terminal-frame references those vectors compare, in the same form and for the same reason.
+terminal-frame references those vectors compare, in the same form and for the same reason. Unchanged
+by **AL1**-**AL4**, which changed no reference's field list, added no evidence requirement, and
+dispositioned no further 0.1 case: their subject is where the existing fields are published and which
+session a property means.
 
 Sources inventoried:
 

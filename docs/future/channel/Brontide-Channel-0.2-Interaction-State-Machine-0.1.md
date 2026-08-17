@@ -26,7 +26,11 @@ Under **AK1** and **AK5** the `unseen` refusal records the refused-frame referen
 reason and a frame kind, so all three of `C4-P2`'s first-conjunct qualifiers have operands; under
 **AK6** accepting a terminal history records the terminal-frame reference, which is the second
 conjunct's other precedence operand and was published by no artifact; and under **AK7** `I5` names the
-session whose bound it is about.
+session whose bound it is about. Unchanged by **AL1**-**AL4**: the sixteenth review's two blocking
+findings are the session machine's property statements and the state/event grid's two `unseen` cells,
+and this machine's own `unseen` transition row was already among the surfaces publishing the
+refused-frame reference in full. Its `I1`-`I7` were re-read against AL1's question and each names the
+interaction identity, which C12 declares per-session, so the AK7 recognizer reaches them.
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 

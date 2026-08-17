@@ -58,6 +58,21 @@ completeness review — raised **AK5** and **AK6**, the rest of the first conjun
 second conjunct's second precedence operand, which no artifact published at all; and **AK7** and
 **AK8**, which are AH1's multi-session decision never having reached the property statements, so
 `C4-P1`, `C4-P2`, `C1-P1`, `C3-P1` and `I5` each counted a per-session fact across the vector.
+The sixteenth review returned `does-not-conform` with blocking **AL1** and **AL2** and nonblocking
+**AL3** and **AL4**, and confirmed the AK corrections by evaluator where they are measurable: its
+`C4-P2` evaluator is correct on every input it ran, and its row-by-row audit of the operand
+enumeration found no row missing and none wrong. **AL1** is AK7's own defect on a sixth property —
+`S3` bounded admission by "the first drain transition" and named no session, so a second session
+legally establishing and admitting after the first drains takes it red — and it survived because the
+AK audit recognises a per-session fact by that fact's own words while `S3` reads one through a
+transition of it, the session's own state being absent from C12's declared list, which is **AL3**.
+**AL2** is the refused-frame reference published in five surfaces and corrected in four, the missed
+surface being the state/event grid's two `unseen` cells, which neither half of the AK1 check could
+read because both key on the reference's name. **AL4** is `S5` comparing a per-session profile across
+the vector. All four are corrected, and the two checks written for them are structural rather than
+lexical: every property of the session state machine must name its session because that machine's
+properties are statements about one session by construction, and the sweep for the refusal record is
+keyed to the record rather than to the reference's name.
 
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),
