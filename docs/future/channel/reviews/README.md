@@ -703,6 +703,15 @@ is exactly what the AD and AE passes found separately.
    - `build/verify-channel-0.2-design.ps1`;
    - `build/verify-channel-0.2-design.ps1 -NegativeProbe` and confirm it fails only because
      `C12-P1` was removed in memory;
+   - `build/verify-channel-0.2-properties.ps1`, which evaluates `C4-P2` over its eleven declared
+     inputs and reverts nine published operands, failing when a verdict is not the declared one.
+     A reviewer building an evaluator of their own should compare against it and treat a
+     disagreement as a finding against whichever of the two is wrong -- the declared expectations
+     are data in `conformance/channel-0.2-properties.json` and are as reviewable as the prose;
+   - `build/verify-channel-0.2-facts.ps1`, which renders every owned fact into the artifacts that
+     publish it and fails on a hand-edited or unfenced publication. A reviewer checking whether the
+     twenty frame-reference publications agree no longer has to compare them: they are generated
+     from one declaration, and the reviewable question is whether that declaration is right;
    - `build/verify-doc-links.ps1`;
    - `build/verify-text.ps1`; and
    - `build/verify-interchange.ps1`.
@@ -711,6 +720,16 @@ Only after the conforming attestation, closure record, documentation/status upda
 gate are committed may the next agent start Batch 2 from the
 [neutral contract brief](../Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md). This closure
 authorizes planned schema work; it does not ratify Channel 0.2 or claim implementation conformance.
+
+## Retained records other than attestations
+
+[`channel-0.2-disposition-index.md`](./channel-0.2-disposition-index.md) owns the per-artifact
+correction history that each design artifact's status block used to carry, moved there verbatim
+under **W3** of the
+[verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md). It is
+not an attestation, is assessed by no review, and never overrides a retained record: where it and an
+attestation disagree the attestation is right. A reviewer checking what was corrected in one
+artifact reads it; a reviewer checking what a finding *was* reads the attestation that raised it.
 
 ## Retained attestations
 
@@ -863,9 +882,16 @@ authorizes planned schema work; it does not ratify Channel 0.2 or claim implemen
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `fix(channel): close AL1-AL4 and check the recognizers`,
-committed 2026-08-17, which is the head of the correction sequence beginning at
-`fix(channel): make C4-P2 falsifiable`. Review that commit or any later commit whose design
+The current review target is the commit titled `feat(channel): make S1-S6, I1-I7 and C4-P1 execute in
+the gate`, committed 2026-08-18, which is the head of the correction sequence beginning at
+`fix(channel): make C4-P2 falsifiable`. The commits above the previous pin are verification-foundation
+work done under the hold rather than corrections to a finding: fifteen properties now execute in the
+gate with their required-green sets stated, the three frame references are rendered from one
+declaration into the twenty artifact sites that publish them, and the status blocks and index rows
+carry a pointer to the
+[disposition index](./channel-0.2-disposition-index.md) instead of their correction history. A
+reviewer assessing this pin reads that index for what was corrected in an artifact and the retained
+attestation for what the finding was. Review that commit or any later commit whose design
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
 has now gone stale three times: the eighth review raised it as **U6**, the rewrite that closed U6 was
 itself superseded one commit later and raised as **X6**, and the same sentence carried the wrong date

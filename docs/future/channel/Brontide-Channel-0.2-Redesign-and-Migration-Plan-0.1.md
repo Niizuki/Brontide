@@ -2,77 +2,11 @@
 
 ## Channel 0.2 Redesign and Migration Plan 0.1
 
-**Status:** First-batch design foundation drafted and its four owner rulings resolved. B1-B4, N1-N3,
-F1-F3, D1-D5, T1-T4, and R1-R3 are closed as framed, the last three re-verified by the seventh review
-in the artifacts they were raised against. That review's blocking finding S1 — that the R1 correction
-kept `rejected-protocol` at recipient `unseen` under a delivery-ordering guarantee stated in the
-state/event grid alone, which C4 and C11 disclaimed and the responsibility matrix assigned to
-`delivery-facet` — is corrected under the 2026-08-13 S1 ruling: Channel 0.2 core owns intra-interaction
-frame order, narrowly scoped, stated in C4 with `C4-P2` and a mutation vector, given an owner row in
-the responsibility matrix, and declared by the realization profile. Nonblocking S2 and S3 are
-dispositioned in the same pass. The eighth review then found S1 closed as to ownership and not as to
-falsifiability and raised blocking **U1** with nonblocking **U2**-**U8**; those are corrected, as are
-**V1**-**V3**, **W1**-**W6**, **X1**-**X7**, **Y1**-**Y4**, **Z1**-**Z4**, **AA1**-**AA3**,
-**AB1**-**AB2**, and **AC1**-**AC4**, every one raised by an author-side iteration pass over the
-previous corrections and none by an independent review. AB1 is this status block, which had stopped at
-S3 while six passes ran. AC1-AC4 are the layer under the Y and V corrections — the arrival ordinal
-stated only in the artifact that reads it, a closed detailed-reason set with no value for the refusal
-`C4-P2` quantifies over, the property's own subject naming the wrong endpoint, and a class check blind
-to two-letter finding families. **AD1**-**AD3** then turned the same method on the retained records
-themselves: AD1 is the AC pass's residual denying that the AA and AB evidence existed and referring
-the gap to the owner, AD3 the three disagreeing accounts of what the W iteration review contains, and
-AD2 the half of the X7 class check still written over two ids. The ninth closure review then returned
-`does-not-conform` with blocking **AE1** and nonblocking **AE2**-**AE5**, and ruled AD2 a defect; all
-six are corrected, AE1 under the dated ruling recorded below. The tenth closure review then returned
-`does-not-conform` with blocking **AF1** and nonblocking **AF2**-**AF8**: it confirmed the AE1
-property fix works and found the correction incomplete one artifact below itself, in the passage
-stating what the mutation vectors' expected observations are. The eleventh raised blocking **AG1**
-with nonblocking **AG2**-**AG5**, and the twelfth returned `conforms-with-nonblocking-findings` with
-**AH1**-**AH6** and no blocking finding — the first non-negative verdict in the programme. All are
-corrected.
-A fresh independent closure re-review of that whole sequence precedes Batch 2. No Channel 0.2
-implementation or ratification is claimed.
-The thirteenth review then returned `does-not-conform` with blocking **AI1** and nonblocking
-**AI2**-**AI9**: the settling-frame reference — one of `C4-P2`'s two operands — was still published as
-four fields with no session after AH1 had made two-session vectors legal. Under **AI5** and **AI9**
-this plan is corrected there: the AH1 ruling's citation of reconnect cases C2 does not have, and
-section 7.8's report of seven retained negative attestations, which was S3's own evidence and had
-stayed open for six cycles while every index called the programme's findings closed. This block also
-claimed **AI2** was corrected here; it was not, because AI2's two narrative surfaces are the
-future-work index and the Channel index, and both were unchanged. That claim is withdrawn under
-**AJ2**, which is the fourteenth review's finding that a disposition was recorded in an artifact the
-finding was never raised against while remaining open in both artifacts it was.
-The fourteenth review returned `does-not-conform` with blocking **AJ1** and nonblocking
-**AJ2**-**AJ7**. **AJ1** is AI1 surviving its own correction commit: the reference is published in
-five places and the correction reached three, leaving the state/event grid the neutral brief is
-subordinate to and the responsibility matrix row that owns the observation record, from both of which
-the reviewer reproduced AI1's exact false green. All seven are corrected.
-The fifteenth review returned `does-not-conform` with blocking **AK1** and nonblocking
-**AK2**-**AK4**, and confirmed AJ1 closed by evaluator. **AK1** is the same shape as AI1 and AJ1 on
-`C4-P2`'s **other** conjunct: the recorded `unseen` refusal is that conjunct's operand, five surfaces
-published what it contains, and none named the session AF8's membership scope requires or the identity
-the test is over, so the property was red on a two-session vector conforming at both endpoints. All
-four are corrected. The correction pass then enumerated `C4-P1` and `C4-P2` completely instead of
-sampling one operand as the four previous cycles had, and that enumeration — retained in the
-completeness review — raised **AK5** and **AK6**, the rest of the first conjunct's operand and the
-second conjunct's second precedence operand, which no artifact published at all; and **AK7** and
-**AK8**, which are AH1's multi-session decision never having reached the property statements, so
-`C4-P1`, `C4-P2`, `C1-P1`, `C3-P1` and `I5` each counted a per-session fact across the vector.
-The sixteenth review returned `does-not-conform` with blocking **AL1** and **AL2** and nonblocking
-**AL3** and **AL4**, and confirmed the AK corrections by evaluator where they are measurable: its
-`C4-P2` evaluator is correct on every input it ran, and its row-by-row audit of the operand
-enumeration found no row missing and none wrong. **AL1** is AK7's own defect on a sixth property —
-`S3` bounded admission by "the first drain transition" and named no session, so a second session
-legally establishing and admitting after the first drains takes it red — and it survived because the
-AK audit recognises a per-session fact by that fact's own words while `S3` reads one through a
-transition of it, the session's own state being absent from C12's declared list, which is **AL3**.
-**AL2** is the refused-frame reference published in five surfaces and corrected in four, the missed
-surface being the state/event grid's two `unseen` cells, which neither half of the AK1 check could
-read because both key on the reference's name. **AL4** is `S5` comparing a per-session profile across
-the vector. All four are corrected, and the two checks written for them are structural rather than
-lexical: every property of the session state machine must name its session because that machine's
-properties are statements about one session by construction, and the sweep for the refusal record is
-keyed to the record rather than to the reference's name.
+**Status:** first-batch design foundation and its four owner rulings; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#redesign-and-migration-plan).
 
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),

@@ -2,35 +2,11 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; B1/B2, N2, F1/F2, D2/D3/D4, T3, R1, R2, S2, W4, X1, X3,
-X5, Y3, AC1, and AC2 corrected after independent review and subject to a fresh independent closure
-re-review. Under AC1 the settling frame this machine records carries its arrival ordinal, which Y4 had
-added to the neutral brief alone while the brief is subordinate to this artifact; under AC2 the
-`unseen` refusal records its detailed reason and the kind of frame refused.
-Under Y3 the refusal leaves the recipient's per-identity state at `unseen` and records
-`rejected-protocol` as provenance, because routing it to that terminal state would hand it back to the
-`any terminal` rows and their latch.
-`validating` now carries loss and drain rows, the pre-dispatch loss rule is reconciled to any
-nonterminal state, and under W4 an identity refused at `unseen` is not a terminal interaction and owns
-no latch. Under X3 that event is a recipient transition row of its own, because the totality rule
-would otherwise make it the terminal interaction W4 refuses; under X5 the refusal records one local
-observation whose provenance this artifact fixes; and under X1 settling the late-traffic latch records
-the frame that settled it, which is what `C4-P2` reads and the latch value is not. Under **AI1** the
-settling frame this machine records carries its **session**: AH1 declared a vector may carry more than
-one, an interaction identity is unique only within one, and without the session two steps in different
-sessions match every other published field. Under **AJ1** this artifact publishes that reference in
-the one form every other publishing artifact uses, and under **AJ6** the paragraph beneath the field
-list names the fields its argument is about instead of counting them from the front — the AI1
-insertion had made "the first three" a set that omits the committing endpoint the claim is over.
-Under **AK1** and **AK5** the `unseen` refusal records the refused-frame reference rather than a
-reason and a frame kind, so all three of `C4-P2`'s first-conjunct qualifiers have operands; under
-**AK6** accepting a terminal history records the terminal-frame reference, which is the second
-conjunct's other precedence operand and was published by no artifact; and under **AK7** `I5` names the
-session whose bound it is about. Unchanged by **AL1**-**AL4**: the sixteenth review's two blocking
-findings are the session machine's property statements and the state/event grid's two `unseen` cells,
-and this machine's own `unseen` transition row was already among the surfaces publishing the
-refused-frame reference in full. Its `I1`-`I7` were re-read against AL1's question and each names the
-interaction identity, which C12 declares per-session, so the AK7 recognizer reaches them.
+Status: proposed first-batch design artifact; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#interaction-state-machine).
 
 Contract owners: [Channel 0.2 C3, C4, C7, C8, C9, and C10](./Brontide-Channel-0.2-Capability-Contract-0.1.md).
 
@@ -109,7 +85,7 @@ with the same provenance, not a fictional global state.
 | From | Event and guard | To | Handler effect possible? |
 | --- | --- | --- | --- |
 | `unseen` | complete request for an established session arrives | `validating` | no |
-| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `unseen`, unchanged | no; commit one interaction-scoped peer fault with `rejected-protocol` provenance and detailed reason `unopened-interaction-identity`, record one local observation carrying that reason, the **refused-frame reference** — its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal for that interaction identity — and effect certainty `known-none`, and retain no history, no latch, and no in-flight reservation |
+| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `unseen`, unchanged | no; commit one interaction-scoped peer fault with `rejected-protocol` provenance and detailed reason `unopened-interaction-identity`, record one local observation carrying that reason, the **refused-frame reference** — <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact --> — and effect certainty `known-none`, and retain no history, no latch, and no in-flight reservation |
 | `validating` | structural/profile/state/class/direction/Shape/authority-structure/bound/replay/concurrency check fails | `rejected-protocol` | no |
 | `validating` | receiver-local external phase predicate is `false` or `unknown` | `refused-local` | no |
 | `validating` | structurally valid authority presentation is denied by local policy | `refused-local` | no |
@@ -236,8 +212,8 @@ Every other terminal interaction owns a `late-traffic-fault` latch with exactly 
 The first duplicate semantic terminal or late non-fault control while the latch is `clear` preserves
 the first accepted terminal history and attempts exactly one interaction-scoped `state-violation`
 peer fault. Successful commit sets `fault-committed`; inability to commit sets `fault-unavailable`.
-Settling the latch also **records the frame that settled it** — its kind, its **session**, its
-interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction —
+Settling the latch also **records the frame that settled it** — <!-- fact:settling-frame-reference -->its kind, its **session**, its interaction identity, its **committing
+endpoint**, and its **arrival ordinal** within the interaction<!-- /fact --> —
 in the local observation. Kind, session, interaction identity, and committing endpoint together do not
 identify the frame when one endpoint commits two of the same kind for one identity, which is exactly
 what a duplicate terminal is and is a case `C4-P2` must leave green; the ordinal is what maps the
@@ -252,9 +228,9 @@ acknowledgement its own endpoint committed before the terminal frame fails the p
 late control from the peer and a duplicate terminal committed after the terminal frame do not, and all
 three settle the same latch to the same value.
 
-Accepting a terminal history likewise **records the terminal-frame reference** — its kind, its
-**session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** within
-the interaction — in the local observation. That is the other frame the sentence above compares
+Accepting a terminal history likewise **records the terminal-frame reference** — <!-- fact:terminal-frame-reference -->its kind, its **session**, its interaction
+identity, its **committing endpoint**, and its
+**arrival ordinal** within the interaction<!-- /fact --> — in the local observation. That is the other frame the sentence above compares
 against, and until **AK6** it was published by nothing: the observation recorded the terminal form,
 and a form identifies one frame only while an endpoint commits at most one frame of that form for one
 identity. A duplicate terminal is an endpoint committing two, it is a case `C4-P2` must leave green,

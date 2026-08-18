@@ -72,6 +72,26 @@ $neutralBrief = Read-RequiredText 'Brontide-Channel-0.2-Neutral-Contract-Brief-0
 $channelReadme = Read-RequiredText 'README.md'
 $reviewReadme = Read-RequiredText 'reviews\README.md'
 
+# W3. An artifact's status block states what the artifact is and what it awaits, and nothing else.
+# Its correction history is owned by the disposition index, which is a review record rather than a
+# design artifact. Nine status blocks had reached 289 lines between them and none of it said what the
+# artifact means -- it said what had once been wrong with it, which is surface every cold reviewer
+# then has to read. The narrative checks below therefore read the index rather than the blocks: the
+# text was moved verbatim, so each check asks the same question of the one file that now carries the
+# answer instead of asking it of nine.
+$dispositionIndex = Read-RequiredText 'reviews\channel-0.2-disposition-index.md'
+$dispositionSections = @{}
+foreach ($dispositionSection in [regex]::Matches($dispositionIndex, '(?ms)^## .+?$(.+?)(?=^## |\z)')) {
+    $sectionLink = [regex]::Match($dispositionSection.Groups[1].Value, '\[([^\]]+\.md)\]')
+    if ($sectionLink.Success) { $dispositionSections[$sectionLink.Groups[1].Value] = $dispositionSection.Groups[1].Value }
+}
+function Get-DispositionSection {
+    param([Parameter(Mandatory = $true)][string]$ArtifactName)
+    if ($dispositionSections.ContainsKey($ArtifactName)) { return $dispositionSections[$ArtifactName] }
+    return ''
+}
+
+
 if ($NegativeProbe) {
     $contract = $contract.Replace('**Property C12-P1.**', '**Property C12-P1-REMOVED-BY-NEGATIVE-PROBE.**')
 }
@@ -687,8 +707,14 @@ $briefEstablishment = ($neutralBrief -split '## Version and establishment rule',
 if (-not $briefEstablishment -or (Get-FlowedText $briefEstablishment).IndexOf('per-interaction frame order', [System.StringComparison]::Ordinal) -lt 0) {
     $failures.Add('The neutral brief''s establishment rule does not carry the per-interaction frame order declaration, although C4 requires a profile to check it at establishment and the responsibility matrix makes it the crossing artifact. The brief fixes the established-profile boundary, so an obligation absent from it does not reach Batch 2.')
 }
-if ($flowedBrief.IndexOf('intra-interaction frame order and its ordering mutation', [System.StringComparison]::Ordinal) -lt 0) {
-    $failures.Add('The neutral brief lists no adversarial vector group owning intra-interaction frame order, so `C4-control-precedes-request` has no home among the required groups.')
+# This check read the whole brief until W3 moved the status blocks out, and the only passage carrying
+# its phrase was the status block's own account of what the V-Z corrections had done -- so a check on
+# the required vector groups was being answered by a sentence about a correction to them. It is scoped
+# to the vector-groups section and matches what that section says, which is stronger: BOTH mutations,
+# one per conjunct, is the requirement, and the singular the status prose used was the weaker claim.
+$briefVectorGroups = ($neutralBrief -split '## Vector groups', 2)[1] -split '## Capability-wide property format', 2 | Select-Object -First 1
+if (-not $briefVectorGroups -or ((Get-FlowedText $briefVectorGroups) -replace '\*\*', '').IndexOf('intra-interaction frame order and both its ordering mutations', [System.StringComparison]::Ordinal) -lt 0) {
+    $failures.Add('The neutral brief''s required adversarial vector groups do not list intra-interaction frame order with both its ordering mutations, so a conjunct of `C4-P2` has no group required to falsify it.')
 }
 
 # U4: the completeness review narrates a disposition paragraph per review cycle, and stopped after the
@@ -998,10 +1024,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all four correction iteration reviews before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all four correction iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
 }
 
 # The closure-cycle hold. The review policy tells an agent not to dispatch a closure review while the
@@ -1165,8 +1191,8 @@ else {
     # work" -- and it was the one status block the T4 check set never covered, so it went stale
     # unnoticed through six correction passes while the checks watched the other nine.
     foreach ($family in $dispositionFamilies) {
-        if ($plan -cnotmatch "\b$family[0-9]") {
-            $failures.Add("The redesign plan names no finding in the '$family' family, although the completeness review's disposition history records one. The plan is the entry point the future-work index sends a reader to first, and it is the one status block the cycle-name check never covered.")
+        if ((Get-DispositionSection 'Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md') -cnotmatch "\b$family[0-9]") {
+            $failures.Add("The disposition index's section for the redesign plan names no finding in the '$family' family, although the completeness review's disposition history records one. The plan is the entry point the future-work index sends a reader to first, and its disposition history is the one the cycle-name check never covered.")
         }
     }
 
@@ -1573,33 +1599,39 @@ else {
     }
 }
 
-# AG4: AE4 corrected the Channel index's Design reviews row, AF2 corrected its narrative, and its
-# seven per-artifact rows still stopped at Z3/Y3/Z2/U2/Z4/Z1. Three passes each closed one surface of
-# the same index. Each row must now make an explicit claim about the latest family -- either it names
-# it or it says the artifact is unchanged by it -- so a row cannot go stale by being left alone.
+# AG4, AH4 and AJ5 are retired here, and this is the second half of W3.
+#
+# They policed the Channel index's eleven per-artifact rows for freshness: each row had to name the
+# newest finding family or say the artifact was unchanged by it, because AE4 corrected the Design
+# reviews row, AF2 corrected the narrative, and seven per-artifact rows still stopped at Z3/Y3/Z2/U2.
+# AH4 then closed the escape clause bound to no family, and AJ5 closed the escape naming one finding
+# of a family as though it spoke for the family. Three checks over one surface, each written from the
+# shape of the finding before it, which is section 1.4 of the plan exactly.
+#
+# The rows now carry no disposition history at all -- 8,746 characters of it moved verbatim to the
+# disposition index -- so there is nothing left in them to go stale. A row states what the artifact is
+# for and points at the record. The freshness question is asked once, of the disposition index, by the
+# W3 check further down, and the pointer is what this check requires.
 if ($latestDispositionFamily) {
-    $artifactRows = @($channelReadme -split "`r?`n" | Where-Object { $_ -match '^\| \[.+\]\(\./Brontide-Channel-' })
+    $artifactRows = @($channelReadme -split "`r?`n" | Where-Object { $_ -match '^\| \[[^\]]+\]\(\./(?:Brontide-Channel-|reviews/)' })
     if ($artifactRows.Count -lt 1) {
         $failures.Add('The Channel index carries no per-artifact rows, which are what tell a reader the state of each design artifact.')
     }
     foreach ($artifactRow in $artifactRows) {
         $rowName = [regex]::Match($artifactRow, '^\| \[([^\]]+)\]').Groups[1].Value
-        # AH4: the escape was the bare phrase `unchanged by`, bound to no family, so a row reading
-        # "unchanged by AF and AG" satisfied the check for AH, AI, and everything after -- five of
-        # nine rows passed only through it. The escape now has to name the family it is escaping.
-        #
-        # AJ5: `\bAI\b` does not match `AI9` -- there is no word boundary before a digit -- so four
-        # rows reading "unchanged by AI9" fell through the escape clause and satisfied the *first*
-        # clause instead, which `AI9` does match. A row could then discharge a family obligation by
-        # declaring itself unchanged by one finding of that family, which is what AH4 was written to
-        # prevent; and two of the four rows were false, because the artifacts were changed by AI1 and
-        # had not been updated. The two clauses are therefore separated: an escape must name the
-        # family with no finding number after it, and a positive claim is read from the row with its
-        # escape clauses removed, so an escape can never be counted as naming the family.
-        $rowEscapePattern = "unchanged by[^;|]*\b$($latestDispositionFamily[0])\b(?![0-9])"
-        $rowWithoutEscapes = [regex]::Replace($artifactRow, 'unchanged by[^;|]*', '')
-        if ($artifactRow -cnotmatch $rowEscapePattern -and $rowWithoutEscapes -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
-            $failures.Add("The Channel index row for '$rowName' neither names a finding in the '$($latestDispositionFamily[0])' family outside an escape clause nor states the artifact is unchanged by that family. A row that is silent about the newest family is indistinguishable from one that went stale; an escape clause naming no family satisfies every future check without making a claim; and an escape naming one finding of the family -- 'unchanged by $($latestDispositionFamily[0])9' -- is a true statement about that finding and a false impression about the family. This is AJ5.")
+        if ($artifactRow.IndexOf('reviews/channel-0.2-disposition-index.md', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("The Channel index row for '$rowName' does not point at the disposition index. A row that carries its own correction history is a second place that history has to be kept current, and keeping it current is what AE4, AF2, AG4, AH4 and AJ5 were each about.")
+        }
+        # The bound is what retires the surface rather than relocating it: a row that keeps its
+        # pointer and grows a clause beside it is the old row with a link added.
+        $rowState = @($artifactRow -split '\|')
+        # The Design reviews row is bounded higher, and the reason is stated rather than fudged: the
+        # AE4 check above REQUIRES it to name every family a retained iteration review records, nine
+        # of them, because a pass once denied records that existed. That enumeration is a fact about
+        # what the directory holds rather than disposition history, so it is what the row is for.
+        $rowBound = if ($rowName -eq 'Design reviews') { 300 } else { 220 }
+        if ($rowState.Count -ge 4 -and $rowState[3].Trim().Length -gt $rowBound) {
+            $failures.Add("The Channel index row for '$rowName' carries $($rowState[3].Trim().Length) characters of state and the bound is $rowBound. Disposition history belongs in the disposition index; these eleven cells averaged 795 characters of it before W3.")
         }
     }
 }
@@ -1617,9 +1649,9 @@ if ($latestDispositionFamily) {
 # had seen the AF corrections after review 11 had. The plan's status block is AB1's own surface, stale
 # a second time. Each must reach the newest family the disposition history records.
 if ($latestDispositionFamily) {
-    $planStatus = [regex]::Match($plan, '(?ms)^\*\*Status:\*\*(.+?)(?=^\*\*Designed against)').Groups[1].Value
+    $planStatus = Get-DispositionSection 'Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md'
     if ($planStatus -and (Get-FlowedText $planStatus) -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
-        $failures.Add("The redesign plan's status block does not reach the '$($latestDispositionFamily[0])' family. This block is the surface AB1 was raised against and it has now gone stale twice, while an index row declares AB1 corrected. This is AH3.")
+        $failures.Add("The disposition index's section for the redesign plan does not reach the '$($latestDispositionFamily[0])' family. This is AB1's own surface, stale twice before W3 moved it out of the plan; moving it did not make it exempt. This is AH3, now asked of the record that owns the history.")
     }
     if ($futureIndexText -match 'No independent review has yet seen the ([A-Z]{1,2}) corrections') {
         $seenClaim = $Matches[1]
@@ -1644,11 +1676,11 @@ if ($latestDispositionFamily) {
 $numberedReviewOrdinals = @{ 7 = 'seventh'; 8 = 'eighth'; 9 = 'ninth'; 10 = 'tenth'; 11 = 'eleventh'; 12 = 'twelfth'; 13 = 'thirteenth'; 14 = 'fourteenth'; 15 = 'fifteenth'; 16 = 'sixteenth'; 17 = 'seventeenth'; 18 = 'eighteenth'; 19 = 'nineteenth'; 20 = 'twentieth' }
 $channelNarrative = ($channelReadme -split '\| Artifact \| Purpose \| Current state \|', 2) | Select-Object -First 1
 $futureChannelNarrative = ($futureIndexText -split '## Priority 1 . Channel 0.2 redesign and migration', 2)[1] -split '(?m)^## ', 2 | Select-Object -First 1
-$planNarrative = [regex]::Match($plan, '(?ms)^\*\*Status:\*\*(.+?)(?=^\*\*Designed against)').Groups[1].Value
+$planNarrative = Get-DispositionSection 'Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md'
 $reviewNarratives = @(
     @{ Name = 'the Channel index narrative'; Text = $channelNarrative },
     @{ Name = "the future-work index's Priority 1 narrative"; Text = $futureChannelNarrative },
-    @{ Name = "the redesign plan's status block"; Text = $planNarrative }
+    @{ Name = "the disposition index's section for the redesign plan"; Text = $planNarrative }
 )
 foreach ($provenanceRow in [regex]::Matches($reviewReadme, '(?m)^\| ([A-Z]{1,2}) \| closure-review \|([^|]*)\|')) {
     $provenanceFamily = $provenanceRow.Groups[1].Value
@@ -1733,172 +1765,52 @@ foreach ($retentionCiter in @(@{ Name = 'capability contract'; Text = $flowedCon
     }
 }
 
-# AJ1, which supersedes the AI1 check written for the same reference. AI1 was that the settling-frame
-# reference is published as four fields with no session while a vector may now carry two sessions
-# holding one interaction identity value, so the reference stops mapping to one declared stimulus step
-# and `C4-P2` evaluates green on `C4-outcome-precedes-ack`. The correction reached three of the five
-# artifacts that publish it -- and its check reached two, iterating an artifact list and asserting its
-# own completeness with `Count -lt 3`, a guard set to the number of lists in its own scope. A guard
-# that counts what it can already see cannot report that its scope is wrong.
+# The frame-reference registry that stood here is deleted. It hardcoded, per reference, the list of
+# surfaces publishing it, an exact-count assertion over that list, and a package-wide sweep for an
+# abbreviated publication -- roughly 125 lines whose whole purpose was to notice that twenty
+# hand-maintained copies of one fact had drifted apart. They drifted anyway, once per cycle for nine
+# cycles: AI1, AJ1, AK1 and AL2 are one event four times, and each check written to catch it could
+# only see the surfaces its author already knew about.
 #
-# This is written over the REFERENCE instead. Three things follow from that and each is load-bearing:
+# The fact is now owned by `conformance/channel-0.2-facts.json` and RENDERED into every artifact that
+# publishes it, inside a fence the artifact carries. `build/verify-channel-0.2-facts.ps1` verifies
+# every fenced region against the declaration and sweeps for an unfenced publication. So there is no
+# surface list to keep in step -- a fence is the registration and it lives in the artifact -- and no
+# exact count to maintain, because a surface cannot exist without registering itself. That is W1 of
+# the verification foundation plan, and its acceptance was precisely that this registry could be
+# deleted rather than extended.
 #
-#   * the surface set is enumerated from a search for the fact (`grep settl` over the package returns
-#     all six in one screen), not from any finding's evidence citations, and it includes the two
-#     artifacts the design's own hierarchy resolves in favour of -- the grid the brief declares itself
-#     subordinate to, and the matrix row that *owns* the observation record -- plus the ledger
-#     inventory Batch 2 builds its vector groups from;
-#   * every surface must publish the same field list verbatim, so the guard is over the class "the
-#     reference's field set drifts between the artifacts that publish it" rather than over the session
-#     alone. AC1 was that class with the arrival ordinal, AI1 with the session, and a sixth field added
-#     in some surfaces and not others fails here without anyone writing a new check; and
-#   * the package-wide sweep below fails on a publication-shaped passage anywhere in the eleven
-#     artifacts, registered or not, so a seventh surface cannot appear silently.
-# AK1, AK5, and AK6 generalise this check rather than replace its subject. AJ1's guard was exact and
-# total over ONE reference, and AK1 is the identical defect on `C4-P2`'s other conjunct: the recorded
-# `unseen` refusal was published by five surfaces that agreed with each other exactly and named
-# neither the session AF8's membership scope requires nor the interaction identity the test is over,
-# so the property went red on a conforming two-session vector. AK5 is the rest of that same operand --
-# the refused frame's committing endpoint, which the conjunct's own subject is, and its arrival
-# ordinal, without which the record binds to either of two controls one endpoint committed for one
-# identity. AK6 is the second conjunct's *second* operand, "that endpoint's own frame that made the
-# interaction terminal", which was published by nothing at all and left to be inferred from the
-# terminal form.
-#
-# The guard is therefore written over the class "a frame a property reads is published as a frame
-# reference", not over any one reference. Four things follow and each is load-bearing:
-#
-#   * every declared reference carries the same five field names, so a reference introduced with four
-#     of them fails here without anyone writing a new check -- which is exactly what AK1 and AK6 were;
-#   * every registered surface publishes its reference's exact field list, and the surface set is
-#     enumerated from a search for the fact rather than from any finding's evidence citations;
-#   * the package-wide sweep fails on a publication-shaped passage anywhere in the eleven artifacts,
-#     registered or not, so a new surface cannot appear silently; and
-#   * each reference's publication count is exact rather than a lower bound, which is what let the AI1
-#     check certify its own scope.
-$frameReferenceFields = @('kind', 'session', 'interaction identity', 'committing endpoint', 'arrival ordinal')
-# Emphasis is stripped before comparison: the field list is marked up differently in a table cell than
-# in a paragraph, and the fields are the fact rather than the bolding.
+# What stays here is what reads the fact rather than publishing it: the AL2 record-keyed sweep below,
+# AK4's count claim, and the operand enumeration's registration rows. Each now takes the field list
+# and the reference set from the declaration.
+$frameFacts = $null
+$frameFactsPath = Join-Path $repositoryRoot 'conformance\channel-0.2-facts.json'
+if (-not (Test-Path -LiteralPath $frameFactsPath)) {
+    $failures.Add('The owned-fact declaration conformance/channel-0.2-facts.json does not exist. The frame references are rendered from it into every artifact that publishes them, so without it nothing here knows what the field list is.')
+}
+else {
+    try { $frameFacts = Get-Content -Raw -LiteralPath $frameFactsPath -Encoding UTF8 | ConvertFrom-Json }
+    catch { $failures.Add("The owned-fact declaration is not valid JSON: $($_.Exception.Message)") }
+}
 $framePlain = { param($Text) ((Get-FlowedText $Text) -replace '\*\*', '') }
-
-$briefLocalObservation = ($neutralBrief -split '### Local observation', 2)[1] -split '## External phase and authority inputs', 2 | Select-Object -First 1
-$briefParityProfile = ($neutralBrief -split '## Observation and parity profile', 2)[1] -split 'Excluded by default', 2 | Select-Object -First 1
-$machineLatchSection = ($interaction -split '## Late terminal and control disposition', 2)[1] -split '## Interaction event totality', 2 | Select-Object -First 1
-$gridLatchSection = ($stateEventCoverage -split '## Late-traffic latch', 2)[1] -split '## Evidence required', 2 | Select-Object -First 1
-$gridRecipientSection = ($stateEventCoverage -split '## Recipient interaction coverage grid', 2)[1] -split '## Late-traffic latch', 2 | Select-Object -First 1
-$machineUnseenRow = (@($interaction -split "`r?`n" | Where-Object { $_ -match '^\| .unseen. \| recognized peer event' }) -join ' ')
-# AL2: the grid's `unseen` row and the grid's prose are two surfaces, not one. Registering the section
-# that contains both let the prose satisfy the check for the cells, which is how the AK1 correction
-# reached four of the five surfaces its own evidence enumerated and the gate stayed green. The cells
-# are split out by the column separator so each is required to publish the reference on its own.
-$gridUnseenRow = (@($stateEventCoverage -split "`r?`n" | Where-Object { $_ -match '^\| .unseen. \| validation rows' }) -join ' ')
-$gridUnseenCells = @($gridUnseenRow -split '\|' | Where-Object { $_ -match 'unopened-interaction-identity' })
-$gridUnseenProse = ($gridRecipientSection -split "`r?`n" | Where-Object { $_ -notmatch '^\|' }) -join "`n"
-$matrixObservationRow = (@($responsibility -split "`r?`n" | Where-Object { $_ -match '^\| Local observation content' }) -join ' ')
-$ledgerNewEvidence = [regex]::Match($migration, '(?ms)^## New evidence required by redesign\r?\n(.+?)(?=^## |\z)').Groups[1].Value
-
-$frameReferences = @(
-    @{ Key = 'settling'
-       Label = 'the frame that settled the late-traffic latch'
-       Phrases = '(?:frame that settled it|frame that settled the latch|settling-frame position)'
-       FieldList = 'its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal within the interaction'
-       Surfaces = @(
-           @{ Name = "the neutral brief's local-observation schema"; Artifact = 'neutral brief'; Text = $briefLocalObservation },
-           @{ Name = "the neutral brief's parity profile"; Artifact = 'neutral brief'; Text = $briefParityProfile },
-           @{ Name = "the interaction machine's late-traffic latch section"; Artifact = 'interaction machine'; Text = $machineLatchSection },
-           @{ Name = "the state/event grid's late-traffic latch section"; Artifact = 'state/event grid'; Text = $gridLatchSection },
-           @{ Name = "the responsibility matrix's local-observation owner row"; Artifact = 'responsibility matrix'; Text = $matrixObservationRow },
-           @{ Name = "the migration ledger's new-evidence inventory"; Artifact = 'migration ledger'; Text = $ledgerNewEvidence }) },
-    @{ Key = 'refused'
-       Label = 'the frame refused at recipient `unseen`'
-       Phrases = '(?:refused-frame reference|refused-frame position)'
-       # The ordinal is scoped to the identity rather than to the interaction, and the difference is
-       # the fact rather than a wording slip: at `unseen` no interaction exists to be within, which is
-       # the whole of W4's retention rule. The five field NAMES are the same, which is what the class
-       # assertion below compares.
-       FieldList = 'its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal for that interaction identity'
-       Surfaces = @(
-           @{ Name = "the neutral brief's local-observation schema"; Artifact = 'neutral brief'; Text = $briefLocalObservation },
-           @{ Name = "the neutral brief's parity profile"; Artifact = 'neutral brief'; Text = $briefParityProfile },
-           @{ Name = "the interaction machine's ``unseen`` recipient transition row"; Artifact = 'interaction machine'; Text = $machineUnseenRow },
-           @{ Name = "the state/event grid's recipient ``unseen`` cancellation-control cell"; Artifact = 'state/event grid'; Text = $(if ($gridUnseenCells.Count -ge 1) { $gridUnseenCells[0] } else { '' }) },
-           @{ Name = "the state/event grid's recipient ``unseen`` other-peer-event cell"; Artifact = 'state/event grid'; Text = $(if ($gridUnseenCells.Count -ge 2) { $gridUnseenCells[1] } else { '' }) },
-           @{ Name = "the state/event grid's recipient ``unseen`` prose"; Artifact = 'state/event grid'; Text = $gridUnseenProse },
-           @{ Name = "the responsibility matrix's local-observation owner row"; Artifact = 'responsibility matrix'; Text = $matrixObservationRow },
-           @{ Name = "the migration ledger's new-evidence inventory"; Artifact = 'migration ledger'; Text = $ledgerNewEvidence }) },
-    @{ Key = 'terminal'
-       Label = "the frame the interaction's terminal history was accepted on"
-       Phrases = '(?:terminal-frame reference|terminal-frame position)'
-       FieldList = 'its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal within the interaction'
-       Surfaces = @(
-           @{ Name = "the neutral brief's local-observation schema"; Artifact = 'neutral brief'; Text = $briefLocalObservation },
-           @{ Name = "the neutral brief's parity profile"; Artifact = 'neutral brief'; Text = $briefParityProfile },
-           @{ Name = "the interaction machine's late-traffic latch section"; Artifact = 'interaction machine'; Text = $machineLatchSection },
-           @{ Name = "the state/event grid's late-traffic latch section"; Artifact = 'state/event grid'; Text = $gridLatchSection },
-           @{ Name = "the responsibility matrix's local-observation owner row"; Artifact = 'responsibility matrix'; Text = $matrixObservationRow },
-           @{ Name = "the migration ledger's new-evidence inventory"; Artifact = 'migration ledger'; Text = $ledgerNewEvidence }) }
-)
-
-$framePublicationArtifacts = @($frameReferences | ForEach-Object { $_.Surfaces } | ForEach-Object { $_.Artifact } | Sort-Object -Unique)
-
-foreach ($reference in $frameReferences) {
-    # The class assertion. A frame a property reads identifies one declared stimulus step, and the
-    # five fields are what it takes to do that: three families -- AC1's ordinal, AI1's session, AK1's
-    # identity and AK5's endpoint -- were each a reference published with fewer.
-    foreach ($frameField in $frameReferenceFields) {
-        if ($reference.FieldList.IndexOf($frameField, [System.StringComparison]::Ordinal) -lt 0) {
-            $failures.Add("The declared field list for $($reference.Label) omits '$frameField'. Every frame reference a property reads carries the same five fields, because fewer of them bind the reference to more than one declared stimulus step -- which is AC1 with the ordinal, AI1 with the session, and AK1 and AK5 with the identity and the committing endpoint.")
-        }
-    }
-
-    foreach ($frameSurface in $reference.Surfaces) {
-        $frameText = & $framePlain $frameSurface.Text
-        if (-not $frameText) {
-            $failures.Add("$($frameSurface.Name) could not be located, so the frame-reference check for $($reference.Label) would pass over it by seeing nothing. This is the failure mode the AI1 check had: a guard scoped to what it can already read certifies its own completeness.")
-            continue
-        }
-        if ($frameText.IndexOf($reference.FieldList, [System.StringComparison]::Ordinal) -lt 0) {
-            $failures.Add("$($frameSurface.Name) does not publish $($reference.Label) with the exact field list '$($reference.FieldList)'. Every artifact that publishes a frame reference publishes the same fields: an artifact carrying fewer of them binds the reference to more than one declared stimulus step -- with the session missing, to a step in another session, which takes ``C4-P2`` green on ``C4-outcome-precedes-ack`` (AJ1) or red on a conforming two-session vector (AK1).")
-        }
-        # AJ6: the justification under a field list must name the fields it is about. Both latch
-        # sections argued from position -- "the first three", "the other three" -- and the AI1
-        # insertion put the session second, so the machine's sentence silently became an argument
-        # about kind, session, and identity, a set that omits the committing endpoint the claim is
-        # over. A list that is counted from the front cannot be extended without breaking the sentence
-        # beneath it.
-        if ($frameText -match '(?i)\bthe (?:first|other|last|remaining) (?:two|three|four|five)\b') {
-            $failures.Add("$($frameSurface.Name) identifies part of a frame reference's field list by position rather than by name. Inserting a field renumbers every such sentence: the AI1 insertion left the interaction machine arguing that 'the first three' -- by then kind, session, and interaction identity -- do not identify the frame, which is a claim about a set that no longer contains the committing endpoint it is about. This is AJ6.")
-        }
-    }
-
-    # The class sweep: any passage anywhere in the eleven artifacts that reads as a publication of the
-    # reference -- the phrase followed by four or more of its five field names -- must publish the
-    # whole list. Four rather than five, because five is the answer and a check that requires the
-    # answer can only confirm surfaces that are already right; four detects the abbreviated form AJ1
-    # was, in an artifact nobody registered. Prose *about* a reference names one or two of its fields
-    # and is not reached: the disposition histories that record what Y4 and AC1 did are the sharpest
-    # such case.
-    $framePublications = 0
+$frameFencePattern = '(?s)<!-- fact:([a-z0-9-]+) -->(.*?)<!-- /fact -->'
+$frameReferences = @()
+$framePublicationArtifacts = @()
+if ($frameFacts) {
+    $frameReferences = @($frameFacts.facts | ForEach-Object {
+        @{ Key = ([string]$_.id -replace '-frame-reference$', '')
+           Id = [string]$_.id
+           Label = [string]$_.title
+           FieldList = & $framePlain ([string]$_.rendering) } })
+    # Which artifacts publish a reference is DISCOVERED from the fences rather than declared here.
+    $framePublishing = [System.Collections.Generic.List[string]]::new()
     foreach ($frameArtifactName in $artifactNames) {
-        $frameArtifactText = & $framePlain (Read-RequiredText $frameArtifactName)
-        # The window is a lookahead rather than part of the match. Consuming it hides a publication
-        # that follows a mention of the same reference inside 200 characters, which is how the ledger
-        # inventory's own bullet masked the list beneath it -- a sweep that reads one passage and
-        # therefore cannot see the next is the scope-certifies-itself failure this check replaced.
-        foreach ($frameMatch in [regex]::Matches($frameArtifactText, "$($reference.Phrases)(?=(.{0,200}))")) {
-            $frameWindow = $frameMatch.Groups[1].Value
-            $namedFields = @($frameReferenceFields | Where-Object { $frameWindow.IndexOf($_, [System.StringComparison]::Ordinal) -ge 0 })
-            if ($frameWindow.IndexOf($reference.FieldList, [System.StringComparison]::Ordinal) -ge 0) {
-                $framePublications++
-            }
-            elseif ($namedFields.Count -ge 4) {
-                $failures.Add("'$frameArtifactName' has a passage that reads as a publication of $($reference.Label) -- the reference followed by $($namedFields.Count) of its five field names: $($namedFields -join ', ') -- without publishing the whole list. Either it is a surface that states the reference in an abbreviated form, which is AJ1's shape and is not reached by a check written over the surfaces that state it in full, or it is a new surface that has to be registered above.")
-            }
+        $frameArtifactRaw = Read-RequiredText $frameArtifactName
+        if ([regex]::IsMatch($frameArtifactRaw, $frameFencePattern) -and -not $framePublishing.Contains($frameArtifactName)) {
+            $framePublishing.Add($frameArtifactName)
         }
     }
-    if ($framePublications -ne $reference.Surfaces.Count) {
-        $failures.Add("The design package publishes the field list of $($reference.Label) $framePublications times and $($reference.Surfaces.Count) surfaces are registered above. An exact count rather than a lower bound: a lower bound is what let the AI1 check certify its own scope, and a surface that appears or disappears without being registered is the way this class of reference has gone out of agreement three times.")
-    }
+    $framePublicationArtifacts = @($framePublishing)
 }
 
 # AL2. Both halves of the check above are keyed to the reference's own NAME: the registered surfaces
@@ -1954,22 +1866,51 @@ foreach ($frameCountArtifact in $artifactNames) {
     }
 }
 
-# AI4: six of eight design artifacts' own status blocks were stale by one to four families while the
-# Channel index rows claimed those corrections. No check read them -- T4 constrains only the cycle
-# phrase and AB1/AH3 covers the plan alone. This is the same class as AG4, one surface further in, and
-# it is checked here over every artifact rather than over the ones a finding happened to name.
-if ($latestDispositionFamily) {
-    foreach ($statusArtifactName in $artifactNames) {
-        $statusText = Read-RequiredText $statusArtifactName
-        # Bounded by the artifact's first section heading rather than by a character count. The window
-        # was 2200, then 3200 because the redesign plan's block outgrew it and the check reported that
-        # block stale when it was not; a number that has to be raised whenever a status block grows is
-        # a check that fails for the wrong reason on exactly the pass that updated the block.
-        $statusBlock = [regex]::Match((Get-StatusBlock $statusText), '(?ms)^(?:\*\*)?Status:(.+)')
-        if (-not $statusBlock.Success) { continue }
-        if ((Get-FlowedText $statusBlock.Groups[1].Value) -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
-            $failures.Add("'$statusArtifactName' has a status block that does not reach the '$($latestDispositionFamily[0])' family, while the Channel index claims corrections in it. An artifact's own status block is what a reader opening that artifact alone is told, and nothing was reading them. This is AI4.")
-        }
+# W3, and the check AI4 and AH3 collapse into. An artifact's status block is what a reader opening
+# that artifact alone is told, and AI4 was six of eight of them stale by one to four families. The
+# answer then was to check nine blocks for freshness; the answer now is that they carry nothing that
+# can go stale. A status block states what the artifact is and what it awaits, in five lines or
+# fewer, and resolves to the disposition index -- so this one check replaces the freshness check on
+# nine blocks and the plan's separate one, and the history it used to police is checked once, in the
+# record that owns it.
+#
+# Three halves, and each is load-bearing. The length bound is what actually retires the surface: a
+# block that keeps its pointer and grows a paragraph beneath it is the status quo with a link added,
+# which is how every previous correction to these blocks went. The pointer must RESOLVE, because a
+# link to a section that does not exist is worse than the history it replaced -- the reader is told
+# the record is elsewhere and finds nothing. And the section it resolves to must reach the newest
+# family, which is AI4's own question asked once instead of nine times.
+$dispositionLinkPattern = 'reviews/channel-0.2-disposition-index.md#'
+foreach ($statusArtifactName in $artifactNames) {
+    if ($statusArtifactName -eq 'README.md' -or $statusArtifactName -eq 'reviews\README.md') { continue }
+    $statusText = Read-RequiredText $statusArtifactName
+    # Bounded by the blank line that ends the paragraph rather than by the first section
+    # heading: the redesign plan puts its title heading ABOVE its status line, so a block read
+    # to the first heading is empty for that artifact -- which is why AH3 had to exist as a
+    # second check over the plan alone. Read this way, one check covers all nine.
+    $statusMatch = [regex]::Match($statusText, '(?ms)^((?:\*\*)?Status:.*?)(?=
+
+|\n\n|\z)')
+    if (-not $statusMatch.Success) {
+        $failures.Add("'$statusArtifactName' has no status block. Every first-batch artifact states what it is and what it awaits.")
+        continue
+    }
+    $statusBody = $statusMatch.Groups[1].Value.Trim()
+    $statusLines = @($statusBody -split "`r?`n" | Where-Object { $_.Trim() })
+    if ($statusLines.Count -gt 5) {
+        $failures.Add("'$statusArtifactName' has a status block of $($statusLines.Count) lines and the bound is five. Disposition history belongs in the disposition index: every correction that adds a sentence here adds it to what the next cold reviewer has to read, which is the plan's section 1.3 and is what W3 retires.")
+    }
+    if ($statusBody.IndexOf($dispositionLinkPattern, [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add("'$statusArtifactName' has a status block that does not link to its section of the disposition index. A block that carries no history and no pointer to it leaves a reader who opens this artifact alone unable to find out what was corrected in it.")
+        continue
+    }
+    $statusSection = Get-DispositionSection $statusArtifactName
+    if (-not $statusSection) {
+        $failures.Add("'$statusArtifactName' points at the disposition index and the index has no section for it. The pointer is the whole of what the status block now says about disposition, so a pointer that resolves to nothing is a worse answer than the history it replaced.")
+        continue
+    }
+    if ($latestDispositionFamily -and (Get-FlowedText $statusSection) -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
+        $failures.Add("The disposition index's section for '$statusArtifactName' does not reach the '$($latestDispositionFamily[0])' family, while the Channel index claims corrections in it. This is AI4, asked once of the record that owns the history instead of nine times of the artifacts.")
     }
 }
 

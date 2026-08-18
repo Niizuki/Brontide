@@ -2,40 +2,11 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet, and
-subject to a fresh independent closure re-review. Batch 2 opens only after that review conforms and
-its closure record exists. Under AC2 the parity profile names the detailed reason
-`unopened-interaction-identity` instead of describing it, and compares the kind of frame refused where
-a refusal opens no interaction. U3, V1, V2, W1, W2, W5, W6, X1, X2, X4, Y1, Y4, Z1, and AC2 corrected after
-independent review, the last restricting that ordinal to identification so the property language does
-not regain the observed arrival order W1 removed from it: the parity profile compares the frame a late-traffic latch settled against rather
-than only the latch value, that reference carries the settling frame's arrival ordinal so a duplicate
-terminal cannot be mistaken for a reordering, the local-observation schema has positions for both, the
-latch's `not-applicable` value is compared rather than absent, the required
-adversarial groups carry one ordering mutation per `C4-P2` conjunct, and the
-property operator set gained the one bounded precedence relation `C4-P2` needs, stimulus steps name
-their committing endpoint and their session so that relation has its operands — the session under AH1,
-which this sentence described in its pre-AH1 form until **AJ4** — the parity profile compares the
-late-traffic latch the grid already required as evidence, and the established-profile
-image carries the realization's per-interaction frame order declaration, the required adversarial
-groups include one owning intra-interaction frame order and its ordering mutation, the parity profile
-compares the peer-fault detailed reason, and the neutral provider may inject deterministic
-per-interaction reordering so a declared ordering mutation can actually be executed. Under **AI1** the
-settling-frame reference carries its session, and under **AI7** the established-profile digest is
-compared per session the vector carries — the same list AH1 made per-session having left both
-singular. Under **AJ1** this artifact's two field lists publish that reference in the one form the
-interaction machine, the state/event grid, the responsibility matrix, and the migration ledger use;
-under **AJ3** the vector format's own profile entry is inside the per-session distribution rather than
-separated from it by a comma, which is AI7's second named entry; and under **AJ4** this block describes
-the declared stimulus step in its post-AH1 form. Under **AK1**, **AK5** and **AK6** the
-local-observation schema and the parity profile carry two further frame references in the same
-five-field form — the frame refused where a refusal opens no interaction, which is `C4-P2`'s first
-conjunct's operand and carried neither AF8's session nor the identity nor the committing endpoint, and
-the frame a terminal history was accepted on, which is the second conjunct's other precedence operand
-and was published by no artifact. Unchanged by **AL1**-**AL4** as to its own content, and load-bearing
-for **AL3**: this brief's vector format is what a vector distributes per session, so C12's declared
-list of facts a vector may hold more than one of is now checked against this artifact rather than
-against the members that were visible when that list was written.
+Status: proposed first-batch artifact boundary; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#neutral-contract-and-vector-brief).
 
 ## Purpose
 
@@ -189,22 +160,22 @@ flattened into Channel core.
 
 The latch position holds one of the three latch values or the explicit `not-applicable` a route
 reaching no terminal interaction asserts, never an absent field. The settling-frame position holds
-its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival
-ordinal** within the interaction; it is absent only where no latch has settled. These are the fields
+<!-- fact:settling-frame-reference -->its kind, its **session**, its interaction identity, its **committing
+endpoint**, and its **arrival ordinal** within the interaction<!-- /fact -->; it is absent only where no latch has settled. These are the fields
 `C4-P2`'s second conjunct reads and the parity profile compares, so the schema has to have somewhere
 to put them, and they are the same five fields in the same order everywhere the reference is
 published.
 
-The terminal-frame position holds its kind, its **session**, its interaction identity, its
-**committing endpoint**, and its **arrival ordinal** within the interaction; it is absent only where
+The terminal-frame position holds <!-- fact:terminal-frame-reference -->its kind, its **session**, its interaction identity, its **committing
+endpoint**, and its **arrival ordinal** within the interaction<!-- /fact -->; it is absent only where
 no terminal history was accepted. It is the second operand of the same conjunct — the frame the
 settling frame is compared against — and until **AK6** the schema had a five-field position for one of
 the two and nothing for the other, which left the comparison resting on the terminal form. A form
 names one frame only while an endpoint commits at most one frame of that form for one identity, and a
 duplicate terminal is an endpoint committing two.
 
-The refused-frame position holds its kind, its **session**, its interaction identity, its **committing
-endpoint**, and its **arrival ordinal** for that interaction identity; it is absent only where the
+The refused-frame position holds <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**,
+and its **arrival ordinal** for that interaction identity<!-- /fact -->; it is absent only where the
 observation records no refusal that opens no interaction. It is `C4-P2`'s **first** conjunct's
 operand, and under **AK1** and **AK5** it replaces a record that carried the refusal's provenance, its
 detailed reason, and the kind of frame refused: that conjunct scopes its membership test to one
@@ -373,9 +344,9 @@ Core normative comparison includes:
   detailed reason `unopened-interaction-identity` of `invalid-interaction-correlation` and not the
   category as a whole. The reason is named rather than described, because a value identified only by
   description is not something a vector can compare;
-- the **refused-frame reference** where a refusal opens no interaction: its kind, its **session**, its
-  interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction
-  identity. The kind is AC2 — the same provenance and the same detailed reason cover a cancellation
+- the **refused-frame reference** where a refusal opens no interaction: <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity,
+  its **committing endpoint**, and its **arrival ordinal**
+  for that interaction identity<!-- /fact -->. The kind is AC2 — the same provenance and the same detailed reason cover a cancellation
   control and any other control naming an unopened identity, and the first conjunct quantifies over
   the cancellation control alone. The session, the interaction identity, the committing endpoint and
   the arrival ordinal are **AK1** and **AK5**: that conjunct scopes its
@@ -387,9 +358,9 @@ Core normative comparison includes:
 - the terminal interaction's `late-traffic latch` value, which the state/event grid already requires
   every generated cell to assert — including the explicit `not-applicable` a route reaching no
   terminal interaction asserts, which is compared as a value and never as an absent field;
-- the **frame that settled the latch** wherever one is settled: its kind, its **session**, its
-  interaction identity, its **committing endpoint**, and its **arrival ordinal** within the
-  interaction. The session is AI1: AH1
+- the **frame that settled the latch** wherever one is settled: <!-- fact:settling-frame-reference -->its kind, its **session**, its interaction
+  identity, its **committing endpoint**, and its
+  **arrival ordinal** within the interaction<!-- /fact -->. The session is AI1: AH1
   declared a vector may carry more than one, and an interaction identity is unique only within one, so
   without it two steps in different sessions match every other field and the reference stops mapping
   to one declared step — which takes `C4-P2` green on `C4-outcome-precedes-ack`. The ordinal is what
@@ -406,9 +377,9 @@ Core normative comparison includes:
   and `state-violation` declares no closed detailed-reason set for the clause above to reach. The
   settling frame is what separates them, and once it names its committing endpoint the property can
   bind it to a declared stimulus step through the precedence relation;
-- the **terminal-frame reference** wherever a terminal history was accepted: its kind, its **session**,
-  its interaction identity, its **committing endpoint**, and its **arrival ordinal** within the
-  interaction. This is the frame the settling frame is compared *against*, and under **AK6** it is
+- the **terminal-frame reference** wherever a terminal history was accepted: <!-- fact:terminal-frame-reference -->its kind, its **session**, its interaction
+  identity, its **committing endpoint**, and its
+  **arrival ordinal** within the interaction<!-- /fact -->. This is the frame the settling frame is compared *against*, and under **AK6** it is
   compared rather than inferred: the terminal form was the only published fact about it, and a form
   identifies one frame only while an endpoint commits at most one frame of that form for one identity.
   A duplicate terminal from a nonconformant peer is an endpoint committing two and is a required-green

@@ -149,6 +149,39 @@ required-green sets, and disposition history moved out of the status blocks. Bat
 no correction is withdrawn, and the independence rules and closure standard are unchanged for whichever
 review runs next.
 
+**The first of that work has landed.** `C4-P2` now executes: `build/verify-channel-0.2-properties.ps1`
+runs in the repository gate and evaluates the property over the eleven inputs closure review 16
+evaluated by hand -- both named mutations red, all seven required-green members green, and the two
+vectors AK1 and AK5 were raised for green -- plus nine operand mutations that revert one published
+field each and reproduce that review's finding that AK1's session and AK5's arrival ordinal are
+load-bearing and that AK6 becomes so once Y4's ordinal is reverted with it. Every reviewer since the
+eighth built such an evaluator and discarded it; this one is kept, cites the artifacts rather than
+restating them, and fails when the two disagree. All fifteen properties the hold's second condition names -- `C4-P1`, `C4-P2`, `S1`-`S6` and
+`I1`-`I7` -- now execute, with the fourteen owed required-green sets stated. Every one of them
+carries the two-session vector AL1 and AK7 were raised for as a required-green member, so a
+property reading one session's fact across the vector is a gate failure rather than a finding two
+cycles later. Condition 2 of the hold is met.
+
+**W3's status-block half has landed too.** The nine design artifacts' status blocks carried 289 lines
+of correction history between them and now carry 45: each states what the artifact is and what it
+awaits and links to the
+[disposition index](./channel/reviews/channel-0.2-disposition-index.md), which is a retained review
+record rather than a design artifact and holds that history verbatim. Two freshness checks collapse
+into one that bounds the block at five lines and requires its pointer to resolve. Moving the prose
+also exposed a check on the neutral brief's required vector groups that had been answered by a
+sentence in a status block rather than by the groups section. The Channel index's own rows carry the
+same history in another form -- 8,746 characters across eleven cells -- and are collapsed into the
+same index, retiring AG4, AH4 and AJ5. W3 is complete and condition 3 of the hold is met.
+
+**W1 has landed for the three frame references, and the registry it targeted is deleted.** One fact
+was published in twenty places across five artifacts and maintained by hand, which is where the nine
+consecutive blocking findings AI1, AJ1, AK1 and AL2 came from. It is now owned by
+[`conformance/channel-0.2-facts.json`](../../conformance/channel-0.2-facts.json) and rendered into
+every site inside a fence the artifact carries, so a reader still sees the whole fact in place and no
+hand writes the second copy. The plan's open question 1 -- whether standalone readability survives --
+is left unanswered because generation does not need it answered. The design verifier loses 169 lines
+with the registry.
+
 ### Channel 0.2 first-batch remaining work
 
 The sixth review found **R1**, a new blocking finding. C8 permitted a cancellation from initiator
