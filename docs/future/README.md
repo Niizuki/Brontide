@@ -169,6 +169,15 @@ also exposed a check on the neutral brief's required vector groups that had been
 sentence in a status block rather than by the groups section. The Channel index's own rows carry the
 same history in another form and are not yet collapsed.
 
+**W1 has landed for the three frame references, and the registry it targeted is deleted.** One fact
+was published in twenty places across five artifacts and maintained by hand, which is where the nine
+consecutive blocking findings AI1, AJ1, AK1 and AL2 came from. It is now owned by
+[`conformance/channel-0.2-facts.json`](../../conformance/channel-0.2-facts.json) and rendered into
+every site inside a fence the artifact carries, so a reader still sees the whole fact in place and no
+hand writes the second copy. The plan's open question 1 -- whether standalone readability survives --
+is left unanswered because generation does not need it answered. The design verifier loses 169 lines
+with the registry.
+
 ### Channel 0.2 first-batch remaining work
 
 The sixth review found **R1**, a new blocking finding. C8 permitted a cancellation from initiator

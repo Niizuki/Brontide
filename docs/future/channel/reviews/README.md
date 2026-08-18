@@ -708,6 +708,10 @@ is exactly what the AD and AE passes found separately.
      A reviewer building an evaluator of their own should compare against it and treat a
      disagreement as a finding against whichever of the two is wrong -- the declared expectations
      are data in `conformance/channel-0.2-properties.json` and are as reviewable as the prose;
+   - `build/verify-channel-0.2-facts.ps1`, which renders every owned fact into the artifacts that
+     publish it and fails on a hand-edited or unfenced publication. A reviewer checking whether the
+     twenty frame-reference publications agree no longer has to compare them: they are generated
+     from one declaration, and the reviewable question is whether that declaration is right;
    - `build/verify-doc-links.ps1`;
    - `build/verify-text.ps1`; and
    - `build/verify-interchange.ps1`.

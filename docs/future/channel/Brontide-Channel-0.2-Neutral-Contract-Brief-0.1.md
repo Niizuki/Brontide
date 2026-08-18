@@ -160,22 +160,22 @@ flattened into Channel core.
 
 The latch position holds one of the three latch values or the explicit `not-applicable` a route
 reaching no terminal interaction asserts, never an absent field. The settling-frame position holds
-its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival
-ordinal** within the interaction; it is absent only where no latch has settled. These are the fields
+<!-- fact:settling-frame-reference -->its kind, its **session**, its interaction identity, its **committing
+endpoint**, and its **arrival ordinal** within the interaction<!-- /fact -->; it is absent only where no latch has settled. These are the fields
 `C4-P2`'s second conjunct reads and the parity profile compares, so the schema has to have somewhere
 to put them, and they are the same five fields in the same order everywhere the reference is
 published.
 
-The terminal-frame position holds its kind, its **session**, its interaction identity, its
-**committing endpoint**, and its **arrival ordinal** within the interaction; it is absent only where
+The terminal-frame position holds <!-- fact:terminal-frame-reference -->its kind, its **session**, its interaction identity, its **committing
+endpoint**, and its **arrival ordinal** within the interaction<!-- /fact -->; it is absent only where
 no terminal history was accepted. It is the second operand of the same conjunct — the frame the
 settling frame is compared against — and until **AK6** the schema had a five-field position for one of
 the two and nothing for the other, which left the comparison resting on the terminal form. A form
 names one frame only while an endpoint commits at most one frame of that form for one identity, and a
 duplicate terminal is an endpoint committing two.
 
-The refused-frame position holds its kind, its **session**, its interaction identity, its **committing
-endpoint**, and its **arrival ordinal** for that interaction identity; it is absent only where the
+The refused-frame position holds <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**,
+and its **arrival ordinal** for that interaction identity<!-- /fact -->; it is absent only where the
 observation records no refusal that opens no interaction. It is `C4-P2`'s **first** conjunct's
 operand, and under **AK1** and **AK5** it replaces a record that carried the refusal's provenance, its
 detailed reason, and the kind of frame refused: that conjunct scopes its membership test to one
@@ -344,9 +344,9 @@ Core normative comparison includes:
   detailed reason `unopened-interaction-identity` of `invalid-interaction-correlation` and not the
   category as a whole. The reason is named rather than described, because a value identified only by
   description is not something a vector can compare;
-- the **refused-frame reference** where a refusal opens no interaction: its kind, its **session**, its
-  interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction
-  identity. The kind is AC2 — the same provenance and the same detailed reason cover a cancellation
+- the **refused-frame reference** where a refusal opens no interaction: <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity,
+  its **committing endpoint**, and its **arrival ordinal**
+  for that interaction identity<!-- /fact -->. The kind is AC2 — the same provenance and the same detailed reason cover a cancellation
   control and any other control naming an unopened identity, and the first conjunct quantifies over
   the cancellation control alone. The session, the interaction identity, the committing endpoint and
   the arrival ordinal are **AK1** and **AK5**: that conjunct scopes its
@@ -358,9 +358,9 @@ Core normative comparison includes:
 - the terminal interaction's `late-traffic latch` value, which the state/event grid already requires
   every generated cell to assert — including the explicit `not-applicable` a route reaching no
   terminal interaction asserts, which is compared as a value and never as an absent field;
-- the **frame that settled the latch** wherever one is settled: its kind, its **session**, its
-  interaction identity, its **committing endpoint**, and its **arrival ordinal** within the
-  interaction. The session is AI1: AH1
+- the **frame that settled the latch** wherever one is settled: <!-- fact:settling-frame-reference -->its kind, its **session**, its interaction
+  identity, its **committing endpoint**, and its
+  **arrival ordinal** within the interaction<!-- /fact -->. The session is AI1: AH1
   declared a vector may carry more than one, and an interaction identity is unique only within one, so
   without it two steps in different sessions match every other field and the reference stops mapping
   to one declared step — which takes `C4-P2` green on `C4-outcome-precedes-ack`. The ordinal is what
@@ -377,9 +377,9 @@ Core normative comparison includes:
   and `state-violation` declares no closed detailed-reason set for the clause above to reach. The
   settling frame is what separates them, and once it names its committing endpoint the property can
   bind it to a declared stimulus step through the precedence relation;
-- the **terminal-frame reference** wherever a terminal history was accepted: its kind, its **session**,
-  its interaction identity, its **committing endpoint**, and its **arrival ordinal** within the
-  interaction. This is the frame the settling frame is compared *against*, and under **AK6** it is
+- the **terminal-frame reference** wherever a terminal history was accepted: <!-- fact:terminal-frame-reference -->its kind, its **session**, its interaction
+  identity, its **committing endpoint**, and its
+  **arrival ordinal** within the interaction<!-- /fact -->. This is the frame the settling frame is compared *against*, and under **AK6** it is
   compared rather than inferred: the terminal form was the only published fact about it, and a form
   identifies one frame only while an endpoint commits at most one frame of that form for one identity.
   A duplicate terminal from a nonconformant peer is an endpoint committing two and is a required-green

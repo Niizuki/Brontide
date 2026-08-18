@@ -247,6 +247,48 @@ table cells averaging 780 characters, each a family-by-family narrative -- and *
 done. Condition 3 below is about the status blocks and is met; the index rows are the second surface
 and remain.
 
+
+## 2c. What W1 has landed
+
+**The frame-reference registry is deleted.** That was this item's acceptance and it is met: 169 lines
+of surface lists, exact-count assertions and abbreviated-publication sweeps are gone from
+`build/verify-channel-0.2-design.ps1`, which drops from 2,377 lines to 2,257.
+
+**It was not done by citation.** Section 5's open question 1 asks whether standalone readability
+survives W1, and calls that the question deciding whether this item is real. It is not answered here
+because the implementation does not need it answered: the duplication survives for the reader and
+dies for the maintainer. The fact is owned by `conformance/channel-0.2-facts.json` and **rendered**
+into all twenty publication sites, each a fenced region the artifact carries:
+
+    <!-- fact:NAME -->its kind, its **session**, ...<!-- END -->
+
+with `NAME` the fact's id and the closing marker `/fact`. The markers are written as placeholders
+here because a real pair in this document would be a real publication, and the gate says so --
+which is how this paragraph was caught on its first run.
+
+A reader of the grid alone still learns what the `unseen` cells record, in the same words as before.
+No human writes the second copy. Changing a field is one edit to the declaration and
+`build/verify-channel-0.2-facts.ps1 -Apply`, which rewrites all twenty sites in five artifacts; this
+was tested by adding a sixth field, applying it, and reverting.
+
+**The surface list is not in a verifier any more.** A fence *is* the registration and it lives in the
+artifact, so a check cannot be scoped to the surfaces its author already knew about -- which is the
+shape **AI1**, **AJ1**, **AK1** and **AL2** each had, and the reason the registry's own comments kept
+saying a guard scoped to what it can read certifies its own completeness.
+
+**One thing fencing cannot do, and what was done instead.** A fence registers a surface that exists,
+so a surface deleted outright removes its own registration and leaves nothing to notice the absence.
+A probe confirmed that: deleting one of the grid's three `unseen` publications passed every check. The
+exact count is therefore kept, for the reason AI1 gave -- a lower bound is what let that check certify
+its own scope -- but moved beside the fact in the declaration and checked in both directions, so a
+fence in an undeclared artifact fails as loudly as a missing one.
+
+**What W1 still owes.** This covers the three frame references, which is what condition 1 below
+requires. The per-session facts C12 declares and the settling-frame and terminal-frame field lists in
+the completeness review's operand enumeration are stated once each and not yet fenced; the `unseen`
+refusal record's *other* contents -- provenance, detailed reason, effect certainty -- are still
+hand-maintained prose, and the AL2 record-keyed sweep is what watches them.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -274,9 +316,9 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   mutations; the remaining twenty-five are prose;
 - **required-green sets stated** — currently one of twenty-six, unchanged for seven cycles;
 - **status-block lines across the nine artifacts** — 289 before W3 and 45 after; and
-- **design-verifier lines** — 2,377. This has not fallen yet and W3 is why it did not: retiring
-  AI4 and AH3 cost fewer lines than the replacement check and its reasoning took. The number to
-  watch is the one above it, and this one falls when W1 deletes the frame-reference registry. A
+- **design-verifier lines** — 2,257, down from 2,377 before W1 deleted the frame-reference
+  registry. W3 did not move it -- retiring AI4 and AH3 cost fewer lines than the replacement
+  check took -- and W1 did. A
   verifier that only grows is a verifier absorbing the cost of a structural problem instead of
   retiring it.
 

@@ -282,19 +282,19 @@ The 0.1 set has no direct equivalents for these required 0.2 cases:
   The observation fields those vectors compare — the late-traffic latch, including its
   `not-applicable` value, the recipient's **admission of an identity previously refused at `unseen`**,
   which the AE1 correction made the second fact the first conjunct reads, and the frame that settled
-  the latch: its kind, its **session**, its interaction identity, its **committing endpoint**, and its
-  **arrival ordinal** within the interaction — are likewise new in
+  the latch: <!-- fact:settling-frame-reference -->its kind, its **session**, its interaction identity, its **committing
+  endpoint**, and its **arrival ordinal** within the interaction<!-- /fact --> — are likewise new in
   0.2 and have no 0.1 observation field to migrate from. The admission is an ordinary admission
   decision C10 already enumerates, so no implementer has to invent a field; it is listed because Batch
   2 builds its vector groups from here, and omitting it was AF4.
 - Two further frames the same vectors compare, new in 0.2 and added here under **AK1**, **AK5** and
   **AK6**, each published as a reference to one frame the way the settling frame is. The
-  terminal-frame reference names the frame an interaction's terminal history was accepted on: its
-  kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival
-  ordinal** within the interaction; it is what `C4-P2`'s second conjunct compares the settling frame
+  terminal-frame reference names the frame an interaction's terminal history was accepted on: <!-- fact:terminal-frame-reference -->its kind, its **session**, its interaction
+  identity, its **committing endpoint**, and its
+  **arrival ordinal** within the interaction<!-- /fact -->; it is what `C4-P2`'s second conjunct compares the settling frame
   *against*, and it was published by no artifact at all. The refused-frame reference names the frame
-  refused where a refusal opens no interaction: its kind, its **session**, its interaction identity,
-  its **committing endpoint**, and its **arrival ordinal** for that interaction identity; it is the
+  refused where a refusal opens no interaction: <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**,
+  and its **arrival ordinal** for that interaction identity<!-- /fact -->; it is the
   first conjunct's own operand, and it carried neither AF8's session, nor the identity the membership
   test is over, nor the committing endpoint the precedence half reads. A vector group authored from an
   inventory that omits an operand is a group that cannot evaluate the property it exists for, which is

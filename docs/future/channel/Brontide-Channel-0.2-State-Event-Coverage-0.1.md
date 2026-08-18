@@ -64,7 +64,7 @@ one route.
 
 | Recipient state group | Request | Cancellation control | Handler terminal | Local protocol failure | Local loss | Other peer event |
 | --- | --- | --- | --- | --- | --- | --- |
-| `unseen` | validation rows | no identity to correlate → state unchanged, recorded with `rejected-protocol` provenance, detailed reason `unopened-interaction-identity`, the **refused-frame reference** — its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity, the kind here being `cancellation-control` — and effect certainty `known-none` | impossible local action | structural/local-refusal split | local session route | state unchanged, recorded with `rejected-protocol` provenance, detailed reason `unopened-interaction-identity`, the **refused-frame reference** — its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity, the kind here being the refused control's own — and effect certainty `known-none` |
+| `unseen` | validation rows | no identity to correlate → state unchanged, recorded with `rejected-protocol` provenance, detailed reason `unopened-interaction-identity`, the **refused-frame reference** — <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact -->, the kind here being `cancellation-control` — and effect certainty `known-none` | impossible local action | structural/local-refusal split | local session route | state unchanged, recorded with `rejected-protocol` provenance, detailed reason `unopened-interaction-identity`, the **refused-frame reference** — <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact -->, the kind here being the refused control's own — and effect certainty `known-none` |
 | `validating` | validation rows | valid control: hold exactly one, apply on admission; second control → `peer-fault` | impossible local action | structural/local-refusal split | local session route | `rejected-protocol` |
 | `executing` | live replay → `peer-fault` | authorized → `cancel-requested`; denied → `cancel-refused`; invalid → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-requested` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure/cancelled accepted | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
@@ -101,8 +101,8 @@ paragraph refuses.
 
 One local observation is recorded there all the same, and this cell asserts it like any other —
 including the detailed reason `unopened-interaction-identity` and the **refused-frame reference** —
-its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival
-ordinal** for that interaction identity — because
+<!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**,
+and its **arrival ordinal** for that interaction identity<!-- /fact --> — because
 both `unseen` cells otherwise record one indistinguishable refusal while `C4-P2`'s first conjunct
 quantifies over the cancellation control alone.
 Recording evidence is not retaining state: nothing consults the observation, so it cannot accrue into
@@ -136,8 +136,8 @@ fault. A late peer fault receives no answer. After the latch settles, every late
 locally without another frame. This makes the duplicate-terminal action finite and prevents a fault
 loop.
 
-Settling the latch records the frame that settled it — its kind, its **session**, its interaction
-identity, its **committing endpoint**, and its **arrival ordinal** within the interaction — because the
+Settling the latch records the frame that settled it — <!-- fact:settling-frame-reference -->its kind, its **session**, its interaction identity, its **committing
+endpoint**, and its **arrival ordinal** within the interaction<!-- /fact --> — because the
 three latch values name no frame and `C4-P2`'s second conjunct is about which frame a latch settled
 against. The **session** is required because an interaction identity is unique only within one and a
 vector may carry more than one: without it the reference matches a step in either session and stops
@@ -151,8 +151,8 @@ responsibility matrix row that owns the observation record, and the migration le
 inventory. A field carried by some of those six surfaces and not the others makes the owned fact and
 the compared fact different facts.
 
-Accepting a terminal history records the **terminal-frame reference** — its kind, its **session**, its
-interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction.
+Accepting a terminal history records the **terminal-frame reference** — <!-- fact:terminal-frame-reference -->its kind, its **session**, its interaction identity, its **committing
+endpoint**, and its **arrival ordinal** within the interaction<!-- /fact -->.
 That is the frame the settling frame is compared *against*, and until **AK6** no artifact published
 it: the observation carried the terminal form, and a form names one frame only while an endpoint
 commits at most one frame of that form for one identity. A duplicate terminal is an endpoint

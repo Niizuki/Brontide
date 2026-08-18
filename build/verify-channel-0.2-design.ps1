@@ -1759,172 +1759,52 @@ foreach ($retentionCiter in @(@{ Name = 'capability contract'; Text = $flowedCon
     }
 }
 
-# AJ1, which supersedes the AI1 check written for the same reference. AI1 was that the settling-frame
-# reference is published as four fields with no session while a vector may now carry two sessions
-# holding one interaction identity value, so the reference stops mapping to one declared stimulus step
-# and `C4-P2` evaluates green on `C4-outcome-precedes-ack`. The correction reached three of the five
-# artifacts that publish it -- and its check reached two, iterating an artifact list and asserting its
-# own completeness with `Count -lt 3`, a guard set to the number of lists in its own scope. A guard
-# that counts what it can already see cannot report that its scope is wrong.
+# The frame-reference registry that stood here is deleted. It hardcoded, per reference, the list of
+# surfaces publishing it, an exact-count assertion over that list, and a package-wide sweep for an
+# abbreviated publication -- roughly 125 lines whose whole purpose was to notice that twenty
+# hand-maintained copies of one fact had drifted apart. They drifted anyway, once per cycle for nine
+# cycles: AI1, AJ1, AK1 and AL2 are one event four times, and each check written to catch it could
+# only see the surfaces its author already knew about.
 #
-# This is written over the REFERENCE instead. Three things follow from that and each is load-bearing:
+# The fact is now owned by `conformance/channel-0.2-facts.json` and RENDERED into every artifact that
+# publishes it, inside a fence the artifact carries. `build/verify-channel-0.2-facts.ps1` verifies
+# every fenced region against the declaration and sweeps for an unfenced publication. So there is no
+# surface list to keep in step -- a fence is the registration and it lives in the artifact -- and no
+# exact count to maintain, because a surface cannot exist without registering itself. That is W1 of
+# the verification foundation plan, and its acceptance was precisely that this registry could be
+# deleted rather than extended.
 #
-#   * the surface set is enumerated from a search for the fact (`grep settl` over the package returns
-#     all six in one screen), not from any finding's evidence citations, and it includes the two
-#     artifacts the design's own hierarchy resolves in favour of -- the grid the brief declares itself
-#     subordinate to, and the matrix row that *owns* the observation record -- plus the ledger
-#     inventory Batch 2 builds its vector groups from;
-#   * every surface must publish the same field list verbatim, so the guard is over the class "the
-#     reference's field set drifts between the artifacts that publish it" rather than over the session
-#     alone. AC1 was that class with the arrival ordinal, AI1 with the session, and a sixth field added
-#     in some surfaces and not others fails here without anyone writing a new check; and
-#   * the package-wide sweep below fails on a publication-shaped passage anywhere in the eleven
-#     artifacts, registered or not, so a seventh surface cannot appear silently.
-# AK1, AK5, and AK6 generalise this check rather than replace its subject. AJ1's guard was exact and
-# total over ONE reference, and AK1 is the identical defect on `C4-P2`'s other conjunct: the recorded
-# `unseen` refusal was published by five surfaces that agreed with each other exactly and named
-# neither the session AF8's membership scope requires nor the interaction identity the test is over,
-# so the property went red on a conforming two-session vector. AK5 is the rest of that same operand --
-# the refused frame's committing endpoint, which the conjunct's own subject is, and its arrival
-# ordinal, without which the record binds to either of two controls one endpoint committed for one
-# identity. AK6 is the second conjunct's *second* operand, "that endpoint's own frame that made the
-# interaction terminal", which was published by nothing at all and left to be inferred from the
-# terminal form.
-#
-# The guard is therefore written over the class "a frame a property reads is published as a frame
-# reference", not over any one reference. Four things follow and each is load-bearing:
-#
-#   * every declared reference carries the same five field names, so a reference introduced with four
-#     of them fails here without anyone writing a new check -- which is exactly what AK1 and AK6 were;
-#   * every registered surface publishes its reference's exact field list, and the surface set is
-#     enumerated from a search for the fact rather than from any finding's evidence citations;
-#   * the package-wide sweep fails on a publication-shaped passage anywhere in the eleven artifacts,
-#     registered or not, so a new surface cannot appear silently; and
-#   * each reference's publication count is exact rather than a lower bound, which is what let the AI1
-#     check certify its own scope.
-$frameReferenceFields = @('kind', 'session', 'interaction identity', 'committing endpoint', 'arrival ordinal')
-# Emphasis is stripped before comparison: the field list is marked up differently in a table cell than
-# in a paragraph, and the fields are the fact rather than the bolding.
+# What stays here is what reads the fact rather than publishing it: the AL2 record-keyed sweep below,
+# AK4's count claim, and the operand enumeration's registration rows. Each now takes the field list
+# and the reference set from the declaration.
+$frameFacts = $null
+$frameFactsPath = Join-Path $repositoryRoot 'conformance\channel-0.2-facts.json'
+if (-not (Test-Path -LiteralPath $frameFactsPath)) {
+    $failures.Add('The owned-fact declaration conformance/channel-0.2-facts.json does not exist. The frame references are rendered from it into every artifact that publishes them, so without it nothing here knows what the field list is.')
+}
+else {
+    try { $frameFacts = Get-Content -Raw -LiteralPath $frameFactsPath -Encoding UTF8 | ConvertFrom-Json }
+    catch { $failures.Add("The owned-fact declaration is not valid JSON: $($_.Exception.Message)") }
+}
 $framePlain = { param($Text) ((Get-FlowedText $Text) -replace '\*\*', '') }
-
-$briefLocalObservation = ($neutralBrief -split '### Local observation', 2)[1] -split '## External phase and authority inputs', 2 | Select-Object -First 1
-$briefParityProfile = ($neutralBrief -split '## Observation and parity profile', 2)[1] -split 'Excluded by default', 2 | Select-Object -First 1
-$machineLatchSection = ($interaction -split '## Late terminal and control disposition', 2)[1] -split '## Interaction event totality', 2 | Select-Object -First 1
-$gridLatchSection = ($stateEventCoverage -split '## Late-traffic latch', 2)[1] -split '## Evidence required', 2 | Select-Object -First 1
-$gridRecipientSection = ($stateEventCoverage -split '## Recipient interaction coverage grid', 2)[1] -split '## Late-traffic latch', 2 | Select-Object -First 1
-$machineUnseenRow = (@($interaction -split "`r?`n" | Where-Object { $_ -match '^\| .unseen. \| recognized peer event' }) -join ' ')
-# AL2: the grid's `unseen` row and the grid's prose are two surfaces, not one. Registering the section
-# that contains both let the prose satisfy the check for the cells, which is how the AK1 correction
-# reached four of the five surfaces its own evidence enumerated and the gate stayed green. The cells
-# are split out by the column separator so each is required to publish the reference on its own.
-$gridUnseenRow = (@($stateEventCoverage -split "`r?`n" | Where-Object { $_ -match '^\| .unseen. \| validation rows' }) -join ' ')
-$gridUnseenCells = @($gridUnseenRow -split '\|' | Where-Object { $_ -match 'unopened-interaction-identity' })
-$gridUnseenProse = ($gridRecipientSection -split "`r?`n" | Where-Object { $_ -notmatch '^\|' }) -join "`n"
-$matrixObservationRow = (@($responsibility -split "`r?`n" | Where-Object { $_ -match '^\| Local observation content' }) -join ' ')
-$ledgerNewEvidence = [regex]::Match($migration, '(?ms)^## New evidence required by redesign\r?\n(.+?)(?=^## |\z)').Groups[1].Value
-
-$frameReferences = @(
-    @{ Key = 'settling'
-       Label = 'the frame that settled the late-traffic latch'
-       Phrases = '(?:frame that settled it|frame that settled the latch|settling-frame position)'
-       FieldList = 'its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal within the interaction'
-       Surfaces = @(
-           @{ Name = "the neutral brief's local-observation schema"; Artifact = 'neutral brief'; Text = $briefLocalObservation },
-           @{ Name = "the neutral brief's parity profile"; Artifact = 'neutral brief'; Text = $briefParityProfile },
-           @{ Name = "the interaction machine's late-traffic latch section"; Artifact = 'interaction machine'; Text = $machineLatchSection },
-           @{ Name = "the state/event grid's late-traffic latch section"; Artifact = 'state/event grid'; Text = $gridLatchSection },
-           @{ Name = "the responsibility matrix's local-observation owner row"; Artifact = 'responsibility matrix'; Text = $matrixObservationRow },
-           @{ Name = "the migration ledger's new-evidence inventory"; Artifact = 'migration ledger'; Text = $ledgerNewEvidence }) },
-    @{ Key = 'refused'
-       Label = 'the frame refused at recipient `unseen`'
-       Phrases = '(?:refused-frame reference|refused-frame position)'
-       # The ordinal is scoped to the identity rather than to the interaction, and the difference is
-       # the fact rather than a wording slip: at `unseen` no interaction exists to be within, which is
-       # the whole of W4's retention rule. The five field NAMES are the same, which is what the class
-       # assertion below compares.
-       FieldList = 'its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal for that interaction identity'
-       Surfaces = @(
-           @{ Name = "the neutral brief's local-observation schema"; Artifact = 'neutral brief'; Text = $briefLocalObservation },
-           @{ Name = "the neutral brief's parity profile"; Artifact = 'neutral brief'; Text = $briefParityProfile },
-           @{ Name = "the interaction machine's ``unseen`` recipient transition row"; Artifact = 'interaction machine'; Text = $machineUnseenRow },
-           @{ Name = "the state/event grid's recipient ``unseen`` cancellation-control cell"; Artifact = 'state/event grid'; Text = $(if ($gridUnseenCells.Count -ge 1) { $gridUnseenCells[0] } else { '' }) },
-           @{ Name = "the state/event grid's recipient ``unseen`` other-peer-event cell"; Artifact = 'state/event grid'; Text = $(if ($gridUnseenCells.Count -ge 2) { $gridUnseenCells[1] } else { '' }) },
-           @{ Name = "the state/event grid's recipient ``unseen`` prose"; Artifact = 'state/event grid'; Text = $gridUnseenProse },
-           @{ Name = "the responsibility matrix's local-observation owner row"; Artifact = 'responsibility matrix'; Text = $matrixObservationRow },
-           @{ Name = "the migration ledger's new-evidence inventory"; Artifact = 'migration ledger'; Text = $ledgerNewEvidence }) },
-    @{ Key = 'terminal'
-       Label = "the frame the interaction's terminal history was accepted on"
-       Phrases = '(?:terminal-frame reference|terminal-frame position)'
-       FieldList = 'its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal within the interaction'
-       Surfaces = @(
-           @{ Name = "the neutral brief's local-observation schema"; Artifact = 'neutral brief'; Text = $briefLocalObservation },
-           @{ Name = "the neutral brief's parity profile"; Artifact = 'neutral brief'; Text = $briefParityProfile },
-           @{ Name = "the interaction machine's late-traffic latch section"; Artifact = 'interaction machine'; Text = $machineLatchSection },
-           @{ Name = "the state/event grid's late-traffic latch section"; Artifact = 'state/event grid'; Text = $gridLatchSection },
-           @{ Name = "the responsibility matrix's local-observation owner row"; Artifact = 'responsibility matrix'; Text = $matrixObservationRow },
-           @{ Name = "the migration ledger's new-evidence inventory"; Artifact = 'migration ledger'; Text = $ledgerNewEvidence }) }
-)
-
-$framePublicationArtifacts = @($frameReferences | ForEach-Object { $_.Surfaces } | ForEach-Object { $_.Artifact } | Sort-Object -Unique)
-
-foreach ($reference in $frameReferences) {
-    # The class assertion. A frame a property reads identifies one declared stimulus step, and the
-    # five fields are what it takes to do that: three families -- AC1's ordinal, AI1's session, AK1's
-    # identity and AK5's endpoint -- were each a reference published with fewer.
-    foreach ($frameField in $frameReferenceFields) {
-        if ($reference.FieldList.IndexOf($frameField, [System.StringComparison]::Ordinal) -lt 0) {
-            $failures.Add("The declared field list for $($reference.Label) omits '$frameField'. Every frame reference a property reads carries the same five fields, because fewer of them bind the reference to more than one declared stimulus step -- which is AC1 with the ordinal, AI1 with the session, and AK1 and AK5 with the identity and the committing endpoint.")
-        }
-    }
-
-    foreach ($frameSurface in $reference.Surfaces) {
-        $frameText = & $framePlain $frameSurface.Text
-        if (-not $frameText) {
-            $failures.Add("$($frameSurface.Name) could not be located, so the frame-reference check for $($reference.Label) would pass over it by seeing nothing. This is the failure mode the AI1 check had: a guard scoped to what it can already read certifies its own completeness.")
-            continue
-        }
-        if ($frameText.IndexOf($reference.FieldList, [System.StringComparison]::Ordinal) -lt 0) {
-            $failures.Add("$($frameSurface.Name) does not publish $($reference.Label) with the exact field list '$($reference.FieldList)'. Every artifact that publishes a frame reference publishes the same fields: an artifact carrying fewer of them binds the reference to more than one declared stimulus step -- with the session missing, to a step in another session, which takes ``C4-P2`` green on ``C4-outcome-precedes-ack`` (AJ1) or red on a conforming two-session vector (AK1).")
-        }
-        # AJ6: the justification under a field list must name the fields it is about. Both latch
-        # sections argued from position -- "the first three", "the other three" -- and the AI1
-        # insertion put the session second, so the machine's sentence silently became an argument
-        # about kind, session, and identity, a set that omits the committing endpoint the claim is
-        # over. A list that is counted from the front cannot be extended without breaking the sentence
-        # beneath it.
-        if ($frameText -match '(?i)\bthe (?:first|other|last|remaining) (?:two|three|four|five)\b') {
-            $failures.Add("$($frameSurface.Name) identifies part of a frame reference's field list by position rather than by name. Inserting a field renumbers every such sentence: the AI1 insertion left the interaction machine arguing that 'the first three' -- by then kind, session, and interaction identity -- do not identify the frame, which is a claim about a set that no longer contains the committing endpoint it is about. This is AJ6.")
-        }
-    }
-
-    # The class sweep: any passage anywhere in the eleven artifacts that reads as a publication of the
-    # reference -- the phrase followed by four or more of its five field names -- must publish the
-    # whole list. Four rather than five, because five is the answer and a check that requires the
-    # answer can only confirm surfaces that are already right; four detects the abbreviated form AJ1
-    # was, in an artifact nobody registered. Prose *about* a reference names one or two of its fields
-    # and is not reached: the disposition histories that record what Y4 and AC1 did are the sharpest
-    # such case.
-    $framePublications = 0
+$frameFencePattern = '(?s)<!-- fact:([a-z0-9-]+) -->(.*?)<!-- /fact -->'
+$frameReferences = @()
+$framePublicationArtifacts = @()
+if ($frameFacts) {
+    $frameReferences = @($frameFacts.facts | ForEach-Object {
+        @{ Key = ([string]$_.id -replace '-frame-reference$', '')
+           Id = [string]$_.id
+           Label = [string]$_.title
+           FieldList = & $framePlain ([string]$_.rendering) } })
+    # Which artifacts publish a reference is DISCOVERED from the fences rather than declared here.
+    $framePublishing = [System.Collections.Generic.List[string]]::new()
     foreach ($frameArtifactName in $artifactNames) {
-        $frameArtifactText = & $framePlain (Read-RequiredText $frameArtifactName)
-        # The window is a lookahead rather than part of the match. Consuming it hides a publication
-        # that follows a mention of the same reference inside 200 characters, which is how the ledger
-        # inventory's own bullet masked the list beneath it -- a sweep that reads one passage and
-        # therefore cannot see the next is the scope-certifies-itself failure this check replaced.
-        foreach ($frameMatch in [regex]::Matches($frameArtifactText, "$($reference.Phrases)(?=(.{0,200}))")) {
-            $frameWindow = $frameMatch.Groups[1].Value
-            $namedFields = @($frameReferenceFields | Where-Object { $frameWindow.IndexOf($_, [System.StringComparison]::Ordinal) -ge 0 })
-            if ($frameWindow.IndexOf($reference.FieldList, [System.StringComparison]::Ordinal) -ge 0) {
-                $framePublications++
-            }
-            elseif ($namedFields.Count -ge 4) {
-                $failures.Add("'$frameArtifactName' has a passage that reads as a publication of $($reference.Label) -- the reference followed by $($namedFields.Count) of its five field names: $($namedFields -join ', ') -- without publishing the whole list. Either it is a surface that states the reference in an abbreviated form, which is AJ1's shape and is not reached by a check written over the surfaces that state it in full, or it is a new surface that has to be registered above.")
-            }
+        $frameArtifactRaw = Read-RequiredText $frameArtifactName
+        if ([regex]::IsMatch($frameArtifactRaw, $frameFencePattern) -and -not $framePublishing.Contains($frameArtifactName)) {
+            $framePublishing.Add($frameArtifactName)
         }
     }
-    if ($framePublications -ne $reference.Surfaces.Count) {
-        $failures.Add("The design package publishes the field list of $($reference.Label) $framePublications times and $($reference.Surfaces.Count) surfaces are registered above. An exact count rather than a lower bound: a lower bound is what let the AI1 check certify its own scope, and a surface that appears or disappears without being registered is the way this class of reference has gone out of agreement three times.")
-    }
+    $framePublicationArtifacts = @($framePublishing)
 }
 
 # AL2. Both halves of the check above are keyed to the reference's own NAME: the registered surfaces

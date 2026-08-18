@@ -85,7 +85,7 @@ with the same provenance, not a fictional global state.
 | From | Event and guard | To | Handler effect possible? |
 | --- | --- | --- | --- |
 | `unseen` | complete request for an established session arrives | `validating` | no |
-| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `unseen`, unchanged | no; commit one interaction-scoped peer fault with `rejected-protocol` provenance and detailed reason `unopened-interaction-identity`, record one local observation carrying that reason, the **refused-frame reference** — its kind, its session, its interaction identity, its committing endpoint, and its arrival ordinal for that interaction identity — and effect certainty `known-none`, and retain no history, no latch, and no in-flight reservation |
+| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `unseen`, unchanged | no; commit one interaction-scoped peer fault with `rejected-protocol` provenance and detailed reason `unopened-interaction-identity`, record one local observation carrying that reason, the **refused-frame reference** — <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact --> — and effect certainty `known-none`, and retain no history, no latch, and no in-flight reservation |
 | `validating` | structural/profile/state/class/direction/Shape/authority-structure/bound/replay/concurrency check fails | `rejected-protocol` | no |
 | `validating` | receiver-local external phase predicate is `false` or `unknown` | `refused-local` | no |
 | `validating` | structurally valid authority presentation is denied by local policy | `refused-local` | no |
@@ -212,8 +212,8 @@ Every other terminal interaction owns a `late-traffic-fault` latch with exactly 
 The first duplicate semantic terminal or late non-fault control while the latch is `clear` preserves
 the first accepted terminal history and attempts exactly one interaction-scoped `state-violation`
 peer fault. Successful commit sets `fault-committed`; inability to commit sets `fault-unavailable`.
-Settling the latch also **records the frame that settled it** — its kind, its **session**, its
-interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction —
+Settling the latch also **records the frame that settled it** — <!-- fact:settling-frame-reference -->its kind, its **session**, its interaction identity, its **committing
+endpoint**, and its **arrival ordinal** within the interaction<!-- /fact --> —
 in the local observation. Kind, session, interaction identity, and committing endpoint together do not
 identify the frame when one endpoint commits two of the same kind for one identity, which is exactly
 what a duplicate terminal is and is a case `C4-P2` must leave green; the ordinal is what maps the
@@ -228,9 +228,9 @@ acknowledgement its own endpoint committed before the terminal frame fails the p
 late control from the peer and a duplicate terminal committed after the terminal frame do not, and all
 three settle the same latch to the same value.
 
-Accepting a terminal history likewise **records the terminal-frame reference** — its kind, its
-**session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** within
-the interaction — in the local observation. That is the other frame the sentence above compares
+Accepting a terminal history likewise **records the terminal-frame reference** — <!-- fact:terminal-frame-reference -->its kind, its **session**, its interaction
+identity, its **committing endpoint**, and its
+**arrival ordinal** within the interaction<!-- /fact --> — in the local observation. That is the other frame the sentence above compares
 against, and until **AK6** it was published by nothing: the observation recorded the terminal form,
 and a form identifies one frame only while an endpoint commits at most one frame of that form for one
 identity. A duplicate terminal is an endpoint committing two, it is a case `C4-P2` must leave green,
