@@ -876,11 +876,11 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `feat(channel): make S1-S6, I1-I7 and C4-P1 execute in
-the gate`, committed 2026-08-18, which is the head of the correction sequence beginning at
+The current review target is the commit titled `feat(channel): make the C1-C12 capability properties
+execute`, committed 2026-08-18, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. The commits above the previous pin are verification-foundation
-work done under the hold rather than corrections to a finding: fifteen properties now execute in the
-gate with their required-green sets stated, the three frame references are rendered from one
+work done under the hold rather than corrections to a finding: all twenty-six properties now execute in
+the gate with their required-green sets stated, the three frame references are rendered from one
 declaration into the twenty artifact sites that publish them, and the status blocks and index rows
 carry a pointer to the
 [disposition index](./channel-0.2-disposition-index.md) instead of their correction history. A
