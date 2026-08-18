@@ -160,7 +160,9 @@ restating them, and fails when the two disagree. All fifteen properties the hold
 `I1`-`I7` -- now execute, with the fourteen owed required-green sets stated. Every one of them
 carries the two-session vector AL1 and AK7 were raised for as a required-green member, so a
 property reading one session's fact across the vector is a gate failure rather than a finding two
-cycles later. Condition 2 of the hold is met.
+cycles later. Condition 2 of the hold is met, and the eleven remaining per-capability properties followed: all
+twenty-six now execute, and no cell in either of the completeness review's property tables reads
+`owed`.
 
 **W3's status-block half has landed too.** The nine design artifacts' status blocks carried 289 lines
 of correction history between them and now carry 45: each states what the artifact is and what it

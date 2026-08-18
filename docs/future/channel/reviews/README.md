@@ -41,13 +41,7 @@ now closed in the artifacts it was raised against — a claim a reviewer should 
 finding's own evidence sentences rather than against this paragraph, since **AI9** established that it
 was false for six cycles while every entry point asserted it, and **AJ1**, **AJ2**, **AJ3**, and
 **AJ4** are four more findings whose disposition said closed while an artifact their evidence named
-was untouched. One piece of named residual work is open and is not
-a finding: of the twenty-six properties the package states, twelve capabilities owe the required-green
-set that **AE3** made a normative field, and the thirteen state-machine properties AF7 brought into
-the audit owe it too — with `I1`-`I7` owing a named mutation as well. Twenty-five of the twenty-six
-owe it; only `C4-P2` has one. Those numbers were twenty-five and eleven until **AK3**, both being
-counts of the audit's twelve capability *rows* rather than of properties, and the property the first
-count dropped was `C4-P2`. None of that is a verdict: a
+was untouched. That piece of named residual work is closed. Twenty-five of the twenty-six properties owed the required-green set **AE3** made a normative field, `I1`-`I7` owed a named mutation as well, and only `C4-P2` had either. All twenty-six now state a required-green set and a named mutation, and all twenty-six execute in `build/verify-channel-0.2-properties.ps1`. The counts were twenty-five and eleven until **AK3**, both being counts of the audit's twelve capability *rows* rather than of properties, and the property the first count dropped was `C4-P2`. Two limits are stated rather than closed: `C4-P1` and `I5` carry sets scoped to the one named profile, because the direction scope of the in-flight bound is undecided for a profile in which both endpoints initiate, and C12-P1's third clause is delegated to the repository's dependency guards rather than evaluated over a vector. None of that is a verdict: a
 fresh independent closure re-review is pending, and it is the only thing that can close the batch.
 
 The U-through-AC sequence is worth reading before the next review rather than after it. S1 found that the
@@ -882,11 +876,11 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `feat(channel): make S1-S6, I1-I7 and C4-P1 execute in
-the gate`, committed 2026-08-18, which is the head of the correction sequence beginning at
+The current review target is the commit titled `feat(channel): make the C1-C12 capability properties
+execute`, committed 2026-08-18, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. The commits above the previous pin are verification-foundation
-work done under the hold rather than corrections to a finding: fifteen properties now execute in the
-gate with their required-green sets stated, the three frame references are rendered from one
+work done under the hold rather than corrections to a finding: all twenty-six properties now execute in
+the gate with their required-green sets stated, the three frame references are rendered from one
 declaration into the twenty artifact sites that publish them, and the status blocks and index rows
 carry a pointer to the
 [disposition index](./channel-0.2-disposition-index.md) instead of their correction history. A
