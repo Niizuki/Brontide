@@ -1,0 +1,365 @@
+{
+  "schemaVersion": 1,
+  "note": "Hand-written inputs for the executable Channel 0.2 properties. These are NOT Batch 2 vectors and do not authorize Batch 2: they carry only what a property statement quantifies over -- declared stimulus steps, delivery, and the observation records the property reads -- written against the neutral brief's vector FORMAT rather than authored from it. Batch 2 owns the real vector files, their full expected observations, evidence modes, and goldens. This is the sequencing note in section W2 of the verification foundation plan.",
+  "frameKinds": ["request", "cancellation-control", "cancellation-acknowledgement", "outcome"],
+  "latchValues": ["clear", "fault-committed", "fault-unavailable", "not-applicable"],
+  "vectors": [
+    {
+      "id": "C4-conforming-commit-order-initiator",
+      "capability": "C4",
+      "propertyMemberships": ["C4-P2"],
+      "role": "required-green",
+      "summary": "Conforming commit-order delivery in the initiator direction: the initiator commits the request then its one legal cancellation control, and both are delivered in the order it committed them.",
+      "sessions": [{ "id": "s1", "establishedProfile": "neutral-fixed-1", "initialSessionState": "established", "initialInteractionState": "idle" }],
+      "declaredSteps": [
+        { "id": "req", "kind": "request", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "ctl", "kind": "cancellation-control", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 2 }
+      ],
+      "delivery": [
+        { "step": "req", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 1 },
+        { "step": "ctl", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 2 }
+      ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [{ "session": "s1", "identities": ["i1"] }],
+        "lateTrafficLatches": []
+      },
+      "expected": { "C4-P2": "green" }
+    },
+    {
+      "id": "C4-conforming-commit-order-recipient",
+      "capability": "C4",
+      "propertyMemberships": ["C4-P2"],
+      "role": "required-green",
+      "summary": "Conforming commit-order delivery in the recipient direction: the recipient commits the cancellation acknowledgement then its semantic Outcome, and both are delivered in the order it committed them, so nothing arrives against an interaction already terminal.",
+      "sessions": [{ "id": "s1", "establishedProfile": "neutral-fixed-1", "initialSessionState": "established", "initialInteractionState": "idle" }],
+      "declaredSteps": [
+        { "id": "req", "kind": "request", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "ack", "kind": "cancellation-acknowledgement", "committingEndpoint": "recipient", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "out", "kind": "outcome", "committingEndpoint": "recipient", "session": "s1", "interactionIdentity": "i1", "commitIndex": 2 }
+      ],
+      "delivery": [
+        { "step": "req", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 1 },
+        { "step": "ack", "disposition": "delivered", "receivingEndpoint": "initiator", "arrivalOrdinal": 1 },
+        { "step": "out", "disposition": "delivered", "receivingEndpoint": "initiator", "arrivalOrdinal": 2 }
+      ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [{ "session": "s1", "identities": ["i1"] }],
+        "lateTrafficLatches": [
+          {
+            "recordedBy": "initiator",
+            "session": "s1",
+            "interactionIdentity": "i1",
+            "category": "none",
+            "latchValue": "clear",
+            "settlingFrame": null,
+            "terminalFrame": { "kind": "outcome", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "recipient", "arrivalOrdinal": 2 }
+          }
+        ]
+      },
+      "expected": { "C4-P2": "green" }
+    },
+    {
+      "id": "C4-request-lost-control-delivered",
+      "capability": "C4",
+      "propertyMemberships": ["C4-P2"],
+      "role": "required-green",
+      "summary": "A conforming initiator commits the request, the transport loses it, and the initiator commits its one legal cancellation control -- C8 states recipient admission is not observable from dispatched. The control lands at unseen and produces exactly the refusal the first conjunct quantifies over. This is AE1: the case the property was red on for ten cycles, and the reason the conjunct reads the subsequent admission.",
+      "sessions": [{ "id": "s1", "establishedProfile": "neutral-fixed-1", "initialSessionState": "established", "initialInteractionState": "idle" }],
+      "declaredSteps": [
+        { "id": "req", "kind": "request", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "ctl", "kind": "cancellation-control", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 2 }
+      ],
+      "delivery": [
+        { "step": "req", "disposition": "lost" },
+        { "step": "ctl", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 1 }
+      ],
+      "observations": {
+        "unseenRefusals": [
+          {
+            "recordedBy": "recipient",
+            "provenance": "recipient",
+            "frameDecision": "rejected-protocol",
+            "detailedReason": "unopened-interaction-identity",
+            "effectCertainty": "known-none",
+            "refusedFrame": { "kind": "cancellation-control", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "initiator", "arrivalOrdinal": 1 }
+          }
+        ],
+        "recipientAdmittedIdentities": [{ "session": "s1", "identities": [] }],
+        "lateTrafficLatches": []
+      },
+      "expected": { "C4-P2": "green" }
+    },
+    {
+      "id": "C4-acknowledgement-lost",
+      "capability": "C4",
+      "propertyMemberships": ["C4-P2"],
+      "role": "required-green",
+      "summary": "The other half of loss of either frame: the recipient commits the cancellation acknowledgement, the transport loses it, and the Outcome it committed afterwards is delivered. Nothing arrives against a terminal interaction, so no latch settles.",
+      "sessions": [{ "id": "s1", "establishedProfile": "neutral-fixed-1", "initialSessionState": "established", "initialInteractionState": "idle" }],
+      "declaredSteps": [
+        { "id": "req", "kind": "request", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "ack", "kind": "cancellation-acknowledgement", "committingEndpoint": "recipient", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "out", "kind": "outcome", "committingEndpoint": "recipient", "session": "s1", "interactionIdentity": "i1", "commitIndex": 2 }
+      ],
+      "delivery": [
+        { "step": "req", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 1 },
+        { "step": "ack", "disposition": "lost" },
+        { "step": "out", "disposition": "delivered", "receivingEndpoint": "initiator", "arrivalOrdinal": 1 }
+      ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [{ "session": "s1", "identities": ["i1"] }],
+        "lateTrafficLatches": [
+          {
+            "recordedBy": "initiator",
+            "session": "s1",
+            "interactionIdentity": "i1",
+            "category": "none",
+            "latchValue": "clear",
+            "settlingFrame": null,
+            "terminalFrame": { "kind": "outcome", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "recipient", "arrivalOrdinal": 1 }
+          }
+        ]
+      },
+      "expected": { "C4-P2": "green" }
+    },
+    {
+      "id": "C4-control-for-unopened-identity",
+      "capability": "C4",
+      "propertyMemberships": ["C4-P2"],
+      "role": "required-green",
+      "summary": "Legal input from a nonconformant peer: a cancellation control for an identity the peer never opened. The recipient refuses it at unseen, retains nothing, and no request for that identity was ever committed.",
+      "sessions": [{ "id": "s1", "establishedProfile": "neutral-fixed-1", "initialSessionState": "established", "initialInteractionState": "idle" }],
+      "declaredSteps": [
+        { "id": "ctl", "kind": "cancellation-control", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 }
+      ],
+      "delivery": [
+        { "step": "ctl", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 1 }
+      ],
+      "observations": {
+        "unseenRefusals": [
+          {
+            "recordedBy": "recipient",
+            "provenance": "recipient",
+            "frameDecision": "rejected-protocol",
+            "detailedReason": "unopened-interaction-identity",
+            "effectCertainty": "known-none",
+            "refusedFrame": { "kind": "cancellation-control", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "initiator", "arrivalOrdinal": 1 }
+          }
+        ],
+        "recipientAdmittedIdentities": [{ "session": "s1", "identities": [] }],
+        "lateTrafficLatches": []
+      },
+      "expected": { "C4-P2": "green" }
+    },
+    {
+      "id": "C4-legal-late-control-after-peer-terminal",
+      "capability": "C4",
+      "propertyMemberships": ["C4-P2"],
+      "role": "required-green",
+      "summary": "The recipient commits its Outcome; the initiator, which cannot observe that, legally commits a cancellation control that arrives after the interaction is terminal. The recipient's latch settles against the initiator's frame, so the settling frame and the terminal frame have different committing endpoints and the conjunct does not reach across them. Channel promises no order across endpoints, which is why this must stay green.",
+      "sessions": [{ "id": "s1", "establishedProfile": "neutral-fixed-1", "initialSessionState": "established", "initialInteractionState": "idle" }],
+      "declaredSteps": [
+        { "id": "req", "kind": "request", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "out", "kind": "outcome", "committingEndpoint": "recipient", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "ctl", "kind": "cancellation-control", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 2 }
+      ],
+      "delivery": [
+        { "step": "req", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 1 },
+        { "step": "out", "disposition": "delivered", "receivingEndpoint": "initiator", "arrivalOrdinal": 1 },
+        { "step": "ctl", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 2 }
+      ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [{ "session": "s1", "identities": ["i1"] }],
+        "lateTrafficLatches": [
+          {
+            "recordedBy": "recipient",
+            "session": "s1",
+            "interactionIdentity": "i1",
+            "category": "state-violation",
+            "latchValue": "fault-committed",
+            "settlingFrame": { "kind": "cancellation-control", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "initiator", "arrivalOrdinal": 2 },
+            "terminalFrame": { "kind": "outcome", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "recipient", "arrivalOrdinal": 1 }
+          }
+        ]
+      },
+      "expected": { "C4-P2": "green" }
+    },
+    {
+      "id": "C4-duplicate-terminal-nonconformant-peer",
+      "capability": "C4",
+      "propertyMemberships": ["C4-P2"],
+      "role": "required-green",
+      "summary": "A nonconformant peer commits two semantic terminals for one identity. The first is accepted as the terminal history; the second settles the initiator's late-traffic latch. Both frames have the same kind, session, identity, and committing endpoint, so only the arrival ordinal separates them -- which is Y4's argument and AK6's, and is why the property must be evaluated against two five-field references rather than against a terminal form.",
+      "sessions": [{ "id": "s1", "establishedProfile": "neutral-fixed-1", "initialSessionState": "established", "initialInteractionState": "idle" }],
+      "declaredSteps": [
+        { "id": "req", "kind": "request", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "out1", "kind": "outcome", "committingEndpoint": "recipient", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "out2", "kind": "outcome", "committingEndpoint": "recipient", "session": "s1", "interactionIdentity": "i1", "commitIndex": 2 }
+      ],
+      "delivery": [
+        { "step": "req", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 1 },
+        { "step": "out1", "disposition": "delivered", "receivingEndpoint": "initiator", "arrivalOrdinal": 1 },
+        { "step": "out2", "disposition": "delivered", "receivingEndpoint": "initiator", "arrivalOrdinal": 2 }
+      ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [{ "session": "s1", "identities": ["i1"] }],
+        "lateTrafficLatches": [
+          {
+            "recordedBy": "initiator",
+            "session": "s1",
+            "interactionIdentity": "i1",
+            "category": "state-violation",
+            "latchValue": "fault-committed",
+            "settlingFrame": { "kind": "outcome", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "recipient", "arrivalOrdinal": 2 },
+            "terminalFrame": { "kind": "outcome", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "recipient", "arrivalOrdinal": 1 }
+          }
+        ]
+      },
+      "expected": { "C4-P2": "green" }
+    },
+    {
+      "id": "C4-two-sessions-one-identity",
+      "capability": "C4",
+      "propertyMemberships": ["C4-P2"],
+      "role": "additional-green",
+      "summary": "AK1's vector. Two sessions legitimately hold one interaction identity value, and both endpoints conform in both. Session s2 opens and admits i1; session s1 carries a cancellation control for i1 that the peer never opened, which the recipient refuses at unseen. Scoped to one session the membership test looks in s1 and finds nothing. Unscoped it finds the admission in s2, which is the false red AF8 was written to prevent and AK1 found had no operand. The declared order matters and is stated rather than incidental: s2's request is committed before s1's control, so an unscoped precedence relation reaches across the two sessions as well. The conjunct is a conjunction, so a vector ordering the two sessions the other way would leave the unscoped membership test firing alone and the conjunct green -- this input is written to make both halves of the defect observable, not to suggest either half is sufficient.",
+      "sessions": [
+        { "id": "s1", "establishedProfile": "neutral-fixed-1", "initialSessionState": "established", "initialInteractionState": "idle" },
+        { "id": "s2", "establishedProfile": "neutral-fixed-1", "initialSessionState": "established", "initialInteractionState": "idle" }
+      ],
+      "declaredSteps": [
+        { "id": "s2-req", "kind": "request", "committingEndpoint": "initiator", "session": "s2", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "s2-out", "kind": "outcome", "committingEndpoint": "recipient", "session": "s2", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "s1-ctl", "kind": "cancellation-control", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 }
+      ],
+      "delivery": [
+        { "step": "s2-req", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 1 },
+        { "step": "s2-out", "disposition": "delivered", "receivingEndpoint": "initiator", "arrivalOrdinal": 1 },
+        { "step": "s1-ctl", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 1 }
+      ],
+      "observations": {
+        "unseenRefusals": [
+          {
+            "recordedBy": "recipient",
+            "provenance": "recipient",
+            "frameDecision": "rejected-protocol",
+            "detailedReason": "unopened-interaction-identity",
+            "effectCertainty": "known-none",
+            "refusedFrame": { "kind": "cancellation-control", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "initiator", "arrivalOrdinal": 1 }
+          }
+        ],
+        "recipientAdmittedIdentities": [
+          { "session": "s1", "identities": [] },
+          { "session": "s2", "identities": ["i1"] }
+        ],
+        "lateTrafficLatches": []
+      },
+      "expected": { "C4-P2": "green" }
+    },
+    {
+      "id": "C4-two-controls-one-identity",
+      "capability": "C4",
+      "propertyMemberships": ["C4-P2"],
+      "role": "additional-green",
+      "summary": "AK5's vector. One endpoint commits a cancellation control for i1, then the request naming i1, then a second control for i1, and every frame is delivered in the order it was committed. The first control is refused at unseen; the request is then admitted on its own merits; the second control reaches an open interaction. Only the arrival ordinal says which control the refusal record names -- without it the record binds to the control committed after the request and the property goes red on delivery that matched commit order.",
+      "sessions": [{ "id": "s1", "establishedProfile": "neutral-fixed-1", "initialSessionState": "established", "initialInteractionState": "idle" }],
+      "declaredSteps": [
+        { "id": "ctl1", "kind": "cancellation-control", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "req", "kind": "request", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 2 },
+        { "id": "ctl2", "kind": "cancellation-control", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 3 }
+      ],
+      "delivery": [
+        { "step": "ctl1", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 1 },
+        { "step": "req", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 2 },
+        { "step": "ctl2", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 3 }
+      ],
+      "observations": {
+        "unseenRefusals": [
+          {
+            "recordedBy": "recipient",
+            "provenance": "recipient",
+            "frameDecision": "rejected-protocol",
+            "detailedReason": "unopened-interaction-identity",
+            "effectCertainty": "known-none",
+            "refusedFrame": { "kind": "cancellation-control", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "initiator", "arrivalOrdinal": 1 }
+          }
+        ],
+        "recipientAdmittedIdentities": [{ "session": "s1", "identities": ["i1"] }],
+        "lateTrafficLatches": []
+      },
+      "expected": { "C4-P2": "green" }
+    },
+    {
+      "id": "C4-control-precedes-request",
+      "capability": "C4",
+      "propertyMemberships": ["C4-P2"],
+      "role": "named-mutation",
+      "summary": "The first conjunct's mutation. The initiator commits the request and then its cancellation control; the declared reordering injection delivers the control first. The recipient refuses it at unseen, and the displaced request then arrives and is admitted as any first request bearing that identity is -- the earlier refusal bars nothing. That subsequent admission is part of the expected observation and not a consequence left implicit: a vector authored to stop at the refusal takes the property green on its own named mutation, which is AF1.",
+      "reorderingInjection": "declared: the initiator's two frames are delivered to the recipient in the reverse of the order the initiator committed them",
+      "sessions": [{ "id": "s1", "establishedProfile": "neutral-fixed-1", "initialSessionState": "established", "initialInteractionState": "idle" }],
+      "declaredSteps": [
+        { "id": "req", "kind": "request", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "ctl", "kind": "cancellation-control", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 2 }
+      ],
+      "delivery": [
+        { "step": "ctl", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 1 },
+        { "step": "req", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 2 }
+      ],
+      "observations": {
+        "unseenRefusals": [
+          {
+            "recordedBy": "recipient",
+            "provenance": "recipient",
+            "frameDecision": "rejected-protocol",
+            "detailedReason": "unopened-interaction-identity",
+            "effectCertainty": "known-none",
+            "refusedFrame": { "kind": "cancellation-control", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "initiator", "arrivalOrdinal": 1 }
+          }
+        ],
+        "recipientAdmittedIdentities": [{ "session": "s1", "identities": ["i1"] }],
+        "lateTrafficLatches": []
+      },
+      "expected": { "C4-P2": "red", "conjunct": "C4-P2-conjunct-1" }
+    },
+    {
+      "id": "C4-outcome-precedes-ack",
+      "capability": "C4",
+      "propertyMemberships": ["C4-P2"],
+      "role": "named-mutation",
+      "summary": "The second conjunct's mutation. The recipient commits the cancellation acknowledgement and then its semantic Outcome; the declared reordering injection delivers the Outcome first, so the acknowledgement lands on an interaction the Outcome has already made terminal. The initiator records one late-traffic state-violation whose latch names the displaced acknowledgement as the frame that settled it, and the terminal history was accepted on the Outcome -- the same endpoint's own frame, committed after it.",
+      "reorderingInjection": "declared: the recipient's two frames are delivered to the initiator in the reverse of the order the recipient committed them",
+      "sessions": [{ "id": "s1", "establishedProfile": "neutral-fixed-1", "initialSessionState": "established", "initialInteractionState": "idle" }],
+      "declaredSteps": [
+        { "id": "req", "kind": "request", "committingEndpoint": "initiator", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "ack", "kind": "cancellation-acknowledgement", "committingEndpoint": "recipient", "session": "s1", "interactionIdentity": "i1", "commitIndex": 1 },
+        { "id": "out", "kind": "outcome", "committingEndpoint": "recipient", "session": "s1", "interactionIdentity": "i1", "commitIndex": 2 }
+      ],
+      "delivery": [
+        { "step": "req", "disposition": "delivered", "receivingEndpoint": "recipient", "arrivalOrdinal": 1 },
+        { "step": "out", "disposition": "delivered", "receivingEndpoint": "initiator", "arrivalOrdinal": 1 },
+        { "step": "ack", "disposition": "delivered", "receivingEndpoint": "initiator", "arrivalOrdinal": 2 }
+      ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [{ "session": "s1", "identities": ["i1"] }],
+        "lateTrafficLatches": [
+          {
+            "recordedBy": "initiator",
+            "session": "s1",
+            "interactionIdentity": "i1",
+            "category": "state-violation",
+            "latchValue": "fault-committed",
+            "settlingFrame": { "kind": "cancellation-acknowledgement", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "recipient", "arrivalOrdinal": 2 },
+            "terminalFrame": { "kind": "outcome", "session": "s1", "interactionIdentity": "i1", "committingEndpoint": "recipient", "arrivalOrdinal": 1 }
+          }
+        ]
+      },
+      "expected": { "C4-P2": "red", "conjunct": "C4-P2-conjunct-2" }
+    }
+  ]
+}

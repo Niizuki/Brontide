@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "note": "Machine-readable capability-wide properties for Channel 0.2, in the form the neutral brief's 'Capability-wide property format' section declares. This is W2 of the verification foundation plan: the properties execute in the gate rather than being read. It is not a design artifact and no closure review assesses it; the design artifacts remain the authority and every statement here cites the artifact that owns it. Where this file and an artifact disagree, the artifact is right and this file is the defect.",
+  "authority": {
+    "capabilityContract": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+    "neutralBrief": "docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md",
+    "completenessReview": "docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md",
+    "plan": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md"
+  },
+  "operatorSet": {
+    "note": "Closed, per the neutral brief: equality, membership, counts, transition edges, set uniqueness, implication, bounded for-all, and precedence between two steps in one vector's declared ordered stimulus sequence for one endpoint and one interaction identity within one session. No stack code and no general scripting language. The operators this file uses are the subset below; an evaluator that meets an operator outside this list fails rather than guessing.",
+    "operators": [
+      "for-all",
+      "exists",
+      "all-of",
+      "any-of",
+      "not",
+      "equals",
+      "member-of",
+      "precedes",
+      "resolve-frame-reference"
+    ],
+    "ordinalRule": "An arrival ordinal is an identifier and never an ordering operand. It may be compared for equality inside resolve-frame-reference, to say which received frame a record names; it may not be an operand of precedes or of any other comparison that reads it as an order. An evaluator that orders by an arrival ordinal is a defect against this file.",
+    "precedenceRule": "precedes compares two declared stimulus steps of one committing endpoint, one interaction identity, and one session, by their position in that endpoint's declared commit sequence. It never compares an observed arrival, a time, or two endpoints' steps. Where an operand's session, identity, or committing endpoint is absent, the comparison is not narrowed by the absent field and every candidate step is admitted -- which is the failure the operand corrections AF8, AG2, AH1, AI1, AJ1, AK1 and AK5 each closed, and is what the operand mutations below reproduce.",
+    "ambiguityRule": "A frame reference resolves to the set of declared stimulus steps matching every field it publishes. Where that set has more than one member the property is evaluated existentially over it: a vector author facing a reference that does not single out one step still has to write one expected observation, so 'the fields do not decide' means some author reaches the wrong verdict. This is closure review 16's P3 resolution rule and is what makes an operand mutation observable."
+  },
+  "properties": [
+    {
+      "id": "C4-P2",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Across every C4 vector, within one session and for each interaction identity, nothing delivers two frames one endpoint committed in an order that endpoint did not commit them in. Stated over the refusal a reordering produces rather than over the accepted sequence: no endpoint records a recipient rejected-protocol at unseen for a cancellation control whose committing endpoint had already committed the request naming that identity and whose recipient afterwards admits an interaction for that identity in the same session, and none records a late-traffic state-violation latched against a frame whose committing endpoint had committed it before that endpoint's own frame the interaction's terminal history was accepted on.",
+      "universalSelector": { "capability": "C4" },
+      "sessionScoped": true,
+      "quantifiedFields": [
+        "the recorded unseen refusal's provenance",
+        "its detailed reason",
+        "the refused-frame reference (kind, session, interaction identity, committing endpoint, arrival ordinal for that interaction identity)",
+        "the recipient's set of admitted interaction identities, per session",
+        "the late-traffic latch value",
+        "the settling-frame reference (kind, session, interaction identity, committing endpoint, arrival ordinal within the interaction)",
+        "the terminal-frame reference (kind, session, interaction identity, committing endpoint, arrival ordinal within the interaction)",
+        "the vector's declared ordered stimulus steps, each with its committing endpoint, session, and interaction identity"
+      ],
+      "invariant": {
+        "all-of": [
+          {
+            "id": "C4-P2-conjunct-1",
+            "reads": "the reordering a refusal witnesses, separated from a loss by the subsequent admission",
+            "for-all": "unseen-refusals",
+            "selecting": {
+              "all-of": [
+                { "equals": { "field": "provenance", "value": "recipient" } },
+                { "equals": { "field": "frameDecision", "value": "rejected-protocol" } },
+                { "equals": { "field": "detailedReason", "value": "unopened-interaction-identity" } },
+                { "equals": { "field": "refusedFrame.kind", "value": "cancellation-control" } }
+              ]
+            },
+            "violatedWhen": {
+              "all-of": [
+                {
+                  "exists": "declared-steps",
+                  "matching": {
+                    "all-of": [
+                      { "equals": { "field": "kind", "value": "request" } },
+                      { "equals": { "field": "session", "operand": "refusedFrame.session" } },
+                      { "equals": { "field": "interactionIdentity", "operand": "refusedFrame.interactionIdentity" } },
+                      { "equals": { "field": "committingEndpoint", "operand": "refusedFrame.committingEndpoint" } }
+                    ]
+                  },
+                  "and": { "precedes": { "earlier": "matched-step", "later": { "resolve-frame-reference": "refusedFrame" } } }
+                },
+                {
+                  "member-of": {
+                    "value": "refusedFrame.interactionIdentity",
+                    "set": "recipient-admitted-identities",
+                    "scopedBy": "refusedFrame.session"
+                  }
+                }
+              ]
+            },
+            "citations": [
+              "The subject of 'had already committed' is the committing endpoint, never the recording endpoint (U1, AC3).",
+              "The subsequent admission is what makes the conjunct decide reordering rather than loss; without it a conforming realization whose request the transport lost satisfies it (AE1, 2026-08-14 owner ruling).",
+              "The membership test is scoped to one session because an interaction identity is unique only within one (AF8), and both sides of that test publish the session (AK1).",
+              "The refused-frame reference carries the arrival ordinal because one endpoint may commit two controls naming one identity in one session (AK5)."
+            ]
+          },
+          {
+            "id": "C4-P2-conjunct-2",
+            "reads": "the late-traffic latch, the frame that settled it, and that endpoint's own frame the terminal history was accepted on",
+            "for-all": "late-traffic-latches",
+            "selecting": {
+              "all-of": [
+                { "equals": { "field": "category", "value": "state-violation" } },
+                { "equals": { "field": "latchValue", "value": "fault-committed" } }
+              ]
+            },
+            "violatedWhen": {
+              "all-of": [
+                { "equals": { "field": "settlingFrame.committingEndpoint", "operand": "terminalFrame.committingEndpoint" } },
+                { "equals": { "field": "settlingFrame.session", "operand": "terminalFrame.session" } },
+                { "equals": { "field": "settlingFrame.interactionIdentity", "operand": "terminalFrame.interactionIdentity" } },
+                {
+                  "precedes": {
+                    "earlier": { "resolve-frame-reference": "settlingFrame" },
+                    "later": { "resolve-frame-reference": "terminalFrame" }
+                  }
+                }
+              ]
+            },
+            "citations": [
+              "The witness is the settling frame and not the latch value: fault-committed names no frame, and the mutation and the two cases the property must leave green all record it (contract, C4).",
+              "The second operand is the terminal-frame reference rather than the terminal form, because a form identifies one frame only while an endpoint commits at most one frame of that form for one identity, and a duplicate terminal is an endpoint committing two (AK6).",
+              "Restricting the conjunct to one endpoint's own frames is load-bearing: a legal late control after a peer's terminal and a duplicate terminal from a nonconformant peer must both stay green."
+            ]
+          }
+        ]
+      },
+      "namedMutations": [
+        {
+          "vector": "C4-control-precedes-request",
+          "conjunct": "C4-P2-conjunct-1",
+          "expected": "red",
+          "note": "A realization delivers one interaction's cancellation control before the request that opens it. The expected observation is the complete set of records both endpoints produce, including the displaced request's subsequent admission -- a vector authored to stop at the refusal leaves the membership test an empty set and takes the property green on its own named mutation, which is AF1."
+        },
+        {
+          "vector": "C4-outcome-precedes-ack",
+          "conjunct": "C4-P2-conjunct-2",
+          "expected": "red",
+          "note": "A realization delivers the recipient's semantic Outcome before the cancellation acknowledgement the recipient committed first, so the acknowledgement lands on an interaction the Outcome has already made terminal. The expected observation contains one late-traffic state-violation whose latch records the displaced acknowledgement as the frame that settled it."
+        }
+      ],
+      "requiredGreen": [
+        { "vector": "C4-conforming-commit-order-initiator", "member": "conforming commit-order delivery in the initiator direction" },
+        { "vector": "C4-conforming-commit-order-recipient", "member": "conforming commit-order delivery in the recipient direction" },
+        { "vector": "C4-request-lost-control-delivered", "member": "a request lost while the cancellation control naming its identity is delivered" },
+        { "vector": "C4-acknowledgement-lost", "member": "a lost acknowledgement" },
+        { "vector": "C4-control-for-unopened-identity", "member": "a cancellation control for an identity the peer never opened" },
+        { "vector": "C4-legal-late-control-after-peer-terminal", "member": "a legal late control arriving after a peer's terminal" },
+        { "vector": "C4-duplicate-terminal-nonconformant-peer", "member": "a duplicate terminal from a nonconformant peer" }
+      ],
+      "additionalGreen": [
+        { "vector": "C4-two-sessions-one-identity", "raisedBy": "AK1", "member": "two sessions reusing one identity, conforming at both ends" },
+        { "vector": "C4-two-controls-one-identity", "raisedBy": "AK5", "member": "two controls for one identity, delivery matching commit order" }
+      ],
+      "operandMutations": [
+        {
+          "id": "AK1-session-on-refused-frame",
+          "drop": ["unseen-refusals.refusedFrame.session"],
+          "vector": "C4-two-sessions-one-identity",
+          "published": "green",
+          "mutated": "red",
+          "note": "Stripping the session from the refused-frame reference takes a vector conforming at both endpoints in both sessions red. This is AK1 reproduced rather than read."
+        },
+        {
+          "id": "AK1-interaction-identity-on-refused-frame",
+          "drop": ["unseen-refusals.refusedFrame.interactionIdentity"],
+          "vector": "C4-two-sessions-one-identity",
+          "published": "green",
+          "mutated": "green",
+          "note": "Recorded by closure review 16 and not raised: the interaction identity of the refused-frame reference moves no verdict on this vector. Adding an operand is strictly more precise than inferring one."
+        },
+        {
+          "id": "AK5-arrival-ordinal-on-refused-frame",
+          "drop": ["unseen-refusals.refusedFrame.arrivalOrdinal"],
+          "vector": "C4-two-controls-one-identity",
+          "published": "green",
+          "mutated": "red",
+          "note": "Without the ordinal a control committed before the request binds to the one committed after it, and the property goes red on delivery that matched commit order. This is AK5 reproduced."
+        },
+        {
+          "id": "AK5-committing-endpoint-on-refused-frame",
+          "drop": ["unseen-refusals.refusedFrame.committingEndpoint"],
+          "vector": "C4-two-controls-one-identity",
+          "published": "green",
+          "mutated": "green",
+          "note": "Recorded, not raised: redundant given the other fields on every vector tried."
+        },
+        {
+          "id": "AK6-terminal-frame-to-form-only-duplicate-terminal",
+          "drop": ["late-traffic-latches.terminalFrame.session", "late-traffic-latches.terminalFrame.interactionIdentity", "late-traffic-latches.terminalFrame.committingEndpoint", "late-traffic-latches.terminalFrame.arrivalOrdinal"],
+          "vector": "C4-duplicate-terminal-nonconformant-peer",
+          "published": "green",
+          "mutated": "green",
+          "note": "AK6 alone moves no verdict under the published settling-frame reference, which has carried its own arrival ordinal since Y4."
+        },
+        {
+          "id": "AK6-terminal-frame-to-form-only-legal-late-control",
+          "drop": ["late-traffic-latches.terminalFrame.session", "late-traffic-latches.terminalFrame.interactionIdentity", "late-traffic-latches.terminalFrame.committingEndpoint", "late-traffic-latches.terminalFrame.arrivalOrdinal"],
+          "vector": "C4-legal-late-control-after-peer-terminal",
+          "published": "green",
+          "mutated": "green"
+        },
+        {
+          "id": "AK6-terminal-frame-to-form-only-outcome-precedes-ack",
+          "drop": ["late-traffic-latches.terminalFrame.session", "late-traffic-latches.terminalFrame.interactionIdentity", "late-traffic-latches.terminalFrame.committingEndpoint", "late-traffic-latches.terminalFrame.arrivalOrdinal"],
+          "vector": "C4-outcome-precedes-ack",
+          "published": "red",
+          "mutated": "red"
+        },
+        {
+          "id": "Y4-arrival-ordinal-on-settling-frame",
+          "drop": ["late-traffic-latches.settlingFrame.arrivalOrdinal"],
+          "vector": "C4-duplicate-terminal-nonconformant-peer",
+          "published": "green",
+          "mutated": "green"
+        },
+        {
+          "id": "Y4-and-AK6-together",
+          "drop": ["late-traffic-latches.settlingFrame.arrivalOrdinal", "late-traffic-latches.terminalFrame.session", "late-traffic-latches.terminalFrame.interactionIdentity", "late-traffic-latches.terminalFrame.committingEndpoint", "late-traffic-latches.terminalFrame.arrivalOrdinal"],
+          "vector": "C4-duplicate-terminal-nonconformant-peer",
+          "published": "green",
+          "mutated": "red",
+          "note": "The pair is why AK6 is defensible although it moves no verdict alone: the terminal-frame reference removes the design's dependence on the settling frame's ordinal to carry both operands of the conjunct."
+        }
+      ],
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only. The five other evidence modes are Batch 2's and are not authorized by this file."
+    }
+  ]
+}

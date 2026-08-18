@@ -166,6 +166,49 @@ that standard is cheap rather than expensive. **Recommendation: keep the standar
 finding costs to produce, rather than lowering the bar.** No action is proposed here; it is recorded so
 the question is visible when the cycle resumes.
 
+## 2a. What W2 has landed
+
+Recorded here, in the document that owns the plan, rather than in a design artifact's status block --
+W3 exists because those blocks are where disposition history accumulates, and this work would be the
+next paragraph in them.
+
+**`C4-P2` executes.** `build/verify-channel-0.2-properties.ps1` runs in the repository gate on every
+commit and evaluates the property over eleven hand-written inputs: both named mutations, all seven
+required-green members, and the two vectors **AK1** and **AK5** were raised for. The verdicts are the
+eleven closure review 16 recorded by hand in its probe P2, and the evaluator that produced them is
+kept this time instead of being thrown away. The declaration is
+`conformance/channel-0.2-properties.json`; the inputs are `conformance/channel-0.2-property-vectors.json`.
+
+**The operands are checked by mutation, not by assertion.** Nine operand mutations reproduce review
+16's probe P3: each reverts one published field of one record and re-evaluates. Three flip a verdict
+and six do not, and both outcomes are asserted -- `AK1`'s session and `AK5`'s arrival ordinal each take
+a conforming vector red on their own, `AK6` moves nothing alone and moves the duplicate terminal red
+once `Y4`'s ordinal is reverted with it, and the fields review 16 recorded as redundant are recorded
+here as redundant. A correction whose operand stops being load-bearing now fails the gate rather than
+waiting for a reviewer to notice.
+
+**The executable form cites the artifacts and does not restate them.** Every required-green member,
+every named mutation, and the count of legal members in the group are checked against the capability
+contract's own words; the required-green field is checked against the neutral brief that makes it
+normative. This file is deliberately not a twelfth surface publishing the same facts -- that is the
+failure W1 exists to retire, and the citation checks fail when the two disagree rather than letting a
+second copy drift. Section 4's count of executable properties is checked against what actually
+executes, so the measure cannot go stale in the direction that flatters the work.
+
+**What W2 still owes**, against the condition in section 3:
+
+- `C4-P1` and `S1`-`S6` and `I1`-`I7` are not yet executable. Fourteen of the fifteen properties
+  condition 2 names remain prose;
+- the twenty-five owed required-green sets are still owed. `C4-P2`'s is the one set the contract
+  states, which is why it is the property that could be executed first;
+- `C4-P1`'s set cannot be filled ahead of the direction-scope disposition the completeness review
+  records against it. Under **AE3** that row is a known conforming-realization exposure rather than an
+  unwritten set, and a pass filling it in without settling whether the in-flight bound is session-wide
+  or per-direction would reproduce the omission. That is open question 3's answer for this one
+  property: its set is blocked on a design question, not on effort; and
+- the inputs here are hand-written and carry only what the property quantifies over. They are not
+  Batch 2 vectors, they authorize nothing, and Batch 2 remains closed.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -188,7 +231,9 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
 - **findings per cycle, split by class** — propagation slip, unsound property, stale index, other. The
   claim behind this plan is that the first and third classes go to zero and stay there;
 - **surfaces per fact** — should fall to one plus citations;
-- **properties executable in the gate** — currently zero of twenty-six;
+- **properties executable in the gate** — currently one of twenty-six. `C4-P2` executes in
+  `build/verify-channel-0.2-properties.ps1` against eleven hand-written inputs and nine operand
+  mutations; the remaining twenty-five are prose;
 - **required-green sets stated** — currently one of twenty-six, unchanged for seven cycles; and
 - **design-verifier lines** — currently over two thousand. If W1 and W3 work, this falls. A verifier
   that only grows is a verifier absorbing the cost of a structural problem instead of retiring it.

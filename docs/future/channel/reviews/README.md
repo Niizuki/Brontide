@@ -703,6 +703,11 @@ is exactly what the AD and AE passes found separately.
    - `build/verify-channel-0.2-design.ps1`;
    - `build/verify-channel-0.2-design.ps1 -NegativeProbe` and confirm it fails only because
      `C12-P1` was removed in memory;
+   - `build/verify-channel-0.2-properties.ps1`, which evaluates `C4-P2` over its eleven declared
+     inputs and reverts nine published operands, failing when a verdict is not the declared one.
+     A reviewer building an evaluator of their own should compare against it and treat a
+     disagreement as a finding against whichever of the two is wrong -- the declared expectations
+     are data in `conformance/channel-0.2-properties.json` and are as reviewable as the prose;
    - `build/verify-doc-links.ps1`;
    - `build/verify-text.ps1`; and
    - `build/verify-interchange.ps1`.

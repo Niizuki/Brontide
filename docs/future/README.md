@@ -149,6 +149,16 @@ required-green sets, and disposition history moved out of the status blocks. Bat
 no correction is withdrawn, and the independence rules and closure standard are unchanged for whichever
 review runs next.
 
+**The first of that work has landed.** `C4-P2` now executes: `build/verify-channel-0.2-properties.ps1`
+runs in the repository gate and evaluates the property over the eleven inputs closure review 16
+evaluated by hand -- both named mutations red, all seven required-green members green, and the two
+vectors AK1 and AK5 were raised for green -- plus nine operand mutations that revert one published
+field each and reproduce that review's finding that AK1's session and AK5's arrival ordinal are
+load-bearing and that AK6 becomes so once Y4's ordinal is reverted with it. Every reviewer since the
+eighth built such an evaluator and discarded it; this one is kept, cites the artifacts rather than
+restating them, and fails when the two disagree. Fourteen of the fifteen properties the hold's second
+condition names remain prose, and the twenty-five owed required-green sets are still owed.
+
 ### Channel 0.2 first-batch remaining work
 
 The sixth review found **R1**, a new blocking finding. C8 permitted a cancellation from initiator
