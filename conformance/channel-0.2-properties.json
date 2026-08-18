@@ -947,6 +947,460 @@
         "cross-stack"
       ],
       "executableHere": "neutral validation only."
+    },
+    {
+      "id": "C1-P1",
+      "capability": "C1",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "For every C1 vector, either each session the vector carries has exactly one established profile with every normative fact equal to that session's expected profile, or no interaction is dispatchable and effect certainty is `known-none`.",
+      "universalSelector": {
+        "capability": "C1"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "c1-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C1-required-facet-removed-from-fixed-profile",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "C2-P1",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every accepted session transition belongs to the published transition table; every other input leaves the prior state unchanged or enters `faulted`, and no terminal session returns to a nonterminal state.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "c2-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C2-accept-interaction-while-draining",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "composedFrom": "Evaluated through S1 and S4, which are the session machine's statement of the same two claims. Two implementations of one claim is the duplication W1 retires, so the capability property calls the machine's rather than restating it."
+    },
+    {
+      "id": "C3-P1",
+      "capability": "C3",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "No vector dispatches an interaction unless its class, direction, and external phase predicate all exactly match the established profile of its own session.",
+      "universalSelector": {
+        "capability": "C3"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c3-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C3-unknown-phase-marked-true",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "C5-P1",
+      "capability": "C5",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every dispatched vector has passed every declared bound and every positional Shape rule; every pre-dispatch structural refusal records `known-none` and no semantic Outcome.",
+      "universalSelector": {
+        "capability": "C5"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c5-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C5-oversized-payload-dispatched",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "C6-P1",
+      "capability": "C6",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "No C6 vector reaches handler dispatch unless one exact local authority decision is `permitted`; every denial or unevaluatable presentation records the decision point, initiator attribution, and `known-none`.",
+      "universalSelector": {
+        "capability": "C6"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c6-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C6-delivery-treated-as-permission",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "C7-P1",
+      "capability": "C7",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every dispatched relational vector matches one and only one lifecycle declaration, occurs in the pre-Ready window, and cannot produce a Ready or Release fact by itself.",
+      "universalSelector": {
+        "capability": "C7"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c7-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C7-success-creates-ready",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "C8-P1",
+      "capability": "C8",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every interaction has at most one accepted terminal history, and no cancellation control, drain, timeout, or protocol rejection is recorded as semantic success.",
+      "universalSelector": {
+        "capability": "C8"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c8-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C8-acknowledgement-recorded-as-success",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "composedFrom": "Evaluated through I2 and I3, which are the interaction machine's statement of the same two claims, for the same reason C2-P1 is evaluated through S1 and S4."
+    },
+    {
+      "id": "C9-P1",
+      "capability": "C9",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every terminal vector selects exactly one of the four provenance forms; no field permits a local inference to be accepted as a peer statement or a protocol fault as an Outcome.",
+      "universalSelector": {
+        "capability": "C9"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c9-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C9-local-loss-mapped-to-peer-fault",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "C10-P1",
+      "capability": "C10",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every observation is complete for its provenance form, and no vector with a possible post-dispatch path records `known-none` without explicit evidence that the handler did not begin.",
+      "universalSelector": {
+        "capability": "C10"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c10-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C10-known-none-after-dispatch",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "C11-P1",
+      "capability": "C11",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "In each session the vector carries, every established profile has all required facets supported exactly, and no facet changes a core identity, authority, terminal-provenance, or uncertainty result.",
+      "universalSelector": {
+        "capability": "C11"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "c11-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C11-facet-changes-interaction-identity",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "C12-P1",
+      "capability": "C12",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every neutral vector has one deterministic expected portable observation, every C1-C12 group has at least one capability-wide property, and neither stack nor neutral peer imports the other's semantic runtime.",
+      "universalSelector": {
+        "capability": "C12"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c12-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C12-nondeterministic-expected-observation",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "clauseScope": "Three clauses with three scopes, stated because a property whose scope is unstated is a property a reader takes for more than it is. The first is per vector and is what the mutation falsifies. The second is over this declaration file itself and is evaluated once: every C1-C12 group must declare at least one capability-wide property. The third -- that neither stack nor the neutral peer imports the other's semantic runtime -- is not a fact any vector carries; it is enforced by the repository's dependency guards, and this file records that it is delegated there rather than pretending to evaluate it."
     }
   ]
 }

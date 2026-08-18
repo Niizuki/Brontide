@@ -625,6 +625,212 @@ function Invoke-C4P1 {
     return New-Green
 }
 
+# ---------------------------------------------------------------------------------------------
+# The per-capability properties C1-P1 through C12-P1.
+#
+# Two of these are the machines' properties stated at capability level, and they are evaluated by
+# CALLING those rather than by restating them: C2-P1 is S1 and S4, C8-P1 is I2 and I3. Two
+# implementations of one claim is the duplication W1 exists to retire, and it is no better inside a
+# verifier than inside prose -- the second copy is what goes stale.
+# ---------------------------------------------------------------------------------------------
+
+$provenanceForms = @('local-pre-dispatch-refusal', 'semantic-outcome', 'peer-protocol-fault', 'local-loss-observation')
+
+function Invoke-C1P1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    # Per session, and the disjunction is the property: an exact profile, OR nothing dispatchable with
+    # known-none. A realization that has neither is what the mutation produces.
+    foreach ($session in @($Vector.sessions)) {
+        $exact = ([int]$session.establishedProfiles -eq 1) -and $session.profileFactsMatchExpected
+        if ($exact) { continue }
+        if ($session.dispatchable) {
+            return New-Red "session $($session.id) has no established profile equal to the profile it expects, and interactions remain dispatchable"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-C2P1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    $tableResult = Invoke-S1 -VectorId $VectorId -Vector $Vector -Steps $Steps
+    if ($tableResult.Verdict -eq 'red') { return New-Red "$($tableResult.Witness), which the first clause of C2-P1 forbids" }
+    $monotonic = Invoke-S4 -VectorId $VectorId -Vector $Vector -Steps $Steps
+    if ($monotonic.Verdict -eq 'red') { return New-Red "$($monotonic.Witness), which the third clause of C2-P1 forbids" }
+    # The middle clause: any other input leaves the prior state unchanged or enters faulted. An input
+    # recorded as an accepted transition that the table does not contain is caught above; an admission
+    # recorded as accepted outside established is caught here.
+    $state = @{}
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        $sessionId = [string]$sessionEvent.session
+        if ([string]$sessionEvent.step -eq 'transition' -and $sessionEvent.accepted) { $state[$sessionId] = [string]$sessionEvent.to; continue }
+        if ([string]$sessionEvent.step -ne 'admit' -or -not $sessionEvent.acceptedTransition) { continue }
+        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { 'unestablished' }
+        if ($current -ne 'established') {
+            return New-Red "session $sessionId accepted a new interaction while it was $current, so an input that must leave the state unchanged or enter faulted admitted instead"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-C3P1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    $dispatched = @{}
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        if ([string]$sessionEvent.step -eq 'dispatch') { $dispatched["$($sessionEvent.session)|$($sessionEvent.identity)"] = $true }
+    }
+    foreach ($interaction in (Get-Interactions $Vector)) {
+        if (-not $dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)")) { continue }
+        if (-not $interaction.profileMatch) {
+            return New-Red "interaction $($interaction.identity) dispatched without its class and direction matching the established profile of session $($interaction.session)"
+        }
+        # false and unknown both refuse admission: only an exact true satisfies the predicate.
+        if ($interaction.phasePredicate -isnot [bool] -or -not $interaction.phasePredicate) {
+            return New-Red "interaction $($interaction.identity) dispatched with external phase predicate $($interaction.phasePredicate), and only an exact true matches"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-C5P1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    $dispatched = @{}
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        if ([string]$sessionEvent.step -eq 'dispatch') { $dispatched["$($sessionEvent.session)|$($sessionEvent.identity)"] = $true }
+    }
+    foreach ($interaction in (Get-Interactions $Vector)) {
+        if ($dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)")) {
+            if (-not $interaction.boundsChecked) {
+                return New-Red "interaction $($interaction.identity) dispatched without passing every declared bound"
+            }
+            if (-not $interaction.positionalShapeChecked) {
+                return New-Red "interaction $($interaction.identity) dispatched without passing every positional Shape rule"
+            }
+        }
+        $refusal = $interaction.refusal
+        if ($null -eq $refusal -or [string]$refusal.stage -ne 'pre-dispatch') { continue }
+        if ([string]$refusal.effectCertainty -ne 'known-none') {
+            return New-Red "interaction $($interaction.identity) records a pre-dispatch structural refusal with effect certainty $($refusal.effectCertainty)"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-C6P1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    $dispatched = @{}
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        if ([string]$sessionEvent.step -eq 'dispatch') { $dispatched["$($sessionEvent.session)|$($sessionEvent.identity)"] = $true }
+    }
+    foreach ($interaction in (Get-Interactions $Vector)) {
+        $decision = [string]$interaction.authorityDecision
+        if ($dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)") -and $decision -ne 'permitted') {
+            return New-Red "interaction $($interaction.identity) reached handler dispatch with local authority decision $decision"
+        }
+        if ($decision -eq 'permitted') { continue }
+        $record = $interaction.authorityRecord
+        if ($null -eq $record -or -not $record.decisionPoint -or -not $record.initiatorAttribution -or [string]$record.effectCertainty -ne 'known-none') {
+            return New-Red "interaction $($interaction.identity) records a $decision authority presentation without its decision point, initiator attribution, and known-none"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-C7P1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    $dispatched = @{}
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        if ([string]$sessionEvent.step -eq 'dispatch') { $dispatched["$($sessionEvent.session)|$($sessionEvent.identity)"] = $true }
+    }
+    foreach ($interaction in (Get-Interactions $Vector)) {
+        if ([string]$interaction.class -ne 'relational') { continue }
+        if (-not $dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)")) { continue }
+        if ([int]$interaction.declarationMatches -ne 1) {
+            return New-Red "dispatched relational interaction $($interaction.identity) matches $($interaction.declarationMatches) lifecycle declarations"
+        }
+        if (-not $interaction.inPreReadyWindow) {
+            return New-Red "dispatched relational interaction $($interaction.identity) does not occur in the pre-Ready window"
+        }
+        if ($interaction.createsReadyOrRelease) {
+            return New-Red "dispatched relational interaction $($interaction.identity) produces a Ready or Release fact by itself"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-C8P1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    $singleTerminal = Invoke-I2 -VectorId $VectorId -Vector $Vector -Steps $Steps
+    if ($singleTerminal.Verdict -eq 'red') { return New-Red "$($singleTerminal.Witness), which the first clause of C8-P1 forbids" }
+    $notSuccess = Invoke-I3 -VectorId $VectorId -Vector $Vector -Steps $Steps
+    if ($notSuccess.Verdict -eq 'red') { return New-Red "$($notSuccess.Witness), which the second clause of C8-P1 forbids" }
+    return New-Green
+}
+
+function Invoke-C9P1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    foreach ($interaction in (Get-Interactions $Vector)) {
+        $form = [string]$interaction.provenanceForm
+        if (-not $form) { continue }
+        if ($provenanceForms -notcontains $form) {
+            return New-Red "interaction $($interaction.identity) selects provenance form $form, which is not one of the four"
+        }
+        # The second clause: no field permits a local inference to be accepted as a peer statement.
+        # The vector states what the observation actually was where the two differ, and a recorded form
+        # that is not the actual one is exactly that acceptance.
+        $actual = [string]$interaction.provenanceFormActually
+        if ($actual -and $actual -ne $form) {
+            return New-Red "interaction $($interaction.identity) records provenance form $form for what was actually a $actual"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-C10P1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    foreach ($interaction in (Get-Interactions $Vector)) {
+        if ($interaction.PSObject.Properties['observationComplete'] -and -not $interaction.observationComplete) {
+            return New-Red "interaction $($interaction.identity) records an observation that is not complete for its provenance form"
+        }
+        if (-not $interaction.possiblePostDispatchPath) { continue }
+        $refusal = $interaction.refusal
+        if ($null -ne $refusal -and [string]$refusal.effectCertainty -eq 'known-none' -and -not $refusal.explicitEvidence) {
+            return New-Red "interaction $($interaction.identity) has a possible post-dispatch path and records known-none with no explicit evidence that the handler did not begin"
+        }
+        foreach ($history in @($interaction.terminalHistories)) {
+            if ($null -eq $history) { continue }
+            if ([string]$history.effectCertainty -eq 'known-none' -and -not $history.explicitEvidence) {
+                return New-Red "interaction $($interaction.identity) has a possible post-dispatch path and records a known-none terminal history with no explicit evidence that the handler did not begin"
+            }
+        }
+    }
+    return New-Green
+}
+
+function Invoke-C11P1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    foreach ($session in @($Vector.sessions)) {
+        foreach ($required in @($session.requiredFacets)) {
+            if (@($session.supportedFacets) -notcontains [string]$required) {
+                return New-Red "session $($session.id) requires facet $required and its established profile does not support it"
+            }
+        }
+        if ($session.facetChangesCore) {
+            return New-Red "session $($session.id) has a facet that changes a core identity, authority, terminal-provenance, or uncertainty result"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-C12P1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    # Only the first clause is per vector. The second is over the declaration set and is evaluated once
+    # below; the third is a dependency fact no vector carries and is enforced by the repository guards.
+    if ($Vector.PSObject.Properties['deterministicExpectedObservation'] -and -not $Vector.deterministicExpectedObservation) {
+        return New-Red "vector $VectorId has no single deterministic expected portable observation"
+    }
+    return New-Green
+}
+
 $evaluators = @{
     'C4-P2' = ${function:Invoke-C4P2}; 'C4-P1' = ${function:Invoke-C4P1}
     'S1' = ${function:Invoke-S1}; 'S2' = ${function:Invoke-S2}; 'S3' = ${function:Invoke-S3}
@@ -632,6 +838,10 @@ $evaluators = @{
     'I1' = ${function:Invoke-I1}; 'I2' = ${function:Invoke-I2}; 'I3' = ${function:Invoke-I3}
     'I4' = ${function:Invoke-I4}; 'I5' = ${function:Invoke-I5}; 'I6' = ${function:Invoke-I6}
     'I7' = ${function:Invoke-I7}
+    'C1-P1' = ${function:Invoke-C1P1}; 'C2-P1' = ${function:Invoke-C2P1}; 'C3-P1' = ${function:Invoke-C3P1}
+    'C5-P1' = ${function:Invoke-C5P1}; 'C6-P1' = ${function:Invoke-C6P1}; 'C7-P1' = ${function:Invoke-C7P1}
+    'C8-P1' = ${function:Invoke-C8P1}; 'C9-P1' = ${function:Invoke-C9P1}; 'C10-P1' = ${function:Invoke-C10P1}
+    'C11-P1' = ${function:Invoke-C11P1}; 'C12-P1' = ${function:Invoke-C12P1}
 }
 
 
@@ -701,6 +911,24 @@ foreach ($property in $properties.properties) {
         }
     }
 }
+
+# C12-P1's second clause, evaluated once rather than per vector because it is a claim about the
+# DECLARATION SET and not about any input: every C1-C12 group has at least one capability-wide
+# property. The declaration says this clause is checked here, so it is checked here; a property that
+# claims a clause is evaluated elsewhere and is not is worse than one that admits the clause is owed.
+$declaredCapabilities = @($properties.properties | ForEach-Object { [string]$_.capability } | Sort-Object -Unique)
+foreach ($capabilityNumber in 1..12) {
+    $capabilityId = "C$capabilityNumber"
+    if ($declaredCapabilities -notcontains $capabilityId) {
+        $failures.Add("Capability group '$capabilityId' declares no capability-wide property, which C12-P1's second clause requires of every C1-C12 group. A group with no property is a group nothing can fail.")
+    }
+}
+
+# C12-P1's third clause -- that neither stack nor the neutral peer imports the other's semantic
+# runtime -- is not a fact any vector carries and is not evaluated here. It is enforced by
+# build/verify-project-graph.ps1, Reference/build/verify-dependencies.ps1 and
+# Minimal/build/verify-boundaries.ps1, all of which run in the repository gate beside this file. The
+# delegation is recorded in the property declaration rather than left for a reader to discover.
 
 # S1's legal transition table is stated by the session state machine and copied into this file,
 # which is a second surface for one fact -- the failure W1 exists to retire, arriving in the gate.

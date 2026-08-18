@@ -229,9 +229,24 @@ against the session machine's own table: an edge here the artifact lacks would l
 illegal transition, and an edge there this file lacks would take `S1` red on conforming behaviour.
 Both were probed.
 
-**What W2 still owes.** The eleven `C1`-`C12` per-capability properties other than C4 are still prose
-and still owe their required-green sets. They are outside condition 2 and are the remaining eleven of
-twenty-six.
+**All twenty-six properties now execute, and no cell in either audit table reads `owed`.** The eleven
+per-capability properties outside condition 2 -- `C1-P1`, `C2-P1`, `C3-P1`, `C5-P1` through `C12-P1`
+-- were the last of them. The gate runs 88 evaluations over 40 declared inputs plus the nine operand
+mutations, and each property is red on the mutation the completeness review already named for it and
+green on both required-green members.
+
+**Two capability properties are evaluated by calling the machines' rather than restating them.**
+`C2-P1` is `S1` and `S4` at capability level and `C8-P1` is `I2` and `I3`. Writing the claim twice
+would be the duplication W1 exists to retire, arriving inside a verifier instead of inside prose, and
+the second copy is what goes stale.
+
+**Three things are recorded as limits rather than closed, because stating a set is not the same as
+settling a question.** `C4-P1` and `I5` carry sets scoped to the one named profile, since the
+direction scope of the in-flight bound is undecided for a profile in which both endpoints initiate.
+`C12-P1`'s second clause is a claim about the declaration set rather than about any vector and is
+evaluated once, over that set. Its third clause -- that neither stack imports the other's semantic
+runtime -- is not a fact a vector carries and is delegated to the repository's dependency guards; the
+declaration says so rather than pretending to evaluate it.
 
 ## 2b. What W3 has landed
 
@@ -346,11 +361,10 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
 - **findings per cycle, split by class** — propagation slip, unsound property, stale index, other. The
   claim behind this plan is that the first and third classes go to zero and stay there;
 - **surfaces per fact** — should fall to one plus citations;
-- **properties executable in the gate** — currently fifteen of twenty-six: `C4-P1`, `C4-P2`,
-  `S1`-`S6` and `I1`-`I7`, which is every property the hold's second condition names. The
-  remaining eleven are the `C1`-`C12` per-capability properties other than C4;
-- **required-green sets stated** — currently fifteen of twenty-six, having been one for seven
-  cycles. The fourteen filled here are the fourteen the second condition names;
+- **properties executable in the gate** — currently **twenty-six of twenty-six**. Every capability-wide
+  property the package declares runs on every commit;
+- **required-green sets stated** — currently **twenty-six of twenty-six**, having been one for seven cycles.
+  No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — 289 before W3 and 45 after;
 - **Channel index row characters** — 8,746 before W3 and 1,208 after; and
 - **design-verifier lines** — **2,263**, down from 2,322 when this work began. It has fallen for the

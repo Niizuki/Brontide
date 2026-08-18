@@ -998,7 +998,18 @@
         "I5",
         "I6",
         "I7",
-        "C4-P1"
+        "C4-P1",
+        "C1-P1",
+        "C2-P1",
+        "C3-P1",
+        "C5-P1",
+        "C6-P1",
+        "C7-P1",
+        "C8-P1",
+        "C9-P1",
+        "C10-P1",
+        "C11-P1",
+        "C12-P1"
       ],
       "role": "required-green",
       "summary": "One session establishes on a fixed profile, admits and dispatches one interaction, takes its terminal history, drains and closes. Every S and I property must stay green on it; a property red here is red on the simplest conforming realization the design has.",
@@ -1028,7 +1039,17 @@
                 "maxInFlight": 2
               }
             }
-          }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
         }
       ],
       "sessionTimeline": [
@@ -1091,7 +1112,23 @@
               "semanticSuccess": true,
               "effectCertainty": "known"
             }
-          ]
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
         }
       ],
       "sessionEvents": [
@@ -1120,8 +1157,20 @@
         "I5": "green",
         "I6": "green",
         "I7": "green",
-        "C4-P1": "green"
-      }
+        "C4-P1": "green",
+        "C1-P1": "green",
+        "C2-P1": "green",
+        "C3-P1": "green",
+        "C5-P1": "green",
+        "C6-P1": "green",
+        "C7-P1": "green",
+        "C8-P1": "green",
+        "C9-P1": "green",
+        "C10-P1": "green",
+        "C11-P1": "green",
+        "C12-P1": "green"
+      },
+      "deterministicExpectedObservation": true
     },
     {
       "id": "S-two-sessions-conforming",
@@ -1140,7 +1189,18 @@
         "I5",
         "I6",
         "I7",
-        "C4-P1"
+        "C4-P1",
+        "C1-P1",
+        "C2-P1",
+        "C3-P1",
+        "C5-P1",
+        "C6-P1",
+        "C7-P1",
+        "C8-P1",
+        "C9-P1",
+        "C10-P1",
+        "C11-P1",
+        "C12-P1"
       ],
       "role": "required-green",
       "summary": "AL1's vector, as a required-green member of every session-scoped property. s1 drains after taking its terminal history and s2 establishes and admits afterwards, reusing identity i1, which the identity rules permit. A property that reads one session's fact across the vector goes red here: that is exactly what S3 and S5 did, and what AK7 found in C4-P1, C1-P1, C3-P1 and I5.",
@@ -1170,7 +1230,17 @@
                 "maxInFlight": 2
               }
             }
-          }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
         },
         {
           "id": "s2",
@@ -1197,7 +1267,17 @@
                 "maxInFlight": 2
               }
             }
-          }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
         }
       ],
       "sessionTimeline": [
@@ -1279,7 +1359,23 @@
               "semanticSuccess": true,
               "effectCertainty": "known"
             }
-          ]
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
         },
         {
           "session": "s2",
@@ -1295,7 +1391,23 @@
               "semanticSuccess": true,
               "effectCertainty": "known"
             }
-          ]
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
         }
       ],
       "sessionEvents": [
@@ -1319,8 +1431,20 @@
         "I5": "green",
         "I6": "green",
         "I7": "green",
-        "C4-P1": "green"
-      }
+        "C4-P1": "green",
+        "C1-P1": "green",
+        "C2-P1": "green",
+        "C3-P1": "green",
+        "C5-P1": "green",
+        "C6-P1": "green",
+        "C7-P1": "green",
+        "C8-P1": "green",
+        "C9-P1": "green",
+        "C10-P1": "green",
+        "C11-P1": "green",
+        "C12-P1": "green"
+      },
+      "deterministicExpectedObservation": true
     },
     {
       "id": "S1-illegal-transition-accepted",
@@ -3313,6 +3437,1590 @@
       "expected": {
         "C4-P1": "red"
       }
+    },
+    {
+      "id": "C1-required-facet-removed-from-fixed-profile",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C1-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "The contract's named mutation for C1-P1: one required facet is removed from the fixed profile only, so the session's established profile no longer equals the profile that session expects while interactions remain dispatchable and effect certainty is not `known-none`. The property permits exactly one escape from an exact profile -- nothing dispatchable and `known-none` -- and this mutation takes neither.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": false,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "outcome",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": false,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C1-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C2-accept-interaction-while-draining",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C2-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "The contract's named mutation for C2-P1: a new interaction is accepted while the session is draining, so an input that must leave the prior state unchanged or enter `faulted` instead admits. C2-P1 is the session machine's S1 and S4 stated at capability level, and it is evaluated through them rather than restated.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "outcome",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i2",
+          "acceptedTransition": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C2-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C3-unknown-phase-marked-true",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C3-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "The contract's named mutation for C3-P1: an unknown external phase predicate is marked true and the interaction dispatches. `false` and `unknown` both refuse admission, so treating `unknown` as satisfied is the mutation -- and it is the strong-Kleene defect the neutral brief's external-phase record exists to make expressible.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "outcome",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": "unknown",
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C3-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C5-oversized-payload-dispatched",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C5-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "The contract's named mutation for C5-P1: a payload that failed a declared bound is dispatched anyway, so a vector crosses the dispatch boundary without having passed every declared bound and positional Shape rule.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "outcome",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": false,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C5-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C6-delivery-treated-as-permission",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C6-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "The contract's named mutation for C6-P1: an interaction reaches handler dispatch with no `permitted` local authority decision, delivery having been treated as permission. Correlation and possession grant no authority, and neither does having arrived.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "outcome",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "unevaluatable",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C6-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C7-success-creates-ready",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C7-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "The contract's named mutation for C7-P1: a dispatched relational interaction produces a Ready fact by itself. A relational interaction occurs in the pre-Ready window and cannot create the phase it precedes.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "outcome",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": true,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C7-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C8-acknowledgement-recorded-as-success",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C8-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "The contract's named mutation for C8-P1: a cancellation acknowledgement is recorded as semantic success. C8-P1 is I2 and I3 stated at capability level -- at most one accepted terminal history, and no control recorded as success -- and is evaluated through them.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "cancellation-acknowledgement",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "cancellation-acknowledgement",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C8-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C9-local-loss-mapped-to-peer-fault",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C9-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "The contract's named mutation for C9-P1: a local loss observation is recorded as a peer protocol fault, so a local inference is accepted as a peer statement. The four forms are exclusive and a terminal vector selects exactly one; mapping between them is what destroys the distinction C9 exists to keep.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "outcome",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "peer-protocol-fault",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true,
+          "provenanceFormActually": "local-loss-observation"
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C9-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C10-known-none-after-dispatch",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C10-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "The contract's named mutation for C10-P1: a vector with a possible post-dispatch path records `known-none` with no explicit evidence that the handler did not begin. This is the fabricated zero PB8 found in both stacks, in the fields the parity profile compares.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "outcome",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": {
+            "stage": "post-dispatch",
+            "effectCertainty": "known-none",
+            "explicitEvidence": false
+          },
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C10-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C11-facet-changes-interaction-identity",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C11-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "The contract's named mutation for C11-P1: an extension facet changes a core interaction identity result. A facet may add; it may not move a core identity, authority, terminal-provenance, or uncertainty result, because those are what every profile agrees on.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": true
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "outcome",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C11-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C12-nondeterministic-expected-observation",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C12-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "The mutation for C12-P1's first clause: a vector whose expected portable observation is not deterministic. A vector never says implementation-defined for a normative field, and a group whose expectation is unspecified is a group no two stacks can be compared against.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "outcome",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C12-P1": "red"
+      },
+      "deterministicExpectedObservation": false
     }
   ]
 }
