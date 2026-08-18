@@ -882,11 +882,12 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `refactor(channel): move disposition history out of the
-status blocks`, committed 2026-08-18, which is the head of the correction sequence beginning at
-`fix(channel): make C4-P2 falsifiable`. The two commits above it are verification-foundation work done
-under the hold rather than corrections to a finding: `C4-P2` now executes in the gate, and the nine
-status blocks carry a pointer to the
+The current review target is the commit titled `refactor(channel): own the frame references and delete
+the registry`, committed 2026-08-18, which is the head of the correction sequence beginning at
+`fix(channel): make C4-P2 falsifiable`. The commits above the previous pin are verification-foundation
+work done under the hold rather than corrections to a finding: `C4-P2` now executes in the gate, the
+three frame references are rendered from one declaration into the twenty artifact sites that publish
+them, and the nine status blocks carry a pointer to the
 [disposition index](./channel-0.2-disposition-index.md) instead of their correction history. A
 reviewer assessing this pin reads that index for what was corrected in an artifact and the retained
 attestation for what the finding was. Review that commit or any later commit whose design
