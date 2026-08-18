@@ -392,35 +392,301 @@ function Invoke-C4P2 {
     return [pscustomobject]@{ Verdict = 'green'; Conjunct = $null; Witness = $null; Errors = $errors }
 }
 
-$evaluators = @{ 'C4-P2' = ${function:Invoke-C4P2} }
+# ---------------------------------------------------------------------------------------------
+# The session and interaction properties.
+#
+# S1-S6 and I1-I7 read a vector's ordered session timeline -- transitions, admissions, dispatches and
+# accepted terminal facts, each naming its session -- plus per-interaction facts. Every one of them is
+# SESSION-SCOPED, and that is the whole of AK7 and AL1: a property that reads one session's fact
+# across the vector is green on a single-session vector and red on two conforming sessions. Each
+# evaluator therefore groups by session before it counts anything, and the two-session vector is a
+# required-green member of all fourteen.
+# ---------------------------------------------------------------------------------------------
+
+# The legal session transition table, from the session state machine. S1 is the property that reads
+# it, so it is written once here and pinned against the artifact by the citation check further down.
+$legalSessionTransitions = @(
+    'unestablished>established', 'unestablished>establishing', 'unestablished>closed',
+    'establishing>established', 'establishing>closed',
+    'established>draining', 'draining>faulted', 'draining>closed')
+$terminalSessionStates = @('closed', 'faulted')
+
+function Get-Timeline { param($Vector) if ($null -eq $Vector.sessionTimeline) { return @() } return @($Vector.sessionTimeline) }
+function Get-Interactions { param($Vector) if ($null -eq $Vector.interactions) { return @() } return @($Vector.interactions) }
+function New-Red { param([string]$Witness) return [pscustomobject]@{ Verdict = 'red'; Conjunct = $null; Witness = $Witness; Errors = [System.Collections.Generic.List[string]]::new() } }
+function New-Green { return [pscustomobject]@{ Verdict = 'green'; Conjunct = $null; Witness = $null; Errors = [System.Collections.Generic.List[string]]::new() } }
+
+function Invoke-S1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        if ([string]$sessionEvent.step -ne 'transition' -or -not $sessionEvent.accepted) { continue }
+        $edge = "$($sessionEvent.from)>$($sessionEvent.to)"
+        if ($legalSessionTransitions -notcontains $edge) {
+            return New-Red "session $($sessionEvent.session) accepted the transition $edge on event $($sessionEvent.event), which the legal table does not contain"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-S2 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    $state = @{}
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        $sessionId = [string]$sessionEvent.session
+        if ([string]$sessionEvent.step -eq 'transition' -and $sessionEvent.accepted) { $state[$sessionId] = [string]$sessionEvent.to; continue }
+        if ([string]$sessionEvent.step -ne 'dispatch') { continue }
+        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { 'unestablished' }
+        if ($current -ne 'established') {
+            return New-Red "interaction $($sessionEvent.identity) dispatched while its own session $sessionId was $current"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-S3 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    # Per session. A second session establishing and admitting after the first drains is legal, and
+    # reading the drain across the vector is exactly the false red AL1 found.
+    $drained = @{}
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        $sessionId = [string]$sessionEvent.session
+        if ([string]$sessionEvent.step -eq 'transition' -and $sessionEvent.accepted -and [string]$sessionEvent.to -eq 'draining') {
+            if (-not $drained.ContainsKey($sessionId)) { $drained[$sessionId] = $true }
+            continue
+        }
+        if ([string]$sessionEvent.step -eq 'admit' -and $drained.ContainsKey($sessionId)) {
+            return New-Red "session $sessionId admitted interaction $($sessionEvent.identity) after its own first drain transition"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-S4 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    $terminal = @{}
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        if ([string]$sessionEvent.step -ne 'transition' -or -not $sessionEvent.accepted) { continue }
+        $sessionId = [string]$sessionEvent.session
+        if ($terminal.ContainsKey($sessionId)) {
+            return New-Red "session $sessionId reached terminal state $($terminal[$sessionId]) and then transitioned to $($sessionEvent.to) under the same session identity"
+        }
+        if ($terminalSessionStates -contains [string]$sessionEvent.to) { $terminal[$sessionId] = [string]$sessionEvent.to }
+    }
+    return New-Green
+}
+
+function Invoke-S5 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    # For EACH session, over that session own declared profile. Two sessions carrying two different
+    # declared profiles are conforming and this property says nothing about them, which is AL4.
+    foreach ($session in @($Vector.sessions)) {
+        $record = $session.establishedProfileRecord
+        if ($null -eq $record) { continue }
+        $fixed = ($record.fixed | ConvertTo-Json -Depth 12 -Compress)
+        $negotiated = ($record.negotiated | ConvertTo-Json -Depth 12 -Compress)
+        if ($fixed -cne $negotiated) {
+            return New-Red "session $($session.id) produces different normative profile records from fixed and negotiated establishment of its own declared profile"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-S6 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    $forbidden = @('ready', 'release', 'authority', 'application-outcome')
+    foreach ($declaredEvent in @($Vector.sessionEvents)) {
+        if ($null -eq $declaredEvent) { continue }
+        foreach ($created in @($declaredEvent.creates)) {
+            if ($forbidden -contains [string]$created) {
+                return New-Red "session event $($declaredEvent.event) in session $($declaredEvent.session) creates $created"
+            }
+        }
+    }
+    return New-Green
+}
+
+function Invoke-I1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    # Per session: one identity may legitimately be dispatched in each of two sessions.
+    $seen = @{}
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        if ([string]$sessionEvent.step -ne 'dispatch') { continue }
+        $key = "$($sessionEvent.session)|$($sessionEvent.identity)"
+        if ($seen.ContainsKey($key)) {
+            return New-Red "identity $($sessionEvent.identity) crossed the dispatch boundary twice in session $($sessionEvent.session)"
+        }
+        $seen[$key] = $true
+    }
+    return New-Green
+}
+
+function Invoke-I2 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    foreach ($interaction in (Get-Interactions $Vector)) {
+        $histories = @($interaction.terminalHistories)
+        if ($histories.Count -gt 1) {
+            return New-Red "interaction $($interaction.identity) in session $($interaction.session) has $($histories.Count) terminal histories"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-I3 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    $nonSemantic = @('cancellation-acknowledgement', 'drain', 'timeout', 'protocol-fault')
+    foreach ($interaction in (Get-Interactions $Vector)) {
+        foreach ($history in @($interaction.terminalHistories)) {
+            if ($null -eq $history) { continue }
+            if (($nonSemantic -contains [string]$history.form) -and $history.semanticSuccess) {
+                return New-Red "interaction $($interaction.identity) records a $($history.form) terminal as a semantic success"
+            }
+        }
+    }
+    return New-Green
+}
+
+function Invoke-I4 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    foreach ($interaction in (Get-Interactions $Vector)) {
+        $refusal = $interaction.refusal
+        if ($null -eq $refusal) { continue }
+        $stage = [string]$refusal.stage
+        $certainty = [string]$refusal.effectCertainty
+        if ($stage -eq 'pre-dispatch' -and $certainty -ne 'known-none') {
+            return New-Red "interaction $($interaction.identity) records a pre-dispatch refusal with effect certainty $certainty"
+        }
+        if ($stage -eq 'post-dispatch' -and $certainty -ne 'unknown' -and -not $refusal.explicitEvidence) {
+            return New-Red "interaction $($interaction.identity) records a possible post-dispatch loss as $certainty with no explicit evidence narrowing it"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-I5 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    # Concurrency is counted per session against THAT session bound, which is AK7. Counted across the
+    # vector, two sessions each holding one nonterminal interaction breach a bound neither did.
+    $bounds = @{}
+    foreach ($session in @($Vector.sessions)) { $bounds[[string]$session.id] = [int]$session.establishedBound }
+    $live = @{}
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        $sessionId = [string]$sessionEvent.session
+        if (-not $live.ContainsKey($sessionId)) { $live[$sessionId] = 0 }
+        if ([string]$sessionEvent.step -eq 'admit') { $live[$sessionId]++ }
+        elseif ([string]$sessionEvent.step -eq 'terminal' -and $sessionEvent.accepted) { $live[$sessionId] = [Math]::Max(0, $live[$sessionId] - @($sessionEvent.closes).Count) }
+        if ($bounds.ContainsKey($sessionId) -and $live[$sessionId] -gt $bounds[$sessionId]) {
+            return New-Red "session $sessionId held $($live[$sessionId]) nonterminal interactions against its own established bound of $($bounds[$sessionId])"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-I6 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    foreach ($interaction in (Get-Interactions $Vector)) {
+        if ([string]$interaction.class -ne 'relational') { continue }
+        if ([int]$interaction.declarationMatches -ne 1) {
+            return New-Red "relational interaction $($interaction.identity) matches $($interaction.declarationMatches) declarations"
+        }
+        if ($interaction.createsReadyOrRelease) {
+            return New-Red "relational interaction $($interaction.identity) creates Ready or Release"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-I7 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    foreach ($interaction in (Get-Interactions $Vector)) {
+        $changedBy = [string]$interaction.terminalHistoryChangedBy
+        if ($changedBy -and $changedBy -ne [string]$interaction.identity) {
+            return New-Red "interaction $($interaction.identity) had its terminal history changed by sibling $changedBy"
+        }
+    }
+    return New-Green
+}
+
+function Invoke-C4P1 {
+    param([string]$VectorId, $Vector, [object[]]$Steps)
+    # Three clauses, each session-scoped under AK7. The second and third are the same claims I1 and I5
+    # make, so they are evaluated by those functions rather than restated here: two implementations of
+    # one claim is the duplication W1 exists to retire, arriving in the gate instead of in the prose.
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        if ([string]$sessionEvent.step -ne 'terminal' -or -not $sessionEvent.accepted) { continue }
+        $closes = @($sessionEvent.closes)
+        if ($closes.Count -ne 1) {
+            return New-Red "an accepted terminal fact in session $($sessionEvent.session) closes $($closes.Count) admitted interactions"
+        }
+    }
+    $dispatchResult = Invoke-I1 -VectorId $VectorId -Vector $Vector -Steps $Steps
+    if ($dispatchResult.Verdict -eq 'red') { return New-Red "$($dispatchResult.Witness), which the second clause of C4-P1 forbids" }
+    $boundResult = Invoke-I5 -VectorId $VectorId -Vector $Vector -Steps $Steps
+    if ($boundResult.Verdict -eq 'red') { return New-Red "$($boundResult.Witness), which the third clause of C4-P1 forbids" }
+    return New-Green
+}
+
+$evaluators = @{
+    'C4-P2' = ${function:Invoke-C4P2}; 'C4-P1' = ${function:Invoke-C4P1}
+    'S1' = ${function:Invoke-S1}; 'S2' = ${function:Invoke-S2}; 'S3' = ${function:Invoke-S3}
+    'S4' = ${function:Invoke-S4}; 'S5' = ${function:Invoke-S5}; 'S6' = ${function:Invoke-S6}
+    'I1' = ${function:Invoke-I1}; 'I2' = ${function:Invoke-I2}; 'I3' = ${function:Invoke-I3}
+    'I4' = ${function:Invoke-I4}; 'I5' = ${function:Invoke-I5}; 'I6' = ${function:Invoke-I6}
+    'I7' = ${function:Invoke-I7}
+}
+
 
 # ---------------------------------------------------------------------------------------------
 # Citations. The design artifacts own every fact this file states, and these checks fail when the two
 # disagree rather than letting the executable form drift into a twelfth surface of its own.
 # ---------------------------------------------------------------------------------------------
 
-$numberWords = @{ 'one' = 1; 'two' = 2; 'three' = 3; 'four' = 4; 'five' = 5; 'six' = 6; 'seven' = 7; 'eight' = 8; 'nine' = 9; 'ten' = 10; 'eleven' = 11; 'twelve' = 12; 'twenty-five' = 25; 'twenty-six' = 26; 'zero' = 0 }
+$numberWords = @{ 'zero' = 0; 'one' = 1; 'two' = 2; 'three' = 3; 'four' = 4; 'five' = 5; 'six' = 6; 'seven' = 7; 'eight' = 8; 'nine' = 9; 'ten' = 10; 'eleven' = 11; 'twelve' = 12; 'thirteen' = 13; 'fourteen' = 14; 'fifteen' = 15; 'sixteen' = 16; 'seventeen' = 17; 'eighteen' = 18; 'nineteen' = 19; 'twenty' = 20; 'twenty-five' = 25; 'twenty-six' = 26 }
 
 if ($briefPlain.IndexOf('a required-green set: the named legal inputs from the property', [System.StringComparison]::Ordinal) -lt 0) {
     $failures.Add("The neutral brief's capability-wide property format no longer states the required-green set as a normative field. This file's expectations are written against that field, so its removal would leave every green expectation here unsourced. This is AE3's field.")
 }
 
+# A property is stated by ONE artifact and its mutation and required-green set are recorded by the
+# completeness review's per-capability audit. The citation therefore resolves against the artifact the
+# declaration names rather than always against the capability contract: C4-P1 and C4-P2 are the
+# contract's, S1-S6 the session machine's, I1-I7 the interaction machine's. A check that looked only
+# at the contract would have forced this file to restate the machines' properties to satisfy itself,
+# which is the second-surface failure W1 exists to retire.
+$artifactTextCache = @{}
+function Get-ArtifactPlain {
+    param([Parameter(Mandatory = $true)][string]$RepoRelativePath)
+    if (-not $artifactTextCache.ContainsKey($RepoRelativePath)) {
+        $artifactPath = Join-Path $repositoryRoot $RepoRelativePath
+        if (-not (Test-Path -LiteralPath $artifactPath)) { $artifactTextCache[$RepoRelativePath] = '' }
+        else { $artifactTextCache[$RepoRelativePath] = Get-PlainText (Get-Content -Raw -LiteralPath $artifactPath -Encoding UTF8) }
+    }
+    return $artifactTextCache[$RepoRelativePath]
+}
+$auditPlain = Get-PlainText (Get-Content -Raw -LiteralPath (Join-Path $channelPath 'Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md') -Encoding UTF8)
+
 foreach ($property in $properties.properties) {
-    if ($contractPlain.IndexOf("Property $($property.id).", [System.StringComparison]::Ordinal) -lt 0) {
-        $failures.Add("Property '$($property.id)' is declared executable here and the capability contract states no property by that id.")
+    $statingArtifact = Get-ArtifactPlain ([string]$property.statedIn)
+    if (-not $statingArtifact) {
+        $failures.Add("Property '$($property.id)' names '$($property.statedIn)' as the artifact that states it and that file could not be read.")
+    }
+    elseif ($statingArtifact.IndexOf("$($property.id).", [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add("Property '$($property.id)' is declared executable here and '$($property.statedIn)' states no property by that id.")
     }
 
+    # The mutation and the required-green set are recorded by the completeness review's audit, which
+    # is the artifact Batch 2 authors property files from. The contract also names C4's two scenarios.
     foreach ($mutation in $property.namedMutations) {
-        if ($contractPlain.IndexOf([string]$mutation.vector, [System.StringComparison]::Ordinal) -lt 0) {
-            $failures.Add("Named mutation '$($mutation.vector)' for '$($property.id)' is not a scenario the capability contract names. A mutation this file invents is a mutation no artifact requires, and a property red on it proves nothing about the design.")
+        if ($auditPlain.IndexOf([string]$mutation.vector, [System.StringComparison]::Ordinal) -lt 0 -and $contractPlain.IndexOf([string]$mutation.vector, [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("Named mutation '$($mutation.vector)' for '$($property.id)' is named by no artifact. A mutation this file invents is a mutation no artifact requires, and a property red on it proves nothing about the design.")
         }
     }
 
     foreach ($member in $property.requiredGreen) {
-        if ($contractPlain.IndexOf([string]$member.member, [System.StringComparison]::Ordinal) -lt 0) {
-            $failures.Add("Required-green member '$($member.member)' for '$($property.id)' does not appear in the capability contract's own required-green set. Either the contract's set changed and this file did not, or this file names a member the contract does not require -- and a required-green set that is not the artifact's set is a second surface for the fact rather than an execution of it.")
+        if ($auditPlain.IndexOf([string]$member.member, [System.StringComparison]::Ordinal) -lt 0 -and $contractPlain.IndexOf([string]$member.member, [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("Required-green member '$($member.member)' for '$($property.id)' appears in no artifact's required-green set. Either the artifact's set changed and this file did not, or this file names a member no artifact requires -- and a required-green set that is not the artifact's set is a second surface for the fact rather than an execution of it.")
         }
     }
+
 
     # AK4's class, on this file's own count: the contract states how many legal members the group has,
     # and a set that names a different number is the defect rather than the count being decorative.
@@ -432,6 +698,32 @@ foreach ($property in $properties.properties) {
         }
         elseif ($numberWords[$claimedWord] -ne @($property.requiredGreen).Count) {
             $failures.Add("The capability contract states '$($property.id)' has $($numberWords[$claimedWord]) legal members in its required vector group and this file declares $(@($property.requiredGreen).Count) required-green members.")
+        }
+    }
+}
+
+# S1's legal transition table is stated by the session state machine and copied into this file,
+# which is a second surface for one fact -- the failure W1 exists to retire, arriving in the gate.
+# It is not left as a copy: every edge declared above must appear as a row of that artifact's own
+# transition table, and the artifact must declare no accepted edge this file does not carry. A row
+# added there and forgotten here would make S1 red on conforming behaviour, and a row deleted there
+# and left here would make S1 unable to fail on it.
+$sessionMachinePath = Join-Path $channelPath 'Brontide-Channel-0.2-Session-State-Machine-0.1.md'
+$sessionMachineText = Get-Content -Raw -LiteralPath $sessionMachinePath -Encoding UTF8
+$transitionRows = @([regex]::Matches($sessionMachineText, '(?m)^\| `([a-z]+)` \| [^|]+ \| `([a-z]+)` \|'))
+$artifactEdges = @($transitionRows | ForEach-Object { "$($_.Groups[1].Value)>$($_.Groups[2].Value)" } | Sort-Object -Unique)
+if ($artifactEdges.Count -eq 0) {
+    $failures.Add('The session state machine publishes no legal transition rows this check can read, so S1 would be evaluated against a table nothing pins. S1 is the property that reads that table.')
+}
+else {
+    foreach ($declaredEdge in $legalSessionTransitions) {
+        if ($artifactEdges -notcontains $declaredEdge) {
+            $failures.Add("This file declares the session transition $declaredEdge legal and the session state machine's transition table has no such row. S1 is evaluated against this list, so an edge here that the artifact does not have is a property that stays green on an illegal transition.")
+        }
+    }
+    foreach ($artifactEdge in $artifactEdges) {
+        if ($legalSessionTransitions -notcontains $artifactEdge) {
+            $failures.Add("The session state machine declares the transition $artifactEdge legal and this file does not carry it. S1 would go red on a conforming realization taking that edge, which is the false red AL1 and AK7 were each raised for.")
         }
     }
 }

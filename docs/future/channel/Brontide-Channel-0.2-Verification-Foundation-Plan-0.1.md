@@ -195,20 +195,43 @@ failure W1 exists to retire, and the citation checks fail when the two disagree 
 second copy drift. Section 4's count of executable properties is checked against what actually
 executes, so the measure cannot go stale in the direction that flatters the work.
 
-**What W2 still owes**, against the condition in section 3:
+**All fifteen properties condition 2 names now execute.** `C4-P1`, `C4-P2`, `S1`-`S6` and `I1`-`I7`
+run in the gate on every commit: 55 evaluations over 29 declared inputs, plus the nine operand
+mutations. Each has at least one named mutation it goes red on and a required-green set it stays green
+on, and a property green on every input fails the gate as a finding against the property.
 
-- `C4-P1` and `S1`-`S6` and `I1`-`I7` are not yet executable. Fourteen of the fifteen properties
-  condition 2 names remain prose;
-- the twenty-five owed required-green sets are still owed. `C4-P2`'s is the one set the contract
-  states, which is why it is the property that could be executed first;
-- `C4-P1`'s set cannot be filled ahead of the direction-scope disposition the completeness review
-  records against it. Under **AE3** that row is a known conforming-realization exposure rather than an
-  unwritten set, and a pass filling it in without settling whether the in-flight bound is session-wide
-  or per-direction would reproduce the omission. That is open question 3's answer for this one
-  property: its set is blocked on a design question, not on effort; and
-- the inputs here are hand-written and carry only what the property quantifies over. They are not
-  Batch 2 vectors, they authorize nothing, and Batch 2 remains closed.
+**The fourteen owed required-green sets are stated.** Every one names the same two members: the
+conforming single-session realization, and two sessions conforming with the second establishing and
+admitting after the first drains. The second is the point. It is the vector **AL1** and **AK7** were
+raised for, and a property that reads one session's fact across the vector is green on the first and
+red on it -- so the defect that took two cycles to find by reading is now a gate failure. Breaking
+`S3` back to its pre-AL1 form was run as a probe and produces exactly that: red on the two-session
+member, green on everything else.
 
+**`I1`-`I7` gained named mutations, which they owed as well.** Seven cells read `owed` in both
+columns; the interaction machine committed those properties to no probe at all, which the
+completeness review recorded as a larger gap than the eleven `owed` required-green cells. Each now
+has one.
+
+**`C4-P1` is filled with its scope stated rather than assumed.** Its set is scoped to the one named
+profile, where one endpoint initiates both classes and the session-wide and per-direction readings of
+the in-flight bound coincide. Under **AE3** the direction-scope disagreement is a known
+conforming-realization exposure rather than an unwritten set, and a profile in which both endpoints
+initiate must still state which reading it means before its vectors can be written. This set does not
+decide that for it, and says so. Filling it silently is what would have reproduced the omission the
+completeness review warns about. `C4-P1` also gained a third mutation: the contract names one per
+clause for two of its three clauses, and a clause whose mutation no group contains is unfalsifiable in
+the suite however well the contract states it.
+
+**Pinning found a second surface immediately.** `S1` reads the legal session transition table, so the
+evaluator carries a copy of it -- W1's problem arriving in the gate. It is pinned in both directions
+against the session machine's own table: an edge here the artifact lacks would leave `S1` green on an
+illegal transition, and an edge there this file lacks would take `S1` red on conforming behaviour.
+Both were probed.
+
+**What W2 still owes.** The eleven `C1`-`C12` per-capability properties other than C4 are still prose
+and still owe their required-green sets. They are outside condition 2 and are the remaining eleven of
+twenty-six.
 
 ## 2b. What W3 has landed
 
@@ -323,10 +346,11 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
 - **findings per cycle, split by class** — propagation slip, unsound property, stale index, other. The
   claim behind this plan is that the first and third classes go to zero and stay there;
 - **surfaces per fact** — should fall to one plus citations;
-- **properties executable in the gate** — currently one of twenty-six. `C4-P2` executes in
-  `build/verify-channel-0.2-properties.ps1` against eleven hand-written inputs and nine operand
-  mutations; the remaining twenty-five are prose;
-- **required-green sets stated** — currently one of twenty-six, unchanged for seven cycles;
+- **properties executable in the gate** — currently fifteen of twenty-six: `C4-P1`, `C4-P2`,
+  `S1`-`S6` and `I1`-`I7`, which is every property the hold's second condition names. The
+  remaining eleven are the `C1`-`C12` per-capability properties other than C4;
+- **required-green sets stated** — currently fifteen of twenty-six, having been one for seven
+  cycles. The fourteen filled here are the fourteen the second condition names;
 - **status-block lines across the nine artifacts** — 289 before W3 and 45 after;
 - **Channel index row characters** — 8,746 before W3 and 1,208 after; and
 - **design-verifier lines** — **2,263**, down from 2,322 when this work began. It has fallen for the

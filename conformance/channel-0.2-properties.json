@@ -30,7 +30,9 @@
       "capability": "C4",
       "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
       "statement": "Across every C4 vector, within one session and for each interaction identity, nothing delivers two frames one endpoint committed in an order that endpoint did not commit them in. Stated over the refusal a reordering produces rather than over the accepted sequence: no endpoint records a recipient rejected-protocol at unseen for a cancellation control whose committing endpoint had already committed the request naming that identity and whose recipient afterwards admits an interaction for that identity in the same session, and none records a late-traffic state-violation latched against a frame whose committing endpoint had committed it before that endpoint's own frame the interaction's terminal history was accepted on.",
-      "universalSelector": { "capability": "C4" },
+      "universalSelector": {
+        "capability": "C4"
+      },
       "sessionScoped": true,
       "quantifiedFields": [
         "the recorded unseen refusal's provenance",
@@ -50,10 +52,30 @@
             "for-all": "unseen-refusals",
             "selecting": {
               "all-of": [
-                { "equals": { "field": "provenance", "value": "recipient" } },
-                { "equals": { "field": "frameDecision", "value": "rejected-protocol" } },
-                { "equals": { "field": "detailedReason", "value": "unopened-interaction-identity" } },
-                { "equals": { "field": "refusedFrame.kind", "value": "cancellation-control" } }
+                {
+                  "equals": {
+                    "field": "provenance",
+                    "value": "recipient"
+                  }
+                },
+                {
+                  "equals": {
+                    "field": "frameDecision",
+                    "value": "rejected-protocol"
+                  }
+                },
+                {
+                  "equals": {
+                    "field": "detailedReason",
+                    "value": "unopened-interaction-identity"
+                  }
+                },
+                {
+                  "equals": {
+                    "field": "refusedFrame.kind",
+                    "value": "cancellation-control"
+                  }
+                }
               ]
             },
             "violatedWhen": {
@@ -62,13 +84,40 @@
                   "exists": "declared-steps",
                   "matching": {
                     "all-of": [
-                      { "equals": { "field": "kind", "value": "request" } },
-                      { "equals": { "field": "session", "operand": "refusedFrame.session" } },
-                      { "equals": { "field": "interactionIdentity", "operand": "refusedFrame.interactionIdentity" } },
-                      { "equals": { "field": "committingEndpoint", "operand": "refusedFrame.committingEndpoint" } }
+                      {
+                        "equals": {
+                          "field": "kind",
+                          "value": "request"
+                        }
+                      },
+                      {
+                        "equals": {
+                          "field": "session",
+                          "operand": "refusedFrame.session"
+                        }
+                      },
+                      {
+                        "equals": {
+                          "field": "interactionIdentity",
+                          "operand": "refusedFrame.interactionIdentity"
+                        }
+                      },
+                      {
+                        "equals": {
+                          "field": "committingEndpoint",
+                          "operand": "refusedFrame.committingEndpoint"
+                        }
+                      }
                     ]
                   },
-                  "and": { "precedes": { "earlier": "matched-step", "later": { "resolve-frame-reference": "refusedFrame" } } }
+                  "and": {
+                    "precedes": {
+                      "earlier": "matched-step",
+                      "later": {
+                        "resolve-frame-reference": "refusedFrame"
+                      }
+                    }
+                  }
                 },
                 {
                   "member-of": {
@@ -92,19 +141,48 @@
             "for-all": "late-traffic-latches",
             "selecting": {
               "all-of": [
-                { "equals": { "field": "category", "value": "state-violation" } },
-                { "equals": { "field": "latchValue", "value": "fault-committed" } }
+                {
+                  "equals": {
+                    "field": "category",
+                    "value": "state-violation"
+                  }
+                },
+                {
+                  "equals": {
+                    "field": "latchValue",
+                    "value": "fault-committed"
+                  }
+                }
               ]
             },
             "violatedWhen": {
               "all-of": [
-                { "equals": { "field": "settlingFrame.committingEndpoint", "operand": "terminalFrame.committingEndpoint" } },
-                { "equals": { "field": "settlingFrame.session", "operand": "terminalFrame.session" } },
-                { "equals": { "field": "settlingFrame.interactionIdentity", "operand": "terminalFrame.interactionIdentity" } },
+                {
+                  "equals": {
+                    "field": "settlingFrame.committingEndpoint",
+                    "operand": "terminalFrame.committingEndpoint"
+                  }
+                },
+                {
+                  "equals": {
+                    "field": "settlingFrame.session",
+                    "operand": "terminalFrame.session"
+                  }
+                },
+                {
+                  "equals": {
+                    "field": "settlingFrame.interactionIdentity",
+                    "operand": "terminalFrame.interactionIdentity"
+                  }
+                },
                 {
                   "precedes": {
-                    "earlier": { "resolve-frame-reference": "settlingFrame" },
-                    "later": { "resolve-frame-reference": "terminalFrame" }
+                    "earlier": {
+                      "resolve-frame-reference": "settlingFrame"
+                    },
+                    "later": {
+                      "resolve-frame-reference": "terminalFrame"
+                    }
                   }
                 }
               ]
@@ -132,22 +210,53 @@
         }
       ],
       "requiredGreen": [
-        { "vector": "C4-conforming-commit-order-initiator", "member": "conforming commit-order delivery in the initiator direction" },
-        { "vector": "C4-conforming-commit-order-recipient", "member": "conforming commit-order delivery in the recipient direction" },
-        { "vector": "C4-request-lost-control-delivered", "member": "a request lost while the cancellation control naming its identity is delivered" },
-        { "vector": "C4-acknowledgement-lost", "member": "a lost acknowledgement" },
-        { "vector": "C4-control-for-unopened-identity", "member": "a cancellation control for an identity the peer never opened" },
-        { "vector": "C4-legal-late-control-after-peer-terminal", "member": "a legal late control arriving after a peer's terminal" },
-        { "vector": "C4-duplicate-terminal-nonconformant-peer", "member": "a duplicate terminal from a nonconformant peer" }
+        {
+          "vector": "C4-conforming-commit-order-initiator",
+          "member": "conforming commit-order delivery in the initiator direction"
+        },
+        {
+          "vector": "C4-conforming-commit-order-recipient",
+          "member": "conforming commit-order delivery in the recipient direction"
+        },
+        {
+          "vector": "C4-request-lost-control-delivered",
+          "member": "a request lost while the cancellation control naming its identity is delivered"
+        },
+        {
+          "vector": "C4-acknowledgement-lost",
+          "member": "a lost acknowledgement"
+        },
+        {
+          "vector": "C4-control-for-unopened-identity",
+          "member": "a cancellation control for an identity the peer never opened"
+        },
+        {
+          "vector": "C4-legal-late-control-after-peer-terminal",
+          "member": "a legal late control arriving after a peer's terminal"
+        },
+        {
+          "vector": "C4-duplicate-terminal-nonconformant-peer",
+          "member": "a duplicate terminal from a nonconformant peer"
+        }
       ],
       "additionalGreen": [
-        { "vector": "C4-two-sessions-one-identity", "raisedBy": "AK1", "member": "two sessions reusing one identity, conforming at both ends" },
-        { "vector": "C4-two-controls-one-identity", "raisedBy": "AK5", "member": "two controls for one identity, delivery matching commit order" }
+        {
+          "vector": "C4-two-sessions-one-identity",
+          "raisedBy": "AK1",
+          "member": "two sessions reusing one identity, conforming at both ends"
+        },
+        {
+          "vector": "C4-two-controls-one-identity",
+          "raisedBy": "AK5",
+          "member": "two controls for one identity, delivery matching commit order"
+        }
       ],
       "operandMutations": [
         {
           "id": "AK1-session-on-refused-frame",
-          "drop": ["unseen-refusals.refusedFrame.session"],
+          "drop": [
+            "unseen-refusals.refusedFrame.session"
+          ],
           "vector": "C4-two-sessions-one-identity",
           "published": "green",
           "mutated": "red",
@@ -155,7 +264,9 @@
         },
         {
           "id": "AK1-interaction-identity-on-refused-frame",
-          "drop": ["unseen-refusals.refusedFrame.interactionIdentity"],
+          "drop": [
+            "unseen-refusals.refusedFrame.interactionIdentity"
+          ],
           "vector": "C4-two-sessions-one-identity",
           "published": "green",
           "mutated": "green",
@@ -163,7 +274,9 @@
         },
         {
           "id": "AK5-arrival-ordinal-on-refused-frame",
-          "drop": ["unseen-refusals.refusedFrame.arrivalOrdinal"],
+          "drop": [
+            "unseen-refusals.refusedFrame.arrivalOrdinal"
+          ],
           "vector": "C4-two-controls-one-identity",
           "published": "green",
           "mutated": "red",
@@ -171,7 +284,9 @@
         },
         {
           "id": "AK5-committing-endpoint-on-refused-frame",
-          "drop": ["unseen-refusals.refusedFrame.committingEndpoint"],
+          "drop": [
+            "unseen-refusals.refusedFrame.committingEndpoint"
+          ],
           "vector": "C4-two-controls-one-identity",
           "published": "green",
           "mutated": "green",
@@ -179,7 +294,12 @@
         },
         {
           "id": "AK6-terminal-frame-to-form-only-duplicate-terminal",
-          "drop": ["late-traffic-latches.terminalFrame.session", "late-traffic-latches.terminalFrame.interactionIdentity", "late-traffic-latches.terminalFrame.committingEndpoint", "late-traffic-latches.terminalFrame.arrivalOrdinal"],
+          "drop": [
+            "late-traffic-latches.terminalFrame.session",
+            "late-traffic-latches.terminalFrame.interactionIdentity",
+            "late-traffic-latches.terminalFrame.committingEndpoint",
+            "late-traffic-latches.terminalFrame.arrivalOrdinal"
+          ],
           "vector": "C4-duplicate-terminal-nonconformant-peer",
           "published": "green",
           "mutated": "green",
@@ -187,28 +307,46 @@
         },
         {
           "id": "AK6-terminal-frame-to-form-only-legal-late-control",
-          "drop": ["late-traffic-latches.terminalFrame.session", "late-traffic-latches.terminalFrame.interactionIdentity", "late-traffic-latches.terminalFrame.committingEndpoint", "late-traffic-latches.terminalFrame.arrivalOrdinal"],
+          "drop": [
+            "late-traffic-latches.terminalFrame.session",
+            "late-traffic-latches.terminalFrame.interactionIdentity",
+            "late-traffic-latches.terminalFrame.committingEndpoint",
+            "late-traffic-latches.terminalFrame.arrivalOrdinal"
+          ],
           "vector": "C4-legal-late-control-after-peer-terminal",
           "published": "green",
           "mutated": "green"
         },
         {
           "id": "AK6-terminal-frame-to-form-only-outcome-precedes-ack",
-          "drop": ["late-traffic-latches.terminalFrame.session", "late-traffic-latches.terminalFrame.interactionIdentity", "late-traffic-latches.terminalFrame.committingEndpoint", "late-traffic-latches.terminalFrame.arrivalOrdinal"],
+          "drop": [
+            "late-traffic-latches.terminalFrame.session",
+            "late-traffic-latches.terminalFrame.interactionIdentity",
+            "late-traffic-latches.terminalFrame.committingEndpoint",
+            "late-traffic-latches.terminalFrame.arrivalOrdinal"
+          ],
           "vector": "C4-outcome-precedes-ack",
           "published": "red",
           "mutated": "red"
         },
         {
           "id": "Y4-arrival-ordinal-on-settling-frame",
-          "drop": ["late-traffic-latches.settlingFrame.arrivalOrdinal"],
+          "drop": [
+            "late-traffic-latches.settlingFrame.arrivalOrdinal"
+          ],
           "vector": "C4-duplicate-terminal-nonconformant-peer",
           "published": "green",
           "mutated": "green"
         },
         {
           "id": "Y4-and-AK6-together",
-          "drop": ["late-traffic-latches.settlingFrame.arrivalOrdinal", "late-traffic-latches.terminalFrame.session", "late-traffic-latches.terminalFrame.interactionIdentity", "late-traffic-latches.terminalFrame.committingEndpoint", "late-traffic-latches.terminalFrame.arrivalOrdinal"],
+          "drop": [
+            "late-traffic-latches.settlingFrame.arrivalOrdinal",
+            "late-traffic-latches.terminalFrame.session",
+            "late-traffic-latches.terminalFrame.interactionIdentity",
+            "late-traffic-latches.terminalFrame.committingEndpoint",
+            "late-traffic-latches.terminalFrame.arrivalOrdinal"
+          ],
           "vector": "C4-duplicate-terminal-nonconformant-peer",
           "published": "green",
           "mutated": "red",
@@ -224,6 +362,591 @@
         "cross-stack"
       ],
       "executableHere": "neutral validation only. The five other evidence modes are Batch 2's and are not authorized by this file."
+    },
+    {
+      "id": "S1",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+      "statement": "In each session the vector carries, every accepted transition of that session is in the legal table.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "legal-transitions",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "S1-illegal-transition-accepted",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "S2",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+      "statement": "No interaction dispatches outside its own session's `established` state.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "dispatch-state",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "S2-dispatch-while-draining",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "S3",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+      "statement": "Within each session the vector carries, no new interaction is admitted after that session's first drain transition.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "admission-after-drain",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "S3-admit-after-drain",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "S4",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+      "statement": "Within each session the vector carries, a terminal session never becomes nonterminal and is never resumed under the same session identity.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "terminal-monotonicity",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "S4-terminal-session-resumed",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "S5",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+      "statement": "For each session the vector carries, fixed and negotiated establishment of that session's own declared profile produce equal normative profile records.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "establishment-equivalence",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "S5-fixed-and-negotiated-differ",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "S6",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+      "statement": "In any session the vector carries, no session event creates Ready, Release, authority, or an application Outcome.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "session-event-effects",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "S6-session-event-creates-outcome",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "I1",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "One interaction identity crosses the dispatch boundary at most once per session.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "dispatch-once",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I1-identity-dispatched-twice",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "I2",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "Every accepted interaction has at most one terminal history.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "one-terminal-history",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I2-two-terminal-histories",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "I3",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "No cancellation acknowledgement, drain event, timeout, or protocol fault becomes semantic success.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "controls-are-not-success",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I3-acknowledgement-as-success",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "I4",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "Every pre-dispatch refusal is `known-none`; every possible post-dispatch loss is `unknown` unless explicit evidence narrows it.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "effect-certainty",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I4-post-dispatch-loss-known-none",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "I5",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "Concurrency within each session the vector carries never exceeds that session's established finite bound under any generated interleaving.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "bounded-concurrency",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I5-concurrency-exceeds-bound",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "I6",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "A relational interaction matches exactly one declaration and never creates Ready/Release.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "relational-declaration",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I6-relational-creates-ready",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "I7",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "A terminal fact for one interaction changes no sibling interaction's terminal history.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "sibling-independence",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I7-sibling-terminal-history-changed",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
+    },
+    {
+      "id": "C4-P1",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Across every C4 vector and within each session that vector carries, each accepted terminal fact closes exactly one admitted interaction, no interaction identity is dispatched twice, and the number of nonterminal interactions never exceeds that session's established finite bound.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "c4-p1",
+        "note": "Three clauses, each with its own named mutation below."
+      },
+      "namedMutations": [
+        {
+          "vector": "C4-redispatch-replayed-identity",
+          "clause": "no interaction identity is dispatched twice",
+          "expected": "red"
+        },
+        {
+          "vector": "C4-bound-exceeded",
+          "clause": "the number of nonterminal interactions never exceeds that session's established finite bound",
+          "expected": "red"
+        },
+        {
+          "vector": "C4-terminal-closes-two-interactions",
+          "clause": "each accepted terminal fact closes exactly one admitted interaction",
+          "expected": "red",
+          "note": "The contract's mutation cell names the first two only. A clause whose mutation no group has to contain is unfalsifiable in the suite however well the contract states it, so the third is added here."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "directionScopeLimit": "Stated rather than `owed`, and scoped deliberately. The completeness review records that C4-P1's second and third clauses read session-wide as written while the only mechanism the design provides -- the interaction machine's atomic one-position reservation at admission -- is local and can enforce only a per-direction count. Under AE3 that is a KNOWN conforming-realization exposure rather than an unwritten set. The gap is unreachable in the only named profile, where one endpoint initiates both classes and the two readings coincide, and every member of this set is in that profile. A profile in which both endpoints initiate must state which reading it means before its vectors can be written, and this set does not decide that question for it. Filling the set without saying so is what would reproduce the omission the review warns about.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only."
     }
   ]
 }

@@ -156,8 +156,11 @@ vectors AK1 and AK5 were raised for green -- plus nine operand mutations that re
 field each and reproduce that review's finding that AK1's session and AK5's arrival ordinal are
 load-bearing and that AK6 becomes so once Y4's ordinal is reverted with it. Every reviewer since the
 eighth built such an evaluator and discarded it; this one is kept, cites the artifacts rather than
-restating them, and fails when the two disagree. Fourteen of the fifteen properties the hold's second
-condition names remain prose, and the twenty-five owed required-green sets are still owed.
+restating them, and fails when the two disagree. All fifteen properties the hold's second condition names -- `C4-P1`, `C4-P2`, `S1`-`S6` and
+`I1`-`I7` -- now execute, with the fourteen owed required-green sets stated. Every one of them
+carries the two-session vector AL1 and AK7 were raised for as a required-green member, so a
+property reading one session's fact across the vector is a gate failure rather than a finding two
+cycles later. Condition 2 of the hold is met.
 
 **W3's status-block half has landed too.** The nine design artifacts' status blocks carried 289 lines
 of correction history between them and now carry 45: each states what the artifact is and what it
