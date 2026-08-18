@@ -2,37 +2,11 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch totality artifact; added after D1-D4, corrected for T3, R1, R3, S1, S2,
-U8, W4, X1, X2, X5, Z2, AC1, and AC2, and subject to a fresh independent closure re-review. Under AC1
-the latch section records the settling frame's arrival ordinal, which Y4 had stated in the neutral
-brief alone; under AC2 both `unseen` cells assert the detailed reason
-`unopened-interaction-identity` and the kind of frame refused, which one shared provenance could not
-distinguish. Under W4 the
-`unseen` cancellation refusal retains no history and no latch, so the `any terminal` row does not
-reach it; under X2 its cell asserts the latch as an explicit `not-applicable` rather than leaving a
-required field absent, under X5 it asserts the one local observation it does record, and under Z2 its
-cells name `rejected-protocol` as the provenance it is rather than as the next state every other row's
-cells name. The intra-interaction ordering fact the
-`unseen` verdict depends on is carried here and owned by C4. Under U8 the pre-dispatch Local loss cell
-names `lost` like every other cell in that column, rather than leaving the state to be read out of the
-interaction machine's totality rule. Under **AJ1** the latch section's settling-frame reference carries
-its **session**, and under **AJ6** the sentence justifying the arrival ordinal names the fields it is
-about instead of counting them. This status block previously declared the artifact unchanged by every
-pass through AI9, which was false when it was written: AI1 changed the reference this grid publishes
-and the AI1 correction reached three of the five artifacts that publish it, leaving the two the design's
-own hierarchy resolves in favour of — this grid, which the neutral brief declares itself subordinate
-to, and the responsibility matrix row that owns the observation record. Under **AK1** and **AK5** the
-recipient `unseen` route publishes the refused-frame reference rather than a reason and a frame kind,
-and under **AK6** the latch section publishes the terminal-frame reference, which is `C4-P2`'s second
-conjunct's other precedence operand and had no publishing artifact at all.
-
-That AK1 sentence was false when it was written, and **AL2** is the correction. The recipient `unseen`
-route is two cells and the prose beneath them; the AK1 pass changed the prose and left both cells
-publishing a provenance, a detailed reason, a bare frame kind and an effect certainty — the pre-AK1
-record, from which a vector carries no session and takes `C4-P2` red on the conforming two-session
-vector AK1 was raised for. Both cells now publish the refused-frame reference in the same five-field
-form as the other four surfaces, and the design verifier registers the cells as surfaces of their own
-rather than accepting one publication anywhere inside the route.
+Status: proposed first-batch design artifact; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#stateevent-coverage-grid).
 
 Normative companions:
 

@@ -2,40 +2,11 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch behavioral contract; N2, F1/F2, D1-D4, T3, R1, S1, S2, U1, W2, W3, W4,
-X1, X5, Y1, Y2, Z3, AC2, and AC3 corrected after independent review. Under AC3 both `C4-P2` conjuncts
-name the committing endpoint as their subject, because "the same endpoint" resolved to the endpoint
-that records a refusal and never commits the frame in question, which made the conjuncts unsatisfiable
-and therefore unfalsifiable. Under AC2 C10 requires the observation of a frame that opens no
-interaction to record the kind of frame refused and the detailed reason
-`unopened-interaction-identity`. Under Y1 and Y2, C10 requires an observation to
-distinguish the late-traffic latch and the frame that settled it, and requires one for a recognized
-frame that opens no interaction — the two facts `C4-P2` reads and the capability that owns observation
-did not carry. C4 now owns intra-interaction frame order with
-`C4-P2`, and C4's silence and C11 are scoped to cross-interaction and cross-session ordering. Under
-the U1 correction `C4-P2` is stated over the refusal a reordering produces rather than over the
-accepted sequence, because the design refuses a reordered frame and the accepted sequence can
-therefore never be out of order. It carries one named mutation per conjunct under W3, and under W4 an
-identity refused at `unseen` retains no interaction history and no latch. Under X5 that refusal still
-records one local observation, which is the witness the property reads and is evidence rather than
-retained state; under X1 the second conjunct's witness is the frame a late-traffic latch settled
-against rather than the latch value. No Channel 0.2 schema, API,
-implementation, or ratification is authorized until the complete design foundation receives a fresh
-independent closure re-review. Under **AI6** the membership sentence names its own subject rather than
-relying on the nearest antecedent, which is AC3's class in the paragraph AC3 was raised against. C10
-delegates the settling-frame field list to the artifacts that publish it and states the fact alone, so
-this contract is unchanged by the **AJ1**-**AJ7** corrections. Under **AK1** and **AK5** the record
-`C4-P2`'s first conjunct quantifies over carries the refused-frame reference, so AF8's session
-qualifier, the identity the membership test is over, and the committing endpoint the precedence half
-reads all have operands; under **AK6** the observation names the frame an interaction's terminal
-history was accepted on, which is the second conjunct's other precedence operand and was published by
-nothing; and under **AK7** and **AK8** `C4-P1`, `C4-P2`, `C1-P1`, `C3-P1` and `C11-P1` name the session
-they mean, because AH1 made a vector able to carry more than one and C12 now declares which facts
-belong to one session each. Under **AL3** that declaration carries a fifth fact — the session's own
-state — and is checked against the neutral brief's vector format rather than against itself: its four
-members were the four facts read by the properties the AK pass had found red, and `S3` read a fifth
-through a transition of it and was reachable by no pattern built from those four. **AL1**, **AL2** and
-**AL4** are corrected in the session state machine and the state/event grid.
+Status: proposed first-batch behavioral contract; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#c1-c12-capability-contract).
 
 Designed for: Brontide Architecture 0.8, Complete Draft, especially sections 6.16, 13.6, 16.4,
 18.1, 19, and 24.

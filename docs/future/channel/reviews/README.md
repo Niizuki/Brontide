@@ -717,6 +717,16 @@ gate are committed may the next agent start Batch 2 from the
 [neutral contract brief](../Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md). This closure
 authorizes planned schema work; it does not ratify Channel 0.2 or claim implementation conformance.
 
+## Retained records other than attestations
+
+[`channel-0.2-disposition-index.md`](./channel-0.2-disposition-index.md) owns the per-artifact
+correction history that each design artifact's status block used to carry, moved there verbatim
+under **W3** of the
+[verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md). It is
+not an attestation, is assessed by no review, and never overrides a retained record: where it and an
+attestation disagree the attestation is right. A reviewer checking what was corrected in one
+artifact reads it; a reviewer checking what a finding *was* reads the attestation that raised it.
+
 ## Retained attestations
 
 - [Original design-foundation review](./channel-0.2-design-foundation-attestation.md) — reviewed

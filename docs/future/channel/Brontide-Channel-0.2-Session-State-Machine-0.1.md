@@ -2,22 +2,11 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; D1 corrected after independent review and subject to a
-fresh independent closure re-review. Unchanged by the **AI1**-**AI9** and **AJ1**-**AJ7** families;
-the claim is stated over each family rather than over its last finding, because "unchanged by AI9" is
-a true statement about one finding and a false impression about the family, which is **AJ5**.
-Corrected for **AL1** and **AL4**: all six of `S1`-`S6` now name the session they are about, and `S5`
-names the one declared profile its two establishment paths are compared over.
-
-This status block previously recorded that the AK pass had audited `S1`-`S6` against C12's newly
-declared per-session facts and that none of the six named one, "because the session machine's
-properties are about one session by construction". The first half was true and the second is the
-defect: the same argument was available for `I5` — an interaction belongs to one session by
-construction too — and **AK7** rejected it and required `I5` to name the session all the same. `S3`
-read one session's own drain transition across the vector and was red on a conforming two-session
-vector while this block reported the audit clean. That is **AL1**, and the audit that missed it could
-not have found it, because its trigger set is C12's declared fact list and the session's own state was
-absent from it (**AL3**).
+Status: proposed first-batch design artifact; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#session-state-machine).
 
 Contract owner: [Channel 0.2 C2](./Brontide-Channel-0.2-Capability-Contract-0.1.md#c2--the-channel-session-has-one-small-explicit-state-machine).
 

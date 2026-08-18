@@ -159,6 +159,16 @@ eighth built such an evaluator and discarded it; this one is kept, cites the art
 restating them, and fails when the two disagree. Fourteen of the fifteen properties the hold's second
 condition names remain prose, and the twenty-five owed required-green sets are still owed.
 
+**W3's status-block half has landed too.** The nine design artifacts' status blocks carried 289 lines
+of correction history between them and now carry 45: each states what the artifact is and what it
+awaits and links to the
+[disposition index](./channel/reviews/channel-0.2-disposition-index.md), which is a retained review
+record rather than a design artifact and holds that history verbatim. Two freshness checks collapse
+into one that bounds the block at five lines and requires its pointer to resolve. Moving the prose
+also exposed a check on the neutral brief's required vector groups that had been answered by a
+sentence in a status block rather than by the groups section. The Channel index's own rows carry the
+same history in another form and are not yet collapsed.
+
 ### Channel 0.2 first-batch remaining work
 
 The sixth review found **R1**, a new blocking finding. C8 permitted a cancellation from initiator

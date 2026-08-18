@@ -2,26 +2,11 @@
 
 Date: 2026-08-11
 
-Status: author pass plus B1-B4, N1-N3, F1-F3, D1-D5, T1-T4, R1-R3, S1-S3, U1/U4/U5/U7/W3, X7, and
-AC1-AC4 correction passes complete. The per-capability property audit now registers `C4-P2` and the mutation that must
-fail it; its silence is why an unfalsifiable property survived the correction that introduced it. The
-disposition history now runs to the sixteenth cycle rather than stopping at the fifth — the count is
-this block's own claim about this document and went five cycles stale behind a family token, which is
-**AJ4** — and the in-flight
-bound's direction scope is recorded as session-wide-as-written against per-direction-as-enforced
-rather than as undeclared. Under **AK2** the Channel index's Design reviews row names the `W` family
-this document's sibling record is named after; under **AK3** the counts of properties here are counts
-of properties rather than of audit rows, the package stating twenty-six and the audit covering
-thirteen capability-wide ones in twelve rows; and under **AK1**, **AK5**, **AK6**, **AK7** and **AK8**
-this document carries the complete enumeration of every operand `C4-P1` and `C4-P2` read, which is the
-durable half of the audit those five findings came from. Under **AL1**, **AL2**, **AL3** and **AL4**
-the enumeration carries the `session state` operand that audit's own trigger set could not see, the
-`S3` and `S5` audit rows carry the session scopes their properties lacked, and the refused-frame
-reference's row records that a publishing surface named at the granularity of a route is satisfied by
-one passage inside it — which is how that row read `sufficient` while two cells on the route it named
-published the pre-AK1 record.
-A fresh independent closure re-review remains required. This review asks what the proposed contract
-does not say. It is separate from conformance review and does not claim the contract is correct. Under **AI3** the `I5` row carries the AE3 connection its `C4` sibling already had, and the pointer added with it names its direction correctly.
+Status: proposed first-batch completeness and silence review; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#contract-completeness-review).
 
 Reviewed artifacts:
 

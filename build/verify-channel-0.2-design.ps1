@@ -72,6 +72,26 @@ $neutralBrief = Read-RequiredText 'Brontide-Channel-0.2-Neutral-Contract-Brief-0
 $channelReadme = Read-RequiredText 'README.md'
 $reviewReadme = Read-RequiredText 'reviews\README.md'
 
+# W3. An artifact's status block states what the artifact is and what it awaits, and nothing else.
+# Its correction history is owned by the disposition index, which is a review record rather than a
+# design artifact. Nine status blocks had reached 289 lines between them and none of it said what the
+# artifact means -- it said what had once been wrong with it, which is surface every cold reviewer
+# then has to read. The narrative checks below therefore read the index rather than the blocks: the
+# text was moved verbatim, so each check asks the same question of the one file that now carries the
+# answer instead of asking it of nine.
+$dispositionIndex = Read-RequiredText 'reviews\channel-0.2-disposition-index.md'
+$dispositionSections = @{}
+foreach ($dispositionSection in [regex]::Matches($dispositionIndex, '(?ms)^## .+?$(.+?)(?=^## |\z)')) {
+    $sectionLink = [regex]::Match($dispositionSection.Groups[1].Value, '\[([^\]]+\.md)\]')
+    if ($sectionLink.Success) { $dispositionSections[$sectionLink.Groups[1].Value] = $dispositionSection.Groups[1].Value }
+}
+function Get-DispositionSection {
+    param([Parameter(Mandatory = $true)][string]$ArtifactName)
+    if ($dispositionSections.ContainsKey($ArtifactName)) { return $dispositionSections[$ArtifactName] }
+    return ''
+}
+
+
 if ($NegativeProbe) {
     $contract = $contract.Replace('**Property C12-P1.**', '**Property C12-P1-REMOVED-BY-NEGATIVE-PROBE.**')
 }
@@ -687,8 +707,14 @@ $briefEstablishment = ($neutralBrief -split '## Version and establishment rule',
 if (-not $briefEstablishment -or (Get-FlowedText $briefEstablishment).IndexOf('per-interaction frame order', [System.StringComparison]::Ordinal) -lt 0) {
     $failures.Add('The neutral brief''s establishment rule does not carry the per-interaction frame order declaration, although C4 requires a profile to check it at establishment and the responsibility matrix makes it the crossing artifact. The brief fixes the established-profile boundary, so an obligation absent from it does not reach Batch 2.')
 }
-if ($flowedBrief.IndexOf('intra-interaction frame order and its ordering mutation', [System.StringComparison]::Ordinal) -lt 0) {
-    $failures.Add('The neutral brief lists no adversarial vector group owning intra-interaction frame order, so `C4-control-precedes-request` has no home among the required groups.')
+# This check read the whole brief until W3 moved the status blocks out, and the only passage carrying
+# its phrase was the status block's own account of what the V-Z corrections had done -- so a check on
+# the required vector groups was being answered by a sentence about a correction to them. It is scoped
+# to the vector-groups section and matches what that section says, which is stronger: BOTH mutations,
+# one per conjunct, is the requirement, and the singular the status prose used was the weaker claim.
+$briefVectorGroups = ($neutralBrief -split '## Vector groups', 2)[1] -split '## Capability-wide property format', 2 | Select-Object -First 1
+if (-not $briefVectorGroups -or ((Get-FlowedText $briefVectorGroups) -replace '\*\*', '').IndexOf('intra-interaction frame order and both its ordering mutations', [System.StringComparison]::Ordinal) -lt 0) {
+    $failures.Add('The neutral brief''s required adversarial vector groups do not list intra-interaction frame order with both its ordering mutations, so a conjunct of `C4-P2` has no group required to falsify it.')
 }
 
 # U4: the completeness review narrates a disposition paragraph per review cycle, and stopped after the
@@ -998,10 +1024,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all four correction iteration reviews before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all four correction iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
 }
 
 # The closure-cycle hold. The review policy tells an agent not to dispatch a closure review while the
@@ -1165,8 +1191,8 @@ else {
     # work" -- and it was the one status block the T4 check set never covered, so it went stale
     # unnoticed through six correction passes while the checks watched the other nine.
     foreach ($family in $dispositionFamilies) {
-        if ($plan -cnotmatch "\b$family[0-9]") {
-            $failures.Add("The redesign plan names no finding in the '$family' family, although the completeness review's disposition history records one. The plan is the entry point the future-work index sends a reader to first, and it is the one status block the cycle-name check never covered.")
+        if ((Get-DispositionSection 'Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md') -cnotmatch "\b$family[0-9]") {
+            $failures.Add("The disposition index's section for the redesign plan names no finding in the '$family' family, although the completeness review's disposition history records one. The plan is the entry point the future-work index sends a reader to first, and its disposition history is the one the cycle-name check never covered.")
         }
     }
 
@@ -1617,9 +1643,9 @@ if ($latestDispositionFamily) {
 # had seen the AF corrections after review 11 had. The plan's status block is AB1's own surface, stale
 # a second time. Each must reach the newest family the disposition history records.
 if ($latestDispositionFamily) {
-    $planStatus = [regex]::Match($plan, '(?ms)^\*\*Status:\*\*(.+?)(?=^\*\*Designed against)').Groups[1].Value
+    $planStatus = Get-DispositionSection 'Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md'
     if ($planStatus -and (Get-FlowedText $planStatus) -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
-        $failures.Add("The redesign plan's status block does not reach the '$($latestDispositionFamily[0])' family. This block is the surface AB1 was raised against and it has now gone stale twice, while an index row declares AB1 corrected. This is AH3.")
+        $failures.Add("The disposition index's section for the redesign plan does not reach the '$($latestDispositionFamily[0])' family. This is AB1's own surface, stale twice before W3 moved it out of the plan; moving it did not make it exempt. This is AH3, now asked of the record that owns the history.")
     }
     if ($futureIndexText -match 'No independent review has yet seen the ([A-Z]{1,2}) corrections') {
         $seenClaim = $Matches[1]
@@ -1644,11 +1670,11 @@ if ($latestDispositionFamily) {
 $numberedReviewOrdinals = @{ 7 = 'seventh'; 8 = 'eighth'; 9 = 'ninth'; 10 = 'tenth'; 11 = 'eleventh'; 12 = 'twelfth'; 13 = 'thirteenth'; 14 = 'fourteenth'; 15 = 'fifteenth'; 16 = 'sixteenth'; 17 = 'seventeenth'; 18 = 'eighteenth'; 19 = 'nineteenth'; 20 = 'twentieth' }
 $channelNarrative = ($channelReadme -split '\| Artifact \| Purpose \| Current state \|', 2) | Select-Object -First 1
 $futureChannelNarrative = ($futureIndexText -split '## Priority 1 . Channel 0.2 redesign and migration', 2)[1] -split '(?m)^## ', 2 | Select-Object -First 1
-$planNarrative = [regex]::Match($plan, '(?ms)^\*\*Status:\*\*(.+?)(?=^\*\*Designed against)').Groups[1].Value
+$planNarrative = Get-DispositionSection 'Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md'
 $reviewNarratives = @(
     @{ Name = 'the Channel index narrative'; Text = $channelNarrative },
     @{ Name = "the future-work index's Priority 1 narrative"; Text = $futureChannelNarrative },
-    @{ Name = "the redesign plan's status block"; Text = $planNarrative }
+    @{ Name = "the disposition index's section for the redesign plan"; Text = $planNarrative }
 )
 foreach ($provenanceRow in [regex]::Matches($reviewReadme, '(?m)^\| ([A-Z]{1,2}) \| closure-review \|([^|]*)\|')) {
     $provenanceFamily = $provenanceRow.Groups[1].Value
@@ -1954,22 +1980,51 @@ foreach ($frameCountArtifact in $artifactNames) {
     }
 }
 
-# AI4: six of eight design artifacts' own status blocks were stale by one to four families while the
-# Channel index rows claimed those corrections. No check read them -- T4 constrains only the cycle
-# phrase and AB1/AH3 covers the plan alone. This is the same class as AG4, one surface further in, and
-# it is checked here over every artifact rather than over the ones a finding happened to name.
-if ($latestDispositionFamily) {
-    foreach ($statusArtifactName in $artifactNames) {
-        $statusText = Read-RequiredText $statusArtifactName
-        # Bounded by the artifact's first section heading rather than by a character count. The window
-        # was 2200, then 3200 because the redesign plan's block outgrew it and the check reported that
-        # block stale when it was not; a number that has to be raised whenever a status block grows is
-        # a check that fails for the wrong reason on exactly the pass that updated the block.
-        $statusBlock = [regex]::Match((Get-StatusBlock $statusText), '(?ms)^(?:\*\*)?Status:(.+)')
-        if (-not $statusBlock.Success) { continue }
-        if ((Get-FlowedText $statusBlock.Groups[1].Value) -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
-            $failures.Add("'$statusArtifactName' has a status block that does not reach the '$($latestDispositionFamily[0])' family, while the Channel index claims corrections in it. An artifact's own status block is what a reader opening that artifact alone is told, and nothing was reading them. This is AI4.")
-        }
+# W3, and the check AI4 and AH3 collapse into. An artifact's status block is what a reader opening
+# that artifact alone is told, and AI4 was six of eight of them stale by one to four families. The
+# answer then was to check nine blocks for freshness; the answer now is that they carry nothing that
+# can go stale. A status block states what the artifact is and what it awaits, in five lines or
+# fewer, and resolves to the disposition index -- so this one check replaces the freshness check on
+# nine blocks and the plan's separate one, and the history it used to police is checked once, in the
+# record that owns it.
+#
+# Three halves, and each is load-bearing. The length bound is what actually retires the surface: a
+# block that keeps its pointer and grows a paragraph beneath it is the status quo with a link added,
+# which is how every previous correction to these blocks went. The pointer must RESOLVE, because a
+# link to a section that does not exist is worse than the history it replaced -- the reader is told
+# the record is elsewhere and finds nothing. And the section it resolves to must reach the newest
+# family, which is AI4's own question asked once instead of nine times.
+$dispositionLinkPattern = 'reviews/channel-0.2-disposition-index.md#'
+foreach ($statusArtifactName in $artifactNames) {
+    if ($statusArtifactName -eq 'README.md' -or $statusArtifactName -eq 'reviews\README.md') { continue }
+    $statusText = Read-RequiredText $statusArtifactName
+    # Bounded by the blank line that ends the paragraph rather than by the first section
+    # heading: the redesign plan puts its title heading ABOVE its status line, so a block read
+    # to the first heading is empty for that artifact -- which is why AH3 had to exist as a
+    # second check over the plan alone. Read this way, one check covers all nine.
+    $statusMatch = [regex]::Match($statusText, '(?ms)^((?:\*\*)?Status:.*?)(?=
+
+|\n\n|\z)')
+    if (-not $statusMatch.Success) {
+        $failures.Add("'$statusArtifactName' has no status block. Every first-batch artifact states what it is and what it awaits.")
+        continue
+    }
+    $statusBody = $statusMatch.Groups[1].Value.Trim()
+    $statusLines = @($statusBody -split "`r?`n" | Where-Object { $_.Trim() })
+    if ($statusLines.Count -gt 5) {
+        $failures.Add("'$statusArtifactName' has a status block of $($statusLines.Count) lines and the bound is five. Disposition history belongs in the disposition index: every correction that adds a sentence here adds it to what the next cold reviewer has to read, which is the plan's section 1.3 and is what W3 retires.")
+    }
+    if ($statusBody.IndexOf($dispositionLinkPattern, [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add("'$statusArtifactName' has a status block that does not link to its section of the disposition index. A block that carries no history and no pointer to it leaves a reader who opens this artifact alone unable to find out what was corrected in it.")
+        continue
+    }
+    $statusSection = Get-DispositionSection $statusArtifactName
+    if (-not $statusSection) {
+        $failures.Add("'$statusArtifactName' points at the disposition index and the index has no section for it. The pointer is the whole of what the status block now says about disposition, so a pointer that resolves to nothing is a worse answer than the history it replaced.")
+        continue
+    }
+    if ($latestDispositionFamily -and (Get-FlowedText $statusSection) -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
+        $failures.Add("The disposition index's section for '$statusArtifactName' does not reach the '$($latestDispositionFamily[0])' family, while the Channel index claims corrections in it. This is AI4, asked once of the record that owns the history instead of nine times of the artifacts.")
     }
 }
 

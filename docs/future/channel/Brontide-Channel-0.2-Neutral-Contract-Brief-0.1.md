@@ -2,40 +2,11 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet, and
-subject to a fresh independent closure re-review. Batch 2 opens only after that review conforms and
-its closure record exists. Under AC2 the parity profile names the detailed reason
-`unopened-interaction-identity` instead of describing it, and compares the kind of frame refused where
-a refusal opens no interaction. U3, V1, V2, W1, W2, W5, W6, X1, X2, X4, Y1, Y4, Z1, and AC2 corrected after
-independent review, the last restricting that ordinal to identification so the property language does
-not regain the observed arrival order W1 removed from it: the parity profile compares the frame a late-traffic latch settled against rather
-than only the latch value, that reference carries the settling frame's arrival ordinal so a duplicate
-terminal cannot be mistaken for a reordering, the local-observation schema has positions for both, the
-latch's `not-applicable` value is compared rather than absent, the required
-adversarial groups carry one ordering mutation per `C4-P2` conjunct, and the
-property operator set gained the one bounded precedence relation `C4-P2` needs, stimulus steps name
-their committing endpoint and their session so that relation has its operands — the session under AH1,
-which this sentence described in its pre-AH1 form until **AJ4** — the parity profile compares the
-late-traffic latch the grid already required as evidence, and the established-profile
-image carries the realization's per-interaction frame order declaration, the required adversarial
-groups include one owning intra-interaction frame order and its ordering mutation, the parity profile
-compares the peer-fault detailed reason, and the neutral provider may inject deterministic
-per-interaction reordering so a declared ordering mutation can actually be executed. Under **AI1** the
-settling-frame reference carries its session, and under **AI7** the established-profile digest is
-compared per session the vector carries — the same list AH1 made per-session having left both
-singular. Under **AJ1** this artifact's two field lists publish that reference in the one form the
-interaction machine, the state/event grid, the responsibility matrix, and the migration ledger use;
-under **AJ3** the vector format's own profile entry is inside the per-session distribution rather than
-separated from it by a comma, which is AI7's second named entry; and under **AJ4** this block describes
-the declared stimulus step in its post-AH1 form. Under **AK1**, **AK5** and **AK6** the
-local-observation schema and the parity profile carry two further frame references in the same
-five-field form — the frame refused where a refusal opens no interaction, which is `C4-P2`'s first
-conjunct's operand and carried neither AF8's session nor the identity nor the committing endpoint, and
-the frame a terminal history was accepted on, which is the second conjunct's other precedence operand
-and was published by no artifact. Unchanged by **AL1**-**AL4** as to its own content, and load-bearing
-for **AL3**: this brief's vector format is what a vector distributes per session, so C12's declared
-list of facts a vector may hold more than one of is now checked against this artifact rather than
-against the members that were visible when that list was written.
+Status: proposed first-batch artifact boundary; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#neutral-contract-and-vector-brief).
 
 ## Purpose
 

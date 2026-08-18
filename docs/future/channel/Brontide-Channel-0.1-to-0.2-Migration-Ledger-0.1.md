@@ -2,26 +2,11 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch migration disposition; B4, N1/N3, F3, D5, T1/T2, S1, Z4, and AC2 corrected
-after independent review and subject to a fresh independent closure re-review. Under AC2 the closed
-detailed-reason set for `invalid-interaction-correlation` carries `unopened-interaction-identity`: the
-five identity reasons covered no refusal of a control naming an identity that was never opened, which
-is the reason `C4-P2`'s first conjunct quantifies over and the parity profile compares. Under Z4 the
-new-evidence inventory carries intra-interaction frame order, its two ordering mutations, and the
-observation fields they compare, none of which has a Channel 0.1 predecessor to migrate from.
-Serialized spellings remain unselected until the neutral contract batch. Under **AJ1** the
-new-evidence inventory states the settling-frame reference in the same form as the four other
-artifacts that publish it — five other lists, because the brief publishes it twice — including its
-**session**: this inventory is what Batch 2 builds its vector
-groups from, so a reference stated here with fewer fields than the parity profile compares is a vector
-group authored against the wrong observation. That count of artifacts was written as five until
-**AK4**, which matters only because the number of artifacts publishing this reference is the exact
-quantity AJ1 turned on. It is otherwise unchanged by the **AI1**-**AI9** and
-**AJ1**-**AJ7** families. Under **AK1**, **AK5** and **AK6** the inventory adds the refused-frame and
-terminal-frame references those vectors compare, in the same form and for the same reason. Unchanged
-by **AL1**-**AL4**, which changed no reference's field list, added no evidence requirement, and
-dispositioned no further 0.1 case: their subject is where the existing fields are published and which
-session a property means.
+Status: proposed first-batch migration disposition; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#01-to-02-migration-ledger).
 
 Sources inventoried:
 

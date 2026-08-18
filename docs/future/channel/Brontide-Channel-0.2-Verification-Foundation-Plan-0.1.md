@@ -209,6 +209,44 @@ executes, so the measure cannot go stale in the direction that flatters the work
 - the inputs here are hand-written and carry only what the property quantifies over. They are not
   Batch 2 vectors, they authorize nothing, and Batch 2 remains closed.
 
+
+## 2b. What W3 has landed
+
+**The nine status blocks carry no disposition history.** Each states what the artifact is and what it
+awaits, in five lines, and links to its section of the
+[disposition index](./reviews/channel-0.2-disposition-index.md) -- a retained review record, not a
+design artifact. Between them those blocks held **289 lines** and now hold **45**. Nothing was
+rewritten: every section of the index is the text that stood in that artifact's block at commit
+`9ce01a0`, moved verbatim, with relative links re-based one directory and nothing else touched. A
+move that paraphrased would be a fresh statement of a fact the attestations already own.
+
+**One check replaced two, and it bounds the surface rather than tracking it.** **AI4** asked nine
+status blocks whether they reached the newest family and **AH3** asked the plan's separately, because
+the plan puts its title heading above its status line and the block reader returned nothing for it.
+The replacement asks four things once: the block is five lines or fewer, it links to the index, the
+link resolves to a section, and that section reaches the newest family. The length bound is the half
+that matters -- a block that keeps its pointer and grows a paragraph beneath it is the old state with
+a link added, which is how every previous correction to these blocks went.
+
+**Four checks were reading the moved prose, and only two of them were named here.** W3's acceptance
+sentence names AI4, AG4, AJ5 and AH4; what actually depended on the status blocks was AI4, AH3,
+AB1's family sweep over the plan, and AJ2's narrative check. All four now read the disposition index,
+which is the collapse this item predicted arriving at a different set of checks than it named.
+
+**Moving the history found a check answering the wrong surface.** The neutral brief's required
+adversarial groups were verified by searching the whole brief for "intra-interaction frame order and
+its ordering mutation", and the only passage carrying that phrase was the status block's own account
+of what the V-Z corrections had done. A check on the vector groups was being answered by a sentence
+about a correction to them, and it went green with the groups section saying something weaker in the
+singular. It is now scoped to that section and matches what the section says: **both** ordering
+mutations, one per conjunct.
+
+**What W3 still owes.** The Channel index's own rows carry the same history in another form -- eleven
+table cells averaging 780 characters, each a family-by-family narrative -- and **AG4**, **AH4** and
+**AJ5** police those rows. Collapsing them into the same index is the rest of this item and is not
+done. Condition 3 below is about the status blocks and is met; the index rows are the second surface
+and remain.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -234,9 +272,13 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
 - **properties executable in the gate** — currently one of twenty-six. `C4-P2` executes in
   `build/verify-channel-0.2-properties.ps1` against eleven hand-written inputs and nine operand
   mutations; the remaining twenty-five are prose;
-- **required-green sets stated** — currently one of twenty-six, unchanged for seven cycles; and
-- **design-verifier lines** — currently over two thousand. If W1 and W3 work, this falls. A verifier
-  that only grows is a verifier absorbing the cost of a structural problem instead of retiring it.
+- **required-green sets stated** — currently one of twenty-six, unchanged for seven cycles;
+- **status-block lines across the nine artifacts** — 289 before W3 and 45 after; and
+- **design-verifier lines** — 2,377. This has not fallen yet and W3 is why it did not: retiring
+  AI4 and AH3 cost fewer lines than the replacement check and its reasoning took. The number to
+  watch is the one above it, and this one falls when W1 deletes the frame-reference registry. A
+  verifier that only grows is a verifier absorbing the cost of a structural problem instead of
+  retiring it.
 
 ## 5. Open questions for the owner
 
