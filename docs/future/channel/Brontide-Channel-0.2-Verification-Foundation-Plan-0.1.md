@@ -241,11 +241,23 @@ about a correction to them, and it went green with the groups section saying som
 singular. It is now scoped to that section and matches what the section says: **both** ordering
 mutations, one per conjunct.
 
-**What W3 still owes.** The Channel index's own rows carry the same history in another form -- eleven
-table cells averaging 780 characters, each a family-by-family narrative -- and **AG4**, **AH4** and
-**AJ5** police those rows. Collapsing them into the same index is the rest of this item and is not
-done. Condition 3 below is about the status blocks and is met; the index rows are the second surface
-and remain.
+**The Channel index's eleven rows are collapsed too, and AG4, AH4 and AJ5 are retired.** Those rows
+carried the same history in another form -- 8,746 characters across eleven cells, averaging 795 each.
+They now state what the artifact is for and point at the disposition index, and the nine artifact rows
+run about a hundred characters. The three checks went the way AI4 and AH3 did: AG4 required each row
+to name the newest family or say the artifact was unchanged by it, AH4 closed the escape clause bound
+to no family, and AJ5 closed the escape naming one finding of a family as though it spoke for the
+family -- three checks over one surface, each written from the shape of the finding before it, which
+is section 1.4 exactly. One check replaces them: every row points at the index, and a row's state
+column is bounded. The freshness question is asked once, of the index.
+
+The Design reviews row is bounded higher than the rest and the reason is stated in the check rather
+than fudged: **AE4** requires it to name every family a retained iteration review records, because a
+pass once denied records that existed. That enumeration is a fact about what the directory holds, not
+disposition history, so it is what the row is for.
+
+**Nothing was lost.** Every finding token and every clause of the eleven rows is present in the
+disposition index, verified rather than asserted, the same way the status blocks were.
 
 
 ## 2c. What W1 has landed
@@ -315,12 +327,14 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   `build/verify-channel-0.2-properties.ps1` against eleven hand-written inputs and nine operand
   mutations; the remaining twenty-five are prose;
 - **required-green sets stated** — currently one of twenty-six, unchanged for seven cycles;
-- **status-block lines across the nine artifacts** — 289 before W3 and 45 after; and
-- **design-verifier lines** — 2,257, down from 2,377 before W1 deleted the frame-reference
-  registry. W3 did not move it -- retiring AI4 and AH3 cost fewer lines than the replacement
-  check took -- and W1 did. A
-  verifier that only grows is a verifier absorbing the cost of a structural problem instead of
-  retiring it.
+- **status-block lines across the nine artifacts** — 289 before W3 and 45 after;
+- **Channel index row characters** — 8,746 before W3 and 1,208 after; and
+- **design-verifier lines** — **2,263**, down from 2,322 when this work began. It has fallen for the
+  first time. W1 took 169 lines out with the frame-reference registry and W3 took 32 more with the
+  index-row freshness checks, against additions for the checks that replaced them. Two new gates sit
+  beside it — `verify-channel-0.2-properties.ps1` and `verify-channel-0.2-facts.ps1` — so the total
+  verification code in the repository grew; what this measure is for is whether the DESIGN verifier
+  is still absorbing the cost of a structural problem, and on that it has started to shrink.
 
 ## 5. Open questions for the owner
 

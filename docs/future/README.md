@@ -167,7 +167,8 @@ record rather than a design artifact and holds that history verbatim. Two freshn
 into one that bounds the block at five lines and requires its pointer to resolve. Moving the prose
 also exposed a check on the neutral brief's required vector groups that had been answered by a
 sentence in a status block rather than by the groups section. The Channel index's own rows carry the
-same history in another form and are not yet collapsed.
+same history in another form -- 8,746 characters across eleven cells -- and are collapsed into the
+same index, retiring AG4, AH4 and AJ5. W3 is complete and condition 3 of the hold is met.
 
 **W1 has landed for the three frame references, and the registry it targeted is deleted.** One fact
 was published in twenty places across five artifacts and maintained by hand, which is where the nine

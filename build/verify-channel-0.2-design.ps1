@@ -1599,33 +1599,39 @@ else {
     }
 }
 
-# AG4: AE4 corrected the Channel index's Design reviews row, AF2 corrected its narrative, and its
-# seven per-artifact rows still stopped at Z3/Y3/Z2/U2/Z4/Z1. Three passes each closed one surface of
-# the same index. Each row must now make an explicit claim about the latest family -- either it names
-# it or it says the artifact is unchanged by it -- so a row cannot go stale by being left alone.
+# AG4, AH4 and AJ5 are retired here, and this is the second half of W3.
+#
+# They policed the Channel index's eleven per-artifact rows for freshness: each row had to name the
+# newest finding family or say the artifact was unchanged by it, because AE4 corrected the Design
+# reviews row, AF2 corrected the narrative, and seven per-artifact rows still stopped at Z3/Y3/Z2/U2.
+# AH4 then closed the escape clause bound to no family, and AJ5 closed the escape naming one finding
+# of a family as though it spoke for the family. Three checks over one surface, each written from the
+# shape of the finding before it, which is section 1.4 of the plan exactly.
+#
+# The rows now carry no disposition history at all -- 8,746 characters of it moved verbatim to the
+# disposition index -- so there is nothing left in them to go stale. A row states what the artifact is
+# for and points at the record. The freshness question is asked once, of the disposition index, by the
+# W3 check further down, and the pointer is what this check requires.
 if ($latestDispositionFamily) {
-    $artifactRows = @($channelReadme -split "`r?`n" | Where-Object { $_ -match '^\| \[.+\]\(\./Brontide-Channel-' })
+    $artifactRows = @($channelReadme -split "`r?`n" | Where-Object { $_ -match '^\| \[[^\]]+\]\(\./(?:Brontide-Channel-|reviews/)' })
     if ($artifactRows.Count -lt 1) {
         $failures.Add('The Channel index carries no per-artifact rows, which are what tell a reader the state of each design artifact.')
     }
     foreach ($artifactRow in $artifactRows) {
         $rowName = [regex]::Match($artifactRow, '^\| \[([^\]]+)\]').Groups[1].Value
-        # AH4: the escape was the bare phrase `unchanged by`, bound to no family, so a row reading
-        # "unchanged by AF and AG" satisfied the check for AH, AI, and everything after -- five of
-        # nine rows passed only through it. The escape now has to name the family it is escaping.
-        #
-        # AJ5: `\bAI\b` does not match `AI9` -- there is no word boundary before a digit -- so four
-        # rows reading "unchanged by AI9" fell through the escape clause and satisfied the *first*
-        # clause instead, which `AI9` does match. A row could then discharge a family obligation by
-        # declaring itself unchanged by one finding of that family, which is what AH4 was written to
-        # prevent; and two of the four rows were false, because the artifacts were changed by AI1 and
-        # had not been updated. The two clauses are therefore separated: an escape must name the
-        # family with no finding number after it, and a positive claim is read from the row with its
-        # escape clauses removed, so an escape can never be counted as naming the family.
-        $rowEscapePattern = "unchanged by[^;|]*\b$($latestDispositionFamily[0])\b(?![0-9])"
-        $rowWithoutEscapes = [regex]::Replace($artifactRow, 'unchanged by[^;|]*', '')
-        if ($artifactRow -cnotmatch $rowEscapePattern -and $rowWithoutEscapes -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
-            $failures.Add("The Channel index row for '$rowName' neither names a finding in the '$($latestDispositionFamily[0])' family outside an escape clause nor states the artifact is unchanged by that family. A row that is silent about the newest family is indistinguishable from one that went stale; an escape clause naming no family satisfies every future check without making a claim; and an escape naming one finding of the family -- 'unchanged by $($latestDispositionFamily[0])9' -- is a true statement about that finding and a false impression about the family. This is AJ5.")
+        if ($artifactRow.IndexOf('reviews/channel-0.2-disposition-index.md', [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("The Channel index row for '$rowName' does not point at the disposition index. A row that carries its own correction history is a second place that history has to be kept current, and keeping it current is what AE4, AF2, AG4, AH4 and AJ5 were each about.")
+        }
+        # The bound is what retires the surface rather than relocating it: a row that keeps its
+        # pointer and grows a clause beside it is the old row with a link added.
+        $rowState = @($artifactRow -split '\|')
+        # The Design reviews row is bounded higher, and the reason is stated rather than fudged: the
+        # AE4 check above REQUIRES it to name every family a retained iteration review records, nine
+        # of them, because a pass once denied records that existed. That enumeration is a fact about
+        # what the directory holds rather than disposition history, so it is what the row is for.
+        $rowBound = if ($rowName -eq 'Design reviews') { 300 } else { 220 }
+        if ($rowState.Count -ge 4 -and $rowState[3].Trim().Length -gt $rowBound) {
+            $failures.Add("The Channel index row for '$rowName' carries $($rowState[3].Trim().Length) characters of state and the bound is $rowBound. Disposition history belongs in the disposition index; these eleven cells averaged 795 characters of it before W3.")
         }
     }
 }
