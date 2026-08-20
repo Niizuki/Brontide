@@ -75,7 +75,9 @@ repository-wide.
 
 **Corrected in two places, at two scopes.** `build/verify-doc-links.ps1` now resolves every fragment
 in every Markdown link against the headings of the document it points at, duplicate-heading suffixes
-included — 46 fragments across 313 documents, all of which resolve today. And the design verifier
+included, across every Markdown document in the repository; the gate reports the counts and all of
+them resolve. They are not restated here, for the reason AN5 records: this document is retained and
+those two numbers move whenever a link is added. And the design verifier
 resolves the pointer each status block and each Channel index row actually carries, against the
 disposition index's own headings, and requires a status block's pointer to land on the section about
 **that artifact** — which a link checker cannot know and which the fourth probe showed is a real gap:
@@ -223,14 +225,15 @@ checked. **Every probe the AM review records was re-run and every one reproduced
 - **Every W2 number is exact**: 88 evaluations over 40 declared inputs for all twenty-six properties,
   55 over 29 for the fifteen condition 2 names, eleven inputs and nine operand mutations for `C4-P2`,
   three of those nine flipping a verdict and six not.
-- **AM4's decode fix holds.** The index-row measure recomputes to 8,746 at `2684ec7` and 1,310 now,
-  independently of the verifier.
+- **AM4's decode fix holds.** The index-row measure recomputes, independently of the verifier, to
+  exactly the two figures section 4 of the plan states — including the historical half at `2684ec7`
+  that the mis-decoding had put eight characters high.
 - **The W3 move is verbatim and lost nothing.** All 152 moved sentences of the nine disposition-index
   sections appear verbatim in the artifacts' status regions at `365bbc0~1`; all 118 finding tokens from
   those regions and all 104 from the eleven pre-W3 index rows are present in the index.
 - **The Channel index's own counts hold**: 16 retained attestations, five iteration reviews before
-  this one, the nine artifact rows between 94 and 106 characters, summing with the two long rows to the
-  1,310 the measure states.
+  this one, and the nine artifact rows between 94 and 106 characters each, summing with the two longer
+  rows to the total the plan's measure states and the design verifier recomputes.
 
 ## What this pass did not do
 
