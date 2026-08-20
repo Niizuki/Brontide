@@ -80,15 +80,67 @@ $reviewReadme = Read-RequiredText 'reviews\README.md'
 # text was moved verbatim, so each check asks the same question of the one file that now carries the
 # answer instead of asking it of nine.
 $dispositionIndex = Read-RequiredText 'reviews\channel-0.2-disposition-index.md'
+# The Channel index's rows sit one directory above the status blocks, so both write the same relative
+# pointer; it is declared here because both the row check and the block check resolve through it.
+$dispositionLinkPattern = 'reviews/channel-0.2-disposition-index.md#'
 $dispositionSections = @{}
+# AN1. The section is also indexed by the anchor a pointer would use, because "the link resolves to a
+# section" was the one of W3's four questions nothing asked: the lookup below is keyed by the artifact
+# the section links to, so a status block could carry any anchor at all -- one that names no heading,
+# or one that names another artifact's section -- and this check found the section by name and passed.
+# Renaming a heading here left all nine pointers dead with every gate green, probed.
+$dispositionAnchors = @{}
+$dispositionAnchorCounts = @{}
 foreach ($dispositionSection in [regex]::Matches($dispositionIndex, '(?ms)^## .+?$(.+?)(?=^## |\z)')) {
     $sectionLink = [regex]::Match($dispositionSection.Groups[1].Value, '\[([^\]]+\.md)\]')
     if ($sectionLink.Success) { $dispositionSections[$sectionLink.Groups[1].Value] = $dispositionSection.Groups[1].Value }
+}
+# The anchor a Markdown renderer derives from each heading, duplicate suffixes included, so a pointer
+# is answered with the reader's question rather than a weaker one. Every heading level, not just the
+# per-artifact `##` sections: two of the Channel index's rows point at `###` headings under the
+# sections-with-no-design-artifact heading, and a check that indexed only `##` would fail them for
+# pointing at a heading that is there. `build/verify-doc-links.ps1` asks the same resolution question
+# across the whole repository; what is asked here is that the pointer resolves to *this artifact's*
+# section, which a link checker has no way to know.
+foreach ($dispositionHeading in [regex]::Matches($dispositionIndex, '(?ms)^#{2,6} (.+?)$(.+?)(?=^#{2,6} |\z)')) {
+    $sectionSlug = [regex]::Replace($dispositionHeading.Groups[1].Value.Trim(), '\[([^\]]*)\]\([^)]*\)', '$1')
+    $sectionSlug = $sectionSlug -replace '[*_`~]', ''
+    $sectionSlug = ([regex]::Replace($sectionSlug, '[^\w\- ]', '')).ToLowerInvariant().Trim() -replace ' ', '-'
+    if (-not $sectionSlug) { continue }
+    if ($dispositionAnchorCounts.ContainsKey($sectionSlug)) {
+        $dispositionAnchorCounts[$sectionSlug] = $dispositionAnchorCounts[$sectionSlug] + 1
+        $sectionSlug = "$sectionSlug-$($dispositionAnchorCounts[$sectionSlug])"
+    }
+    else { $dispositionAnchorCounts[$sectionSlug] = 0 }
+    $headingLink = [regex]::Match($dispositionHeading.Groups[2].Value, '\[([^\]]+\.md)\]')
+    $dispositionAnchors[$sectionSlug] = if ($headingLink.Success) { $headingLink.Groups[1].Value } else { '' }
 }
 function Get-DispositionSection {
     param([Parameter(Mandatory = $true)][string]$ArtifactName)
     if ($dispositionSections.ContainsKey($ArtifactName)) { return $dispositionSections[$ArtifactName] }
     return ''
+}
+# Every surface whose whole statement about disposition is a pointer -- the nine status blocks and the
+# eleven Channel index rows -- is checked through the pointer it carries rather than by looking the
+# artifact up. `$ArtifactName` empty means the surface is not about one artifact, so any section of
+# the index is a legitimate destination and only resolution is checked.
+function Assert-DispositionPointer {
+    param(
+        [Parameter(Mandatory = $true)][string]$Surface,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Text,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$ArtifactName
+    )
+
+    foreach ($pointer in [regex]::Matches($Text, [regex]::Escape($dispositionLinkPattern) + '([^)\s]+)\)')) {
+        $pointerAnchor = $pointer.Groups[1].Value.ToLowerInvariant()
+        if (-not $dispositionAnchors.ContainsKey($pointerAnchor)) {
+            $failures.Add("$Surface points at '#$pointerAnchor' in the disposition index and no heading there carries that anchor. The pointer is the whole of what this surface says about disposition, so one that lands nowhere leaves the reader with less than the history it replaced. This is AN1.")
+            continue
+        }
+        if ($ArtifactName -and $dispositionAnchors[$pointerAnchor] -cne $ArtifactName) {
+            $failures.Add("$Surface points at '#$pointerAnchor' in the disposition index, and that section is about '$($dispositionAnchors[$pointerAnchor])'. A pointer that resolves to the wrong artifact's history reads as an answer and is not one. This is AN1.")
+        }
+    }
 }
 
 
@@ -912,15 +964,20 @@ Assert-ContainsAll 'Channel 0.2 review policy' (Get-FlowedText $reviewReadme) @(
 # clause's wording. It is skipped only while the design artifacts have uncommitted edits, because a
 # pin cannot name a commit that does not exist yet; once the correction is committed the clause and
 # the commit that carries it must agree.
+#
+# AN2: derived from `$artifactNames` rather than written out again. The second list held eight of the
+# nine and the one it omitted was the redesign plan -- item 3 of the review policy's own required
+# review scope, and where the four owner rulings and the closure standard live. A commit changing only
+# that artifact left the pin green while the material a reviewer reads had moved, which is U6 exactly,
+# inside the check written to end U6. Probed by committing a plan-only change: the gate passed.
+#
+# One list, so a tenth design artifact joins both questions at once. This is W1's rule applied to the
+# verifier's own enumerations: a fact published twice and maintained by hand drifts, and which
+# artifacts are the design is that kind of fact.
 $designArtifactPathspec = @(
-    'docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md',
-    'docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md',
-    'docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md',
-    'docs/future/channel/Brontide-Channel-0.2-State-Event-Coverage-0.1.md',
-    'docs/future/channel/Brontide-Channel-0.2-Responsibility-Matrix-0.1.md',
-    'docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md',
-    'docs/future/channel/Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md',
-    'docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md'
+    $artifactNames |
+        Where-Object { $_ -ne 'README.md' -and $_ -ne 'reviews\README.md' } |
+        ForEach-Object { "docs/future/channel/$($_ -replace '\\', '/')" }
 )
 # AM5, and the check is now written over the rule the policy actually states rather than over the
 # commit subject. The clause says: "Review that commit or any later commit whose design artifacts hash
@@ -1070,10 +1127,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all five iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all six iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
 }
 
 # The closure-cycle hold. The review policy tells an agent not to dispatch a closure review while the
@@ -1729,6 +1786,11 @@ if ($latestDispositionFamily) {
         if ($artifactRow.IndexOf('reviews/channel-0.2-disposition-index.md', [System.StringComparison]::Ordinal) -lt 0) {
             $failures.Add("The Channel index row for '$rowName' does not point at the disposition index. A row that carries its own correction history is a second place that history has to be kept current, and keeping it current is what AE4, AF2, AG4, AH4 and AJ5 were each about.")
         }
+        # AN1, on the second of the two surfaces whose whole statement about disposition is a pointer.
+        # The row's own artifact is not asserted here: three of the eleven rows -- the reviews
+        # directory, the verification foundation plan, and the Channel index's own extra rows -- point
+        # at sections that are not per-artifact, so resolution is the question this surface can answer.
+        Assert-DispositionPointer -Surface "The Channel index row for '$rowName'" -Text $artifactRow -ArtifactName ''
         # The bound is what retires the surface rather than relocating it: a row that keeps its
         # pointer and grows a clause beside it is the old row with a link added.
         $rowState = @($artifactRow -split '\|')
@@ -1802,6 +1864,33 @@ else {
         $failures.Add("The verification foundation plan says this verifier is $($measureLineClaim.Groups[1].Value) lines and it is $measureLineActual.")
     }
 }
+# AN3: the same measure's HISTORY, which is the half AM2 and AM3 corrected in the two measures beside
+# this one and left standing here. It read "it fell at each step" over four deltas, and it rose at two
+# of them; three of the four numbers -- 169 out, 32 out, 182 back -- are produced by no reading of the
+# commits they describe, gross or net. So each step is now stated as a commit and a line count and
+# every one of them is recomputed, which is the only form of this measure that cannot go stale
+# silently. The claim that the file grew overall is checked too, because that is the uncomfortable
+# half and the half a later edit would be tempted to drop.
+if ($measureLineClaim.Success -and (Test-Path -LiteralPath (Join-Path $repositoryRoot '.git'))) {
+    $measureStepBullet = [regex]::Match($measurePlanText, '(?ms)^- \*\*design-verifier lines\*\*.+?(?=^- \*\*|^## )')
+    $measureSteps = @([regex]::Matches($measureStepBullet.Value, '`([0-9a-f]{7,40})` \*\*([0-9,]+)\*\*'))
+    if ($measureSteps.Count -lt 2) {
+        $failures.Add("The verification foundation plan's design-verifier-lines measure states fewer than two steps in the form '``<commit>`` **<n>**'. That form is what lets this check recompute the history; a history stated only in prose is what AN3 was, and what AM2 and AM3 were in the two measures above it.")
+    }
+    foreach ($measureStep in $measureSteps) {
+        $stepRevision = $measureStep.Groups[1].Value
+        $stepClaimed = [int]($measureStep.Groups[2].Value -replace ',', '')
+        $stepText = Get-BlobText -Revision $stepRevision -RepositoryPath 'build/verify-channel-0.2-design.ps1'
+        if ($LASTEXITCODE -ne 0 -or -not $stepText) {
+            $failures.Add("The verification foundation plan's design-verifier-lines measure names the commit '$stepRevision' and this verifier cannot be read at it.")
+            continue
+        }
+        $stepActual = @($stepText -split "`n").Count
+        if ($stepActual -ne $stepClaimed) {
+            $failures.Add("The verification foundation plan says this verifier was $($measureStep.Groups[2].Value) lines at '$stepRevision' and it was $stepActual. This is AN3's own class: a number about a commit that nothing recomputes.")
+        }
+    }
+}
 $measureClaims = @(
     @{ Name = 'status-block lines across the nine artifacts'
        Pattern = 'status-block lines across the nine artifacts\*\* . \*\*([0-9,]+)\*\* at `([0-9a-f]{7,40})` and \*\*([0-9,]+)\*\* now'
@@ -1829,6 +1918,33 @@ foreach ($measureClaim in $measureClaims) {
         $actualThen = & $measureClaim.Then $measureRevision
         if ($LASTEXITCODE -eq 0 -and $actualThen -gt 0 -and $claimedThen -ne $actualThen) {
             $failures.Add("The verification foundation plan says the '$($measureClaim.Name)' measure was $claimedThen at '$measureRevision' and it was $actualThen. The historical half is checked as well because it is the half that was wrong: nothing recomputes a number a reader cannot reach.")
+        }
+    }
+}
+
+# AN5. Recomputing the plan's copy of a measure does nothing about a SECOND copy elsewhere, and there
+# was one: AM2 corrected "289 lines" in section 2b and section 4 and named those as the two surfaces,
+# and the disposition index -- the file W3 created, and the one a status block sends its reader to --
+# said 289 for three more commits. That is the family this programme has recorded ten times, committed
+# by the pass whose method was to recompute every number.
+#
+# The fix is removal rather than a guard over a second copy, which is W1's own remedy and this plan's
+# stated preference: the index cites the measure now. This check keeps it that way. It is scoped to
+# the MAINTAINED files -- a retained attestation or iteration review is immutable evidence under the
+# review policy and legitimately records the readings it rejected, including 289 itself, so it cannot
+# be corrected and is not swept.
+$measureOwner = 'Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md'
+$measureSweepFiles = @(
+    @{ Name = 'the disposition index'; Text = $dispositionIndex },
+    @{ Name = 'the Channel index'; Text = $channelReadme },
+    @{ Name = 'the review policy'; Text = $reviewReadme },
+    @{ Name = 'the future-work index'; Text = $futureIndexText }
+)
+foreach ($measureSweepFile in $measureSweepFiles) {
+    foreach ($restated in [regex]::Matches((Get-FlowedText $measureSweepFile.Text), '([0-9][0-9,]{1,6}) lines?\b')) {
+        $restatedContext = (Get-FlowedText $measureSweepFile.Text).Substring([Math]::Max(0, $restated.Index - 160), [Math]::Min(320, (Get-FlowedText $measureSweepFile.Text).Length - [Math]::Max(0, $restated.Index - 160)))
+        if ($restatedContext -match '(?i)status block') {
+            $failures.Add("$($measureSweepFile.Name) states a status-block line total of $($restated.Groups[1].Value). That measure is owned and recomputed in '$measureOwner'; a second copy is a number nothing recomputes, which is what said 289 for three commits after AM2 corrected the two surfaces it had found. Cite the measure instead of restating it. This is AN5.")
         }
     }
 }
@@ -1964,7 +2080,7 @@ foreach ($retentionCiter in @(@{ Name = 'capability contract'; Text = $flowedCon
 
 # The frame-reference registry that stood here is deleted. It hardcoded, per reference, the list of
 # surfaces publishing it, an exact-count assertion over that list, and a package-wide sweep for an
-# abbreviated publication -- roughly 125 lines whose whole purpose was to notice that twenty
+# abbreviated publication -- roughly 125 lines whose whole purpose was to notice that the
 # hand-maintained copies of one fact had drifted apart. They drifted anyway, once per cycle for nine
 # cycles: AI1, AJ1, AK1 and AL2 are one event four times, and each check written to catch it could
 # only see the surfaces its author already knew about.
@@ -2061,7 +2177,10 @@ foreach ($frameCountArtifact in $artifactNames) {
 # link to a section that does not exist is worse than the history it replaced -- the reader is told
 # the record is elsewhere and finds nothing. And the section it resolves to must reach the newest
 # family, which is AI4's own question asked once instead of nine times.
-$dispositionLinkPattern = 'reviews/channel-0.2-disposition-index.md#'
+#
+# The middle half was the one this file did not implement: it asked whether the index has a section
+# for the artifact, found it by the artifact's own name, and never looked at the anchor. `AN1` is that
+# gap, and `Assert-DispositionPointer` above resolves the pointer that is actually written.
 # AM1, found by the W1-W3 iteration pass. The bound above was read to the first BLANK LINE, and the
 # history it exists to keep out sat one blank line beneath it: at `5894aba` the session machine's AL1
 # paragraph -- "This status block previously recorded that the AK pass had audited `S1`-`S6`..." --
@@ -2133,6 +2252,10 @@ foreach ($statusArtifactName in $artifactNames) {
         $failures.Add("'$statusArtifactName' points at the disposition index and the index has no section for it. The pointer is the whole of what the status block now says about disposition, so a pointer that resolves to nothing is a worse answer than the history it replaced.")
         continue
     }
+    # AN1: the pointer the block actually carries, resolved. The check above asks whether the index
+    # has a section for this artifact, which is not the same question and is why an anchor naming no
+    # heading -- or naming a different artifact's section -- passed it.
+    Assert-DispositionPointer -Surface "'$statusArtifactName''s status block" -Text $statusBody -ArtifactName $statusArtifactName
     if ($latestDispositionFamily -and (Get-FlowedText $statusSection) -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
         $failures.Add("The disposition index's section for '$statusArtifactName' does not reach the '$($latestDispositionFamily[0])' family, while the Channel index claims corrections in it. This is AI4, asked once of the record that owns the history instead of nine times of the artifacts.")
     }

@@ -172,7 +172,7 @@ foreach ($artifactFile in $artifactFiles) {
         if ((Get-FlowedText $fence.Groups[2].Value) -cne (Get-FlowedText $declared[$factId])) {
             if ($Apply) { $rewritten = $true }
             else {
-                $failures.Add("'$($artifactFile.Name)' publishes '$factId' as '$(Get-FlowedText $fence.Groups[2].Value)' and the declaration renders it '$(Get-FlowedText $declared[$factId])'. Run ``build/verify-channel-0.2-facts.ps1 -Apply`` rather than editing the artifact: a surface corrected by hand is one of twenty, which is how AI1, AJ1, AK1 and AL2 each reached some of their sites and not the rest.")
+                $failures.Add("'$($artifactFile.Name)' publishes '$factId' as '$(Get-FlowedText $fence.Groups[2].Value)' and the declaration renders it '$(Get-FlowedText $declared[$factId])'. Run ``build/verify-channel-0.2-facts.ps1 -Apply`` rather than editing the artifact: a surface corrected by hand is one of many, which is how AI1, AJ1, AK1 and AL2 each reached some of their sites and not the rest.")
             }
         }
     }
@@ -250,8 +250,8 @@ foreach ($fact in $facts.facts) {
 # ---------------------------------------------------------------------------------------------
 # The backstop.
 #
-# Fencing makes the twenty registered sites impossible to desynchronise. It cannot, on its own, catch
-# a TWENTY-FIRST surface that states the fact in prose and carries no fence -- which is exactly AJ1's
+# Fencing makes every registered site impossible to desynchronise. It cannot, on its own, catch
+# a further surface that states the fact in prose and carries no fence -- which is exactly AJ1's
 # shape, an artifact publishing the reference in an abbreviated form that no check written over the
 # known surfaces could reach. So the sweep survives, with the fenced regions replaced by a sentinel so
 # that a reference phrase followed by its own fenced publication reads as published rather than as
@@ -285,7 +285,7 @@ foreach ($sweepFile in $sweepFiles) {
     foreach ($factId in $declared.Keys) {
         $renderedPlain = Get-FlowedText $declared[$factId]
         if ($flowed.IndexOf($renderedPlain, [System.StringComparison]::Ordinal) -ge 0) {
-            $failures.Add("'$($sweepFile.Name)' states the whole field list of '$factId' outside a fact fence. Every publication of an owned fact is rendered from the declaration, so an unfenced one is a surface nothing keeps in step -- which is the twenty-first-surface case AJ1 was.")
+            $failures.Add("'$($sweepFile.Name)' states the whole field list of '$factId' outside a fact fence. Every publication of an owned fact is rendered from the declaration, so an unfenced one is a surface nothing keeps in step -- which is the unregistered-surface case AJ1 was.")
         }
     }
 
@@ -336,11 +336,37 @@ foreach ($sweepFile in $sweepFiles) {
     # three" -- by then kind, session, and interaction identity -- do not identify the frame, which is
     # a claim about a set that no longer contains the committing endpoint it is about. A list that is
     # counted from the front cannot have a field added to it without breaking the sentence beneath it,
-    # and adding a field is now one edit that rewrites twenty sites at once.
+    # and adding a field is now one edit that rewrites every site of that fact at once.
     foreach ($fenceMatch in [regex]::Matches($sweepText, $fencePattern)) {
         $after = $sweepText.Substring($fenceMatch.Index + $fenceMatch.Length, [Math]::Min(600, $sweepText.Length - $fenceMatch.Index - $fenceMatch.Length))
         if ((Get-FlowedText $after) -match '(?i)\bthe (?:first|other|last|remaining) (?:two|three|four|five)\b') {
             $failures.Add("'$($sweepFile.Name)' identifies part of a frame reference's field list by position rather than by name, within 600 characters of a fenced publication. Inserting a field renumbers every such sentence. This is AJ6.")
+        }
+    }
+}
+
+$siteTotal = ($publicationCounts.Values | Measure-Object -Sum).Sum
+$publishingArtifactTotal = @($perArtifactCounts.Values | ForEach-Object { $_.Keys } | Sort-Object -Unique).Count
+
+# AN4. The verification foundation plan states this count in two places and section 4 states it in a
+# third; the third was corrected to 21 when the `unseen` refusal record became the fourth owned fact
+# and the other two still read `twenty` and `five`, which were the frame references' own numbers one
+# commit earlier. That is the propagation shape this whole file exists to end, in a number describing
+# the mechanism that ends it -- so the number moves here, where it is computed, and the plan is
+# checked against it rather than trusted.
+$factsPlanPath = Join-Path $channelPath 'Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md'
+if (Test-Path -LiteralPath $factsPlanPath) {
+    $factsPlanText = Get-FlowedText (Get-Content -Raw -LiteralPath $factsPlanPath -Encoding UTF8)
+    $siteClaim = [regex]::Match($factsPlanText, 'rendered into all ([0-9]+) publication sites across ([0-9]+) artifacts')
+    if (-not $siteClaim.Success) {
+        $failures.Add("The verification foundation plan's W1 section no longer states the publication-site count in the form 'rendered into all <n> publication sites across <m> artifacts'. That form is what lets this file recompute it, and a count of these sites left to prose is exactly what AN4 was.")
+    }
+    else {
+        if ([int]$siteClaim.Groups[1].Value -ne $siteTotal) {
+            $failures.Add("The verification foundation plan says the declared facts are rendered into $($siteClaim.Groups[1].Value) publication sites and this file counts $siteTotal.")
+        }
+        if ([int]$siteClaim.Groups[2].Value -ne $publishingArtifactTotal) {
+            $failures.Add("The verification foundation plan says the publication sites are spread across $($siteClaim.Groups[2].Value) artifacts and this file counts $publishingArtifactTotal.")
         }
     }
 }
@@ -350,5 +376,7 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-$siteTotal = ($publicationCounts.Values | Measure-Object -Sum).Sum
-Write-Host "Channel 0.2 owned-fact verification passed: $(@($facts.facts).Count) declared facts rendered into $siteTotal fenced publications across $(@($artifactFiles).Count) artifacts, with no unfenced publication in $(@($sweepFiles).Count) files."
+# The artifacts that PUBLISH, not the artifacts swept: the summary said "across 14 artifacts" while
+# the sites live in six of them, which reads as a fact about the fences and is a fact about how many
+# files were opened.
+Write-Host "Channel 0.2 owned-fact verification passed: $(@($facts.facts).Count) declared facts rendered into $siteTotal fenced publications across $publishingArtifactTotal artifacts, with no unfenced publication in $(@($sweepFiles).Count) files."

@@ -171,6 +171,7 @@ dependency instead of narrowing it.
 | AK | closure-review | design | closure review 15 attestation (AK1-AK4); AK5-AK8 raised by the AK correction pass and recorded in the completeness review's operand enumeration |
 | AL | closure-review | design | closure review 16 attestation |
 | AM | iteration | verification | W1-W3 verification-foundation iteration review |
+| AN | iteration | verification | second W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -266,11 +267,23 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-The first such pass has run and is retained as the
-[W1-W3 verification-foundation iteration review](./channel-0.2-am-iteration-review.md). It raised
-**AM1**-**AM3**, corrected all three, and therefore did **not** meet the plan's condition 4, which asks
-for a pass that finds nothing it can fix. A second pass over the same scope is the live path; it should
-re-run the probes the first recorded rather than trust them.
+Two such passes have run and neither met the plan's condition 4, which asks for a pass that finds
+nothing it can fix. The first is retained as the
+[W1-W3 verification-foundation iteration review](./channel-0.2-am-iteration-review.md), which raised
+**AM1**-**AM3** and corrected all three. The second is the
+[second W1-W3 verification-foundation iteration review](./channel-0.2-an-iteration-review.md), which
+raised **AN1**-**AN6** and corrected all six.
+
+**A third pass over the same scope is the live path**, and the standing instruction is unchanged: it
+re-runs the probes the previous passes recorded rather than trusting them. The second pass did, and
+every one reproduced — so all six of its findings came from elsewhere, and where they came from is the
+brief worth inheriting. Every one was in the *second* place a fact was stated rather than the first,
+so the question that paid was not "is this number right" but "where else is this number", asked
+mechanically: the sweep written for **AN5** found a surface of its own subject that the same pass's
+reading had missed. And two of the six were guards whose comment stated a stronger question than the
+code asked — **AN1**'s comment says the pointer must resolve and it checked something else, **AN2**'s
+list held eight of nine — so reading each guard's comment as a claim to test against its code is a
+pass nobody here has run in full.
 
 The sixteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
 blocking **AL1** and **AL2** and nonblocking **AL3** and **AL4**; its retained record is
@@ -923,10 +936,14 @@ attestation for what the finding was. Review that commit or any later commit who
 artifacts hash identically to it — and check that claim rather than assuming it, because this clause
 has now gone stale three times: the eighth review raised it as **U6**, the rewrite that closed U6 was
 itself superseded one commit later and raised as **X6**, and the same sentence carried the wrong date
-for two cycles as **AI8**. The design verifier now compares this
-sentence against the most recent commit that changed a design artifact and against that commit's own
-date, so a correction pass that
-forgets it fails the gate rather than misdirecting a reviewer. The preceding pins
+for two cycles as **AI8**. The design verifier resolves this sentence's subject to a commit and
+compares each design artifact's blob hash there against the tree a reviewer reads now, so a correction
+pass that forgets it fails the gate rather than misdirecting a reviewer. It asks blob identity rather
+than "which commit last changed a design artifact" because **AM5** established that the second
+question has two different answers -- one on the merge commit a pull-request build checks out and one
+on the linear branch -- and only the first is what `main` reports after the merge. This paragraph
+described that superseded question for one commit after the check stopped asking it, which is **AN6**;
+the artifact set it compares is the nine the required review scope names, which is **AN2**. The preceding pins
 `3892c23a8dd4c7f298e877ba73710ee0ddc97bc4` and `3b27e3a85bf018bead6d226a13d075c7e6ed16fa` are what the
 seventh and eighth reviews assessed and are nonconforming.
 
@@ -963,6 +980,13 @@ context elsewhere — never as evidence that their conclusions are right.
   to recompute every number the plan states, re-derive every claim one document makes about another,
   and break every guard W1, W2 and W3 added. AM1 came out of the third — the status-block length bound
   was measuring a paragraph the history it excludes had sat one blank line beneath.
+- [Second W1-W3 verification-foundation iteration review](./channel-0.2-an-iteration-review.md) — the
+  same scope at `0e43a69`, after the AM corrections; raised AN1-AN6 and corrected all six, so
+  condition 4 is **still not met**. Its first act was to re-run every probe the AM review records, as
+  that review's closing paragraph asks; all of them reproduced and none of the six findings came from
+  them. Every one came from asking where else a corrected fact is stated: AN1 and AN2 are guards whose
+  scope is narrower than the question their own comments claim, and AN3-AN6 are four facts corrected
+  in the record that owns them and left standing in one to four other records.
 
 ## Disclosed process deviation in the T1-T4 correction
 

@@ -311,8 +311,9 @@ of surface lists, exact-count assertions and abbreviated-publication sweeps are 
 **It was not done by citation.** Section 5's open question 1 asks whether standalone readability
 survives W1, and calls that the question deciding whether this item is real. It is not answered here
 because the implementation does not need it answered: the duplication survives for the reader and
-dies for the maintainer. The fact is owned by `conformance/channel-0.2-facts.json` and **rendered**
-into all twenty publication sites, each a fenced region the artifact carries:
+dies for the maintainer. The four facts are owned by `conformance/channel-0.2-facts.json` and
+**rendered** into all **21** publication sites across **6** artifacts, each a fenced region the
+artifact carries:
 
     <!-- fact:NAME -->its kind, its **session**, ...<!-- END -->
 
@@ -322,8 +323,15 @@ which is how this paragraph was caught on its first run.
 
 A reader of the grid alone still learns what the `unseen` cells record, in the same words as before.
 No human writes the second copy. Changing a field is one edit to the declaration and
-`build/verify-channel-0.2-facts.ps1 -Apply`, which rewrites all twenty sites in five artifacts; this
-was tested by adding a sixth field, applying it, and reverting.
+`build/verify-channel-0.2-facts.ps1 -Apply`, which rewrites every site of that fact and touches no
+site of any other; this was tested by adding a sixth field, applying it, and reverting.
+
+Both counts above are **recomputed by the facts gate**, and read `twenty` and `five` until **AN4**.
+Those were the frame references' own numbers at `2684ec7`, correct when this section was written and
+left standing one section later when the `unseen` refusal record became the fourth owned fact -- by
+the same paragraph that records the change. Section 4's copy of the count was corrected to 21 and this
+one was not, which is this programme's recurring shape arriving in the document that exists to end it,
+in a number describing the mechanism that ends it.
 
 **The surface list is not in a verifier any more.** A fence *is* the registration and it lives in the
 artifact, so a check cannot be scoped to the surfaces its author already knew about -- which is the
@@ -450,6 +458,56 @@ own argument, measured on this document.
 What the pass verified rather than believed is recorded in the review: the W3 move is verbatim, both
 moves lost no finding token, every W2 count is exact, and the W1, W2 and W3 guards fire when broken.
 
+## 2e. What the second condition 4 pass found
+
+The second author-side pass has run, at `0e43a69`, and is retained as the
+[second W1-W3 verification-foundation iteration review](./reviews/channel-0.2-an-iteration-review.md).
+It raised **AN1**-**AN6** and corrected all six, so **it does not meet condition 4** either. **This
+section is that family's disposition record**, under the same 2026-08-20 owner ruling that routes a
+`verification` family here, and the
+[provenance table](./reviews/README.md#finding-family-provenance) declares AN on both axes.
+
+**It began by re-running every probe the AM pass recorded, which is what the review policy's next-work
+paragraph asks of it, and all of them reproduced.** None of the six findings came from that. Every one
+came from the question that pass did not ask: *where else is this stated?*
+
+**AN1** and **AN2** are two guards whose scope is narrower than the question their own comments claim,
+and each sits inside a check written to close an earlier instance of the same class.
+
+- **AN1** -- W3's whole claim is that a status block may carry no history because it carries a
+  pointer, and the check's comment says *"the pointer must RESOLVE"*, as does section 2b above. It did
+  not ask that: it looked the section up by the artifact's file name and never read the anchor.
+  Renaming a heading in the disposition index -- which gains a section every time a family is
+  dispositioned -- left every pointer to it dead with the whole gate green, probed. Deleting the
+  section outright, which is the probe the AM pass ran, is the one instance of the class a by-name
+  lookup happens to catch. Corrected at two scopes: `build/verify-doc-links.ps1` now resolves every
+  Markdown fragment in the repository against the headings of the document it points at, and the
+  design verifier resolves the pointer each status block and index row actually carries and requires a
+  block's pointer to land on the section about that artifact.
+- **AN2** -- **AM5** rewrote the review-target pin to compare the design artifacts' blob hashes at the
+  pinned commit against the tree a reviewer reads now. It compared **eight of the nine**: the list was
+  written out a second time in the verifier, and the artifact it omitted is the redesign plan, item 3
+  of the review policy's required review scope and the home of the four owner rulings and the closure
+  standard. A commit changing only that artifact left the pin green, probed by making one. That is
+  U6 -- a reviewer sent at artifacts that have already moved -- inside the check written to close U6.
+  Corrected by deriving the pathspec from the one list the rest of the file already uses.
+
+**AN3**-**AN6** are four facts corrected in the record that owns them and left standing in one to four
+other records. **AN3** is section 4's third measure: its history was left entirely to prose while the
+two measures beside it were being recomputed for having been left to prose, it claimed the count *"fell
+at each step"* where it rose at two of them, and three of its four deltas are produced by no reading of
+the commits they describe. It is now a per-commit table this verifier recomputes. **AN4** is the
+publication-site count, stated as twenty in four places and corrected to 21 in one; the facts gate
+counts it now. **AN5** is the status-block line total, which AM2 corrected from 289 to 265 and declared
+to have two surfaces -- there were four, and the disposition index carried 289 for three commits after
+the correction. **AN6** is the pin clause's own description of the mechanism AM5 replaced.
+
+**Two things generalise, and the second is the one to carry forward.** A guard's comment is a claim,
+and two of six findings are comments claiming a stronger question than the code asks -- reading each
+guard's comment against its code is a pass nobody here has run in full. And **recomputing a number in
+the document that owns it says nothing about the documents that repeat it**: the AN5 sweep found a
+fourth surface of its own subject on its first run, after this pass's reading had found three.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -493,22 +551,31 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,310** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,314** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
-  commits, which was never the value at any commit; it is corrected under **AM3**, and the four
-  characters between 1,306 and the figure here are the AM registration in the Design reviews row,
-  added after the correction and caught by the check that now recomputes it; and
-- **design-verifier lines** — **2,491** now, recomputed by the verifier against itself, against 2,322
-  when this work began. It fell at each step through the AM correction — W1 took 169 lines out with
-  the frame-reference registry, W3 took 32 more with the index-row freshness checks, and the AL2
-  record-keyed sweep took 16 more when the record became an owned fact — and the AM pass put 182 back:
-  the status-region bound, the two recomputed measures above, and the second provenance axis. **That
-  is the wrong direction for this measure and it is stated rather than smoothed over.** Three of those
-  four are checks that compute a number this document used to assert, which is the trade this plan
-  argues for; whether it stays worth it is the question this measure exists to keep visible. Two further gates sit
-  beside it — `verify-channel-0.2-properties.ps1` and `verify-channel-0.2-facts.ps1` — so the total
-  verification code in the repository has grown throughout; what this measure is for is whether the DESIGN verifier
-  is still absorbing the cost of a structural problem, it shrank while the facts and the properties moved out of it, and the AM corrections bought three computed numbers, one structural bound and a pin check that compares artifacts instead of commit subjects, at the price of growing it again.
+  commits, which was never the value at any commit; it is corrected under **AM3**. It has moved twice
+  since, by four characters each time and for the same reason — registering a new iteration-review
+  family in the Design reviews row — and on both occasions the check that recomputes it failed the
+  figure on the commit that wrote it, which is the check working rather than a defect in it; and
+- **design-verifier lines** — **2,614** now, recomputed by the verifier against itself. Every step
+  of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
+  the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
+  `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491** — counted the way this verifier counts
+  its own lines, where a line break is CRLF, LF or a lone CR. That reader is named because it matters
+  once: the file carried two stray carriage returns at `0f7858c`, so `wc -l` reports 2,354 there and
+  agrees everywhere else. It is **AM4**'s lesson in a second guise — a verifier that reads history
+  reads through a reader nobody chose — and it was found by writing the check rather than by reading.
+  **The measure has risen over the work as a whole and it is stated rather than smoothed over**: it
+  fell twice, when the frame-reference registry was deleted and when the AL2 sweep moved out to the
+  facts gate, and rose at every other step. This bullet said it "fell at each step" and put three of
+  its four deltas at numbers no reading of the history produces, which is **AN3** — the third measure
+  left to prose in a section whose other two were corrected for being left to prose. What the rises
+  bought is the trade this plan argues for: most of them are checks that compute a number this
+  document used to assert, or a guard replacing a hand-written list, and whether that stays worth it is
+  the question this measure exists to keep visible. Two further gates sit beside it -
+  `verify-channel-0.2-properties.ps1` and `verify-channel-0.2-facts.ps1` — so the total verification
+  code in the repository has grown throughout; what this measure is for is whether the DESIGN verifier
+  is still absorbing the cost of a structural problem.
 
 ## 5. Open questions for the owner
 
