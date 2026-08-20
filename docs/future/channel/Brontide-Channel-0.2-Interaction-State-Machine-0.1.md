@@ -85,7 +85,7 @@ with the same provenance, not a fictional global state.
 | From | Event and guard | To | Handler effect possible? |
 | --- | --- | --- | --- |
 | `unseen` | complete request for an established session arrives | `validating` | no |
-| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `unseen`, unchanged | no; commit one interaction-scoped peer fault with `rejected-protocol` provenance and detailed reason `unopened-interaction-identity`, record one local observation carrying that reason, the **refused-frame reference** — <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact --> — and effect certainty `known-none`, and retain no history, no latch, and no in-flight reservation |
+| `unseen` | recognized peer event other than a request — a cancellation control, acknowledgement, or other control naming an identity never accepted | `unseen`, unchanged | no; commit one interaction-scoped peer fault and record one local observation of the refusal carrying <!-- fact:unseen-refusal-record -->its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`, and the **refused-frame reference**: its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact --> — that provenance and that detailed reason are the fault's own — and retain no history, no latch, and no in-flight reservation |
 | `validating` | structural/profile/state/class/direction/Shape/authority-structure/bound/replay/concurrency check fails | `rejected-protocol` | no |
 | `validating` | receiver-local external phase predicate is `false` or `unknown` | `refused-local` | no |
 | `validating` | structurally valid authority presentation is denied by local policy | `refused-local` | no |
@@ -182,7 +182,9 @@ totality rule below, because the catch-all would route it to `state-violation` a
 `peer-fault` — a terminal interaction, which owns a latch, which is the state the rule above refuses.
 One local observation of the refusal is recorded, which is evidence and not retained state: nothing
 consults it, and `C4-P2`'s first conjunct quantifies over it. Its provenance is the last row of the
-terminal-provenance table, and the row above publishes the refused-frame reference it carries.
+terminal-provenance table, and the row above publishes the whole record, which C10 owns and which is
+rendered there and at its three other surfaces from
+[`conformance/channel-0.2-facts.json`](../../../conformance/channel-0.2-facts.json).
 
 That reference is **AK1** and **AK5**. Until they were raised the row recorded the refusal's reason,
 the kind of frame refused, and effect certainty, and `C4-P2`'s first conjunct scopes its membership
