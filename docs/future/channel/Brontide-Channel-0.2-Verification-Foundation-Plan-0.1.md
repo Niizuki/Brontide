@@ -196,7 +196,7 @@ second copy drift. Section 4's count of executable properties is checked against
 executes, so the measure cannot go stale in the direction that flatters the work.
 
 **All fifteen properties condition 2 names now execute.** `C4-P1`, `C4-P2`, `S1`-`S6` and `I1`-`I7`
-run in the gate on every commit: 55 evaluations over 29 declared inputs, plus the nine operand
+run in the gate on every commit: **69** evaluations over **30** declared inputs, plus the nine operand
 mutations. Each has at least one named mutation it goes red on and a required-green set it stays green
 on, and a property green on every input fails the gate as a finding against the property.
 
@@ -231,7 +231,7 @@ Both were probed.
 
 **All twenty-six properties now execute, and no cell in either audit table reads `owed`.** The eleven
 per-capability properties outside condition 2 -- `C1-P1`, `C2-P1`, `C3-P1`, `C5-P1` through `C12-P1`
--- were the last of them. The gate runs 88 evaluations over 40 declared inputs plus the nine operand
+-- were the last of them. The gate runs **113** evaluations over **41** declared inputs plus the nine operand
 mutations, and each property is red on the mutation the completeness review already named for it and
 green on both required-green members.
 
@@ -508,6 +508,58 @@ guard's comment against its code is a pass nobody here has run in full. And **re
 the document that owns it says nothing about the documents that repeat it**: the AN5 sweep found a
 fourth surface of its own subject on its first run, after this pass's reading had found three.
 
+## 2f. What the third condition 4 pass found
+
+The third author-side pass has run, at `d01e706`, and is retained as the
+[third W1-W3 verification-foundation iteration review](./reviews/channel-0.2-ao-iteration-review.md).
+It raised **AO1**-**AO3** and corrected all three, so **it does not meet condition 4** either. **This
+section is that family's disposition record**, under the 2026-08-20 owner ruling that routes a
+`verification` family here.
+
+It took the brief the AN pass left it — a guard's comment is a claim, and testing each one against its
+code is a pass nobody had run in full — and read the 103 comment blocks in the three gates that make a
+testable structural claim. **AO1 came out of the fifteenth of them, and it is the most serious finding
+this verification work has produced.**
+
+- **AO1** — `S1` is evaluated against a copy of the session machine's legal transition table, and the
+  cross-check that keeps the copy honest states its own claim exactly: *"the artifact must declare no
+  accepted edge this file does not carry. A row added there and forgotten here would make `S1` red on
+  conforming behaviour."* The artifact's table has ten rows and the reader saw eight: the last two say
+  **`any nonterminal`** in the From cell — a fatal recognized Channel violation and a transport or
+  process loss, both to `faulted` — and the reader required a backticked state there. So `S1` and
+  `C2-P1` were **red on a session that faults from `established`**, which every column of the coverage
+  grid's `established` row routes to `faulted`. That is **AE1**'s defect, the one that took ten cycles
+  to find, in a gate written after the lesson, reached through the guard written to prevent it.
+  Corrected by parsing the From cell over the states the machine declares rather than matching it, by
+  failing on a cell the parser cannot read rather than dropping the row, by adding the three missing
+  edges, and by retaining the vector `S-conforming-fault-from-established` as an additional-green
+  member of all twenty-five properties the conforming single-session vector belongs to, so the false
+  red is pinned by an input and not only by a comparison of two lists.
+- **AO2** — section 2a states what the properties gate runs in four prose numbers, and the AO1 vector
+  moved all four. The section 4 measures beside them have been recomputed since AM2, AM3 and AN3;
+  these are the same kind of number about the same runs and were never included. Both sentences are
+  recomputed by that gate now.
+- **AO3** — **the probes are prose, and three passes have rebuilt them by hand.** Section 1.1 of this
+  plan says every closure reviewer wrote a property evaluator, used it, and threw it away, and calls
+  that the single most productive tool the programme has. The same was true one level up: the AM
+  review records its probes as sentences, the AN pass re-derived mutations from those sentences, and
+  this pass re-derived them again — and **four could not be set up at all**, because the text they
+  anchored on had been corrected by the AN pass and nothing said so. "The guards fire" is a claim both
+  retained reviews make and nothing was checking. `conformance/channel-0.2-guard-probes.json` now
+  holds the 45 probes the three passes validated and `build/verify-channel-0.2-guards.ps1` runs them
+  in the repository gate, failing on a probe whose anchor has moved rather than skipping it.
+
+**What generalises is the direction of AO1's fix and it is now this work's most repeated lesson.** A
+guard that silently drops what it cannot read certifies its own completeness. AM1's status region
+answered that with a permit list, AN1's pointer check with resolution, AN2's pin with one derived list,
+and AO1's row reader with a parser that fails on an unrecognised cell. Four cycles, one shape, and the
+answer has been the same every time: **make the unreadable case loud.**
+
+**One question this pass does not settle**, recorded here rather than decided: whether the guard corpus
+should become a fifth work item with its own acceptance, or stay what it is — a corpus retained beside
+the gates and grown by whichever pass adds a guard. It is in the repository gate either way. Section 5
+carries it as open question 4.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -523,15 +575,24 @@ The cycle resumes when, in this order:
 
 Then one fresh independent closure review is dispatched under the unchanged independence rules.
 
-**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run once
-and is not met**: the pass found three defects and fixed them, which is the opposite of what that
-condition asks. Section 2d records it.
+**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run three
+times and is met by none of them**: the passes found three, six and three defects and fixed them all,
+which is the opposite of what that condition asks. Sections 2d, 2e and 2f record them.
 
-The next work is therefore a second author-side pass over the same scope -- the declarations, the
-three gates, and what the nine design artifacts now say where a rendered fact replaced prose, not a
-re-reading of the design the sixteen closure reviews have been reading. It should start by re-running
-the probes the first pass recorded rather than by trusting its conclusions, and it meets condition 4
-only if it finds nothing it can fix. Nothing in this section authorizes dispatching a closure review,
+The three are not the same pass repeated, and the trend is the argument for running a fourth rather
+than for giving up on the condition. AM recomputed numbers; AN asked where else each corrected fact was
+stated; AO read each guard's comment as a claim and tested it against the code. Each brief came from
+the pass before it, each found something the previous method could not have, and **AO1 — two properties
+red on conforming behaviour — is a defect a closure reviewer would have been entitled to call
+blocking.** The condition is doing what it was written to do; it has not yet run out of findings.
+
+The next work is therefore a fourth author-side pass over the same scope -- the declarations, the
+four gates, and what the nine design artifacts now say where a rendered fact replaced prose, not a
+re-reading of the design the sixteen closure reviews have been reading. It starts by running
+`build/verify-channel-0.2-guards.ps1`, which is the probe corpus AO3 retained so that no pass rebuilds
+it again, and it meets condition 4 only if it finds nothing it can fix. The work AO left is named in
+its review: the design verifier's seventy-eight claim blocks, of which the totality and derivation
+claims were tested and the narrative ones were not. Nothing in this section authorizes dispatching a closure review,
 and the closure-cycle state at the head of this document is what says so.
 
 ## 4. What to measure
@@ -551,12 +612,16 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,314** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,318** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved twice
   since, by four characters each time and for the same reason — registering a new iteration-review
   family in the Design reviews row — and on both occasions the check that recomputes it failed the
   figure on the commit that wrote it, which is the check working rather than a defect in it; and
+- **guard probes executable** — currently **45 of 45**, run by
+  `build/verify-channel-0.2-guards.ps1` in the repository gate and recomputed by it. This measure did
+  not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
+  asserted in prose while four of the probes behind it had quietly stopped applying; and
 - **design-verifier lines** — **2,614** now, recomputed by the verifier against itself. Every step
   of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
   the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
@@ -588,3 +653,8 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
 3. **Should the twenty-five owed required-green sets be filled inside W2, or as their own pass first?**
    Filling them will surface property defects in a batch — as the `AK` enumeration did — and that is
    the point rather than a risk.
+4. **Is the guard corpus a fifth work item, or a standing practice?** **AO3** retained it and put it in
+   the repository gate, which settles that it runs. What it does not settle is whether adding a probe
+   with each new guard is an acceptance criterion someone can fail, as W1's registry deletion was, or a
+   habit that decays the first time a pass is in a hurry. The measure in section 4 makes the decay
+   visible either way, which is the argument for leaving it as a practice.

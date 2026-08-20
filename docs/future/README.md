@@ -205,7 +205,7 @@ of the record, and nowhere else in the sixteen files it sweeps. The fourth and f
 found by reading rather than by sweeping, which is the limit worth carrying forward: a check keyed to
 a fact's own words cannot see a passage that states a third of it.
 
-**Condition 4 has now run twice and is not met.** The author-side pass over W1-W3 is retained as the
+**Condition 4 has now run three times and is met by none of them.** The author-side pass over W1-W3 is retained as the
 [W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-am-iteration-review.md);
 it raised **AM1**-**AM3** and corrected all three, and that condition asks for a pass that finds
 nothing it can fix. **AM1** is the W3 status-block length bound measuring to the first blank line while
@@ -228,8 +228,20 @@ dead with the gate green; and the review-target pin compares eight of the nine d
 omitting the redesign plan, so a commit changing only the artifact that carries the owner rulings left
 the pin green. **AN3**-**AN6** are four facts corrected in the record that owns them and left standing
 in one to four others -- including the status-block line total AM2 corrected while naming two of its
-four surfaces. A third pass over the same scope is the next work, and the hold stands until one finds
-nothing.
+four surfaces.
+
+**The third pass found the most serious defect the verification work has produced**, and is retained as
+the
+[third W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-ao-iteration-review.md);
+it raised **AO1**-**AO3** and corrected all three. It took the brief the AN pass left -- a guard's
+comment is a claim, so test each one against its code -- and **AO1** is what that found: `S1` and
+`C2-P1` were **red on a conforming session fault**, because the cross-check written to prevent exactly
+that could not read the session machine's two `any nonterminal` transition rows and so compared eight
+edges against eight and reported them identical. That is AE1's defect, the one that took ten cycles to
+find, in a gate written after the lesson. **AO3** is the probes: three passes had rebuilt them from the
+prose of the pass before, four had rotted unnoticed, and they are now a corpus of 45 that
+`build/verify-channel-0.2-guards.ps1` runs in the repository gate. A fourth pass is the next work, it
+starts by running that corpus rather than rebuilding it, and the hold stands until one finds nothing.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
