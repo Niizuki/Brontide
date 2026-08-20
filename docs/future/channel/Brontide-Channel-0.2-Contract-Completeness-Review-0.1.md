@@ -284,6 +284,19 @@ took its per-session facts from C12's declared list and the declaration omitted 
 | the `state-violation` category the latch settles under | `C4-P2` conjunct 2 | interaction scope | interaction machine latch section; state/event grid; migration ledger category table | sufficient |
 | the property's own selector "for each interaction identity" | `C4-P2` preamble | **within one session**, which the preamble did not say until AK7 | C4 common terms (identity unique within one session); C12 declared per-session facts | sufficient |
 
+**Four of these rows are one owned fact.** The recipient `rejected-protocol` provenance, its detailed
+reason, the effect certainty on that refusal, and the refused-frame reference are the four contents of
+the `unseen` refusal record, which is declared in
+[`conformance/channel-0.2-facts.json`](../../../conformance/channel-0.2-facts.json) and rendered into
+every surface those rows name — C10, the interaction machine's `unseen` row, the grid's two `unseen`
+cells, and the responsibility matrix row that owns the observation record. Their "publishing
+surfaces" columns therefore say where the fact appears and no longer say where a copy of it is
+maintained, which is what AL2's row was: the row was verified against the route's prose while two
+cells inside that route published an older form of the same record. A row here that reads
+`sufficient` for a rendered fact is checkable by the gate rather than by re-reading each surface; a
+row for a fact stated in prose still is not, and the settling- and terminal-frame field lists in this
+table are the ones still in that position.
+
 **What the enumeration establishes, and what it does not.** Every operand above is now published at
 the scope its clause claims, and the three that were not are the AK1 family. What it does not
 establish is that the *reading* is complete: the rows were derived by reading the two properties

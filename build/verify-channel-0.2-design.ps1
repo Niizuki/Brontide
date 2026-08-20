@@ -1780,9 +1780,10 @@ foreach ($retentionCiter in @(@{ Name = 'capability contract'; Text = $flowedCon
 # the verification foundation plan, and its acceptance was precisely that this registry could be
 # deleted rather than extended.
 #
-# What stays here is what reads the fact rather than publishing it: the AL2 record-keyed sweep below,
-# AK4's count claim, and the operand enumeration's registration rows. Each now takes the field list
-# and the reference set from the declaration.
+# What stays here is what reads the fact rather than publishing it: AK4's count claim and the operand
+# enumeration's registration rows, each taking the field list and the reference set from the
+# declaration. The AL2 record-keyed sweep left with the `unseen` refusal record, which is a declared
+# fact of its own now; the note where it stood says where it went.
 $frameFacts = $null
 $frameFactsPath = Join-Path $repositoryRoot 'conformance\channel-0.2-facts.json'
 if (-not (Test-Path -LiteralPath $frameFactsPath)) {
@@ -1797,58 +1798,41 @@ $frameFencePattern = '(?s)<!-- fact:([a-z0-9-]+) -->(.*?)<!-- /fact -->'
 $frameReferences = @()
 $framePublicationArtifacts = @()
 if ($frameFacts) {
-    $frameReferences = @($frameFacts.facts | ForEach-Object {
+    # The frame-reference class only. The declaration also owns the `unseen` refusal record, which
+    # NESTS the refused-frame reference inside itself, and the two checks below are about references:
+    # the enumeration registers each reference as an operand, and the count claim is about the
+    # artifacts publishing one on its own. A record surface is neither, and treating it as one would
+    # demand an enumeration row for a fact whose four components already have four rows.
+    $frameReferences = @($frameFacts.facts | Where-Object { [string]$_.class -eq 'frame-reference' } | ForEach-Object {
         @{ Key = ([string]$_.id -replace '-frame-reference$', '')
            Id = [string]$_.id
            Label = [string]$_.title
            FieldList = & $framePlain ([string]$_.rendering) } })
+    $frameReferenceIds = @($frameReferences | ForEach-Object { $_.Id })
     # Which artifacts publish a reference is DISCOVERED from the fences rather than declared here.
     $framePublishing = [System.Collections.Generic.List[string]]::new()
     foreach ($frameArtifactName in $artifactNames) {
         $frameArtifactRaw = Read-RequiredText $frameArtifactName
-        if ([regex]::IsMatch($frameArtifactRaw, $frameFencePattern) -and -not $framePublishing.Contains($frameArtifactName)) {
+        $publishesReference = @([regex]::Matches($frameArtifactRaw, $frameFencePattern) | Where-Object { $frameReferenceIds -contains $_.Groups[1].Value }).Count -gt 0
+        if ($publishesReference -and -not $framePublishing.Contains($frameArtifactName)) {
             $framePublishing.Add($frameArtifactName)
         }
     }
     $framePublicationArtifacts = @($framePublishing)
 }
 
-# AL2. Both halves of the check above are keyed to the reference's own NAME: the registered surfaces
-# are searched for the field list, and the package-wide sweep triggers on the phrase `refused-frame
-# reference`. A surface that publishes the record's contents without ever naming the reference is
-# invisible to both, and the state/event grid's two recipient `unseen` cells are exactly that -- they
-# enumerate provenance, detailed reason, frame kind and effect certainty, which is the pre-AK1 record,
-# and the AK1 correction reached the prose 35 lines below them instead. Registering the cells as their
-# own surfaces closes those two; this sweep closes the class.
-#
-# It is keyed to the record rather than to the reference. The detailed reason
-# `unopened-interaction-identity` is what identifies this record wherever it is stated, and a passage
-# that names it together with the record's provenance and its effect certainty is enumerating what the
-# record contains rather than talking about it -- a disposition history that says what AC2 or AK1 did
-# names the reason and neither of the other two. Every such passage must publish the whole reference.
-#
-# The sweep reaches the review policy as well as the design artifacts, and that is deliberate rather
-# than incidental: a disposition history is where an abbreviated form of a record is most likely to be
-# restated, and the AL2 correction's own account of what the cells used to contain tripped this check
-# on its first run. Prose about the record therefore describes it rather than listing its fields,
-# which is the same discipline the AJ6 rule imposes on the sentences under a field list.
-$refusalRecordFlowed = @{}
-foreach ($refusalArtifactName in $artifactNames) {
-    $refusalRecordFlowed[$refusalArtifactName] = & $framePlain (Read-RequiredText $refusalArtifactName)
-}
-$refusedReference = @($frameReferences | Where-Object { $_.Key -eq 'refused' })[0]
-foreach ($refusalArtifactName in $artifactNames) {
-    $refusalText = $refusalRecordFlowed[$refusalArtifactName]
-    foreach ($refusalMatch in [regex]::Matches($refusalText, '`unopened-interaction-identity`')) {
-        $windowStart = [Math]::Max(0, $refusalMatch.Index - 240)
-        $windowEnd = [Math]::Min($refusalText.Length, $refusalMatch.Index + 640)
-        $refusalWindow = $refusalText.Substring($windowStart, $windowEnd - $windowStart)
-        if ($refusalWindow -notmatch '(?i)provenance' -or $refusalWindow -notmatch '(?i)effect certainty') { continue }
-        if ($refusalWindow.IndexOf($refusedReference.FieldList, [System.StringComparison]::Ordinal) -lt 0) {
-            $failures.Add("'$refusalArtifactName' enumerates what the recipient ``unseen`` refusal record contains -- its detailed reason ``unopened-interaction-identity``, its provenance, and its effect certainty -- without publishing $($refusedReference.Label) with the field list '$($refusedReference.FieldList)'. That is the record ``C4-P2``'s first conjunct quantifies over, and a vector authored from an abbreviated statement of it carries no session, which takes the property red on the conforming two-session vector AK1 was raised for. This check is keyed to the record rather than to the words 'refused-frame reference', because the two surfaces AK1's own evidence named and the correction did not reach never use that phrase. This is AL2.")
-        }
-    }
-}
+# The AL2 record-keyed sweep that stood here is deleted. It watched the recipient `unseen` refusal
+# record -- a fact stated in full by three surfaces, in part by two more, and hand-maintained at every
+# one of them -- by noticing a passage that named the record's detailed reason together with its
+# provenance and its effect certainty without publishing the refused-frame reference. That is a check
+# over a fact this file does not own, which is the arrangement W1 exists to end: the record is now
+# declared in `conformance/channel-0.2-facts.json`, rendered into all five of its surfaces, and
+# the sweep lives beside the declaration in `build/verify-channel-0.2-facts.ps1`, keyed to the
+# trigger and co-terms the declaration states rather than to a field list written out here. Its
+# neighbour exemption went with the move: run against this file's parent commit -- where THIS sweep
+# was green -- the moved one fires on the interaction machine's `unseen` row and both grid cells,
+# each of which rendered the reference this sweep asked for and hand-wrote the record's other three
+# contents beside it.
 
 # AK4: the ledger's status block said the inventory states the reference "in the same form as the five
 # other artifacts that publish it". Four other artifacts publish it, in five other lists, because the

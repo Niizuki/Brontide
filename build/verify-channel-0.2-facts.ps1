@@ -1,8 +1,9 @@
 [CmdletBinding()]
 param(
-    # Rewrite every fenced region from the declaration instead of only checking it. This is how a
-    # field is added to a fact: edit conformance/channel-0.2-facts.json, run with -Apply, review the
-    # diff. Twenty sites change together or none does.
+    # Rewrite every fenced region that disagrees with the declaration instead of only checking it.
+    # This is how a field is added to a fact: edit conformance/channel-0.2-facts.json, run with
+    # -Apply, review the diff. Every site of that fact changes together or none does, and a site of
+    # any other fact is not touched.
     [switch]$Apply
 )
 
@@ -30,6 +31,14 @@ $ErrorActionPreference = 'Stop'
 #
 # The sweep for an unfenced publication remains, demoted from primary mechanism to backstop: it is
 # what catches a surface that states the fact in prose without a fence, which is AJ1's shape.
+#
+# Two things the frame references alone did not need, both added with the `unseen` refusal record.
+# The record CONTAINS a frame reference, so a field may name another declared fact and nest its
+# rendering rather than restate it -- two owned facts that cannot drift apart is the whole point, and
+# a record owned separately from the reference inside it would rebuild the problem one level up. And
+# a record can be published in full without ever naming that reference, which is what the grid's two
+# `unseen` cells did through AL2's entire cycle, so a fact may declare its own trigger for the
+# backstop instead of relying on the reference phrases.
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $factsPath = Join-Path $repositoryRoot 'conformance\channel-0.2-facts.json'
@@ -52,29 +61,58 @@ function Get-FlowedText {
 # The rendering is DERIVED from the field list and checked against the declared string rather than
 # trusted. A field added to `fields` and forgotten in `rendering` is the six-site edit arriving inside
 # the file that exists to end it.
+#
+# A field written `@<id>` names another declared fact and nests that fact's rendering here. The
+# `unseen` refusal record is the case: `C4-P2`'s first conjunct quantifies over the whole record, and
+# the record CONTAINS the refused-frame reference, so a record owned separately from the reference
+# would be two declarations to keep in step -- which is the failure this file exists to end, rebuilt
+# one level up. Nesting resolves in declaration order and a forward reference fails, so the graph
+# cannot contain a cycle.
 $emphasised = @($facts.emphasised)
 function Get-Rendering {
-    param([Parameter(Mandatory = $true)]$Fact)
+    param([Parameter(Mandatory = $true)]$Fact, [Parameter(Mandatory = $true)][hashtable]$Resolved)
     $rendered = @()
     $fieldList = @($Fact.fields)
     for ($index = 0; $index -lt $fieldList.Count; $index++) {
         $field = [string]$fieldList[$index]
-        $text = if ($emphasised -contains $field) { "**$field**" } else { $field }
-        $prefix = if ($index -eq $fieldList.Count - 1) { 'and its ' } else { 'its ' }
-        $rendered += "$prefix$text"
+        $lead = if ($index -eq $fieldList.Count - 1) { 'and ' } else { '' }
+        if ($field.StartsWith('@')) {
+            $nestedId = $field.Substring(1)
+            if (-not $Resolved.ContainsKey($nestedId)) {
+                return "<unresolved nested fact '$nestedId'>"
+            }
+            $rendered += "$lead" + "the **$($Resolved[$nestedId].Phrase)**: $($Resolved[$nestedId].Rendering)"
+        }
+        else {
+            $text = if ($emphasised -contains $field) { "**$field**" } else { $field }
+            $rendered += "$lead" + "its $text"
+        }
     }
-    return (($rendered -join ', ') + ' ' + [string]$Fact.scope)
+    $joined = ($rendered -join ', ')
+    if ([string]$Fact.scope) { $joined = $joined + ' ' + [string]$Fact.scope }
+    return $joined
 }
 
 $declared = @{}
 $fieldNameSets = @{}
+$factClasses = @{}
+$resolved = @{}
 foreach ($fact in $facts.facts) {
-    $expected = Get-Rendering $fact
-    if ([string]$fact.rendering -cne $expected) {
-        $failures.Add("The declared rendering of '$($fact.id)' is not what its field list renders to. Declared: '$($fact.rendering)'. Derived: '$expected'. The field list is the fact and the rendering is derived from it, so a rendering edited by hand is the hand-maintained copy this file exists to abolish.")
+    $factId = [string]$fact.id
+    if (-not [string]$fact.class) {
+        $failures.Add("The declared fact '$factId' has no class. The class is what says which rules reach it -- the frame-reference class assertion compares field names across its members, and a fact with no class is outside every such rule while looking like it is inside one.")
     }
-    $declared[[string]$fact.id] = [string]$fact.rendering
-    $fieldNameSets[[string]$fact.id] = (@($fact.fields) -join '|')
+    if (-not [string]$fact.phrase) {
+        $failures.Add("The declared fact '$factId' has no phrase. A fact nested in another is introduced by its phrase, and the sweep below triggers on it.")
+    }
+    $expected = Get-Rendering -Fact $fact -Resolved $resolved
+    if ([string]$fact.rendering -cne $expected) {
+        $failures.Add("The declared rendering of '$factId' is not what its field list renders to. Declared: '$($fact.rendering)'. Derived: '$expected'. The field list is the fact and the rendering is derived from it, so a rendering edited by hand is the hand-maintained copy this file exists to abolish.")
+    }
+    $declared[$factId] = [string]$fact.rendering
+    $fieldNameSets[$factId] = (@($fact.fields) -join '|')
+    $factClasses[$factId] = [string]$fact.class
+    $resolved[$factId] = @{ Phrase = [string]$fact.phrase; Rendering = [string]$fact.rendering }
 }
 
 # The class assertion, moved here from the registry. Every frame reference a property reads identifies
@@ -83,7 +121,8 @@ foreach ($fact in $facts.facts) {
 # were. The ordinal's SCOPE differs between the refused reference and the other two and that is the
 # fact rather than a slip, so the names are compared and the scope is not.
 if ($facts.classAssertion.sameFieldNames) {
-    $distinctFieldSets = @($fieldNameSets.Values | Sort-Object -Unique)
+    $assertedClass = [string]$facts.classAssertion.appliesToClass
+    $distinctFieldSets = @(($fieldNameSets.Keys | Where-Object { $factClasses[$_] -eq $assertedClass } | ForEach-Object { $fieldNameSets[$_] }) | Sort-Object -Unique)
     if ($distinctFieldSets.Count -ne 1) {
         $failures.Add("The declared facts do not carry the same field names: $($distinctFieldSets -join ' / '). $($facts.classAssertion.why)")
     }
@@ -101,7 +140,11 @@ $publishingArtifacts = @{}
 foreach ($factId in $declared.Keys) { $publicationCounts[$factId] = 0; $perArtifactCounts[$factId] = @{}; $publishingArtifacts[$factId] = [System.Collections.Generic.List[string]]::new() }
 
 foreach ($artifactFile in $artifactFiles) {
+    # `-Raw` returns $null for an empty file rather than an empty string, and every check below takes
+    # the text as a regex input. An emptied artifact should be a stated failure of the counts, not a
+    # null-reference exception from the first match.
     $text = Get-Content -Raw -LiteralPath $artifactFile.FullName -Encoding UTF8
+    if ($null -eq $text) { $text = '' }
     $rewritten = $false
 
     # An opening marker with no closing one, or a closing marker with no opening one, would leave a
@@ -135,11 +178,20 @@ foreach ($artifactFile in $artifactFiles) {
     }
 
     if ($Apply -and $rewritten) {
+        # The file's own newline, not this script's. A rewrite that emitted CRLF into an artifact
+        # stored with LF would put a line-ending change on every rendered site, which is diff noise in
+        # a package reviewed by reading and a renormalization the .gitattributes policy then reverses.
+        $artifactNewline = if ($text.IndexOf("`r`n", [System.StringComparison]::Ordinal) -ge 0) { "`r`n" } else { "`n" }
         $updated = [regex]::Replace($text, $fencePattern, {
             param($fence)
             $factId = $fence.Groups[1].Value
             if (-not $declared.ContainsKey($factId)) { return $fence.Value }
             $body = $fence.Groups[2].Value
+            # Only the sites that actually disagree with the declaration. A fence already carrying the
+            # rendering is left alone, wrapping included: -Apply is run to correct one fact and would
+            # otherwise rewrap every other fence in the same file, putting an unrelated site in the
+            # diff of a package whose only real detector is a person reading it.
+            if ((Get-FlowedText $body) -ceq (Get-FlowedText $declared[$factId])) { return $fence.Value }
             # Preserve the site's own line structure: the artifacts wrap at about a hundred columns
             # and a rewrite that reflowed every site onto one line would make each correction's diff
             # unreadable, which is a real cost in a package reviewed by reading.
@@ -154,9 +206,15 @@ foreach ($artifactFile in $artifactFiles) {
             for ($start = 0; $start -lt $words.Count; $start += $perLine) {
                 $lines += ($words[$start..([Math]::Min($start + $perLine - 1, $words.Count - 1))] -join ' ')
             }
-            return "<!-- fact:$factId -->$($lines -join ("`r`n" + $indent))<!-- /fact -->"
+            return "<!-- fact:$factId -->$($lines -join ($artifactNewline + $indent))<!-- /fact -->"
         })
-        Set-Content -LiteralPath $artifactFile.FullName -Value $updated -Encoding UTF8 -NoNewline
+        # And the file's own byte-order mark. `Set-Content -Encoding UTF8` writes one unconditionally
+        # on Windows PowerShell, so applying a correction to a BOM-less artifact changed its first
+        # three bytes -- a change no fact declared and no reader asked for. Some artifacts here carry
+        # a BOM and some do not; whichever this one had, it keeps.
+        $artifactBytes = [System.IO.File]::ReadAllBytes($artifactFile.FullName)
+        $hasBom = ($artifactBytes.Length -ge 3 -and $artifactBytes[0] -eq 0xEF -and $artifactBytes[1] -eq 0xBB -and $artifactBytes[2] -eq 0xBF)
+        [System.IO.File]::WriteAllText($artifactFile.FullName, $updated, (New-Object System.Text.UTF8Encoding($hasBom)))
         Write-Host "rewrote fenced publications in $($artifactFile.Name)"
     }
 }
@@ -218,6 +276,7 @@ foreach ($liveReviewFile in @('README.md', 'channel-0.2-disposition-index.md')) 
 
 foreach ($sweepFile in $sweepFiles) {
     $sweepText = Get-Content -Raw -LiteralPath $sweepFile.FullName -Encoding UTF8
+    if ($null -eq $sweepText) { $sweepText = '' }
     $sentinelled = [regex]::Replace($sweepText, $fencePattern, ' <<fenced-publication>> ')
     $flowed = Get-FlowedText $sentinelled
 
@@ -241,6 +300,34 @@ foreach ($sweepFile in $sweepFiles) {
         $named = @($fieldNames | Where-Object { $window.IndexOf($_, [System.StringComparison]::Ordinal) -ge 0 })
         if ($named.Count -ge 4) {
             $failures.Add("'$($sweepFile.Name)' has a passage that reads as a publication of a frame reference -- the reference followed by $($named.Count) of its five field names: $($named -join ', ') -- with no fact fence. Either it is a surface stating the reference in an abbreviated form, which is AJ1's shape, or it is a new surface that has to be fenced.")
+        }
+    }
+
+    # The record sweep, and the reason a second one is needed. The two above are keyed to a fact's
+    # rendered field list and to the phrases that introduce a frame reference. A RECORD can be stated
+    # in full without naming the reference nested in it, which is precisely what the grid's two
+    # `unseen` cells did through AL2's whole cycle -- they enumerated the record and the check written
+    # to catch an abbreviated reference could not see them. So a record declares its own trigger: the
+    # value that identifies it wherever it is stated, plus the co-terms only a full statement carries.
+    # This is the design verifier's AL2 sweep, moved to the file that owns the record and reading the
+    # declaration instead of a hardcoded field list.
+    foreach ($sweptFact in $facts.facts) {
+        $sweepSpec = $sweptFact.unfencedSweep
+        if (-not $sweepSpec) { continue }
+        foreach ($triggerMatch in [regex]::Matches($flowed, [regex]::Escape([string]$sweepSpec.trigger))) {
+            $windowStart = [Math]::Max(0, $triggerMatch.Index - [int]$sweepSpec.before)
+            $windowEnd = [Math]::Min($flowed.Length, $triggerMatch.Index + [int]$sweepSpec.after)
+            $window = $flowed.Substring($windowStart, $windowEnd - $windowStart)
+            $absent = @(@($sweepSpec.coTerms) | Where-Object { $window.IndexOf([string]$_, [System.StringComparison]::Ordinal) -lt 0 })
+            if ($absent.Count -gt 0) { continue }
+            # No neighbour exemption, and this is the difference from the two sweeps above. A fenced
+            # publication in the window would excuse the passage beside it, and the AL2 instance was
+            # two adjacent cells in one table row: abbreviating either one alone puts the other's
+            # fence inside the window. The trigger is a value the rendering itself carries, so every
+            # occurrence that survives sentinelling is already outside every fence -- the co-terms are
+            # what separate a statement of the record from prose about it, and a neighbour says
+            # nothing about which this is.
+            $failures.Add("'$($sweepFile.Name)' has a passage that reads as a publication of '$($sweptFact.id)' -- its trigger '$($sweepSpec.trigger)' together with $(@($sweepSpec.coTerms) -join ' and ') -- with no fact fence. $($sweepSpec.why) Either fence it, or write about the record rather than listing what it holds.")
         }
     }
 

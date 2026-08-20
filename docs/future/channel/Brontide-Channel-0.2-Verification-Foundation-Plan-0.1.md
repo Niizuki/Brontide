@@ -333,11 +333,64 @@ exact count is therefore kept, for the reason AI1 gave -- a lower bound is what 
 its own scope -- but moved beside the fact in the declaration and checked in both directions, so a
 fence in an undeclared artifact fails as loudly as a missing one.
 
-**What W1 still owes.** This covers the three frame references, which is what condition 1 below
-requires. The per-session facts C12 declares and the settling-frame and terminal-frame field lists in
-the completeness review's operand enumeration are stated once each and not yet fenced; the `unseen`
-refusal record's *other* contents -- provenance, detailed reason, effect certainty -- are still
-hand-maintained prose, and the AL2 record-keyed sweep is what watches them.
+**The `unseen` refusal record is owned too, and with it condition 1 is met in both its halves.** The
+record is what `C4-P2`'s first conjunct quantifies over, and until now it was hand-maintained prose at
+every surface: its provenance, its detailed reason and its effect certainty were written out by three
+artifacts and watched by the design verifier's AL2 sweep, while only the reference inside it was
+rendered. It is now one declared fact whose four contents include the refused-frame reference
+**nested** rather than restated -- a field written `@<id>` renders another declared fact in place --
+so the record and the reference cannot drift apart, which is the failure this work exists to end
+arriving one level up.
+
+It is rendered into five surfaces: C10, which owns it, the interaction machine's recipient `unseen`
+row, the grid's two `unseen` cells, and the responsibility matrix row that owns the observation
+record. Two of those five stated the record with a field the others had and they did not, and the
+rendering settles both in the direction the package already held. C10
+did not state the effect certainty, which the completeness review's operand enumeration nonetheless
+names C10 as a publishing surface for; and the interaction machine's row put the provenance and the
+detailed reason on the peer fault rather than on the observation, where C10 and the grid both put
+them. Neither is a choice between defensible designs, so neither is an owner question: the row now
+records the observation and says in its own words that the fault's provenance and detailed reason are
+those the record carries.
+
+**The AL2 sweep is deleted from the design verifier rather than extended**, which is this item's
+acceptance for the record as the registry's deletion was for the references. It moves to
+`build/verify-channel-0.2-facts.ps1`, beside the declaration, keyed to a trigger and co-terms the
+fact declares instead of to a field list written out in a verifier. It also loses its neighbour
+exemption: a fenced publication anywhere in the window used to excuse the passage beside it, and the
+AL2 instance was *two adjacent cells in one table row*, so abbreviating either one alone put the
+other's fence inside the window. The trigger is a value the rendering itself carries, so every
+occurrence that survives the fence sentinel is already outside every fence.
+
+**Run against this commit's parent it fires on three surfaces** — the interaction machine's `unseen`
+row and both grid cells — and nowhere else in the sixteen files it sweeps. That parent is the
+AL2-corrected package, at which the design verifier's own sweep is green: each of those three rendered
+the reference inside a fence, which is what that sweep asked for, and hand-wrote the record's other
+three contents beside it, which is what it did not ask about. The three are the surfaces this change
+converts, so the check was written against a state where it fails and the correction is what makes it
+pass.
+
+**The fifth surface is the one no sweep can reach, and it is why the enumeration was done by reading
+as well.** The responsibility matrix row that owns the observation record named two of the record's
+four contents -- a provenance and the reference -- and never used the detailed reason the sweep
+triggers on, so it is invisible to a trigger-and-co-terms check by construction. It is the surface
+AJ1 was raised against for the settling frame, one fact later. It publishes the whole record now, and
+what generalises is the limit rather than the fix: a sweep keyed to a fact's own words finds passages
+that state most of it, and a passage that states a *third* of it is found by someone opening the
+artifact that owns the concept and asking which of its rows are about this fact.
+
+**One defect in `-Apply` was found by using it.** `Set-Content -Encoding UTF8` writes a byte-order
+mark unconditionally under Windows PowerShell, so rendering a fact into a BOM-less artifact changed
+its first three bytes; the rewrite also emitted CRLF into artifacts stored with LF, and rewrote
+*every* fence in a file it touched rather than only the ones that disagreed, putting unrelated sites
+in the diff. All three are fixed, and the tool is now byte-faithful to everything it was not asked to
+change. The first two were visible only in `git diff` and neither would have been caught by any check
+here, which is worth recording: the generator's own output is not covered by the mechanism it serves.
+
+**What W1 still owes.** The per-session facts C12 declares and the settling-frame and terminal-frame
+field lists in the completeness review's operand enumeration are stated once each and not yet fenced.
+Condition 1 does not require them and no cycle has produced a finding in one; they are the obvious
+next members if a cycle does.
 
 ## 3. How the hold ends
 
@@ -354,22 +407,34 @@ The cycle resumes when, in this order:
 
 Then one fresh independent closure review is dispatched under the unchanged independence rules.
 
+**Conditions 1, 2 and 3 are met**, each as its own section above records, and **condition 4 has not
+run**. The hold stands until it does: an author-side iteration pass over W1-W3 is the next work, and
+it is a pass over the verification work itself -- the declaration, the three gates, and what the nine
+design artifacts now say where a rendered fact replaced prose -- not a re-reading of the design the
+sixteen closure reviews have been reading. Nothing in this section authorizes dispatching that
+closure review, and the closure-cycle state at the head of this document is what says so.
+
 ## 4. What to measure
 
 Recorded so the next decision is made on evidence rather than on how the cycle felt:
 
 - **findings per cycle, split by class** — propagation slip, unsound property, stale index, other. The
   claim behind this plan is that the first and third classes go to zero and stay there;
-- **surfaces per fact** — should fall to one plus citations;
+- **surfaces per fact** — should fall to one plus citations. It has not, and deliberately: the
+  implementation renders rather than cites, so the four owned facts stand at **21 publication sites**
+  and no hand writes any of them. The measure this replaces it with is how many of a fact's surfaces
+  are hand-maintained, which is **zero** for the three frame references and the `unseen` refusal
+  record and was every surface of all four when this plan was written;
 - **properties executable in the gate** — currently **twenty-six of twenty-six**. Every capability-wide
   property the package declares runs on every commit;
 - **required-green sets stated** — currently **twenty-six of twenty-six**, having been one for seven cycles.
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — 289 before W3 and 45 after;
 - **Channel index row characters** — 8,746 before W3 and 1,208 after; and
-- **design-verifier lines** — **2,263**, down from 2,322 when this work began. It has fallen for the
-  first time. W1 took 169 lines out with the frame-reference registry and W3 took 32 more with the
-  index-row freshness checks, against additions for the checks that replaced them. Two new gates sit
+- **design-verifier lines** — **2,247**, down from 2,322 when this work began. It has fallen at each
+  step since. W1 took 169 lines out with the frame-reference registry, W3 took 32 more with the
+  index-row freshness checks, and the AL2 record-keyed sweep took 16 more when the record became an
+  owned fact, against additions for the checks and the notes that replaced them. Two new gates sit
   beside it — `verify-channel-0.2-properties.ps1` and `verify-channel-0.2-facts.ps1` — so the total
   verification code in the repository grew; what this measure is for is whether the DESIGN verifier
   is still absorbing the cost of a structural problem, and on that it has started to shrink.

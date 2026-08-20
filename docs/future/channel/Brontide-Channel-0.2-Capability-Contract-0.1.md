@@ -582,8 +582,8 @@ that publish it, as it does for the settling frame.
 control naming an identity the recipient has never accepted is neither an attempted establishment nor
 an attempted interaction — under C4 no interaction exists there — and it is refused as a peer
 statement, so without this sentence the one record of that refusal would be required by C4 and by
-nothing that owns observation. The observation records the refusal, the **refused-frame reference**,
-and its provenance with the detailed reason `unopened-interaction-identity`; it retains no interaction
+nothing that owns observation. The observation records the refusal, carrying
+<!-- fact:unseen-refusal-record -->its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`, and the **refused-frame reference**: its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact -->; it retains no interaction
 state, because there is none to retain. The reference names the kind of frame refused, because
 provenance and detailed reason are identical for a cancellation control and for any other control
 naming an unopened identity while `C4-P2`'s first conjunct quantifies over the cancellation control

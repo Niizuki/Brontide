@@ -184,6 +184,26 @@ hand writes the second copy. The plan's open question 1 -- whether standalone re
 is left unanswered because generation does not need it answered. The design verifier loses 169 lines
 with the registry.
 
+**W1 now covers the `unseen` refusal record as well, which completes the hold's first condition.** The
+record `C4-P2`'s first conjunct quantifies over -- a provenance, a detailed reason, an effect
+certainty, and the refused-frame reference -- had only its reference rendered; the other three were
+hand-written at each of its surfaces and watched by the design verifier's AL2 sweep. It is one
+declared fact now, with the reference nested inside it rather than restated, and it is rendered into
+all five surfaces that state it: C10, which owns it, the interaction machine's `unseen` row, the
+grid's two `unseen` cells, and the responsibility matrix row that owns the observation record. Two of
+those five carried a field the other three did not, and the rendering settles both the way the rest of
+the package already held them; neither was a choice between defensible designs, so neither is an owner
+question.
+
+The AL2 sweep is deleted from the design verifier and its replacement lives beside the declaration,
+without the neighbour exemption that let one abbreviated cell hide behind the fence of the cell next
+to it. Run against this commit's parent -- the AL2-corrected package, where the design verifier's own
+sweep is green -- it fires on the three surfaces that rendered the reference and hand-wrote the rest
+of the record, and nowhere else in the sixteen files it sweeps. The fourth and fifth surfaces are
+found by reading rather than by sweeping, which is the limit worth carrying forward: a check keyed to
+a fact's own words cannot see a passage that states a third of it. Conditions 1, 2 and 3 of the hold
+are met and condition 4, an author-side iteration pass over that work, has not run.
+
 ### Channel 0.2 first-batch remaining work
 
 The sixth review found **R1**, a new blocking finding. C8 permitted a cancellation from initiator

@@ -64,7 +64,7 @@ one route.
 
 | Recipient state group | Request | Cancellation control | Handler terminal | Local protocol failure | Local loss | Other peer event |
 | --- | --- | --- | --- | --- | --- | --- |
-| `unseen` | validation rows | no identity to correlate → state unchanged, recorded with `rejected-protocol` provenance, detailed reason `unopened-interaction-identity`, the **refused-frame reference** — <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact -->, the kind here being `cancellation-control` — and effect certainty `known-none` | impossible local action | structural/local-refusal split | local session route | state unchanged, recorded with `rejected-protocol` provenance, detailed reason `unopened-interaction-identity`, the **refused-frame reference** — <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact -->, the kind here being the refused control's own — and effect certainty `known-none` |
+| `unseen` | validation rows | no identity to correlate → state unchanged, recorded with <!-- fact:unseen-refusal-record -->its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`, and the **refused-frame reference**: its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact --> — the kind here being `cancellation-control` | impossible local action | structural/local-refusal split | local session route | state unchanged, recorded with <!-- fact:unseen-refusal-record -->its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`, and the **refused-frame reference**: its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact --> — the kind here being the refused control's own |
 | `validating` | validation rows | valid control: hold exactly one, apply on admission; second control → `peer-fault` | impossible local action | structural/local-refusal split | local session route | `rejected-protocol` |
 | `executing` | live replay → `peer-fault` | authorized → `cancel-requested`; denied → `cancel-refused`; invalid → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-requested` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure/cancelled accepted | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
@@ -118,7 +118,8 @@ three — so the property was red on a two-session vector conforming at both end
 failure mode reached through the operand. The **arrival ordinal** is Y4's argument on this operand: one
 endpoint may commit two controls naming one identity, and without it a control committed before the
 request binds to one committed after it. This grid publishes the reference in the same form as the
-interaction machine's `unseen` transition row, the brief's local-observation schema and parity profile,
+interaction machine's `unseen` transition row, which carries it inside the whole refusal record as the
+two cells above do, the brief's local-observation schema and parity profile,
 the responsibility matrix row that owns the observation record, and the migration ledger's
 new-evidence inventory.
 
