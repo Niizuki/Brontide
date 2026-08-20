@@ -186,7 +186,7 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "**8,746** at `2684ec7` and **1,318** now",
+          "find": "**8,746** at `2684ec7` and **1,322** now",
           "replace": "**8,746** at `2684ec7` and **1,310** now"
         }
       ]
@@ -199,8 +199,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "**8,746** at `2684ec7` and **1,318** now",
-          "replace": "**8,754** at `2684ec7` and **1,318** now"
+          "find": "**8,746** at `2684ec7` and **1,322** now",
+          "replace": "**8,754** at `2684ec7` and **1,322** now"
         }
       ]
     },
@@ -212,21 +212,21 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "**8,746** at `2684ec7` and **1,318** now",
-          "replace": "8,746 before W3 and 1,318 after"
+          "find": "**8,746** at `2684ec7` and **1,322** now",
+          "replace": "8,746 before W3 and 1,322 after"
         }
       ]
     },
     {
       "id": "B7 AM2",
-      "claim": "the design-verifier line measure is wrong",
+      "claim": "the design-verifier line measure loses the stated form the check recomputes",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "**design-verifier lines** — **2,614** now",
-          "replace": "**design-verifier lines** — **2,614** then"
+          "find": "now, recomputed by the verifier against itself",
+          "replace": "then, recomputed by the verifier against itself"
         }
       ]
     },
@@ -596,6 +596,110 @@
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-State-Event-Coverage-0.1.md",
           "append": "\nThe refusal is recorded with its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, and its effect certainty `known-none`.\n"
+        }
+      ]
+    },
+    {
+      "id": "AP1-a",
+      "claim": "the falsifiability claim is deleted, which used to silence twenty-four checks",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "find": "`C4-control-precedes-request` is the mutation this property must go red on, and a run in which it\nstays green is a finding against the property rather than evidence for the design.",
+          "replace": "A run in which this property stays green on a reordering is a finding against the property."
+        }
+      ]
+    },
+    {
+      "id": "AP1-b",
+      "claim": "the same deletion is not the properties gate's question, and it says so by passing",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "pass",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "find": "`C4-control-precedes-request` is the mutation this property must go red on, and a run in which it\nstays green is a finding against the property rather than evidence for the design.",
+          "replace": "A run in which this property stays green on a reordering is a finding against the property."
+        }
+      ]
+    },
+    {
+      "id": "AP2-a",
+      "claim": "a property's audit row keeps its text and loses its id",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md",
+          "find": "| I4 | every pre-dispatch refusal is `known-none`",
+          "replace": "| (withdrawn) | every pre-dispatch refusal is `known-none`"
+        }
+      ]
+    },
+    {
+      "id": "AP2-b",
+      "claim": "a capability property is no longer named in its capability's audit row",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md",
+          "find": "| C3 | C3-P1 exact class/direction/phase |",
+          "replace": "| C3 | exact class/direction/phase |"
+        }
+      ]
+    },
+    {
+      "id": "W4-key",
+      "claim": "the `unseen` retention sentence is reworded, which its own checks catch",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "find": "**A control refused at `unseen` retains no interaction history and no latch.**",
+          "replace": "**A control refused at `unseen` keeps no interaction history and no latch.**"
+        }
+      ]
+    },
+    {
+      "id": "X1-key",
+      "claim": "the parity list's settling-frame phrase is reworded, which its own checks catch",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md",
+          "find": "- the **frame that settled the latch** wherever one is settled:",
+          "replace": "- the **frame settling the latch** wherever one is settled:"
+        }
+      ]
+    },
+    {
+      "id": "AJ7-a",
+      "claim": "a numbered attestation entry is filed out of sequence",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/README.md",
+          "find": "- [Closure review 10](./channel-0.2-design-foundation-closure-review-10-attestation.md) — reviewed",
+          "replace": "- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) — reviewed"
+        }
+      ]
+    },
+    {
+      "id": "AJ7-b",
+      "claim": "an iteration review drops the disclaimer that it cannot close the batch",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/channel-0.2-ao-iteration-review.md",
+          "find": "**This is an iteration review, not an attestation.**",
+          "replace": "**This review ran against the verification work.**"
         }
       ]
     }

@@ -918,6 +918,31 @@ foreach ($property in $properties.properties) {
     }
 }
 
+# AP2: every declared property must be REGISTERED in the completeness review's audit, by a row that
+# carries its id. The audit is the artifact Batch 2 authors property files from and the register
+# of property/mutation pairs, and until now nothing required a row per property: the design
+# verifier's AF7 check sampled four ids -- `S1`, `S6`, `I1`, `I7` -- while its own comment said the
+# rule is written over every property and criticised enforcement 'over the surfaces one audit
+# happens to enumerate'. A row that kept its text and lost its property id passed both gates,
+# probed, for the other twenty-two.
+#
+# Enforced here rather than there because the set of properties is this file's, and enforced over
+# the declared set rather than a list, so a property added to the package is registered or fails.
+# Two row shapes, because the audit has two tables: the S and I properties key a row by their own
+# id, and a C-property is named inside its capability's row.
+$auditTableRows = @([regex]::Matches($auditPlain, '\| ([A-Za-z0-9()-]+(?:-P[0-9]+)?) \|([^|]*)\|([^|]*)\|([^|]*)\|'))
+foreach ($property in $properties.properties) {
+    $propertyId = [string]$property.id
+    $capabilityId = [string]$property.capability
+    $registered = @($auditTableRows | Where-Object {
+        $rowKey = $_.Groups[1].Value.Trim()
+        ($rowKey -ceq $propertyId) -or ($rowKey -ceq $capabilityId -and $_.Value.IndexOf($propertyId, [System.StringComparison]::Ordinal) -ge 0)
+    })
+    if ($registered.Count -lt 1) {
+        $failures.Add("The completeness review's per-capability property audit registers no row for '$propertyId'. That audit is the register of property/mutation pairs and the artifact Batch 2 authors property files from, so a property missing from it is a property the design has stopped claiming to have audited. This is AP2.")
+    }
+}
+
 # C12-P1's second clause, evaluated once rather than per vector because it is a claim about the
 # DECLARATION SET and not about any input: every C1-C12 group has at least one capability-wide
 # property. The declaration says this clause is checked here, so it is checked here; a property that

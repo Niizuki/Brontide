@@ -560,6 +560,42 @@ should become a fifth work item with its own acceptance, or stay what it is — 
 the gates and grown by whichever pass adds a guard. It is in the repository gate either way. Section 5
 carries it as open question 4.
 
+## 2g. What the fourth condition 4 pass found
+
+The fourth author-side pass has run, at `108f0c9`, and is retained as the
+[fourth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-ap-iteration-review.md).
+It raised **AP1**-**AP2** and corrected both, so **it does not meet condition 4** either. **This
+section is that family's disposition record**, under the 2026-08-20 owner ruling.
+
+**It began by running the probes rather than rebuilding them, and that is the first measurable return
+this work has produced.** 45 of 45 in one command, against the hour each of the three previous passes
+spent reconstructing mutations from the prose of the pass before. **AO3** paid for itself on the
+cycle after it landed.
+
+Both findings are the same class and it is a new one: **a guard whose key was correct when it was
+written and stopped being correct when the work moved.**
+
+- **AP1** — the largest conditional block in the design verifier, twenty-four failure sites covering
+  U1, AC3, V2, W1, W3 and W4, is keyed to C4's assertion that `C4-control-precedes-request` is the
+  mutation `C4-P2` must go red on. Its comment says why that key is safe: deleting the claim cannot
+  silence the checks *while leaving an untestable promise standing*, because the promise goes with the
+  sentence. **W2 ended that.** The promise now lives in the executable declaration and runs in the
+  properties gate, so the sentence can be deleted, the promise stands, and twenty-four checks go
+  silent — probed, with both gates green. Corrected by keying the block to `C4-P2`'s own existence,
+  which the properties gate will not let anyone delete quietly, and making the falsifiability sentence
+  the first thing checked rather than the thing that decides whether anything is checked.
+- **AP2** — the AF7 check requires the per-capability property audit to carry a row for `S1`, `S6`,
+  `I1` and `I7`, which is four of twenty-six, while its own comment is about totality and about the
+  failure of "a rule enforced over the surfaces one audit happens to enumerate". A row that keeps its
+  text and loses its property id passed both gates for the other twenty-two. Corrected by requiring
+  every declared property to be registered by a row carrying its id, in the gate that knows the
+  declared set, and deleting the sample rather than extending it.
+
+**What the next pass inherits is narrower than what this one did.** Three phrase-keyed blocks were
+probed and two of the three keys held; the seventy-eight claim blocks were read through. What is left
+is the AP1 question asked of everything: **every check written before W2 and W3 was keyed under
+assumptions that work changed, and only three of those keys have been tested.**
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -575,24 +611,29 @@ The cycle resumes when, in this order:
 
 Then one fresh independent closure review is dispatched under the unchanged independence rules.
 
-**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run three
-times and is met by none of them**: the passes found three, six and three defects and fixed them all,
-which is the opposite of what that condition asks. Sections 2d, 2e and 2f record them.
+**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run four
+times and is met by none of them**: the passes found three, six, three and two defects and fixed them
+all, which is the opposite of what that condition asks. Sections 2d through 2g record them.
 
-The three are not the same pass repeated, and the trend is the argument for running a fourth rather
-than for giving up on the condition. AM recomputed numbers; AN asked where else each corrected fact was
-stated; AO read each guard's comment as a claim and tested it against the code. Each brief came from
-the pass before it, each found something the previous method could not have, and **AO1 — two properties
-red on conforming behaviour — is a defect a closure reviewer would have been entitled to call
-blocking.** The condition is doing what it was written to do; it has not yet run out of findings.
+**The count is falling and the cost per pass is falling faster**, which is the case for running a
+fifth rather than for abandoning the condition. The fourth pass ran the retained probe corpus in one
+command where each of the first three spent an hour rebuilding the same mutations from prose.
 
-The next work is therefore a fourth author-side pass over the same scope -- the declarations, the
-four gates, and what the nine design artifacts now say where a rendered fact replaced prose, not a
+The four are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
+fact was stated; AO read each guard's comment as a claim and tested it against the code; AP asked
+whether each guard's *key* is still load-bearing after W2 and W3 moved the work underneath it. Each
+brief came from the pass before it, each found something the previous method could not have, and
+**AO1 — two properties red on conforming behaviour — is a defect a closure reviewer would have been
+entitled to call blocking.** The condition is doing what it was written to do; it has not yet run out
+of findings.
+
+The next work is therefore a fifth author-side pass over the same scope -- the declarations, the four
+gates, and what the nine design artifacts now say where a rendered fact replaced prose, not a
 re-reading of the design the sixteen closure reviews have been reading. It starts by running
-`build/verify-channel-0.2-guards.ps1`, which is the probe corpus AO3 retained so that no pass rebuilds
-it again, and it meets condition 4 only if it finds nothing it can fix. The work AO left is named in
-its review: the design verifier's seventy-eight claim blocks, of which the totality and derivation
-claims were tested and the narrative ones were not. Nothing in this section authorizes dispatching a closure review,
+`build/verify-channel-0.2-guards.ps1`, which now holds 53 probes, and it meets condition 4 only if it
+finds nothing it can fix. The work AP left is named in its review and is one question asked of every
+check older than W2: **is its key still load-bearing?** Three were probed, two held, and the rest were
+only read. Nothing in this section authorizes dispatching a closure review,
 and the closure-cycle state at the head of this document is what says so.
 
 ## 4. What to measure
@@ -612,17 +653,17 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,318** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,322** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved twice
   since, by four characters each time and for the same reason — registering a new iteration-review
   family in the Design reviews row — and on both occasions the check that recomputes it failed the
   figure on the commit that wrote it, which is the check working rather than a defect in it; and
-- **guard probes executable** — currently **45 of 45**, run by
+- **guard probes executable** — currently **53 of 53**, run by
   `build/verify-channel-0.2-guards.ps1` in the repository gate and recomputed by it. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
-- **design-verifier lines** — **2,614** now, recomputed by the verifier against itself. Every step
+- **design-verifier lines** — **2,626** now, recomputed by the verifier against itself. Every step
   of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
   the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
   `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491** — counted the way this verifier counts

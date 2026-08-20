@@ -205,7 +205,7 @@ of the record, and nowhere else in the sixteen files it sweeps. The fourth and f
 found by reading rather than by sweeping, which is the limit worth carrying forward: a check keyed to
 a fact's own words cannot see a passage that states a third of it.
 
-**Condition 4 has now run three times and is met by none of them.** The author-side pass over W1-W3 is retained as the
+**Condition 4 has now run four times and is met by none of them.** The author-side pass over W1-W3 is retained as the
 [W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-am-iteration-review.md);
 it raised **AM1**-**AM3** and corrected all three, and that condition asks for a pass that finds
 nothing it can fix. **AM1** is the W3 status-block length bound measuring to the first blank line while
@@ -242,6 +242,16 @@ find, in a gate written after the lesson. **AO3** is the probes: three passes ha
 prose of the pass before, four had rotted unnoticed, and they are now a corpus of 45 that
 `build/verify-channel-0.2-guards.ps1` runs in the repository gate. A fourth pass is the next work, it
 starts by running that corpus rather than rebuilding it, and the hold stands until one finds nothing.
+
+**The fourth pass did exactly that**, and is retained as the
+[fourth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-ap-iteration-review.md);
+it raised **AP1**-**AP2** and corrected both. Running the corpus took one command and 45 of 45 passed,
+against the hour each earlier pass spent rebuilding the same mutations -- the first measurable return
+this work has produced. Both findings are one new class: **a guard whose key was correct when written
+and stopped being correct when the work moved.** **AP1** is a block of twenty-four checks that one
+deleted sentence silenced, on a justification W2 had quietly expired; **AP2** is a coverage check
+sampling four of the twenty-six properties its own comment says it covers. The finding count is
+falling -- three, six, three, two -- and a fifth pass is the next work.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
