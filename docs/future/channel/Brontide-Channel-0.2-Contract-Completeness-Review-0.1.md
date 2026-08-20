@@ -806,5 +806,24 @@ profile per vector, and `C3-P1`, which said "the established profile" where a ve
 declared class rather than over the members that happened to be visible — which is AF6's correction
 applied to a rule instead of to a family.
 
+**AM1**-**AM3** are the first family raised against the verification work rather than against the
+design, by the author-side pass condition 4 of the verification foundation plan names, and they are
+recorded here because a finding whose only record is an iteration review has no disposition in the
+artifact a reviewer reads. **No design artifact is changed by them**; the sections of the disposition
+index say so per artifact.
+
+**AM1** is the W3 status-block length bound read to the first blank line while the disposition history
+it excludes sat one blank line beneath it — which is where this artifact's own history sat before W3
+moved it. A paragraph of history appended below a five-line block passed the gate, probed and green at
+the parent commit. It is the shape nine cycles have recorded, a guard whose scope the defect steps
+outside of, arriving in the check written to retire that class; the bound is now over the whole region
+between `Status:` and the first section heading, and every paragraph in it that is not the status
+block must be declared front matter. **AM2** and **AM3** are two of section 4's five measures stating
+numbers the repository does not produce — a status-block total of 289 where no reading of the commit
+gives more than 283, and an index-row total of 1,208 where the commit that produced it gives 1,306.
+Both are corrected and both halves of both are now recomputed by the design verifier, historical half
+included. The measures the gate already determined were correct, which is the plan's own thesis
+arriving in the plan.
+
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.

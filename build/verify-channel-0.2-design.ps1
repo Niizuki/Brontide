@@ -74,7 +74,7 @@ $reviewReadme = Read-RequiredText 'reviews\README.md'
 
 # W3. An artifact's status block states what the artifact is and what it awaits, and nothing else.
 # Its correction history is owned by the disposition index, which is a review record rather than a
-# design artifact. Nine status blocks had reached 289 lines between them and none of it said what the
+# design artifact. Nine status blocks had reached 265 lines between them and none of it said what the
 # artifact means -- it said what had once been wrong with it, which is surface every cold reviewer
 # then has to read. The narrative checks below therefore read the index rather than the blocks: the
 # text was moved verbatim, so each check asks the same question of the one file that now carries the
@@ -1024,10 +1024,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all four correction iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all five iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
 }
 
 # The closure-cycle hold. The review policy tells an agent not to dispatch a closure review while the
@@ -1636,6 +1636,70 @@ if ($latestDispositionFamily) {
     }
 }
 
+# AM2 and AM3. Section 4 of the verification foundation plan carries five measures and one of them --
+# properties executable in the gate -- is recomputed by the properties gate. Of the four left to prose,
+# the two this pass could recompute were both wrong: the status-block total read 289 where no reading
+# of the commit gives more than 283, and the index-row total read 1,208 where the commit that produced
+# it gives 1,306. The two the gate already determines were right. That is the plan's own thesis
+# arriving in the plan, so both are recomputed here, historical half included -- a measure section
+# whose numbers are read rather than derived is a stale-number finding waiting for the cycle that
+# checks it.
+$measurePlanText = Get-Content -Raw -LiteralPath (Join-Path $channelPath 'Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md') -Encoding UTF8
+function Measure-StatusBlockLines {
+    param([Parameter(Mandatory = $true)][scriptblock]$ReadArtifact)
+    $measured = 0
+    foreach ($measuredArtifact in $artifactNames) {
+        if ($measuredArtifact -eq 'README.md' -or $measuredArtifact -eq 'reviews\README.md') { continue }
+        $measuredText = & $ReadArtifact $measuredArtifact
+        if (-not $measuredText) { continue }
+        $measuredMatch = [regex]::Match($measuredText, '(?ms)^((?:\*\*)?Status:.*?)(?=?
+\s*?
+|\z)')
+        if (-not $measuredMatch.Success) { continue }
+        $measured += @($measuredMatch.Groups[1].Value.Trim() -split "`r?`n" | Where-Object { $_.Trim() }).Count
+    }
+    return $measured
+}
+function Measure-IndexRowCharacters {
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$IndexText)
+    $measured = 0
+    foreach ($measuredRow in @($IndexText -split "`r?`n" | Where-Object { $_ -match '^\| \[[^\]]+\]\(\./(?:Brontide-Channel-|reviews/)' })) {
+        $measuredCells = @($measuredRow -split '\|')
+        if ($measuredCells.Count -ge 4) { $measured += $measuredCells[3].Trim().Length }
+    }
+    return $measured
+}
+$measureClaims = @(
+    @{ Name = 'status-block lines across the nine artifacts'
+       Pattern = 'status-block lines across the nine artifacts\*\* . \*\*([0-9,]+)\*\* at `([0-9a-f]{7,40})` and \*\*([0-9,]+)\*\* now'
+       Now = { Measure-StatusBlockLines -ReadArtifact { param($name) Read-RequiredText $name } }
+       Then = { param($rev) Measure-StatusBlockLines -ReadArtifact { param($name) (& git -C $repositoryRoot show "${rev}:docs/future/channel/$($name -replace '\\', '/')" 2>$null) -join "`n" } } }
+    @{ Name = 'Channel index row characters'
+       Pattern = 'Channel index row characters\*\* . \*\*([0-9,]+)\*\* at `([0-9a-f]{7,40})` and \*\*([0-9,]+)\*\* now'
+       Now = { Measure-IndexRowCharacters -IndexText $channelReadme }
+       Then = { param($rev) Measure-IndexRowCharacters -IndexText ((& git -C $repositoryRoot show "${rev}:docs/future/channel/README.md" 2>$null) -join "`n") } }
+)
+foreach ($measureClaim in $measureClaims) {
+    $measureMatch = [regex]::Match($measurePlanText, $measureClaim.Pattern)
+    if (-not $measureMatch.Success) {
+        $failures.Add("The verification foundation plan's section 4 no longer states the '$($measureClaim.Name)' measure in the form '**<then>** at ``<commit>`` and **<now>** now'. That form is what lets this check recompute it; a measure stated only in prose is one nobody recomputes, which is how it came to say 289 and 1,208.")
+        continue
+    }
+    $claimedThen = [int]($measureMatch.Groups[1].Value -replace ',', '')
+    $measureRevision = $measureMatch.Groups[2].Value
+    $claimedNow = [int]($measureMatch.Groups[3].Value -replace ',', '')
+    $actualNow = & $measureClaim.Now
+    if ($claimedNow -ne $actualNow) {
+        $failures.Add("The verification foundation plan says the '$($measureClaim.Name)' measure is now $claimedNow and it is $actualNow.")
+    }
+    if (Test-Path -LiteralPath (Join-Path $repositoryRoot '.git')) {
+        $actualThen = & $measureClaim.Then $measureRevision
+        if ($LASTEXITCODE -eq 0 -and $actualThen -gt 0 -and $claimedThen -ne $actualThen) {
+            $failures.Add("The verification foundation plan says the '$($measureClaim.Name)' measure was $claimedThen at '$measureRevision' and it was $actualThen. The historical half is checked as well because it is the half that was wrong: nothing recomputes a number a reader cannot reach.")
+        }
+    }
+}
+
 # AG5: the same staleness in the future-work index's Channel row, which is the one a reader meets
 # while choosing what to work on.
 if ($latestDispositionFamily) {
@@ -1865,24 +1929,67 @@ foreach ($frameCountArtifact in $artifactNames) {
 # the record is elsewhere and finds nothing. And the section it resolves to must reach the newest
 # family, which is AI4's own question asked once instead of nine times.
 $dispositionLinkPattern = 'reviews/channel-0.2-disposition-index.md#'
+# AM1, found by the W1-W3 iteration pass. The bound above was read to the first BLANK LINE, and the
+# history it exists to keep out sat one blank line beneath it: at `5894aba` the session machine's AL1
+# paragraph -- "This status block previously recorded that the AK pass had audited `S1`-`S6`..." --
+# was line 12 of the artifact, outside the reader and inside the surface. A paragraph of disposition
+# history appended below a five-line block passed the gate; the probe was run before this correction
+# and was green. So the region is now bounded by the artifact's first section HEADING, and everything
+# in it that is not the status block must be declared front matter.
+#
+# A permit list rather than a pattern for history, and the direction matters: a guard that recognises
+# disposition history by the words it uses cannot see the instance that does not use them, which is
+# AL1 and AL2 exactly. An unrecognised paragraph here fails, so a new kind of front matter is declared
+# once and a paragraph of narrative is a gate failure on the commit that writes it.
+$frontMatterLabels = @(
+    'Designed for:',
+    'Designed against:',
+    'Predecessor evidence:',
+    'Companion artifacts:',
+    'Contract owner:',
+    'Contract owners:',
+    'Normative companions:',
+    'Reviewed artifacts:',
+    'Sources inventoried:'
+)
 foreach ($statusArtifactName in $artifactNames) {
     if ($statusArtifactName -eq 'README.md' -or $statusArtifactName -eq 'reviews\README.md') { continue }
     $statusText = Read-RequiredText $statusArtifactName
-    # Bounded by the blank line that ends the paragraph rather than by the first section
-    # heading: the redesign plan puts its title heading ABOVE its status line, so a block read
-    # to the first heading is empty for that artifact -- which is why AH3 had to exist as a
-    # second check over the plan alone. Read this way, one check covers all nine.
-    $statusMatch = [regex]::Match($statusText, '(?ms)^((?:\*\*)?Status:.*?)(?=
-
-|\n\n|\z)')
-    if (-not $statusMatch.Success) {
+    # The status REGION is everything from `Status:` to the first section heading, and the block is
+    # its first paragraph. Bounding the region this way also removes the reason AH3 existed as a
+    # second check over the redesign plan, whose title heading sits above its status line.
+    $statusRegionMatch = [regex]::Match($statusText, '(?ms)^((?:\*\*)?Status:.*?)(?=^#|\z)')
+    if (-not $statusRegionMatch.Success) {
         $failures.Add("'$statusArtifactName' has no status block. Every first-batch artifact states what it is and what it awaits.")
         continue
     }
-    $statusBody = $statusMatch.Groups[1].Value.Trim()
+    $regionParagraphs = @($statusRegionMatch.Groups[1].Value.Trim() -split "`r?`n\s*`r?`n" | Where-Object { $_.Trim() })
+    $statusBody = $regionParagraphs[0].Trim()
     $statusLines = @($statusBody -split "`r?`n" | Where-Object { $_.Trim() })
     if ($statusLines.Count -gt 5) {
         $failures.Add("'$statusArtifactName' has a status block of $($statusLines.Count) lines and the bound is five. Disposition history belongs in the disposition index: every correction that adds a sentence here adds it to what the next cold reviewer has to read, which is the plan's section 1.3 and is what W3 retires.")
+    }
+    # Everything else before the first heading. The block can no longer be kept at five lines by
+    # moving the sixth line into a paragraph of its own, which is what AM1 was.
+    $previousLabelExpectsList = $false
+    for ($regionIndex = 1; $regionIndex -lt $regionParagraphs.Count; $regionIndex++) {
+        $regionParagraph = $regionParagraphs[$regionIndex].Trim()
+        $regionLines = @($regionParagraph -split "`r?`n" | Where-Object { $_.Trim() })
+        $regionFirstLine = ($regionLines[0] -replace '\*\*', '').Trim()
+        if (@($frontMatterLabels | Where-Object { $regionFirstLine.StartsWith($_, [System.StringComparison]::Ordinal) }).Count -gt 0) {
+            $previousLabelExpectsList = $regionParagraph.TrimEnd().EndsWith(':')
+            continue
+        }
+        # A list under a label that ends in a colon is that label's own content, not a new paragraph.
+        # A wrapped bullet continues on an indented line, so the test is that the paragraph opens with
+        # a bullet and every later line is either a bullet or indented under one -- not that every
+        # line is a bullet, which the ledger's own wrapped entries are not.
+        $regionIsList = $regionLines[0].Trim() -match '^[-*] ' -and @($regionLines | Where-Object { $_.Trim() -notmatch '^[-*] ' -and $_ -notmatch '^\s' }).Count -eq 0
+        if ($previousLabelExpectsList -and $regionIsList) {
+            $previousLabelExpectsList = $false
+            continue
+        }
+        $failures.Add("'$statusArtifactName' carries a paragraph between its status block and its first section heading that is not declared front matter: '$($regionFirstLine.Substring(0, [Math]::Min(80, $regionFirstLine.Length)))'. That is where this artifact's disposition history sat before W3 moved it, one blank line below a block the length bound was measuring. Either it is front matter, in which case its label joins the declared list, or it is history, in which case it belongs in the disposition index. This is AM1.")
     }
     if ($statusBody.IndexOf($dispositionLinkPattern, [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add("'$statusArtifactName' has a status block that does not link to its section of the disposition index. A block that carries no history and no pointer to it leaves a reader who opens this artifact alone unable to find out what was corrected in it.")

@@ -114,6 +114,8 @@ now points here.
 
 Active plan; AB1 and AG3 corrected, the latter recording the AE1 ruling as issued and its AF8 narrowing; AH3 corrected and the 2026-08-15 closure-standard ruling recorded; AI5 and AI9 corrected, the last a retained S3 evidence surface open for six cycles; AJ2 corrected — this row and the plan's status block both claimed AI2, whose two surfaces are the narratives in this index and the future-work index and were unchanged, and that claim is withdrawn; AK1's dated AE1 ruling records that AF8's session qualifier had no operand until this pass, and the status block carries the AK1-AK8 sequence; under **AL1**-**AL4** the status block and its narrative carry the sixteenth review and the AL family
 
+Unchanged by **AM1**-**AM3**: that pass reviewed the verification work done under the hold — the gates, the fact and property declarations, and the plan's own measures — and changed no design artifact.
+
 ## C1-C12 capability contract
 
 [Brontide-Channel-0.2-Capability-Contract-0.1.md](../Brontide-Channel-0.2-Capability-Contract-0.1.md)
@@ -158,6 +160,8 @@ now points here.
 
 N2/F1/F2/D1-D4/T3/R1/S1/S2/U1/W2-W4/X1/X5/Y1/Y2/Z3 corrected; C4 owns intra-interaction frame order with `C4-P2`, stated over the refusal a reordering produces; AE1/AE3/AF1/AF5/AF8 corrected, and AG2's cross-artifact claim is now pinned against the brief; AH6 corrected; AI6 corrected; unchanged by AJ, since C10 delegates the settling-frame field list to the artifacts that publish it; AK1/AK5/AK6 corrected - C10 requires the refused-frame and terminal-frame references and delegates their field lists the same way, and AK7/AK8 give `C4-P1`, `C4-P2`, `C1-P1`, `C3-P1` and `C11-P1` the session they mean while C12 declares which facts belong to one session each; **AL3** corrected - that declaration now carries the session's own state and is checked against the neutral brief's vector format rather than against the members that were visible when it was written
 
+Unchanged by **AM1**-**AM3**: that pass reviewed the verification work done under the hold — the gates, the fact and property declarations, and the plan's own measures — and changed no design artifact.
+
 ## Session state machine
 
 [Brontide-Channel-0.2-Session-State-Machine-0.1.md](../Brontide-Channel-0.2-Session-State-Machine-0.1.md)
@@ -183,6 +187,8 @@ absent from it (**AL3**).
 now points here.
 
 D1 corrected; unchanged by the sixth, seventh, and eighth reviews and by the U-Z correction passes; unchanged by the AE, AF, and AG passes, though AF7 brought S1-S6 into the property audit; unchanged by AH; unchanged by AI; unchanged by AJ; **AL1** and **AL4** corrected - all six of S1-S6 name the session they are about, and S5 names the one declared profile its two establishment paths are compared over; the status block previously recorded the AK audit as having found none of S1-S6 reading a per-session fact, which was true of the four facts that audit could recognise and false of the artifact, since S3 read one session's drain transition across the vector
+
+Unchanged by **AM1**-**AM3**: that pass reviewed the verification work done under the hold — the gates, the fact and property declarations, and the plan's own measures — and changed no design artifact.
 
 ## Interaction state machine
 
@@ -222,6 +228,8 @@ interaction identity, which C12 declares per-session, so the AK7 recognizer reac
 now points here.
 
 B1/B2/N2/F1/F2/D2-D4/T3/R1/R2/S2/W4/X1/X3/X5/Y3 corrected; `validating` carries loss and drain rows, and an identity refused at `unseen` retains nothing and owns no latch; AE2 corrected; unchanged by AF and AG; unchanged by AH; AI1 corrected - the settling frame carries its session; AJ1 and AJ6 corrected - the reference is published in the one form all six publishing artifacts use, and the paragraph beneath it names its fields instead of counting them; AK1/AK5 corrected - the `unseen` transition row records the refused-frame reference rather than a reason and a frame kind; AK6 corrected - accepting a terminal history records the terminal-frame reference, the second conjunct's other precedence operand; AK7 corrected in `I5`; unchanged by AL, whose two blocking findings are in the session machine's properties and the state/event grid's `unseen` cells, both of which this machine's own `unseen` row already published in the corrected form
+
+Unchanged by **AM1**-**AM3**: that pass reviewed the verification work done under the hold — the gates, the fact and property declarations, and the plan's own measures — and changed no design artifact.
 
 ## State/event coverage grid
 
@@ -264,6 +272,8 @@ now points here.
 
 Added for D1-D4; T3/R1/R3/S1/S2/U8/W4/X1/X2/X5/Z2 corrected; 108 cells enumerated independently, none empty; carries the ordering fact C4 owns; AE2 corrected; unchanged by AF and AG; unchanged by AH; AJ1 corrected - AI1 changed the settling-frame reference this grid publishes and reached the brief and the machine only, and AJ6 replaced the positional argument for the arrival ordinal; AK1/AK5/AK6 corrected - the recipient `unseen` route publishes the refused-frame reference and the latch section publishes the terminal-frame reference; **AL2** corrected - that correction reached the route's prose and not its two `unseen` cells, which still published the pre-AK1 record, and both cells now publish the reference in the same five-field form
 
+Unchanged by **AM1**-**AM3**: that pass reviewed the verification work done under the hold — the gates, the fact and property declarations, and the plan's own measures — and changed no design artifact.
+
 ## Responsibility matrix
 
 [Brontide-Channel-0.2-Responsibility-Matrix-0.1.md](../Brontide-Channel-0.2-Responsibility-Matrix-0.1.md)
@@ -302,6 +312,8 @@ now points here.
 
 B3/N1/S1/U2 corrected; `Intra-interaction frame order` added, owned by `channel`, and the owner-identifier vocabulary is now closed; unchanged by the AE, AF, and AG passes; unchanged by AH; AJ1 corrected - the crossing artifact of the row that owns the observation record carries the settling frame's session, without which the fact this matrix owns and the fact the parity profile compares were different facts; AK1/AK5/AK6 corrected in the same row, which published the refused frame as a kind and a provenance and did not carry the terminal frame at all; unchanged by AL, whose refused-frame finding is against the state/event grid's cells and not against this row
 
+Unchanged by **AM1**-**AM3**: that pass reviewed the verification work done under the hold — the gates, the fact and property declarations, and the plan's own measures — and changed no design artifact.
+
 ## Contract-completeness review
 
 [Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md](../Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md)
@@ -332,6 +344,8 @@ now points here.
 
 All findings through T1-T4, R1-R3, S1-S3, U1-U8, and the V-Z iteration families corrected and dispositioned; AE3/AF7 corrected, and AG1 closed the silence-probe row AF1's evidence named second; AH2 and AH5 corrected; AI3 corrected; AJ4 corrected - the status block said its disposition history runs to the eighth cycle while the history ran to the thirteenth, and it now runs to the fifteenth; AK3 corrected - its property counts are counts of properties rather than of audit rows; and AK1/AK5/AK6/AK7/AK8 are recorded here with the complete `C4-P1`/`C4-P2` operand enumeration the audit produced; **AL1**-**AL4** corrected - the enumeration carries the `session state` operand AL3 found missing, the `S3` and `S5` audit rows carry their scopes, and the disposition history runs to the sixteenth cycle
 
+Unchanged by **AM1**-**AM3** as an artifact: the W1-W3 iteration pass reviewed the verification work and corrected the design verifier and the verification foundation plan. This document carries that family's disposition, because a finding whose only record is an iteration review has no disposition in the artifact a reviewer reads.
+
 ## 0.1-to-0.2 migration ledger
 
 [Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md](../Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md)
@@ -361,6 +375,8 @@ session a property means.
 now points here.
 
 B4/N1/N3/F3/D5/T1/T2/S1/Z4 corrected; the ordering non-promise is **replaced**, and the new-evidence inventory carries the ordering mutations; AE5/AF3/AF4 corrected; unchanged by AG; unchanged by AH; AJ1 corrected - the inventory Batch 2 builds vector groups from states the settling-frame reference in the same form as the four other publishing artifacts, five other lists; AK4 corrected - the status block counted those lists as artifacts; AK1/AK5/AK6 corrected - the inventory adds the refused-frame and terminal-frame references the same vectors compare; unchanged by AL, which changed no reference's field list and added no evidence requirement
+
+Unchanged by **AM1**-**AM3**: that pass reviewed the verification work done under the hold — the gates, the fact and property declarations, and the plan's own measures — and changed no design artifact.
 
 ## Neutral contract and vector brief
 
@@ -405,6 +421,8 @@ against the members that were visible when that list was written.
 now points here.
 
 Author pass plus U3/V1/V2/W1/W2/W5/W6/X1/X2/X4/Y1/Y4/Z1 corrections; property operators, vector format, parity profile, and provider boundary now carry what `C4-P2` needs; AE1/AE3/AF5 corrected, and AG2 added the session qualifier to the precedence relation; AH1 and AH6 corrected; AI1, AI5 and AI7 corrected; AJ1, AJ3 and AJ4 corrected - both field lists in the one published form, the vector format's profile inside the per-session distribution, and the status block describing the declared stimulus step in its post-AH1 form; AK1, AK5 and AK6 corrected - the local-observation schema and the parity profile carry the refused-frame and terminal-frame references in the same five-field form; unchanged by AL, whose AL3 correction reads this brief's vector format as the authority C12's declared fact list is now checked against
+
+Unchanged by **AM1**-**AM3**: that pass reviewed the verification work done under the hold — the gates, the fact and property declarations, and the plan's own measures — and changed no design artifact.
 
 ## Channel index rows with no design artifact
 

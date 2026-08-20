@@ -162,6 +162,7 @@ dependency instead of narrowing it.
 | AJ | closure-review | closure review 14 attestation |
 | AK | closure-review | closure review 15 attestation (AK1-AK4); AK5-AK8 raised by the AK correction pass and recorded in the completeness review's operand enumeration |
 | AL | closure-review | closure review 16 attestation |
+| AM | iteration | W1-W3 verification-foundation iteration review |
 
 **The AK row is the one mixed entry and it is disclosed rather than smoothed over.** Closure review 15
 raised **AK1**-**AK4**. **AK5**-**AK8** were raised by the correction pass for AK1, which enumerated
@@ -238,6 +239,12 @@ scope and verdicts, and the retained records are all unchanged and apply unmodif
 runs next. **No agent dispatches a closure review while this paragraph stands.** An author-side
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
+
+The first such pass has run and is retained as the
+[W1-W3 verification-foundation iteration review](./channel-0.2-am-iteration-review.md). It raised
+**AM1**-**AM3**, corrected all three, and therefore did **not** meet the plan's condition 4, which asks
+for a pass that finds nothing it can fix. A second pass over the same scope is the live path; it should
+re-run the probes the first recorded rather than trust them.
 
 The sixteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
 blocking **AL1** and **AL2** and nonblocking **AL3** and **AL4**; its retained record is
@@ -923,6 +930,13 @@ context elsewhere — never as evidence that their conclusions are right.
   `4a52a56`; raised AD1-AD3, corrected AD1 and AD3, and left AD2 as an owner call. It is the first
   pass to audit the retained records against the artifacts rather than the artifacts against their
   records, and all three findings came from that one question.
+- [W1-W3 verification-foundation iteration review](./channel-0.2-am-iteration-review.md) — the
+  verification work done under the hold, at `88f2447`; raised AM1-AM3 and corrected all three. It is
+  the pass condition 4 of the verification foundation plan names and **does not meet that condition**,
+  which requires a pass that finds nothing it can fix. It reviewed no design artifact: its method was
+  to recompute every number the plan states, re-derive every claim one document makes about another,
+  and break every guard W1, W2 and W3 added. AM1 came out of the third — the status-block length bound
+  was measuring a paragraph the history it excludes had sat one blank line beneath.
 
 ## Disclosed process deviation in the T1-T4 correction
 
