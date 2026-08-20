@@ -173,6 +173,7 @@ dependency instead of narrowing it.
 | AM | iteration | verification | W1-W3 verification-foundation iteration review |
 | AN | iteration | verification | second W1-W3 verification-foundation iteration review |
 | AO | iteration | verification | third W1-W3 verification-foundation iteration review |
+| AP | iteration | verification | fourth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -275,11 +276,13 @@ nothing it can fix. The first is retained as the
 [second W1-W3 verification-foundation iteration review](./channel-0.2-an-iteration-review.md), which
 raised **AN1**-**AN6** and corrected all six.
 
-**A fourth pass over the same scope is the live path**, and the standing instruction is now cheaper
-to follow than it was: `build/verify-channel-0.2-guards.ps1` runs the 45 probes the three passes
-validated, so the next pass starts by running them rather than by rebuilding them from prose. What
-that leaves it is the work the third pass did not finish — the design verifier's seventy-eight
-claim blocks, of which it tested the totality and derivation claims and left the narrative ones. The second pass did, and
+**A fifth pass over the same scope is the live path**, and it starts the way the fourth did: by
+running `build/verify-channel-0.2-guards.ps1`, which now holds 53 probes. The design verifier's
+seventy-eight claim blocks are read through, so what it inherits is narrower and is named in the AP
+review — **a guard whose key was correct when it was written and stopped being correct when the work
+moved.** AP1 is that shape and W2 is what moved it; three such keys were probed and the rest were only
+read, so every check written before W2 and W3 still owes the question *is its key still
+load-bearing?* The second pass did, and
 every one reproduced — so all six of its findings came from elsewhere, and where they came from is the
 brief worth inheriting. Every one was in the *second* place a fact was stated rather than the first,
 so the question that paid was not "is this number right" but "where else is this number", asked
@@ -999,6 +1002,13 @@ context elsewhere — never as evidence that their conclusions are right.
   cross-check that exists to prevent exactly that could not read the transition table's two
   `any nonterminal` rows. **AO3** is the probes themselves: three passes rebuilt them from the prose of
   the pass before, four had rotted unnoticed, and they are now a corpus the gate runs.
+- [Fourth W1-W3 verification-foundation iteration review](./channel-0.2-ap-iteration-review.md) — the
+  same scope at `108f0c9`; raised **AP1**-**AP2** and corrected both, so condition 4 is **still not
+  met**, on a falling count of three, six, three, two. It is the first pass to **run** the probes
+  instead of rebuilding them — 45 of 45 in one command — which is what AO3 was for. Both findings are
+  guards whose key was correct when written: **AP1** is a block of twenty-four checks that one deleted
+  sentence silenced, on a justification W2 had quietly expired, and **AP2** is a coverage check
+  sampling four of the twenty-six properties its own comment says it covers.
 
 ## Disclosed process deviation in the T1-T4 correction
 

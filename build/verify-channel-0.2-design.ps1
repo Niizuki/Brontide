@@ -357,7 +357,23 @@ if ($unseenFaultsCancellation) {
 # design refuses every reordered frame rather than accepting it, so the accepted sequence is empty
 # and trivially in order. The property was green on its own mutation. The fix quantifies over the
 # refusal the reordering produces instead, which the fault routing manufactures rather than destroys.
-if ($flowedContract.IndexOf('is the mutation this property must go red on', [System.StringComparison]::Ordinal) -ge 0) {
+# AP1: the key is the PROPERTY, not the sentence about it. This block was keyed to C4's assertion
+# that `C4-control-precedes-request` is the mutation `C4-P2` must go red on, on the stated ground
+# that deleting the claim could not silence the checks while leaving an untestable promise
+# standing -- the promise went with the sentence. That was true when it was written and W2 ended
+# it: the promise now lives in `conformance/channel-0.2-properties.json` and executes in the
+# properties gate, so the sentence could be deleted, twenty-four checks here went silent, and
+# both gates stayed green. Probed.
+#
+# The key is now C4-P2's own existence, which no one can delete quietly: the properties gate
+# fails when the declaration names a property the stating artifact does not carry. The
+# falsifiability sentence becomes the first thing checked rather than the thing that decides
+# whether anything is checked -- an absent claim is loud instead of silencing, which is the
+# direction AM1, AN1, AN2 and AO1 each ended in.
+if ($flowedContract.IndexOf('Property C4-P2.', [System.StringComparison]::Ordinal) -ge 0) {
+    if ($flowedContract.IndexOf('is the mutation this property must go red on', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('C4 no longer asserts which named mutation `C4-P2` must go red on. That assertion is what makes the property falsifiable in the design as well as in the gate, and it is what every check below is written against. This is U1''s own claim and AP1''s key.')
+    }
     if ($flowedContract.IndexOf('stated over the refusal that reordering produces', [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add('C4-P2 claims `C4-control-precedes-request` is the mutation it must go red on, but it is not stated over the refusal that reordering produces. Quantified over the frames a recipient accepts, the property is green on that mutation: the reordered control is refused at `unseen` and the request is then latched, so the accepted sequence is empty and trivially an order-preserving subsequence.')
     }
@@ -1127,10 +1143,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all seven iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all eight iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
 }
 
 # The closure-cycle hold. The review policy tells an agent not to dispatch a closure review while the
@@ -1653,19 +1669,15 @@ foreach ($membershipArtifact in @(@{ Name = 'capability contract'; Text = $flowe
     }
 }
 
-# AF7: C12's rule is written over "every property". The audit enforcing it has twelve rows, and the
-# design states thirteen more capability-wide properties under that exact heading in the two state
-# machines. AE4's mechanism -- a rule enforced over the surfaces one audit happens to enumerate.
-if ($propertyAudit) {
-    $auditSection = ($propertyAudit -split '(?m)^## ')[0]
-    # Asserted against the audit's own table rows. The prose introducing the section names these
-    # properties too, so a section-wide search passed after the rows had been renamed away.
-    foreach ($machineProperty in @('S1', 'S6', 'I1', 'I7')) {
-        if ($auditSection -cnotmatch "(?m)^\|\s*$machineProperty\s*\|") {
-            $failures.Add("The per-capability property audit does not cover '$machineProperty'. C12's soundness rule is written over every property and the state machines state thirteen more under the same heading; a rule visible over less than half the properties the package states is the gap AE3 exists to close.")
-        }
-    }
-}
+# AF7: C12's rule is written over "every property", and the audit enforcing it once had twelve rows
+# while the two state machines stated thirteen more properties under the same heading.
+#
+# AP2 moved the enforcement rather than extending it here. This check listed four ids -- `S1`, `S6`,
+# `I1`, `I7` -- to stand for the class its own comment says is every property, so a row that kept its
+# text and lost its property id passed for the other twenty-two, probed. The set of properties is
+# `conformance/channel-0.2-properties.json`'s, so the registration check lives in the gate that reads
+# it and is written over the declared set: `build/verify-channel-0.2-properties.ps1`. Keeping a
+# sample here beside a total check there would be the second enumeration AN2 was.
 
 # AF2: AE4 corrected the Channel index's Design reviews row and left the narrative above it, which
 # still named a correction sequence five families stale and called a corrected finding an open owner
