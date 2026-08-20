@@ -1116,11 +1116,41 @@ foreach ($reviewFile in $reviewMarkdown) {
 # finding family the review policy attributes to an iteration pass must have a retained record --
 # rather than over the six ids, so the next pass that skips its record fails here too.
 $dispositionHistory = ($completeness -split '## Review disposition', 2)[1]
+# The verification foundation plan is the second of the two homes a family's disposition can have. It
+# is not a design artifact and no closure review assesses it, which is exactly why it is the right
+# record for a family raised against the verification work rather than against the design.
+$verificationPlanText = Get-Content -Raw -LiteralPath (Join-Path $channelPath 'Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md') -Encoding UTF8
 if (-not $dispositionHistory) {
     $failures.Add('The completeness review carries no review-disposition history, which is where each cycle''s findings are recorded.')
 }
 else {
     $iterationReviewFiles = @($reviewMarkdown | Where-Object { $_.Name -match 'iteration-review\.md$' })
+    # The provenance table is read here rather than below, because under the 2026-08-20 owner ruling
+    # it is what ROUTES the obligation: a `design` family owes its disposition to the completeness
+    # review's history, a `verification` family to the verification foundation plan. Neither is
+    # exempt. Reading it later would mean the routing check ran without knowing the class.
+    $provenanceTable = [regex]::Match($reviewReadme, '(?ms)^## Finding family provenance\r?\n(.+?)(?=^## |\z)').Groups[1].Value
+    $familyProvenance = @{}
+    # The second axis, under the 2026-08-20 owner ruling: what a family was raised AGAINST decides
+    # which record owes its disposition. Both values are required of every row, so a family cannot be
+    # added on one axis and left unclassified on the other -- which is AF6's lesson about a class
+    # inferred from the members that happened to be visible.
+    $familySubject = @{}
+    foreach ($provenanceRow in [regex]::Matches($provenanceTable, '(?m)^\|\s*([A-Z]{1,2})\s*\|\s*(iteration|closure-review)\s*\|\s*([a-z]+)\s*\|')) {
+        $familyProvenance[$provenanceRow.Groups[1].Value] = $provenanceRow.Groups[2].Value
+        $familySubject[$provenanceRow.Groups[1].Value] = $provenanceRow.Groups[3].Value
+    }
+    foreach ($subjectRow in $familySubject.GetEnumerator()) {
+        if ($subjectRow.Value -ne 'design' -and $subjectRow.Value -ne 'verification') {
+            $failures.Add("The finding-family provenance table classifies '$($subjectRow.Key)' as raised against '$($subjectRow.Value)', which is outside the closed set ``design``/``verification``. A value outside a closed vocabulary is uncountable, which is what the migration ledger's B4 finding was.")
+        }
+    }
+    foreach ($provenanceFamily in $familyProvenance.Keys) {
+        if (-not $familySubject.ContainsKey($provenanceFamily)) {
+            $failures.Add("The finding-family provenance table does not say what '$provenanceFamily' was raised against. That axis is what routes the family's disposition to the completeness review or to the verification foundation plan, and an unclassified family is owed by neither.")
+        }
+    }
+
     foreach ($reviewFile in $iterationReviewFiles) {
         $iterationRaw = Get-Content -Raw -LiteralPath $reviewFile.FullName -Encoding UTF8
         # The family pattern is `[A-Z]{1,2}` rather than `[A-Z]`: the AA and AB families already
@@ -1130,8 +1160,17 @@ else {
         $findingMatches = @([regex]::Matches($iterationRaw, '(?m)^### ([A-Z]{1,2}[0-9]+) '))
         foreach ($findingMatch in $findingMatches) {
             $findingId = $findingMatch.Groups[1].Value
-            if ($dispositionHistory.IndexOf($findingId, [System.StringComparison]::Ordinal) -lt 0) {
-                $failures.Add("The completeness review's disposition history does not record '$findingId', which '$($reviewFile.Name)' raises. A finding whose only record is an iteration review has no disposition in the artifact the next reviewer reads.")
+            $findingFamily = [regex]::Match($findingId, '^([A-Z]{1,2})').Groups[1].Value
+            # Which record owes this finding's disposition. The obligation itself is unchanged and
+            # unconditional; only its home depends on what the family was raised against.
+            $findingHome = if ($familySubject[$findingFamily] -eq 'verification') {
+                @{ Text = $verificationPlanText; Name = 'the verification foundation plan'; Why = 'That plan owns the work this family was raised against, and is where a reviewer of it reads what was decided.' }
+            }
+            else {
+                @{ Text = $dispositionHistory; Name = "the completeness review's disposition history"; Why = 'A finding whose only record is an iteration review has no disposition in the artifact the next reviewer reads.' }
+            }
+            if ($findingHome.Text.IndexOf($findingId, [System.StringComparison]::Ordinal) -lt 0) {
+                $failures.Add("$($findingHome.Name) does not record '$findingId', which '$($reviewFile.Name)' raises. $($findingHome.Why)")
             }
         }
         # The loop above fails when a finding is missing from the history and is silent when it
@@ -1166,7 +1205,14 @@ else {
             }
         }
     }
-    $dispositionFamilies = @([regex]::Matches($dispositionHistory, '\*\*([A-Z]{1,2})[0-9]+\*\*') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+    # DESIGN families only, under the 2026-08-20 ruling. This set is the anchor for five freshness
+    # checks -- the Channel index's stated correction range, the future-work index's Channel row, the
+    # Design reviews row, every per-artifact section of the disposition index, and the status-block
+    # pointer check -- and every one of them asks a question about the design artifacts. A family
+    # raised against the verification work makes "the newest family" one that touched none of them,
+    # and all five are then answered by sections saying "unchanged", which is a guard becoming a
+    # formality. Its disposition is required all the same, in the plan that owns that work.
+    $dispositionFamilies = @([regex]::Matches($dispositionHistory, '\*\*([A-Z]{1,2})[0-9]+\*\*') | ForEach-Object { $_.Groups[1].Value } | Where-Object { $familySubject[$_] -ne 'verification' } | Sort-Object -Unique)
     foreach ($family in $dispositionFamilies) {
         if ($channelReadme -cnotmatch "\b$family[0-9]") {
             $failures.Add("The Channel index names no finding in the '$family' family, although the completeness review's disposition history records one. The index is where a reader who opens nothing else learns what has been corrected.")
@@ -1303,11 +1349,6 @@ else {
     # defect AD2 was ruled for, an order of magnitude smaller: a comment claiming a class over code
     # that tests a subset. The class is now *declared* rather than inferred from prose, and the
     # declaration is required to be total, so a family cannot be added without being classified.
-    $provenanceTable = [regex]::Match($reviewReadme, '(?ms)^## Finding family provenance\r?\n(.+?)(?=^## |\z)').Groups[1].Value
-    $familyProvenance = @{}
-    foreach ($provenanceRow in [regex]::Matches($provenanceTable, '(?m)^\|\s*([A-Z]{1,2})\s*\|\s*(iteration|closure-review)\s*\|')) {
-        $familyProvenance[$provenanceRow.Groups[1].Value] = $provenanceRow.Groups[2].Value
-    }
     if ($familyProvenance.Count -lt 1) {
         $failures.Add('The review policy declares no finding-family provenance table. That table is what makes the retained-record obligation checkable over the whole class rather than over whichever families a sentence shape happens to match.')
     }
@@ -1332,6 +1373,26 @@ else {
         # correction. Deriving from the declaration is what AF6 already did for the check thirty lines
         # above; the headings are kept as well, so a family recorded but not declared still counts.
         $recordedFamilies = @($recordedFamilies + @($familyProvenance.GetEnumerator() | Where-Object { $_.Value -eq 'iteration' } | ForEach-Object { $_.Key }) | Sort-Object -Unique)
+    }
+
+    # The backstop on the second axis, and the reason it is not an exemption. A family is classified by
+    # the author of the finding, and this programme's recurring defect is an author mis-scoping their
+    # own work -- so the classification is checked against something outside itself: a `verification`
+    # family may not be named by any design artifact. The package's own convention is that a
+    # correction names the finding it closes, so a finding whose correction reached the design says so
+    # in the design, and this fires. `design` needs no such check: naming it in the design artifacts is
+    # what that class already requires.
+    foreach ($subjectFamily in @($familySubject.GetEnumerator() | Where-Object { $_.Value -eq 'verification' })) {
+        # Over the nine design artifacts, and neither index. The Channel index's Design reviews row is
+        # REQUIRED to name every iteration family by the AE4 rule above, because that row states what
+        # the reviews directory holds -- a fact about records rather than a disposition of a finding --
+        # and the review policy is where the family is classified in the first place.
+        foreach ($subjectArtifact in $artifactNames) {
+            if ($subjectArtifact -eq 'README.md' -or $subjectArtifact -eq 'reviews\README.md') { continue }
+            if ((Read-RequiredText $subjectArtifact) -cmatch "\b$($subjectFamily.Key)[0-9]") {
+                $failures.Add("'$subjectArtifact' names a finding in the '$($subjectFamily.Key)' family, which the provenance table classifies as raised against the verification work rather than the design. Either the classification is wrong -- a finding whose correction reached a design artifact is a design family whatever its author called it -- or the design artifact is carrying a disposition that belongs in the verification foundation plan.")
+            }
+        }
     }
 
     # AE4: AD3's check covers a retained review's own scope line and its roster entry. The Channel
@@ -1645,6 +1706,20 @@ if ($latestDispositionFamily) {
 # whose numbers are read rather than derived is a stale-number finding waiting for the cycle that
 # checks it.
 $measurePlanText = Get-Content -Raw -LiteralPath (Join-Path $channelPath 'Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md') -Encoding UTF8
+# A historical blob is read as UTF-8 explicitly. Windows PowerShell decodes a native command's output
+# with the console code page, which turns every em dash in these artifacts into three characters -- so
+# the first form of this check measured 8,754 characters at a commit that holds 8,746, and would have
+# failed a correct measure. It was caught only because the same code gave a different answer outside
+# the verifier, which is how quiet a mis-decoding is.
+function Get-BlobText {
+    param([Parameter(Mandatory = $true)][string]$Revision, [Parameter(Mandatory = $true)][string]$RepositoryPath)
+    $previousEncoding = [Console]::OutputEncoding
+    try {
+        [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+        return ((& git -C $repositoryRoot show "${Revision}:${RepositoryPath}" 2>$null) -join "`n")
+    }
+    finally { [Console]::OutputEncoding = $previousEncoding }
+}
 function Measure-StatusBlockLines {
     param([Parameter(Mandatory = $true)][scriptblock]$ReadArtifact)
     $measured = 0
@@ -1652,9 +1727,7 @@ function Measure-StatusBlockLines {
         if ($measuredArtifact -eq 'README.md' -or $measuredArtifact -eq 'reviews\README.md') { continue }
         $measuredText = & $ReadArtifact $measuredArtifact
         if (-not $measuredText) { continue }
-        $measuredMatch = [regex]::Match($measuredText, '(?ms)^((?:\*\*)?Status:.*?)(?=?
-\s*?
-|\z)')
+        $measuredMatch = [regex]::Match($measuredText, '(?ms)^((?:\*\*)?Status:.*?)(?=\r?\n\s*\r?\n|\z)')
         if (-not $measuredMatch.Success) { continue }
         $measured += @($measuredMatch.Groups[1].Value.Trim() -split "`r?`n" | Where-Object { $_.Trim() }).Count
     }
@@ -1669,15 +1742,29 @@ function Measure-IndexRowCharacters {
     }
     return $measured
 }
+# The third measure, pinned for AM2's reason: this file's own length. It is the measure that says
+# whether the design verifier is still absorbing the cost of a structural problem, and a number about
+# THIS file that this file does not compute is the one most likely to be left behind by the commit
+# that changes it -- which is what 289 and 1,208 both were.
+$measureLineClaim = [regex]::Match($measurePlanText, 'design-verifier lines\*\* . \*\*([0-9,]+)\*\* now')
+if (-not $measureLineClaim.Success) {
+    $failures.Add("The verification foundation plan's section 4 no longer states the design-verifier line count in the form '**<n>** now'. It is one of the five measures that section exists to keep honest and the only one about this file.")
+}
+else {
+    $measureLineActual = @(Get-Content -LiteralPath $PSCommandPath -Encoding UTF8).Count
+    if ([int]($measureLineClaim.Groups[1].Value -replace ',', '') -ne $measureLineActual) {
+        $failures.Add("The verification foundation plan says this verifier is $($measureLineClaim.Groups[1].Value) lines and it is $measureLineActual.")
+    }
+}
 $measureClaims = @(
     @{ Name = 'status-block lines across the nine artifacts'
        Pattern = 'status-block lines across the nine artifacts\*\* . \*\*([0-9,]+)\*\* at `([0-9a-f]{7,40})` and \*\*([0-9,]+)\*\* now'
        Now = { Measure-StatusBlockLines -ReadArtifact { param($name) Read-RequiredText $name } }
-       Then = { param($rev) Measure-StatusBlockLines -ReadArtifact { param($name) (& git -C $repositoryRoot show "${rev}:docs/future/channel/$($name -replace '\\', '/')" 2>$null) -join "`n" } } }
+       Then = { param($rev) Measure-StatusBlockLines -ReadArtifact { param($name) Get-BlobText -Revision $rev -RepositoryPath "docs/future/channel/$($name -replace '\\', '/')" } } }
     @{ Name = 'Channel index row characters'
        Pattern = 'Channel index row characters\*\* . \*\*([0-9,]+)\*\* at `([0-9a-f]{7,40})` and \*\*([0-9,]+)\*\* now'
        Now = { Measure-IndexRowCharacters -IndexText $channelReadme }
-       Then = { param($rev) Measure-IndexRowCharacters -IndexText ((& git -C $repositoryRoot show "${rev}:docs/future/channel/README.md" 2>$null) -join "`n") } }
+       Then = { param($rev) Measure-IndexRowCharacters -IndexText (Get-BlobText -Revision $rev -RepositoryPath 'docs/future/channel/README.md') } }
 )
 foreach ($measureClaim in $measureClaims) {
     $measureMatch = [regex]::Match($measurePlanText, $measureClaim.Pattern)

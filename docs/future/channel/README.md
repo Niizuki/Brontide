@@ -56,7 +56,7 @@ batch.
 ## Channel 0.2 design foundation
 
 Every artifact below awaits the same cycle: one fresh independent closure re-review, now of the
-correction sequence that runs from S1 through **AM3**. That range is stated here rather than in the
+correction sequence that runs from S1 through **AL4**. That range is stated here rather than in the
 Design reviews row alone because AE4 corrected the row and left this sentence naming a sequence five
 families stale, and AF2 was that omission — a count is not the only thing in an index that goes
 stale. R1 was a disagreement between C8 and the recipient state/event grid about a cancellation

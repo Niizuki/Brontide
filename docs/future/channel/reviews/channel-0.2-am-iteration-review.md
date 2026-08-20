@@ -112,6 +112,38 @@ the repository, historical half included, and the measure must be stated in a fo
 commit. Five probes: a wrong now-value, a wrong then-value, and the stated form removed each fail, for
 both measures. The then-value probe restores `289` and the gate names it.
 
+### AM4 - the measure check's own historical half read the blob through the console code page - corrected
+
+Raised by this pass against the correction it had just made, which is the AK5-AK8 shape: the fix for
+AM3 was written, and then asked the question this pass asks of everything else.
+
+Recomputing a *historical* measure fetches the blob with `git show`. Windows PowerShell decodes a
+native command's output with the console code page rather than UTF-8, so every em dash in these
+artifacts arrived as three characters. The check measured **8,754** characters at a commit that holds
+8,746: it failed a correct claim, and a claim wrong in the same direction would have passed. The
+status-block half escaped only by luck, because it counts lines and a mis-decoded character does not
+add one.
+
+It presented as an intermittent failure -- the same measurement gave 8,746 outside the verifier and
+8,754 inside it -- and was chased rather than re-run until green, which is the only reason it was
+found. **Corrected** by reading every historical blob through an explicit UTF-8 decoder.
+
+The lesson generalises past this check: a verifier that reads history reads through a decoder nobody
+chose, and every artifact in this package is full of em dashes.
+
+## Where this family is dispositioned
+
+AM is the first family raised against the verification work rather than against the design, and under
+the owner ruling of 2026-08-20 its disposition lives in
+[section 2d of the verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md)
+rather than in the completeness review's history. The obligation is unchanged — every finding a
+retained iteration review raises owes a disposition in a record a reviewer reads — and the policy's
+provenance table now declares, per family, which record that is.
+
+The first attempt recorded AM in the completeness review, as every earlier family is, and the cascade
+it produced is what the ruling is about: nine sections of the disposition index saying "unchanged by
+AM", and five freshness checks anchored on a family that had touched no design artifact.
+
 ## What this pass verified rather than believed
 
 Recorded because a pass that reports only what it broke gives the next reviewer no idea what was

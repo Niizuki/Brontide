@@ -403,6 +403,17 @@ The author-side pass condition 4 names has run, at `88f2447`, and is retained as
 raised **AM1**-**AM3** and corrected all three, so **it does not meet condition 4**, which requires a
 pass that finds nothing it can fix.
 
+**This section is that family's disposition record**, under the owner ruling of 2026-08-20 recorded in
+the [review policy](./reviews/README.md#finding-family-provenance). AM is the first family raised
+against the verification work rather than against the design, and the policy's provenance table now
+declares that axis for every family: a `design` family is dispositioned in the completeness review's
+history, a `verification` family here. Neither is exempt. The ruling exists because recording AM in the
+design history made *the newest family* one that had touched no design artifact, and the newest family
+is the anchor for five freshness checks — which were then all answered by nine sections saying
+"unchanged by AM". A plain exemption was rejected as an escape clause of the kind AH4 and AJ5 already
+had to be closed for; the backstop is that a `verification` family may not be named by any design
+artifact, so a misclassified finding whose correction reached the design fails the gate.
+
 Its method is the part worth carrying forward, because none of the three came from reading. It
 recomputed every number these sections state, re-derived every claim one document makes about another,
 and broke every guard W1, W2 and W3 added to see whether the gate names the defect. The last of those
@@ -411,6 +422,14 @@ history it exists to exclude had sat one blank line beneath — a paragraph appe
 check in the gate, probed and green. The bound is now over the whole region between `Status:` and the
 first section heading, with a declared front-matter permit list for everything in it that is not the
 block, so an unrecognised paragraph fails rather than passing quietly.
+
+**AM4** is the pass turning its own method on its own correction, and is why the AM2/AM3 fix is
+trustworthy at all: the recomputation of a *historical* measure fetched the blob with `git show`, and
+Windows PowerShell decodes native output with the console code page, so every em dash in these
+artifacts arrived as three characters. The check measured 8,754 at a commit holding 8,746 -- failing a
+correct claim, and it would have passed a wrong one that erred the same way. Historical blobs are now
+read through an explicit UTF-8 decoder. A verifier that reads history reads through a decoder nobody
+chose.
 
 **AM2** and **AM3** are section 4's two hand-measured numbers, both wrong; they are corrected in place
 above and both halves of both are now recomputed from the repository by the design verifier. The split
@@ -469,13 +488,17 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   commits, which was never the value at any commit; it is corrected under **AM3**, and the four
   characters between 1,306 and the figure here are the AM registration in the Design reviews row,
   added after the correction and caught by the check that now recomputes it; and
-- **design-verifier lines** — **2,247**, down from 2,322 when this work began. It has fallen at each
-  step since. W1 took 169 lines out with the frame-reference registry, W3 took 32 more with the
-  index-row freshness checks, and the AL2 record-keyed sweep took 16 more when the record became an
-  owned fact, against additions for the checks and the notes that replaced them. Two new gates sit
+- **design-verifier lines** — **2,441** now, recomputed by the verifier against itself, against 2,322
+  when this work began. It fell at each step through the AM correction — W1 took 169 lines out with
+  the frame-reference registry, W3 took 32 more with the index-row freshness checks, and the AL2
+  record-keyed sweep took 16 more when the record became an owned fact — and the AM pass put 182 back:
+  the status-region bound, the two recomputed measures above, and the second provenance axis. **That
+  is the wrong direction for this measure and it is stated rather than smoothed over.** Three of those
+  four are checks that compute a number this document used to assert, which is the trade this plan
+  argues for; whether it stays worth it is the question this measure exists to keep visible. Two further gates sit
   beside it — `verify-channel-0.2-properties.ps1` and `verify-channel-0.2-facts.ps1` — so the total
-  verification code in the repository grew; what this measure is for is whether the DESIGN verifier
-  is still absorbing the cost of a structural problem, and on that it has started to shrink.
+  verification code in the repository has grown throughout; what this measure is for is whether the DESIGN verifier
+  is still absorbing the cost of a structural problem, it shrank while the facts and the properties moved out of it, and the AM corrections bought three computed numbers and one structural bound at the price of growing it again.
 
 ## 5. Open questions for the owner
 
