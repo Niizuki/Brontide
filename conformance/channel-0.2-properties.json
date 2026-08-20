@@ -402,7 +402,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "S2",
@@ -443,7 +450,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "S3",
@@ -484,7 +498,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "S4",
@@ -525,7 +546,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "S5",
@@ -566,7 +594,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "S6",
@@ -607,7 +642,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "I1",
@@ -648,7 +690,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "I2",
@@ -689,7 +738,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "I3",
@@ -730,7 +786,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "I4",
@@ -771,7 +834,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "I5",
@@ -812,7 +882,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "I6",
@@ -853,7 +930,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "I7",
@@ -894,7 +978,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "C4-P1",
@@ -946,7 +1037,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "C1-P1",
@@ -987,7 +1085,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "C2-P1",
@@ -1029,7 +1134,14 @@
         "cross-stack"
       ],
       "executableHere": "neutral validation only.",
-      "composedFrom": "Evaluated through S1 and S4, which are the session machine's statement of the same two claims. Two implementations of one claim is the duplication W1 retires, so the capability property calls the machine's rather than restating it."
+      "composedFrom": "Evaluated through S1 and S4, which are the session machine's statement of the same two claims. Two implementations of one claim is the duplication W1 retires, so the capability property calls the machine's rather than restating it.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "C3-P1",
@@ -1070,7 +1182,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "C5-P1",
@@ -1111,7 +1230,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "C6-P1",
@@ -1152,7 +1278,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "C7-P1",
@@ -1193,7 +1326,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "C8-P1",
@@ -1235,7 +1375,14 @@
         "cross-stack"
       ],
       "executableHere": "neutral validation only.",
-      "composedFrom": "Evaluated through I2 and I3, which are the interaction machine's statement of the same two claims, for the same reason C2-P1 is evaluated through S1 and S4."
+      "composedFrom": "Evaluated through I2 and I3, which are the interaction machine's statement of the same two claims, for the same reason C2-P1 is evaluated through S1 and S4.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "C9-P1",
@@ -1276,7 +1423,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "C10-P1",
@@ -1317,7 +1471,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "C11-P1",
@@ -1358,7 +1519,14 @@
         "neutral peer",
         "cross-stack"
       ],
-      "executableHere": "neutral validation only."
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     },
     {
       "id": "C12-P1",
@@ -1400,7 +1568,14 @@
         "cross-stack"
       ],
       "executableHere": "neutral validation only.",
-      "clauseScope": "Three clauses with three scopes, stated because a property whose scope is unstated is a property a reader takes for more than it is. The first is per vector and is what the mutation falsifies. The second is over this declaration file itself and is evaluated once: every C1-C12 group must declare at least one capability-wide property. The third -- that neither stack nor the neutral peer imports the other's semantic runtime -- is not a fact any vector carries; it is enforced by the repository's dependency guards, and this file records that it is delegated there rather than pretending to evaluate it."
+      "clauseScope": "Three clauses with three scopes, stated because a property whose scope is unstated is a property a reader takes for more than it is. The first is per vector and is what the mutation falsifies. The second is over this declaration file itself and is evaluated once: every C1-C12 group must declare at least one capability-wide property. The third -- that neither stack nor the neutral peer imports the other's semantic runtime -- is not a fact any vector carries; it is enforced by the repository's dependency guards, and this file records that it is delegated there rather than pretending to evaluate it.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
     }
   ]
 }

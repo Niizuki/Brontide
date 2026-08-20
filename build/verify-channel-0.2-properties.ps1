@@ -408,7 +408,13 @@ function Invoke-C4P2 {
 $legalSessionTransitions = @(
     'unestablished>established', 'unestablished>establishing', 'unestablished>closed',
     'establishing>established', 'establishing>closed',
-    'established>draining', 'draining>faulted', 'draining>closed')
+    'established>draining', 'draining>faulted', 'draining>closed',
+    # The machine's two `any nonterminal` rows -- a fatal recognized Channel violation and a
+    # transport/process loss -- expanded over the nonterminal states. They were missing until AO1,
+    # and `draining>faulted` was here only because a concrete row states that one as well, so `S1`
+    # and `C2-P1` were red on a session faulting from any of the three states below. The
+    # cross-check further down is what keeps this list and the artifact in step, in both directions.
+    'unestablished>faulted', 'establishing>faulted', 'established>faulted')
 $terminalSessionStates = @('closed', 'faulted')
 
 function Get-Timeline { param($Vector) if ($null -eq $Vector.sessionTimeline) { return @() } return @($Vector.sessionTimeline) }
@@ -936,10 +942,50 @@ foreach ($capabilityNumber in 1..12) {
 # transition table, and the artifact must declare no accepted edge this file does not carry. A row
 # added there and forgotten here would make S1 red on conforming behaviour, and a row deleted there
 # and left here would make S1 unable to fail on it.
+#
+# AO1: that is what the comment promised and the row reader could not deliver. The table's last
+# two rows say `any nonterminal` in the From cell -- a fatal recognized Channel violation and a
+# transport/process loss both fault from wherever the session is -- and the reader required a
+# backticked lowercase state there, so it saw eight rows out of ten and reported the two lists
+# identical. `S1` and `C2-P1` were therefore red on a session that faulted from `established`,
+# which every column of the coverage grid's `established` row routes to `faulted`. That is AE1's
+# defect -- a property that cannot stay green on conforming behaviour -- reached through the guard
+# written to prevent it.
+#
+# So the From cell is PARSED rather than matched, over the states the machine itself declares, and
+# a cell this parser does not recognise is a failure rather than a row it drops quietly. The
+# direction is AM1's permit list: a guard that silently drops what it cannot read certifies its own
+# completeness, which is the shape this programme has now recorded eleven times.
 $sessionMachinePath = Join-Path $channelPath 'Brontide-Channel-0.2-Session-State-Machine-0.1.md'
 $sessionMachineText = Get-Content -Raw -LiteralPath $sessionMachinePath -Encoding UTF8
-$transitionRows = @([regex]::Matches($sessionMachineText, '(?m)^\| `([a-z]+)` \| [^|]+ \| `([a-z]+)` \|'))
-$artifactEdges = @($transitionRows | ForEach-Object { "$($_.Groups[1].Value)>$($_.Groups[2].Value)" } | Sort-Object -Unique)
+$sessionStateRows = @([regex]::Matches($sessionMachineText, '(?m)^\| `([a-z]+)` \| (yes|no) \| '))
+$declaredSessionStates = @($sessionStateRows | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+# Which states are terminal is the artifact's own column, not a list here. Expanding `any
+# nonterminal` over a hardcoded copy of that fact would be AN2's second enumeration arriving inside
+# the fix for AO1; the copy this file does keep -- `$terminalSessionStates`, which S2 and S6 read --
+# is checked against the column rather than trusted.
+$terminalDeclared = @($sessionStateRows | Where-Object { $_.Groups[2].Value -eq 'yes' } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+if ((@($terminalDeclared | Sort-Object) -join ',') -cne (@($terminalSessionStates | Sort-Object) -join ',')) {
+    $failures.Add("The session state machine marks '$($terminalDeclared -join "', '")' terminal and this file treats '$($terminalSessionStates -join "', '")' as terminal. Every property that asks whether a session has ended reads this list, and an ``any nonterminal`` transition row expands over its complement.")
+}
+$transitionSection = [regex]::Match($sessionMachineText, '(?ms)^## Legal transition table\r?\n(.+?)(?=^## |\z)').Groups[1].Value
+$artifactEdgeList = [System.Collections.Generic.List[string]]::new()
+foreach ($transitionRow in [regex]::Matches($transitionSection, '(?m)^\| ([^|]+) \| [^|]+ \| `([a-z]+)` \|')) {
+    $fromCell = $transitionRow.Groups[1].Value.Trim()
+    $toState = $transitionRow.Groups[2].Value
+    $fromStates = @()
+    if ($fromCell -match '^`([a-z]+)`$') { $fromStates = @($Matches[1]) }
+    elseif ($fromCell -eq 'any nonterminal') { $fromStates = @($declaredSessionStates | Where-Object { $terminalDeclared -notcontains $_ }) }
+    else {
+        $failures.Add("The session state machine's legal transition table has a From cell this check cannot read: '$fromCell'. A row it cannot read is a row it drops, and dropping the two ``any nonterminal`` rows is what made S1 and C2-P1 red on a conforming session fault -- AO1. Either the cell names a state, or it names a class this parser is taught.")
+        continue
+    }
+    foreach ($fromState in $fromStates) { $artifactEdgeList.Add("$fromState>$toState") }
+}
+$artifactEdges = @($artifactEdgeList | Sort-Object -Unique)
+if ($declaredSessionStates.Count -eq 0) {
+    $failures.Add('The session state machine publishes no state rows this check can read, so an `any nonterminal` transition row would expand over an empty set and the comparison below would pass by seeing nothing.')
+}
 if ($artifactEdges.Count -eq 0) {
     $failures.Add('The session state machine publishes no legal transition rows this check can read, so S1 would be evaluated against a table nothing pins. S1 is the property that reads that table.')
 }
@@ -1014,6 +1060,12 @@ function Remove-PublishedField {
 
 $evaluationCount = 0
 $mutationCount = 0
+# The fifteen properties condition 2 of the hold names, counted separately because section 2a of
+# the plan states their run as its own sentence. Taken from the hold's own list rather than from a
+# bare number, so a property added to that condition joins this measure without anyone remembering.
+$conditionTwoProperties = @('C4-P1', 'C4-P2') + @(1..6 | ForEach-Object { "S$_" }) + @(1..7 | ForEach-Object { "I$_" })
+$conditionTwoEvaluations = 0
+$conditionTwoVectors = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
 
 foreach ($property in $properties.properties) {
     $propertyId = [string]$property.id
@@ -1048,6 +1100,10 @@ foreach ($property in $properties.properties) {
         $expected = $expectations[$vectorId]
         $result = & $evaluator -VectorId $vectorId -Vector $vector -Steps $vectorIndex[$vectorId]
         $evaluationCount++
+        if ($conditionTwoProperties -contains $propertyId) {
+            $conditionTwoEvaluations++
+            [void]$conditionTwoVectors.Add($vectorId)
+        }
         foreach ($evaluationError in $result.Errors) { $failures.Add($evaluationError) }
 
         if ($result.Verdict -eq 'red') { $redCount++ } else { $greenCount++ }
@@ -1115,6 +1171,33 @@ foreach ($property in $properties.properties) {
         if ($publishedResult.Verdict -ne [string]$operandMutation.published) {
             $failures.Add("Operand mutation '$($operandMutation.id)' records the published verdict on '$vectorId' as $($operandMutation.published) and the published form evaluates $($publishedResult.Verdict).")
         }
+    }
+}
+
+# AO2. Section 2a of the plan states what this gate runs, in two sentences and four numbers, and
+# every one of them was prose. Adding one vector under AO1 moved all four, and nothing would have
+# said so -- which is AN3, AN4 and AN5's shape, in the section describing this file. They are
+# recomputed here for the reason the plan's section 4 measures are recomputed next door: a number
+# about a run belongs to the thing that runs.
+$countClaims = @(
+    @{ Name = 'the fifteen properties condition 2 names'
+       Pattern = 'run in the gate on every commit: ([0-9,]+) evaluations over ([0-9,]+) declared inputs'
+       Evaluations = $conditionTwoEvaluations; Inputs = $conditionTwoVectors.Count }
+    @{ Name = 'all twenty-six properties'
+       Pattern = 'The gate runs ([0-9,]+) evaluations over ([0-9,]+) declared inputs'
+       Evaluations = $evaluationCount; Inputs = @($vectorFile.vectors).Count }
+)
+foreach ($countClaim in $countClaims) {
+    $countMatch = [regex]::Match($planPlain, $countClaim.Pattern)
+    if (-not $countMatch.Success) {
+        $failures.Add("The verification foundation plan's section 2a no longer states what this gate runs for '$($countClaim.Name)' in the form this check recomputes. A count of a run that only prose carries is a stale number waiting for the next input, which is what adding one vector did to all four of them.")
+        continue
+    }
+    if ([int]($countMatch.Groups[1].Value -replace ',', '') -ne $countClaim.Evaluations) {
+        $failures.Add("The verification foundation plan says this gate runs $($countMatch.Groups[1].Value) evaluations for '$($countClaim.Name)' and it runs $($countClaim.Evaluations).")
+    }
+    if ([int]($countMatch.Groups[2].Value -replace ',', '') -ne $countClaim.Inputs) {
+        $failures.Add("The verification foundation plan says '$($countClaim.Name)' runs over $($countMatch.Groups[2].Value) declared inputs and it runs over $($countClaim.Inputs).")
     }
 }
 

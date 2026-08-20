@@ -34,6 +34,12 @@ Invoke-Checked {
 Invoke-Checked {
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-facts.ps1')
 }
+# The three gates above check the design package; this one checks THEM, by making each guard's own
+# subject present and requiring the guard to say so. It mutates the working tree and restores from
+# bytes it read first, and it refuses to run over a path with uncommitted changes. AO3.
+Invoke-Checked {
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-guards.ps1')
+}
 Invoke-Checked {
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-evidence.ps1')
 }

@@ -172,6 +172,7 @@ dependency instead of narrowing it.
 | AL | closure-review | design | closure review 16 attestation |
 | AM | iteration | verification | W1-W3 verification-foundation iteration review |
 | AN | iteration | verification | second W1-W3 verification-foundation iteration review |
+| AO | iteration | verification | third W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -274,8 +275,11 @@ nothing it can fix. The first is retained as the
 [second W1-W3 verification-foundation iteration review](./channel-0.2-an-iteration-review.md), which
 raised **AN1**-**AN6** and corrected all six.
 
-**A third pass over the same scope is the live path**, and the standing instruction is unchanged: it
-re-runs the probes the previous passes recorded rather than trusting them. The second pass did, and
+**A fourth pass over the same scope is the live path**, and the standing instruction is now cheaper
+to follow than it was: `build/verify-channel-0.2-guards.ps1` runs the 45 probes the three passes
+validated, so the next pass starts by running them rather than by rebuilding them from prose. What
+that leaves it is the work the third pass did not finish — the design verifier's seventy-eight
+claim blocks, of which it tested the totality and derivation claims and left the narrative ones. The second pass did, and
 every one reproduced — so all six of its findings came from elsewhere, and where they came from is the
 brief worth inheriting. Every one was in the *second* place a fact was stated rather than the first,
 so the question that paid was not "is this number right" but "where else is this number", asked
@@ -987,6 +991,14 @@ context elsewhere — never as evidence that their conclusions are right.
   them. Every one came from asking where else a corrected fact is stated: AN1 and AN2 are guards whose
   scope is narrower than the question their own comments claim, and AN3-AN6 are four facts corrected
   in the record that owns them and left standing in one to four other records.
+- [Third W1-W3 verification-foundation iteration review](./channel-0.2-ao-iteration-review.md) — the
+  same scope at `d01e706`; raised **AO1**-**AO3** and corrected all three, so condition 4 is **still
+  not met**. It took the brief the AN review left — read each guard's comment as a claim and test it
+  against the code — and the fifteenth such block gave **AO1**, which is the most serious finding the
+  verification work has produced: `S1` and `C2-P1` were red on a conforming session fault, because the
+  cross-check that exists to prevent exactly that could not read the transition table's two
+  `any nonterminal` rows. **AO3** is the probes themselves: three passes rebuilt them from the prose of
+  the pass before, four had rotted unnoticed, and they are now a corpus the gate runs.
 
 ## Disclosed process deviation in the T1-T4 correction
 

@@ -1173,6 +1173,190 @@
       "deterministicExpectedObservation": true
     },
     {
+      "id": "S-conforming-fault-from-established",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "S6",
+        "I1",
+        "I2",
+        "I3",
+        "I4",
+        "I5",
+        "I6",
+        "I7",
+        "C4-P1",
+        "C1-P1",
+        "C2-P1",
+        "C3-P1",
+        "C5-P1",
+        "C6-P1",
+        "C7-P1",
+        "C8-P1",
+        "C9-P1",
+        "C10-P1",
+        "C11-P1",
+        "C12-P1"
+      ],
+      "role": "additional-green",
+      "summary": "One session establishes on a fixed profile, admits and dispatches one interaction, takes its terminal history, and then faults from `established` on a fatal recognized Channel violation. The session machine's `any nonterminal` transition rows make that legal from every nonterminal state and every column of the coverage grid's `established` row routes to `faulted`, so this is conforming behaviour. It is the input AO1 was raised for: the legal-transition list this gate evaluates S1 against carried the eight concrete rows and neither wildcard row, so S1 and C2-P1 were red here.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "outcome",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "faulted",
+          "event": "fatal-protocol-fault",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "S1": "green",
+        "S2": "green",
+        "S3": "green",
+        "S4": "green",
+        "S5": "green",
+        "S6": "green",
+        "I1": "green",
+        "I2": "green",
+        "I3": "green",
+        "I4": "green",
+        "I5": "green",
+        "I6": "green",
+        "I7": "green",
+        "C4-P1": "green",
+        "C1-P1": "green",
+        "C2-P1": "green",
+        "C3-P1": "green",
+        "C5-P1": "green",
+        "C6-P1": "green",
+        "C7-P1": "green",
+        "C8-P1": "green",
+        "C9-P1": "green",
+        "C10-P1": "green",
+        "C11-P1": "green",
+        "C12-P1": "green"
+      },
+      "deterministicExpectedObservation": true,
+      "raisedBy": "AO1"
+    },
+    {
       "id": "S-two-sessions-conforming",
       "capability": "C2/C4",
       "propertyMemberships": [
