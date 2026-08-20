@@ -131,6 +131,36 @@ found. **Corrected** by reading every historical blob through an explicit UTF-8 
 The lesson generalises past this check: a verifier that reads history reads through a decoder nobody
 chose, and every artifact in this package is full of em dashes.
 
+### AM5 - the review-target pin was checked by commit subject, and the merge view and the branch view cannot both satisfy it - corrected
+
+**Found by CI, which is the finding.** The repository gate passed locally on every commit of this pass
+and failed on the pull request, and the two are not running the same check on the same thing: a
+`pull_request` build checks out the **merge commit**, and this check asks `git log -1` which commit
+last changed one of the eight design artifacts.
+
+Path-limited `git log` simplifies history. This branch changed a design artifact and changed it back --
+the AM paragraph was added to the completeness review in one commit and removed in the next when the
+disposition moved to the plan -- so the merge is TREESAME to `main` for those eight paths, git follows
+`main`, and the answer is `main`'s last design commit. On the linear branch the answer is this
+branch's. **Only one of the two can satisfy a subject match, and it is not a tie**: the merge view is
+what `main` reports after merging, so the pin that satisfied the branch would have turned `main` red.
+
+The policy's own clause has always been broader than the check enforcing it: *"Review that commit or
+any later commit whose design artifacts hash identically to it."* **Corrected** by checking what the
+clause says — resolve the pinned subject to a commit, then compare the blob hash of each design
+artifact at that commit against the tree a reviewer would read now. That question has the same answer
+in both views, and U6 is still caught, because a design artifact that really moved has a different
+hash. The pinned subject is matched against subject lines rather than with `--grep`, since these
+commit messages quote each other's subjects.
+
+Verified in both views: the merge commit was reconstructed locally, reproduced the CI failure exactly
+under the old check, and passes under the new one.
+
+**The method note worth carrying forward.** Nine cycles of this programme have asked whether a guard
+can fail. This is a guard that could not *hold* — its answer depended on which of two legitimate views
+of the same history it was run against, and the local gate can only ever see one of them. A check that
+reads git history is running against a view, and the view is part of the check.
+
 ## Where this family is dispositioned
 
 AM is the first family raised against the verification work rather than against the design, and under

@@ -922,16 +922,62 @@ $designArtifactPathspec = @(
     'docs/future/channel/Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md',
     'docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md'
 )
+# AM5, and the check is now written over the rule the policy actually states rather than over the
+# commit subject. The clause says: "Review that commit or any later commit whose design artifacts hash
+# identically to it." This check demanded the SUBJECT of the most recent commit to touch one of those
+# paths, which is a narrower thing, and the two disagree whenever a branch changes a design artifact
+# and changes it back -- as the AM branch did, adding a paragraph to the completeness review in one
+# commit and removing it in the next.
+#
+# That disagreement is not academic and it is not a tie. Path-limited `git log` simplifies history: on
+# the pull-request MERGE commit the merge is TREESAME to main for those eight paths, so git follows
+# main and reports main's last design commit, while on the linear branch it reports the branch's. Only
+# one of the two could satisfy a subject match, and the one that matters is the merge -- because it is
+# what `main` will report after the merge, so a pin that satisfied the branch would turn main red.
+# CI found this; the local gate could not, because the local gate never sees the merge view.
+#
+# Comparing the design artifacts' blob hashes answers the policy's question directly and gives the
+# same answer in both views: a pin is valid when the artifacts at the pinned commit are the artifacts
+# a reviewer would read now.
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot '.git')) {
     $pendingDesignEdits = & git -C $repositoryRoot status --porcelain -- $designArtifactPathspec 2>$null
     $latestDesignSubject = (& git -C $repositoryRoot log -1 --format=%s -- $designArtifactPathspec 2>$null)
     if ($LASTEXITCODE -eq 0 -and $latestDesignSubject -and -not $pendingDesignEdits) {
         $flowedReviewReadme = Get-FlowedText $reviewReadme
-        if ($flowedReviewReadme.IndexOf('The current review target is the commit titled', [System.StringComparison]::Ordinal) -lt 0) {
+        $pinnedSubjectMatch = [regex]::Match($flowedReviewReadme, 'The current review target is the commit titled `([^`]+)`')
+        if (-not $pinnedSubjectMatch.Success) {
             $failures.Add('The review policy names no current review target, so a fresh reviewer has nothing to pin its attestation to.')
         }
-        elseif ($flowedReviewReadme.IndexOf("The current review target is the commit titled ``$latestDesignSubject``", [System.StringComparison]::Ordinal) -lt 0) {
-            $failures.Add("The review policy's current review target is not the most recent commit to change a design artifact, which is '$latestDesignSubject'. This is U6: the clause is written in the commit before the one that supersedes it, and the reviewer is sent at artifacts that have already moved.")
+        else {
+            $pinnedSubject = $pinnedSubjectMatch.Groups[1].Value
+            # The named commit has to exist. A subject naming nothing is a pin to nowhere, which is
+            # worse than a stale one: the reviewer cannot even discover that it moved.
+            # Matched against the SUBJECT LINE, not against the message: these commit bodies quote
+            # other commits' subjects, and `--grep` would resolve a pin to whichever commit mentioned
+            # it last.
+            $pinnedCommit = @(& git -C $repositoryRoot log --format="%H`t%s" 2>$null |
+                Where-Object { ($_ -split "`t", 2)[1] -ceq $pinnedSubject } |
+                ForEach-Object { ($_ -split "`t", 2)[0] } |
+                Select-Object -First 1)
+            if (-not $pinnedCommit -or -not $pinnedCommit[0]) {
+                $failures.Add("The review policy pins the review target to a commit titled '$pinnedSubject' and no commit in this history carries that subject. The most recent commit to change a design artifact is '$latestDesignSubject'.")
+            }
+            else {
+                # Every design artifact, compared by blob hash at the pinned commit against the tree a
+                # reviewer would read now. `git rev-parse <commit>:<path>` is the artifact's identity,
+                # which is what the policy's sentence is about.
+                $movedArtifacts = [System.Collections.Generic.List[string]]::new()
+                foreach ($designArtifact in $designArtifactPathspec) {
+                    $pinnedBlob = (& git -C $repositoryRoot rev-parse "$($pinnedCommit[0]):$designArtifact" 2>$null)
+                    $currentBlob = (& git -C $repositoryRoot rev-parse "HEAD:$designArtifact" 2>$null)
+                    if (-not $pinnedBlob -or -not $currentBlob -or $pinnedBlob -cne $currentBlob) {
+                        $movedArtifacts.Add(($designArtifact -split '/')[-1])
+                    }
+                }
+                if ($movedArtifacts.Count -gt 0) {
+                    $failures.Add("The review policy pins the review target to '$pinnedSubject', and $($movedArtifacts.Count) design artifact(s) have moved since that commit: $($movedArtifacts -join ', '). The policy's own clause permits any commit whose design artifacts hash identically to the pinned one, and these do not. The most recent commit to change one is '$latestDesignSubject'. This is U6: the reviewer is sent at artifacts that have already moved.")
+                }
+            }
         }
     }
 }
@@ -2171,8 +2217,12 @@ foreach ($perSessionMatch in [regex]::Matches($flowedBrief, 'profile(.{0,120}?)(
 # clause ahead of its own commit would otherwise be told the date is wrong every time. The subject
 # check carried this guard and the date check added beside it did not, which made the gate unusable
 # mid-pass on any day the correction crossed midnight -- the exact condition AI8 was raised for.
-if ($latestDesignSubject -and $LASTEXITCODE -eq 0 -and -not $pendingDesignEdits) {
-    $latestDesignDate = (& git -C $repositoryRoot log -1 --format=%ad --date=short -- $designArtifactPathspec 2>$null)
+# AM5 reaches this check too, and it would have gone wrong a day later rather than immediately: the
+# date came from `git log -1` over the design paths, which is the answer that differs between the merge
+# view and the branch view. It agreed today only because both commits fall on 2026-08-20. The date is
+# now the date of the PINNED commit, which is the commit the clause is dating.
+if ($pinnedCommit -and $pinnedCommit[0] -and -not $pendingDesignEdits) {
+    $latestDesignDate = (& git -C $repositoryRoot log -1 --format=%ad --date=short $pinnedCommit[0] 2>$null)
     if ($latestDesignDate -and (Get-FlowedText $reviewReadme) -notmatch "committed $latestDesignDate") {
         $failures.Add("The review policy's pin clause does not date the review target '$latestDesignDate', which is when the commit it names was made. The X6 check compares the subject and never the date, so a wrong date survives every correction that rewrites the sentence. This is AI8.")
     }

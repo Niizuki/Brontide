@@ -423,6 +423,16 @@ check in the gate, probed and green. The bound is now over the whole region betw
 first section heading, with a declared front-matter permit list for everything in it that is not the
 block, so an unrecognised paragraph fails rather than passing quietly.
 
+**AM5** was found by CI rather than by this pass, and is the sharper of the two. The review-target pin
+was checked by commit subject against `git log -1` over the eight design artifacts, and a
+`pull_request` build runs that on the **merge commit** while the local gate runs it on the linear
+branch. This branch changed a design artifact and changed it back, so the merge is TREESAME to `main`
+for those paths and the two views name different commits — and the merge view is the one that matters,
+because it is what `main` reports after merging. The check now compares the design artifacts' blob
+hashes at the pinned commit against the tree a reviewer reads now, which is what the policy's clause
+says and gives one answer in both views. A guard whose answer depends on which view of history runs it
+is a guard that cannot hold, and no local run could have found it.
+
 **AM4** is the pass turning its own method on its own correction, and is why the AM2/AM3 fix is
 trustworthy at all: the recomputation of a *historical* measure fetched the blob with `git show`, and
 Windows PowerShell decodes native output with the console code page, so every em dash in these
@@ -488,7 +498,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   commits, which was never the value at any commit; it is corrected under **AM3**, and the four
   characters between 1,306 and the figure here are the AM registration in the Design reviews row,
   added after the correction and caught by the check that now recomputes it; and
-- **design-verifier lines** — **2,441** now, recomputed by the verifier against itself, against 2,322
+- **design-verifier lines** — **2,491** now, recomputed by the verifier against itself, against 2,322
   when this work began. It fell at each step through the AM correction — W1 took 169 lines out with
   the frame-reference registry, W3 took 32 more with the index-row freshness checks, and the AL2
   record-keyed sweep took 16 more when the record became an owned fact — and the AM pass put 182 back:
@@ -498,7 +508,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   argues for; whether it stays worth it is the question this measure exists to keep visible. Two further gates sit
   beside it — `verify-channel-0.2-properties.ps1` and `verify-channel-0.2-facts.ps1` — so the total
   verification code in the repository has grown throughout; what this measure is for is whether the DESIGN verifier
-  is still absorbing the cost of a structural problem, it shrank while the facts and the properties moved out of it, and the AM corrections bought three computed numbers and one structural bound at the price of growing it again.
+  is still absorbing the cost of a structural problem, it shrank while the facts and the properties moved out of it, and the AM corrections bought three computed numbers, one structural bound and a pin check that compares artifacts instead of commit subjects, at the price of growing it again.
 
 ## 5. Open questions for the owner
 
