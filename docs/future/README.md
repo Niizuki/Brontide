@@ -164,9 +164,11 @@ cycles later. Condition 2 of the hold is met, and the eleven remaining per-capab
 twenty-six now execute, and no cell in either of the completeness review's property tables reads
 `owed`.
 
-**W3's status-block half has landed too.** The nine design artifacts' status blocks carried 265 lines
-of correction history between them and now carry 45: each states what the artifact is and what it
-awaits and links to the
+**W3's status-block half has landed too.** The nine design artifacts' status blocks carried a large
+majority of their length in correction history -- the before and after totals are the measure
+[the plan's section 4 owns and recomputes](./channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md#4-what-to-measure),
+and are cited here rather than restated, under **AN5** -- and each now states what the artifact is and
+what it awaits and links to the
 [disposition index](./channel/reviews/channel-0.2-disposition-index.md), which is a retained review
 record rather than a design artifact and holds that history verbatim. Two freshness checks collapse
 into one that bounds the block at five lines and requires its pointer to resolve. Moving the prose
@@ -203,7 +205,7 @@ of the record, and nowhere else in the sixteen files it sweeps. The fourth and f
 found by reading rather than by sweeping, which is the limit worth carrying forward: a check keyed to
 a fact's own words cannot see a passage that states a third of it.
 
-**Condition 4 has now run once and is not met.** The author-side pass over W1-W3 is retained as the
+**Condition 4 has now run twice and is not met.** The author-side pass over W1-W3 is retained as the
 [W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-am-iteration-review.md);
 it raised **AM1**-**AM3** and corrected all three, and that condition asks for a pass that finds
 nothing it can fix. **AM1** is the W3 status-block length bound measuring to the first blank line while
@@ -212,7 +214,21 @@ every check in the gate. **AM2** and **AM3** are two of the plan's five section 
 numbers the repository does not produce; the measures the gates compute were right and both left to
 prose were wrong. The bound is now over the whole region above the first heading with a declared
 front-matter permit list, and both measures are recomputed by the design verifier, historical halves
-included. A second pass over the same scope is the next work, and the hold stands until it finds
+included.
+
+**The second pass has run and is not met either**, retained as the
+[second W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-an-iteration-review.md);
+it raised **AN1**-**AN6** and corrected all six. It began by re-running every probe the AM review
+records, as that review asks of it, and every one reproduced -- so none of the six came from there.
+All six came from the question that pass did not ask, *where else is this stated*. **AN1** and **AN2**
+are guards whose scope is narrower than the question their own comments claim, each inside a check
+written to close an earlier instance of the same class: the status-block pointer was never checked to
+resolve, only that the index has a section for the artifact, so renaming a heading left nine pointers
+dead with the gate green; and the review-target pin compares eight of the nine design artifacts,
+omitting the redesign plan, so a commit changing only the artifact that carries the owner rulings left
+the pin green. **AN3**-**AN6** are four facts corrected in the record that owns them and left standing
+in one to four others -- including the status-block line total AM2 corrected while naming two of its
+four surfaces. A third pass over the same scope is the next work, and the hold stands until one finds
 nothing.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
