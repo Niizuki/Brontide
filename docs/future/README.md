@@ -164,7 +164,7 @@ cycles later. Condition 2 of the hold is met, and the eleven remaining per-capab
 twenty-six now execute, and no cell in either of the completeness review's property tables reads
 `owed`.
 
-**W3's status-block half has landed too.** The nine design artifacts' status blocks carried 289 lines
+**W3's status-block half has landed too.** The nine design artifacts' status blocks carried 265 lines
 of correction history between them and now carry 45: each states what the artifact is and what it
 awaits and links to the
 [disposition index](./channel/reviews/channel-0.2-disposition-index.md), which is a retained review
@@ -201,8 +201,28 @@ to it. Run against this commit's parent -- the AL2-corrected package, where the 
 sweep is green -- it fires on the three surfaces that rendered the reference and hand-wrote the rest
 of the record, and nowhere else in the sixteen files it sweeps. The fourth and fifth surfaces are
 found by reading rather than by sweeping, which is the limit worth carrying forward: a check keyed to
-a fact's own words cannot see a passage that states a third of it. Conditions 1, 2 and 3 of the hold
-are met and condition 4, an author-side iteration pass over that work, has not run.
+a fact's own words cannot see a passage that states a third of it.
+
+**Condition 4 has now run once and is not met.** The author-side pass over W1-W3 is retained as the
+[W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-am-iteration-review.md);
+it raised **AM1**-**AM3** and corrected all three, and that condition asks for a pass that finds
+nothing it can fix. **AM1** is the W3 status-block length bound measuring to the first blank line while
+the disposition history it excludes sat one blank line beneath it -- a paragraph appended there passed
+every check in the gate. **AM2** and **AM3** are two of the plan's five section 4 measures stating
+numbers the repository does not produce; the measures the gates compute were right and both left to
+prose were wrong. The bound is now over the whole region above the first heading with a declared
+front-matter permit list, and both measures are recomputed by the design verifier, historical halves
+included. A second pass over the same scope is the next work, and the hold stands until it finds
+nothing.
+
+**An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
+verification work rather than the design, and putting it in the completeness review's disposition
+history -- where every earlier family belongs -- made *the newest family* one that had touched no
+design artifact, which is the anchor five freshness checks ask their question against. Each family now
+declares what it was raised against, and its disposition is required in the record that owns that
+class: the completeness review for `design`, the verification foundation plan for `verification`.
+Nothing is exempt, and a `verification` family named by any design artifact fails the gate, because a
+finding whose correction reached the design is a design finding whatever its author called it.
 
 ### Channel 0.2 first-batch remaining work
 

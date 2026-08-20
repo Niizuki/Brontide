@@ -74,7 +74,7 @@ $reviewReadme = Read-RequiredText 'reviews\README.md'
 
 # W3. An artifact's status block states what the artifact is and what it awaits, and nothing else.
 # Its correction history is owned by the disposition index, which is a review record rather than a
-# design artifact. Nine status blocks had reached 289 lines between them and none of it said what the
+# design artifact. Nine status blocks had reached 265 lines between them and none of it said what the
 # artifact means -- it said what had once been wrong with it, which is surface every cold reviewer
 # then has to read. The narrative checks below therefore read the index rather than the blocks: the
 # text was moved verbatim, so each check asks the same question of the one file that now carries the
@@ -922,16 +922,62 @@ $designArtifactPathspec = @(
     'docs/future/channel/Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md',
     'docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md'
 )
+# AM5, and the check is now written over the rule the policy actually states rather than over the
+# commit subject. The clause says: "Review that commit or any later commit whose design artifacts hash
+# identically to it." This check demanded the SUBJECT of the most recent commit to touch one of those
+# paths, which is a narrower thing, and the two disagree whenever a branch changes a design artifact
+# and changes it back -- as the AM branch did, adding a paragraph to the completeness review in one
+# commit and removing it in the next.
+#
+# That disagreement is not academic and it is not a tie. Path-limited `git log` simplifies history: on
+# the pull-request MERGE commit the merge is TREESAME to main for those eight paths, so git follows
+# main and reports main's last design commit, while on the linear branch it reports the branch's. Only
+# one of the two could satisfy a subject match, and the one that matters is the merge -- because it is
+# what `main` will report after the merge, so a pin that satisfied the branch would turn main red.
+# CI found this; the local gate could not, because the local gate never sees the merge view.
+#
+# Comparing the design artifacts' blob hashes answers the policy's question directly and gives the
+# same answer in both views: a pin is valid when the artifacts at the pinned commit are the artifacts
+# a reviewer would read now.
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot '.git')) {
     $pendingDesignEdits = & git -C $repositoryRoot status --porcelain -- $designArtifactPathspec 2>$null
     $latestDesignSubject = (& git -C $repositoryRoot log -1 --format=%s -- $designArtifactPathspec 2>$null)
     if ($LASTEXITCODE -eq 0 -and $latestDesignSubject -and -not $pendingDesignEdits) {
         $flowedReviewReadme = Get-FlowedText $reviewReadme
-        if ($flowedReviewReadme.IndexOf('The current review target is the commit titled', [System.StringComparison]::Ordinal) -lt 0) {
+        $pinnedSubjectMatch = [regex]::Match($flowedReviewReadme, 'The current review target is the commit titled `([^`]+)`')
+        if (-not $pinnedSubjectMatch.Success) {
             $failures.Add('The review policy names no current review target, so a fresh reviewer has nothing to pin its attestation to.')
         }
-        elseif ($flowedReviewReadme.IndexOf("The current review target is the commit titled ``$latestDesignSubject``", [System.StringComparison]::Ordinal) -lt 0) {
-            $failures.Add("The review policy's current review target is not the most recent commit to change a design artifact, which is '$latestDesignSubject'. This is U6: the clause is written in the commit before the one that supersedes it, and the reviewer is sent at artifacts that have already moved.")
+        else {
+            $pinnedSubject = $pinnedSubjectMatch.Groups[1].Value
+            # The named commit has to exist. A subject naming nothing is a pin to nowhere, which is
+            # worse than a stale one: the reviewer cannot even discover that it moved.
+            # Matched against the SUBJECT LINE, not against the message: these commit bodies quote
+            # other commits' subjects, and `--grep` would resolve a pin to whichever commit mentioned
+            # it last.
+            $pinnedCommit = @(& git -C $repositoryRoot log --format="%H`t%s" 2>$null |
+                Where-Object { ($_ -split "`t", 2)[1] -ceq $pinnedSubject } |
+                ForEach-Object { ($_ -split "`t", 2)[0] } |
+                Select-Object -First 1)
+            if (-not $pinnedCommit -or -not $pinnedCommit[0]) {
+                $failures.Add("The review policy pins the review target to a commit titled '$pinnedSubject' and no commit in this history carries that subject. The most recent commit to change a design artifact is '$latestDesignSubject'.")
+            }
+            else {
+                # Every design artifact, compared by blob hash at the pinned commit against the tree a
+                # reviewer would read now. `git rev-parse <commit>:<path>` is the artifact's identity,
+                # which is what the policy's sentence is about.
+                $movedArtifacts = [System.Collections.Generic.List[string]]::new()
+                foreach ($designArtifact in $designArtifactPathspec) {
+                    $pinnedBlob = (& git -C $repositoryRoot rev-parse "$($pinnedCommit[0]):$designArtifact" 2>$null)
+                    $currentBlob = (& git -C $repositoryRoot rev-parse "HEAD:$designArtifact" 2>$null)
+                    if (-not $pinnedBlob -or -not $currentBlob -or $pinnedBlob -cne $currentBlob) {
+                        $movedArtifacts.Add(($designArtifact -split '/')[-1])
+                    }
+                }
+                if ($movedArtifacts.Count -gt 0) {
+                    $failures.Add("The review policy pins the review target to '$pinnedSubject', and $($movedArtifacts.Count) design artifact(s) have moved since that commit: $($movedArtifacts -join ', '). The policy's own clause permits any commit whose design artifacts hash identically to the pinned one, and these do not. The most recent commit to change one is '$latestDesignSubject'. This is U6: the reviewer is sent at artifacts that have already moved.")
+                }
+            }
         }
     }
 }
@@ -1024,10 +1070,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all four correction iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all five iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
 }
 
 # The closure-cycle hold. The review policy tells an agent not to dispatch a closure review while the
@@ -1116,11 +1162,41 @@ foreach ($reviewFile in $reviewMarkdown) {
 # finding family the review policy attributes to an iteration pass must have a retained record --
 # rather than over the six ids, so the next pass that skips its record fails here too.
 $dispositionHistory = ($completeness -split '## Review disposition', 2)[1]
+# The verification foundation plan is the second of the two homes a family's disposition can have. It
+# is not a design artifact and no closure review assesses it, which is exactly why it is the right
+# record for a family raised against the verification work rather than against the design.
+$verificationPlanText = Get-Content -Raw -LiteralPath (Join-Path $channelPath 'Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md') -Encoding UTF8
 if (-not $dispositionHistory) {
     $failures.Add('The completeness review carries no review-disposition history, which is where each cycle''s findings are recorded.')
 }
 else {
     $iterationReviewFiles = @($reviewMarkdown | Where-Object { $_.Name -match 'iteration-review\.md$' })
+    # The provenance table is read here rather than below, because under the 2026-08-20 owner ruling
+    # it is what ROUTES the obligation: a `design` family owes its disposition to the completeness
+    # review's history, a `verification` family to the verification foundation plan. Neither is
+    # exempt. Reading it later would mean the routing check ran without knowing the class.
+    $provenanceTable = [regex]::Match($reviewReadme, '(?ms)^## Finding family provenance\r?\n(.+?)(?=^## |\z)').Groups[1].Value
+    $familyProvenance = @{}
+    # The second axis, under the 2026-08-20 owner ruling: what a family was raised AGAINST decides
+    # which record owes its disposition. Both values are required of every row, so a family cannot be
+    # added on one axis and left unclassified on the other -- which is AF6's lesson about a class
+    # inferred from the members that happened to be visible.
+    $familySubject = @{}
+    foreach ($provenanceRow in [regex]::Matches($provenanceTable, '(?m)^\|\s*([A-Z]{1,2})\s*\|\s*(iteration|closure-review)\s*\|\s*([a-z]+)\s*\|')) {
+        $familyProvenance[$provenanceRow.Groups[1].Value] = $provenanceRow.Groups[2].Value
+        $familySubject[$provenanceRow.Groups[1].Value] = $provenanceRow.Groups[3].Value
+    }
+    foreach ($subjectRow in $familySubject.GetEnumerator()) {
+        if ($subjectRow.Value -ne 'design' -and $subjectRow.Value -ne 'verification') {
+            $failures.Add("The finding-family provenance table classifies '$($subjectRow.Key)' as raised against '$($subjectRow.Value)', which is outside the closed set ``design``/``verification``. A value outside a closed vocabulary is uncountable, which is what the migration ledger's B4 finding was.")
+        }
+    }
+    foreach ($provenanceFamily in $familyProvenance.Keys) {
+        if (-not $familySubject.ContainsKey($provenanceFamily)) {
+            $failures.Add("The finding-family provenance table does not say what '$provenanceFamily' was raised against. That axis is what routes the family's disposition to the completeness review or to the verification foundation plan, and an unclassified family is owed by neither.")
+        }
+    }
+
     foreach ($reviewFile in $iterationReviewFiles) {
         $iterationRaw = Get-Content -Raw -LiteralPath $reviewFile.FullName -Encoding UTF8
         # The family pattern is `[A-Z]{1,2}` rather than `[A-Z]`: the AA and AB families already
@@ -1130,8 +1206,17 @@ else {
         $findingMatches = @([regex]::Matches($iterationRaw, '(?m)^### ([A-Z]{1,2}[0-9]+) '))
         foreach ($findingMatch in $findingMatches) {
             $findingId = $findingMatch.Groups[1].Value
-            if ($dispositionHistory.IndexOf($findingId, [System.StringComparison]::Ordinal) -lt 0) {
-                $failures.Add("The completeness review's disposition history does not record '$findingId', which '$($reviewFile.Name)' raises. A finding whose only record is an iteration review has no disposition in the artifact the next reviewer reads.")
+            $findingFamily = [regex]::Match($findingId, '^([A-Z]{1,2})').Groups[1].Value
+            # Which record owes this finding's disposition. The obligation itself is unchanged and
+            # unconditional; only its home depends on what the family was raised against.
+            $findingHome = if ($familySubject[$findingFamily] -eq 'verification') {
+                @{ Text = $verificationPlanText; Name = 'the verification foundation plan'; Why = 'That plan owns the work this family was raised against, and is where a reviewer of it reads what was decided.' }
+            }
+            else {
+                @{ Text = $dispositionHistory; Name = "the completeness review's disposition history"; Why = 'A finding whose only record is an iteration review has no disposition in the artifact the next reviewer reads.' }
+            }
+            if ($findingHome.Text.IndexOf($findingId, [System.StringComparison]::Ordinal) -lt 0) {
+                $failures.Add("$($findingHome.Name) does not record '$findingId', which '$($reviewFile.Name)' raises. $($findingHome.Why)")
             }
         }
         # The loop above fails when a finding is missing from the history and is silent when it
@@ -1166,7 +1251,14 @@ else {
             }
         }
     }
-    $dispositionFamilies = @([regex]::Matches($dispositionHistory, '\*\*([A-Z]{1,2})[0-9]+\*\*') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+    # DESIGN families only, under the 2026-08-20 ruling. This set is the anchor for five freshness
+    # checks -- the Channel index's stated correction range, the future-work index's Channel row, the
+    # Design reviews row, every per-artifact section of the disposition index, and the status-block
+    # pointer check -- and every one of them asks a question about the design artifacts. A family
+    # raised against the verification work makes "the newest family" one that touched none of them,
+    # and all five are then answered by sections saying "unchanged", which is a guard becoming a
+    # formality. Its disposition is required all the same, in the plan that owns that work.
+    $dispositionFamilies = @([regex]::Matches($dispositionHistory, '\*\*([A-Z]{1,2})[0-9]+\*\*') | ForEach-Object { $_.Groups[1].Value } | Where-Object { $familySubject[$_] -ne 'verification' } | Sort-Object -Unique)
     foreach ($family in $dispositionFamilies) {
         if ($channelReadme -cnotmatch "\b$family[0-9]") {
             $failures.Add("The Channel index names no finding in the '$family' family, although the completeness review's disposition history records one. The index is where a reader who opens nothing else learns what has been corrected.")
@@ -1303,11 +1395,6 @@ else {
     # defect AD2 was ruled for, an order of magnitude smaller: a comment claiming a class over code
     # that tests a subset. The class is now *declared* rather than inferred from prose, and the
     # declaration is required to be total, so a family cannot be added without being classified.
-    $provenanceTable = [regex]::Match($reviewReadme, '(?ms)^## Finding family provenance\r?\n(.+?)(?=^## |\z)').Groups[1].Value
-    $familyProvenance = @{}
-    foreach ($provenanceRow in [regex]::Matches($provenanceTable, '(?m)^\|\s*([A-Z]{1,2})\s*\|\s*(iteration|closure-review)\s*\|')) {
-        $familyProvenance[$provenanceRow.Groups[1].Value] = $provenanceRow.Groups[2].Value
-    }
     if ($familyProvenance.Count -lt 1) {
         $failures.Add('The review policy declares no finding-family provenance table. That table is what makes the retained-record obligation checkable over the whole class rather than over whichever families a sentence shape happens to match.')
     }
@@ -1332,6 +1419,26 @@ else {
         # correction. Deriving from the declaration is what AF6 already did for the check thirty lines
         # above; the headings are kept as well, so a family recorded but not declared still counts.
         $recordedFamilies = @($recordedFamilies + @($familyProvenance.GetEnumerator() | Where-Object { $_.Value -eq 'iteration' } | ForEach-Object { $_.Key }) | Sort-Object -Unique)
+    }
+
+    # The backstop on the second axis, and the reason it is not an exemption. A family is classified by
+    # the author of the finding, and this programme's recurring defect is an author mis-scoping their
+    # own work -- so the classification is checked against something outside itself: a `verification`
+    # family may not be named by any design artifact. The package's own convention is that a
+    # correction names the finding it closes, so a finding whose correction reached the design says so
+    # in the design, and this fires. `design` needs no such check: naming it in the design artifacts is
+    # what that class already requires.
+    foreach ($subjectFamily in @($familySubject.GetEnumerator() | Where-Object { $_.Value -eq 'verification' })) {
+        # Over the nine design artifacts, and neither index. The Channel index's Design reviews row is
+        # REQUIRED to name every iteration family by the AE4 rule above, because that row states what
+        # the reviews directory holds -- a fact about records rather than a disposition of a finding --
+        # and the review policy is where the family is classified in the first place.
+        foreach ($subjectArtifact in $artifactNames) {
+            if ($subjectArtifact -eq 'README.md' -or $subjectArtifact -eq 'reviews\README.md') { continue }
+            if ((Read-RequiredText $subjectArtifact) -cmatch "\b$($subjectFamily.Key)[0-9]") {
+                $failures.Add("'$subjectArtifact' names a finding in the '$($subjectFamily.Key)' family, which the provenance table classifies as raised against the verification work rather than the design. Either the classification is wrong -- a finding whose correction reached a design artifact is a design family whatever its author called it -- or the design artifact is carrying a disposition that belongs in the verification foundation plan.")
+            }
+        }
     }
 
     # AE4: AD3's check covers a retained review's own scope line and its roster entry. The Channel
@@ -1636,6 +1743,96 @@ if ($latestDispositionFamily) {
     }
 }
 
+# AM2 and AM3. Section 4 of the verification foundation plan carries five measures and one of them --
+# properties executable in the gate -- is recomputed by the properties gate. Of the four left to prose,
+# the two this pass could recompute were both wrong: the status-block total read 289 where no reading
+# of the commit gives more than 283, and the index-row total read 1,208 where the commit that produced
+# it gives 1,306. The two the gate already determines were right. That is the plan's own thesis
+# arriving in the plan, so both are recomputed here, historical half included -- a measure section
+# whose numbers are read rather than derived is a stale-number finding waiting for the cycle that
+# checks it.
+$measurePlanText = Get-Content -Raw -LiteralPath (Join-Path $channelPath 'Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md') -Encoding UTF8
+# A historical blob is read as UTF-8 explicitly. Windows PowerShell decodes a native command's output
+# with the console code page, which turns every em dash in these artifacts into three characters -- so
+# the first form of this check measured 8,754 characters at a commit that holds 8,746, and would have
+# failed a correct measure. It was caught only because the same code gave a different answer outside
+# the verifier, which is how quiet a mis-decoding is.
+function Get-BlobText {
+    param([Parameter(Mandatory = $true)][string]$Revision, [Parameter(Mandatory = $true)][string]$RepositoryPath)
+    $previousEncoding = [Console]::OutputEncoding
+    try {
+        [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+        return ((& git -C $repositoryRoot show "${Revision}:${RepositoryPath}" 2>$null) -join "`n")
+    }
+    finally { [Console]::OutputEncoding = $previousEncoding }
+}
+function Measure-StatusBlockLines {
+    param([Parameter(Mandatory = $true)][scriptblock]$ReadArtifact)
+    $measured = 0
+    foreach ($measuredArtifact in $artifactNames) {
+        if ($measuredArtifact -eq 'README.md' -or $measuredArtifact -eq 'reviews\README.md') { continue }
+        $measuredText = & $ReadArtifact $measuredArtifact
+        if (-not $measuredText) { continue }
+        $measuredMatch = [regex]::Match($measuredText, '(?ms)^((?:\*\*)?Status:.*?)(?=\r?\n\s*\r?\n|\z)')
+        if (-not $measuredMatch.Success) { continue }
+        $measured += @($measuredMatch.Groups[1].Value.Trim() -split "`r?`n" | Where-Object { $_.Trim() }).Count
+    }
+    return $measured
+}
+function Measure-IndexRowCharacters {
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$IndexText)
+    $measured = 0
+    foreach ($measuredRow in @($IndexText -split "`r?`n" | Where-Object { $_ -match '^\| \[[^\]]+\]\(\./(?:Brontide-Channel-|reviews/)' })) {
+        $measuredCells = @($measuredRow -split '\|')
+        if ($measuredCells.Count -ge 4) { $measured += $measuredCells[3].Trim().Length }
+    }
+    return $measured
+}
+# The third measure, pinned for AM2's reason: this file's own length. It is the measure that says
+# whether the design verifier is still absorbing the cost of a structural problem, and a number about
+# THIS file that this file does not compute is the one most likely to be left behind by the commit
+# that changes it -- which is what 289 and 1,208 both were.
+$measureLineClaim = [regex]::Match($measurePlanText, 'design-verifier lines\*\* . \*\*([0-9,]+)\*\* now')
+if (-not $measureLineClaim.Success) {
+    $failures.Add("The verification foundation plan's section 4 no longer states the design-verifier line count in the form '**<n>** now'. It is one of the five measures that section exists to keep honest and the only one about this file.")
+}
+else {
+    $measureLineActual = @(Get-Content -LiteralPath $PSCommandPath -Encoding UTF8).Count
+    if ([int]($measureLineClaim.Groups[1].Value -replace ',', '') -ne $measureLineActual) {
+        $failures.Add("The verification foundation plan says this verifier is $($measureLineClaim.Groups[1].Value) lines and it is $measureLineActual.")
+    }
+}
+$measureClaims = @(
+    @{ Name = 'status-block lines across the nine artifacts'
+       Pattern = 'status-block lines across the nine artifacts\*\* . \*\*([0-9,]+)\*\* at `([0-9a-f]{7,40})` and \*\*([0-9,]+)\*\* now'
+       Now = { Measure-StatusBlockLines -ReadArtifact { param($name) Read-RequiredText $name } }
+       Then = { param($rev) Measure-StatusBlockLines -ReadArtifact { param($name) Get-BlobText -Revision $rev -RepositoryPath "docs/future/channel/$($name -replace '\\', '/')" } } }
+    @{ Name = 'Channel index row characters'
+       Pattern = 'Channel index row characters\*\* . \*\*([0-9,]+)\*\* at `([0-9a-f]{7,40})` and \*\*([0-9,]+)\*\* now'
+       Now = { Measure-IndexRowCharacters -IndexText $channelReadme }
+       Then = { param($rev) Measure-IndexRowCharacters -IndexText (Get-BlobText -Revision $rev -RepositoryPath 'docs/future/channel/README.md') } }
+)
+foreach ($measureClaim in $measureClaims) {
+    $measureMatch = [regex]::Match($measurePlanText, $measureClaim.Pattern)
+    if (-not $measureMatch.Success) {
+        $failures.Add("The verification foundation plan's section 4 no longer states the '$($measureClaim.Name)' measure in the form '**<then>** at ``<commit>`` and **<now>** now'. That form is what lets this check recompute it; a measure stated only in prose is one nobody recomputes, which is how it came to say 289 and 1,208.")
+        continue
+    }
+    $claimedThen = [int]($measureMatch.Groups[1].Value -replace ',', '')
+    $measureRevision = $measureMatch.Groups[2].Value
+    $claimedNow = [int]($measureMatch.Groups[3].Value -replace ',', '')
+    $actualNow = & $measureClaim.Now
+    if ($claimedNow -ne $actualNow) {
+        $failures.Add("The verification foundation plan says the '$($measureClaim.Name)' measure is now $claimedNow and it is $actualNow.")
+    }
+    if (Test-Path -LiteralPath (Join-Path $repositoryRoot '.git')) {
+        $actualThen = & $measureClaim.Then $measureRevision
+        if ($LASTEXITCODE -eq 0 -and $actualThen -gt 0 -and $claimedThen -ne $actualThen) {
+            $failures.Add("The verification foundation plan says the '$($measureClaim.Name)' measure was $claimedThen at '$measureRevision' and it was $actualThen. The historical half is checked as well because it is the half that was wrong: nothing recomputes a number a reader cannot reach.")
+        }
+    }
+}
+
 # AG5: the same staleness in the future-work index's Channel row, which is the one a reader meets
 # while choosing what to work on.
 if ($latestDispositionFamily) {
@@ -1865,24 +2062,67 @@ foreach ($frameCountArtifact in $artifactNames) {
 # the record is elsewhere and finds nothing. And the section it resolves to must reach the newest
 # family, which is AI4's own question asked once instead of nine times.
 $dispositionLinkPattern = 'reviews/channel-0.2-disposition-index.md#'
+# AM1, found by the W1-W3 iteration pass. The bound above was read to the first BLANK LINE, and the
+# history it exists to keep out sat one blank line beneath it: at `5894aba` the session machine's AL1
+# paragraph -- "This status block previously recorded that the AK pass had audited `S1`-`S6`..." --
+# was line 12 of the artifact, outside the reader and inside the surface. A paragraph of disposition
+# history appended below a five-line block passed the gate; the probe was run before this correction
+# and was green. So the region is now bounded by the artifact's first section HEADING, and everything
+# in it that is not the status block must be declared front matter.
+#
+# A permit list rather than a pattern for history, and the direction matters: a guard that recognises
+# disposition history by the words it uses cannot see the instance that does not use them, which is
+# AL1 and AL2 exactly. An unrecognised paragraph here fails, so a new kind of front matter is declared
+# once and a paragraph of narrative is a gate failure on the commit that writes it.
+$frontMatterLabels = @(
+    'Designed for:',
+    'Designed against:',
+    'Predecessor evidence:',
+    'Companion artifacts:',
+    'Contract owner:',
+    'Contract owners:',
+    'Normative companions:',
+    'Reviewed artifacts:',
+    'Sources inventoried:'
+)
 foreach ($statusArtifactName in $artifactNames) {
     if ($statusArtifactName -eq 'README.md' -or $statusArtifactName -eq 'reviews\README.md') { continue }
     $statusText = Read-RequiredText $statusArtifactName
-    # Bounded by the blank line that ends the paragraph rather than by the first section
-    # heading: the redesign plan puts its title heading ABOVE its status line, so a block read
-    # to the first heading is empty for that artifact -- which is why AH3 had to exist as a
-    # second check over the plan alone. Read this way, one check covers all nine.
-    $statusMatch = [regex]::Match($statusText, '(?ms)^((?:\*\*)?Status:.*?)(?=
-
-|\n\n|\z)')
-    if (-not $statusMatch.Success) {
+    # The status REGION is everything from `Status:` to the first section heading, and the block is
+    # its first paragraph. Bounding the region this way also removes the reason AH3 existed as a
+    # second check over the redesign plan, whose title heading sits above its status line.
+    $statusRegionMatch = [regex]::Match($statusText, '(?ms)^((?:\*\*)?Status:.*?)(?=^#|\z)')
+    if (-not $statusRegionMatch.Success) {
         $failures.Add("'$statusArtifactName' has no status block. Every first-batch artifact states what it is and what it awaits.")
         continue
     }
-    $statusBody = $statusMatch.Groups[1].Value.Trim()
+    $regionParagraphs = @($statusRegionMatch.Groups[1].Value.Trim() -split "`r?`n\s*`r?`n" | Where-Object { $_.Trim() })
+    $statusBody = $regionParagraphs[0].Trim()
     $statusLines = @($statusBody -split "`r?`n" | Where-Object { $_.Trim() })
     if ($statusLines.Count -gt 5) {
         $failures.Add("'$statusArtifactName' has a status block of $($statusLines.Count) lines and the bound is five. Disposition history belongs in the disposition index: every correction that adds a sentence here adds it to what the next cold reviewer has to read, which is the plan's section 1.3 and is what W3 retires.")
+    }
+    # Everything else before the first heading. The block can no longer be kept at five lines by
+    # moving the sixth line into a paragraph of its own, which is what AM1 was.
+    $previousLabelExpectsList = $false
+    for ($regionIndex = 1; $regionIndex -lt $regionParagraphs.Count; $regionIndex++) {
+        $regionParagraph = $regionParagraphs[$regionIndex].Trim()
+        $regionLines = @($regionParagraph -split "`r?`n" | Where-Object { $_.Trim() })
+        $regionFirstLine = ($regionLines[0] -replace '\*\*', '').Trim()
+        if (@($frontMatterLabels | Where-Object { $regionFirstLine.StartsWith($_, [System.StringComparison]::Ordinal) }).Count -gt 0) {
+            $previousLabelExpectsList = $regionParagraph.TrimEnd().EndsWith(':')
+            continue
+        }
+        # A list under a label that ends in a colon is that label's own content, not a new paragraph.
+        # A wrapped bullet continues on an indented line, so the test is that the paragraph opens with
+        # a bullet and every later line is either a bullet or indented under one -- not that every
+        # line is a bullet, which the ledger's own wrapped entries are not.
+        $regionIsList = $regionLines[0].Trim() -match '^[-*] ' -and @($regionLines | Where-Object { $_.Trim() -notmatch '^[-*] ' -and $_ -notmatch '^\s' }).Count -eq 0
+        if ($previousLabelExpectsList -and $regionIsList) {
+            $previousLabelExpectsList = $false
+            continue
+        }
+        $failures.Add("'$statusArtifactName' carries a paragraph between its status block and its first section heading that is not declared front matter: '$($regionFirstLine.Substring(0, [Math]::Min(80, $regionFirstLine.Length)))'. That is where this artifact's disposition history sat before W3 moved it, one blank line below a block the length bound was measuring. Either it is front matter, in which case its label joins the declared list, or it is history, in which case it belongs in the disposition index. This is AM1.")
     }
     if ($statusBody.IndexOf($dispositionLinkPattern, [System.StringComparison]::Ordinal) -lt 0) {
         $failures.Add("'$statusArtifactName' has a status block that does not link to its section of the disposition index. A block that carries no history and no pointer to it leaves a reader who opens this artifact alone unable to find out what was corrected in it.")
@@ -1977,8 +2217,12 @@ foreach ($perSessionMatch in [regex]::Matches($flowedBrief, 'profile(.{0,120}?)(
 # clause ahead of its own commit would otherwise be told the date is wrong every time. The subject
 # check carried this guard and the date check added beside it did not, which made the gate unusable
 # mid-pass on any day the correction crossed midnight -- the exact condition AI8 was raised for.
-if ($latestDesignSubject -and $LASTEXITCODE -eq 0 -and -not $pendingDesignEdits) {
-    $latestDesignDate = (& git -C $repositoryRoot log -1 --format=%ad --date=short -- $designArtifactPathspec 2>$null)
+# AM5 reaches this check too, and it would have gone wrong a day later rather than immediately: the
+# date came from `git log -1` over the design paths, which is the answer that differs between the merge
+# view and the branch view. It agreed today only because both commits fall on 2026-08-20. The date is
+# now the date of the PINNED commit, which is the commit the clause is dating.
+if ($pinnedCommit -and $pinnedCommit[0] -and -not $pendingDesignEdits) {
+    $latestDesignDate = (& git -C $repositoryRoot log -1 --format=%ad --date=short $pinnedCommit[0] 2>$null)
     if ($latestDesignDate -and (Get-FlowedText $reviewReadme) -notmatch "committed $latestDesignDate") {
         $failures.Add("The review policy's pin clause does not date the review target '$latestDesignDate', which is when the commit it names was made. The X6 check compares the subject and never the date, so a wrong date survives every correction that rewrites the sentence. This is AI8.")
     }

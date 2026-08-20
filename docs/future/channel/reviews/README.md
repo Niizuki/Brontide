@@ -127,41 +127,68 @@ family classified `iteration` must have a retained iteration review recording it
 classified `closure-review` was raised by a numbered independent review and lives in that review's
 attestation.
 
+Every family also declares what it was raised **against**, and that axis decides which record owes its
+disposition. A `design` family is dispositioned in the completeness review's disposition history, which
+is the artifact a reviewer of the design reads. A `verification` family — one raised against the gates,
+the declarations, or the verification foundation plan rather than against any design artifact — is
+dispositioned in that plan, which is the record that owns that work. **Neither is exempt**, and the
+design verifier requires each class in its own home.
+
 The classification is **declared here rather than inferred from the prose below**, and the design
-verifier requires it to be total: every family the policy names must appear in this table, and every
-`iteration` family must have its retained record. AD2 was ruled a defect because a comment claimed a
+verifier requires it to be total on both axes: every family the policy names must appear in this table
+with a `Raised by` and a `Raised against` value, and every `iteration` family must have its retained
+record. AD2 was ruled a defect because a comment claimed a
 class over code that tested two literals; its replacement derived the class from one sentence shape in
 the next-work steps and missed `V` entirely along with `W5` and `W6`, which is AF6 — the same defect
 an order of magnitude smaller. A declared, totality-checked table is what removes the wording
 dependency instead of narrowing it.
 
-| Family | Raised by | Record |
-| --- | --- | --- |
-| B | closure-review | original design-foundation attestation |
-| N | closure-review | first closure attestation |
-| F | closure-review | final closure attestation |
-| D | closure-review | definitive closure attestation |
-| T | closure-review | totality closure attestation |
-| R | closure-review | closure re-review attestation |
-| S | closure-review | closure review 7 attestation |
-| U | closure-review | closure review 8 attestation |
-| V | iteration | U1 correction iteration review |
-| W | iteration | W correction iteration review |
-| X | iteration | W correction iteration review, first pass |
-| Y | iteration | W correction iteration review, second pass |
-| Z | iteration | W correction iteration review, third pass |
-| AA | iteration | W correction iteration review, fourth pass |
-| AB | iteration | W correction iteration review, fifth pass |
-| AC | iteration | AC correction iteration review |
-| AD | iteration | AD correction iteration review |
-| AE | closure-review | closure review 9 attestation |
-| AF | closure-review | closure review 10 attestation |
-| AG | closure-review | closure review 11 attestation |
-| AH | closure-review | closure review 12 attestation |
-| AI | closure-review | closure review 13 attestation |
-| AJ | closure-review | closure review 14 attestation |
-| AK | closure-review | closure review 15 attestation (AK1-AK4); AK5-AK8 raised by the AK correction pass and recorded in the completeness review's operand enumeration |
-| AL | closure-review | closure review 16 attestation |
+| Family | Raised by | Raised against | Record |
+| --- | --- | --- | --- |
+| B | closure-review | design | original design-foundation attestation |
+| N | closure-review | design | first closure attestation |
+| F | closure-review | design | final closure attestation |
+| D | closure-review | design | definitive closure attestation |
+| T | closure-review | design | totality closure attestation |
+| R | closure-review | design | closure re-review attestation |
+| S | closure-review | design | closure review 7 attestation |
+| U | closure-review | design | closure review 8 attestation |
+| V | iteration | design | U1 correction iteration review |
+| W | iteration | design | W correction iteration review |
+| X | iteration | design | W correction iteration review, first pass |
+| Y | iteration | design | W correction iteration review, second pass |
+| Z | iteration | design | W correction iteration review, third pass |
+| AA | iteration | design | W correction iteration review, fourth pass |
+| AB | iteration | design | W correction iteration review, fifth pass |
+| AC | iteration | design | AC correction iteration review |
+| AD | iteration | design | AD correction iteration review |
+| AE | closure-review | design | closure review 9 attestation |
+| AF | closure-review | design | closure review 10 attestation |
+| AG | closure-review | design | closure review 11 attestation |
+| AH | closure-review | design | closure review 12 attestation |
+| AI | closure-review | design | closure review 13 attestation |
+| AJ | closure-review | design | closure review 14 attestation |
+| AK | closure-review | design | closure review 15 attestation (AK1-AK4); AK5-AK8 raised by the AK correction pass and recorded in the completeness review's operand enumeration |
+| AL | closure-review | design | closure review 16 attestation |
+| AM | iteration | verification | W1-W3 verification-foundation iteration review |
+
+**Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
+had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
+the verification work under the hold — a boundary in the design verifier and two measures in the plan —
+and recording them in the completeness review's disposition history made the *newest family* one that
+had touched no design artifact. That anchor drives five freshness checks: the Channel index's stated
+correction range, the future-work index's Channel row, the Design reviews row, every per-artifact
+section of the disposition index, and the status-block pointer check. All five were then satisfied by
+nine sections saying "unchanged by AM", which is a guard becoming a formality rather than a guard
+finding something.
+
+The rejected alternative was to exempt such a family from dispositioning altogether. That is an escape
+clause, and **AH4** and **AJ5** are two escape clauses this policy has already had to close; a third,
+classified by the author of the finding, in a programme whose recurring defect is an author mis-scoping
+their own work, would be a step backwards. What is adopted instead moves the obligation rather than
+removing it, and adds a mechanical backstop: a family declared `verification` may not be named by any
+design artifact, because a finding whose correction reached the design is a `design` family whatever
+its author called it.
 
 **The AK row is the one mixed entry and it is disclosed rather than smoothed over.** Closure review 15
 raised **AK1**-**AK4**. **AK5**-**AK8** were raised by the correction pass for AK1, which enumerated
@@ -238,6 +265,12 @@ scope and verdicts, and the retained records are all unchanged and apply unmodif
 runs next. **No agent dispatches a closure review while this paragraph stands.** An author-side
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
+
+The first such pass has run and is retained as the
+[W1-W3 verification-foundation iteration review](./channel-0.2-am-iteration-review.md). It raised
+**AM1**-**AM3**, corrected all three, and therefore did **not** meet the plan's condition 4, which asks
+for a pass that finds nothing it can fix. A second pass over the same scope is the live path; it should
+re-run the probes the first recorded rather than trust them.
 
 The sixteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
 blocking **AL1** and **AL2** and nonblocking **AL3** and **AL4**; its retained record is
@@ -876,8 +909,8 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `refactor(channel): own the unseen refusal record and
-delete the AL2 sweep`, committed 2026-08-20, which is the head of the correction sequence beginning at
+The current review target is the commit titled `refactor(channel): route a family's disposition by
+what it was raised against`, committed 2026-08-20, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. The commits above the previous pin are verification-foundation
 work done under the hold rather than corrections to a finding: all twenty-six properties now execute in
 the gate with their required-green sets stated, the three frame references and the recipient `unseen`
@@ -923,6 +956,13 @@ context elsewhere — never as evidence that their conclusions are right.
   `4a52a56`; raised AD1-AD3, corrected AD1 and AD3, and left AD2 as an owner call. It is the first
   pass to audit the retained records against the artifacts rather than the artifacts against their
   records, and all three findings came from that one question.
+- [W1-W3 verification-foundation iteration review](./channel-0.2-am-iteration-review.md) — the
+  verification work done under the hold, at `88f2447`; raised AM1-AM3 and corrected all three. It is
+  the pass condition 4 of the verification foundation plan names and **does not meet that condition**,
+  which requires a pass that finds nothing it can fix. It reviewed no design artifact: its method was
+  to recompute every number the plan states, re-derive every claim one document makes about another,
+  and break every guard W1, W2 and W3 added. AM1 came out of the third — the status-block length bound
+  was measuring a paragraph the history it excludes had sat one blank line beneath.
 
 ## Disclosed process deviation in the T1-T4 correction
 

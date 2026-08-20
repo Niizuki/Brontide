@@ -253,7 +253,11 @@ declaration says so rather than pretending to evaluate it.
 **The nine status blocks carry no disposition history.** Each states what the artifact is and what it
 awaits, in five lines, and links to its section of the
 [disposition index](./reviews/channel-0.2-disposition-index.md) -- a retained review record, not a
-design artifact. Between them those blocks held **289 lines** and now hold **45**. Nothing was
+design artifact. Between them those blocks held **265 lines** at `9ce01a0` and now hold **45**,
+counted the way the check counts them: from `Status:` to the blank line that ends the paragraph, blank
+lines excluded. This sentence said 289 for three commits and no reading of that commit reproduces it --
+265 by the check's own reader, 316 read to the first heading, 283 lines deleted from those blocks by
+the W3 commit. It is corrected under **AM2** and both halves are now recomputed by the gate. Nothing was
 rewritten: every section of the index is the text that stood in that artifact's block at commit
 `9ce01a0`, moved verbatim, with relative links re-based one directory and nothing else touched. A
 move that paraphrased would be a fresh statement of a fact the attestations already own.
@@ -392,6 +396,60 @@ field lists in the completeness review's operand enumeration are stated once eac
 Condition 1 does not require them and no cycle has produced a finding in one; they are the obvious
 next members if a cycle does.
 
+## 2d. What the condition 4 pass found
+
+The author-side pass condition 4 names has run, at `88f2447`, and is retained as the
+[W1-W3 verification-foundation iteration review](./reviews/channel-0.2-am-iteration-review.md). It
+raised **AM1**-**AM3** and corrected all three, so **it does not meet condition 4**, which requires a
+pass that finds nothing it can fix.
+
+**This section is that family's disposition record**, under the owner ruling of 2026-08-20 recorded in
+the [review policy](./reviews/README.md#finding-family-provenance). AM is the first family raised
+against the verification work rather than against the design, and the policy's provenance table now
+declares that axis for every family: a `design` family is dispositioned in the completeness review's
+history, a `verification` family here. Neither is exempt. The ruling exists because recording AM in the
+design history made *the newest family* one that had touched no design artifact, and the newest family
+is the anchor for five freshness checks — which were then all answered by nine sections saying
+"unchanged by AM". A plain exemption was rejected as an escape clause of the kind AH4 and AJ5 already
+had to be closed for; the backstop is that a `verification` family may not be named by any design
+artifact, so a misclassified finding whose correction reached the design fails the gate.
+
+Its method is the part worth carrying forward, because none of the three came from reading. It
+recomputed every number these sections state, re-derived every claim one document makes about another,
+and broke every guard W1, W2 and W3 added to see whether the gate names the defect. The last of those
+found **AM1**: the status-block length bound was read to the first blank line, and the disposition
+history it exists to exclude had sat one blank line beneath — a paragraph appended there passed every
+check in the gate, probed and green. The bound is now over the whole region between `Status:` and the
+first section heading, with a declared front-matter permit list for everything in it that is not the
+block, so an unrecognised paragraph fails rather than passing quietly.
+
+**AM5** was found by CI rather than by this pass, and is the sharper of the two. The review-target pin
+was checked by commit subject against `git log -1` over the eight design artifacts, and a
+`pull_request` build runs that on the **merge commit** while the local gate runs it on the linear
+branch. This branch changed a design artifact and changed it back, so the merge is TREESAME to `main`
+for those paths and the two views name different commits — and the merge view is the one that matters,
+because it is what `main` reports after merging. The check now compares the design artifacts' blob
+hashes at the pinned commit against the tree a reviewer reads now, which is what the policy's clause
+says and gives one answer in both views. A guard whose answer depends on which view of history runs it
+is a guard that cannot hold, and no local run could have found it.
+
+**AM4** is the pass turning its own method on its own correction, and is why the AM2/AM3 fix is
+trustworthy at all: the recomputation of a *historical* measure fetched the blob with `git show`, and
+Windows PowerShell decodes native output with the console code page, so every em dash in these
+artifacts arrived as three characters. The check measured 8,754 at a commit holding 8,746 -- failing a
+correct claim, and it would have passed a wrong one that erred the same way. Historical blobs are now
+read through an explicit UTF-8 decoder. A verifier that reads history reads through a decoder nobody
+chose.
+
+**AM2** and **AM3** are section 4's two hand-measured numbers, both wrong; they are corrected in place
+above and both halves of both are now recomputed from the repository by the design verifier. The split
+is the evidence worth keeping: of the five measures, the one the properties gate computes was right,
+the fact-surface count was right, and **both numbers left to prose were wrong**. That is this document's
+own argument, measured on this document.
+
+What the pass verified rather than believed is recorded in the review: the W3 move is verbatim, both
+moves lost no finding token, every W2 count is exact, and the W1, W2 and W3 guards fire when broken.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -407,12 +465,16 @@ The cycle resumes when, in this order:
 
 Then one fresh independent closure review is dispatched under the unchanged independence rules.
 
-**Conditions 1, 2 and 3 are met**, each as its own section above records, and **condition 4 has not
-run**. The hold stands until it does: an author-side iteration pass over W1-W3 is the next work, and
-it is a pass over the verification work itself -- the declaration, the three gates, and what the nine
-design artifacts now say where a rendered fact replaced prose -- not a re-reading of the design the
-sixteen closure reviews have been reading. Nothing in this section authorizes dispatching that
-closure review, and the closure-cycle state at the head of this document is what says so.
+**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run once
+and is not met**: the pass found three defects and fixed them, which is the opposite of what that
+condition asks. Section 2d records it.
+
+The next work is therefore a second author-side pass over the same scope -- the declarations, the
+three gates, and what the nine design artifacts now say where a rendered fact replaced prose, not a
+re-reading of the design the sixteen closure reviews have been reading. It should start by re-running
+the probes the first pass recorded rather than by trusting its conclusions, and it meets condition 4
+only if it finds nothing it can fix. Nothing in this section authorizes dispatching a closure review,
+and the closure-cycle state at the head of this document is what says so.
 
 ## 4. What to measure
 
@@ -429,15 +491,24 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   property the package declares runs on every commit;
 - **required-green sets stated** — currently **twenty-six of twenty-six**, having been one for seven cycles.
   No cell in the completeness review's two property tables reads `owed`;
-- **status-block lines across the nine artifacts** — 289 before W3 and 45 after;
-- **Channel index row characters** — 8,746 before W3 and 1,208 after; and
-- **design-verifier lines** — **2,247**, down from 2,322 when this work began. It has fallen at each
-  step since. W1 took 169 lines out with the frame-reference registry, W3 took 32 more with the
-  index-row freshness checks, and the AL2 record-keyed sweep took 16 more when the record became an
-  owned fact, against additions for the checks and the notes that replaced them. Two new gates sit
+- **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
+  recomputed by the design verifier rather than read;
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,310** now, summed over the eleven
+  per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
+  commits, which was never the value at any commit; it is corrected under **AM3**, and the four
+  characters between 1,306 and the figure here are the AM registration in the Design reviews row,
+  added after the correction and caught by the check that now recomputes it; and
+- **design-verifier lines** — **2,491** now, recomputed by the verifier against itself, against 2,322
+  when this work began. It fell at each step through the AM correction — W1 took 169 lines out with
+  the frame-reference registry, W3 took 32 more with the index-row freshness checks, and the AL2
+  record-keyed sweep took 16 more when the record became an owned fact — and the AM pass put 182 back:
+  the status-region bound, the two recomputed measures above, and the second provenance axis. **That
+  is the wrong direction for this measure and it is stated rather than smoothed over.** Three of those
+  four are checks that compute a number this document used to assert, which is the trade this plan
+  argues for; whether it stays worth it is the question this measure exists to keep visible. Two further gates sit
   beside it — `verify-channel-0.2-properties.ps1` and `verify-channel-0.2-facts.ps1` — so the total
-  verification code in the repository grew; what this measure is for is whether the DESIGN verifier
-  is still absorbing the cost of a structural problem, and on that it has started to shrink.
+  verification code in the repository has grown throughout; what this measure is for is whether the DESIGN verifier
+  is still absorbing the cost of a structural problem, it shrank while the facts and the properties moved out of it, and the AM corrections bought three computed numbers, one structural bound and a pin check that compares artifacts instead of commit subjects, at the price of growing it again.
 
 ## 5. Open questions for the owner
 
