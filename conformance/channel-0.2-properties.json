@@ -1208,7 +1208,14 @@
         {
           "vector": "C5-oversized-payload-dispatched",
           "expected": "red",
-          "note": "The mutation the completeness review's per-capability audit names for this property."
+          "conjunct": "C5-P1-clause-1",
+          "note": "The mutation the completeness review's per-capability audit names for this property. It fires through the first clause: a payload that failed a declared bound is dispatched anyway."
+        },
+        {
+          "vector": "C5-pre-dispatch-refusal-possible-effect",
+          "expected": "red",
+          "conjunct": "C5-P1-clause-2",
+          "note": "AR1. The second clause had no input that reached it: no declared vector carried a pre-dispatch refusal at all, so the clause could be deleted outright with the gate green. One mutation per clause, on the rule C4's audit row already states."
         }
       ],
       "requiredGreen": [
@@ -1256,7 +1263,14 @@
         {
           "vector": "C6-delivery-treated-as-permission",
           "expected": "red",
-          "note": "The mutation the completeness review's per-capability audit names for this property."
+          "conjunct": "C6-P1-clause-1",
+          "note": "The mutation the completeness review's per-capability audit names for this property. It fires through the first clause: an interaction reaches handler dispatch with no `permitted` decision."
+        },
+        {
+          "vector": "C6-denial-without-decision-point",
+          "expected": "red",
+          "conjunct": "C6-P1-clause-2",
+          "note": "AR1. The second clause had no input that reached it: the only non-permitted decision in the corpus is also dispatched, so the first clause returns first and the second was unreachable given the inputs."
         }
       ],
       "requiredGreen": [

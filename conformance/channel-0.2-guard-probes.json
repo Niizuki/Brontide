@@ -806,6 +806,45 @@
           "replace": "  The conjunct reads membership of the identity in the set the recipient admits within the vector.\n\n  **Option B, rejected:** scope the conjunct to vectors that declare a reordering injection."
         }
       ]
+    },
+    {
+      "id": "AR1-a",
+      "claim": "C5-P1's second clause loses its mutation, so no input reaches the clause again",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-properties.json",
+          "find": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"red\",",
+          "replace": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"green\","
+        }
+      ]
+    },
+    {
+      "id": "AR1-b",
+      "claim": "C6-P1's clause-2 mutation is declared against the clause its verdict does not come from",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-properties.json",
+          "find": "\"vector\": \"C6-denial-without-decision-point\",\n          \"expected\": \"red\",\n          \"conjunct\": \"C6-P1-clause-2\",",
+          "replace": "\"vector\": \"C6-denial-without-decision-point\",\n          \"expected\": \"red\",\n          \"conjunct\": \"C6-P1-clause-1\","
+        }
+      ]
+    },
+    {
+      "id": "AR2-a",
+      "claim": "a coverage exemption whose construct no longer occurs is stale rather than silent",
+      "gate": "verify-channel-0.2-coverage.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-coverage-exemptions.json",
+          "find": "\"anchor\": \"if ($Apply) { $rewritten = $true }\",",
+          "replace": "\"anchor\": \"if ($Apply) { $rewrittenXX = $true }\","
+        }
+      ]
     }
   ]
 }

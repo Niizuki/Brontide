@@ -419,7 +419,15 @@ $terminalSessionStates = @('closed', 'faulted')
 
 function Get-Timeline { param($Vector) if ($null -eq $Vector.sessionTimeline) { return @() } return @($Vector.sessionTimeline) }
 function Get-Interactions { param($Vector) if ($null -eq $Vector.interactions) { return @() } return @($Vector.interactions) }
-function New-Red { param([string]$Witness) return [pscustomobject]@{ Verdict = 'red'; Conjunct = $null; Witness = $Witness; Errors = [System.Collections.Generic.List[string]]::new() } }
+# AR1. `-Conjunct` names WHICH clause of a multi-clause property went red. It is not new structure
+# invented here: the check at the bottom of this file already requires a mutation declared against a
+# conjunct to fire through that conjunct, and the reason it gave -- "a conjunct whose mutation fires
+# through the other conjunct is unfalsifiable in the suite however well the contract names it" -- was
+# enforced only for `C4-P2`, the one property that declared conjuncts. `C5-P1` and `C6-P1` each state
+# two clauses in one sentence, each had one named mutation, and each mutation fired through the first
+# clause. Naming the clauses is the mechanical decomposition that lets the existing rule reach them;
+# the statement itself stays the contract's, verbatim and unrestated.
+function New-Red { param([string]$Witness, [string]$Conjunct) return [pscustomobject]@{ Verdict = 'red'; Conjunct = $Conjunct; Witness = $Witness; Errors = [System.Collections.Generic.List[string]]::new() } }
 function New-Green { return [pscustomobject]@{ Verdict = 'green'; Conjunct = $null; Witness = $null; Errors = [System.Collections.Generic.List[string]]::new() } }
 
 function Invoke-S1 {
@@ -706,16 +714,16 @@ function Invoke-C5P1 {
     foreach ($interaction in (Get-Interactions $Vector)) {
         if ($dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)")) {
             if (-not $interaction.boundsChecked) {
-                return New-Red "interaction $($interaction.identity) dispatched without passing every declared bound"
+                return New-Red "interaction $($interaction.identity) dispatched without passing every declared bound" 'C5-P1-clause-1'
             }
             if (-not $interaction.positionalShapeChecked) {
-                return New-Red "interaction $($interaction.identity) dispatched without passing every positional Shape rule"
+                return New-Red "interaction $($interaction.identity) dispatched without passing every positional Shape rule" 'C5-P1-clause-1'
             }
         }
         $refusal = $interaction.refusal
         if ($null -eq $refusal -or [string]$refusal.stage -ne 'pre-dispatch') { continue }
         if ([string]$refusal.effectCertainty -ne 'known-none') {
-            return New-Red "interaction $($interaction.identity) records a pre-dispatch structural refusal with effect certainty $($refusal.effectCertainty)"
+            return New-Red "interaction $($interaction.identity) records a pre-dispatch structural refusal with effect certainty $($refusal.effectCertainty)" 'C5-P1-clause-2'
         }
     }
     return New-Green
@@ -730,12 +738,12 @@ function Invoke-C6P1 {
     foreach ($interaction in (Get-Interactions $Vector)) {
         $decision = [string]$interaction.authorityDecision
         if ($dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)") -and $decision -ne 'permitted') {
-            return New-Red "interaction $($interaction.identity) reached handler dispatch with local authority decision $decision"
+            return New-Red "interaction $($interaction.identity) reached handler dispatch with local authority decision $decision" 'C6-P1-clause-1'
         }
         if ($decision -eq 'permitted') { continue }
         $record = $interaction.authorityRecord
         if ($null -eq $record -or -not $record.decisionPoint -or -not $record.initiatorAttribution -or [string]$record.effectCertainty -ne 'known-none') {
-            return New-Red "interaction $($interaction.identity) records a $decision authority presentation without its decision point, initiator attribution, and known-none"
+            return New-Red "interaction $($interaction.identity) records a $decision authority presentation without its decision point, initiator attribution, and known-none" 'C6-P1-clause-2'
         }
     }
     return New-Green
