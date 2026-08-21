@@ -763,8 +763,8 @@
       "edits": [
         {
           "path": "docs/future/README.md",
-          "find": "No independent\nreview has yet seen the AL corrections.",
-          "replace": "No independent\nreview has yet seen the AB corrections."
+          "find": "review has yet seen the AR1 corrections.",
+          "replace": "review has yet seen the AB1 corrections."
         }
       ]
     },

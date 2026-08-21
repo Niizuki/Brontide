@@ -946,8 +946,8 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `refactor(channel): route a family's disposition by
-what it was raised against`, committed 2026-08-20, which is the head of the correction sequence beginning at
+The current review target is the commit titled `feat(channel): retain the coverage instrument and
+close AR1`, committed 2026-08-21, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. The commits above the previous pin are verification-foundation
 work done under the hold rather than corrections to a finding: all twenty-six properties now execute in
 the gate with their required-green sets stated, the three frame references and the recipient `unseen`
