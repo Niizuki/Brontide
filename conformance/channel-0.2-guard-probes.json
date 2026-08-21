@@ -186,8 +186,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "**8,746** at `2684ec7` and **1,322** now",
-          "replace": "**8,746** at `2684ec7` and **1,310** now"
+          "find": "** now, summed over the eleven",
+          "replace": "0** now, summed over the eleven"
         }
       ]
     },
@@ -199,8 +199,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "**8,746** at `2684ec7` and **1,322** now",
-          "replace": "**8,754** at `2684ec7` and **1,322** now"
+          "find": "**8,746** at",
+          "replace": "**8,754** at"
         }
       ]
     },
@@ -212,8 +212,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "**8,746** at `2684ec7` and **1,322** now",
-          "replace": "8,746 before W3 and 1,322 after"
+          "find": "**8,746** at",
+          "replace": "8,746 at"
         }
       ]
     },
