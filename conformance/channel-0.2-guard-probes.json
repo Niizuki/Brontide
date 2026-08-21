@@ -92,8 +92,8 @@
       "edits": [
         {
           "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
-          "find": "## Session state machine\n\n[Brontide-Channel-0.2-Session-State-Machine-0.1.md](../Brontide-Channel-0.2-Session-State-Machine-0.1.md)\n\nStatus: proposed first-batch design artifact; D1 corrected after independent review and subject to a\nfresh independent closure re-review. Unchanged by the **AI1**-**AI9** and **AJ1**-**AJ7** families;\nthe claim is stated over each family rather than over its last finding, because \"unchanged by AI9\" is\na true statement about one finding and a false impression about the family, which is **AJ5**.\nCorrected for **AL1** and **AL4**: all six of `S1`-`S6` now name the session they are about, and `S5`\nnames the one declared profile its two establishment paths are compared over.\n\nThis status block previously recorded that the AK pass had audited `S1`-`S6` against C12's newly\ndeclared per-session facts and that none of the six named one, \"because the session machine's\nproperties are about one session by construction\". The first half was true and the second is the\ndefect: the same argument was available for `I5` — an interaction belongs to one session by\nconstruction too — and **AK7** rejected it and required `I5` to name the session all the same. `S3`\nread one session's own drain transition across the vector and was red on a conforming two-session\nvector while this block reported the audit clean. That is **AL1**, and the audit that missed it could\nnot have found it, because its trigger set is C12's declared fact list and the session's own state was\nabsent from it (**AL3**).\n\n**As the Channel index recorded it.** Moved verbatim from that index's table row under W3; the row\nnow points here.\n\nD1 corrected; unchanged by the sixth, seventh, and eighth reviews and by the U-Z correction passes; unchanged by the AE, AF, and AG passes, though AF7 brought S1-S6 into the property audit; unchanged by AH; unchanged by AI; unchanged by AJ; **AL1** and **AL4** corrected - all six of S1-S6 name the session they are about, and S5 names the one declared profile its two establishment paths are compared over; the status block previously recorded the AK audit as having found none of S1-S6 reading a per-session fact, which was true of the four facts that audit could recognise and false of the artifact, since S3 read one session's drain transition across the vector\n\n",
-          "replace": ""
+          "find": "## Session state machine\n",
+          "replace": "## Session state machine renamed by probe\n"
         }
       ]
     },
@@ -503,8 +503,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "The gate runs **113** evaluations over **41** declared inputs",
-          "replace": "The gate runs **113** evaluations over **40** declared inputs"
+          "find": "** declared inputs plus the nine operand",
+          "replace": "0** declared inputs plus the nine operand"
         }
       ]
     },
@@ -516,8 +516,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "The gate runs **113** evaluations over **41** declared inputs",
-          "replace": "The gate runs every property over every input"
+          "find": "The gate runs **",
+          "replace": "The gate runs every property over every input. **"
         }
       ]
     },
@@ -763,8 +763,8 @@
       "edits": [
         {
           "path": "docs/future/README.md",
-          "find": "review has yet seen the AR1 corrections.",
-          "replace": "review has yet seen the AB1 corrections."
+          "find": "review has yet seen the AR corrections.",
+          "replace": "review has yet seen the AB corrections."
         }
       ]
     },

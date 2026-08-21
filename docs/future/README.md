@@ -134,7 +134,7 @@ four are corrected: every property of the session state machine now names its se
 structurally rather than lexically, the declared fact list is checked against the neutral brief's
 vector format rather than against itself, the grid's cells are registered as surfaces of their own,
 and the package-wide sweep is keyed to the record rather than to the reference's name. No independent
-review has yet seen the AR1 corrections. No Channel 0.2 schema or implementation is authorized until the
+review has yet seen the AR corrections. No Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
 **The next closure review is on hold by owner decision of 2026-08-17**, recorded in the
