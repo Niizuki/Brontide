@@ -175,6 +175,7 @@ dependency instead of narrowing it.
 | AO | iteration | verification | third W1-W3 verification-foundation iteration review |
 | AP | iteration | verification | fourth W1-W3 verification-foundation iteration review |
 | AQ | iteration | verification | fifth W1-W3 verification-foundation iteration review |
+| AR | iteration | design | sixth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -945,8 +946,8 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `refactor(channel): route a family's disposition by
-what it was raised against`, committed 2026-08-20, which is the head of the correction sequence beginning at
+The current review target is the commit titled `feat(channel): retain the coverage instrument and
+close AR1`, committed 2026-08-21, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. The commits above the previous pin are verification-foundation
 work done under the hold rather than corrections to a finding: all twenty-six properties now execute in
 the gate with their required-green sets stated, the three frame references and the recipient `unseen`
@@ -1035,6 +1036,15 @@ context elsewhere — never as evidence that their conclusions are right.
   has been an empty loop since the 2026-08-20 ruling inserted a column into the table it reads.
   **AQ5** is the class the trace cannot see: a negative assertion bounded by a character count, which
   under-reaches in silence as the passage it spans grows.
+- [Sixth W1-W3 verification-foundation iteration review](./channel-0.2-ar-iteration-review.md) — the
+  same scope at `a5ec7a5`; raised **AR1** and corrected it, so condition 4 is **still not met**. It
+  **retained the instrument** the AQ pass discarded: `build/verify-channel-0.2-coverage.ps1` runs in
+  the repository gate and requires every conditional in a covered gate to be evaluated by a passing
+  run. **AR1** is what that found on its first run, and it is the first finding here raised by an
+  instrument rather than by a reading — `C5-P1` and `C6-P1` each state two clauses, each had one named
+  mutation, each mutation fires through the first clause, and both second clauses could be deleted
+  from the evaluator with both gates green. It is also the first of the AM-AR passes raised against
+  the **design**: the correction reached the per-capability property audit.
 
 ## Disclosed process deviation in the T1-T4 correction
 

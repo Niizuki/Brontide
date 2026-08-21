@@ -134,7 +134,7 @@ four are corrected: every property of the session state machine now names its se
 structurally rather than lexically, the declared fact list is checked against the neutral brief's
 vector format rather than against itself, the grid's cells are registered as surfaces of their own,
 and the package-wide sweep is keyed to the record rather than to the reference's name. No independent
-review has yet seen the AL corrections. No Channel 0.2 schema or implementation is authorized until the
+review has yet seen the AR corrections. No Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
 **The next closure review is on hold by owner decision of 2026-08-17**, recorded in the
@@ -266,9 +266,24 @@ passes ran under it. **AQ5** is what the trace cannot see and is the brief the n
 character-bounded window fails loudly for an assertion that something must be present and **silently**
 for an assertion that something must be absent, so AF1's own superseded wording, restored at the far
 end of AF1's own passage, was green. The count has stopped falling -- three, six, three, two, five --
-which measures what an instrument sees that a reading does not. A sixth pass is the next work; it
-starts by running the trace and then hunts the negative assertion whose extent nothing declares, and
-the ranked item beside it is retaining the instrument, which this pass did not.
+which measures what an instrument sees that a reading does not.
+
+**The sixth pass retained the instrument, and the instrument immediately found a defect in the design
+rather than in the gates.** It is the
+[sixth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-ar-iteration-review.md),
+and it raised **AR1** and corrected it. `build/verify-channel-0.2-coverage.ps1` now runs in the
+repository gate: each verification gate executes under a line trace and **every conditional in it must
+be evaluated by a passing run**, with the constructs a passing run correctly cannot reach declared with
+their reasons in `conformance/channel-0.2-coverage-exemptions.json`. **AR1** is what it found on its
+first run. `C5-P1` and `C6-P1` each state two clauses, each had one named mutation, and each mutation
+fires through the first clause -- so both second clauses could be **deleted outright from the evaluator
+with both gates green**, across 113 evaluations over 41 declared inputs. That is the rule C4's own
+audit row already states, *one named mutation per clause*, enforced for the one property that declared
+conjuncts and silent for the other twenty-five. Both clauses now carry a mutation, and the class is
+closed by the gate rather than the two instances by hand. A seventh pass is the next work, and what it
+inherits is stated in the review: the coverage measure is a floor, not a proof -- it finds a check that
+never runs and cannot find one that runs and cannot fail, which is **AQ5**'s shape and still unswept
+outside the two windows that pass corrected.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
@@ -1852,7 +1867,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, and AL1-AL4 families, and awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, and AR1 families, and awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

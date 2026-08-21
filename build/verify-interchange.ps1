@@ -40,6 +40,15 @@ Invoke-Checked {
 Invoke-Checked {
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-guards.ps1')
 }
+# And this one asks the question the probes cannot: not "does this guard fire on its own subject"
+# but "did this check run at all". A guard whose key expired keeps its comment, keeps its code, and
+# stops being reached -- which is AP1 and five of the AQ findings, and no probe could have caught any
+# of them, because a probe tests a guard someone already suspected. Each covered gate runs under a
+# line trace and every conditional in it must be evaluated by a passing run. AR2. It refuses a dirty
+# tree, for the reason stated in the file.
+Invoke-Checked {
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-coverage.ps1')
+}
 Invoke-Checked {
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-evidence.ps1')
 }
