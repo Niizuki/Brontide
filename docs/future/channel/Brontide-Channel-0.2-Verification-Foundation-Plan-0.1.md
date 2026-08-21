@@ -596,6 +596,60 @@ probed and two of the three keys held; the seventy-eight claim blocks were read 
 is the AP1 question asked of everything: **every check written before W2 and W3 was keyed under
 assumptions that work changed, and only three of those keys have been tested.**
 
+## 2h. What the fifth condition 4 pass found
+
+The fifth author-side pass has run, at `138af11`, and is retained as the
+[fifth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-aq-iteration-review.md).
+It raised **AQ1**-**AQ5** and corrected all five, so **it does not meet condition 4** either. **This
+section is that family's disposition record**, under the 2026-08-20 owner ruling.
+
+It ran the corpus first, as the AP review asks: 53 of 53 in one command. Then it stopped reading the
+gates, which four passes had already done, and **built an instrument**. A guard whose key has expired
+has one mechanically visible property — **its body never runs** — so each gate was executed under a
+line trace, and every statement in its syntax tree that never appeared in the trace was reported,
+minus the failure sites a green gate is supposed not to reach. Of the 114 statements it reported
+across the three gates, most are what they should be: array continuations, the facts gate's `-Apply`
+path, `catch` arms, the branch of a hold state that is not current, and the red branches of a green
+property. **Five were checks that no longer run at all.**
+
+All five are AP1's class, and the two years of this programme's shape are in the fact that the pass
+which named that class could only sample it.
+
+- **AQ1** — the AJ2 narrative check reads the finding-family provenance table for `| <family> |
+  closure-review | <record> |`. The 2026-08-20 ruling in this section's own family inserted `Raised
+  against` as the third column, so every row has since yielded ` design ` where the record was, no row
+  has matched, and **the whole check — three narratives against every closure-review family, both the
+  family assertion and the ordinal assertion — has been an empty loop since `6a6c76d`.** Three
+  iteration passes ran under it. Probed: the ordinals for reviews 13, 14 and 15 gone from all three
+  narratives, every family token intact, both gates green. Corrected by keying to the numbered
+  attestations the reviews directory holds, which exist independently of any prose, so an unattributed
+  review fails loudly instead of shortening the loop.
+- **AQ2** — the AK4 publication-count sweep covers the nine design artifacts, and W3 moved the claim
+  into the disposition index, which is a review record. Asking *where else is this stated* found the
+  same count a second time in the same file, in a wording the sweep does not key on. Corrected by
+  sweeping the record the claim moved to and by keying to all three wordings.
+- **AQ3** — the AJ4 history-length claim was read out of the status blocks W3 emptied. Corrected by
+  reading the moved status text as well, with the `Status:` paragraph as the boundary between the
+  document's present claim and the history that recites old counts on purpose.
+- **AQ4** — the AH3 guard against an *affirmative* false claim about review coverage matched a prose
+  sentence against raw text, and the sentence now wraps. Corrected by flowing it.
+- **AQ5** — three keys are a character count and the artifacts outgrew all three: the properties
+  gate's member-count window at 4,000 against a 5,246-character span, AF1's passage at 900, and the
+  dated AE1 ruling at 2,600 against 6,923. The first stopped running; the other two still run, and
+  their **negative** assertions under-reach — AF1's own superseded wording, restored at the far end of
+  AF1's own passage, is green. **The shape is general: a character-bounded window fails safely for an
+  assertion that something must be present and silently for an assertion that something must be
+  absent.** All three are now bounded by the end of their own subject, and each boundary is asserted
+  rather than assumed.
+
+**What the next pass inherits.** Run the trace first — it is one command against each gate and it
+found four of these five. Then hunt what it cannot see: a check whose body runs while an assertion
+inside it under-reaches, which is AQ5 and was found by reading the windows the trace pointed at.
+**And retain the instrument.** Section 1.1 of this plan is about instruments rebuilt every cycle and
+thrown away; AO3 fixed that for the probes; this pass built a second one and kept only its output.
+Making "every check in these files runs" a gated measure rather than a thing a pass rediscovers is
+the ranked next item of this work.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -653,20 +707,20 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,322** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,326** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved twice
   since, by four characters each time and for the same reason — registering a new iteration-review
   family in the Design reviews row — and on both occasions the check that recomputes it failed the
   figure on the commit that wrote it, which is the check working rather than a defect in it; and
-- **guard probes executable** — currently **53 of 53**, run by
+- **guard probes executable** — currently **61 of 61**, run by
   `build/verify-channel-0.2-guards.ps1` in the repository gate and recomputed by it. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
-- **design-verifier lines** — **2,626** now, recomputed by the verifier against itself. Every step
+- **design-verifier lines** — **2,717** now, recomputed by the verifier against itself. Every step
   of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
   the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
-  `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491** — counted the way this verifier counts
+  `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491**, `138af11` **2,626** — counted the way this verifier counts
   its own lines, where a line break is CRLF, LF or a lone CR. That reader is named because it matters
   once: the file carried two stray carriage returns at `0f7858c`, so `wc -l` reports 2,354 there and
   agrees everywhere else. It is **AM4**'s lesson in a second guise — a verifier that reads history

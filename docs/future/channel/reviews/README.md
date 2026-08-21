@@ -174,6 +174,7 @@ dependency instead of narrowing it.
 | AN | iteration | verification | second W1-W3 verification-foundation iteration review |
 | AO | iteration | verification | third W1-W3 verification-foundation iteration review |
 | AP | iteration | verification | fourth W1-W3 verification-foundation iteration review |
+| AQ | iteration | verification | fifth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -269,28 +270,43 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Two such passes have run and neither met the plan's condition 4, which asks for a pass that finds
-nothing it can fix. The first is retained as the
-[W1-W3 verification-foundation iteration review](./channel-0.2-am-iteration-review.md), which raised
-**AM1**-**AM3** and corrected all three. The second is the
-[second W1-W3 verification-foundation iteration review](./channel-0.2-an-iteration-review.md), which
-raised **AN1**-**AN6** and corrected all six.
+Five such passes have run and none met the plan's condition 4, which asks for a pass that finds
+nothing it can fix. They are retained as the
+[first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
+[second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
+[third](./channel-0.2-ao-iteration-review.md) (**AO1**-**AO3**),
+[fourth](./channel-0.2-ap-iteration-review.md) (**AP1**-**AP2**) and
+[fifth](./channel-0.2-aq-iteration-review.md) (**AQ1**-**AQ5**) W1-W3 verification-foundation
+iteration reviews, each of which corrected everything it raised.
 
-**A fifth pass over the same scope is the live path**, and it starts the way the fourth did: by
-running `build/verify-channel-0.2-guards.ps1`, which now holds 53 probes. The design verifier's
-seventy-eight claim blocks are read through, so what it inherits is narrower and is named in the AP
-review — **a guard whose key was correct when it was written and stopped being correct when the work
-moved.** AP1 is that shape and W2 is what moved it; three such keys were probed and the rest were only
-read, so every check written before W2 and W3 still owes the question *is its key still
-load-bearing?* The second pass did, and
-every one reproduced — so all six of its findings came from elsewhere, and where they came from is the
-brief worth inheriting. Every one was in the *second* place a fact was stated rather than the first,
-so the question that paid was not "is this number right" but "where else is this number", asked
-mechanically: the sweep written for **AN5** found a surface of its own subject that the same pass's
-reading had missed. And two of the six were guards whose comment stated a stronger question than the
-code asked — **AN1**'s comment says the pointer must resolve and it checked something else, **AN2**'s
-list held eight of nine — so reading each guard's comment as a claim to test against its code is a
-pass nobody here has run in full.
+**A sixth pass over the same scope is the live path**, and it starts the way the fourth and fifth
+did: by running `build/verify-channel-0.2-guards.ps1`, which now holds 61 probes. What it inherits is
+narrower than what any pass before it inherited, and it is two things.
+
+**First, run the trace.** The fifth pass answered AP1's outstanding question — *every check written
+before W2 and W3 owes "is its key still load-bearing?"* — by not reading the gates a fifth time. It
+executed each gate under a line trace and reported every statement whose line never appeared, minus
+the failure sites a green gate is supposed not to reach. Four of its five findings came out of that
+one run, and **AQ1** is why the instrument is worth more than another reading: the AJ2 narrative
+freshness check, the guard against the staleness that ran for eight consecutive cycles, had been an
+empty loop since a column was inserted into the table it reads, and three passes that read these
+files walked past it. The instrument was **not retained**, which the AQ review records as the thing
+it is least comfortable with and this policy repeats here: section 1.1 of the plan is about
+instruments rebuilt every cycle and thrown away, and this is the second one.
+
+**Second, hunt what the trace cannot see.** It finds a check whose body never runs. It cannot find a
+check whose body runs while an assertion inside it under-reaches, and that is **AQ5**: a negative
+assertion bounded by a character count. A window that truncates fails *loudly* for "X must be
+present" and *silently* for "Y must be absent", so AF1's own superseded wording, restored at the far
+end of AF1's own passage, took the gate green — the finding reproduced verbatim by the guard written
+to close it. Two such windows were in the design verifier and both are now bounded by their subject's
+own end. **The question is whether any assertion left in these gates has an extent nothing declares.**
+
+The three earlier briefs still stand behind these and are not superseded: *where else is this fact
+stated* (**AN3**-**AN6**, and the **AN5** sweep that found a surface its own pass's reading had
+missed), *read each guard's comment as a claim to test against its code* (**AN1**, **AN2**, and
+**AO1**, the most serious defect the verification work has produced), and *a guard whose key was
+correct when written* (**AP1**, of which the AQ family is five more instances).
 
 The sixteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
 blocking **AL1** and **AL2** and nonblocking **AL3** and **AL4**; its retained record is
@@ -1009,6 +1025,16 @@ context elsewhere — never as evidence that their conclusions are right.
   guards whose key was correct when written: **AP1** is a block of twenty-four checks that one deleted
   sentence silenced, on a justification W2 had quietly expired, and **AP2** is a coverage check
   sampling four of the twenty-six properties its own comment says it covers.
+- [Fifth W1-W3 verification-foundation iteration review](./channel-0.2-aq-iteration-review.md) — the
+  same scope at `138af11`; raised **AQ1**-**AQ5** and corrected all five, so condition 4 is **still
+  not met**, and the count has stopped falling: three, six, three, two, five. It ran the corpus first
+  — 53 of 53 — and then **built an instrument** rather than reading the gates a fifth time: each gate
+  under a line trace, every statement that never executed reported. Four of the five findings are
+  checks that no longer run at all, and **AQ1** is the sharpest thing this work has found — the AJ2
+  narrative freshness check, the guard against the staleness that ran for eight consecutive cycles,
+  has been an empty loop since the 2026-08-20 ruling inserted a column into the table it reads.
+  **AQ5** is the class the trace cannot see: a negative assertion bounded by a character count, which
+  under-reaches in silence as the passage it spans grows.
 
 ## Disclosed process deviation in the T1-T4 correction
 

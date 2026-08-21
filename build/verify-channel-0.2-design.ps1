@@ -1143,10 +1143,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all eight iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all nine iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
 }
 
 # The closure-cycle hold. The review policy tells an agent not to dispatch a closure review while the
@@ -1625,9 +1625,28 @@ if ($migration.IndexOf('CH-R10', [System.StringComparison]::Ordinal) -lt 0) {
 # refusal alone, the membership test finds an empty admitted set, and the property is green on
 # `C4-control-precedes-request`. That is U1 restored, four paragraphs above the property it was fixed
 # in, and the two paragraphs of C4 contradict each other while both gates stayed green.
-$expectedObservations = [regex]::Match($flowedContract, 'Their expected observations(.{0,900})')
+#
+# AQ5, the half that matters most. The capture was 900 characters and the passage is longer than
+# that, so the positive assertion below still passed -- its subject is early -- while the negative
+# one policed only the passage's first 900 characters. Restoring AF1's own superseded wording at the
+# far end of the same passage reproduces AF1 verbatim with the gate green; that probe is `AQ5-b`.
+#
+# This is the general shape and it is worth stating once, because it is what the next pass should
+# hunt. A character-bounded window fails *safely* for an assertion that something must be present:
+# truncation makes the check fail loudly. It fails *silently* for an assertion that something must
+# be absent, because the forbidden text simply sits past the boundary. So a negative assertion must
+# never be evaluated over a window a character count bounds. Both of the ones in this file were, and
+# both are now bounded by the end of their own subject.
+$expectedObservationsBoundary = 'These recorded facts, and not the refusals alone'
+$expectedObservations = [regex]::Match($flowedContract, "Their expected observations(.+?)(?=$([regex]::Escape($expectedObservationsBoundary))|\z)")
 if (-not $expectedObservations.Success) {
     $failures.Add('C4 states no expected observations for its ordering mutation vectors. C12 requires every vector to carry complete data rather than an unspecified expectation, and these are the vectors `C4-P2` must go red on.')
+}
+elseif ($flowedContract.IndexOf($expectedObservationsBoundary, [System.StringComparison]::Ordinal) -lt 0) {
+    # The boundary is asserted rather than assumed. Without it the region above runs to the end of
+    # the contract, which is the same defect one size larger: a negative assertion whose extent
+    # nothing declares.
+    $failures.Add("C4's expected-observation passage no longer ends at '$expectedObservationsBoundary', which is the sentence naming the witnesses ``C4-P2`` fails on and the declared end of the region the assertions below read. A region with no declared end is the AQ5 defect restored one size larger.")
 }
 else {
     if ($expectedObservations.Groups[1].Value -notmatch 'admi(ts|ssion)') {
@@ -1762,9 +1781,21 @@ elseif ($precedenceOperator.Groups[1].Value -notmatch 'session') {
 # AG3: the dated AE1 owner ruling still stated the operand scope AF8 corrected, and C4 defers to that
 # ruling, so the contract and the ruling it cites disagreed. The S1 ruling carries a retained-as-issued
 # note for exactly this situation; this requires the same treatment rather than a silent rewrite.
-$ae1Ruling = [regex]::Match((Get-FlowedText $plan), '2026-08-14.{0,6}AE1 correction ruling(.{0,2600})')
+#
+# AQ5's second instance, and the same shape as the AF1 window above. The capture was 2,600
+# characters and the ruling runs to 6,923, so the AG3 assertion below policed the first 38% of the
+# passage it names. The pre-AF8 operand scope restored among the rejected options -- inside this
+# ruling, past the boundary -- reproduces AG3 with both gates green; that probe is `AQ5-c`.
+#
+# The ruling's extent is the plan's own: a dated ruling runs to the next dated ruling. That boundary
+# is asserted below rather than assumed, for the reason the AF1 one is.
+$flowedPlan = Get-FlowedText $plan
+$ae1Ruling = [regex]::Match($flowedPlan, '2026-08-14.{0,6}AE1 correction ruling(.+?)(?=- \*\*20[0-9]{2}-[0-9]{2}-[0-9]{2}|\z)')
 if (-not $ae1Ruling.Success) {
     $failures.Add('The redesign plan records no dated 2026-08-14 AE1 correction ruling, which is what C4 cites for the subsequent-admission clause.')
+}
+elseif ($ae1Ruling.Groups[1].Value.Length -ge ($flowedPlan.Length - $ae1Ruling.Index - 64)) {
+    $failures.Add('The dated AE1 correction ruling runs to the end of the redesign plan, so no later dated ruling bounds it and the assertions below read whatever follows it. A dated ruling is bounded by the next dated ruling; without one the region has no declared end, which is the AQ5 defect.')
 }
 else {
     if ($ae1Ruling.Groups[1].Value -match 'admits within the vector|membership of the identity in the set the recipient admits within the vector') {
@@ -1978,7 +2009,13 @@ if ($latestDispositionFamily) {
     if ($planStatus -and (Get-FlowedText $planStatus) -cnotmatch "\b$($latestDispositionFamily[0])[0-9]") {
         $failures.Add("The disposition index's section for the redesign plan does not reach the '$($latestDispositionFamily[0])' family. This is AB1's own surface, stale twice before W3 moved it out of the plan; moving it did not make it exempt. This is AH3, now asked of the record that owns the history.")
     }
-    if ($futureIndexText -match 'No independent review has yet seen the ([A-Z]{1,2}) corrections') {
+    # AQ4. The pattern is a prose sentence and was matched against the raw file, so the moment the
+    # sentence reflowed -- it now wraps between "No independent" and "review has yet seen" -- the
+    # match stopped happening and the check went silent. This file has carried `Get-FlowedText` for
+    # exactly this since the first prose assertion; the check that most needed it was the one written
+    # without it, and it is the guard against an *affirmative* false claim about review coverage
+    # rather than a merely stale one.
+    if ((Get-FlowedText $futureIndexText) -match 'No independent review has yet seen the ([A-Z]{1,2}) corrections') {
         $seenClaim = $Matches[1]
         if ($seenClaim -cne $latestDispositionFamily[0]) {
             $failures.Add("The future-work index states that no independent review has seen the '$seenClaim' corrections, and a later review has. An affirmative false claim about review coverage is worse than a stale one, because it tells a reader the newest work is unreviewed when it has been reviewed and corrected. This is AH3.")
@@ -2007,13 +2044,37 @@ $reviewNarratives = @(
     @{ Name = "the future-work index's Priority 1 narrative"; Text = $futureChannelNarrative },
     @{ Name = "the disposition index's section for the redesign plan"; Text = $planNarrative }
 )
-foreach ($provenanceRow in [regex]::Matches($reviewReadme, '(?m)^\| ([A-Z]{1,2}) \| closure-review \|([^|]*)\|')) {
-    $provenanceFamily = $provenanceRow.Groups[1].Value
-    $numberedRecord = [regex]::Match($provenanceRow.Groups[2].Value, 'closure review ([0-9]+)')
-    if (-not $numberedRecord.Success) { continue }
-    $reviewNumber = [int]$numberedRecord.Groups[1].Value
+# AQ1. The row pattern above read the third cell as the Record, and on 2026-08-20 the owner ruling
+# that made each family declare what it was raised *against* inserted `Raised against` as the third
+# column. Every row then yielded ` design ` where a record name had been, no row matched
+# `closure review <n>`, every one took the `continue` below, and this check -- the whole of it, over
+# three narratives and every closure-review family -- measured nothing for three iteration passes.
+# That is AP1's class exactly, and this is the second key W-scale work has expired: correct when
+# written, silently vacuous once the artifact it keys on moved.
+#
+# So the key is no longer the table's shape. The numbered attestations the reviews directory HOLDS
+# are the set the narratives owe, they exist independently of any prose, and a family is looked up
+# for each of them. A column inserted, a header renamed, or a row's wording changed now fails here
+# instead of emptying the loop -- the AP1 correction pattern, an absent claim made loud rather than
+# silencing.
+$provenanceCells = @{}
+foreach ($provenanceRow in [regex]::Matches($reviewReadme, '(?m)^\| ([A-Z]{1,2}) \|(.+)$')) {
+    $provenanceCells[$provenanceRow.Groups[1].Value] = $provenanceRow.Groups[2].Value
+}
+$narrativeReviewNumbers = @($reviewMarkdown.Name |
+    ForEach-Object { [regex]::Match($_, '^channel-0\.2-design-foundation-closure-review-([0-9]+)-attestation\.md$') } |
+    Where-Object { $_.Success } |
+    ForEach-Object { [int]$_.Groups[1].Value } |
+    Sort-Object)
+foreach ($reviewNumber in $narrativeReviewNumbers) {
+    $provenanceFamily = @($provenanceCells.Keys | Where-Object { $provenanceCells[$_] -match "closure review $reviewNumber\b" })
+    if ($provenanceFamily.Count -ne 1) {
+        $failures.Add("The finding-family provenance table attributes closure review $reviewNumber to $($provenanceFamily.Count) families, and the reviews directory retains that review's attestation. Exactly one family row must name it, or the narratives owe a family this check cannot name. This is AQ1: the table gained a column on 2026-08-20 and the row pattern that read it went silent rather than loud.")
+        continue
+    }
+    $provenanceFamily = $provenanceFamily[0]
     if (-not $numberedReviewOrdinals.ContainsKey($reviewNumber)) {
-        $failures.Add("The finding-family provenance table attributes '$provenanceFamily' to closure review $reviewNumber and this check has no ordinal word for that number. Extend the map rather than leaving the narratives unchecked.")
+        $failures.Add("The reviews directory retains closure review $reviewNumber and this check has no ordinal word for that number. Extend the map rather than leaving the narratives unchecked.")
         continue
     }
     $reviewOrdinal = $numberedReviewOrdinals[$reviewNumber]
@@ -2164,13 +2225,24 @@ if ($frameFacts) {
 # brief publishes it twice. The count of artifacts publishing this reference is the exact quantity AJ1
 # turned on, so a claim about it is checked against the registry rather than read.
 $numberWords = @{ 'one' = 1; 'two' = 2; 'three' = 3; 'four' = 4; 'five' = 5; 'six' = 6; 'seven' = 7; 'eight' = 8; 'nine' = 9; 'ten' = 10; 'eleven' = 11; 'twelve' = 12; 'thirteen' = 13; 'fourteen' = 14; 'fifteen' = 15; 'sixteen' = 16; 'seventeen' = 17; 'eighteen' = 18; 'nineteen' = 19; 'twenty' = 20; 'twenty-one' = 21; 'twenty-two' = 22; 'twenty-three' = 23; 'twenty-four' = 24; 'twenty-five' = 25; 'twenty-six' = 26; 'twenty-seven' = 27; 'twenty-eight' = 28; 'twenty-nine' = 29; 'thirty' = 30 }
-foreach ($frameCountArtifact in $artifactNames) {
-    $frameCountText = & $framePlain (Read-RequiredText $frameCountArtifact)
-    foreach ($frameCountClaim in [regex]::Matches($frameCountText, '(?i)\b([a-z]+(?:-[a-z]+)?) other artifacts that publish')) {
+#
+# AQ2, and both halves of the key were wrong once W3 ran. The claim AK4 was raised against lived in
+# the ledger's status block; W3 moved every status block's history verbatim into the disposition
+# index, which is a review record and not one of the nine design artifacts this loop swept -- so the
+# sentence went on stating the count with nothing reading it. Asking "where else is this stated"
+# then found the same count a second time, in the index's row for the ledger, worded "the four other
+# **publishing artifacts**" -- which the phrase above would not have matched even in the right file.
+# The sweep is therefore over every file that may carry the claim, and keyed to the claim rather
+# than to the one sentence that first carried it.
+$frameCountSurfaces = @($artifactNames | ForEach-Object { @{ Name = $_; Text = (Read-RequiredText $_) } })
+$frameCountSurfaces += @{ Name = 'reviews\channel-0.2-disposition-index.md'; Text = $dispositionIndex }
+foreach ($frameCountSurface in $frameCountSurfaces) {
+    $frameCountText = & $framePlain $frameCountSurface.Text
+    foreach ($frameCountClaim in [regex]::Matches($frameCountText, '(?i)\b([a-z]+(?:-[a-z]+)?) other (?:artifacts that publish|publishing artifacts|artifacts publishing)')) {
         $claimedWord = $frameCountClaim.Groups[1].Value.ToLowerInvariant()
         $expectedOthers = $framePublicationArtifacts.Count - 1
         if (-not $numberWords.ContainsKey($claimedWord) -or $numberWords[$claimedWord] -ne $expectedOthers) {
-            $failures.Add("'$frameCountArtifact' says '$claimedWord other artifacts that publish' a frame reference, and $($framePublicationArtifacts.Count) artifacts publish one, so $expectedOthers others do. The brief publishes each reference twice, so the count of publishing surfaces and the count of publishing artifacts are different numbers and a reader who takes this one literally looks for an artifact that does not exist. This is AK4.")
+            $failures.Add("'$($frameCountSurface.Name)' says '$claimedWord other' artifacts publish a frame reference, and $($framePublicationArtifacts.Count) artifacts publish one, so $expectedOthers others do. The brief publishes each reference twice, so the count of publishing surfaces and the count of publishing artifacts are different numbers and a reader who takes this one literally looks for an artifact that does not exist. This is AK4, swept under AQ2 over the record W3 moved the claim into and over both wordings it is stated in.")
         }
     }
 }
@@ -2314,16 +2386,35 @@ foreach ($statusArtifactName in $artifactNames) {
 # runs is therefore compared against how many review cycles there are.
 if ($attestationCount) {
     $ordinalWords = @{ 'first' = 1; 'second' = 2; 'third' = 3; 'fourth' = 4; 'fifth' = 5; 'sixth' = 6; 'seventh' = 7; 'eighth' = 8; 'ninth' = 9; 'tenth' = 10; 'eleventh' = 11; 'twelfth' = 12; 'thirteenth' = 13; 'fourteenth' = 14; 'fifteenth' = 15; 'sixteenth' = 16; 'seventeenth' = 17; 'eighteenth' = 18; 'nineteenth' = 19; 'twentieth' = 20 }
-    foreach ($statusArtifactName in $artifactNames) {
-        $statusBlock = [regex]::Match((Get-StatusBlock (Read-RequiredText $statusArtifactName)), '(?ms)^(?:\*\*)?Status:(.+)')
-        if (-not $statusBlock.Success) { continue }
-        foreach ($cycleClaim in [regex]::Matches((Get-FlowedText $statusBlock.Groups[1].Value), '(?i)runs to the ([a-z]+) cycle')) {
+    #
+    # AQ3. The claim was read out of the nine design artifacts' status blocks, and W3 emptied those
+    # blocks -- the history, this sentence with it, went verbatim to the disposition index. From that
+    # commit no status block has carried the phrase and this check has read nothing, while the claim
+    # itself is live in the record that now owns it. AJ4's subject did not go away; the place it is
+    # written did.
+    #
+    # The surfaces are the blocks *and* the moved status text, and the boundary between the two
+    # things the index holds is what makes this checkable. A `Status:` paragraph is the document
+    # speaking about itself in the present, which is the whole of what AJ4 is about -- "a status
+    # block that understates its own document". The disposition paragraphs beneath it are history,
+    # and history recites old counts on purpose: the index says in one breath that a block once said
+    # the history ran to the eighth cycle, and in the next that it runs to the sixteenth. Sweeping
+    # the file whole reads the recital as a claim. Sweeping the `Status:` paragraphs reads the claim
+    # and leaves the recital alone, without asking this check to tell a past tense from a present one.
+    $cycleClaimSurfaces = @($artifactNames | ForEach-Object {
+        @{ Name = $_; Text = [regex]::Match((Get-StatusBlock (Read-RequiredText $_)), '(?ms)^(?:\*\*)?Status:(.+)').Groups[1].Value } })
+    foreach ($movedStatus in [regex]::Matches($dispositionIndex, '(?ms)^Status:(.+?)(?=\r?\n\r?\n|\z)')) {
+        $cycleClaimSurfaces += @{ Name = "reviews\channel-0.2-disposition-index.md (moved status text)"; Text = $movedStatus.Groups[1].Value }
+    }
+    foreach ($cycleClaimSurface in $cycleClaimSurfaces) {
+        if (-not $cycleClaimSurface.Text) { continue }
+        foreach ($cycleClaim in [regex]::Matches((Get-FlowedText $cycleClaimSurface.Text), '(?i)runs to the ([a-z]+) cycle')) {
             $claimedWord = $cycleClaim.Groups[1].Value.ToLowerInvariant()
             if (-not $ordinalWords.ContainsKey($claimedWord)) {
-                $failures.Add("'$statusArtifactName' says its disposition history runs to the '$claimedWord' cycle, which is not an ordinal this check can compare against the number of retained review cycles. State the cycle as an ordinal word so the claim is checkable.")
+                $failures.Add("'$($cycleClaimSurface.Name)' says the disposition history runs to the '$claimedWord' cycle, which is not an ordinal this check can compare against the number of retained review cycles. State the cycle as an ordinal word so the claim is checkable.")
             }
             elseif ($ordinalWords[$claimedWord] -lt $attestationCount) {
-                $failures.Add("'$statusArtifactName' says its disposition history runs to the '$claimedWord' cycle and there are $attestationCount retained review cycles. A status block that understates its own document is what a reader opening that document alone is told, and appending the newest family to the block leaves the sentence beside it saying what it always said. This is AJ4.")
+                $failures.Add("'$($cycleClaimSurface.Name)' says the disposition history runs to the '$claimedWord' cycle and there are $attestationCount retained review cycles. A record that understates its own history is what a reader consulting it alone is told, and appending the newest family leaves the sentence beside it saying what it always said. This is AJ4, asked under AQ3 of the record W3 moved the history into.")
             }
         }
     }
