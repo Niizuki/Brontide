@@ -906,7 +906,18 @@ foreach ($property in $properties.properties) {
 
     # AK4's class, on this file's own count: the contract states how many legal members the group has,
     # and a set that names a different number is the defect rather than the count being decorative.
-    $memberCountClaim = [regex]::Match($contractPlain, "Property $([regex]::Escape($property.id))\..{0,4000}?required vector group has ([a-z-]+) legal members")
+    #
+    # AQ5. The key was a 4,000-character proximity window from the property's own marker, and C4's
+    # passage has since grown: the marker and the count now sit 5,246 characters apart, so the match
+    # stopped happening and the check stopped running. Nothing announced it, because a window that
+    # no longer reaches its subject looks exactly like a subject that is not there. A character count
+    # is a key the artifact can outgrow, and this is the third guard in this pass to have expired
+    # without saying so.
+    #
+    # The region is bounded by the contract's own structure instead -- the next property marker or
+    # the next capability heading -- so it grows with the passage it is about.
+    $propertyRegion = [regex]::Match($contractPlain, "Property $([regex]::Escape($property.id))\.(.+?)(?=Property C[0-9]+-P[0-9]+\.|## C[0-9]+ |\z)")
+    $memberCountClaim = [regex]::Match($propertyRegion.Groups[1].Value, 'required vector group has ([a-z-]+) legal members')
     if ($memberCountClaim.Success) {
         $claimedWord = $memberCountClaim.Groups[1].Value.ToLowerInvariant()
         if (-not $numberWords.ContainsKey($claimedWord)) {

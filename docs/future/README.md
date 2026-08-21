@@ -250,8 +250,25 @@ against the hour each earlier pass spent rebuilding the same mutations -- the fi
 this work has produced. Both findings are one new class: **a guard whose key was correct when written
 and stopped being correct when the work moved.** **AP1** is a block of twenty-four checks that one
 deleted sentence silenced, on a justification W2 had quietly expired; **AP2** is a coverage check
-sampling four of the twenty-six properties its own comment says it covers. The finding count is
-falling -- three, six, three, two -- and a fifth pass is the next work.
+sampling four of the twenty-six properties its own comment says it covers. The finding count was
+falling -- three, six, three, two.
+
+**The fifth pass stopped reading the gates and built an instrument**, and is retained as the
+[fifth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-aq-iteration-review.md);
+it raised **AQ1**-**AQ5** and corrected all five. Four passes had read these files; a fifth reading was
+not going to find what four had walked past, so this one ran each gate under a line trace and reported
+every check whose body never executes. **Five checks in the three gates do not run at all**, every one
+of them AP1's class, and **AQ1** is the one to weigh: the AJ2 narrative freshness check -- the guard
+against the entry-point staleness that ran for eight consecutive cycles, over three narratives and
+every closure-review family -- has been an empty loop since the 2026-08-20 ruling inserted a column
+into the table it reads. It went dark in the commit that recorded the ruling, and three iteration
+passes ran under it. **AQ5** is what the trace cannot see and is the brief the next pass inherits: a
+character-bounded window fails loudly for an assertion that something must be present and **silently**
+for an assertion that something must be absent, so AF1's own superseded wording, restored at the far
+end of AF1's own passage, was green. The count has stopped falling -- three, six, three, two, five --
+which measures what an instrument sees that a reading does not. A sixth pass is the next work; it
+starts by running the trace and then hunts the negative assertion whose extent nothing declares, and
+the ranked item beside it is retaining the instrument, which this pass did not.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
