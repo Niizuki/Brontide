@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "note": "Coverage exemptions for the Channel 0.2 verification gates. `build/verify-channel-0.2-coverage.ps1` runs each gate under a line trace and requires every conditional in it to be evaluated by a passing run; an entry here declares one construct that a passing run correctly cannot reach, with the reason. Two classes are exempt structurally rather than by entry, in the gate itself: anything inside a `catch`, and the `foreach ($failure in $failures)` loop each gate prints its findings with. Those are expressed as a walk to the root and as the collection the loop walks, not as lists of the ones that exist today, because AN2 was a list that held eight of nine.",
+  "authority": {
+    "note": "An exemption is a claim that a construct cannot be reached by a passing run. It is not a way to quiet the measure: an entry whose construct is reached fails, and an entry whose construct no longer occurs fails as stale, on the same rule the probe corpus applies to a rotted anchor. A check that is unreachable because no input exercises it is a missing input and belongs in the vector corpus, not here -- which is AR1, and is why this file has no entry for the two property clauses that had no input.",
+    "raisedUnder": "AR2"
+  },
+  "gates": [
+    {
+      "gate": "verify-channel-0.2-design.ps1",
+      "exemptions": [
+        {
+          "anchor": "foreach ($owedClaim in [regex]::Matches($owedText, '(?i)\\b([a-z]+(?:-[a-z]+)?) capabilities owe')) {",
+          "reason": "AK3's `N capabilities owe` claim. Every capability cell in the per-capability property audit is filled against an executable evaluator, so no capability owes a required-green set and no artifact makes the claim. The guard is dormant because the residual work it counts is finished, which is not the same as expired: it fires again the moment the claim reappears. The AQ pass read this one and reached the same conclusion."
+        },
+        {
+          "anchor": "if (-not $numberWords.ContainsKey($claimedWord) -or $numberWords[$claimedWord] -ne $owingCapabilities) {",
+          "reason": "The body of the dormant AK3 claim loop above. Unreachable for the same reason and for exactly as long."
+        }
+      ]
+    },
+    {
+      "gate": "verify-channel-0.2-properties.ps1",
+      "exemptions": [
+        {
+          "anchor": "if ($result.Verdict -eq 'red') { $detail = \" Witness: $($result.Witness).\" }",
+          "reason": "Inside the branch that reports a property whose verdict is not the declared one. A passing run has no such property, so the message this line decorates is never built."
+        },
+        {
+          "anchor": "if ($mutatedResult.Verdict -eq 'red') { $detail = \" Witness: $($mutatedResult.Witness).\" }",
+          "reason": "The same, for an operand mutation whose verdict is not the declared one."
+        }
+      ]
+    },
+    {
+      "gate": "verify-channel-0.2-facts.ps1",
+      "exemptions": [
+        {
+          "anchor": "if ($Apply) { $rewritten = $true }",
+          "reason": "The `-Apply` rewrite path. The gate runs without it in verification, where it compares each fenced publication against the declaration; with it, it regenerates them. A verifying run correctly never rewrites."
+        },
+        {
+          "anchor": "$artifactNewline = if ($text.IndexOf(\"`r`n\", [System.StringComparison]::Ordinal) -ge 0) { \"`r`n\" } else { \"`n\" }",
+          "reason": "Inside the `-Apply` rewrite path, which a verifying run does not enter."
+        },
+        {
+          "anchor": "if (-not $declared.ContainsKey($factId)) { return $fence.Value }",
+          "reason": "Inside the `-Apply` rewrite path's fence replacement callback, which a verifying run does not enter."
+        },
+        {
+          "anchor": "if ((Get-FlowedText $body) -ceq (Get-FlowedText $declared[$factId])) { return $fence.Value }",
+          "reason": "Inside the `-Apply` rewrite path's fence replacement callback, which a verifying run does not enter."
+        },
+        {
+          "anchor": "if ($lineCount -le 1) { return \"<!-- fact:$factId -->$rendering<!-- /fact -->\" }",
+          "reason": "Inside the `-Apply` rewrite path's fence replacement callback, which a verifying run does not enter."
+        },
+        {
+          "anchor": "$indent = if ($indentMatch.Success) { $indentMatch.Groups[1].Value } else { '' }",
+          "reason": "Inside the `-Apply` rewrite path's fence replacement callback, which a verifying run does not enter."
+        }
+      ]
+    }
+  ]
+}

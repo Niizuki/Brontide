@@ -58,7 +58,7 @@ batch.
 ## Channel 0.2 design foundation
 
 Every artifact below awaits the same cycle: one fresh independent closure re-review, now of the
-correction sequence that runs from S1 through **AL4**. That range is stated here rather than in the
+correction sequence that runs from S1 through **AR1**. That range is stated here rather than in the
 Design reviews row alone because AE4 corrected the row and left this sentence naming a sequence five
 families stale, and AF2 was that omission — a count is not the only thing in an index that goes
 stale. R1 was a disagreement between C8 and the recipient state/event grid about a cancellation
@@ -92,7 +92,7 @@ operand at once instead of one at a time. See the
 | [Contract-completeness review](./Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md) | Separate review of silence and extension pressure | See the [disposition index](./reviews/channel-0.2-disposition-index.md#contract-completeness-review). |
 | [0.1-to-0.2 migration ledger](./Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md) | Disposition of predecessor Shapes, fields, states, categories, limits, observations, vectors, and goldens | See the [disposition index](./reviews/channel-0.2-disposition-index.md#01-to-02-migration-ledger). |
 | [Neutral contract/vector brief](./Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md) | Batch 2 data-only artifact, identity, property, vector, observation, and golden boundaries | See the [disposition index](./reviews/channel-0.2-disposition-index.md#neutral-contract-and-vector-brief). |
-| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | 16 retained attestations, fifteen `does-not-conform` and one `conforms-with-nonblocking-findings`; 9 iteration reviews recording the V, W, X, Y, Z, AA, AB, AC, AD, AM, AN, AO, AP and AQ passes. See the [disposition index](./reviews/channel-0.2-disposition-index.md#design-reviews). |
+| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | 16 retained attestations, fifteen `does-not-conform` and one `conforms-with-nonblocking-findings`; 10 iteration reviews recording the V, W, X, Y, Z, AA, AB, AC, AD, AM, AN, AO, AP, AQ and AR passes. See the [disposition index](./reviews/channel-0.2-disposition-index.md#design-reviews). |
 | [Verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md) | Why closure has not converged, and the work that has to exist before another review is spent | Not a design artifact and assessed by no closure review. See the [disposition index](./reviews/channel-0.2-disposition-index.md#verification-foundation-plan). |
 
 No Channel 0.2 schema, public type, package, host, provider, or encoding is authorized while a fresh

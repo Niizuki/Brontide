@@ -231,7 +231,7 @@ Both were probed.
 
 **All twenty-six properties now execute, and no cell in either audit table reads `owed`.** The eleven
 per-capability properties outside condition 2 -- `C1-P1`, `C2-P1`, `C3-P1`, `C5-P1` through `C12-P1`
--- were the last of them. The gate runs **113** evaluations over **41** declared inputs plus the nine operand
+-- were the last of them. The gate runs **115** evaluations over **43** declared inputs plus the nine operand
 mutations, and each property is red on the mutation the completeness review already named for it and
 green on both required-green members.
 
@@ -650,6 +650,54 @@ thrown away; AO3 fixed that for the probes; this pass built a second one and kep
 Making "every check in these files runs" a gated measure rather than a thing a pass rediscovers is
 the ranked next item of this work.
 
+## 2i. What the sixth condition 4 pass found, and the instrument it kept
+
+The sixth author-side pass has run, at `a5ec7a5`, and is retained as the
+[sixth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-ar-iteration-review.md).
+It raised **AR1** and corrected it, so **it does not meet condition 4** either. **AR is a `design`
+family** and its disposition is in the completeness review, not here: the finding is about which
+inputs the property gate runs, and its correction reached the per-capability property audit, which
+under the 2026-08-20 ruling settles the class. What belongs here is the instrument.
+
+**The AQ pass's owed item is discharged.** That pass built a coverage trace, found four of its five
+findings with it, and kept only the output — section 1.1 of this plan for the third time, after the
+property evaluators every closure reviewer discarded and the probes three passes rebuilt from prose.
+It is now `build/verify-channel-0.2-coverage.ps1`, it runs in the repository gate, and its rule is
+that **every conditional in a covered gate must be evaluated by a passing run**, with the constructs a
+passing run correctly cannot reach declared in `conformance/channel-0.2-coverage-exemptions.json` with
+their reasons. An entry whose construct becomes reachable fails; an entry whose construct disappears
+fails as stale, on the rule the probe corpus already applies to a rotted anchor.
+
+Three design decisions in it are worth keeping, because each could have gone the other way:
+
+- **The unit is a condition, not a statement.** A passing gate is supposed to skip its failure bodies,
+  so a statement-level measure reports every check in the file. The first draft did exactly that,
+  reported 179 constructs across the three gates, and would have been abandoned as noise inside a
+  cycle. Conditions report only the checks whose condition was never reached.
+- **Two exemption classes are structural rather than declared** — anything inside a `catch`, and the
+  `foreach ($failure in $failures)` loop each gate reports with. Both are expressed as a walk to the
+  root and as the collection the loop walks rather than as a list of today's members, because **AN2**
+  was a list that held eight of nine.
+- **It refuses a dirty tree.** The review-target pin check skips itself while a design artifact has
+  uncommitted edits, correctly, so coverage measured mid-edit reads it as a check that never runs.
+  This was observed rather than predicted, on the gate's first run against a working tree. A measure
+  that cries wolf while someone is working gets an exemption written for it, and an exemption is
+  permanent where the dirty tree was not. `-Report` still works mid-edit and asserts nothing.
+
+**What it found on its first run is AR1**, and it is the first finding in this programme raised by an
+instrument rather than by a reading. Two conditions were never evaluated across 113 evaluations over
+41 declared inputs: the second clause of `C5-P1` and the second clause of `C6-P1`. Each property
+states two clauses, each had one named mutation, each mutation fires through the first clause, and
+both second clauses were **deleted outright from the evaluator with both gates green**. The rule they
+break is one the design already states in C4's own audit row — one named mutation per clause — enforced
+for the single property that declared conjuncts and silent for the other twenty-five.
+
+**The limit is stated here because the next pass should not over-trust this gate.** It finds a check
+that never runs. It does not find a check that runs and cannot fail, which is **AQ5** — a negative
+assertion whose extent nothing declares — and it does not see inside a compound condition, where an
+operand no input exercises is AR1's shape one level down. Coverage is a floor. The sixth pass hunted
+the AQ5 class by reading and found nothing, and records that class as **unswept rather than clean**.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -707,13 +755,13 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,326** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,331** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved twice
   since, by four characters each time and for the same reason — registering a new iteration-review
   family in the Design reviews row — and on both occasions the check that recomputes it failed the
   figure on the commit that wrote it, which is the check working rather than a defect in it; and
-- **guard probes executable** — currently **61 of 61**, run by
+- **guard probes executable** — currently **64 of 64**, run by
   `build/verify-channel-0.2-guards.ps1` in the repository gate and recomputed by it. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
