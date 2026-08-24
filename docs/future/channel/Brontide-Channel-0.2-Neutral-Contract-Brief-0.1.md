@@ -1,8 +1,12 @@
-# Channel 0.2 neutral contract and vector brief 0.1
+﻿# Channel 0.2 neutral contract and vector brief 0.1
 
 Date: 2026-08-11
 
-Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet.
+Status: proposed first-batch artifact boundary; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#neutral-contract-and-vector-brief).
 
 ## Purpose
 
@@ -115,6 +119,14 @@ A fixed realization supplies the exact same profile image locally and validates 
 rules. The vector suite compares the resulting canonical established-profile image byte for byte
 after semantic canonicalization.
 
+The established-profile image also carries the realization's **per-interaction frame order**
+declaration. C4 promises intra-interaction frame order, the responsibility matrix makes that
+declaration the artifact crossing the boundary from the realization, and C4's evidence requires a
+profile to check it at establishment — so `established-profile.json` gives it a normative position and
+a realization that does not declare it refuses establishment exactly as an unknown required facet
+does. It is a realization fact, not an extension facet: a profile with no facets at all still has it,
+because core promises the ordering rather than a `delivery-facet` supplying it.
+
 Unknown required facets or any version mismatch refuse before interaction dispatch. Optional facets
 may be absent only when their declaration states that absence changes no core identity, authority,
 terminal, or uncertainty meaning.
@@ -141,8 +153,37 @@ category fails local validation and generates no fault reply.
 ### Local observation
 
 Carries no peer-authored body. It records local provenance, state, admission decisions, dispatch
-boundary, terminal form, detection point, and effect certainty. Profile-owned details are nested
-under a versioned profile observation, never flattened into Channel core.
+boundary, terminal form, detection point, the late-traffic latch with the frame that settled it, the
+frame the terminal history was accepted on, the frame refused where a refusal opens no interaction,
+and effect certainty. Profile-owned details are nested under a versioned profile observation, never
+flattened into Channel core.
+
+The latch position holds one of the three latch values or the explicit `not-applicable` a route
+reaching no terminal interaction asserts, never an absent field. The settling-frame position holds
+<!-- fact:settling-frame-reference -->its kind, its **session**, its interaction identity, its **committing
+endpoint**, and its **arrival ordinal** within the interaction<!-- /fact -->; it is absent only where no latch has settled. These are the fields
+`C4-P2`'s second conjunct reads and the parity profile compares, so the schema has to have somewhere
+to put them, and they are the same five fields in the same order everywhere the reference is
+published.
+
+The terminal-frame position holds <!-- fact:terminal-frame-reference -->its kind, its **session**, its interaction identity, its **committing
+endpoint**, and its **arrival ordinal** within the interaction<!-- /fact -->; it is absent only where
+no terminal history was accepted. It is the second operand of the same conjunct — the frame the
+settling frame is compared against — and until **AK6** the schema had a five-field position for one of
+the two and nothing for the other, which left the comparison resting on the terminal form. A form
+names one frame only while an endpoint commits at most one frame of that form for one identity, and a
+duplicate terminal is an endpoint committing two.
+
+The refused-frame position holds <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**,
+and its **arrival ordinal** for that interaction identity<!-- /fact -->; it is absent only where the
+observation records no refusal that opens no interaction. It is `C4-P2`'s **first** conjunct's
+operand, and under **AK1** and **AK5** it replaces a record that carried the refusal's provenance, its
+detailed reason, and the kind of frame refused: that conjunct scopes its membership test to one
+session, tests one interaction identity, and takes its precedence half over the committing endpoint's
+own frames, so three of its qualifiers had no operand and the property went red on a conforming
+two-session vector. The ordinal is scoped to the interaction identity rather than to the interaction
+because at `unseen` no interaction exists; the five field names are the same five, which is the class
+every frame reference in this package belongs to.
 
 ## External phase and authority inputs
 
@@ -163,10 +204,30 @@ Every vector contains:
 
 - stable vector id and capability id;
 - predecessor 0.1 vector ids where applicable;
-- profile and initial session/interaction state;
+- the established profile and initial session/interaction state of **each session the vector carries**.
+  `profile` was outside that distribution until AJ3, separated from it by a comma while the same
+  sentence made the state plural: two sessions establish independently and each has its own profile,
+  so one profile stated for both is the singular AI7 corrected in the parity profile and left here. A
+  vector
+  **may carry more than one session**, because the identity rules make the distinction observable: an
+  interaction identity is unique within a session and a new session may legitimately reuse the value,
+  so a vector exercising that reuse needs two sessions to express it. The justification originally
+  cited "C2's reconnect and new-session cases", which **AI5** found C2 does not have — its Silence
+  disclaims reconnect — and that citation is withdrawn rather than repaired, because the identity
+  argument stands on its own and did not need it. This is AH1's second half, stated here because two
+  corrections had already been written to defend against a two-session vector while this list read
+  singular — on the other reading AF8 and AG2 defend against a vector no author can write;
 - endpoint perspective and role;
 - explicit external phase and authority inputs;
-- ordered stimulus steps;
+- ordered stimulus steps, each naming its **committing endpoint**, its **session**, and, where it
+  carries one, its
+  interaction identity. Attribution is not bookkeeping: `C4-P2`'s precedence relation is defined over
+  one endpoint's own frames for one identity within one session, and without all three the operator
+  has no operand. The session was added under AH1: AG2 scoped the relation to a session and left the
+  step unable to say which one, which is W5's defect — an operator whose operand does not exist —
+  inside the correction written to close AG2. It also
+  keeps the sequence honest about what it is — a record of what each side committed, not a global
+  order, which Channel does not have;
 - expected accepted/refused transitions;
 - expected frame decision and peer/local provenance;
 - expected terminal history and effect certainty;
@@ -189,6 +250,17 @@ groups include:
 - every legal and representative illegal session transition;
 - external phase false and unknown for each interaction class;
 - bounded concurrency interleavings, replay, mismatch, and out-of-order terminal facts;
+- intra-interaction frame order and **both** its ordering mutations: conforming commit-order delivery
+  in both directions, loss of either frame — **which is legal behaviour and must not fail `C4-P2`**,
+  and is the member this group carried with no stated expectation while the property went red on it —
+  a cancellation control for an identity the peer never
+  opened — which is legal input from a nonconformant peer and must not fail `C4-P2` — a legal late
+  control arriving after a peer's terminal and a duplicate terminal from a nonconformant peer, which
+  settle a latch and must also not fail it, and then `C4-control-precedes-request` and
+  `C4-outcome-precedes-ack`, one per conjunct. Both require the reordering injection declared under
+  the neutral provider boundary, and this is the only group whose expected observations include a
+  property going red. One mutation per conjunct is the requirement: a conjunct whose mutation no group
+  has to contain is unfalsifiable in the suite however well the contract names it;
 - payload projection versus authority non-projection and each declared bound class;
 - local denial, cross-trust forbidden authority, and deputy attribution;
 - relational exact/mismatched edge, direction, member, Operation, Capability, Shape, and phase;
@@ -209,12 +281,46 @@ groups include:
 - fields/state facts quantified;
 - invariant expressed through a closed declarative operator set;
 - one named negative probe mutation;
-- expected failing vector/property report; and
+- expected failing vector/property report;
+- a **required-green set**: the named legal inputs from the property's own required vector group that
+  it must not fail on, each with the expectation that evaluating the property over that vector returns
+  green; and
 - evidence modes required to execute it.
 
+The required-green set is the format's answer to AE1 and is as normative as the mutation. A property
+declaring a mutation and no required-green set is only half specified, because nothing then states
+what a red verdict on legal input means: `C4-P2`'s adversarial group already required a lost-request
+vector, the group carried no expectation for it, and the property was red on it for ten cycles while
+satisfying every field this format then listed. A required-green vector that no incorrect
+implementation could turn red is a finding against the set rather than evidence for the property.
+
 The operator set may compare equality, membership, counts, transition edges, set uniqueness,
-implication, and bounded “for all selected steps/vectors.” It may not call stack code or embed a
-general scripting language.
+implication, bounded “for all selected steps/vectors,” and **precedence between two steps in one
+vector's declared ordered stimulus sequence, for one endpoint and one interaction identity within one
+session**. It may not call stack code or embed a general scripting language.
+
+The session qualifier is AG2 and carries the same reasoning as AF8's on the membership operand: an
+interaction identity is unique within a session and a new session may legitimately reuse the value, so
+without it a wholly conforming two-session vector reusing one identity puts two unrelated endpoints'
+steps in one precedence relation and takes `C4-P2` red. C4 asserted this qualifier was already here
+before it was, which is why the design verifier now pins the claim against this sentence rather than
+leaving one artifact to describe another.
+
+The settling frame's arrival ordinal is used **as an identifier, never as an ordering operand**. It may be
+compared for equality, to say which received frame settled a latch and therefore which declared step
+the latch settled against; it may not be an operand of precedence or of any other comparison that
+reads it as an order. The distinction is the whole of the restriction below: an ordinal is observed
+arrival, and a property permitted to order by it could assert an ordering Channel does not promise —
+across endpoints, or against a frame the contract never sequenced — under cover of a field added to
+identify one frame.
+
+Precedence is deliberately the narrowest ordering relation that makes `C4-P2` writable. It compares
+two positions in a declared input sequence — data the vector author wrote down — and never an
+observed time, arrival order, or cross-endpoint relation. Channel promises no order across endpoints
+and owns no clock, so a property that could compare one endpoint's step against another's, or against
+anything observed rather than declared, would let the property language assert an ordering the
+contract does not have. Restricting precedence to one endpoint's own declared steps is the same
+restriction `C4-P2`'s two conjuncts carry, and for the same reason.
 
 Every property is run once against an intentionally mutated declaration/model and the failure output
 is retained in the Batch 2 implementation record. A property that cannot be made to fail is a review
@@ -224,13 +330,77 @@ finding.
 
 Core normative comparison includes:
 
-- exact established profile digest;
+- the exact established profile digest **of each session the vector carries**, which is AI7: the same
+  list AH1 made per-session left this entry singular;
 - session state transition/result;
 - session and interaction identity spaces (shape/scope, not opaque values across runs);
 - interaction class/direction and phase decision;
 - Shape and authority decisions;
 - dispatch boundary crossed or not;
 - terminal provenance and peer-fault/local-loss category where present;
+- the peer-fault detailed reason wherever its category declares a closed set of them, so that two
+  refusals sharing one category remain distinguishable — `C4-P2` quantifies over a recipient
+  `rejected-protocol` caused by a cancellation control naming an unopened identity, which is the
+  detailed reason `unopened-interaction-identity` of `invalid-interaction-correlation` and not the
+  category as a whole. The reason is named rather than described, because a value identified only by
+  description is not something a vector can compare;
+- the **refused-frame reference** where a refusal opens no interaction: <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity,
+  its **committing endpoint**, and its **arrival ordinal**
+  for that interaction identity<!-- /fact -->. The kind is AC2 — the same provenance and the same detailed reason cover a cancellation
+  control and any other control naming an unopened identity, and the first conjunct quantifies over
+  the cancellation control alone. The session, the interaction identity, the committing endpoint and
+  the arrival ordinal are **AK1** and **AK5**: that conjunct scopes its
+  membership test to one session under AF8, tests membership of one interaction identity, and takes
+  its precedence half over the committing endpoint's own frames, and this list compared none of the
+  three, so a two-session vector conforming at both endpoints took the property red — AE1's failure
+  mode reached through the operand. The ordinal is Y4's argument on this operand: one endpoint may
+  commit two controls naming one identity, and the reference has to say which one was refused;
+- the terminal interaction's `late-traffic latch` value, which the state/event grid already requires
+  every generated cell to assert — including the explicit `not-applicable` a route reaching no
+  terminal interaction asserts, which is compared as a value and never as an absent field;
+- the **frame that settled the latch** wherever one is settled: <!-- fact:settling-frame-reference -->its kind, its **session**, its interaction
+  identity, its **committing endpoint**, and its
+  **arrival ordinal** within the interaction<!-- /fact -->. The session is AI1: AH1
+  declared a vector may carry more than one, and an interaction identity is unique only within one, so
+  without it two steps in different sessions match every other field and the reference stops mapping
+  to one declared step — which takes `C4-P2` green on `C4-outcome-precedes-ack`. The ordinal is what
+  makes the reference unambiguous: one endpoint may commit two frames of the same kind for one
+  identity, which is exactly what a duplicate terminal is, and that case must leave `C4-P2` green.
+  Bound to the earlier of the two matching steps the property would read "committed before the
+  terminal frame" and go red on legal input. With the ordinal the settling frame maps to one declared
+  step — directly where no reordering is injected, and through the named injection where one is — and
+  the precedence relation compares that step and no other. The latch value is one of three enum
+  values and names no frame, and
+  `C4-P2`'s second conjunct is about which frame a latch settled against. The mutation it must fail on
+  and the two cases it must leave green — a legal late control arriving after a peer's terminal, and a
+  duplicate terminal from a nonconformant peer — all record `state-violation` with `fault-committed`,
+  and `state-violation` declares no closed detailed-reason set for the clause above to reach. The
+  settling frame is what separates them, and once it names its committing endpoint the property can
+  bind it to a declared stimulus step through the precedence relation;
+- the **terminal-frame reference** wherever a terminal history was accepted: <!-- fact:terminal-frame-reference -->its kind, its **session**, its interaction
+  identity, its **committing endpoint**, and its
+  **arrival ordinal** within the interaction<!-- /fact -->. This is the frame the settling frame is compared *against*, and under **AK6** it is
+  compared rather than inferred: the terminal form was the only published fact about it, and a form
+  identifies one frame only while an endpoint commits at most one frame of that form for one identity.
+  A duplicate terminal from a nonconformant peer is an endpoint committing two and is a required-green
+  member of this property's own group, so the conjunct had one operand identified to five fields and
+  the other to an enum value;
+- the **admission of an identity previously refused at `unseen`**, which is the fact `C4-P2`'s first
+  conjunct reads to separate a reordering from a loss. Both deliver a cancellation control to a
+  recipient that has not seen the request, and both record the same provenance, detailed reason,
+  refused frame kind, and `not-applicable` latch, so nothing already in this list distinguishes them.
+  What does is whether the request arrives afterwards: a reordering delivers it and the recipient
+  judges it on its own merits, which is what C4's retention rule says of any later request bearing
+  that identity — the earlier refusal does not bar it — so a conforming recipient admits it and the
+  admission is recorded; a loss never delivers it at all. Under AH6 those are distinct claims, and the
+  earlier wording read "not barred" as "must be admitted": a reordering whose displaced request is
+  refused on its own merits is not witnessed here, which is a coverage limit rather than an
+  unfalsifiable property, since the named mutation delivers a request a conforming recipient admits.
+  The conjunct
+  tests membership of the identity in the
+  set the recipient admits **within the same session**, so that set is compared. The scope is the
+  session rather than the vector because an interaction identity is unique only within one, and a
+  vector carrying two sessions may hold the same identity value in both;
 - effect certainty and unknown reason class; and
 - extension/profile-owned normative details selected by that profile's parity declaration.
 
@@ -267,7 +437,21 @@ The implementation-neutral endpoint is built only after schemas/vectors exist. I
 
 - imports no Reference or Minimal assembly;
 - implements the profile and both state machines independently from data artifacts;
-- supports deterministic fault/loss injection named by vectors;
+- supports deterministic fault/loss injection named by vectors, and deterministic per-interaction
+  reordering injection for the mutation vectors that require it. Reordering injection exists only to
+  execute a declared mutation such as `C4-control-precedes-request` or `C4-outcome-precedes-ack`: it
+  is never a legal delivery mode, no conforming realization may offer it, and a vector that does not
+  name it receives commit order. Without it `C4-P2` would carry named mutations nothing is permitted
+  to produce.
+
+  In such a run the provider **declares per-interaction frame order and then violates it**. That is
+  not an inconsistency in the fixture; it is the fixture's point. Establishment verifies the
+  declaration is *present*, never that it is *true* — a declaration is a claim a realization makes
+  about itself, and C1 has no way to test it. This is exactly why the S1 correction needed both a
+  declaration and a property: the declaration makes a conforming realization state its obligation, and
+  `C4-P2` is the only thing that can catch one whose statement is false. A mutation provider that
+  refused to declare would fail establishment instead, and the ordering property would never be
+  reached;
 - never supplies semantic expectations to the stack adapters at runtime; and
 - exposes a process endpoint plus a fixed/direct pure test adapter where meaningful.
 

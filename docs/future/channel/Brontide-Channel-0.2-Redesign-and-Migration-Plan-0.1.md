@@ -1,11 +1,13 @@
-# BRONTIDE
+﻿# BRONTIDE
 
 ## Channel 0.2 Redesign and Migration Plan 0.1
 
-**Status:** First-batch design foundation drafted and its four owner rulings resolved. B1-B4, N1-N3,
-F1-F3, and D1-D5 are closed as framed; the totality review found blocking T1 and nonblocking T2-T4,
-which now have a contract-first correction and await a fresh independent closure re-review before
-Batch 2. No Channel 0.2 implementation or ratification is claimed.
+**Status:** first-batch design foundation and its four owner rulings; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#redesign-and-migration-plan).
+
 **Designed against:** Brontide Architecture 0.8, Complete Draft.
 **Predecessor evidence:** [Channel Design Note 0.1](./Brontide-Design-Note-Channel-0.1.md),
 [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md), and the
@@ -290,13 +292,21 @@ not derive expectations from one implementation's public API.
 
 ### 7.8 Fresh independent design review
 
-Review policy, retained negative attestations, and the exact continuation instructions:
-[`reviews/`](./reviews/README.md#exact-next-work). Five independent negative attestations are
-retained. Their findings through T1-T4 have correction passes at
-`11ba93bddbd38f03df59b4afc5166d7c6991c865`; a fresh conforming closure re-review attestation and a
-closure record are still required. The T1-T4 correction pass and the totality
-attestation that found them share one actor, which the review policy records as a disclosed
-deviation.
+Review policy, retained attestations, and the exact continuation instructions:
+[`reviews/`](./reviews/README.md#exact-next-work). Fifteen independent attestations are retained —
+fourteen `does-not-conform` and one
+`conforms-with-nonblocking-findings`, which under the 2026-08-15 closure-standard ruling did not
+close the batch. This passage reported seven and stopped at the seventh review until **AI9**; it was
+S3's own evidence surface, so a retained finding stayed open for six cycles while every entry point
+reported the programme's findings closed. Their findings through T1-T4 and R1-R3 have correction passes, the last three confirmed
+closed by the seventh review at `3892c23a8dd4c7f298e877ba73710ee0ddc97bc4`. That review's blocking
+S1 and nonblocking S2 and S3 are corrected under the 2026-08-13 S1 ruling, with a failing-first
+design-verifier check written before the correction and mutation-tested after it. A fresh conforming
+closure re-review attestation and a closure record are still required. The T1-T4
+correction pass and the totality attestation that found them share one actor, which the review policy
+records as a disclosed deviation. The seventh review is the first whose isolation is complete: it ran
+from a fresh isolated clone with a reviewer identity distinct from every earlier reviewer and from
+the correction author.
 
 Obtain a fresh-context review of the complete first batch before implementation. Reviewers assess
 Architecture 0.8, both local implementation targets, the retained 0.1 evidence, Decision 13, every
@@ -495,3 +505,136 @@ still identify questions that require owners before closure.
   corner case. The ruling also splits `unseen` from `validating` in the recipient grid: at `unseen`
   there is no accepted identity to correlate and holding state would let a peer allocate unbounded
   local state, so that control stays `rejected-protocol`.
+- **2026-08-13 — S1 correction ruling, who owns intra-interaction control ordering:** Channel 0.2
+  core owns it, narrowly scoped. This is a correction ruling raised by the seventh independent
+  review; like the R1 ruling it does not join the four first-batch rulings above. The R1 ruling above
+  kept `rejected-protocol` at `unseen`, which is sound only if a conformant control cannot arrive
+  there — and the sentence establishing that lived in the state/event grid alone, while C4's silence
+  and C11 disclaimed ordering and the responsibility matrix assigned it to `delivery-facet` with
+  Channel core named as explicitly not the owner.
+
+  **Option A, selected:** core promises that within one session, for one interaction identity, frames
+  sent by one endpoint are delivered in the order that endpoint committed them. C4 states it with
+  `C4-P2` and the `C4-control-precedes-request` mutation vector, C4's silence and C11 are scoped to
+  cross-interaction and cross-session ordering, the matrix gains an `Intra-interaction frame order`
+  row owned by `channel-core`, and the realization profile declares per-interaction frame order so a
+  profile can verify it. *(The identifier recorded in this ruling was later normalised to `channel`
+  under U2, which found `channel-core` to be a second name for one contract family. The owner is
+  unchanged; the ruling text is retained as issued.)* The `unseen` fault is then correct and provable. The obligation is small:
+  one direction of one interaction carries at most a request and one cancellation control, so an
+  unordered transport conforms by sequencing two frames rather than by building a reordering buffer.
+
+  Two further arguments carried the decision. The design already half-believed the promise — the
+  contract's boundary section says core does not provide "ordering across interactions" and the
+  migration ledger's retained non-promise reads "no cross-interaction order", while C4's silence and
+  C11 stated it unscoped, so those four artifacts disagreed about the *scope* of the non-promise
+  before the R1 correction touched anything. And a substrate that cannot promise its own two frames
+  for one interaction arrive in order is a weak substrate.
+
+  **Option B, rejected:** core does not own it, and `unseen` holds the control as `validating` does.
+  At `validating` the hold is bounded because admission is local and terminates. At `unseen` the
+  recipient waits on a peer frame that may never arrive, and core has no timeout, deadline, or expiry
+  concept anywhere — timing belongs to the Realtime facet. So B leaves the hold unbounded, imports
+  timing into core, or refuses at a bound and reintroduces `rejected-protocol` for a conformant peer,
+  which is R1 again. Bounding by `max-in-flight` does not rescue it, because that bounds admitted
+  interactions and would let a peer consume the budget with identities it never opens. B needs a new
+  unowned fact to work, which is the defect class S1 belongs to.
+
+  **Option C, rejected:** leave C4 and C11 untouched and require a delivery facet of any profile that
+  declares cancellation support, tightening the matrix's `may require facet` to `must`. This
+  preserves the existing ownership assignment and is the smaller edit, but the matrix bundles
+  delivery, persistence, and ordering under one owner, so it would drag persistence and retry into
+  every cancelling profile unless that row were split anyway — and it makes cancellation unavailable
+  on a bare core profile.
+
+  Nonblocking S2 is dispositioned under the same pass rather than by ruling, because it needed a
+  statement rather than a choice: loss and drain are the third and fourth exits from `validating`, a
+  held control is discarded with no answering frame and does not fire the late-traffic latch, and an
+  interaction whose admission has not resolved is outside the drain snapshot. The interaction
+  machine's pre-dispatch loss rule is reconciled to "any nonterminal state", with certainty rather
+  than applicability as what separates pre- from post-dispatch.
+- **2026-08-14 — AE1 correction ruling, how `C4-P2` separates a reordering from a loss:** the first
+  conjunct reads the recipient's subsequent admission of the refused identity. This is a correction
+  ruling raised by the ninth independent review; like the R1 and S1 rulings it does not join the four
+  first-batch rulings above. The S1 ruling gave intra-interaction frame order an owner and the U1
+  correction gave it a property that could fail; AE1 is that property failing on behaviour the design
+  permits. Loss of either frame is a required member of the property's own adversarial group, and a
+  conforming realization whose request is lost produces exactly the refusal the conjunct forbade — the
+  initiator cannot know the request was lost, because C8 states recipient admission is not observable
+  from `dispatched`. The two vectors were also indistinguishable in every field the property may read,
+  so this was not a missing exemption: either the property was red on legal input, or declaring the
+  loss vector green made the named mutation green too, which is U1 restored.
+
+  **Option A, selected:** the conjunct additionally requires that the recipient afterwards admits an
+  interaction for that identity. A reordering delivers the request second and the recipient admits it,
+  which C4's retention rule already requires of any later request bearing that identity; a loss never
+  delivers it. The distinguishing fact was therefore already in the design and already recorded — only
+  the property did not read it. The parity profile now compares that admission, and the conjunct tests
+  membership of the identity in the set the recipient admits **within one session**, which the closed
+  operator set already permits.
+
+  **Issued with a vector-scoped operand, narrowed to the session under AF8 on 2026-08-15.** The ruling
+  as issued read "within the vector", and the tenth closure review found that scope reproduces the very
+  failure the ruling was made to fix: an interaction identity is unique only within a session, so a
+  two-session vector legitimately reusing one identity value satisfies the membership test across
+  sessions and takes the conjunct red on conforming behaviour. The scope above is the corrected one and
+  the original is recorded here rather than overwritten, as the S1 ruling records the `channel-core`
+  identifier it was issued with. AG3 was this note being absent while C4 already deferred to the
+  corrected scope, so the contract and the ruling it cites disagreed.
+
+  **The narrowing had no operand until AK1, and this is where that is recorded.** AF8 scoped the
+  membership test to the session, and the record the conjunct quantifies over — the recipient's local
+  observation of a control refused at `unseen` — published its provenance, its detailed reason, and
+  the kind of frame refused, and named no session and no interaction identity. A qualifier is worth
+  nothing when one of the two sets it scopes does not carry the field: the admitted side carries it
+  under C10's general rule, the refused side was explicitly outside that rule, and the fifteenth
+  review's probe took the conjunct **red on a two-session vector conforming at both endpoints** —
+  which is the failure this narrowing was written to prevent, reproduced through the operand instead
+  of through the scope. The refusal record now carries the refused-frame reference, whose five fields
+  the artifacts that publish it state and which this ruling does not restate. The committing endpoint
+  and the arrival ordinal among them are **AK5**, since the conjunct's literal subject is the
+  committing endpoint and one endpoint may commit two controls naming one identity. This ruling is
+  otherwise unchanged and is recorded as issued.
+
+  **Option B, rejected:** scope the conjunct to vectors that declare a reordering injection. The
+  smallest edit, and it leaves the property's subject alone, but it makes the property read harness
+  metadata rather than recorded observations — the operand class W1 narrowed the operator set
+  specifically to keep out, and one where a property's verdict depends on how a vector was authored
+  rather than on what the implementation did.
+
+  **Option C, rejected:** drop the first conjunct and rely on the second, which the ninth review's
+  exhaustive probe found already catches every reordering of one endpoint's own frames. It is the
+  simplest property, but it retires the initiator-to-recipient direction as a named promise and
+  reopens W3, which added the second mutation precisely because a conjunct with no mutation of its own
+  is half unfalsifiable. Narrowing a promise to fit a property that could not express it is the
+  inverse of what the S1 line has been doing.
+
+  Nonblocking AE3 is dispositioned in the same pass rather than by ruling, because it needed a rule
+  rather than a choice: C12 required every property to be able to fail and nothing required one to
+  stay green, which is why ten cycles audited falsifiability and none audited soundness. C12 now
+  states the converse, the neutral brief's property format carries a required-green set as a normative
+  field, and the per-capability audit carries the column. Eleven of its twelve cells read `owed`,
+  which is named residual work rather than a guessed set.
+- **2026-08-15 — What verdict closes the first batch:** an unqualified `conforms`. The Closure section
+  requires "a fresh closure attestation conforms at the corrected commit", and the verdict vocabulary
+  offers `conforms`, `conforms-with-nonblocking-findings`, and `does-not-conform`; whether the middle
+  value satisfies that sentence had never been ruled on, and the twelfth review returned it. This is a
+  first-batch ruling on the closure standard rather than a correction ruling, and it does not join the
+  four design rulings recorded on 2026-08-11.
+
+  **Selected:** only `conforms` closes. A verdict carrying findings is a verdict that the reviewer
+  found something, and this programme has now twice had a nonblocking finding turn out to be the
+  visible half of a blocking one — AF5 rated nonblocking became AH2, and the twelfth review itself
+  states that if AF5 was under-rated then its own verdict is wrong. Closure authorizes Batch 2 to
+  author `capability-properties.json`, and AH2 was live in the artifact that file is authored from.
+
+  **Rejected:** treating `conforms-with-nonblocking-findings` as sufficient and carrying the findings
+  into Batch 2. It is defensible — the vocabulary exists so a reviewer can distinguish "sound with
+  remarks" from "sound" — and it would have closed the batch on 2026-08-15. It was rejected because it
+  decides the standard after seeing the result, which is the one move this programme has been careful
+  never to make, and because the reviewer that returned the verdict explicitly flagged the escalation
+  call it turned on rather than presenting it as settled.
+
+  The consequence is recorded plainly: the twelfth review's verdict stands as issued and is retained
+  unchanged; it did not close the batch, and its six findings are corrected in the commit that follows
+  it.

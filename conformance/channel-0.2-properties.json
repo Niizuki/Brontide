@@ -1,0 +1,1595 @@
+{
+  "schemaVersion": 1,
+  "note": "Machine-readable capability-wide properties for Channel 0.2, in the form the neutral brief's 'Capability-wide property format' section declares. This is W2 of the verification foundation plan: the properties execute in the gate rather than being read. It is not a design artifact and no closure review assesses it; the design artifacts remain the authority and every statement here cites the artifact that owns it. Where this file and an artifact disagree, the artifact is right and this file is the defect.",
+  "authority": {
+    "capabilityContract": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+    "neutralBrief": "docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md",
+    "completenessReview": "docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md",
+    "plan": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md"
+  },
+  "operatorSet": {
+    "note": "Closed, per the neutral brief: equality, membership, counts, transition edges, set uniqueness, implication, bounded for-all, and precedence between two steps in one vector's declared ordered stimulus sequence for one endpoint and one interaction identity within one session. No stack code and no general scripting language. The operators this file uses are the subset below; an evaluator that meets an operator outside this list fails rather than guessing.",
+    "operators": [
+      "for-all",
+      "exists",
+      "all-of",
+      "any-of",
+      "not",
+      "equals",
+      "member-of",
+      "precedes",
+      "resolve-frame-reference"
+    ],
+    "ordinalRule": "An arrival ordinal is an identifier and never an ordering operand. It may be compared for equality inside resolve-frame-reference, to say which received frame a record names; it may not be an operand of precedes or of any other comparison that reads it as an order. An evaluator that orders by an arrival ordinal is a defect against this file.",
+    "precedenceRule": "precedes compares two declared stimulus steps of one committing endpoint, one interaction identity, and one session, by their position in that endpoint's declared commit sequence. It never compares an observed arrival, a time, or two endpoints' steps. Where an operand's session, identity, or committing endpoint is absent, the comparison is not narrowed by the absent field and every candidate step is admitted -- which is the failure the operand corrections AF8, AG2, AH1, AI1, AJ1, AK1 and AK5 each closed, and is what the operand mutations below reproduce.",
+    "ambiguityRule": "A frame reference resolves to the set of declared stimulus steps matching every field it publishes. Where that set has more than one member the property is evaluated existentially over it: a vector author facing a reference that does not single out one step still has to write one expected observation, so 'the fields do not decide' means some author reaches the wrong verdict. This is closure review 16's P3 resolution rule and is what makes an operand mutation observable."
+  },
+  "properties": [
+    {
+      "id": "C4-P2",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Across every C4 vector, within one session and for each interaction identity, nothing delivers two frames one endpoint committed in an order that endpoint did not commit them in. Stated over the refusal a reordering produces rather than over the accepted sequence: no endpoint records a recipient rejected-protocol at unseen for a cancellation control whose committing endpoint had already committed the request naming that identity and whose recipient afterwards admits an interaction for that identity in the same session, and none records a late-traffic state-violation latched against a frame whose committing endpoint had committed it before that endpoint's own frame the interaction's terminal history was accepted on.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "quantifiedFields": [
+        "the recorded unseen refusal's provenance",
+        "its detailed reason",
+        "the refused-frame reference (kind, session, interaction identity, committing endpoint, arrival ordinal for that interaction identity)",
+        "the recipient's set of admitted interaction identities, per session",
+        "the late-traffic latch value",
+        "the settling-frame reference (kind, session, interaction identity, committing endpoint, arrival ordinal within the interaction)",
+        "the terminal-frame reference (kind, session, interaction identity, committing endpoint, arrival ordinal within the interaction)",
+        "the vector's declared ordered stimulus steps, each with its committing endpoint, session, and interaction identity"
+      ],
+      "invariant": {
+        "all-of": [
+          {
+            "id": "C4-P2-conjunct-1",
+            "reads": "the reordering a refusal witnesses, separated from a loss by the subsequent admission",
+            "for-all": "unseen-refusals",
+            "selecting": {
+              "all-of": [
+                {
+                  "equals": {
+                    "field": "provenance",
+                    "value": "recipient"
+                  }
+                },
+                {
+                  "equals": {
+                    "field": "frameDecision",
+                    "value": "rejected-protocol"
+                  }
+                },
+                {
+                  "equals": {
+                    "field": "detailedReason",
+                    "value": "unopened-interaction-identity"
+                  }
+                },
+                {
+                  "equals": {
+                    "field": "refusedFrame.kind",
+                    "value": "cancellation-control"
+                  }
+                }
+              ]
+            },
+            "violatedWhen": {
+              "all-of": [
+                {
+                  "exists": "declared-steps",
+                  "matching": {
+                    "all-of": [
+                      {
+                        "equals": {
+                          "field": "kind",
+                          "value": "request"
+                        }
+                      },
+                      {
+                        "equals": {
+                          "field": "session",
+                          "operand": "refusedFrame.session"
+                        }
+                      },
+                      {
+                        "equals": {
+                          "field": "interactionIdentity",
+                          "operand": "refusedFrame.interactionIdentity"
+                        }
+                      },
+                      {
+                        "equals": {
+                          "field": "committingEndpoint",
+                          "operand": "refusedFrame.committingEndpoint"
+                        }
+                      }
+                    ]
+                  },
+                  "and": {
+                    "precedes": {
+                      "earlier": "matched-step",
+                      "later": {
+                        "resolve-frame-reference": "refusedFrame"
+                      }
+                    }
+                  }
+                },
+                {
+                  "member-of": {
+                    "value": "refusedFrame.interactionIdentity",
+                    "set": "recipient-admitted-identities",
+                    "scopedBy": "refusedFrame.session"
+                  }
+                }
+              ]
+            },
+            "citations": [
+              "The subject of 'had already committed' is the committing endpoint, never the recording endpoint (U1, AC3).",
+              "The subsequent admission is what makes the conjunct decide reordering rather than loss; without it a conforming realization whose request the transport lost satisfies it (AE1, 2026-08-14 owner ruling).",
+              "The membership test is scoped to one session because an interaction identity is unique only within one (AF8), and both sides of that test publish the session (AK1).",
+              "The refused-frame reference carries the arrival ordinal because one endpoint may commit two controls naming one identity in one session (AK5)."
+            ]
+          },
+          {
+            "id": "C4-P2-conjunct-2",
+            "reads": "the late-traffic latch, the frame that settled it, and that endpoint's own frame the terminal history was accepted on",
+            "for-all": "late-traffic-latches",
+            "selecting": {
+              "all-of": [
+                {
+                  "equals": {
+                    "field": "category",
+                    "value": "state-violation"
+                  }
+                },
+                {
+                  "equals": {
+                    "field": "latchValue",
+                    "value": "fault-committed"
+                  }
+                }
+              ]
+            },
+            "violatedWhen": {
+              "all-of": [
+                {
+                  "equals": {
+                    "field": "settlingFrame.committingEndpoint",
+                    "operand": "terminalFrame.committingEndpoint"
+                  }
+                },
+                {
+                  "equals": {
+                    "field": "settlingFrame.session",
+                    "operand": "terminalFrame.session"
+                  }
+                },
+                {
+                  "equals": {
+                    "field": "settlingFrame.interactionIdentity",
+                    "operand": "terminalFrame.interactionIdentity"
+                  }
+                },
+                {
+                  "precedes": {
+                    "earlier": {
+                      "resolve-frame-reference": "settlingFrame"
+                    },
+                    "later": {
+                      "resolve-frame-reference": "terminalFrame"
+                    }
+                  }
+                }
+              ]
+            },
+            "citations": [
+              "The witness is the settling frame and not the latch value: fault-committed names no frame, and the mutation and the two cases the property must leave green all record it (contract, C4).",
+              "The second operand is the terminal-frame reference rather than the terminal form, because a form identifies one frame only while an endpoint commits at most one frame of that form for one identity, and a duplicate terminal is an endpoint committing two (AK6).",
+              "Restricting the conjunct to one endpoint's own frames is load-bearing: a legal late control after a peer's terminal and a duplicate terminal from a nonconformant peer must both stay green."
+            ]
+          }
+        ]
+      },
+      "namedMutations": [
+        {
+          "vector": "C4-control-precedes-request",
+          "conjunct": "C4-P2-conjunct-1",
+          "expected": "red",
+          "note": "A realization delivers one interaction's cancellation control before the request that opens it. The expected observation is the complete set of records both endpoints produce, including the displaced request's subsequent admission -- a vector authored to stop at the refusal leaves the membership test an empty set and takes the property green on its own named mutation, which is AF1."
+        },
+        {
+          "vector": "C4-outcome-precedes-ack",
+          "conjunct": "C4-P2-conjunct-2",
+          "expected": "red",
+          "note": "A realization delivers the recipient's semantic Outcome before the cancellation acknowledgement the recipient committed first, so the acknowledgement lands on an interaction the Outcome has already made terminal. The expected observation contains one late-traffic state-violation whose latch records the displaced acknowledgement as the frame that settled it."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "C4-conforming-commit-order-initiator",
+          "member": "conforming commit-order delivery in the initiator direction"
+        },
+        {
+          "vector": "C4-conforming-commit-order-recipient",
+          "member": "conforming commit-order delivery in the recipient direction"
+        },
+        {
+          "vector": "C4-request-lost-control-delivered",
+          "member": "a request lost while the cancellation control naming its identity is delivered"
+        },
+        {
+          "vector": "C4-acknowledgement-lost",
+          "member": "a lost acknowledgement"
+        },
+        {
+          "vector": "C4-control-for-unopened-identity",
+          "member": "a cancellation control for an identity the peer never opened"
+        },
+        {
+          "vector": "C4-legal-late-control-after-peer-terminal",
+          "member": "a legal late control arriving after a peer's terminal"
+        },
+        {
+          "vector": "C4-duplicate-terminal-nonconformant-peer",
+          "member": "a duplicate terminal from a nonconformant peer"
+        }
+      ],
+      "additionalGreen": [
+        {
+          "vector": "C4-two-sessions-one-identity",
+          "raisedBy": "AK1",
+          "member": "two sessions reusing one identity, conforming at both ends"
+        },
+        {
+          "vector": "C4-two-controls-one-identity",
+          "raisedBy": "AK5",
+          "member": "two controls for one identity, delivery matching commit order"
+        }
+      ],
+      "operandMutations": [
+        {
+          "id": "AK1-session-on-refused-frame",
+          "drop": [
+            "unseen-refusals.refusedFrame.session"
+          ],
+          "vector": "C4-two-sessions-one-identity",
+          "published": "green",
+          "mutated": "red",
+          "note": "Stripping the session from the refused-frame reference takes a vector conforming at both endpoints in both sessions red. This is AK1 reproduced rather than read."
+        },
+        {
+          "id": "AK1-interaction-identity-on-refused-frame",
+          "drop": [
+            "unseen-refusals.refusedFrame.interactionIdentity"
+          ],
+          "vector": "C4-two-sessions-one-identity",
+          "published": "green",
+          "mutated": "green",
+          "note": "Recorded by closure review 16 and not raised: the interaction identity of the refused-frame reference moves no verdict on this vector. Adding an operand is strictly more precise than inferring one."
+        },
+        {
+          "id": "AK5-arrival-ordinal-on-refused-frame",
+          "drop": [
+            "unseen-refusals.refusedFrame.arrivalOrdinal"
+          ],
+          "vector": "C4-two-controls-one-identity",
+          "published": "green",
+          "mutated": "red",
+          "note": "Without the ordinal a control committed before the request binds to the one committed after it, and the property goes red on delivery that matched commit order. This is AK5 reproduced."
+        },
+        {
+          "id": "AK5-committing-endpoint-on-refused-frame",
+          "drop": [
+            "unseen-refusals.refusedFrame.committingEndpoint"
+          ],
+          "vector": "C4-two-controls-one-identity",
+          "published": "green",
+          "mutated": "green",
+          "note": "Recorded, not raised: redundant given the other fields on every vector tried."
+        },
+        {
+          "id": "AK6-terminal-frame-to-form-only-duplicate-terminal",
+          "drop": [
+            "late-traffic-latches.terminalFrame.session",
+            "late-traffic-latches.terminalFrame.interactionIdentity",
+            "late-traffic-latches.terminalFrame.committingEndpoint",
+            "late-traffic-latches.terminalFrame.arrivalOrdinal"
+          ],
+          "vector": "C4-duplicate-terminal-nonconformant-peer",
+          "published": "green",
+          "mutated": "green",
+          "note": "AK6 alone moves no verdict under the published settling-frame reference, which has carried its own arrival ordinal since Y4."
+        },
+        {
+          "id": "AK6-terminal-frame-to-form-only-legal-late-control",
+          "drop": [
+            "late-traffic-latches.terminalFrame.session",
+            "late-traffic-latches.terminalFrame.interactionIdentity",
+            "late-traffic-latches.terminalFrame.committingEndpoint",
+            "late-traffic-latches.terminalFrame.arrivalOrdinal"
+          ],
+          "vector": "C4-legal-late-control-after-peer-terminal",
+          "published": "green",
+          "mutated": "green"
+        },
+        {
+          "id": "AK6-terminal-frame-to-form-only-outcome-precedes-ack",
+          "drop": [
+            "late-traffic-latches.terminalFrame.session",
+            "late-traffic-latches.terminalFrame.interactionIdentity",
+            "late-traffic-latches.terminalFrame.committingEndpoint",
+            "late-traffic-latches.terminalFrame.arrivalOrdinal"
+          ],
+          "vector": "C4-outcome-precedes-ack",
+          "published": "red",
+          "mutated": "red"
+        },
+        {
+          "id": "Y4-arrival-ordinal-on-settling-frame",
+          "drop": [
+            "late-traffic-latches.settlingFrame.arrivalOrdinal"
+          ],
+          "vector": "C4-duplicate-terminal-nonconformant-peer",
+          "published": "green",
+          "mutated": "green"
+        },
+        {
+          "id": "Y4-and-AK6-together",
+          "drop": [
+            "late-traffic-latches.settlingFrame.arrivalOrdinal",
+            "late-traffic-latches.terminalFrame.session",
+            "late-traffic-latches.terminalFrame.interactionIdentity",
+            "late-traffic-latches.terminalFrame.committingEndpoint",
+            "late-traffic-latches.terminalFrame.arrivalOrdinal"
+          ],
+          "vector": "C4-duplicate-terminal-nonconformant-peer",
+          "published": "green",
+          "mutated": "red",
+          "note": "The pair is why AK6 is defensible although it moves no verdict alone: the terminal-frame reference removes the design's dependence on the settling frame's ordinal to carry both operands of the conjunct."
+        }
+      ],
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only. The five other evidence modes are Batch 2's and are not authorized by this file."
+    },
+    {
+      "id": "S1",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+      "statement": "In each session the vector carries, every accepted transition of that session is in the legal table.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "legal-transitions",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "S1-illegal-transition-accepted",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+      "statement": "No interaction dispatches outside its own session's `established` state.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "dispatch-state",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "S2-dispatch-while-draining",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+      "statement": "Within each session the vector carries, no new interaction is admitted after that session's first drain transition.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "admission-after-drain",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "S3-admit-after-drain",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+      "statement": "Within each session the vector carries, a terminal session never becomes nonterminal and is never resumed under the same session identity.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "terminal-monotonicity",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "S4-terminal-session-resumed",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+      "statement": "For each session the vector carries, fixed and negotiated establishment of that session's own declared profile produce equal normative profile records.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "establishment-equivalence",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "S5-fixed-and-negotiated-differ",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+      "statement": "In any session the vector carries, no session event creates Ready, Release, authority, or an application Outcome.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "session-event-effects",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "S6-session-event-creates-outcome",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "I1",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "One interaction identity crosses the dispatch boundary at most once per session.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "dispatch-once",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I1-identity-dispatched-twice",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "I2",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "Every accepted interaction has at most one terminal history.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "one-terminal-history",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I2-two-terminal-histories",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "I3",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "No cancellation acknowledgement, drain event, timeout, or protocol fault becomes semantic success.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "controls-are-not-success",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I3-acknowledgement-as-success",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "I4",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "Every pre-dispatch refusal is `known-none`; every possible post-dispatch loss is `unknown` unless explicit evidence narrows it.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "effect-certainty",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I4-post-dispatch-loss-known-none",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "I5",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "Concurrency within each session the vector carries never exceeds that session's established finite bound under any generated interleaving.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "bounded-concurrency",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I5-concurrency-exceeds-bound",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "I6",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "A relational interaction matches exactly one declaration and never creates Ready/Release.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "relational-declaration",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I6-relational-creates-ready",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "I7",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "statement": "A terminal fact for one interaction changes no sibling interaction's terminal history.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "sibling-independence",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the artifact's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "I7-sibling-terminal-history-changed",
+          "expected": "red",
+          "note": "See the vector's own summary for why this input violates the statement."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "C4-P1",
+      "capability": "C4",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Across every C4 vector and within each session that vector carries, each accepted terminal fact closes exactly one admitted interaction, no interaction identity is dispatched twice, and the number of nonterminal interactions never exceeds that session's established finite bound.",
+      "universalSelector": {
+        "capability": "C4"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "c4-p1",
+        "note": "Three clauses, each with its own named mutation below."
+      },
+      "namedMutations": [
+        {
+          "vector": "C4-redispatch-replayed-identity",
+          "clause": "no interaction identity is dispatched twice",
+          "expected": "red"
+        },
+        {
+          "vector": "C4-bound-exceeded",
+          "clause": "the number of nonterminal interactions never exceeds that session's established finite bound",
+          "expected": "red"
+        },
+        {
+          "vector": "C4-terminal-closes-two-interactions",
+          "clause": "each accepted terminal fact closes exactly one admitted interaction",
+          "expected": "red",
+          "note": "The contract's mutation cell names the first two only. A clause whose mutation no group has to contain is unfalsifiable in the suite however well the contract states it, so the third is added here."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "directionScopeLimit": "Stated rather than `owed`, and scoped deliberately. The completeness review records that C4-P1's second and third clauses read session-wide as written while the only mechanism the design provides -- the interaction machine's atomic one-position reservation at admission -- is local and can enforce only a per-direction count. Under AE3 that is a KNOWN conforming-realization exposure rather than an unwritten set. The gap is unreachable in the only named profile, where one endpoint initiates both classes and the two readings coincide, and every member of this set is in that profile. A profile in which both endpoints initiate must state which reading it means before its vectors can be written, and this set does not decide that question for it. Filling the set without saying so is what would reproduce the omission the review warns about.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "C1-P1",
+      "capability": "C1",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "For every C1 vector, either each session the vector carries has exactly one established profile with every normative fact equal to that session's expected profile, or no interaction is dispatchable and effect certainty is `known-none`.",
+      "universalSelector": {
+        "capability": "C1"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "c1-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C1-required-facet-removed-from-fixed-profile",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "C2-P1",
+      "capability": "C2",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every accepted session transition belongs to the published transition table; every other input leaves the prior state unchanged or enters `faulted`, and no terminal session returns to a nonterminal state.",
+      "universalSelector": {
+        "capability": "C2"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "c2-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C2-accept-interaction-while-draining",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "composedFrom": "Evaluated through S1 and S4, which are the session machine's statement of the same two claims. Two implementations of one claim is the duplication W1 retires, so the capability property calls the machine's rather than restating it.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "C3-P1",
+      "capability": "C3",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "No vector dispatches an interaction unless its class, direction, and external phase predicate all exactly match the established profile of its own session.",
+      "universalSelector": {
+        "capability": "C3"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c3-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C3-unknown-phase-marked-true",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "C5-P1",
+      "capability": "C5",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every dispatched vector has passed every declared bound and every positional Shape rule; every pre-dispatch structural refusal records `known-none` and no semantic Outcome.",
+      "universalSelector": {
+        "capability": "C5"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c5-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C5-oversized-payload-dispatched",
+          "expected": "red",
+          "conjunct": "C5-P1-clause-1",
+          "note": "The mutation the completeness review's per-capability audit names for this property. It fires through the first clause: a payload that failed a declared bound is dispatched anyway."
+        },
+        {
+          "vector": "C5-pre-dispatch-refusal-possible-effect",
+          "expected": "red",
+          "conjunct": "C5-P1-clause-2",
+          "note": "AR1. The second clause had no input that reached it: no declared vector carried a pre-dispatch refusal at all, so the clause could be deleted outright with the gate green. One mutation per clause, on the rule C4's audit row already states."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "C6-P1",
+      "capability": "C6",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "No C6 vector reaches handler dispatch unless one exact local authority decision is `permitted`; every denial or unevaluatable presentation records the decision point, initiator attribution, and `known-none`.",
+      "universalSelector": {
+        "capability": "C6"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c6-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C6-delivery-treated-as-permission",
+          "expected": "red",
+          "conjunct": "C6-P1-clause-1",
+          "note": "The mutation the completeness review's per-capability audit names for this property. It fires through the first clause: an interaction reaches handler dispatch with no `permitted` decision."
+        },
+        {
+          "vector": "C6-denial-without-decision-point",
+          "expected": "red",
+          "conjunct": "C6-P1-clause-2",
+          "note": "AR1. The second clause had no input that reached it: the only non-permitted decision in the corpus is also dispatched, so the first clause returns first and the second was unreachable given the inputs."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "C7-P1",
+      "capability": "C7",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every dispatched relational vector matches one and only one lifecycle declaration, occurs in the pre-Ready window, and cannot produce a Ready or Release fact by itself.",
+      "universalSelector": {
+        "capability": "C7"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c7-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C7-success-creates-ready",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "C8-P1",
+      "capability": "C8",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every interaction has at most one accepted terminal history, and no cancellation control, drain, timeout, or protocol rejection is recorded as semantic success.",
+      "universalSelector": {
+        "capability": "C8"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c8-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C8-acknowledgement-recorded-as-success",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "composedFrom": "Evaluated through I2 and I3, which are the interaction machine's statement of the same two claims, for the same reason C2-P1 is evaluated through S1 and S4.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "C9-P1",
+      "capability": "C9",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every terminal vector selects exactly one of the four provenance forms; no field permits a local inference to be accepted as a peer statement or a protocol fault as an Outcome.",
+      "universalSelector": {
+        "capability": "C9"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c9-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C9-local-loss-mapped-to-peer-fault",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "C10-P1",
+      "capability": "C10",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every observation is complete for its provenance form, and no vector with a possible post-dispatch path records `known-none` without explicit evidence that the handler did not begin.",
+      "universalSelector": {
+        "capability": "C10"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c10-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C10-known-none-after-dispatch",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "C11-P1",
+      "capability": "C11",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "In each session the vector carries, every established profile has all required facets supported exactly, and no facet changes a core identity, authority, terminal-provenance, or uncertainty result.",
+      "universalSelector": {
+        "capability": "C11"
+      },
+      "sessionScoped": true,
+      "invariant": {
+        "kind": "c11-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C11-facet-changes-interaction-identity",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    },
+    {
+      "id": "C12-P1",
+      "capability": "C12",
+      "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "statement": "Every neutral vector has one deterministic expected portable observation, every C1-C12 group has at least one capability-wide property, and neither stack nor neutral peer imports the other's semantic runtime.",
+      "universalSelector": {
+        "capability": "C12"
+      },
+      "sessionScoped": false,
+      "invariant": {
+        "kind": "c12-p1",
+        "note": "Evaluated by the named operator in build/verify-channel-0.2-properties.ps1. The statement above is the contract's, verbatim; this file executes it and never restates it."
+      },
+      "namedMutations": [
+        {
+          "vector": "C12-nondeterministic-expected-observation",
+          "expected": "red",
+          "note": "The mutation the completeness review's per-capability audit names for this property."
+        }
+      ],
+      "requiredGreen": [
+        {
+          "vector": "S-conforming-single-session",
+          "member": "the conforming single-session realization"
+        },
+        {
+          "vector": "S-two-sessions-conforming",
+          "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        }
+      ],
+      "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",
+      "evidenceModes": [
+        "neutral validation",
+        "Reference native",
+        "Minimal native",
+        "process",
+        "neutral peer",
+        "cross-stack"
+      ],
+      "executableHere": "neutral validation only.",
+      "clauseScope": "Three clauses with three scopes, stated because a property whose scope is unstated is a property a reader takes for more than it is. The first is per vector and is what the mutation falsifies. The second is over this declaration file itself and is evaluated once: every C1-C12 group must declare at least one capability-wide property. The third -- that neither stack nor the neutral peer imports the other's semantic runtime -- is not a fact any vector carries; it is enforced by the repository's dependency guards, and this file records that it is delegated there rather than pretending to evaluate it.",
+      "additionalGreen": [
+        {
+          "vector": "S-conforming-fault-from-established",
+          "raisedBy": "AO1",
+          "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        }
+      ]
+    }
+  ]
+}

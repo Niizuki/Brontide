@@ -1,4 +1,4 @@
-# Future work
+﻿# Future work
 
 Architecture 0.8 is now the Complete Draft implementation target for both stacks. The implemented
 C1-C14 delivery inventory, all 33 runtime vectors, and the completed D1-D6 programme are indexed by
@@ -31,10 +31,268 @@ agrees and its review has no blocking finding.
 
 The [first-batch design package](./channel/README.md) now includes C1-C12, both state machines, a
 closed state/event grid, the responsibility matrix, silence review, migration ledger, neutral-
-artifact brief, four resolved owner rulings, and six retained independent review cycles. Every
-finding through T1-T4 has a contract-first correction, confirmed closed by the sixth review. No
-Channel 0.2 schema or implementation is authorized until the
+artifact brief, four resolved owner rulings, and 16 retained independent reviews. Every finding
+through S1-S3 is closed in the artifact it was raised against, each re-verified individually by the
+eighth review, which then raised blocking **U1** and nonblocking **U2**-**U8**. Those are corrected,
+as are **V1**-**V3**, **W1**-**W6**, **X1**-**X7**, **Y1**-**Y4**, and **Z1**-**Z4**, raised by
+author-side iteration passes over each other's corrections. **AA1**-**AA3** are the same passes turned
+on the entry points: this index and the Channel index had fallen behind every family since V2, and
+this one still named S1 as the open blocking finding. **AB1**-**AB2** close the same gap in the
+redesign plan and give the local observation record an owner row now that `C4-P2` reads it.
+**AC1**-**AC4** are an eighth pass: Y4's arrival ordinal had been stated only in the neutral brief,
+which is subordinate to the three artifacts that own the fact and still named X1's three fields; the
+ledger's closed detailed-reason set had no value for the refusal `C4-P2`'s first conjunct reads; the
+property's own "the same endpoint" pointed at the endpoint that records a refusal rather than the one
+that committed the frame; and the check written over the X7 class matched one-letter finding families
+only. **AD1**-**AD3** are a ninth, and the first whose findings are in the evidence about the design
+rather than in the design: the AC pass's own residual denied that the AA and AB records existed and
+referred the gap to the owner, while the W iteration review has recorded both families all along, and
+three documents described that review's contents three different ways. AD1 and AD3 are corrected;
+**AD2**, the half of the X7 class check still written over two ids, was left as an owner call.
+
+The ninth independent closure review then returned `does-not-conform` with blocking **AE1** and
+nonblocking **AE2**-**AE5**, and ruled AD2 a defect. **AE1** is the S1/U1 line failing from the other
+end: `C4-P2`'s first conjunct was red on a conforming realization whose request the transport lost,
+and a lost request was indistinguishable from a reordered one in every field the property may read. It
+is corrected under a 2026-08-14 owner ruling — the conjunct now reads the recipient's subsequent
+admission of the refused identity, which a reordering produces and a loss does not. **AE3** is the
+structural half and the reason ten cycles walked past it: nothing required a property to stay green,
+only to be able to fail. All six are corrected, with eleven required-green sets recorded as owed.
+
+The tenth closure review then returned `does-not-conform` with blocking **AF1** and nonblocking
+**AF2**-**AF8**. It confirmed the AE1 property fix works and found the correction incomplete one
+artifact below itself: C4's passage stating what the ordering mutation vectors' expected observations
+*are* still named the refusal alone, so a vector authored from it took `C4-P2` green on its own named
+mutation — U1 reached through the vector rather than through the property. **AF5**-**AF7** are the
+required-green rule finding its own gaps, which is the AE3 machinery working. All eight are corrected.
+
+The eleventh closure review returned `does-not-conform` with blocking **AG1** and nonblocking
+**AG2**-**AG5**. AG1 is the same passage's second surface: AF1's evidence had named the completeness
+review as well as the contract, the correction closed the contract, and a vector authored from the
+silence-probe row still took `C4-P2` green on its own mutation. **AG2** is the sharper class and the
+one the cycles since have kept producing — a correction asserting that another artifact carried a
+qualifier that it did not.
+
+The twelfth closure review returned **`conforms-with-nonblocking-findings`** with **AH1**-**AH6** and
+no blocking finding, the first non-negative verdict in the programme. It did not close the batch: the
+2026-08-15 closure-standard ruling, recorded in the redesign plan after that verdict was known and
+disclosed as having been made in that order, settles that only an unqualified `conforms` closes it.
+**AH1** settled a question underneath two earlier corrections — a vector **may** carry more than one
+session — and gave the declared stimulus step the session `C4-P2`'s precedence relation needs.
+
+The thirteenth closure review returned `does-not-conform` with blocking **AI1** and nonblocking
+**AI2**-**AI9**. **AI1** is AH1's decision propagated to one of `C4-P2`'s two operands and not the
+other: the settling-frame reference was still published as four fields with no session, so it stopped
+mapping to one declared step the moment two sessions could hold one interaction identity value.
+**AI9** is the one to weigh hardest — S3's own evidence surface, the redesign plan's section 7.8, had
+been open for six cycles while every index reported the programme's findings closed.
+
+The fourteenth closure review returned `does-not-conform` with blocking **AJ1** and nonblocking
+**AJ2**-**AJ7**. **AJ1** is AI1 surviving the commit written to close it: the reference is published
+in **five** places and the correction reached three, leaving the state/event grid the neutral brief
+declares itself subordinate to and the responsibility matrix row that *owns* the observation record,
+from both of which the reviewer reproduced AI1's exact false green. **AJ2** is this narrative and the
+Channel index's, stale for the eighth consecutive cycle and this time recorded as corrected in a third
+document that was never AI2's subject. All seven are corrected.
+
+The fifteenth closure review returned `does-not-conform` with blocking **AK1** and nonblocking
+**AK2**-**AK4**, and confirmed AJ1 closed by evaluator rather than by reading — the first cycle in
+eight with no finding closed in the first artifact its evidence named and left open in the second.
+**AK1** is the fourth instance of one shape on `C4-P2` and the first on its **other** conjunct: the
+recorded `unseen` refusal is what that conjunct quantifies over, five artifacts published what it
+contains, they agreed with each other exactly, and none named the session AF8 scoped its membership
+test to or the interaction identity the test is over — so the property went **red on a two-session
+vector conforming at both endpoints**, which is the failure AF8 was written to prevent. All four are
+corrected.
+
+**The correction pass then stopped sampling.** Four families in a row had been one shape — an operator
+qualifier whose operand the record it reads does not publish — and each was found by sampling one
+operand, so `C4-P1` and `C4-P2` were enumerated completely and the enumeration is retained in the
+completeness review as a table the next cycle can check. It found three more: **AK5**, the rest of
+AK1's own operand, since the conjunct's literal subject is the committing endpoint and one endpoint
+may commit two controls naming one identity; **AK6**, the second conjunct's *second* precedence
+operand, "that endpoint's own frame that made the interaction terminal", which no artifact published
+at all; and **AK7** with **AK8**, which are AH1's multi-session decision never having reached the
+property statements — `C4-P1`, `C4-P2`, `C1-P1`, `C3-P1` and `I5` each counted or compared a
+per-session fact across the vector. C12 now declares which facts belong to one session each, so that
+rule is enforced over a declared class rather than over today's members.
+
+The sixteenth closure review returned `does-not-conform` with blocking **AL1** and **AL2** and
+nonblocking **AL3** and **AL4**. It is the first review here to record a `C4-P2` evaluator that is
+correct on every input it was run over — both named mutations red, all seven required-green members
+green — so the property eight families have been about is sound at the pin it reviewed, and both
+blocking findings are elsewhere. **AL1** is AK7's own defect on a sixth property: `S3` bounded
+admission by "the first drain transition" and named no session, so a second session establishing and
+admitting after the first drains takes it red on conforming behaviour. The audit that produced AK7
+reported the session machine clean, and could not have done otherwise — it recognises a per-session
+fact by that fact's own words, `S3` reads one through a transition of it, and the session's own state
+was not among the four facts C12 declared, which is **AL3**. **AL2** is the refused-frame reference
+published in five surfaces and corrected in four; the missed surface is the state/event grid's two
+`unseen` cells, invisible to both halves of the AK1 check because each keys on the reference's name
+and the cells never used it. **AL4** is `S5` comparing a per-session profile across the vector. All
+four are corrected: every property of the session state machine now names its session and is checked
+structurally rather than lexically, the declared fact list is checked against the neutral brief's
+vector format rather than against itself, the grid's cells are registered as surfaces of their own,
+and the package-wide sweep is keyed to the record rather than to the reference's name. No independent
+review has yet seen the AR corrections. No Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
+
+**The next closure review is on hold by owner decision of 2026-08-17**, recorded in the
+[verification foundation plan](./channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Ten independent reviews have run since the batch was first believed finished and every one produced
+findings; nine consecutive cycles have carried one instance of a single shape, a fact changed and its
+edit reaching some of the six artifacts that publish it. The plan's diagnosis is that the design has no
+executable form, so the only detector for a real defect is a person reading prose, and that each
+correction enlarges what the next reading has to cover. Its ranked work is one owning artifact per
+fact with citations elsewhere, properties that execute in the gate along with the twenty-five owed
+required-green sets, and disposition history moved out of the status blocks. Batch 2 remains closed,
+no correction is withdrawn, and the independence rules and closure standard are unchanged for whichever
+review runs next.
+
+**The first of that work has landed.** `C4-P2` now executes: `build/verify-channel-0.2-properties.ps1`
+runs in the repository gate and evaluates the property over the eleven inputs closure review 16
+evaluated by hand -- both named mutations red, all seven required-green members green, and the two
+vectors AK1 and AK5 were raised for green -- plus nine operand mutations that revert one published
+field each and reproduce that review's finding that AK1's session and AK5's arrival ordinal are
+load-bearing and that AK6 becomes so once Y4's ordinal is reverted with it. Every reviewer since the
+eighth built such an evaluator and discarded it; this one is kept, cites the artifacts rather than
+restating them, and fails when the two disagree. All fifteen properties the hold's second condition names -- `C4-P1`, `C4-P2`, `S1`-`S6` and
+`I1`-`I7` -- now execute, with the fourteen owed required-green sets stated. Every one of them
+carries the two-session vector AL1 and AK7 were raised for as a required-green member, so a
+property reading one session's fact across the vector is a gate failure rather than a finding two
+cycles later. Condition 2 of the hold is met, and the eleven remaining per-capability properties followed: all
+twenty-six now execute, and no cell in either of the completeness review's property tables reads
+`owed`.
+
+**W3's status-block half has landed too.** The nine design artifacts' status blocks carried a large
+majority of their length in correction history -- the before and after totals are the measure
+[the plan's section 4 owns and recomputes](./channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md#4-what-to-measure),
+and are cited here rather than restated, under **AN5** -- and each now states what the artifact is and
+what it awaits and links to the
+[disposition index](./channel/reviews/channel-0.2-disposition-index.md), which is a retained review
+record rather than a design artifact and holds that history verbatim. Two freshness checks collapse
+into one that bounds the block at five lines and requires its pointer to resolve. Moving the prose
+also exposed a check on the neutral brief's required vector groups that had been answered by a
+sentence in a status block rather than by the groups section. The Channel index's own rows carry the
+same history in another form -- 8,746 characters across eleven cells -- and are collapsed into the
+same index, retiring AG4, AH4 and AJ5. W3 is complete and condition 3 of the hold is met.
+
+**W1 has landed for the three frame references, and the registry it targeted is deleted.** One fact
+was published in twenty places across five artifacts and maintained by hand, which is where the nine
+consecutive blocking findings AI1, AJ1, AK1 and AL2 came from. It is now owned by
+[`conformance/channel-0.2-facts.json`](../../conformance/channel-0.2-facts.json) and rendered into
+every site inside a fence the artifact carries, so a reader still sees the whole fact in place and no
+hand writes the second copy. The plan's open question 1 -- whether standalone readability survives --
+is left unanswered because generation does not need it answered. The design verifier loses 169 lines
+with the registry.
+
+**W1 now covers the `unseen` refusal record as well, which completes the hold's first condition.** The
+record `C4-P2`'s first conjunct quantifies over -- a provenance, a detailed reason, an effect
+certainty, and the refused-frame reference -- had only its reference rendered; the other three were
+hand-written at each of its surfaces and watched by the design verifier's AL2 sweep. It is one
+declared fact now, with the reference nested inside it rather than restated, and it is rendered into
+all five surfaces that state it: C10, which owns it, the interaction machine's `unseen` row, the
+grid's two `unseen` cells, and the responsibility matrix row that owns the observation record. Two of
+those five carried a field the other three did not, and the rendering settles both the way the rest of
+the package already held them; neither was a choice between defensible designs, so neither is an owner
+question.
+
+The AL2 sweep is deleted from the design verifier and its replacement lives beside the declaration,
+without the neighbour exemption that let one abbreviated cell hide behind the fence of the cell next
+to it. Run against this commit's parent -- the AL2-corrected package, where the design verifier's own
+sweep is green -- it fires on the three surfaces that rendered the reference and hand-wrote the rest
+of the record, and nowhere else in the sixteen files it sweeps. The fourth and fifth surfaces are
+found by reading rather than by sweeping, which is the limit worth carrying forward: a check keyed to
+a fact's own words cannot see a passage that states a third of it.
+
+**Condition 4 has now run four times and is met by none of them.** The author-side pass over W1-W3 is retained as the
+[W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-am-iteration-review.md);
+it raised **AM1**-**AM3** and corrected all three, and that condition asks for a pass that finds
+nothing it can fix. **AM1** is the W3 status-block length bound measuring to the first blank line while
+the disposition history it excludes sat one blank line beneath it -- a paragraph appended there passed
+every check in the gate. **AM2** and **AM3** are two of the plan's five section 4 measures stating
+numbers the repository does not produce; the measures the gates compute were right and both left to
+prose were wrong. The bound is now over the whole region above the first heading with a declared
+front-matter permit list, and both measures are recomputed by the design verifier, historical halves
+included.
+
+**The second pass has run and is not met either**, retained as the
+[second W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-an-iteration-review.md);
+it raised **AN1**-**AN6** and corrected all six. It began by re-running every probe the AM review
+records, as that review asks of it, and every one reproduced -- so none of the six came from there.
+All six came from the question that pass did not ask, *where else is this stated*. **AN1** and **AN2**
+are guards whose scope is narrower than the question their own comments claim, each inside a check
+written to close an earlier instance of the same class: the status-block pointer was never checked to
+resolve, only that the index has a section for the artifact, so renaming a heading left nine pointers
+dead with the gate green; and the review-target pin compares eight of the nine design artifacts,
+omitting the redesign plan, so a commit changing only the artifact that carries the owner rulings left
+the pin green. **AN3**-**AN6** are four facts corrected in the record that owns them and left standing
+in one to four others -- including the status-block line total AM2 corrected while naming two of its
+four surfaces.
+
+**The third pass found the most serious defect the verification work has produced**, and is retained as
+the
+[third W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-ao-iteration-review.md);
+it raised **AO1**-**AO3** and corrected all three. It took the brief the AN pass left -- a guard's
+comment is a claim, so test each one against its code -- and **AO1** is what that found: `S1` and
+`C2-P1` were **red on a conforming session fault**, because the cross-check written to prevent exactly
+that could not read the session machine's two `any nonterminal` transition rows and so compared eight
+edges against eight and reported them identical. That is AE1's defect, the one that took ten cycles to
+find, in a gate written after the lesson. **AO3** is the probes: three passes had rebuilt them from the
+prose of the pass before, four had rotted unnoticed, and they are now a corpus of 45 that
+`build/verify-channel-0.2-guards.ps1` runs in the repository gate. A fourth pass is the next work, it
+starts by running that corpus rather than rebuilding it, and the hold stands until one finds nothing.
+
+**The fourth pass did exactly that**, and is retained as the
+[fourth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-ap-iteration-review.md);
+it raised **AP1**-**AP2** and corrected both. Running the corpus took one command and 45 of 45 passed,
+against the hour each earlier pass spent rebuilding the same mutations -- the first measurable return
+this work has produced. Both findings are one new class: **a guard whose key was correct when written
+and stopped being correct when the work moved.** **AP1** is a block of twenty-four checks that one
+deleted sentence silenced, on a justification W2 had quietly expired; **AP2** is a coverage check
+sampling four of the twenty-six properties its own comment says it covers. The finding count was
+falling -- three, six, three, two.
+
+**The fifth pass stopped reading the gates and built an instrument**, and is retained as the
+[fifth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-aq-iteration-review.md);
+it raised **AQ1**-**AQ5** and corrected all five. Four passes had read these files; a fifth reading was
+not going to find what four had walked past, so this one ran each gate under a line trace and reported
+every check whose body never executes. **Five checks in the three gates do not run at all**, every one
+of them AP1's class, and **AQ1** is the one to weigh: the AJ2 narrative freshness check -- the guard
+against the entry-point staleness that ran for eight consecutive cycles, over three narratives and
+every closure-review family -- has been an empty loop since the 2026-08-20 ruling inserted a column
+into the table it reads. It went dark in the commit that recorded the ruling, and three iteration
+passes ran under it. **AQ5** is what the trace cannot see and is the brief the next pass inherits: a
+character-bounded window fails loudly for an assertion that something must be present and **silently**
+for an assertion that something must be absent, so AF1's own superseded wording, restored at the far
+end of AF1's own passage, was green. The count has stopped falling -- three, six, three, two, five --
+which measures what an instrument sees that a reading does not.
+
+**The sixth pass retained the instrument, and the instrument immediately found a defect in the design
+rather than in the gates.** It is the
+[sixth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-ar-iteration-review.md),
+and it raised **AR1** and corrected it. `build/verify-channel-0.2-coverage.ps1` now runs in the
+repository gate: each verification gate executes under a line trace and **every conditional in it must
+be evaluated by a passing run**, with the constructs a passing run correctly cannot reach declared with
+their reasons in `conformance/channel-0.2-coverage-exemptions.json`. **AR1** is what it found on its
+first run. `C5-P1` and `C6-P1` each state two clauses, each had one named mutation, and each mutation
+fires through the first clause -- so both second clauses could be **deleted outright from the evaluator
+with both gates green**, across 113 evaluations over 41 declared inputs. That is the rule C4's own
+audit row already states, *one named mutation per clause*, enforced for the one property that declared
+conjuncts and silent for the other twenty-five. Both clauses now carry a mutation, and the class is
+closed by the gate rather than the two instances by hand. A seventh pass is the next work, and what it
+inherits is stated in the review: the coverage measure is a floor, not a proof -- it finds a check that
+never runs and cannot find one that runs and cannot fail, which is **AQ5**'s shape and still unswept
+outside the two windows that pass corrected.
+
+**An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
+verification work rather than the design, and putting it in the completeness review's disposition
+history -- where every earlier family belongs -- made *the newest family* one that had touched no
+design artifact, which is the anchor five freshness checks ask their question against. Each family now
+declares what it was raised against, and its disposition is required in the record that owns that
+class: the completeness review for `design`, the verification foundation plan for `verification`.
+Nothing is exempt, and a `verification` family named by any design artifact fails the gate, because a
+finding whose correction reached the design is a design finding whatever its author called it.
 
 ### Channel 0.2 first-batch remaining work
 
@@ -47,7 +305,8 @@ legal control was classified as a protocol violation by a race it could not see.
 as T1 — two artifacts assigning one fact different provenance — and it survived five reviews plus a
 passing verifier because every `Cn-P1` property stays green across it.
 
-**R1 is corrected as of 2026-08-13 by owner ruling: the control is held.** The recipient retains
+**R1 was corrected on 2026-08-13 by owner ruling: the control is held** — at recipient `validating`
+only, as the seventh review then established below. The recipient retains
 exactly one valid cancellation control while `validating` and applies it when admission resolves;
 dispatch precedes the held control, which is then evaluated under local cancellation authority. A
 refused admission discards the held control with no answering frame and does not fire the late-traffic
@@ -62,8 +321,72 @@ corrected in the same pass. `unseen` keeps `rejected-protocol`: there is no acce
 correlate, and holding state for one would let a peer allocate unbounded local state. The recipient
 grid is now six rows, and independent enumeration gives 108 cells with none empty.
 
-The batch remains open only for the review step: R1's correction has a failing-first check in the
-design verifier and needs a fresh independent closure re-review from an isolated clone.
+### The seventh review: R1 is closed at `validating`, not at `unseen`
+
+The seventh review ran on 2026-08-13 from a fresh isolated clone — the condition the sixth review
+missed — and returned `does-not-conform`. It confirmed R2, R3, and every earlier finding closed in
+the artifacts they were raised against, and it found that **the R1 correction fixed the cell it was
+aimed at and left its neighbour standing.**
+
+R1 was raised against a grid row covering `unseen` *and* `validating` together. The correction split
+the row and fixed `validating`. At `unseen` the `rejected-protocol` fault was deliberately kept, and
+the only thing stopping a conformant initiator's legal cancellation from landing there is a sentence
+added to the state/event grid in the same commit: *a realization delivers controls for one
+interaction identity in the order the peer committed them within one session.* That is a
+delivery-ordering promise. C4's explicit silence disclaims transport ordering, C11 says Channel core
+promises no ordering, and the responsibility matrix assigns ordering to `delivery-facet` with Channel
+core named in its `Explicitly not owned by` column — and the `realization-profile` crossing artifact
+has no ordering field, so a realization has no declared way to state the obligation and a profile no
+way to check it. One fact, three artifacts, three different owners, and the correction rests on the
+one artifact with no claim to it. Remove the guarantee and R1 reproduces verbatim one row down; the
+review executed that trace.
+
+This is blocking finding **S1**, and it is the same shape as T1 and R1 — two artifacts assigning one
+fact different provenance, each internally consistent — reached at a third point in the machine. It
+survived a purpose-built cross-artifact verifier check because that check asks whether four documents
+*agree* about a cell, not who *owns* the fact the cell depends on. Every `Cn-P1` property stays green
+across it: the review wrote an evaluator and ran the same conformant initiator under both delivery
+orders, and `C8-P1` and `C9-P1` returned true on both. Only cross-capability invariant 4, which is
+not a `Cn-P1` and has no negative probe, separates them. That is Decision 10's structural blindness
+to silence at the third location this programme has found it.
+
+Nonblocking **S2** records that a held control has no disposition when `validating` ends by loss or
+drain rather than by admission resolving. Nonblocking **S3** recorded index and status staleness,
+including a 102-cell count the corrected 108-cell grid invalidated; it is closed in the commit that
+recorded the review.
+
+**S1 is corrected as of 2026-08-13 by owner ruling: Channel 0.2 core owns intra-interaction frame
+order, narrowly scoped.** Within one session, for one interaction identity, frames sent by one
+endpoint are delivered in the order that endpoint committed them. C4 states it with `C4-P2` and the
+`C4-control-precedes-request` mutation vector; C4's silence and C11 are scoped to cross-interaction
+and cross-session ordering; the responsibility matrix gains an `Intra-interaction frame order` row
+owned by `channel`, the one identifier the matrix's closed owner vocabulary gives that contract
+family under U2; and the realization profile declares per-interaction frame order so a
+profile can verify it. The `unseen` fault is then correct and provable, and the grid carries the fact
+instead of owning it.
+
+The obligation is small — one direction of one interaction carries at most a request and one
+cancellation control, so an unordered transport conforms by sequencing two frames. Two arguments
+decided it against the alternative of holding at `unseen`. The design already half-believed the
+promise: the contract's boundary section says core does not provide "ordering across interactions"
+and the migration ledger's non-promise read "no cross-interaction order", while C4 and C11 stated it
+unscoped — so those artifacts disagreed about the *scope* of the non-promise before R1 was touched.
+And holding at `unseen` has no bound: admission at `validating` is local and terminates, but at
+`unseen` the recipient waits on a peer frame that may never arrive, and core has no timeout,
+deadline, or expiry concept at all. Bounding by `max-in-flight` would let a peer consume the admitted
+budget with identities it never opens. The full option set, including the rejected variant that would
+have required a delivery facet of any cancelling profile, is in the
+[redesign plan's resolved questions](./channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md#resolved-questions).
+
+S2 is dispositioned in the same pass: loss and drain are the third and fourth exits from
+`validating`, a held control is discarded with no answering frame and does not fire the late-traffic
+latch, an interaction still admitting is outside the drain snapshot, and the interaction machine's
+pre-dispatch loss rule is reconciled to any nonterminal state with certainty rather than
+applicability separating pre- from post-dispatch.
+
+The batch remains open only for the review step: the S1 correction has a failing-first check in the
+design verifier — written before the correction, seen to fail with eight findings, and mutation-tested
+after — and needs a fresh independent closure re-review from an isolated clone.
 
 **Owner ruling, 2026-08-13 — what spends reviewer context freshness.** The sixth review declared its
 own isolation partial on two counts. The owner ruling separates them. Reading the future index, the
@@ -1544,7 +1867,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and six retained independent reviews, has correction passes through R1-R3, and awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, and AR1 families, and awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

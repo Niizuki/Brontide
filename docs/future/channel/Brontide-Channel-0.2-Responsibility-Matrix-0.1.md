@@ -1,10 +1,12 @@
-# Channel 0.2 responsibility matrix 0.1
+﻿# Channel 0.2 responsibility matrix 0.1
 
 Date: 2026-08-11
 
-Status: proposed first-batch ownership contract; B3 and cross-artifact N1 corrected after independent
-review and confirmed unchanged by the fourth and fifth reviews. It is subject to
-a fresh independent closure re-review.
+Status: proposed first-batch ownership contract; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#responsibility-matrix).
 
 ## Rule
 
@@ -18,6 +20,40 @@ The `Semantic owner` column uses one exact owner identifier per row. An identifi
 contract family that defines the fact; a concrete profile selects the one owner instance where the
 family is parameterized. Consumers and carriers remain separate columns and never become co-owners.
 
+One owner also has exactly one identifier. B3 required one owner per row and got it, but nothing kept
+the vocabulary closed, so the S1 correction was able to introduce `channel-core` for a fact whose
+contract family every other row already called `channel`. A machine-readable ownership inventory keyed
+by identifier would have read those as two owners, which is the duplicate the neutral verifier is
+required to reject. The vocabulary below is therefore closed: every identifier the matrix uses appears
+in it, and a new owner is added here before it is used in a row.
+
+## Owner identifiers
+
+- `channel` — the Channel 0.2 core contract itself. Every fact C1-C12 defines and core owns uses this
+  identifier, including intra-interaction frame order; there is no separate `channel-core` owner.
+- `channel-profile` — a concrete Channel profile's declarations, such as the finite `max-in-flight`
+  and per-class cancellability.
+- `realization-profile` — a declared encoding, framing, and transport realization of Channel.
+- `local-realization` — the local host's own observation of transport and process conditions.
+- `local-authority-boundary` — the local pre-dispatch refusal boundary.
+- `application-profile` — the application/Component contract conducted through a Channel profile.
+- `operation-contract` — the exact Operation, its Shapes, and its semantic Outcome.
+- `shape-contract` — Architecture 0.8 Shape compatibility and projection.
+- `authority-domain` — the evaluating authority domain, intra-domain and cross-trust.
+- `identity-facet` — cross-domain identity and attestation, as a declared extension facet.
+- `portable-binding` — Portable Binding's own phases and binding lifecycle.
+- `composition` — the Composition phase owner.
+- `component-management` — Component Management, which owns Ready.
+- `cm3-lifecycle-contract` — the CM3 relational lifecycle declaration.
+- `resource-profile` — payload/resource representation, ownership, and lifetime.
+- `retry-profile` — attempt policy above Channel.
+- `delivery-facet` — delivery, persistence, and cross-interaction ordering, as a declared facet.
+- `flow-facet` — streaming and backpressure, as a declared facet.
+- `realtime-facet` — timing constraints, as a declared facet.
+- `lifecycle` — long-running activity beyond one interaction.
+- `host-runtime` — scheduling and fairness.
+- `observability-system` — logs, metrics, traces, and storage.
+
 ## Ownership matrix
 
 | Concern | Semantic owner | Consumers / dependency direction | Neutral artifact crossing the boundary | Explicitly not owned by |
@@ -26,7 +62,7 @@ family is parameterized. Consumers and carriers remain separate columns and neve
 | Application/Component contract identity | `application-profile` | Channel interaction admission → profile | exact canonical contract reference | Channel core |
 | Endpoint roles and allowed directions | `channel-profile` | Channel session/interaction → profile | role and interaction-class declarations | process topology |
 | Fixed/negotiated profile equivalence | `channel` | profile realizations → Channel | immutable established-profile record | negotiation codec |
-| Wire encoding and frame mechanics | `realization-profile` | Channel → realization declaration | encoding id, framing id, finite bounds | Channel logical contract |
+| Wire encoding and frame mechanics | `realization-profile` | Channel → realization declaration | encoding id, framing id, finite bounds, per-interaction frame order declaration | Channel logical contract |
 | Session establishment/drain/close/fault | `channel` | profiles and hosts → Channel state machine | session control declarations/observations | Composition, Portable Binding |
 | Interconnection | `portable-binding` | Channel class admission → explicit phase predicate | activation member/binding phase observation | Channel session, Component Management |
 | Relational Initialisation phase | `composition` | Portable Binding and Channel admission → composition phase | exact lifecycle declaration and current phase | Channel session, Component Management |
@@ -54,10 +90,12 @@ family is parameterized. Consumers and carriers remain separate columns and neve
 | Effect certainty | `channel` | observations/extensions → Channel certainty | known-none / known(details ref) / unknown(reason) | adapters guessing zero |
 | Profile-owned effect details | `application-profile` | Channel observation references profile evidence | exact profile details reference | Channel certainty form |
 | Retry attempt policy | `retry-profile` | Channel admits each attempt independently | new interaction id plus optional causal prior reference | reuse/replay of one id |
-| Delivery, persistence, ordering | `delivery-facet` | Channel profile may require facet → extension | exact extension facet/version | Channel core |
+| Delivery, persistence, cross-interaction ordering | `delivery-facet` | Channel profile may require facet → extension | exact extension facet/version | Channel core |
+| Intra-interaction frame order | `channel` | realization declares conformance → profile verifies at establishment | per-interaction frame order declaration in the realization profile | `delivery-facet`, transport |
 | Streaming and backpressure | `flow-facet` | Channel profile may add interaction class/facet → Flow | stream identity subordinate to interaction, terminal bridge | unary core reinterpretation |
 | Long-running activity | `lifecycle` | Channel Outcome may identify/start activity under exact extension | activity reference and lifecycle facet | keeping interaction forever nonterminal |
 | Timing constraints | `realtime-facet` | Channel observes declared timing facts → Realtime | explicit timing facet and clock provenance | ambient Channel clock |
+| Local observation content and provenance | `channel` | observability/host systems consume → non-normative projections | C10 local observation record, including the late-traffic latch with its `not-applicable` value, the frame that settled it — <!-- fact:settling-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction<!-- /fact --> — the terminal-frame reference, being <!-- fact:terminal-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction<!-- /fact -->, and the whole record of a refusal that opens no interaction, being <!-- fact:unseen-refusal-record -->its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`, and the **refused-frame reference**: its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact --> | `observability-system`, transport, host storage |
 | Logs, metrics, traces, storage | `observability-system` | consume Channel observations | non-normative local projection | Channel semantics |
 
 ## Selected boundary rulings

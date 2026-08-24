@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "note": "Facts the Channel 0.2 design package publishes in more than one artifact, each owned here and rendered into every artifact that carries it. This is W1 of the verification foundation plan, implemented as generation rather than as citation: a reader of any artifact still sees the whole fact in place, and no human hand-writes the second copy. Every publication site is a fenced region in the artifact -- <!-- fact:<id> --> ... <!-- /fact --> -- so the set of surfaces is discovered from the artifacts rather than listed in a verifier. That is what retires the registry: a guard scoped to the surfaces its author already knew about certifies its own completeness, which is the shape AI1, AJ1, AK1 and AL2 each had. A fact may also be a RECORD that contains another declared fact -- the `unseen` refusal record contains the refused-frame reference -- in which case its field list nests the other by id rather than restating it, because two owned facts that can drift apart is the same failure one level up.",
+  "authority": {
+    "note": "This file owns the FIELD LIST of each fact and nothing else. What the fact means, why each field is load-bearing, and which property reads it are stated by the artifacts and by the retained attestations. Where this file and an artifact's surrounding prose disagree about meaning, the artifact is right; where they disagree about the field list, this file is what every surface was rendered from and the artifact is stale.",
+    "plan": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md"
+  },
+  "classAssertion": {
+    "appliesToClass": "frame-reference",
+    "sameFieldNames": true,
+    "why": "Every frame reference a property reads identifies one declared stimulus step, and these five fields are what it takes to do that. A reference introduced with four of them fails here without anyone writing a new check, which is exactly what AK1 and AK6 were: AC1 is the ordinal, AI1 the session, AK1 and AK5 the interaction identity and the committing endpoint."
+  },
+  "emphasised": [
+    "session",
+    "committing endpoint",
+    "arrival ordinal"
+  ],
+  "emphasisNote": "The emphasised fields are the three a correction added after the reference was first published, and the emphasis is what tells a reader which fields the reference did not always carry. It is rendered from here so that it is the same at every site that carries the fields, the four surfaces of the `unseen` refusal record included; before W1 it was applied at sixteen of the reference's twenty sites and omitted at four.",
+  "facts": [
+    {
+      "id": "settling-frame-reference",
+      "class": "frame-reference",
+      "phrase": "settling-frame reference",
+      "title": "the frame that settled the late-traffic latch",
+      "owner": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "ownerNote": "The interaction machine owns the late-traffic latch, so it owns the reference the latch records.",
+      "fields": [
+        "kind",
+        "session",
+        "interaction identity",
+        "committing endpoint",
+        "arrival ordinal"
+      ],
+      "scope": "within the interaction",
+      "rendering": "its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction",
+      "reads": "`C4-P2`'s second conjunct, first operand",
+      "history": "Y4 added the arrival ordinal, AI1 the session. AJ1 is the correction that reached three of the five surfaces publishing it.",
+      "publishedBy": {
+        "Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md": 1,
+        "Brontide-Channel-0.2-Interaction-State-Machine-0.1.md": 1,
+        "Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md": 2,
+        "Brontide-Channel-0.2-Responsibility-Matrix-0.1.md": 1,
+        "Brontide-Channel-0.2-State-Event-Coverage-0.1.md": 1
+      }
+    },
+    {
+      "id": "terminal-frame-reference",
+      "class": "frame-reference",
+      "phrase": "terminal-frame reference",
+      "title": "the frame an interaction's terminal history was accepted on",
+      "owner": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+      "ownerNote": "Accepting a terminal history is an interaction-machine transition, so the same artifact owns this reference.",
+      "fields": [
+        "kind",
+        "session",
+        "interaction identity",
+        "committing endpoint",
+        "arrival ordinal"
+      ],
+      "scope": "within the interaction",
+      "rendering": "its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** within the interaction",
+      "reads": "`C4-P2`'s second conjunct, second operand",
+      "history": "AK6. Published by no artifact at all until then; the comparison rested on the terminal form, which identifies one frame only while an endpoint commits at most one frame of that form for one identity, and a duplicate terminal is an endpoint committing two.",
+      "publishedBy": {
+        "Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md": 1,
+        "Brontide-Channel-0.2-Interaction-State-Machine-0.1.md": 1,
+        "Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md": 2,
+        "Brontide-Channel-0.2-Responsibility-Matrix-0.1.md": 1,
+        "Brontide-Channel-0.2-State-Event-Coverage-0.1.md": 1
+      }
+    },
+    {
+      "id": "refused-frame-reference",
+      "class": "frame-reference",
+      "phrase": "refused-frame reference",
+      "title": "the frame refused where a refusal opens no interaction",
+      "owner": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "ownerNote": "C10 requires the observation of a frame that opens no interaction, so the capability contract owns what that record contains.",
+      "fields": [
+        "kind",
+        "session",
+        "interaction identity",
+        "committing endpoint",
+        "arrival ordinal"
+      ],
+      "scope": "for that interaction identity",
+      "scopeNote": "The ordinal is scoped to the interaction identity rather than to the interaction because at `unseen` no interaction exists to be within. The five field NAMES are the same five, which is what the class assertion compares.",
+      "rendering": "its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity",
+      "reads": "`C4-P2`'s first conjunct",
+      "history": "AK1 and AK5. Until then the record carried its provenance, its detailed reason, and the kind of frame refused, so three of the conjunct's own qualifiers had no operand. AL2 is the correction reaching four of five surfaces, missing the state/event grid's two `unseen` cells because both halves of the check keyed on the reference's name and those cells never use it.",
+      "publishedBy": {
+        "Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md": 1,
+        "Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md": 2,
+        "Brontide-Channel-0.2-State-Event-Coverage-0.1.md": 1
+      },
+      "publishedByNote": "The interaction machine's `unseen` row, the responsibility matrix's local-observation row, and two of the grid's three publications state this reference inside the whole refusal record, so they are surfaces of `unseen-refusal-record` and the reference reaches them nested in it. Four surfaces publish the reference on its own."
+    },
+    {
+      "id": "unseen-refusal-record",
+      "class": "record",
+      "phrase": "unseen refusal record",
+      "title": "the local observation of a recognized frame that opens no interaction",
+      "owner": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+      "ownerNote": "C10 requires the observation of a frame that opens no interaction, so the capability contract owns what that record contains -- as it owns the reference nested inside it. The interaction machine and the grid decide WHERE the record is produced; they do not decide what it holds.",
+      "fields": [
+        "provenance `rejected-protocol`",
+        "detailed reason `unopened-interaction-identity`",
+        "effect certainty `known-none`",
+        "@refused-frame-reference"
+      ],
+      "fieldsNote": "A field beginning with `@` names another declared fact, whose rendering is nested here rather than restated. That is what makes this record one fact rather than two that have to be kept in step: the reference's five fields reach the record's surfaces from the same declaration the reference's own surfaces are rendered from.",
+      "scope": "",
+      "rendering": "its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`, and the **refused-frame reference**: its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity",
+      "reads": "`C4-P2`'s first conjunct quantifies over this record",
+      "history": "AE2 required the effect certainty, AC2 the detailed reason and the kind of frame refused, AK1 and AK5 the reference's remaining fields, and AL2 was the correction reaching four of the reference's five surfaces and neither of the grid's two `unseen` cells -- which state the record and never name the reference. The record was hand-maintained prose at every surface until it was declared here; the design verifier's AL2 record-keyed sweep is what watched it, and owning it is what retires that sweep.",
+      "publishedBy": {
+        "Brontide-Channel-0.2-Capability-Contract-0.1.md": 1,
+        "Brontide-Channel-0.2-Interaction-State-Machine-0.1.md": 1,
+        "Brontide-Channel-0.2-Responsibility-Matrix-0.1.md": 1,
+        "Brontide-Channel-0.2-State-Event-Coverage-0.1.md": 2
+      },
+      "unfencedSweep": {
+        "trigger": "`unopened-interaction-identity`",
+        "coTerms": [
+          "provenance",
+          "effect certainty"
+        ],
+        "before": 240,
+        "after": 640,
+        "why": "A surface may state this record without ever naming the reference inside it, and the two grid cells AL2 was raised for did exactly that -- so a sweep keyed to a reference's name cannot see them. The detailed reason identifies the record wherever it is stated, and a passage naming it together with the record's provenance and its effect certainty is enumerating what the record contains rather than talking about it: a disposition history saying what AC2 or AK1 did names the reason and neither of the other two. This is the design verifier's AL2 sweep, moved to the file that owns the record it is about and keyed to the declaration rather than to a hardcoded field list."
+      }
+    }
+  ],
+  "publicationsNote": "Which artifacts publish a fact, and how many times each. This is the one thing fencing cannot supply on its own: a fence registers a surface that EXISTS, so a surface deleted outright leaves nothing behind to notice its absence. That was the exact-count assertion's job in the registry this replaces, and it is kept for AI1's reason -- a lower bound is what let that check certify its own scope. What changed is where the number lives: beside the fact rather than inside a verifier, so the person changing the fact sees it, and checked in BOTH directions, so a fence in an unlisted artifact fails as loudly as a missing one."
+}

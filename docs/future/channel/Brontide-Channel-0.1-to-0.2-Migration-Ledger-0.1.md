@@ -1,18 +1,38 @@
-# Channel 0.1 to 0.2 migration ledger 0.1
+﻿# Channel 0.1 to 0.2 migration ledger 0.1
 
 Date: 2026-08-11
 
-Status: proposed first-batch migration disposition; B4, N1/N3, F3, D5, and T1/T2 corrected after
-independent review and subject to a fresh independent closure re-review. Serialized spellings remain
-unselected until the neutral contract batch.
+Status: proposed first-batch migration disposition; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#01-to-02-migration-ledger).
 
 Sources inventoried:
 
 - [Draft Channel Contract 0.1](./Brontide-Draft-Channel-Contract-0.1.md);
 - [`conformance/channel-0.1-vectors.json`](../../../conformance/channel-0.1-vectors.json);
 - [`channel-envelope.json`](../../../binding/portable/schemas/channel-envelope.json);
-- [`limits-and-lifecycle.json`](../../../binding/portable/schemas/limits-and-lifecycle.json); and
-- [`binding-observation.json`](../../../binding/portable/schemas/binding-observation.json).
+- [`limits-and-lifecycle.json`](../../../binding/portable/schemas/limits-and-lifecycle.json);
+- [`binding-observation.json`](../../../binding/portable/schemas/binding-observation.json); and
+- the [Architecture 0.8 Channel requirements and risk ledger](./architecture-0.8-channel-requirements-and-risk-ledger.md),
+  which states of itself that it "must be dispositioned item by item in the successor's migration
+  ledger". It was absent from this list through nine review cycles, which is AE5.
+
+## Retained requirements register disposition
+
+`CH-R1` through `CH-R11` and `CH-K1` through `CH-K7` are carried in substance by the field, state,
+category, limit, and feature tables below, which is why no `CH-R` identifier appeared anywhere in the
+0.2 package until AE5 was raised. One entry is not bookkeeping and is dispositioned explicitly here.
+
+| Register entry | Disposition | Where 0.2 answers it |
+| --- | --- | --- |
+| `CH-R10` — "Non-promises: no delivery, **ordering**, or retry guarantee; interruption, retry, and fallback recorded as facts, success never fabricated" | **replaced** | **replaced** rather than **retained** for the same reason the feature row below carries it: the non-promise's scope changed, and a disposition names what happened to the entry as a whole. Its delivery, retry, and facts-not-fabrication clauses are unchanged. The ordering clause is narrowed by the 2026-08-13 S1 ruling: Channel 0.2 core promises intra-interaction frame order, owned by C4, stated by `C4-P2`, declared by the realization profile, and dispositioned in the feature row "ordering guarantee unsupported" below. Cross-interaction and cross-session ordering remain unpromised and still require an extension facet. `CH-K5`, which names over-scoping into ordering as a Medium risk and cites CH-R10, is **retained** and this narrowing is its one accepted instance |
+
+This is the register entry every finding since S1 turns on, and the reason its absence mattered: the
+feature row that carries the same fact is sourced from the Draft Channel Contract's feature list, so
+until now the register still held an undisposed statement of a non-promise that 0.2 core had already
+narrowed.
 
 Disposition meanings are those in the redesign plan: **retained**, **replaced**, **moved**,
 **removed**, and **legacy-only**. “Retained” means semantic identity, not necessarily serialized
@@ -105,7 +125,7 @@ The labels below are logical design names, not serialized spellings.
 | `unsupported-contract` | **replaced** | `unsupported-profile` or `unsupported-application-contract`, so Channel capability and domain contract mismatches are not conflated. |
 | `unsupported-kind` | **replaced** | `unsupported-message-class`. An unknown peer-fault category is not this fault; it faults locally without a reply loop. |
 | `unsupported-operation` | **retained** | Interaction-scoped peer fault before handler dispatch. |
-| `correlation-mismatch` | **replaced** | `invalid-interaction-correlation`, including missing, extra, wrong-session, reused, or mismatched identities as the detailed reason. Replay remains separately classified when reuse is known. |
+| `correlation-mismatch` | **replaced** | `invalid-interaction-correlation`, with a closed detailed-reason set: missing, extra, wrong-session, reused, or mismatched identities, and `unopened-interaction-identity` for a recognized control naming an identity the recipient has never accepted. That last reason is the one `C4-P2`'s first conjunct quantifies over and the five identity reasons do not cover it — the identity is neither absent, spurious, out of scope, reused, nor unequal to another, it was simply never opened. Replay remains separately classified when reuse is known. |
 | `invalid-payload` | **retained** | Interaction-scoped, before handler dispatch. |
 | `invalid-authority-presentation` | **retained** | Interaction-scoped, before handler dispatch; no authority projection. |
 | `replay-detected` | **retained** | A repeated accepted identity received while its original interaction is nonterminal; no redispatch. A repeat arriving after that interaction is terminal follows the late-traffic latch as `state-violation` instead. |
@@ -168,7 +188,7 @@ the new profile declares finite values and the neutral vectors test their consis
 | retry unsupported | **replaced** | Channel core makes no retry promise; exact Distributed/host facet may create a new attempt with a new identity. |
 | cancellation unsupported | **replaced** | Optional Channel core cancellation contract; profile declares support/requirement per class. |
 | streaming unsupported | **retained** | Retained as a non-promise: Flow/profile facet only; unary core is not reinterpreted. |
-| ordering guarantee unsupported | **retained** | Retained as a non-promise: no cross-interaction order; extension facet required. |
+| ordering guarantee unsupported | **replaced** | Replaced by a scoped non-promise plus one narrow promise. Cross-interaction and cross-session order remain unpromised and still require an extension facet; the 2026-08-13 S1 ruling adds intra-interaction frame order to 0.2 core, owned by C4 with `C4-P2` and declared by the realization profile. This is the one ordering fact 0.2 adds over 0.1, and the reason the disposition is not **retained**: the non-promise's scope changed. |
 | exactly-once unsupported | **retained** | Retained as a non-promise: replay protection remains distinct from exactly-once effects. |
 
 ## Observation-field migration
@@ -251,8 +271,34 @@ The 0.1 set has no direct equivalents for these required 0.2 cases:
 - relational interaction exact declaration, direction, authority, and pre-Ready phase;
 - ordinary interaction before Release refusal;
 - session fault mapping each in-flight interaction separately;
-- extension facet unable to redefine authority or terminality; and
-- effect certainty separated from profile-owned effect details.
+- extension facet unable to redefine authority or terminality;
+- effect certainty separated from profile-owned effect details; and
+- intra-interaction frame order and its two ordering mutations. Channel 0.1 promised no order and
+  therefore has no predecessor vector, and this is the requirement every finding since S1 turns on, so
+  its absence here would leave Batch 2's inventory silent about the one group it exists to produce:
+  conforming commit-order delivery in both directions, loss of either frame, the legal
+  nonconformant-peer inputs `C4-P2` must leave green, and `C4-control-precedes-request` and
+  `C4-outcome-precedes-ack`, one per conjunct, both requiring the declared reordering injection.
+  The observation fields those vectors compare — the late-traffic latch, including its
+  `not-applicable` value, the recipient's **admission of an identity previously refused at `unseen`**,
+  which the AE1 correction made the second fact the first conjunct reads, and the frame that settled
+  the latch: <!-- fact:settling-frame-reference -->its kind, its **session**, its interaction identity, its **committing
+  endpoint**, and its **arrival ordinal** within the interaction<!-- /fact --> — are likewise new in
+  0.2 and have no 0.1 observation field to migrate from. The admission is an ordinary admission
+  decision C10 already enumerates, so no implementer has to invent a field; it is listed because Batch
+  2 builds its vector groups from here, and omitting it was AF4.
+- Two further frames the same vectors compare, new in 0.2 and added here under **AK1**, **AK5** and
+  **AK6**, each published as a reference to one frame the way the settling frame is. The
+  terminal-frame reference names the frame an interaction's terminal history was accepted on: <!-- fact:terminal-frame-reference -->its kind, its **session**, its interaction
+  identity, its **committing endpoint**, and its
+  **arrival ordinal** within the interaction<!-- /fact -->; it is what `C4-P2`'s second conjunct compares the settling frame
+  *against*, and it was published by no artifact at all. The refused-frame reference names the frame
+  refused where a refusal opens no interaction: <!-- fact:refused-frame-reference -->its kind, its **session**, its interaction identity, its **committing endpoint**,
+  and its **arrival ordinal** for that interaction identity<!-- /fact -->; it is the
+  first conjunct's own operand, and it carried neither AF8's session, nor the identity the membership
+  test is over, nor the committing endpoint the precedence half reads. A vector group authored from an
+  inventory that omits an operand is a group that cannot evaluate the property it exists for, which is
+  why both are listed here rather than left to the artifacts that own them.
 
 ## Golden encodings, parity profiles, and pins
 
@@ -284,5 +330,11 @@ This ledger covers every logical 0.1 envelope/Correlation/body Shape and field, 
 Binding 0.1 message kind and lifecycle state, all twelve protocol categories, seven process
 categories, five failure domains, ten declared limits, ten lifecycle feature declarations, every
 normative/non-normative observation field and resource subfield, all 24 Channel vectors, all six
-goldens as a group, and the known consumers. The independent design review must challenge both the
-coverage claim and every semantic disposition.
+goldens as a group, the known consumers, and the retained Architecture 0.8 Channel requirements and
+risk register — `CH-R1` through `CH-R11` and `CH-K1` through `CH-K7`, carried in substance by the
+tables above with `CH-R10` dispositioned explicitly. The independent design review must challenge both
+the coverage claim and every semantic disposition.
+
+The register was named in the sources list by the AE5 correction and left out of this claim, which is
+AF3: an inventory that lists a source and then enumerates its coverage without it makes the same
+omission one paragraph apart, and this enumeration is the half a reader checks.

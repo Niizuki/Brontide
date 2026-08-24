@@ -2,8 +2,11 @@
 
 Date: 2026-08-11
 
-Status: proposed first-batch design artifact; D1 corrected after independent review and subject to a
-fresh independent closure re-review.
+Status: proposed first-batch design artifact; awaiting a fresh independent
+closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+[verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
+Correction history is not carried here; it is owned by the
+[disposition index](./reviews/channel-0.2-disposition-index.md#session-state-machine).
 
 Contract owner: [Channel 0.2 C2](./Brontide-Channel-0.2-Capability-Contract-0.1.md#c2--the-channel-session-has-one-small-explicit-state-machine).
 
@@ -146,12 +149,25 @@ does not mutate the external state.
 
 ## Capability-wide properties
 
-- **S1.** Every accepted transition is in the legal table.
-- **S2.** No interaction dispatches outside `established`.
-- **S3.** No new interaction is admitted after the first drain transition.
-- **S4.** A terminal session never becomes nonterminal and is never resumed under the same identity.
-- **S5.** Fixed and negotiated establishment produce equal normative profiles.
-- **S6.** No session event creates Ready, Release, authority, or an application Outcome.
+Each of these is a statement about **one session**, and each says so. A vector may carry more than one
+session under AH1, so a property of this machine that leaves the session unnamed is read across the
+vector: that is **AL1**, and it made `S3` red on a vector whose two sessions both conform.
+
+- **S1.** In each session the vector carries, every accepted transition of that session is in the
+  legal table.
+- **S2.** No interaction dispatches outside its own session's `established` state.
+- **S3.** Within each session the vector carries, no new interaction is admitted after that session's
+  first drain transition. The scope is the whole of this property: the drain transition belongs to one
+  session, and a second session establishing and admitting afterwards is legal.
+- **S4.** Within each session the vector carries, a terminal session never becomes nonterminal and is
+  never resumed under the same session identity.
+- **S5.** For each session the vector carries, fixed and negotiated establishment of that session's
+  own declared profile produce equal normative profile records. The comparison is between the two
+  paths to **one** declared profile, which is what the fixed and negotiated equivalence section above
+  states; two sessions carrying two different declared profiles are conforming and this property says
+  nothing about them. That qualifier is **AL4**, and it is the `AK8` correction `C1-P1` received.
+- **S6.** In any session the vector carries, no session event creates Ready, Release, authority, or an
+  application Outcome.
 
 Each property receives a generated model test in both stacks and a named negative probe in the
 neutral verifier before implementation closure.

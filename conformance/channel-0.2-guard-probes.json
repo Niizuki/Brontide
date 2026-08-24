@@ -1,0 +1,850 @@
+{
+  "schemaVersion": 1,
+  "note": "Guard probes for the Channel 0.2 verification gates. Each entry names a mutation that makes one guard's own subject present in the package, and the verdict that guard must return. It is the corpus three condition-4 passes rebuilt by hand from the prose of the pass before -- AM's review records its probes in sentences, AN's re-derived them from those sentences, and this pass re-derived them again and could not set four of them up because the text they anchored on had been corrected. That is section 1.1 of the verification foundation plan about evaluators, arriving one level up: the instrument is rebuilt every cycle and thrown away. This file is that instrument kept. `build/verify-channel-0.2-guards.ps1` runs it.",
+  "authority": {
+    "note": "A probe is evidence about a guard, never a statement about the design. Where a probe and an artifact disagree about what the design says, the artifact is right and the probe is the defect. A probe that no longer applies is deleted with the guard it was written for, in the same change, and never left failing.",
+    "raisedUnder": "AO3"
+  },
+  "probes": [
+    {
+      "id": "A1 AM1",
+      "claim": "AL1 history paragraph one blank line below the block",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "#session-state-machine).\n\nContract owner:",
+          "replace": "#session-state-machine).\n\nThis status block previously recorded that the AK pass had audited `S1`-`S6` and reported them\nclean, which it could not have done.\n\nContract owner:"
+        }
+      ]
+    },
+    {
+      "id": "A2 AM1",
+      "claim": "same history under an undeclared 'Correction history:' label",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "#session-state-machine).\n\nContract owner:",
+          "replace": "#session-state-machine).\n\nCorrection history: This status block previously recorded that the AK pass had audited `S1`-`S6` and reported them\nclean, which it could not have done.\n\nContract owner:"
+        }
+      ]
+    },
+    {
+      "id": "A3 AM1",
+      "claim": "a real declared front-matter paragraph passes",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "pass",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "#session-state-machine).\n\nContract owner:",
+          "replace": "#session-state-machine).\n\nDesigned for: Brontide Architecture 0.8, Complete Draft.\n\nContract owner:"
+        }
+      ]
+    },
+    {
+      "id": "A4 W3",
+      "claim": "a six-line status block",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "Correction history is not carried here; it is owned by the\n[disposition index](./reviews/channel-0.2-disposition-index.md#session-state-machine).",
+          "replace": "Correction history is not carried here; it is\nowned by the\n[disposition index](./reviews/channel-0.2-disposition-index.md#session-state-machine)."
+        }
+      ]
+    },
+    {
+      "id": "C1 W3",
+      "claim": "status block loses its disposition pointer",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "Correction history is not carried here; it is owned by the\n[disposition index](./reviews/channel-0.2-disposition-index.md#session-state-machine).",
+          "replace": "Correction history is not carried here."
+        }
+      ]
+    },
+    {
+      "id": "C2 W3",
+      "claim": "status pointer resolves to no index section",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "channel-0.2-disposition-index.md#session-state-machine)",
+          "replace": "channel-0.2-disposition-index.md#session-state-machine-that-does-not-exist)"
+        }
+      ]
+    },
+    {
+      "id": "C3 W3",
+      "claim": "the pointed-at index section is really deleted (AM's recorded probe)",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
+          "find": "## Session state machine\n",
+          "replace": "## Session state machine renamed by probe\n"
+        }
+      ]
+    },
+    {
+      "id": "D2 W2",
+      "claim": "S3's two-session required-green member removed",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-properties.json",
+          "find": ",\n        {\n          \"vector\": \"S-two-sessions-conforming\",\n          \"member\": \"two sessions conforming, the second establishing and admitting after the first drains\"\n        }",
+          "replace": "",
+          "occurrence": 2
+        }
+      ]
+    },
+    {
+      "id": "E3 W1",
+      "claim": "a field added to a nested fact's field list, nothing re-rendered",
+      "gate": "verify-channel-0.2-facts.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-facts.json",
+          "find": "\"fields\": [\n        \"kind\",\n        \"session\",\n        \"interaction identity\",\n        \"committing endpoint\",\n        \"arrival ordinal\"\n      ]",
+          "replace": "\"fields\": [\n        \"kind\",\n        \"session\",\n        \"interaction identity\",\n        \"committing endpoint\",\n        \"arrival ordinal\",\n    \"probe field\"\n      ]",
+          "occurrence": 2
+        }
+      ]
+    },
+    {
+      "id": "E5 W1",
+      "claim": "the class assertion - one frame reference loses a field name",
+      "gate": "verify-channel-0.2-facts.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-facts.json",
+          "find": "\"fields\": [\n        \"kind\",\n        \"session\",\n        \"interaction identity\",\n        \"committing endpoint\",\n        \"arrival ordinal\"\n      ]",
+          "replace": "\"fields\": [\n        \"kind\",\n        \"session\",\n        \"interaction identity\",\n            \"arrival ordinal\"\n      ]",
+          "occurrence": 2
+        }
+      ]
+    },
+    {
+      "id": "B1 AM2",
+      "claim": "the status-block measure's NOW value is wrong",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "**265** at `9ce01a0` and **45** now",
+          "replace": "**265** at `9ce01a0` and **44** now"
+        }
+      ]
+    },
+    {
+      "id": "B2 AM2",
+      "claim": "the status-block measure's THEN value is restored to 289",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "**265** at `9ce01a0` and **45** now",
+          "replace": "**289** at `9ce01a0` and **45** now"
+        }
+      ]
+    },
+    {
+      "id": "B3 AM2",
+      "claim": "the status-block measure's stated form is removed",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "**265** at `9ce01a0` and **45** now",
+          "replace": "265 before W3 and 45 after"
+        }
+      ]
+    },
+    {
+      "id": "B4 AM3",
+      "claim": "the index-row measure's NOW value is wrong",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "** now, summed over the eleven",
+          "replace": "0** now, summed over the eleven"
+        }
+      ]
+    },
+    {
+      "id": "B5 AM3",
+      "claim": "the index-row measure's THEN value is wrong",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "**8,746** at",
+          "replace": "**8,754** at"
+        }
+      ]
+    },
+    {
+      "id": "B6 AM3",
+      "claim": "the index-row measure's stated form is removed",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "**8,746** at",
+          "replace": "8,746 at"
+        }
+      ]
+    },
+    {
+      "id": "B7 AM2",
+      "claim": "the design-verifier line measure loses the stated form the check recomputes",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "now, recomputed by the verifier against itself",
+          "replace": "then, recomputed by the verifier against itself"
+        }
+      ]
+    },
+    {
+      "id": "C5 W3",
+      "claim": "a Channel index row loses its disposition pointer",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/README.md",
+          "find": "| Exact Channel-owned session states and transitions | See the [disposition index](./reviews/channel-0.2-disposition-index.md#session-state-machine). |",
+          "replace": "| Exact Channel-owned session states and transitions | Corrected under AL1. |"
+        }
+      ]
+    },
+    {
+      "id": "C6 W3",
+      "claim": "a Channel index row grows its state cell back into history",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/README.md",
+          "find": "| Exact Channel-owned session states and transitions | See the [disposition index](./reviews/channel-0.2-disposition-index.md#session-state-machine). |",
+          "replace": "| Exact Channel-owned session states and transitions | S3 was bounded by the first drain transition and named no session, so a second session establishing and admitting after the first drains took the property red on conforming behaviour; AL1 corrected it and every property of this machine now names its session. See the [disposition index](./reviews/channel-0.2-disposition-index.md#session-state-machine). |"
+        }
+      ]
+    },
+    {
+      "id": "C7 hold",
+      "claim": "the closure-cycle state is edited to resumed without meeting the conditions",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "Closure-cycle state: **on-hold** since 2026-08-17, at 16 retained attestations.",
+          "replace": "Closure-cycle state: **resumed** since 2026-08-17, at 16 retained attestations."
+        }
+      ]
+    },
+    {
+      "id": "C8 hold",
+      "claim": "the retained attestation count is edited upward",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "Closure-cycle state: **on-hold** since 2026-08-17, at 16 retained attestations.",
+          "replace": "Closure-cycle state: **on-hold** since 2026-08-17, at 17 retained attestations."
+        }
+      ]
+    },
+    {
+      "id": "AN1-a",
+      "claim": "the index heading is renamed and nine pointers go stale",
+      "gate": "verify-doc-links.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
+          "find": "## Session state machine",
+          "replace": "## The session state machine"
+        }
+      ]
+    },
+    {
+      "id": "AN1-b",
+      "claim": "a status block's anchor points at no heading",
+      "gate": "verify-doc-links.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "channel-0.2-disposition-index.md#session-state-machine)",
+          "replace": "channel-0.2-disposition-index.md#session-state-machine-that-does-not-exist)"
+        }
+      ]
+    },
+    {
+      "id": "AN1-c",
+      "claim": "a Channel index row's anchor points at no heading",
+      "gate": "verify-doc-links.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/README.md",
+          "find": "channel-0.2-disposition-index.md#responsibility-matrix)",
+          "replace": "channel-0.2-disposition-index.md#responsibility-matrixx)"
+        }
+      ]
+    },
+    {
+      "id": "AN1-d",
+      "claim": "a heading that really exists still resolves",
+      "gate": "verify-doc-links.ps1",
+      "expect": "pass",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "channel-0.2-disposition-index.md#session-state-machine)",
+          "replace": "channel-0.2-disposition-index.md#interaction-state-machine)"
+        }
+      ]
+    },
+    {
+      "id": "AN1-e",
+      "claim": "a status block points at another artifact's section, which resolves",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "channel-0.2-disposition-index.md#session-state-machine)",
+          "replace": "channel-0.2-disposition-index.md#interaction-state-machine)"
+        }
+      ]
+    },
+    {
+      "id": "AN3-a",
+      "claim": "a wrong historical line count in the step table",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "`2684ec7` **2,257**",
+          "replace": "`2684ec7` **2,208**"
+        }
+      ]
+    },
+    {
+      "id": "AN3-b",
+      "claim": "a step naming a commit this verifier cannot be read at",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "`72fecde` **2,263**",
+          "replace": "`0000000` **2,263**"
+        }
+      ]
+    },
+    {
+      "id": "AN3-c",
+      "claim": "the step form removed, leaving the history in prose",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "`6c7715a` **2,322** when\n  the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,\n  `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491**",
+          "replace": "2,322 when the work began and every step since"
+        }
+      ]
+    },
+    {
+      "id": "AN4-a",
+      "claim": "the plan's publication-site count is wrong",
+      "gate": "verify-channel-0.2-facts.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "**rendered** into all **21** publication sites across **6** artifacts",
+          "replace": "**rendered** into all **20** publication sites across **6** artifacts"
+        }
+      ]
+    },
+    {
+      "id": "AN4-b",
+      "claim": "the plan's publishing-artifact count is wrong",
+      "gate": "verify-channel-0.2-facts.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "**rendered** into all **21** publication sites across **6** artifacts",
+          "replace": "**rendered** into all **21** publication sites across **5** artifacts"
+        }
+      ]
+    },
+    {
+      "id": "AN4-c",
+      "claim": "the stated form removed",
+      "gate": "verify-channel-0.2-facts.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "**rendered** into all **21** publication sites across **6** artifacts",
+          "replace": "**rendered** into every publication site the package carries"
+        }
+      ]
+    },
+    {
+      "id": "AN5-a",
+      "claim": "the disposition index restates a status-block line total",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
+          "find": "That number is cited rather than restated: this",
+          "replace": "Between them those status blocks held 265 lines. That number is cited rather than restated: this"
+        }
+      ]
+    },
+    {
+      "id": "AN5-b",
+      "claim": "the Channel index restates a status-block line total",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/README.md",
+          "find": "Batch 2\nstays closed and no correction is withdrawn.",
+          "replace": "Between them the nine status blocks held 265 lines of it. Batch 2\nstays closed and no correction is withdrawn."
+        }
+      ]
+    },
+    {
+      "id": "AO1-a",
+      "claim": "both wildcard rows narrowed, so the artifact no longer declares two edges the list carries",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "| any nonterminal | fatal recognized Channel violation | `faulted` |",
+          "replace": "| `established` | fatal recognized Channel violation | `faulted` |"
+        },
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "| any nonterminal | transport/process loss prevents continuation | `faulted` |",
+          "replace": "| `established` | transport/process loss prevents continuation | `faulted` |"
+        }
+      ]
+    },
+    {
+      "id": "AO1-c",
+      "claim": "the list drops an edge the artifact declares",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "    'unestablished>faulted', 'establishing>faulted', 'established>faulted')",
+          "replace": "    'unestablished>faulted', 'establishing>faulted')"
+        }
+      ]
+    },
+    {
+      "id": "AO2-a",
+      "claim": "the plan's condition-2 evaluation count is wrong",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "run in the gate on every commit: **69** evaluations over **30** declared inputs",
+          "replace": "run in the gate on every commit: **55** evaluations over **30** declared inputs"
+        }
+      ]
+    },
+    {
+      "id": "AO2-b",
+      "claim": "the plan's all-properties input count is wrong",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "** declared inputs plus the nine operand",
+          "replace": "0** declared inputs plus the nine operand"
+        }
+      ]
+    },
+    {
+      "id": "AO2-c",
+      "claim": "the stated form is removed",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "The gate runs **",
+          "replace": "The gate runs every property over every input. **"
+        }
+      ]
+    },
+    {
+      "id": "AO1-b",
+      "claim": "a From cell the parser cannot read is a failure, not a skipped row",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "| any nonterminal | transport/process loss prevents continuation | `faulted` |",
+          "replace": "| whichever state is live | transport/process loss prevents continuation | `faulted` |"
+        }
+      ]
+    },
+    {
+      "id": "AO1-d",
+      "claim": "the state table loses its rows, so a wildcard would expand over nothing",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "| `unestablished` | no | no | No profile is accepted.",
+          "replace": "| `unestablished`. | no | no | No profile is accepted.",
+          "all": true
+        }
+      ]
+    },
+    {
+      "id": "D1 W2",
+      "claim": "C4-P2's named mutation is removed from the declaration",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-properties.json",
+          "find": "        {\n          \"vector\": \"C4-control-precedes-request\",\n          \"conjunct\": \"C4-P2-conjunct-1\",\n          \"expected\": \"red\",\n          \"note\": \"A realization delivers one interaction's cancellation control before the request that opens it. The expected observation is the complete set of records both endpoints produce, including the displaced request's subsequent admission -- a vector authored to stop at the refusal leaves the membership test an empty set and takes the property green on its own named mutation, which is AF1.\"\n        },\n",
+          "replace": ""
+        }
+      ]
+    },
+    {
+      "id": "E1 W1",
+      "claim": "a rendered site is hand-corrected inside its fence",
+      "gate": "verify-channel-0.2-facts.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "find": "<!-- fact:unseen-refusal-record -->its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`, and the **refused-frame reference**: its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact -->",
+          "replace": "<!-- fact:unseen-refusal-record -->its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, and the **refused-frame reference**: its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact -->"
+        }
+      ]
+    },
+    {
+      "id": "E2 W1",
+      "claim": "a fence is deleted and the text left standing",
+      "gate": "verify-channel-0.2-facts.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "find": "<!-- fact:unseen-refusal-record -->its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`, and the **refused-frame reference**: its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact -->",
+          "replace": "its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`, and the **refused-frame reference**: its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity"
+        }
+      ]
+    },
+    {
+      "id": "E4 W1",
+      "claim": "the `unseen` record is enumerated in prose outside any fence",
+      "gate": "verify-channel-0.2-facts.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-State-Event-Coverage-0.1.md",
+          "append": "\nThe refusal is recorded with its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, and its effect certainty `known-none`.\n"
+        }
+      ]
+    },
+    {
+      "id": "AP1-a",
+      "claim": "the falsifiability claim is deleted, which used to silence twenty-four checks",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "find": "`C4-control-precedes-request` is the mutation this property must go red on, and a run in which it\nstays green is a finding against the property rather than evidence for the design.",
+          "replace": "A run in which this property stays green on a reordering is a finding against the property."
+        }
+      ]
+    },
+    {
+      "id": "AP1-b",
+      "claim": "the same deletion is not the properties gate's question, and it says so by passing",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "pass",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "find": "`C4-control-precedes-request` is the mutation this property must go red on, and a run in which it\nstays green is a finding against the property rather than evidence for the design.",
+          "replace": "A run in which this property stays green on a reordering is a finding against the property."
+        }
+      ]
+    },
+    {
+      "id": "AP2-a",
+      "claim": "a property's audit row keeps its text and loses its id",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md",
+          "find": "| I4 | every pre-dispatch refusal is `known-none`",
+          "replace": "| (withdrawn) | every pre-dispatch refusal is `known-none`"
+        }
+      ]
+    },
+    {
+      "id": "AP2-b",
+      "claim": "a capability property is no longer named in its capability's audit row",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md",
+          "find": "| C3 | C3-P1 exact class/direction/phase |",
+          "replace": "| C3 | exact class/direction/phase |"
+        }
+      ]
+    },
+    {
+      "id": "W4-key",
+      "claim": "the `unseen` retention sentence is reworded, which its own checks catch",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "find": "**A control refused at `unseen` retains no interaction history and no latch.**",
+          "replace": "**A control refused at `unseen` keeps no interaction history and no latch.**"
+        }
+      ]
+    },
+    {
+      "id": "X1-key",
+      "claim": "the parity list's settling-frame phrase is reworded, which its own checks catch",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md",
+          "find": "- the **frame that settled the latch** wherever one is settled:",
+          "replace": "- the **frame settling the latch** wherever one is settled:"
+        }
+      ]
+    },
+    {
+      "id": "AJ7-a",
+      "claim": "a numbered attestation entry is filed out of sequence",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/README.md",
+          "find": "- [Closure review 10](./channel-0.2-design-foundation-closure-review-10-attestation.md) — reviewed",
+          "replace": "- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) — reviewed"
+        }
+      ]
+    },
+    {
+      "id": "AJ7-b",
+      "claim": "an iteration review drops the disclaimer that it cannot close the batch",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/channel-0.2-ao-iteration-review.md",
+          "find": "**This is an iteration review, not an attestation.**",
+          "replace": "**This review ran against the verification work.**"
+        }
+      ]
+    },
+    {
+      "id": "AQ1-a",
+      "claim": "a narrative drops the ordinal that introduces closure review 13 while keeping every AI family token",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/README.md",
+          "find": "The thirteenth closure review returned",
+          "replace": "The closure review returned"
+        }
+      ]
+    },
+    {
+      "id": "AQ2-a",
+      "claim": "the settling-frame publication count is wrong where the disposition index states it",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
+          "find": "in the same form as the four other\nartifacts that publish it",
+          "replace": "in the same form as the nineteen other\nartifacts that publish it"
+        }
+      ]
+    },
+    {
+      "id": "AQ2-b",
+      "claim": "the same count is wrong in the second wording, which names no phrase the first sweep keys on",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
+          "find": "in the same form as the four other publishing artifacts",
+          "replace": "in the same form as the nineteen other publishing artifacts"
+        }
+      ]
+    },
+    {
+      "id": "AQ3-a",
+      "claim": "the disposition history understates how far it runs, in the record that now owns it",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
+          "find": "now runs to the sixteenth cycle",
+          "replace": "now runs to the eighth cycle"
+        }
+      ]
+    },
+    {
+      "id": "AQ4-a",
+      "claim": "the future-work index names the wrong family as the one no independent review has seen",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/README.md",
+          "find": "review has yet seen the AR corrections.",
+          "replace": "review has yet seen the AB corrections."
+        }
+      ]
+    },
+    {
+      "id": "AQ5-a",
+      "claim": "the contract states a member count for C4-P2's required vector group that the declared set contradicts",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "find": "seven legal members and the set names all seven",
+          "replace": "three legal members and the set names all seven"
+        }
+      ]
+    },
+    {
+      "id": "AQ5-b",
+      "claim": "AF1's superseded expected-observation wording restored at the far end of its own passage",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "find": "These recorded facts, and not the refusals alone, are the witnesses `C4-P2` fails on.",
+          "replace": "Their expected observations are exactly what the receiving endpoint records. These recorded facts, and not the refusals alone, are the witnesses `C4-P2` fails on."
+        }
+      ]
+    },
+    {
+      "id": "AQ5-c",
+      "claim": "AG3's superseded operand scope restored at the far end of the dated AE1 ruling",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md",
+          "find": "  **Option B, rejected:** scope the conjunct to vectors that declare a reordering injection.",
+          "replace": "  The conjunct reads membership of the identity in the set the recipient admits within the vector.\n\n  **Option B, rejected:** scope the conjunct to vectors that declare a reordering injection."
+        }
+      ]
+    },
+    {
+      "id": "AR1-a",
+      "claim": "C5-P1's second clause loses its mutation, so no input reaches the clause again",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-properties.json",
+          "find": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"red\",",
+          "replace": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"green\","
+        }
+      ]
+    },
+    {
+      "id": "AR1-b",
+      "claim": "C6-P1's clause-2 mutation is declared against the clause its verdict does not come from",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-properties.json",
+          "find": "\"vector\": \"C6-denial-without-decision-point\",\n          \"expected\": \"red\",\n          \"conjunct\": \"C6-P1-clause-2\",",
+          "replace": "\"vector\": \"C6-denial-without-decision-point\",\n          \"expected\": \"red\",\n          \"conjunct\": \"C6-P1-clause-1\","
+        }
+      ]
+    },
+    {
+      "id": "AR2-a",
+      "claim": "a coverage exemption whose construct no longer occurs is stale rather than silent",
+      "gate": "verify-channel-0.2-coverage.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-coverage-exemptions.json",
+          "find": "\"anchor\": \"if ($Apply) { $rewritten = $true }\",",
+          "replace": "\"anchor\": \"if ($Apply) { $rewrittenXX = $true }\","
+        }
+      ]
+    }
+  ]
+}
