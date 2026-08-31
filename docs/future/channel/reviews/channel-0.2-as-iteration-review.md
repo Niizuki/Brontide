@@ -6,7 +6,7 @@ Reviewed work: the verification-foundation work done under the closure-cycle hol
 facts and their gates), W2 (the twenty-six executable properties), W3 (the status blocks and Channel
 index rows), the retained guard corpus, the coverage instrument, and the AR corrections — at
 `7bf34a1`, `Merge pull request #138 from Niizuki/codex/adopt-bulwark-agent-guidance`; raised and
-corrected AS1-AS6
+corrected AS1-AS7
 
 Date: 2026-08-31
 
@@ -17,7 +17,7 @@ supply the conforming verdict the Closure section requires.
 
 It is the **seventh** pass condition 4 of the
 [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md#3-how-the-hold-ends)
-names. **Condition 4 is not met by it**, because it found six defects and corrected them.
+names. **Condition 4 is not met by it**, because it found seven defects and corrected them.
 
 ## Method
 
@@ -36,6 +36,10 @@ AS1-AS5 were each added to `conformance/channel-0.2-guard-probes.json` first and
 the harness because the gate returned `pass`; only then was its gate corrected. Two suspected cases
 were withdrawn after their probes passed immediately: the per-session profile distribution and the
 dated AE1-ruling boundary already fail closed under existing checks.
+
+After the five retained probes and the clean-package AS6 pin were green, the first full 69-probe run
+exposed AS7 directly: an `IOException` during restoration left B7's mutation in the verification plan.
+The exact residual diff pinned the defect before the plan was restored and the harness corrected.
 
 ## Findings
 
@@ -100,6 +104,17 @@ recognize that universal quantifier. This was read from the gate's failure rathe
 Corrected by recognizing `every accepted session` as a session qualifier. The unmodified capability
 contract is the permanent positive case; AS5 is the paired negative case.
 
+### AS7 — a transient sharing failure could leave a probe mutation behind — corrected
+
+The guard harness restored each mutated file with one `WriteAllBytes` call in `finally`. During the
+first clean 69-probe run, Windows reported that the plan still had a user-mapped section open. The
+restore threw and B7's replacement remained in the plan, where `git diff` showed the exact corruption.
+
+Corrected with a five-attempt retry limited to `IOException` and bounded backoff. The harness now runs
+a permanent self-check before any mutation: a fake writer throws twice, succeeds on its third attempt,
+and must receive the exact original bytes. A persistent sharing refusal and all other exception types
+remain fatal.
+
 ## What this pass verified rather than believed
 
 - The five new negative probes were red before their fixes and green afterward.
@@ -110,16 +125,18 @@ contract is the permanent positive case; AS5 is the paired negative case.
   session quantifier made the package green without weakening AS5.
 - The two withdrawn probes failed the underlying gate immediately, so neither became a finding or a
   retained corpus entry.
+- The restoration self-check fails if transient `IOException` retries are removed, shortened below
+  three attempts, or return bytes other than the snapshot.
 
 ## What remains outside the pass
 
 The retained coverage instrument still measures the design, properties, and facts gates, not the
-guard harness or the coverage gate itself. It also reports whether a compound condition ran, not
-whether every operand influenced a verdict. The next pass inherits those two named surfaces rather
-than another search for character-bounded negative assertions in the three covered gates.
+rest of the guard harness or the coverage gate itself. It also reports whether a compound condition
+ran, not whether every operand influenced a verdict. The next pass inherits those two named surfaces
+rather than another search for character-bounded negative assertions in the three covered gates.
 
 The closure review remains on hold. The finding count by condition-4 pass is now three, six, three,
-two, five, one, **six**; a pass with findings cannot satisfy condition 4 even when all findings are
+two, five, one, **seven**; a pass with findings cannot satisfy condition 4 even when all findings are
 corrected.
 
 ## Where this family is dispositioned

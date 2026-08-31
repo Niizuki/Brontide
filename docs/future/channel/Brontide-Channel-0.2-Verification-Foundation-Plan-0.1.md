@@ -702,12 +702,12 @@ the AQ5 class by reading and found nothing, and records that class as **unswept 
 
 The seventh author-side pass has run, at `7bf34a1`, and is retained as the
 [seventh W1-W3 verification-foundation iteration review](./reviews/channel-0.2-as-iteration-review.md).
-It raised **AS1**-**AS6** and corrected all six, so **it does not meet condition 4** either. AS is a
+It raised **AS1**-**AS7** and corrected all seven, so **it does not meet condition 4** either. AS is a
 `verification` family: no correction reaches a first-batch design artifact, and this plan owns the
 disposition.
 
 The pass started from the two limits the AR review left rather than trusting its coverage result.
-The six findings are **AS1**, **AS2**, **AS3**, **AS4**, **AS5**, and **AS6**. AS1-AS4 are four
+The seven findings are **AS1**, **AS2**, **AS3**, **AS4**, **AS5**, **AS6**, and **AS7**. AS1-AS4 are four
 character-bounded negative assertions: the positional-field sweep read 600
 characters after a fact fence, the abbreviated-publication sweep read 200, a retained-review denial
 read the preceding 160, and the duplicate-measure sweep read 160 characters either side of a count.
@@ -722,15 +722,23 @@ failure the broader recognizer exposed in the other direction: clean `C2-P1` qua
 accepted session transition”, and the qualifier recognizer did not admit that existing universal
 form. The clean package failed before the qualifier was added; AS5 remains the paired negative case.
 
+**AS7** is in the guard harness rather than a covered child gate. After the first clean 69-probe run,
+Windows kept a user-mapped section open long enough for the one-shot `WriteAllBytes` restoration to
+throw, so B7's mutation remained in this plan. The leftover diff was the failing pin and was restored
+before further work. Restoration now retries only `IOException` five times with bounded backoff, and
+the harness first simulates two sharing failures and verifies that the third attempt restores the
+exact bytes. Other exception classes and a persistent refusal still fail the run.
+
 Five probes were retained, after being observed red before their corrections, taking the corpus from
 64 to 69. Two suspected windows were probed and withdrawn rather than reported: the per-session
 profile distribution and the dated AE1-ruling boundary already fail closed under existing checks.
 
 **What the next pass inherits.** The three covered gates no longer contain a discovered
-character-bounded negative assertion, but the retained coverage instrument still does not cover the
-guard harness or itself and cannot distinguish which operand of a compound condition affected the
-verdict. An eighth pass starts with the 69 probes and the coverage gate, then audits those two named
-surfaces. It is another author-side pass; nothing here resumes the closure cycle.
+character-bounded negative assertion, and the guard harness now pins its transient restoration path.
+The retained coverage instrument still does not cover the rest of the guard harness or itself and
+cannot distinguish which operand of a compound condition affected the verdict. An eighth pass starts
+with the 69 probes and the coverage gate, then audits those two named surfaces. It is another
+author-side pass; nothing here resumes the closure cycle.
 
 ## 3. How the hold ends
 
@@ -748,7 +756,7 @@ The cycle resumes when, in this order:
 Then one fresh independent closure review is dispatched under the unchanged independence rules.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run seven
-times and is met by none of them**: the passes found three, six, three, two, five, one and six defects
+times and is met by none of them**: the passes found three, six, three, two, five, one and seven defects
 and fixed them all, which is the opposite of what that condition asks. Sections 2d through 2j record
 them.
 
@@ -756,7 +764,8 @@ The seven are not the same pass repeated. AM recomputed numbers; AN asked where 
 fact was stated; AO read each guard's comment as a claim and tested it against the code; AP asked
 whether each guard's *key* remained load-bearing; AQ traced statements; AR retained conditional
 coverage and used it to find unreachable property clauses; AS audited the negative assertion and
-compound-recognizer shapes that line coverage cannot see. Each brief came from the pass before it,
+compound-recognizer shapes that line coverage cannot see, then AS7 followed the guard harness itself
+when its restoration failed. Each brief came from the pass before it,
 and **AO1 — two properties red on conforming behaviour — remains a defect a closure reviewer would
 have been entitled to call blocking.** The condition is doing what it was written to do; it has not
 yet run out of findings.

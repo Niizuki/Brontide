@@ -280,13 +280,14 @@ nothing it can fix. They are retained as the
 [fourth](./channel-0.2-ap-iteration-review.md) (**AP1**-**AP2**),
 [fifth](./channel-0.2-aq-iteration-review.md) (**AQ1**-**AQ5**),
 [sixth](./channel-0.2-ar-iteration-review.md) (**AR1**) and
-[seventh](./channel-0.2-as-iteration-review.md) (**AS1**-**AS6**) W1-W3 verification-foundation
+[seventh](./channel-0.2-as-iteration-review.md) (**AS1**-**AS7**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
 **An eighth pass over the same scope is the live path.** It starts by running
 `build/verify-channel-0.2-guards.ps1`, which now holds 69 probes, and the retained coverage gate. The
-seventh pass closed five more character-bounded negative or recognizer extents and recorded one clean-
-package false positive exposed by the broader recognizer. What it leaves is narrower and explicit:
+seventh pass closed five more character-bounded negative or recognizer extents, recorded one clean-
+package false positive exposed by the broader recognizer, and pinned transient mutation restoration
+after a failed restore left B7's edit in the plan. What it leaves is narrower and explicit:
 the coverage instrument measures the design, properties and facts gates but not the guard harness or
 itself, and it records whether a compound condition ran rather than whether each operand influenced a
 verdict. Those two surfaces are the eighth pass's brief. Nothing in this paragraph resumes the closure
@@ -1029,11 +1030,12 @@ context elsewhere — never as evidence that their conclusions are right.
   from the evaluator with both gates green. It is also the first of the AM-AR passes raised against
   the **design**: the correction reached the per-capability property audit.
 - [Seventh W1-W3 verification-foundation iteration review](./channel-0.2-as-iteration-review.md) — the
-  same scope at `7bf34a1`; raised **AS1**-**AS6** and corrected all six, so condition 4 is **still not
+  same scope at `7bf34a1`; raised **AS1**-**AS7** and corrected all seven, so condition 4 is **still not
   met**. It audited what conditional coverage cannot see: negative assertions whose bodies run while
   their character-bounded subject under-reaches, and a compound recognizer whose fact-word operand
   cannot fire after ordinary prose growth. Five red probes are retained, and the clean package itself
-  pins the sixth correction. AS is a verification family and changes no first-batch design artifact.
+  pins the sixth correction; a harness self-check pins the seventh correction. AS is a verification
+  family and changes no first-batch design artifact.
 
 ## Disclosed process deviation in the T1-T4 correction
 

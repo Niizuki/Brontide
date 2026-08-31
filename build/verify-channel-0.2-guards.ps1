@@ -85,6 +85,48 @@ function Write-Text {
     [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding($HasBom)))
 }
 
+function Restore-FileBytes {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][byte[]]$Bytes,
+        [scriptblock]$WriteBytes = {
+            param($TargetPath, $TargetBytes)
+            [System.IO.File]::WriteAllBytes($TargetPath, $TargetBytes)
+        },
+        [scriptblock]$Delay = {
+            param($Milliseconds)
+            Start-Sleep -Milliseconds $Milliseconds
+        }
+    )
+
+    for ($attempt = 1; $attempt -le 5; $attempt++) {
+        try {
+            & $WriteBytes $Path $Bytes
+            return
+        }
+        catch [System.IO.IOException] {
+            if ($attempt -eq 5) { throw }
+            & $Delay (50 * $attempt)
+        }
+    }
+}
+
+$restoreTest = [pscustomobject]@{ Attempts = 0; Bytes = $null }
+$restoreTestBytes = [byte[]](0x42, 0x37)
+Restore-FileBytes -Path '<restore-self-test>' -Bytes $restoreTestBytes -WriteBytes {
+    param($TargetPath, $TargetBytes)
+    $restoreTest.Attempts++
+    if ($restoreTest.Attempts -lt 3) {
+        throw [System.IO.IOException]::new('simulated sharing violation')
+    }
+    $restoreTest.Bytes = $TargetBytes
+} -Delay { param($Milliseconds) }
+
+if ($restoreTest.Attempts -ne 3 -or
+    [Convert]::ToBase64String($restoreTest.Bytes) -cne [Convert]::ToBase64String($restoreTestBytes)) {
+    throw 'Guard harness restore retry self-test failed.'
+}
+
 $gitAvailable = Test-Path -LiteralPath (Join-Path $repositoryRoot '.git')
 $passed = 0
 
@@ -183,7 +225,7 @@ foreach ($guardProbe in $probes) {
     }
     finally {
         foreach ($path in $paths) {
-            [System.IO.File]::WriteAllBytes($absolute[$path], $snapshots[$path])
+            Restore-FileBytes -Path $absolute[$path] -Bytes $snapshots[$path]
         }
     }
 

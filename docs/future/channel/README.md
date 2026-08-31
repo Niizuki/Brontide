@@ -46,7 +46,7 @@ that finds a real defect is a person reading prose. The
 diagnosis, the work that lands before the cycle resumes, and the conditions that end the hold. Three
 of its four conditions are met; the fourth asks for an author-side pass over that work which finds
 nothing it can fix, and the seven that have run raised **AM1**-**AM3**, **AN1**-**AN6**,
-**AO1**-**AO3**, **AP1**-**AP2**, **AQ1**-**AQ5**, **AR1**, and **AS1**-**AS6**. Batch 2 stays closed
+**AO1**-**AO3**, **AP1**-**AP2**, **AQ1**-**AQ5**, **AR1**, and **AS1**-**AS7**. Batch 2 stays closed
 and no correction is withdrawn. The V through
 AD families were raised by author-side iteration passes over each other's corrections rather than by
 an independent review, each by asking what the previous fix depended on; that method has not yet
