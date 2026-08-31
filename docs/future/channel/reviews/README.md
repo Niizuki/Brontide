@@ -176,6 +176,7 @@ dependency instead of narrowing it.
 | AP | iteration | verification | fourth W1-W3 verification-foundation iteration review |
 | AQ | iteration | verification | fifth W1-W3 verification-foundation iteration review |
 | AR | iteration | design | sixth W1-W3 verification-foundation iteration review |
+| AS | iteration | verification | seventh W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -271,43 +272,26 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Five such passes have run and none met the plan's condition 4, which asks for a pass that finds
+Seven such passes have run and none met the plan's condition 4, which asks for a pass that finds
 nothing it can fix. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
 [third](./channel-0.2-ao-iteration-review.md) (**AO1**-**AO3**),
-[fourth](./channel-0.2-ap-iteration-review.md) (**AP1**-**AP2**) and
-[fifth](./channel-0.2-aq-iteration-review.md) (**AQ1**-**AQ5**) W1-W3 verification-foundation
+[fourth](./channel-0.2-ap-iteration-review.md) (**AP1**-**AP2**),
+[fifth](./channel-0.2-aq-iteration-review.md) (**AQ1**-**AQ5**),
+[sixth](./channel-0.2-ar-iteration-review.md) (**AR1**) and
+[seventh](./channel-0.2-as-iteration-review.md) (**AS1**-**AS7**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
-**A sixth pass over the same scope is the live path**, and it starts the way the fourth and fifth
-did: by running `build/verify-channel-0.2-guards.ps1`, which now holds 61 probes. What it inherits is
-narrower than what any pass before it inherited, and it is two things.
-
-**First, run the trace.** The fifth pass answered AP1's outstanding question — *every check written
-before W2 and W3 owes "is its key still load-bearing?"* — by not reading the gates a fifth time. It
-executed each gate under a line trace and reported every statement whose line never appeared, minus
-the failure sites a green gate is supposed not to reach. Four of its five findings came out of that
-one run, and **AQ1** is why the instrument is worth more than another reading: the AJ2 narrative
-freshness check, the guard against the staleness that ran for eight consecutive cycles, had been an
-empty loop since a column was inserted into the table it reads, and three passes that read these
-files walked past it. The instrument was **not retained**, which the AQ review records as the thing
-it is least comfortable with and this policy repeats here: section 1.1 of the plan is about
-instruments rebuilt every cycle and thrown away, and this is the second one.
-
-**Second, hunt what the trace cannot see.** It finds a check whose body never runs. It cannot find a
-check whose body runs while an assertion inside it under-reaches, and that is **AQ5**: a negative
-assertion bounded by a character count. A window that truncates fails *loudly* for "X must be
-present" and *silently* for "Y must be absent", so AF1's own superseded wording, restored at the far
-end of AF1's own passage, took the gate green — the finding reproduced verbatim by the guard written
-to close it. Two such windows were in the design verifier and both are now bounded by their subject's
-own end. **The question is whether any assertion left in these gates has an extent nothing declares.**
-
-The three earlier briefs still stand behind these and are not superseded: *where else is this fact
-stated* (**AN3**-**AN6**, and the **AN5** sweep that found a surface its own pass's reading had
-missed), *read each guard's comment as a claim to test against its code* (**AN1**, **AN2**, and
-**AO1**, the most serious defect the verification work has produced), and *a guard whose key was
-correct when written* (**AP1**, of which the AQ family is five more instances).
+**An eighth pass over the same scope is the live path.** It starts by running
+`build/verify-channel-0.2-guards.ps1`, which now holds 69 probes, and the retained coverage gate. The
+seventh pass closed five more character-bounded negative or recognizer extents, recorded one clean-
+package false positive exposed by the broader recognizer, and pinned transient mutation restoration
+after a failed restore left B7's edit in the plan. What it leaves is narrower and explicit:
+the coverage instrument measures the design, properties and facts gates but not the guard harness or
+itself, and it records whether a compound condition ran rather than whether each operand influenced a
+verdict. Those two surfaces are the eighth pass's brief. Nothing in this paragraph resumes the closure
+cycle or authorizes a closure-review dispatch.
 
 The sixteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
 blocking **AL1** and **AL2** and nonblocking **AL3** and **AL4**; its retained record is
@@ -1045,6 +1029,13 @@ context elsewhere — never as evidence that their conclusions are right.
   mutation, each mutation fires through the first clause, and both second clauses could be deleted
   from the evaluator with both gates green. It is also the first of the AM-AR passes raised against
   the **design**: the correction reached the per-capability property audit.
+- [Seventh W1-W3 verification-foundation iteration review](./channel-0.2-as-iteration-review.md) — the
+  same scope at `7bf34a1`; raised **AS1**-**AS7** and corrected all seven, so condition 4 is **still not
+  met**. It audited what conditional coverage cannot see: negative assertions whose bodies run while
+  their character-bounded subject under-reaches, and a compound recognizer whose fact-word operand
+  cannot fire after ordinary prose growth. Five red probes are retained, and the clean package itself
+  pins the sixth correction; a harness self-check pins the seventh correction. AS is a verification
+  family and changes no first-batch design artifact.
 
 ## Disclosed process deviation in the T1-T4 correction
 

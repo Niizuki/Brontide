@@ -698,6 +698,48 @@ assertion whose extent nothing declares — and it does not see inside a compoun
 operand no input exercises is AR1's shape one level down. Coverage is a floor. The sixth pass hunted
 the AQ5 class by reading and found nothing, and records that class as **unswept rather than clean**.
 
+## 2j. What the seventh condition 4 pass found
+
+The seventh author-side pass has run, at `7bf34a1`, and is retained as the
+[seventh W1-W3 verification-foundation iteration review](./reviews/channel-0.2-as-iteration-review.md).
+It raised **AS1**-**AS7** and corrected all seven, so **it does not meet condition 4** either. AS is a
+`verification` family: no correction reaches a first-batch design artifact, and this plan owns the
+disposition.
+
+The pass started from the two limits the AR review left rather than trusting its coverage result.
+The seven findings are **AS1**, **AS2**, **AS3**, **AS4**, **AS5**, **AS6**, and **AS7**. AS1-AS4 are four
+character-bounded negative assertions: the positional-field sweep read 600
+characters after a fact fence, the abbreviated-publication sweep read 200, a retained-review denial
+read the preceding 160, and the duplicate-measure sweep read 160 characters either side of a count.
+Each passed when forbidden text remained inside the sentence or paragraph the guard's own comment
+named but moved past its numeric bound. All now use that semantic boundary.
+
+**AS5** is the same failure inside a recognizer rather than an assertion window. The per-session fact
+audit joined a declared fact's words across at most 24 characters, so `I5` could read the established
+finite bound without naming a session once an explanatory phrase separated those words. It now joins
+them inside the punctuation-bounded clause that the qualifier check already governs. **AS6** is the
+failure the broader recognizer exposed in the other direction: clean `C2-P1` quantifies “every
+accepted session transition”, and the qualifier recognizer did not admit that existing universal
+form. The clean package failed before the qualifier was added; AS5 remains the paired negative case.
+
+**AS7** is in the guard harness rather than a covered child gate. After the first clean 69-probe run,
+Windows kept a user-mapped section open long enough for the one-shot `WriteAllBytes` restoration to
+throw, so B7's mutation remained in this plan. The leftover diff was the failing pin and was restored
+before further work. Restoration now retries only `IOException` five times with bounded backoff, and
+the harness first simulates two sharing failures and verifies that the third attempt restores the
+exact bytes. Other exception classes and a persistent refusal still fail the run.
+
+Five probes were retained, after being observed red before their corrections, taking the corpus from
+64 to 69. Two suspected windows were probed and withdrawn rather than reported: the per-session
+profile distribution and the dated AE1-ruling boundary already fail closed under existing checks.
+
+**What the next pass inherits.** The three covered gates no longer contain a discovered
+character-bounded negative assertion, and the guard harness now pins its transient restoration path.
+The retained coverage instrument still does not cover the rest of the guard harness or itself and
+cannot distinguish which operand of a compound condition affected the verdict. An eighth pass starts
+with the 69 probes and the coverage gate, then audits those two named surfaces. It is another
+author-side pass; nothing here resumes the closure cycle.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -713,30 +755,27 @@ The cycle resumes when, in this order:
 
 Then one fresh independent closure review is dispatched under the unchanged independence rules.
 
-**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run four
-times and is met by none of them**: the passes found three, six, three and two defects and fixed them
-all, which is the opposite of what that condition asks. Sections 2d through 2g record them.
+**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run seven
+times and is met by none of them**: the passes found three, six, three, two, five, one and seven defects
+and fixed them all, which is the opposite of what that condition asks. Sections 2d through 2j record
+them.
 
-**The count is falling and the cost per pass is falling faster**, which is the case for running a
-fifth rather than for abandoning the condition. The fourth pass ran the retained probe corpus in one
-command where each of the first three spent an hour rebuilding the same mutations from prose.
-
-The four are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
+The seven are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
 fact was stated; AO read each guard's comment as a claim and tested it against the code; AP asked
-whether each guard's *key* is still load-bearing after W2 and W3 moved the work underneath it. Each
-brief came from the pass before it, each found something the previous method could not have, and
-**AO1 — two properties red on conforming behaviour — is a defect a closure reviewer would have been
-entitled to call blocking.** The condition is doing what it was written to do; it has not yet run out
-of findings.
+whether each guard's *key* remained load-bearing; AQ traced statements; AR retained conditional
+coverage and used it to find unreachable property clauses; AS audited the negative assertion and
+compound-recognizer shapes that line coverage cannot see, then AS7 followed the guard harness itself
+when its restoration failed. Each brief came from the pass before it,
+and **AO1 — two properties red on conforming behaviour — remains a defect a closure reviewer would
+have been entitled to call blocking.** The condition is doing what it was written to do; it has not
+yet run out of findings.
 
-The next work is therefore a fifth author-side pass over the same scope -- the declarations, the four
-gates, and what the nine design artifacts now say where a rendered fact replaced prose, not a
-re-reading of the design the sixteen closure reviews have been reading. It starts by running
-`build/verify-channel-0.2-guards.ps1`, which now holds 53 probes, and it meets condition 4 only if it
-finds nothing it can fix. The work AP left is named in its review and is one question asked of every
-check older than W2: **is its key still load-bearing?** Three were probed, two held, and the rest were
-only read. Nothing in this section authorizes dispatching a closure review,
-and the closure-cycle state at the head of this document is what says so.
+The next work is therefore an eighth author-side pass over the same W1-W3 verification scope. It
+starts by running `build/verify-channel-0.2-guards.ps1`, which now holds 69 probes, and the coverage
+gate. Its named questions are whether the guard harness and coverage gate themselves have unexecuted
+checks, and whether each operand of their compound conditions can affect a verdict. It meets condition
+4 only if it finds nothing it can fix. Nothing in this section authorizes dispatching a closure
+review, and the closure-cycle state at the head of this document is what says so.
 
 ## 4. What to measure
 
@@ -755,17 +794,17 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,331** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,335** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved twice
   since, by four characters each time and for the same reason — registering a new iteration-review
   family in the Design reviews row — and on both occasions the check that recomputes it failed the
   figure on the commit that wrote it, which is the check working rather than a defect in it; and
-- **guard probes executable** — currently **64 of 64**, run by
+- **guard probes executable** — currently **69 of 69**, run by
   `build/verify-channel-0.2-guards.ps1` in the repository gate and recomputed by it. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
-- **design-verifier lines** — **2,717** now, recomputed by the verifier against itself. Every step
+- **design-verifier lines** — **2,744** now, recomputed by the verifier against itself. Every step
   of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
   the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
   `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491**, `138af11` **2,626** — counted the way this verifier counts
