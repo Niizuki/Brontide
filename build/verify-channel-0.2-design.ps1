@@ -56,6 +56,30 @@ function Get-FlowedText {
     return [regex]::Replace($Content, '\s+', ' ')
 }
 
+# Negative prose assertions need the whole sentence they govern. A character window can outgrow its
+# key silently: forbidden text beyond the count looks identical to text that is absent, which is AQ5
+# and the AS3/AS4 instances below.
+function Get-SentenceAt {
+    param(
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Content,
+        [Parameter(Mandatory = $true)][int]$Index
+    )
+
+    if ($Index -lt 0 -or $Index -ge $Content.Length) { return '' }
+
+    $start = 0
+    $end = $Content.Length
+    foreach ($boundary in [regex]::Matches($Content, '[.!?](?=\s|\z)')) {
+        if ($boundary.Index -lt $Index) {
+            $start = $boundary.Index + $boundary.Length
+            continue
+        }
+        $end = $boundary.Index + $boundary.Length
+        break
+    }
+    return $Content.Substring($start, $end - $start).Trim()
+}
+
 foreach ($artifactName in $artifactNames) {
     Read-RequiredText $artifactName | Out-Null
 }
@@ -1143,10 +1167,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all ten iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all eleven iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
 }
 
 # The closure-cycle hold. The review policy tells an agent not to dispatch a closure review while the
@@ -1433,7 +1457,8 @@ else {
     }
 
     # A retained review may not deny a record that exists. The claim's subject precedes the phrase,
-    # so the window before each occurrence is what carries the families being denied.
+    # so the sentence containing each occurrence carries the families being denied. AS3 replaced the
+    # earlier character window after moving the family farther away in the same sentence took it green.
     #
     # This reads assertion and quotation alike: a later pass retracting such a claim must not restate
     # it verbatim beside the families it names, which is a constraint on how a retraction is worded
@@ -1443,10 +1468,9 @@ else {
     foreach ($reviewFile in $iterationReviewFiles) {
         $flowedIteration = Get-FlowedText (Get-Content -Raw -LiteralPath $reviewFile.FullName -Encoding UTF8)
         foreach ($denial in @([regex]::Matches($flowedIteration, 'no retained iteration review'))) {
-            $windowStart = [Math]::Max(0, $denial.Index - 160)
-            $window = $flowedIteration.Substring($windowStart, $denial.Index - $windowStart)
+            $sentence = Get-SentenceAt -Content $flowedIteration -Index $denial.Index
             foreach ($family in $recordedFamilies) {
-                if ($window -cmatch "\b$family\b") {
+                if ($sentence -cmatch "\b$family\b") {
                     $failures.Add("'$($reviewFile.Name)' states that the '$family' pass left no retained iteration review, and a retained review records that family's findings under its own headings. The next reviewer is sent to reconstruct evidence that already exists, or to re-decide a question that is already answered.")
                 }
             }
@@ -1984,9 +2008,10 @@ $measureSweepFiles = @(
     @{ Name = 'the future-work index'; Text = $futureIndexText }
 )
 foreach ($measureSweepFile in $measureSweepFiles) {
-    foreach ($restated in [regex]::Matches((Get-FlowedText $measureSweepFile.Text), '([0-9][0-9,]{1,6}) lines?\b')) {
-        $restatedContext = (Get-FlowedText $measureSweepFile.Text).Substring([Math]::Max(0, $restated.Index - 160), [Math]::Min(320, (Get-FlowedText $measureSweepFile.Text).Length - [Math]::Max(0, $restated.Index - 160)))
-        if ($restatedContext -match '(?i)status block') {
+    $flowedMeasureText = Get-FlowedText $measureSweepFile.Text
+    foreach ($restated in [regex]::Matches($flowedMeasureText, '([0-9][0-9,]{1,6}) lines?\b')) {
+        $restatedSentence = Get-SentenceAt -Content $flowedMeasureText -Index $restated.Index
+        if ($restatedSentence -match '(?i)status block') {
             $failures.Add("$($measureSweepFile.Name) states a status-block line total of $($restated.Groups[1].Value). That measure is owned and recomputed in '$measureOwner'; a second copy is a number nothing recomputes, which is what said 289 for three commits after AM2 corrected the two surfaces it had found. Cite the measure instead of restating it. This is AN5.")
         }
     }
@@ -2537,7 +2562,7 @@ else {
 # beside its first use because the AL1 check below reads it too, and a qualifier that exists only
 # inside the branch where a declaration was found would leave that check unable to run in exactly the
 # case where the declaration is missing.
-$sessionQualifier = '(?i)(?:per session|per-session|session-scoped|(?:with)?in (?:one|each|that|its own|its|any|the same) session|(?:of|for|in) (?:each|its own|that|one|any) session|each session the vector carries|(?:that|its own) session''?s)'
+$sessionQualifier = '(?i)(?:per session|per-session|session-scoped|every accepted session|(?:with)?in (?:one|each|that|its own|its|any|the same) session|(?:of|for|in) (?:each|its own|that|one|any) session|each session the vector carries|(?:that|its own) session''?s)'
 $sessionScopeBlock = [regex]::Match($contract,'(?ms)\*\*Facts a vector may hold more than one of\.\*\*(.+?)(?=^\*\*|^## |\z)').Groups[1].Value
 $sessionScopedFacts = @([regex]::Matches($sessionScopeBlock, '(?m)^- `([^`]+)` ') | ForEach-Object { $_.Groups[1].Value })
 if ($sessionScopedFacts.Count -lt 1) {
@@ -2560,12 +2585,14 @@ else {
     foreach ($property in $allProperties) {
         $propertyText = Get-FlowedText $property.Text
         foreach ($fact in $sessionScopedFacts) {
-            # Words joined by a bounded gap rather than the exact phrase: `C1-P1` writes the
+            # Words joined inside one clause rather than as the exact phrase: `C1-P1` writes the
             # established profile as "exactly one profile is established", and a check that matched
             # only the declared word order would have passed the property AK8 was raised against.
+            # AS5 moved the same fact's words apart without crossing a clause boundary and the numeric
+            # gap stopped recognising it, so punctuation owns the extent instead of a character count.
             $factWords = @($fact -split '\s+' | ForEach-Object { [regex]::Escape(($_ -replace 's$', '')) })
-            $factPatterns = @(($factWords -join '[^.;]{0,24}'))
-            if ($factWords.Count -eq 2) { $factPatterns += (($factWords[1], $factWords[0]) -join '[^.;]{0,24}') }
+            $factPatterns = @(($factWords -join '[^,.;]*?'))
+            if ($factWords.Count -eq 2) { $factPatterns += (($factWords[1], $factWords[0]) -join '[^,.;]*?') }
             # The qualifier has to GOVERN each occurrence, not merely appear in the property. `C4-P1`
             # reads three per-session facts in three clauses, and the first form of this check --
             # "a qualifier somewhere in the property" -- passed the pre-AK7 wording with the session

@@ -845,6 +845,69 @@
           "replace": "\"anchor\": \"if ($Apply) { $rewrittenXX = $true }\","
         }
       ]
+    },
+    {
+      "id": "AS1-a",
+      "claim": "a frame-reference field subset is identified by position later in the publication's own paragraph",
+      "gate": "verify-channel-0.2-facts.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-State-Event-Coverage-0.1.md",
+          "find": "A field carried by some of those six surfaces and not the others makes the owned fact and\nthe compared fact different facts.",
+          "replace": "The first three fields identify the frame, while the remaining two qualify its ordering."
+        }
+      ]
+    },
+    {
+      "id": "AS2-a",
+      "claim": "an abbreviated frame-reference publication spreads four field names beyond the gate's character window",
+      "gate": "verify-channel-0.2-facts.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-State-Event-Coverage-0.1.md",
+          "append": "\nThe refused-frame reference is restated here for a hypothetical reader who needs the observation identified without opening its owning declaration, after a deliberately long explanation of why the record is locally attributable and why its exact identity matters to property evaluation: kind, session, interaction identity, and committing endpoint.\n"
+        }
+      ]
+    },
+    {
+      "id": "AS3-a",
+      "claim": "a retained-review denial names its finding family earlier in the same sentence but outside the gate's character window",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/channel-0.2-w-correction-iteration-review.md",
+          "find": "The W1-W6 passes left no retained iteration review.",
+          "replace": "The W1-W6 passes, after completing the correction sequence, updating each affected artifact, and recording the evidence a later reader would need to reconstruct every disposition without access to the correction author's private context, left no retained iteration review."
+        }
+      ]
+    },
+    {
+      "id": "AS4-a",
+      "claim": "a maintained index restates the status-block line measure earlier in the same sentence but outside the gate's character window",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/README.md",
+          "append": "\nThe status-block verifier, after the normalization work moved finding history into the disposition index and reduced every design artifact's front matter to a pointer that can be checked without replaying the correction sequence, is 2,717 lines.\n"
+        }
+      ]
+    },
+    {
+      "id": "AS5-a",
+      "claim": "an interaction property reads the established finite bound without a session qualifier after its fact words grow apart",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+          "find": "- **I5.** Concurrency within each session the vector carries never exceeds that session's established\n  finite bound under any generated interleaving.",
+          "replace": "- **I5.** Concurrency never exceeds the established maximum that the negotiated profile fixes for admitted interactions, namely its finite bound under any generated interleaving."
+        }
+      ]
     }
   ]
 }

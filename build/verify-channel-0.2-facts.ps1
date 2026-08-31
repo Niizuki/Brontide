@@ -58,6 +58,27 @@ function Get-FlowedText {
     return [regex]::Replace(($Content -replace '\*\*', ''), '\s+', ' ').Trim()
 }
 
+function Get-SentenceAt {
+    param(
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Content,
+        [Parameter(Mandatory = $true)][int]$Index
+    )
+
+    if ($Index -lt 0 -or $Index -ge $Content.Length) { return '' }
+
+    $start = 0
+    $end = $Content.Length
+    foreach ($boundary in [regex]::Matches($Content, '[.!?](?=\s|\z)')) {
+        if ($boundary.Index -lt $Index) {
+            $start = $boundary.Index + $boundary.Length
+            continue
+        }
+        $end = $boundary.Index + $boundary.Length
+        break
+    }
+    return $Content.Substring($start, $end - $start).Trim()
+}
+
 # The rendering is DERIVED from the field list and checked against the declared string rather than
 # trusted. A field added to `fields` and forgotten in `rendering` is the six-site edit arriving inside
 # the file that exists to end it.
@@ -289,17 +310,24 @@ foreach ($sweepFile in $sweepFiles) {
         }
     }
 
-    # The abbreviated form: a reference phrase followed within 200 characters by four or more of the
-    # five field names, with no fenced publication in that window. Four rather than five, because five
+    # The abbreviated form: a reference phrase followed in its sentence by four or more of the five
+    # field names, with no fenced publication in that sentence. Four rather than five, because five
     # is the answer and a check that requires the answer can only confirm surfaces that are already
-    # right. Prose ABOUT a reference names one or two of its fields and is not reached.
+    # right. Prose ABOUT a reference names one or two of its fields and is not reached. The sentence
+    # is the subject's own extent; a character window silently misses a field list whose explanation
+    # grows past it, which is AS2.
     $fieldNames = @($facts.facts[0].fields | ForEach-Object { [string]$_ })
-    foreach ($phraseMatch in [regex]::Matches($flowed, "$referencePhrases(?=(.{0,200}))")) {
-        $window = $phraseMatch.Groups[1].Value
-        if ($window.IndexOf('<<fenced-publication>>', [System.StringComparison]::Ordinal) -ge 0) { continue }
-        $named = @($fieldNames | Where-Object { $window.IndexOf($_, [System.StringComparison]::Ordinal) -ge 0 })
-        if ($named.Count -ge 4) {
-            $failures.Add("'$($sweepFile.Name)' has a passage that reads as a publication of a frame reference -- the reference followed by $($named.Count) of its five field names: $($named -join ', ') -- with no fact fence. Either it is a surface stating the reference in an abbreviated form, which is AJ1's shape, or it is a new surface that has to be fenced.")
+    foreach ($paragraph in @($sentinelled -split '(?:\r?\n){2,}')) {
+        $flowedParagraph = Get-FlowedText $paragraph
+        foreach ($phraseMatch in [regex]::Matches($flowedParagraph, $referencePhrases)) {
+            $sentence = Get-SentenceAt -Content $flowedParagraph -Index $phraseMatch.Index
+            $sentencePhrase = [regex]::Match($sentence, $referencePhrases)
+            $afterPhrase = $sentence.Substring($sentencePhrase.Index + $sentencePhrase.Length)
+            if ($afterPhrase.IndexOf('<<fenced-publication>>', [System.StringComparison]::Ordinal) -ge 0) { continue }
+            $named = @($fieldNames | Where-Object { $afterPhrase.IndexOf($_, [System.StringComparison]::Ordinal) -ge 0 })
+            if ($named.Count -ge 4) {
+                $failures.Add("'$($sweepFile.Name)' has a passage that reads as a publication of a frame reference -- the reference followed in its sentence by $($named.Count) of its five field names: $($named -join ', ') -- with no fact fence. Either it is a surface stating the reference in an abbreviated form, which is AJ1's shape, or it is a new surface that has to be fenced.")
+            }
         }
     }
 
@@ -338,9 +366,11 @@ foreach ($sweepFile in $sweepFiles) {
     # counted from the front cannot have a field added to it without breaking the sentence beneath it,
     # and adding a field is now one edit that rewrites every site of that fact at once.
     foreach ($fenceMatch in [regex]::Matches($sweepText, $fencePattern)) {
-        $after = $sweepText.Substring($fenceMatch.Index + $fenceMatch.Length, [Math]::Min(600, $sweepText.Length - $fenceMatch.Index - $fenceMatch.Length))
+        $afterFence = $sweepText.Substring($fenceMatch.Index + $fenceMatch.Length)
+        $paragraphBreak = [regex]::Match($afterFence, '\r?\n[ \t]*\r?\n')
+        $after = if ($paragraphBreak.Success) { $afterFence.Substring(0, $paragraphBreak.Index) } else { $afterFence }
         if ((Get-FlowedText $after) -match '(?i)\bthe (?:first|other|last|remaining) (?:two|three|four|five)\b') {
-            $failures.Add("'$($sweepFile.Name)' identifies part of a frame reference's field list by position rather than by name, within 600 characters of a fenced publication. Inserting a field renumbers every such sentence. This is AJ6.")
+            $failures.Add("'$($sweepFile.Name)' identifies part of a frame reference's field list by position rather than by name in the paragraph that publishes it. Inserting a field renumbers every such sentence. This is AJ6.")
         }
     }
 }
