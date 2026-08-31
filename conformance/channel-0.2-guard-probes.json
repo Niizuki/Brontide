@@ -446,8 +446,8 @@
       "edits": [
         {
           "path": "docs/future/channel/README.md",
-          "find": "Batch 2\nstays closed and no correction is withdrawn.",
-          "replace": "Between them the nine status blocks held 265 lines of it. Batch 2\nstays closed and no correction is withdrawn."
+          "find": "Batch 2 stays closed\nand no correction is withdrawn.",
+          "replace": "Between them the nine status blocks held 265 lines of it. Batch 2 stays closed\nand no correction is withdrawn."
         }
       ]
     },
@@ -880,7 +880,7 @@
         {
           "path": "docs/future/channel/reviews/channel-0.2-w-correction-iteration-review.md",
           "find": "The W1-W6 passes left no retained iteration review.",
-          "replace": "The W1-W6 passes, after completing the correction sequence, updating each affected artifact, and recording the evidence a later reader would need to reconstruct every disposition without access to the correction author's private context, left no retained iteration review."
+          "replace": "The X1-X7 passes, after completing the correction sequence, updating each affected artifact, and recording the evidence a later reader would need to reconstruct every disposition without access to the correction author's private context, left no retained iteration review."
         }
       ]
     },

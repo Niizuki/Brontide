@@ -1470,7 +1470,7 @@ else {
         foreach ($denial in @([regex]::Matches($flowedIteration, 'no retained iteration review'))) {
             $sentence = Get-SentenceAt -Content $flowedIteration -Index $denial.Index
             foreach ($family in $recordedFamilies) {
-                if ($sentence -cmatch "\b$family\b") {
+                if ($sentence -cmatch "\b$family[0-9]") {
                     $failures.Add("'$($reviewFile.Name)' states that the '$family' pass left no retained iteration review, and a retained review records that family's findings under its own headings. The next reviewer is sent to reconstruct evidence that already exists, or to re-decide a question that is already answered.")
                 }
             }
@@ -2011,7 +2011,7 @@ foreach ($measureSweepFile in $measureSweepFiles) {
     $flowedMeasureText = Get-FlowedText $measureSweepFile.Text
     foreach ($restated in [regex]::Matches($flowedMeasureText, '([0-9][0-9,]{1,6}) lines?\b')) {
         $restatedSentence = Get-SentenceAt -Content $flowedMeasureText -Index $restated.Index
-        if ($restatedSentence -match '(?i)status block') {
+        if ($restatedSentence -match '(?i)status(?: |-)block') {
             $failures.Add("$($measureSweepFile.Name) states a status-block line total of $($restated.Groups[1].Value). That measure is owned and recomputed in '$measureOwner'; a second copy is a number nothing recomputes, which is what said 289 for three commits after AM2 corrected the two surfaces it had found. Cite the measure instead of restating it. This is AN5.")
         }
     }

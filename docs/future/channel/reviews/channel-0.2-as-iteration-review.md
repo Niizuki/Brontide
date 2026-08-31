@@ -69,11 +69,11 @@ them in one.
 
 The design gate prevents a retained review from saying a finding family has no retained iteration
 record when that record exists. It looked 160 characters before “no retained iteration review”. The
-probe kept `W1-W6` and the denial in one sentence, inserted an explanatory clause between them, and
+probe put `X1-X7` and the denial in one sentence, inserted an explanatory clause between them, and
 the design gate returned `pass`.
 
-Corrected by reading the sentence containing the denial. That is the extent the guard's own comment
-names.
+Corrected by reading the sentence containing the denial and matching the numbered family token. That
+is the extent and subject the guard's own comment names.
 
 ### AS4 — the duplicate-measure sweep read a 320-character context — corrected
 
@@ -127,6 +127,16 @@ remain fatal.
   retained corpus entry.
 - The restoration self-check fails if transient `IOException` retries are removed, shortened below
   three attempts, or return bytes other than the snapshot.
+- The first full retained-corpus run rejected the initial AS3 and AS4 corrections: the sentence reader
+  was in place, but the family matcher asked for a boundary immediately after `X` rather than the
+  digit in `X1-X7`, and the measure matcher admitted `status block` but not the probe's `status-block`.
+  Both operands now match the language the retained probes use. The same run reported AN5-b's
+  wrapping-dependent anchor stale after this review grew the Channel row; the probe was re-anchored
+  without changing its mutation or expected refusal.
+- Isolating the second AS3 failure showed that its first probe version denied a separate W1-W6 review,
+  while the W record deliberately preserves that historical absence before explaining that it now
+  carries those dispositions. The retained mutation now denies X1-X7, which this review records under
+  its own headings, without making the clean historical statement fail.
 
 ## What remains outside the pass
 
