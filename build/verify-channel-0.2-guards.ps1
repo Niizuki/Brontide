@@ -212,13 +212,22 @@ foreach ($guardProbe in $probes) {
         # failed exactly as the probe asked into "this probe could not be applied". The preference
         # is lowered around the call and restored after it, so the gate's verdict is its exit code
         # and nothing else.
+        # The gate runs marked as nested. One probe here runs the coverage gate, which covers this
+        # file, which runs this file's probes -- so an unmarked run would start a whole measurement
+        # from inside one. A nested coverage run still covers the design gates, which is where that
+        # probe's mutation is, so marking it costs the probe nothing.
         $previousPreference = $ErrorActionPreference
+        $previousNestedMarker = [System.Environment]::GetEnvironmentVariable('BRONTIDE_CHANNEL_02_COVERAGE_NESTED')
         try {
             $ErrorActionPreference = 'Continue'
+            [System.Environment]::SetEnvironmentVariable('BRONTIDE_CHANNEL_02_COVERAGE_NESTED', '1')
             $null = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot "build\$($guardProbe.gate)") 2>&1
             $exitCode = $LASTEXITCODE
         }
-        finally { $ErrorActionPreference = $previousPreference }
+        finally {
+            $ErrorActionPreference = $previousPreference
+            [System.Environment]::SetEnvironmentVariable('BRONTIDE_CHANNEL_02_COVERAGE_NESTED', $previousNestedMarker)
+        }
     }
     catch {
         $failures.Add("Probe '$($guardProbe.id)' could not be applied: $($_.Exception.Message)")
