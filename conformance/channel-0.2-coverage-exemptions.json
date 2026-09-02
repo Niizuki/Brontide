@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "Coverage exemptions for the Channel 0.2 verification gates. `build/verify-channel-0.2-coverage.ps1` runs each gate under a line trace and requires every conditional in it to be evaluated by a passing run; a gate marked `measureOperands` is additionally run from an instrumented copy that records each operand of every `-and`/`-or` expression, and every operand whose expression was evaluated must have been evaluated too. An entry in `exemptions` declares one construct a passing run correctly cannot reach, and an entry in `operandExemptions` declares one operand short-circuiting correctly never reaches, each with the reason. Three classes are exempt structurally rather than by entry, in the gate itself: anything inside a `catch`, the `foreach ($failure in $failures)` loop each gate prints its findings with, and an operand whose whole expression was never evaluated -- that last one is the condition measure's subject, and reporting it here would report the facts gate's `-Apply` path a second time under another name. Those are expressed as a walk to the root, as the collection the loop walks, and as the expression's own evaluation, not as lists of the ones that exist today, because AN2 was a list that held eight of nine. `coverWhenNested: false` marks a gate a nested run does not cover, which is how the two recursion cycles are broken: this gate covers itself, and it covers the harness one of whose probes runs it.",
+  "note": "Coverage exemptions for the Channel 0.2 verification gates. `build/verify-channel-0.2-coverage.ps1` runs each covered gate under a line trace and requires every conditional in it to be evaluated by a passing run; a gate marked `measureOperands` is additionally run from an instrumented copy that records each operand of every `-and`/`-or` expression, and every operand whose expression was evaluated must have been evaluated too. An entry in `exemptions` declares one construct a passing run correctly cannot reach, and an entry in `operandExemptions` declares one operand short-circuiting correctly never reaches, each with the reason. Three classes are exempt structurally rather than by entry, in the gate itself: anything inside a `catch`, the `foreach ($failure in $failures)` loop each gate prints its findings with, and an operand whose whole expression was never evaluated -- that last one is the condition measure's subject, and reporting it here would report the facts gate's `-Apply` path a second time under another name. Those are expressed as a walk to the root, as the collection the loop walks, and as the expression's own evaluation, not as lists of the ones that exist today, because AN2 was a list that held eight of nine. The guard harness and the coverage gate are deliberately absent: AT4 measured both once and AT7 records why neither is measured on every commit, which is that covering either means running it and both are shaped so that running them is what costs.",
   "authority": {
     "note": "An exemption is a claim that a construct or operand cannot be reached by a passing run. It is not a way to quiet the measure: an entry whose construct is reached fails, and an entry whose construct no longer occurs fails as stale, on the same rule the probe corpus applies to a rotted anchor. A check that is unreachable because no input exercises it is a missing input and belongs in the vector corpus, not here -- which is AR1, and is why this file has no entry for the two property clauses that had no input, nor for the four AT1-AT3 operands the operand measure found the same way.",
     "raisedUnder": "AR2, widened under AT4"
@@ -89,38 +89,6 @@
           "reason": "Inside the `-Apply` rewrite path, which a verifying run does not enter. `$Apply` is false on every verifying run, so this operand is never reached, for the same reason the five condition exemptions above name."
         }
       ]
-    },
-    {
-      "gate": "verify-channel-0.2-guards.ps1",
-      "coverWhenNested": false,
-      "measureOperands": false,
-      "exemptions": [
-        {
-          "anchor": "Write-Host \"FAIL: no probe to run$(if ($Probe) { \" with id '$Probe'\" }).\"",
-          "reason": "Inside the branch that reports that the corpus selected no probe. A passing run has probes, so the message this conditional builds is never assembled -- the same class as the two property-gate entries above, which decorate a failure message."
-        }
-      ],
-      "operandExemptions": []
-    },
-    {
-      "gate": "verify-channel-0.2-coverage.ps1",
-      "coverWhenNested": false,
-      "measureOperands": false,
-      "exemptions": [
-        {
-          "anchor": "if (-not $Report) {",
-          "reason": "Inside the loop over never-evaluated constructs. A passing run has none, so the loop body never runs and this conditional -- which decides whether an unexplained construct is reported or asserted -- is never reached."
-        },
-        {
-          "anchor": "if ($stillPresent) {",
-          "reason": "Inside the loop over exemptions that matched nothing. On a passing run every declared exemption matched, so the branch that tells a reached exemption from a rotted anchor is never reached."
-        },
-        {
-          "anchor": "if ($reportRows.Count -lt 1) { Write-Host 'Every conditional and operand in the covered gates is evaluated by a passing run.' }",
-          "reason": "Inside the `-Report` path. A verifying run asserts rather than reports, so it does not enter it -- the same class as the facts gate's `-Apply` entries."
-        }
-      ],
-      "operandExemptions": []
     }
   ]
 }

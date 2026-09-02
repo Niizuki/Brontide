@@ -297,9 +297,9 @@ permanent simulated-sharing self-check now guards exact restoration.
 
 **The eighth pass answered both of those with an instrument**, and is retained as the
 [eighth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-at-iteration-review.md).
-It raised **AT1**-**AT6** and corrected all five. The coverage gate now covers the guard harness and
-itself, and measures a second unit inside the conditions it already covered: an operand of an
-`-and`/`-or` expression that no input reaches while the expression around it is evaluated. Choosing
+It raised **AT1**-**AT7** and corrected all seven. The coverage gate now measures a second unit inside
+the conditions it already covered: an operand of an `-and`/`-or` expression that no input reaches while
+the expression around it is evaluated. Choosing
 that unit was the work -- the deletion test reported 138 of 247 operands and would have been
 abandoned as noise, and this one reports nine. **AT1** is **AR1 on a property AR1's own correction
 could not reach**, because that correction keys on properties which declare a conjunct and `I4`
@@ -1891,7 +1891,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, and AT1-AT6 families; the closure cycle remains on hold while a ninth verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, and AT1-AT7 families; the closure cycle remains on hold while a ninth verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

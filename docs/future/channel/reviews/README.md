@@ -282,7 +282,7 @@ nothing it can fix. They are retained as the
 [fifth](./channel-0.2-aq-iteration-review.md) (**AQ1**-**AQ5**),
 [sixth](./channel-0.2-ar-iteration-review.md) (**AR1**) and
 [seventh](./channel-0.2-as-iteration-review.md) (**AS1**-**AS7**) and
-[eighth](./channel-0.2-at-iteration-review.md) (**AT1**-**AT6**) W1-W3 verification-foundation
+[eighth](./channel-0.2-at-iteration-review.md) (**AT1**-**AT7**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
 **An eighth pass over the same scope is the live path.** It starts by running
@@ -1042,9 +1042,9 @@ context elsewhere — never as evidence that their conclusions are right.
   pins the sixth correction; a harness self-check pins the seventh correction. AS is a verification
   family and changes no first-batch design artifact.
 - [Eighth W1-W3 verification-foundation iteration review](./channel-0.2-at-iteration-review.md) — the
-  same scope at `ef4b94d`; raised **AT1**-**AT6** and corrected all six, so condition 4 is **still not
-  met**. It answered the two surfaces AS left it with an instrument rather than a reading: the coverage
-  gate now covers the guard harness and itself, and measures a second unit — an operand of an
+  same scope at `ef4b94d`; raised **AT1**-**AT7** and corrected all seven, so condition 4 is **still not
+  met**. It answered the two surfaces AS left it with an instrument rather than a reading: both were measured,
+  and the coverage gate keeps a second unit — an operand of an
   `-and`/`-or` expression that no input reaches while the expression around it is evaluated. **AT1** is
   **AR1 on a property AR1's own correction could not reach**, because that correction keys on
   properties which declare a conjunct and `I4` declares none. Like AR, AT is a **design** family: the

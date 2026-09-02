@@ -743,7 +743,7 @@ author-side pass; nothing here resumes the closure cycle.
 
 The eighth author-side pass has run, at `ef4b94d`, and is retained as the
 [eighth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-at-iteration-review.md).
-It raised **AT1**-**AT6** and corrected all six, so **it does not meet condition 4** either. AT is a
+It raised **AT1**-**AT7** and corrected all seven, so **it does not meet condition 4** either. AT is a
 `verification` family in its AT4 and AT5 halves, which this plan owns, and a `design` family in
 AT1-AT3, whose corrections reach the completeness review's per-capability audit rows and are
 dispositioned there.
@@ -777,12 +777,21 @@ that recognises a defect by the words the defect uses cannot see the instance th
 The instrument replacing it is structural, because an operand is an operand whatever the property calls
 its clauses.
 
-**AT4 is the inherited item.** Both recursion cycles it opens are real: this gate covers itself, and it
-covers the harness one of whose probes runs it. Both are broken by marking every child as nested and
-having a nested run cover neither. Returning immediately from a nested run was the other option and it
-is worse -- a nested run that measured nothing would leave every line below it reading as a line that
-never runs, so the measure would report its own body. What the condition measure then found in those
-two gates is nothing beyond four constructs correctly unreachable on a passing run, now declared.
+**AT4 is the inherited item, and it answers in two parts.** What both surfaces hold was measured: the
+harness has four constructs a passing run cannot reach and this gate three, all failure paths or the
+`-Report` branch, and neither held a rotted check. Neither is covered on every commit, which **AT7** is
+the reason for. The operand unit is what the pass keeps, because it is what found AT1-AT3.
+
+**AT7 is the one the next pass should read first, because CI found it and this pass did not.** The AT4
+measure was timed in isolation and reported honestly -- 652 seconds against 77 -- and the gate that
+*runs* it was never timed. The repository gate had been finishing in 13 minutes against a 30-minute
+ceiling; covering the harness and the coverage gate took every job past it, on a branch whose gates were
+green one at a time. **That is this pass measuring its instrument and not the thing its instrument is
+installed in**, which is the same shape as the findings it was hunting: a number true about a part and
+never checked against the whole. Three corrections -- dropping the two harness-shaped gates from the
+covered set, recording an operand the first time it is evaluated rather than 13,871 times, and inlining
+a syntax-tree predicate that was a function call per node -- leave the gate at **53 seconds against the
+77 it started at**, so the unit that found AT1-AT3 costs less than the unit that preceded it.
 
 **AT5 is the other way a probe mutation survives.** AS7 hardened restoration against a transient
 `IOException`; here the process was killed and never reached its `finally` block at all, and no retry
@@ -826,7 +835,7 @@ The cycle resumes when, in this order:
 Then one fresh independent closure review is dispatched under the unchanged independence rules.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run eight
-times and is met by none of them**: the passes found three, six, three, two, five, one, seven and six
+times and is met by none of them**: the passes found three, six, three, two, five, one, seven and seven
 defects and fixed them all, which is the opposite of what that condition asks. Sections 2d through 2k
 record them.
 

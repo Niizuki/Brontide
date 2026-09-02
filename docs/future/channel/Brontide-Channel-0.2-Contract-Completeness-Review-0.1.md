@@ -832,7 +832,7 @@ The class is closed rather than the two instances: `build/verify-channel-0.2-cov
 repository gate and fails when any conditional in a covered gate is never evaluated, so a clause no
 input reaches is a gate failure rather than a finding several cycles later.
 
-**AT1**-**AT6** were raised by the eighth author-side pass, and **AT1 is AR1 again on a property AR1's
+**AT1**-**AT7** were raised by the eighth author-side pass, and **AT1 is AR1 again on a property AR1's
 own correction could not reach.** That correction closed its class with a gate rule keyed on
 properties which declare a `conjunct`; `C5-P1` and `C6-P1` do, and `I4` does not. So `I4` kept two
 clauses and one mutation, the mutation fired through the second, and nothing in the property's group
@@ -860,6 +860,12 @@ dirty repository while the reason it gave covers design artifacts alone, and the
 before running the gate a probe names -- so every probe aimed at that gate was answered by the refusal
 instead of by its own rule, `AR2-a` included, since AR2. The refusal is now scoped to the directory the
 reason names.
+
+**AT7** is recorded with them because it is the same shape as what they are about. The AT4 measure was
+timed in isolation and never in the repository gate that runs it, and covering two further gates took
+that gate past its thirty-minute ceiling -- a number true about a part and never checked against the
+whole. The two are no longer covered, the measure is faster than the one it extends, and what that gives
+up is stated where the trade is made.
 
 The class is closed rather than the three instances, and one level lower than AR1 closed it: the
 coverage gate now fails when an operand of an evaluated expression is never evaluated, which is

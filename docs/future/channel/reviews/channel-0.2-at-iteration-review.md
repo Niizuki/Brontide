@@ -17,7 +17,7 @@ supply the conforming verdict the Closure section requires.
 
 It is the **eighth** pass condition 4 of the
 [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md#3-how-the-hold-ends)
-names. **Condition 4 is not met by it**, because it found six defects and corrected them.
+names. **Condition 4 is not met by it**, because it found seven defects and corrected them.
 
 ## Method
 
@@ -80,21 +80,45 @@ one declared mutation puts the fabricated zero on the refusal, so the terminal-h
 input that reached it. Corrected with a vector that carries no refusal, which is what leaves only the
 terminal history to witness it.
 
-### AT4 -- the coverage instrument did not cover the guard harness or itself -- corrected
+### AT4 -- the coverage instrument did not cover the guard harness or itself -- measured, and one half kept
 
-The inherited item. Both are now covered, and both recursion cycles are real rather than hypothetical:
-this gate covers itself, and it covers the harness one of whose probes runs it. Both are broken the
-same way -- every gate this file launches and every gate the harness launches is marked as nested, and a
-nested run covers neither this file nor a gate declared `coverWhenNested: false`.
+The inherited item, and the answer is in two parts because the two halves did not survive the same test.
 
-**Returning immediately from a nested run was the other option and it is worse**: a nested run that
-measured nothing would leave every line below it reading as a line that never runs, so the measure would
-report its own body. A nested run covers the design gates, which exercises the same code, and still
-answers the probe that ran it.
+**What both surfaces hold was measured.** The harness has four constructs a passing run cannot reach --
+its no-probe message and three failure-reporting loops, three of which are already structurally exempt --
+and this gate has three, all failure paths or the `-Report` branch. Neither had a rotted check. That is
+the inherited question answered.
 
-What the condition measure then found in those two gates is **nothing** beyond four constructs that are
-correctly unreachable on a passing run: the harness's no-probe message, and three branches of this gate
-that a green, non-`-Report` run does not enter. Those are declared.
+**Neither is covered on every commit, and AT7 is why.** Covering either means running it here, and both
+are shaped so that running them is the cost. The operand unit is what the pass keeps, because it is what
+found AT1-AT3.
+
+Two recursion cycles had to be built and then removed with the coverage they served: this gate covering
+itself, and covering the harness one of whose probes runs it. Both were broken by marking every child as
+nested. That machinery is gone with the coverage it existed for, rather than left standing over nothing.
+
+### AT7 -- the instrument broke the gate it belongs to, and CI found it rather than this pass -- corrected
+
+The AT4 measure was timed in isolation and reported honestly: 652 seconds against 77. What was never
+measured is the gate that *runs* it. The repository gate had been finishing in 13 minutes against a
+30-minute ceiling, and covering the harness and this file took it past that ceiling -- all four CI jobs
+cancelled at 30m0s, on a branch whose own gates were green when run one at a time.
+
+**This is the pass measuring its instrument and not the thing its instrument is installed in.** It is the
+same shape as the findings it was hunting: a number that is true about a part and never checked against
+the whole.
+
+Three corrections, in order of how much they gave back:
+
+- the guard harness and this gate are no longer covered, which is the trade AT4 records rather than a
+  silent retreat: two small gates were measured once and are not measured again, and a pass that finds a
+  rotted check in either should reopen it;
+- the operand recorder wrote one line per evaluation, which is 13,871 file opens for one clean run. It
+  records an operand the first time only, because the measure asks whether an operand was reached at all;
+- the syntax-tree predicate called a PowerShell function per node.
+
+**The gate is now 53 seconds against the 77 it started at**, so the operand unit that found AT1-AT3 is
+cheaper than the condition unit alone used to be.
 
 ### AT5 -- a probe mutation survived an interrupted run -- corrected
 
@@ -138,6 +162,9 @@ refuses.
   AR1-a on an anchor AT1 made match two mutations -- and the harness reported both rather than passing.
   AR1-a is re-anchored on the conjunct it is about rather than on an occurrence number, which would rot
   again the next time the order changed.
+- AT7's fix was measured, not assumed: 652s, then 377s with the harness dropped, then 240s with the
+  self-run scoped, then 53s once the recorder stopped writing a line per evaluation. Each number is a
+  timed run, and the last is below the 77s the gate cost before this pass.
 - AT6 was reproduced before and after its fix, and the message changed from the refusal to the rule.
   Its four beneficiary probes were re-run and still return `fail`, now for their own reason.
 - The instrumented copy is checked to keep the gate's line count, because the design verifier measures
@@ -158,13 +185,13 @@ are in that class, and separating a defensive null check from a second semantic 
 the next pass's problem. `C2-P1` and `C9-P1` each state two clauses against one mutation and are not
 reported here, which is where that limit bites first.
 
-The gate's cost is now **652 seconds against 77**, measured rather than estimated, because covering the
-harness means running it and the harness is the slow gate. That is the trade this measure asks for and
-it is stated rather than absorbed: the next pass should decide whether covering the harness is worth
-nine minutes on every commit, and it is a fair answer that it is not.
+The guard harness and this gate are measured once here and not on every commit, which AT7 settles and
+AT4 records. They are unmeasured guards now, and AO3's argument was that an unmeasured guard rots
+quietly; what holds them is that both are small and the probe corpus exercises the harness from the
+other side, since every probe is a run of it.
 
 The closure review remains on hold. The finding count by condition-4 pass is now three, six, three,
-two, five, one, seven, **six**; a pass with findings cannot satisfy condition 4 even when all findings
+two, five, one, seven, **seven**; a pass with findings cannot satisfy condition 4 even when all findings
 are corrected.
 
 ## Where this family is dispositioned

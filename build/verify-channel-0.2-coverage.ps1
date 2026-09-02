@@ -12,8 +12,8 @@ $ErrorActionPreference = 'Stop'
 # AR2 of the verification foundation plan's condition-4 work, and the instrument the AQ pass built,
 # used once, and did not keep -- which is section 1.1 of that plan happening a second time. AO3 kept
 # the probes because three passes had rebuilt them from prose; this keeps the coverage measure for
-# the same reason, one level up again. AT2 widened it twice: to the two gates it did not cover, and
-# to a second unit inside the conditions it already covered.
+# the same reason, one level up again. AT4 added a second unit inside the conditions it already
+# covered, and AT7 settled which gates are worth covering at all.
 #
 # WHAT IT MEASURES. A guard whose key has expired does not announce itself. Its comment still reads
 # correctly, its code is still there, and both gates stay green -- that is AP1, and the AQ family is
@@ -45,7 +45,7 @@ $ErrorActionPreference = 'Stop'
 # 138 of 247 across these gates, nearly all of them null checks and length checks that are always true
 # on well-formed input; that is the statement-level draft again. Reporting an operand the enclosing
 # expression never reached is the same choice as conditions over statements, one level down, and it
-# reports nine.
+# reports nine across the five gates AT4 measured, eight in the three covered here.
 #
 # THE LIMIT, STATED BECAUSE THE NEXT PASS SHOULD NOT TRUST THIS FILE FURTHER THAN IT GOES. This finds
 # a condition that is never evaluated and an operand that is never evaluated. It does not find a
@@ -59,19 +59,20 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $exemptionsPath = Join-Path $repositoryRoot 'conformance\channel-0.2-coverage-exemptions.json'
 $failures = [System.Collections.Generic.List[string]]::new()
 
-# RECURSION, WHICH IS REAL HERE AND NOT HYPOTHETICAL. This file is one of the gates it covers, so
-# measuring itself means running itself; and it covers the guard harness, one of whose probes runs
-# this file. Both cycles are broken the same way: every gate this file launches, and every gate the
-# harness launches, is marked as nested, and a nested run covers neither this file nor a gate the
-# declaration marks `coverWhenNested: false`.
+# WHAT THIS FILE DOES NOT COVER, AND WHY -- AT7. It covers the three gates that check the design
+# package, and not the guard harness or itself. Both were measured once, under AT4, and each turned
+# out to be nearly covered already: the harness holds four constructs a passing run cannot reach and
+# this file three, all of them failure paths or the `-Report` branch. Neither is covered on every
+# commit, because covering either means RUNNING it here, and both are shaped so that running them is
+# what costs -- the harness runs seventy-three probes, and tracing this file traces the syntax-tree
+# walks below, where the predicate is a script block invoked once per node. Measured: covering both
+# took this gate from 77 seconds to 652 and the repository gate past its thirty-minute ceiling.
 #
-# Stopping the recursion by covering nothing was the other option and it is worse: a nested run that
-# returned immediately would leave every line below it reading as a line that never runs, so the
-# measure would report its own body. A nested run covers the design gates, which exercises the same
-# code as covering five of them, and it still answers the probe that ran it -- AR2-a mutates a facts
-# exemption, and a nested run covers the facts gate.
-$selfGateName = Split-Path -Leaf $PSCommandPath
-$isNestedRun = [bool]$env:BRONTIDE_CHANNEL_02_COVERAGE_NESTED
+# That is a real loss and it is stated rather than absorbed. AO3's argument for keeping the probe
+# corpus was that an unmeasured guard rots quietly, and these two are now unmeasured guards. What
+# holds them is that both are small, both were read and measured once here, and the corpus covers the
+# harness from the other side, since every probe is a run of it. A pass that finds a rotted check in
+# either should reopen this trade rather than treat it as settled.
 
 if (-not (Test-Path -LiteralPath $exemptionsPath)) {
     Write-Host "FAIL: the coverage exemption declaration does not exist: '$exemptionsPath'."
@@ -123,14 +124,6 @@ if (-not $Report) {
             Write-Host "FAIL: a Channel 0.2 design artifact has uncommitted changes, and coverage measured on one understates itself -- the review-target pin check skips while a design artifact is uncommitted, so it would read here as a check that never runs. Commit first, or use -Report to see what is uncovered without the verdict. Uncommitted: $(($dirty | ForEach-Object { $_.Trim() }) -join '; ')"
             exit 1
         }
-    }
-}
-
-if ($isNestedRun) {
-    $coveredGates = @($coveredGates | Where-Object { ([string]$_.gate -cne $selfGateName) -and ($_.coverWhenNested -ne $false) })
-    if ($coveredGates.Count -lt 1) {
-        Write-Host 'FAIL: every declared gate is excluded from a nested run, so a nested run measures nothing while reporting that it measured. Whatever excluded the last one is the defect.'
-        exit 1
     }
 }
 
@@ -242,10 +235,18 @@ function Get-LogicalOperand {
     # A logical expression can sit inside another one's operand -- `-not ($a -and $b)` is a leaf of the
     # outer expression and a root of its own. The outer operand is what a logical operator directly
     # consumes, so it is the one kept, and anything contained in a kept operand is dropped.
+    # The predicate is inlined rather than calling the helper beside it. `FindAll` runs it once per
+    # node of a syntax tree that is tens of thousands of nodes for the design gate, and a PowerShell
+    # function call per node took this measure from seconds to minutes -- which showed up as a
+    # thirty-minute repository gate rather than as anything visible here.
+    $logical = $script:LogicalOperators
     $roots = @($Ast.FindAll({
                 param($candidate)
-                (Test-LogicalExpression -Node $candidate) -and -not (Test-LogicalExpression -Node $candidate.Parent)
-            }, $true))
+                ($candidate -is [System.Management.Automation.Language.BinaryExpressionAst]) -and
+                ($candidate.Operator -in $logical) -and
+                -not (($candidate.Parent -is [System.Management.Automation.Language.BinaryExpressionAst]) -and
+                    ($candidate.Parent.Operator -in $logical))
+            }.GetNewClosure(), $true))
 
     $operands = [System.Collections.Generic.List[object]]::new()
     foreach ($root in $roots) {
@@ -289,7 +290,12 @@ function Get-EvaluatedOperand {
     # anyway, so `(record (bool X))` is the value the operator would have used, evaluated where the
     # gate evaluates it. That matters for `-match`, which sets `$Matches` in the scope that runs it;
     # an argument expression runs in the caller's scope and a script block would not.
-    $recorder = "function brOperand { param(`$i,`$v) if (`$env:BRONTIDE_CHANNEL_02_OPERAND_LOG) { try { [System.IO.File]::AppendAllText(`$env:BRONTIDE_CHANNEL_02_OPERAND_LOG, ('{0} {1}' -f `$i, [int][bool]`$v) + [char]10) } catch { } } ; `$v }"
+    #
+    # It records an operand the FIRST time it is evaluated and never again. The measure asks whether
+    # an operand was reached at all, so the second record answers a question nobody asked -- and the
+    # first draft wrote one line per evaluation, which is 13,871 file opens for one clean run of these
+    # gates and made the instrumented run cost more than everything else in this file put together.
+    $recorder = "function brOperand { param(`$i,`$v) if (`$env:BRONTIDE_CHANNEL_02_OPERAND_LOG) { if (`$null -eq `$script:brOperandSeen) { `$script:brOperandSeen = @{} } ; if (-not `$script:brOperandSeen.ContainsKey(`$i)) { `$script:brOperandSeen[`$i] = `$true ; try { [System.IO.File]::AppendAllText(`$env:BRONTIDE_CHANNEL_02_OPERAND_LOG, `$i + [char]10) } catch { } } } ; `$v }"
 
     $text = $GateText
     $identified = [System.Collections.Generic.List[object]]::new()
@@ -335,17 +341,14 @@ function Get-EvaluatedOperand {
     try {
         [System.IO.File]::WriteAllText($copyPath, $text, (New-Object System.Text.UTF8Encoding($false)))
         Remove-Item -LiteralPath $logPath -Force -ErrorAction SilentlyContinue
-        $exitCode = Invoke-GateChild -GatePath $copyPath -OutputFile $outputPath -Environment @{
-            'BRONTIDE_CHANNEL_02_OPERAND_LOG'      = $logPath
-            'BRONTIDE_CHANNEL_02_COVERAGE_NESTED' = '1'
-        }
+        $exitCode = Invoke-GateChild -GatePath $copyPath -OutputFile $outputPath -Environment @{ 'BRONTIDE_CHANNEL_02_OPERAND_LOG' = $logPath }
 
         $evaluated = [System.Collections.Generic.HashSet[string]]::new()
         if (Test-Path -LiteralPath $logPath) {
             foreach ($logLine in Get-Content -LiteralPath $logPath) {
                 $recorded = $logLine.Trim()
                 if (-not $recorded) { continue }
-                [void]$evaluated.Add(($recorded -split ' ')[0])
+                [void]$evaluated.Add($recorded)
             }
         }
         return @{ Evaluated = $evaluated; ExitCode = $exitCode; Operands = $identified }
@@ -368,12 +371,7 @@ foreach ($coveredGate in $coveredGates) {
         continue
     }
 
-    # Every child is marked, not only this file's own. The harness is a gate here too, and the probe
-    # inside it that runs this file would otherwise start an unmarked measurement of all five gates
-    # from inside a measurement of all five gates.
-    $gateEnvironment = @{ 'BRONTIDE_CHANNEL_02_COVERAGE_NESTED' = '1' }
-
-    $run = Get-ExecutedLines -GatePath $gatePath -Environment $gateEnvironment
+    $run = Get-ExecutedLines -GatePath $gatePath
     if ($run.ExitCode -ne 0) {
         # Coverage of a failing gate measures nothing: the run stopped early, so every construct after
         # the failure reads as never evaluated. The gate is fixed first and this file is run after.
