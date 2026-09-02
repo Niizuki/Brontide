@@ -883,6 +883,13 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   since, by four characters each time and for the same reason — registering a new iteration-review
   family in the Design reviews row — and on both occasions the check that recomputes it failed the
   figure on the commit that wrote it, which is the check working rather than a defect in it; and
+- **repository-gate minutes** — **13** before this pass and **23 to 25** now, measured on the two CI
+  lanes rather than locally, against a job ceiling raised from 30 to 45 under **AT7**. This measure did
+  not exist until covering two further gates took every job past the old ceiling on a branch whose gates
+  were green one at a time — which is what a verification cost looks like when it is only ever measured
+  in isolation. It is stated here because raising a timeout is how a cost stops being visible, and the
+  question it keeps open is whether the operand unit's four probe-driven coverage runs are worth roughly
+  seven of those minutes; and
 - **guard probes executable** — currently **73 of 73**, run by
   `build/verify-channel-0.2-guards.ps1` in the repository gate and recomputed by it. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes

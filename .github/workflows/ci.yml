@@ -12,7 +12,12 @@ jobs:
   full-gate:
     name: Full gate (.NET ${{ matrix.lane }})
     runs-on: windows-latest
-    timeout-minutes: 30
+    # Raised from 30 under AT7. The gate ran in 13 minutes and now runs in 23 to 25, because the
+    # Channel 0.2 coverage measure gained a second unit and four probes that each run it. Thirty left
+    # five minutes of headroom against two minutes of observed runner variance, which is a gate that
+    # fails on a slow morning rather than on a defect. The cost itself is recorded as a regression in
+    # the verification foundation plan's section 4, so raising this does not make it invisible.
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
