@@ -790,8 +790,10 @@ green one at a time. **That is this pass measuring its instrument and not the th
 installed in**, which is the same shape as the findings it was hunting: a number true about a part and
 never checked against the whole. Three corrections -- dropping the two harness-shaped gates from the
 covered set, recording an operand the first time it is evaluated rather than 13,871 times, and inlining
-a syntax-tree predicate that was a function call per node -- leave the gate at **53 seconds against the
-77 it started at**, so the unit that found AT1-AT3 costs less than the unit that preceded it.
+a syntax-tree predicate that was a function call per node -- leave the gate at **103 seconds against the
+652 it reached and the 77 it started at**, all measured in verifying mode. The combined Channel gate is
+**8.7 minutes against 3.5**, which puts the repository gate near 18 against its ceiling of 30. That is a
+regression this plan records rather than absorbs, and the measure below carries it.
 
 **AT5 is the other way a probe mutation survives.** AS7 hardened restoration against a transient
 `IOException`; here the process was killed and never reached its `finally` block at all, and no retry

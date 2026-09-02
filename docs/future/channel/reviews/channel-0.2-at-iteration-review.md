@@ -117,8 +117,11 @@ Three corrections, in order of how much they gave back:
   records an operand the first time only, because the measure asks whether an operand was reached at all;
 - the syntax-tree predicate called a PowerShell function per node.
 
-**The gate is now 53 seconds against the 77 it started at**, so the operand unit that found AT1-AT3 is
-cheaper than the condition unit alone used to be.
+**The gate is 103 seconds against the 652 it reached and the 77 it started at**, all three measured in
+verifying mode. So the operand unit that found AT1-AT3 costs about twenty-six seconds on top of the
+condition unit, and the harness costs the four probes that run this gate roughly three minutes inside
+the corpus. The combined Channel gate is 8.7 minutes against 3.5, which is a real regression stated
+rather than absorbed, and it leaves the repository gate near 18 minutes against a 30-minute ceiling.
 
 ### AT5 -- a probe mutation survived an interrupted run -- corrected
 
@@ -162,9 +165,11 @@ refuses.
   AR1-a on an anchor AT1 made match two mutations -- and the harness reported both rather than passing.
   AR1-a is re-anchored on the conjunct it is about rather than on an occurrence number, which would rot
   again the next time the order changed.
-- AT7's fix was measured, not assumed: 652s, then 377s with the harness dropped, then 240s with the
-  self-run scoped, then 53s once the recorder stopped writing a line per evaluation. Each number is a
-  timed run, and the last is below the 77s the gate cost before this pass.
+- AT7's fix was measured at each step rather than assumed: 652s, then 377s with the harness dropped,
+  then 240s with the self-run scoped, then 53s once the recorder stopped writing a line per evaluation.
+  **The last three are `-Report` runs and the first is a verifying one, so they are not one ladder** --
+  which is AT7's own error committed again while correcting it, and caught by re-timing rather than by
+  reading. The verifying figures are 77s before this pass, 652s at AT4, and 103s now.
 - AT6 was reproduced before and after its fix, and the message changed from the refusal to the rule.
   Its four beneficiary probes were re-run and still return `fail`, now for their own reason.
 - The instrumented copy is checked to keep the gate's line count, because the design verifier measures

@@ -65,8 +65,9 @@ $failures = [System.Collections.Generic.List[string]]::new()
 # this file three, all of them failure paths or the `-Report` branch. Neither is covered on every
 # commit, because covering either means RUNNING it here, and both are shaped so that running them is
 # what costs -- the harness runs seventy-three probes, and tracing this file traces the syntax-tree
-# walks below, where the predicate is a script block invoked once per node. Measured: covering both
-# took this gate from 77 seconds to 652 and the repository gate past its thirty-minute ceiling.
+# walks below, where the predicate is a script block invoked once per node. Measured, all in verifying
+# mode: covering both took this gate from 77 seconds to 652 and the repository gate past its
+# thirty-minute ceiling; not covering them leaves it at 103.
 #
 # That is a real loss and it is stated rather than absorbed. AO3's argument for keeping the probe
 # corpus was that an unmeasured guard rots quietly, and these two are now unmeasured guards. What
