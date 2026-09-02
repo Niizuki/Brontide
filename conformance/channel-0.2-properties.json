@@ -812,7 +812,14 @@
         {
           "vector": "I4-post-dispatch-loss-known-none",
           "expected": "red",
-          "note": "See the vector's own summary for why this input violates the statement."
+          "note": "The mutation the interaction machine's audit row names for this property. It fires through the second clause: a possible post-dispatch loss recorded as `known-none`.",
+          "conjunct": "I4-clause-2"
+        },
+        {
+          "vector": "C5-pre-dispatch-refusal-possible-effect",
+          "expected": "red",
+          "conjunct": "I4-clause-1",
+          "note": "AT1. The first clause had no input that reached it: no vector in I4's group carried a pre-dispatch refusal at all, so `$certainty -ne 'known-none'` was evaluated by nothing and the clause could be deleted outright with both gates green. That is AR1's finding on `C5-P1`, found here by the operand measure rather than by a reading -- and it is the same input, because C5-P1's second clause and I4's first say the same thing about the same record. One named mutation per clause, on the rule C4's audit row already states."
         }
       ],
       "requiredGreen": [
@@ -1271,6 +1278,18 @@
           "expected": "red",
           "conjunct": "C6-P1-clause-2",
           "note": "AR1. The second clause had no input that reached it: the only non-permitted decision in the corpus is also dispatched, so the first clause returns first and the second was unreachable given the inputs."
+        },
+        {
+          "vector": "C6-denial-without-initiator-attribution",
+          "expected": "red",
+          "conjunct": "C6-P1-clause-2",
+          "note": "AT2. The clause requires three things of a denial and reads them as a disjunction of omissions, so the mutation that omits the decision point returns before the initiator attribution is read. This omits the attribution and records the decision point, which is the only way that operand is reached."
+        },
+        {
+          "vector": "C6-denial-with-possible-effect",
+          "expected": "red",
+          "conjunct": "C6-P1-clause-2",
+          "note": "AT2. The third obligation and the last operand of the same disjunction, unreached by either mutation before it: a denial recording its decision point and attribution and an effect certainty other than `known-none`."
         }
       ],
       "requiredGreen": [
@@ -1464,6 +1483,11 @@
           "vector": "C10-known-none-after-dispatch",
           "expected": "red",
           "note": "The mutation the completeness review's per-capability audit names for this property."
+        },
+        {
+          "vector": "C10-known-none-terminal-history",
+          "expected": "red",
+          "note": "AT3. The declared mutation above records the fabricated zero on the interaction's refusal, which is read first and returns, so the terminal-history obligation had no input that reached it and could be deleted with every gate green. This vector carries no refusal, so only the terminal history witnesses it."
         }
       ],
       "requiredGreen": [

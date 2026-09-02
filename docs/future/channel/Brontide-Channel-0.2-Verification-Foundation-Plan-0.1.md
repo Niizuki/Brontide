@@ -196,7 +196,7 @@ second copy drift. Section 4's count of executable properties is checked against
 executes, so the measure cannot go stale in the direction that flatters the work.
 
 **All fifteen properties condition 2 names now execute.** `C4-P1`, `C4-P2`, `S1`-`S6` and `I1`-`I7`
-run in the gate on every commit: **69** evaluations over **30** declared inputs, plus the nine operand
+run in the gate on every commit: **70** evaluations over **31** declared inputs, plus the nine operand
 mutations. Each has at least one named mutation it goes red on and a required-green set it stays green
 on, and a property green on every input fails the gate as a finding against the property.
 
@@ -231,7 +231,7 @@ Both were probed.
 
 **All twenty-six properties now execute, and no cell in either audit table reads `owed`.** The eleven
 per-capability properties outside condition 2 -- `C1-P1`, `C2-P1`, `C3-P1`, `C5-P1` through `C12-P1`
--- were the last of them. The gate runs **115** evaluations over **43** declared inputs plus the nine operand
+-- were the last of them. The gate runs **119** evaluations over **46** declared inputs plus the nine operand
 mutations, and each property is red on the mutation the completeness review already named for it and
 green on both required-green members.
 
