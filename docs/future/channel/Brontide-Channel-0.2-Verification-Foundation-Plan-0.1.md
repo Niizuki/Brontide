@@ -894,8 +894,9 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   family in the Design reviews row — and on both occasions the check that recomputes it failed the
   figure on the commit that wrote it, which is the check working rather than a defect in it; and
 - **repository-gate minutes** — **13** before this pass, **23 to 25** with the gate self-checks in it,
-  and back under the original 30-minute ceiling with them behind a switch. Measured on the two CI lanes
-  rather than locally. The measure did not exist until covering two further gates took every job past
+  and **9 to 10** with them behind a switch, against an unchanged 30-minute ceiling. All measured on the
+  two CI lanes rather than locally. The last figure is below the first because the two gates were
+  already in that 13, so moving them out took more off than this pass had added. The measure did not exist until covering two further gates took every job past
   that ceiling on a branch whose gates were green one at a time, which is what a verification cost looks
   like when it is only ever measured in isolation. **The first answer was to raise the ceiling to 45 and
   the owner's answer was to move the expensive half behind an explicit switch**, which is better for the
