@@ -932,7 +932,7 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `fix(channel): close AT7, the instrument that broke the gate it runs in`, committed 2026-09-02, which is the head of the correction sequence beginning at
+The current review target is the commit titled `ci: put the gate self-checks behind an explicit switch`, committed 2026-09-02, which is the head of the correction sequence beginning at
 `fix(channel): make C4-P2 falsifiable`. It moves the pin off `feat(channel): retain the coverage
 instrument and close AR1` because the eighth pass's **AT1**-**AT3** corrections reach a design
 artifact -- the completeness review's per-capability audit rows for `I4`, `C6` and `C10`, which now
