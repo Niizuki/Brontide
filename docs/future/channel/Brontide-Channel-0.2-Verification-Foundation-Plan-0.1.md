@@ -736,9 +736,70 @@ profile distribution and the dated AE1-ruling boundary already fail closed under
 **What the next pass inherits.** The three covered gates no longer contain a discovered
 character-bounded negative assertion, and the guard harness now pins its transient restoration path.
 The retained coverage instrument still does not cover the rest of the guard harness or itself and
-cannot distinguish which operand of a compound condition affected the verdict. An eighth pass starts
-with the 69 probes and the coverage gate, then audits those two named surfaces. It is another
+cannot distinguish which operand of a compound condition affected the verdict. The eighth pass answered both, in section 2k. It is another
 author-side pass; nothing here resumes the closure cycle.
+
+## 2k. What the eighth condition 4 pass found
+
+The eighth author-side pass has run, at `ef4b94d`, and is retained as the
+[eighth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-at-iteration-review.md).
+It raised **AT1**-**AT5** and corrected all five, so **it does not meet condition 4** either. AT is a
+`verification` family in its AT4 and AT5 halves, which this plan owns, and a `design` family in
+AT1-AT3, whose corrections reach the completeness review's per-capability audit rows and are
+dispositioned there.
+
+The pass took up the two surfaces the AS review left it and answered both with an instrument rather
+than a reading. The coverage gate now covers the guard harness and itself, and it measures a second
+unit inside the conditions it already covered.
+
+**Choosing that unit was the whole of the work.** The first attempt asked which operands never
+*decided* an outcome -- never false in an `-and`, never true in an `-or`, which is the deletion test --
+and reported **138 of 247** operands across the five gates, nearly all of them null checks, length
+checks and `$LASTEXITCODE -eq 0` guards that are always true on well-formed input. That is AR2's
+abandoned statement-level draft one level down, and it would have been discarded for the same reason.
+The unit that works is AR2's own choice taken one level further: an operand the enclosing expression
+evaluated around and short-circuiting never reached. It reports nine, of which four were defects, four
+are declared exemptions, and one is reached only by a probe. An operand whose whole expression never
+ran is structurally exempt, because that is the condition measure's subject -- without that rule the
+facts gate's `-Apply` path is reported a second time under another name.
+
+**AT1-AT3 are three property clauses no declared input reached**, each deletable outright with every
+gate green. `I4` states two clauses and named one mutation, which fires through the second; nothing in
+its group carried a pre-dispatch refusal at all. `C6-P1`'s second clause requires three things of a
+denial and reads them as a disjunction of omissions, so AR1's mutation returned at the first and the
+other two operands were never evaluated. `C10-P1` reads the refusal before the terminal histories and
+returns, so the terminal-history obligation was unreached.
+
+**AT1 is AR1 exactly, on a property AR1's correction could not reach.** AR1 closed its class "by the
+gate rather than the two instances by hand", and that gate keys on properties which declare a
+`conjunct` -- `C5-P1` and `C6-P1` do, `I4` does not. That is **AL1's lesson in a third guise**: a guard
+that recognises a defect by the words the defect uses cannot see the instance that does not use them.
+The instrument replacing it is structural, because an operand is an operand whatever the property calls
+its clauses.
+
+**AT4 is the inherited item.** Both recursion cycles it opens are real: this gate covers itself, and it
+covers the harness one of whose probes runs it. Both are broken by marking every child as nested and
+having a nested run cover neither. Returning immediately from a nested run was the other option and it
+is worse -- a nested run that measured nothing would leave every line below it reading as a line that
+never runs, so the measure would report its own body. What the condition measure then found in those
+two gates is nothing beyond four constructs correctly unreachable on a passing run, now declared.
+
+**AT5 is the other way a probe mutation survives.** AS7 hardened restoration against a transient
+`IOException`; here the process was killed and never reached its `finally` block at all, and no retry
+closes that. The harness's own residual check is what names it.
+
+Three probes were retained, taking the corpus from 69 to 72. Two existing probes rotted against this
+pass's own edits and the harness reported both; `AR1-a` is re-anchored on the conjunct it is about
+rather than on an occurrence number, which would rot again at the next reordering.
+
+**What the next pass inherits.** The measure finds an operand that is never evaluated. It does not find
+one that is evaluated, always takes the same value, and could be deleted without changing any observed
+verdict -- **124 of the 247** are in that class, and separating a defensive null check from a second
+semantic obligation hiding beside it is the open problem. `C2-P1` and `C9-P1` each state two clauses
+against one mutation and are not reported, which is where that limit bites first. The operand measure
+also covers the three design gates and not the harness or the coverage gate, whose operands were
+measured by hand for this pass and not retained. A ninth pass starts with the 72 probes and both
+measures; nothing here resumes the closure cycle.
 
 ## 3. How the hold ends
 
@@ -755,10 +816,10 @@ The cycle resumes when, in this order:
 
 Then one fresh independent closure review is dispatched under the unchanged independence rules.
 
-**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run seven
-times and is met by none of them**: the passes found three, six, three, two, five, one and seven defects
-and fixed them all, which is the opposite of what that condition asks. Sections 2d through 2j record
-them.
+**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run eight
+times and is met by none of them**: the passes found three, six, three, two, five, one, seven and five
+defects and fixed them all, which is the opposite of what that condition asks. Sections 2d through 2k
+record them.
 
 The seven are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
 fact was stated; AO read each guard's comment as a claim and tested it against the code; AP asked
@@ -770,10 +831,12 @@ and **AO1 — two properties red on conforming behaviour — remains a defect a 
 have been entitled to call blocking.** The condition is doing what it was written to do; it has not
 yet run out of findings.
 
-The next work is therefore an eighth author-side pass over the same W1-W3 verification scope. It
-starts by running `build/verify-channel-0.2-guards.ps1`, which now holds 69 probes, and the coverage
-gate. Its named questions are whether the guard harness and coverage gate themselves have unexecuted
-checks, and whether each operand of their compound conditions can affect a verdict. It meets condition
+The next work is therefore a ninth author-side pass over the same W1-W3 verification scope. It
+starts by running `build/verify-channel-0.2-guards.ps1`, which now holds 72 probes, and the coverage
+gate, which now measures operands as well as conditions. Its named question is the class that measure
+cannot see: an operand that is evaluated, always takes the same value, and could still be deleted
+without changing any observed verdict -- 124 of the 247 -- of which `C2-P1` and `C9-P1`, each stating
+two clauses against one mutation, are where it bites first. It meets condition
 4 only if it finds nothing it can fix. Nothing in this section authorizes dispatching a closure
 review, and the closure-cycle state at the head of this document is what says so.
 
@@ -794,7 +857,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,335** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,339** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved twice
   since, by four characters each time and for the same reason — registering a new iteration-review

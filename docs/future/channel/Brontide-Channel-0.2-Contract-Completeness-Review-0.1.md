@@ -832,5 +832,32 @@ The class is closed rather than the two instances: `build/verify-channel-0.2-cov
 repository gate and fails when any conditional in a covered gate is never evaluated, so a clause no
 input reaches is a gate failure rather than a finding several cycles later.
 
+**AT1**-**AT5** were raised by the eighth author-side pass, and **AT1 is AR1 again on a property AR1's
+own correction could not reach.** That correction closed its class with a gate rule keyed on
+properties which declare a `conjunct`; `C5-P1` and `C6-P1` do, and `I4` does not. So `I4` kept two
+clauses and one mutation, the mutation fired through the second, and nothing in the property's group
+carried a pre-dispatch refusal at all -- the first clause was deleteable outright with both gates
+green. This is **AL1's lesson in a third guise**: a guard that recognises a defect by the words the
+defect uses cannot see the instance that does not use them.
+
+**AT2** and **AT3** are the same shape below the clause. `C6-P1`'s second clause requires three things
+of a denial and reads them as a disjunction of omissions, so AR1's own mutation returned at the first
+and the other two operands were evaluated by nothing; `C10-P1` reads the interaction's refusal before
+its terminal histories and returns there, so the terminal-history obligation had no input. The audit
+rows for `I4`, `C6` and `C10` above now name a mutation per clause, and for `C6-P1`'s second clause one
+per obligation. `I4`'s first-clause mutation is the input `C5-P1`'s second clause already uses, because
+the two clauses say the same thing about the same record.
+
+**AT4** and **AT5** are verification rather than design and are recorded here because the family is
+classified whole, on AR's precedent. AT4 widened the coverage instrument to the guard harness, to
+itself, and to a second unit -- an operand no input reaches while the expression around it is
+evaluated, which is what found AT1-AT3. AT5 is a probe mutation that survived an interrupted run:
+the seventh pass hardened restoration against a transient failure, and a process that is killed never
+reaches its restoration at all.
+
+The class is closed rather than the three instances, and one level lower than AR1 closed it: the
+coverage gate now fails when an operand of an evaluated expression is never evaluated, which is
+structural over every property whatever its artifact calls the clauses.
+
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.

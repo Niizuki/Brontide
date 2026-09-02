@@ -134,7 +134,7 @@ four are corrected: every property of the session state machine now names its se
 structurally rather than lexically, the declared fact list is checked against the neutral brief's
 vector format rather than against itself, the grid's cells are registered as surfaces of their own,
 and the package-wide sweep is keyed to the record rather than to the reference's name. No independent
-review has yet seen the AR corrections. No Channel 0.2 schema or implementation is authorized until the
+review has yet seen the AT corrections. No Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
 **The next closure review is on hold by owner decision of 2026-08-17**, recorded in the
@@ -293,10 +293,21 @@ recognizer joined a fact's words across at most 24 characters rather than within
 broader recognizer then rejected `C2-P1` despite its existing “every accepted session” quantifier.
 Five retained probes were red before the corrections, the clean package itself pinned the sixth, and
 a failed restore that left B7's mutation in the plan pinned the seventh. A bounded retry plus a
-permanent simulated-sharing self-check now guards exact restoration. An eighth pass is the next work.
-It inherits the two places conditional coverage still does not otherwise reach:
-the guard harness and coverage gate themselves, and the individual operands inside compound
-conditions. The closure-review hold remains in force.
+permanent simulated-sharing self-check now guards exact restoration.
+
+**The eighth pass answered both of those with an instrument**, and is retained as the
+[eighth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-at-iteration-review.md).
+It raised **AT1**-**AT5** and corrected all five. The coverage gate now covers the guard harness and
+itself, and measures a second unit inside the conditions it already covered: an operand of an
+`-and`/`-or` expression that no input reaches while the expression around it is evaluated. Choosing
+that unit was the work -- the deletion test reported 138 of 247 operands and would have been
+abandoned as noise, and this one reports nine. **AT1** is **AR1 on a property AR1's own correction
+could not reach**, because that correction keys on properties which declare a conjunct and `I4`
+declares none; **AT2** and **AT3** are the same shape below the clause, in `C6-P1`'s three
+obligations and `C10-P1`'s terminal history. A ninth pass is the next work. It inherits the operand
+that is evaluated, always takes the same value, and could still be deleted -- 124 of the 247 -- where
+`C2-P1` and `C9-P1` each state two clauses against one mutation. The closure-review hold remains in
+force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
@@ -1880,7 +1891,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, and AS1-AS7 families; the closure cycle remains on hold while an eighth verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, and AT1-AT5 families; the closure cycle remains on hold while a ninth verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |
