@@ -490,8 +490,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "run in the gate on every commit: **69** evaluations over **30** declared inputs",
-          "replace": "run in the gate on every commit: **55** evaluations over **30** declared inputs"
+          "find": "run in the gate on every commit: **70** evaluations over **31** declared inputs",
+          "replace": "run in the gate on every commit: **55** evaluations over **31** declared inputs"
         }
       ]
     },
@@ -815,8 +815,8 @@
       "edits": [
         {
           "path": "conformance/channel-0.2-properties.json",
-          "find": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"red\",",
-          "replace": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"green\","
+          "find": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"red\",\n          \"conjunct\": \"C5-P1-clause-2\",",
+          "replace": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"green\",\n          \"conjunct\": \"C5-P1-clause-2\","
         }
       ]
     },
