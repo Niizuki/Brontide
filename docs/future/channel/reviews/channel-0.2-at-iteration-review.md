@@ -158,8 +158,10 @@ are in that class, and separating a defensive null check from a second semantic 
 the next pass's problem. `C2-P1` and `C9-P1` each state two clauses against one mutation and are not
 reported here, which is where that limit bites first.
 
-The gate's cost is now roughly four times what it was, because covering the harness means running it.
-That is the trade this measure asks for and it is stated rather than absorbed.
+The gate's cost is now **652 seconds against 77**, measured rather than estimated, because covering the
+harness means running it and the harness is the slow gate. That is the trade this measure asks for and
+it is stated rather than absorbed: the next pass should decide whether covering the harness is worth
+nine minutes on every commit, and it is a fair answer that it is not.
 
 The closure review remains on hold. The finding count by condition-4 pass is now three, six, three,
 two, five, one, seven, **six**; a pass with findings cannot satisfy condition 4 even when all findings
