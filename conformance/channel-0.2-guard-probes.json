@@ -957,6 +957,18 @@
           "replace": ""
         }
       ]
+    },
+    {
+      "id": "AT6-a",
+      "claim": "coverage measured while a design artifact is uncommitted is refused, which is the half of the dirty-tree refusal its own reason covers",
+      "gate": "verify-channel-0.2-coverage.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "append": "\n<!-- AT6-a: an uncommitted design artifact, which the review-target pin check skips on. -->\n"
+        }
+      ]
     }
   ]
 }

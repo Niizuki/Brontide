@@ -99,15 +99,28 @@ if ($coveredGates.Count -lt 1) {
 # was not. So this refuses rather than misreports. `-Report` still works mid-edit, because it states
 # what it found without asserting that the finding is a defect.
 #
+# AT6 SCOPED IT TO THE PATHS THE REASON NAMES. This refused any dirty path in the repository, and the
+# reason above is about design artifacts alone. The difference was not academic: the guard harness
+# mutates a file before running the gate a probe names, so every probe pointed at this file was
+# answered by this refusal instead of by the rule it claims to test -- `AR2-a` had been green that way
+# since AR2, and the three probes AT4 added inherited it before they were ever run. A guard that
+# cannot be reached by its own probe is AO1's class, and this is the reverse: a probe that cannot
+# reach its own guard.
+#
+# So the scope is the directory that holds the design artifacts and the review policy the pin reads.
+# It is the directory rather than the eleven names, because a list of today's artifacts is AN2. An
+# uncommitted conformance declaration or gate is left alone: measuring against one is what a probe is
+# for, and the pin check does not read either.
+#
 # The check runs before the operand measure writes anything, which is why an instrumented copy in
 # build/ never trips it -- including in the marked child, which starts while this process has not yet
 # written one.
 if (-not $Report) {
     $gitAvailable = Test-Path -LiteralPath (Join-Path $repositoryRoot '.git')
     if ($gitAvailable) {
-        $dirty = & git -C $repositoryRoot status --porcelain 2>$null
+        $dirty = & git -C $repositoryRoot status --porcelain -- 'docs/future/channel' 2>$null
         if ($LASTEXITCODE -eq 0 -and $dirty) {
-            Write-Host "FAIL: the working tree has uncommitted changes, and coverage measured on one understates itself -- the review-target pin check skips while a design artifact is uncommitted, so it would read here as a check that never runs. Commit first, or use -Report to see what is uncovered without the verdict. Uncommitted: $(($dirty | ForEach-Object { $_.Trim() }) -join '; ')"
+            Write-Host "FAIL: a Channel 0.2 design artifact has uncommitted changes, and coverage measured on one understates itself -- the review-target pin check skips while a design artifact is uncommitted, so it would read here as a check that never runs. Commit first, or use -Report to see what is uncovered without the verdict. Uncommitted: $(($dirty | ForEach-Object { $_.Trim() }) -join '; ')"
             exit 1
         }
     }

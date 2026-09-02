@@ -832,7 +832,7 @@ The class is closed rather than the two instances: `build/verify-channel-0.2-cov
 repository gate and fails when any conditional in a covered gate is never evaluated, so a clause no
 input reaches is a gate failure rather than a finding several cycles later.
 
-**AT1**-**AT5** were raised by the eighth author-side pass, and **AT1 is AR1 again on a property AR1's
+**AT1**-**AT6** were raised by the eighth author-side pass, and **AT1 is AR1 again on a property AR1's
 own correction could not reach.** That correction closed its class with a gate rule keyed on
 properties which declare a `conjunct`; `C5-P1` and `C6-P1` do, and `I4` does not. So `I4` kept two
 clauses and one mutation, the mutation fired through the second, and nothing in the property's group
@@ -854,6 +854,12 @@ itself, and to a second unit -- an operand no input reaches while the expression
 evaluated, which is what found AT1-AT3. AT5 is a probe mutation that survived an interrupted run:
 the seventh pass hardened restoration against a transient failure, and a process that is killed never
 reaches its restoration at all.
+
+**AT6** is why the probes behind all of this were worth re-running. The coverage gate refused any
+dirty repository while the reason it gave covers design artifacts alone, and the harness mutates a file
+before running the gate a probe names -- so every probe aimed at that gate was answered by the refusal
+instead of by its own rule, `AR2-a` included, since AR2. The refusal is now scoped to the directory the
+reason names.
 
 The class is closed rather than the three instances, and one level lower than AR1 closed it: the
 coverage gate now fails when an operand of an evaluated expression is never evaluated, which is

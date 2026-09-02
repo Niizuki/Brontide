@@ -17,7 +17,7 @@ supply the conforming verdict the Closure section requires.
 
 It is the **eighth** pass condition 4 of the
 [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md#3-how-the-hold-ends)
-names. **Condition 4 is not met by it**, because it found five defects and corrected them.
+names. **Condition 4 is not met by it**, because it found six defects and corrected them.
 
 ## Method
 
@@ -104,6 +104,30 @@ other way a mutation survives -- the process does not reach its `finally` block 
 closes it.** The harness's own residual check is what names it, and the fix is the discipline it
 already states: run the harness on a clean tree and read `git status` after.
 
+### AT6 -- every probe aimed at the coverage gate was answered by its dirty-tree refusal -- corrected
+
+The coverage gate refuses to measure a repository with uncommitted changes, and the reason it gives is
+about design artifacts: the review-target pin skips itself while one is uncommitted, so those checks
+would read as checks that never run. **The refusal was over any dirty path and the reason covers one
+directory.**
+
+The difference is not academic, because the guard harness mutates a file before running the gate a
+probe names. So a probe pointed at this gate was answered by the refusal rather than by the rule it
+claims to test. **`AR2-a` has been green that way since AR2**, and the three probes AT4 added inherited
+it before they were ever run -- written against a rule, and satisfied by something else.
+
+That is **AO1's class from the other end**. AO1 was a guard that could not be reached by a conforming
+input; this is a probe that could not reach its guard. Both are green for a reason nobody chose, and
+neither is visible from the verdict.
+
+Reproduced by hand before the fix: mutating the `AR2-a` anchor and running the gate reports the
+uncommitted-changes message and never mentions the stale exemption. After scoping the refusal to
+`docs/future/channel`, the same mutation reports the stale anchor, which is what the probe claims.
+
+The scope is the directory rather than the eleven artifact names, because a list of today's artifacts
+is **AN2**. A retained probe pins what is left: a design artifact with uncommitted changes still
+refuses.
+
 ## What this pass verified rather than believed
 
 - The four AT1-AT3 operands were reported red by the coverage gate before their corrections and are
@@ -114,6 +138,8 @@ already states: run the harness on a clean tree and read `git status` after.
   AR1-a on an anchor AT1 made match two mutations -- and the harness reported both rather than passing.
   AR1-a is re-anchored on the conjunct it is about rather than on an occurrence number, which would rot
   again the next time the order changed.
+- AT6 was reproduced before and after its fix, and the message changed from the refusal to the rule.
+  Its four beneficiary probes were re-run and still return `fail`, now for their own reason.
 - The instrumented copy is checked to keep the gate's line count, because the design verifier measures
   its own length; a copy that grew would fail that check rather than measure it.
 - The instrumented run's exit code is compared with the uninstrumented one, so a verdict that changes
@@ -136,7 +162,7 @@ The gate's cost is now roughly four times what it was, because covering the harn
 That is the trade this measure asks for and it is stated rather than absorbed.
 
 The closure review remains on hold. The finding count by condition-4 pass is now three, six, three,
-two, five, one, seven, **five**; a pass with findings cannot satisfy condition 4 even when all findings
+two, five, one, seven, **six**; a pass with findings cannot satisfy condition 4 even when all findings
 are corrected.
 
 ## Where this family is dispositioned

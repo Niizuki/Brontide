@@ -743,7 +743,7 @@ author-side pass; nothing here resumes the closure cycle.
 
 The eighth author-side pass has run, at `ef4b94d`, and is retained as the
 [eighth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-at-iteration-review.md).
-It raised **AT1**-**AT5** and corrected all five, so **it does not meet condition 4** either. AT is a
+It raised **AT1**-**AT6** and corrected all six, so **it does not meet condition 4** either. AT is a
 `verification` family in its AT4 and AT5 halves, which this plan owns, and a `design` family in
 AT1-AT3, whose corrections reach the completeness review's per-capability audit rows and are
 dispositioned there.
@@ -788,7 +788,16 @@ two gates is nothing beyond four constructs correctly unreachable on a passing r
 `IOException`; here the process was killed and never reached its `finally` block at all, and no retry
 closes that. The harness's own residual check is what names it.
 
-Three probes were retained, taking the corpus from 69 to 72. Two existing probes rotted against this
+**AT6 is the one that should worry the next pass most.** This gate refuses a dirty repository, and the
+reason it gives is about design artifacts; the refusal was over any dirty path. The harness mutates a
+file before running the gate a probe names, so every probe pointed at this gate was answered by the
+refusal rather than by the rule it tests -- **`AR2-a` had been green that way since AR2**, and the three
+probes AT4 added inherited it before they were ever run. It is **AO1's class from the other end**: AO1
+was a guard no conforming input could reach, this is a probe that could not reach its guard. The
+refusal is now scoped to `docs/future/channel`, the directory its reason names, and a retained probe
+pins what is left.
+
+Four probes were retained, taking the corpus from 69 to 73. Two existing probes rotted against this
 pass's own edits and the harness reported both; `AR1-a` is re-anchored on the conjunct it is about
 rather than on an occurrence number, which would rot again at the next reordering.
 
@@ -817,7 +826,7 @@ The cycle resumes when, in this order:
 Then one fresh independent closure review is dispatched under the unchanged independence rules.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run eight
-times and is met by none of them**: the passes found three, six, three, two, five, one, seven and five
+times and is met by none of them**: the passes found three, six, three, two, five, one, seven and six
 defects and fixed them all, which is the opposite of what that condition asks. Sections 2d through 2k
 record them.
 
@@ -863,7 +872,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   since, by four characters each time and for the same reason — registering a new iteration-review
   family in the Design reviews row — and on both occasions the check that recomputes it failed the
   figure on the commit that wrote it, which is the check working rather than a defect in it; and
-- **guard probes executable** — currently **72 of 72**, run by
+- **guard probes executable** — currently **73 of 73**, run by
   `build/verify-channel-0.2-guards.ps1` in the repository gate and recomputed by it. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
