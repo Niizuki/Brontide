@@ -1,3 +1,9 @@
+param(
+    # Run the two verifications that check the GATES rather than the design -- the Channel 0.2 probe
+    # corpus and the gate-coverage measure. They are 411 seconds of the 442 the PowerShell half of
+    # this gate takes, so they are opt-in here and run on their own schedule in CI. AT7.
+    [switch]$IncludeGateSelfChecks
+)
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
@@ -34,20 +40,17 @@ Invoke-Checked {
 Invoke-Checked {
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-facts.ps1')
 }
-# The three gates above check the design package; this one checks THEM, by making each guard's own
-# subject present and requiring the guard to say so. It mutates the working tree and restores from
-# bytes it read first, and it refuses to run over a path with uncommitted changes. AO3.
-Invoke-Checked {
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-guards.ps1')
+# The three gates above check the design package. The two that check THOSE GATES -- the probe corpus
+# and the gate-coverage measure -- are behind the switch, because they cost 411 of the 442 seconds the
+# PowerShell half of this gate takes, and they cost it by running the gates they measure. The reason,
+# what it gives up, and what holds it are in the file below. AT7.
+if ($IncludeGateSelfChecks) {
+    Invoke-Checked {
+        powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-gate-self-checks.ps1')
+    }
 }
-# And this one asks the question the probes cannot: not "does this guard fire on its own subject"
-# but "did this check run at all". A guard whose key expired keeps its comment, keeps its code, and
-# stops being reached -- which is AP1 and five of the AQ findings, and no probe could have caught any
-# of them, because a probe tests a guard someone already suspected. Each covered gate runs under a
-# line trace and every conditional in it must be evaluated by a passing run. AR2. It refuses a dirty
-# tree, for the reason stated in the file.
-Invoke-Checked {
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-coverage.ps1')
+else {
+    Write-Host 'SKIPPED: build/verify-gate-self-checks.ps1 -- the Channel 0.2 probe corpus and gate-coverage measure. Re-run with -IncludeGateSelfChecks, run that file directly, or wait for the scheduled repository-gate run, which always includes them.'
 }
 Invoke-Checked {
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-evidence.ps1')

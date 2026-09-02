@@ -240,7 +240,8 @@ that could not read the session machine's two `any nonterminal` transition rows 
 edges against eight and reported them identical. That is AE1's defect, the one that took ten cycles to
 find, in a gate written after the lesson. **AO3** is the probes: three passes had rebuilt them from the
 prose of the pass before, four had rotted unnoticed, and they are now a corpus of 45 that
-`build/verify-channel-0.2-guards.ps1` runs in the repository gate. A fourth pass is the next work, it
+`build/verify-channel-0.2-guards.ps1` runs — in the repository gate until **AT7**, and behind
+`build/verify-gate-self-checks.ps1` since. A fourth pass is the next work, it
 starts by running that corpus rather than rebuilding it, and the hold stands until one finds nothing.
 
 **The fourth pass did exactly that**, and is retained as the
