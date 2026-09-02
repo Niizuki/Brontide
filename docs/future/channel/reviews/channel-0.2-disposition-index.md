@@ -163,7 +163,7 @@ now points here.
 
 N2/F1/F2/D1-D4/T3/R1/S1/S2/U1/W2-W4/X1/X5/Y1/Y2/Z3 corrected; C4 owns intra-interaction frame order with `C4-P2`, stated over the refusal a reordering produces; AE1/AE3/AF1/AF5/AF8 corrected, and AG2's cross-artifact claim is now pinned against the brief; AH6 corrected; AI6 corrected; unchanged by AJ, since C10 delegates the settling-frame field list to the artifacts that publish it; AK1/AK5/AK6 corrected - C10 requires the refused-frame and terminal-frame references and delegates their field lists the same way, and AK7/AK8 give `C4-P1`, `C4-P2`, `C1-P1`, `C3-P1` and `C11-P1` the session they mean while C12 declares which facts belong to one session each; **AL3** corrected - that declaration now carries the session's own state and is checked against the neutral brief's vector format rather than against the members that were visible when it was written; unchanged by **AR1**, which is about which inputs the property gate runs rather than about any design artifact's text, and reached only the per-capability property audit
 
-## The session state machine
+## Session state machine
 
 [Brontide-Channel-0.2-Session-State-Machine-0.1.md](../Brontide-Channel-0.2-Session-State-Machine-0.1.md)
 
