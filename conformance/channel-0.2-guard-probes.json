@@ -490,8 +490,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "run in the gate on every commit: **69** evaluations over **30** declared inputs",
-          "replace": "run in the gate on every commit: **55** evaluations over **30** declared inputs"
+          "find": "run in the gate on every commit: **70** evaluations over **31** declared inputs",
+          "replace": "run in the gate on every commit: **55** evaluations over **31** declared inputs"
         }
       ]
     },
@@ -685,8 +685,8 @@
       "edits": [
         {
           "path": "docs/future/channel/reviews/README.md",
-          "find": "- [Closure review 10](./channel-0.2-design-foundation-closure-review-10-attestation.md) — reviewed",
-          "replace": "- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) — reviewed"
+          "find": "- [Closure review 10](./channel-0.2-design-foundation-closure-review-10-attestation.md) \u2014 reviewed",
+          "replace": "- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) \u2014 reviewed"
         }
       ]
     },
@@ -763,7 +763,7 @@
       "edits": [
         {
           "path": "docs/future/README.md",
-          "find": "review has yet seen the AR corrections.",
+          "find": "review has yet seen the AT corrections.",
           "replace": "review has yet seen the AB corrections."
         }
       ]
@@ -815,8 +815,8 @@
       "edits": [
         {
           "path": "conformance/channel-0.2-properties.json",
-          "find": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"red\",",
-          "replace": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"green\","
+          "find": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"red\",\n          \"conjunct\": \"C5-P1-clause-2\",",
+          "replace": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"green\",\n          \"conjunct\": \"C5-P1-clause-2\","
         }
       ]
     },
@@ -906,6 +906,67 @@
           "path": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
           "find": "- **I5.** Concurrency within each session the vector carries never exceeds that session's established\n  finite bound under any generated interleaving.",
           "replace": "- **I5.** Concurrency never exceeds the established maximum that the negotiated profile fixes for admitted interactions, namely its finite bound under any generated interleaving."
+        }
+      ]
+    },
+    {
+      "id": "AT4-a",
+      "claim": "an operand exemption whose expression no longer occurs in the gate is stale rather than silent",
+      "gate": "verify-channel-0.2-coverage.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-coverage-exemptions.json",
+          "find": "\"within\": \"$Apply -and $rewritten\",",
+          "replace": "\"within\": \"$ApplyXX -and $rewritten\","
+        }
+      ]
+    },
+    {
+      "id": "AT4-b",
+      "claim": "an operand exemption naming an operand a passing run does evaluate is refused rather than honoured",
+      "gate": "verify-channel-0.2-coverage.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-coverage-exemptions.json",
+          "find": "\"operand\": \"$rewritten\",\n          \"within\": \"$Apply -and $rewritten\",",
+          "replace": "\"operand\": \"$Apply\",\n          \"within\": \"$Apply -and $rewritten\","
+        }
+      ]
+    },
+    {
+      "id": "AT4-c",
+      "claim": "an operand of an evaluated expression that no declared input reaches is reported, which is the unit AT1-AT3 were found with",
+      "gate": "verify-channel-0.2-coverage.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "\"propertyMemberships\": [\n        \"C5-P1\",\n        \"I4\"\n      ],",
+          "replace": "\"propertyMemberships\": [\n        \"C5-P1\"\n      ],"
+        },
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "\"C5-P1\": \"red\",\n        \"I4\": \"red\"",
+          "replace": "\"C5-P1\": \"red\""
+        },
+        {
+          "path": "conformance/channel-0.2-properties.json",
+          "find": ",\n        {\n          \"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"red\",\n          \"conjunct\": \"I4-clause-1\",\n          \"note\": \"AT1. The first clause had no input that reached it: no vector in I4's group carried a pre-dispatch refusal at all, so `$certainty -ne 'known-none'` was evaluated by nothing and the clause could be deleted outright with both gates green. That is AR1's finding on `C5-P1`, found here by the operand measure rather than by a reading -- and it is the same input, because C5-P1's second clause and I4's first say the same thing about the same record. One named mutation per clause, on the rule C4's audit row already states.\"\n        }",
+          "replace": ""
+        }
+      ]
+    },
+    {
+      "id": "AT6-a",
+      "claim": "coverage measured while a design artifact is uncommitted is refused, which is the half of the dirty-tree refusal its own reason covers",
+      "gate": "verify-channel-0.2-coverage.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "append": "\n<!-- AT6-a: an uncommitted design artifact, which the review-target pin check skips on. -->\n"
         }
       ]
     }

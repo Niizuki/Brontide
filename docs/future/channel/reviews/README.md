@@ -177,6 +177,7 @@ dependency instead of narrowing it.
 | AQ | iteration | verification | fifth W1-W3 verification-foundation iteration review |
 | AR | iteration | design | sixth W1-W3 verification-foundation iteration review |
 | AS | iteration | verification | seventh W1-W3 verification-foundation iteration review |
+| AT | iteration | design | eighth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -280,7 +281,8 @@ nothing it can fix. They are retained as the
 [fourth](./channel-0.2-ap-iteration-review.md) (**AP1**-**AP2**),
 [fifth](./channel-0.2-aq-iteration-review.md) (**AQ1**-**AQ5**),
 [sixth](./channel-0.2-ar-iteration-review.md) (**AR1**) and
-[seventh](./channel-0.2-as-iteration-review.md) (**AS1**-**AS7**) W1-W3 verification-foundation
+[seventh](./channel-0.2-as-iteration-review.md) (**AS1**-**AS7**) and
+[eighth](./channel-0.2-at-iteration-review.md) (**AT1**-**AT7**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
 **An eighth pass over the same scope is the live path.** It starts by running
@@ -930,10 +932,13 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `feat(channel): retain the coverage instrument and
-close AR1`, committed 2026-08-21, which is the head of the correction sequence beginning at
-`fix(channel): make C4-P2 falsifiable`. The commits above the previous pin are verification-foundation
-work done under the hold rather than corrections to a finding: all twenty-six properties now execute in
+The current review target is the commit titled `fix(channel): close AT7, the instrument that broke the gate it runs in`, committed 2026-09-02, which is the head of the correction sequence beginning at
+`fix(channel): make C4-P2 falsifiable`. It moves the pin off `feat(channel): retain the coverage
+instrument and close AR1` because the eighth pass's **AT1**-**AT3** corrections reach a design
+artifact -- the completeness review's per-capability audit rows for `I4`, `C6` and `C10`, which now
+name a mutation for each clause and each of one clause's three obligations. The other commits above
+the previous pin are verification-foundation work done under the hold rather than corrections to a
+finding: all twenty-six properties now execute in
 the gate with their required-green sets stated, the three frame references and the recipient `unseen`
 refusal record are rendered from one declaration into the twenty-one artifact sites that publish them,
 and the status blocks and index rows
@@ -1036,6 +1041,14 @@ context elsewhere — never as evidence that their conclusions are right.
   cannot fire after ordinary prose growth. Five red probes are retained, and the clean package itself
   pins the sixth correction; a harness self-check pins the seventh correction. AS is a verification
   family and changes no first-batch design artifact.
+- [Eighth W1-W3 verification-foundation iteration review](./channel-0.2-at-iteration-review.md) — the
+  same scope at `ef4b94d`; raised **AT1**-**AT7** and corrected all seven, so condition 4 is **still not
+  met**. It answered the two surfaces AS left it with an instrument rather than a reading: both were measured,
+  and the coverage gate keeps a second unit — an operand of an
+  `-and`/`-or` expression that no input reaches while the expression around it is evaluated. **AT1** is
+  **AR1 on a property AR1's own correction could not reach**, because that correction keys on
+  properties which declare a conjunct and `I4` declares none. Like AR, AT is a **design** family: the
+  corrections reach the per-capability property audit.
 
 ## Disclosed process deviation in the T1-T4 correction
 

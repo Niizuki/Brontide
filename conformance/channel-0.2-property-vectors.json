@@ -5210,10 +5210,11 @@
       "id": "C5-pre-dispatch-refusal-possible-effect",
       "capability": "C2/C4",
       "propertyMemberships": [
-        "C5-P1"
+        "C5-P1",
+        "I4"
       ],
       "role": "named-mutation",
-      "summary": "The named mutation for C5-P1's second clause: a structural refusal taken before handler dispatch records effect certainty `possible`. C5's authority-and-effect boundary says limit and payload refusal before dispatch has `known-none`, so a realization recording anything else claims an effect may have occurred on a path nothing was dispatched to. Nothing crosses the dispatch boundary here, which is what keeps the first clause vacuous and this mutation aimed at the second.",
+      "summary": "The named mutation for C5-P1's second clause: a structural refusal taken before handler dispatch records effect certainty `possible`. C5's authority-and-effect boundary says limit and payload refusal before dispatch has `known-none`, so a realization recording anything else claims an effect may have occurred on a path nothing was dispatched to. Nothing crosses the dispatch boundary here, which is what keeps the first clause vacuous and this mutation aimed at the second. AT1 added I4 to its memberships: I4's first clause says the same thing about the same record, and no vector I4 ran on carried a pre-dispatch refusal at all, so that clause could be deleted with every gate green -- AR1's finding on C5-P1, reached for I4 by the operand measure rather than by a reading.",
       "sessions": [
         {
           "id": "s1",
@@ -5328,7 +5329,8 @@
         }
       ],
       "expected": {
-        "C5-P1": "red"
+        "C5-P1": "red",
+        "I4": "red"
       },
       "deterministicExpectedObservation": true
     },
@@ -5454,6 +5456,400 @@
       ],
       "expected": {
         "C6-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C6-denial-without-initiator-attribution",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C6-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "AT2. A local authority denial records its decision point and `known-none` and omits the initiator attribution. C6 requires all three of a denial, and its clause reads them as a disjunction of omissions -- so the mutation that omits the decision point short-circuits before this obligation is ever evaluated, and this obligation could be deleted with every gate green. The interaction is never dispatched, which keeps the first clause vacuous and this mutation aimed at the second.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": false,
+          "refusal": {
+            "stage": "pre-dispatch",
+            "effectCertainty": "known-none"
+          },
+          "terminalHistories": [],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": false,
+          "positionalShapeChecked": true,
+          "authorityDecision": "denied",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "local-refusal",
+          "observationComplete": true,
+          "possiblePostDispatchPath": false,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C6-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C6-denial-with-possible-effect",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C6-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "AT2. A local authority denial records its decision point and initiator attribution and records the effect certainty as `possible`. Authority is decided before dispatch, so a denial that admits a possible effect claims one on a path nothing was dispatched to. This is the third of the clause's three obligations, and the last operand of its disjunction -- unreached by either mutation before it.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": false,
+          "refusal": {
+            "stage": "pre-dispatch",
+            "effectCertainty": "known-none"
+          },
+          "terminalHistories": [],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": false,
+          "positionalShapeChecked": true,
+          "authorityDecision": "denied",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "possible"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "local-refusal",
+          "observationComplete": true,
+          "possiblePostDispatchPath": false,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C6-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C10-known-none-terminal-history",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C10-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "AT3. A vector with a possible post-dispatch path records a terminal history as `known-none` with no explicit evidence that the handler did not begin. C10-P1's declared mutation records that on the interaction's refusal, and the refusal is read first and returns, so the terminal-history obligation had no input that reached it and could be deleted with every gate green. This vector carries no refusal, which is what puts the fabricated zero where only the terminal history can witness it.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "form": "outcome",
+          "semanticSuccess": true,
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known-none",
+              "explicitEvidence": false
+            }
+          ],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C10-P1": "red"
       },
       "deterministicExpectedObservation": true
     }

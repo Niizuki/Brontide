@@ -566,11 +566,15 @@ function Invoke-I4 {
         if ($null -eq $refusal) { continue }
         $stage = [string]$refusal.stage
         $certainty = [string]$refusal.effectCertainty
+        # AT1: the two clauses are named, so a mutation cannot fire through the one it was not written
+        # for. Until the operand measure reached it, nothing carried a pre-dispatch refusal into this
+        # property's group at all and the first clause was deleteable with both gates green -- AR1's
+        # finding on C5-P1, which declares conjuncts, on a property that did not.
         if ($stage -eq 'pre-dispatch' -and $certainty -ne 'known-none') {
-            return New-Red "interaction $($interaction.identity) records a pre-dispatch refusal with effect certainty $certainty"
+            return New-Red "interaction $($interaction.identity) records a pre-dispatch refusal with effect certainty $certainty" 'I4-clause-1'
         }
         if ($stage -eq 'post-dispatch' -and $certainty -ne 'unknown' -and -not $refusal.explicitEvidence) {
-            return New-Red "interaction $($interaction.identity) records a possible post-dispatch loss as $certainty with no explicit evidence narrowing it"
+            return New-Red "interaction $($interaction.identity) records a possible post-dispatch loss as $certainty with no explicit evidence narrowing it" 'I4-clause-2'
         }
     }
     return New-Green
