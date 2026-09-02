@@ -118,10 +118,22 @@ Three corrections, in order of how much they gave back:
 - the syntax-tree predicate called a PowerShell function per node.
 
 **The gate is 103 seconds against the 652 it reached and the 77 it started at**, all three measured in
-verifying mode. So the operand unit that found AT1-AT3 costs about twenty-six seconds on top of the
-condition unit, and the harness costs the four probes that run this gate roughly three minutes inside
-the corpus. The combined Channel gate is 8.7 minutes against 3.5, which is a real regression stated
-rather than absorbed, and it leaves the repository gate near 18 minutes against a 30-minute ceiling.
+verifying mode. That was still not enough: the repository gate passed at 23 to 25 minutes against a
+30-minute ceiling, with two minutes of variance between the two lanes.
+
+**The owner's decision was to move the expensive half behind an explicit switch rather than to raise the
+ceiling**, and it is the better answer for the reason the measures section exists -- a ceiling absorbs a
+cost and a switch names it. Which half was settled by measuring all twenty-four PowerShell verifications
+rather than by assuming: the probe corpus is **360** of their 442 seconds and the coverage measure
+**50**, against **31** for the other twenty-two together. Both now run under
+`build/verify-gate-self-checks.ps1`, which the repository gate invokes only with
+`-IncludeGateSelfChecks` and which CI runs on a weekly schedule and on request.
+
+**What that gives up is AO3's own argument**, and it should be stated plainly rather than filed as a
+detail: AO3 kept the probe corpus because an unmeasured guard rots quietly, and four probes had already
+stopped applying before anyone noticed. A probe can now rot and merge. The scheduled run is the floor
+that catches it, not the plan -- the plan is that a pass working on this foundation runs the self-checks
+before it reports.
 
 ### AT5 -- a probe mutation survived an interrupted run -- corrected
 

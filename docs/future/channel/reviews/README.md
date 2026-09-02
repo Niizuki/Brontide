@@ -1027,9 +1027,9 @@ context elsewhere — never as evidence that their conclusions are right.
   under-reaches in silence as the passage it spans grows.
 - [Sixth W1-W3 verification-foundation iteration review](./channel-0.2-ar-iteration-review.md) — the
   same scope at `a5ec7a5`; raised **AR1** and corrected it, so condition 4 is **still not met**. It
-  **retained the instrument** the AQ pass discarded: `build/verify-channel-0.2-coverage.ps1` runs in
-  the repository gate and requires every conditional in a covered gate to be evaluated by a passing
-  run. **AR1** is what that found on its first run, and it is the first finding here raised by an
+  **retained the instrument** the AQ pass discarded: `build/verify-channel-0.2-coverage.ps1` requires
+  every conditional in a covered gate to be evaluated by a passing run. It ran in the repository gate
+  until **AT7** moved it behind `build/verify-gate-self-checks.ps1`. **AR1** is what that found on its first run, and it is the first finding here raised by an
   instrument rather than by a reading — `C5-P1` and `C6-P1` each state two clauses, each had one named
   mutation, each mutation fires through the first clause, and both second clauses could be deleted
   from the evaluator with both gates green. It is also the first of the AM-AR passes raised against

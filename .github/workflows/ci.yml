@@ -4,6 +4,16 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      gate-self-checks:
+        description: 'Also run the Channel 0.2 probe corpus and gate-coverage measure'
+        type: boolean
+        default: false
+  schedule:
+    # The floor under the gate self-checks, not the plan for running them. A probe whose anchor a
+    # correction moved stops measuring silently and AO3 found four that had, so moving the corpus off
+    # every push reopens that gap and something has to close it without being asked.
+    - cron: '17 4 * * 1'
 
 permissions:
   contents: read
@@ -12,12 +22,7 @@ jobs:
   full-gate:
     name: Full gate (.NET ${{ matrix.lane }})
     runs-on: windows-latest
-    # Raised from 30 under AT7. The gate ran in 13 minutes and now runs in 23 to 25, because the
-    # Channel 0.2 coverage measure gained a second unit and four probes that each run it. Thirty left
-    # five minutes of headroom against two minutes of observed runner variance, which is a gate that
-    # fails on a slow morning rather than on a defect. The cost itself is recorded as a regression in
-    # the verification foundation plan's section 4, so raising this does not make it invisible.
-    timeout-minutes: 45
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -42,4 +47,10 @@ jobs:
 
       - name: Run build, complete test inventory, cross-process providers, and repository controls
         shell: powershell
-        run: .\build\verify-interchange.ps1
+        # The gate self-checks -- the Channel 0.2 probe corpus and gate-coverage measure -- are 411 of
+        # the 442 seconds this gate's PowerShell half takes, so they run on the schedule and on request
+        # rather than on every push. AT7, and build/verify-gate-self-checks.ps1 states what that gives up.
+        run: |
+          $selfChecks = ('${{ github.event_name }}' -eq 'schedule') -or ('${{ inputs.gate-self-checks }}' -eq 'true')
+          if ($selfChecks) { .\build\verify-interchange.ps1 -IncludeGateSelfChecks }
+          else { .\build\verify-interchange.ps1 }

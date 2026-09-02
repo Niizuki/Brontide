@@ -828,9 +828,10 @@ are `C5-pre-dispatch-refusal-possible-effect` and `C6-denial-without-decision-po
 the per-capability audit above, which is the artifact Batch 2 authors property files from and which
 had described both properties by their first clause alone.
 
-The class is closed rather than the two instances: `build/verify-channel-0.2-coverage.ps1` runs in the
-repository gate and fails when any conditional in a covered gate is never evaluated, so a clause no
-input reaches is a gate failure rather than a finding several cycles later.
+The class is closed rather than the two instances: `build/verify-channel-0.2-coverage.ps1` fails when
+any conditional in a covered gate is never evaluated, so a clause no input reaches is a gate failure
+rather than a finding several cycles later. It ran on every push until **AT7** moved it behind
+`build/verify-gate-self-checks.ps1`, where it runs on the schedule and on request.
 
 **AT1**-**AT7** were raised by the eighth author-side pass, and **AT1 is AR1 again on a property AR1's
 own correction could not reach.** That correction closed its class with a gate rule keyed on

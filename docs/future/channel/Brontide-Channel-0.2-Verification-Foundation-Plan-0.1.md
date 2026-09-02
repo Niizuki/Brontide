@@ -546,8 +546,9 @@ this verification work has produced.**
   this pass re-derived them again — and **four could not be set up at all**, because the text they
   anchored on had been corrected by the AN pass and nothing said so. "The guards fire" is a claim both
   retained reviews make and nothing was checking. `conformance/channel-0.2-guard-probes.json` now
-  holds the 45 probes the three passes validated and `build/verify-channel-0.2-guards.ps1` runs them
-  in the repository gate, failing on a probe whose anchor has moved rather than skipping it.
+  holds the 45 probes the three passes validated and `build/verify-channel-0.2-guards.ps1` runs them,
+  failing on a probe whose anchor has moved rather than skipping it. It ran in the repository gate
+  until **AT7** moved it behind `build/verify-gate-self-checks.ps1`.
 
 **What generalises is the direction of AO1's fix and it is now this work's most repeated lesson.** A
 guard that silently drops what it cannot read certifies its own completeness. AM1's status region
@@ -557,8 +558,8 @@ answer has been the same every time: **make the unreadable case loud.**
 
 **One question this pass does not settle**, recorded here rather than decided: whether the guard corpus
 should become a fifth work item with its own acceptance, or stay what it is — a corpus retained beside
-the gates and grown by whichever pass adds a guard. It is in the repository gate either way. Section 5
-carries it as open question 4.
+the gates and grown by whichever pass adds a guard. It runs either way; **AT7** moved where, from
+every push to the scheduled and requested runs. Section 5 carries it as open question 4.
 
 ## 2g. What the fourth condition 4 pass found
 
@@ -662,7 +663,8 @@ under the 2026-08-20 ruling settles the class. What belongs here is the instrume
 **The AQ pass's owed item is discharged.** That pass built a coverage trace, found four of its five
 findings with it, and kept only the output — section 1.1 of this plan for the third time, after the
 property evaluators every closure reviewer discarded and the probes three passes rebuilt from prose.
-It is now `build/verify-channel-0.2-coverage.ps1`, it runs in the repository gate, and its rule is
+It is now `build/verify-channel-0.2-coverage.ps1`, it runs under `build/verify-gate-self-checks.ps1`
+since **AT7** and in the repository gate before that, and its rule is
 that **every conditional in a covered gate must be evaluated by a passing run**, with the constructs a
 passing run correctly cannot reach declared in `conformance/channel-0.2-coverage-exemptions.json` with
 their reasons. An entry whose construct becomes reachable fails; an entry whose construct disappears
@@ -791,9 +793,17 @@ installed in**, which is the same shape as the findings it was hunting: a number
 never checked against the whole. Three corrections -- dropping the two harness-shaped gates from the
 covered set, recording an operand the first time it is evaluated rather than 13,871 times, and inlining
 a syntax-tree predicate that was a function call per node -- leave the gate at **103 seconds against the
-652 it reached and the 77 it started at**, all measured in verifying mode. The combined Channel gate is
-**8.7 minutes against 3.5**, which puts the repository gate near 18 against its ceiling of 30. That is a
-regression this plan records rather than absorbs, and the measure below carries it.
+652 it reached and the 77 it started at**, all measured in verifying mode. That was still not enough:
+the gate passed at 23 to 25 minutes against a 30-minute ceiling with two minutes of variance between
+lanes, which fails on a slow morning rather than on a defect.
+
+**The owner's decision was to move the expensive half behind an explicit switch rather than to raise the
+ceiling**, and the measurement that settled which half is in section 4: the probe corpus is 360 of the
+PowerShell half's 442 seconds and the coverage measure 50, against 31 for the other twenty-two
+verifications. Both now run under `build/verify-gate-self-checks.ps1`, which the repository gate invokes
+only with `-IncludeGateSelfChecks`, and which CI runs on a weekly schedule and on request. **What that
+gives up is AO3's argument**: a probe that stops applying now merges, and the scheduled run is the floor
+that catches it rather than the plan. That file states the trade where the switch is.
 
 **AT5 is the other way a probe mutation survives.** AS7 hardened restoration against a transient
 `IOException`; here the process was killed and never reached its `finally` block at all, and no retry
@@ -883,15 +893,19 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   since, by four characters each time and for the same reason — registering a new iteration-review
   family in the Design reviews row — and on both occasions the check that recomputes it failed the
   figure on the commit that wrote it, which is the check working rather than a defect in it; and
-- **repository-gate minutes** — **13** before this pass and **23 to 25** now, measured on the two CI
-  lanes rather than locally, against a job ceiling raised from 30 to 45 under **AT7**. This measure did
-  not exist until covering two further gates took every job past the old ceiling on a branch whose gates
-  were green one at a time — which is what a verification cost looks like when it is only ever measured
-  in isolation. It is stated here because raising a timeout is how a cost stops being visible, and the
-  question it keeps open is whether the operand unit's four probe-driven coverage runs are worth roughly
-  seven of those minutes; and
+- **repository-gate minutes** — **13** before this pass, **23 to 25** with the gate self-checks in it,
+  and back under the original 30-minute ceiling with them behind a switch. Measured on the two CI lanes
+  rather than locally. The measure did not exist until covering two further gates took every job past
+  that ceiling on a branch whose gates were green one at a time, which is what a verification cost looks
+  like when it is only ever measured in isolation. **The first answer was to raise the ceiling to 45 and
+  the owner's answer was to move the expensive half behind an explicit switch**, which is better for the
+  reason this list exists: a ceiling absorbs a cost and a switch names it. Of the PowerShell half's 442
+  seconds, the probe corpus is 360 and the coverage measure 50, and the other twenty-two verifications
+  are 31 between them; and
 - **guard probes executable** — currently **73 of 73**, run by
-  `build/verify-channel-0.2-guards.ps1` in the repository gate and recomputed by it. This measure did
+  `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
+  It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
+  place for a measure to live and is the cost that decision accepted. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
 - **design-verifier lines** — **2,744** now, recomputed by the verifier against itself. Every step
