@@ -763,7 +763,7 @@
       "edits": [
         {
           "path": "docs/future/README.md",
-          "find": "review has yet seen the AR corrections.",
+          "find": "review has yet seen the AT corrections.",
           "replace": "review has yet seen the AB corrections."
         }
       ]
