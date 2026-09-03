@@ -490,8 +490,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "run in the gate on every commit: **70** evaluations over **31** declared inputs",
-          "replace": "run in the gate on every commit: **55** evaluations over **31** declared inputs"
+          "find": "run in the gate on every commit: **71** evaluations over **32** declared inputs",
+          "replace": "run in the gate on every commit: **55** evaluations over **32** declared inputs"
         }
       ]
     },
@@ -646,8 +646,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md",
-          "find": "| C3 | C3-P1 exact class/direction/phase |",
-          "replace": "| C3 | exact class/direction/phase |"
+          "find": "| C3 | C3-P1 exact class/direction/phase --",
+          "replace": "| C3 | exact class/direction/phase --"
         }
       ]
     },
@@ -763,7 +763,7 @@
       "edits": [
         {
           "path": "docs/future/README.md",
-          "find": "review has yet seen the AT corrections.",
+          "find": "review has yet seen the AU corrections.",
           "replace": "review has yet seen the AB corrections."
         }
       ]
