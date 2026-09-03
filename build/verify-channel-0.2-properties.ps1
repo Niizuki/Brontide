@@ -419,6 +419,33 @@ $terminalSessionStates = @('closed', 'faulted')
 
 function Get-Timeline { param($Vector) if ($null -eq $Vector.sessionTimeline) { return @() } return @($Vector.sessionTimeline) }
 function Get-Interactions { param($Vector) if ($null -eq $Vector.interactions) { return @() } return @($Vector.interactions) }
+
+# AU2, and both halves are one defect: an obligation that fires on what a vector does not SAY reports
+# the same red as one that fires on what a realization did wrong, so nothing distinguishes them.
+#
+# `@($null)` is a ONE-element array in PowerShell, not an empty one, so a collection the vector does
+# not publish reads as a collection holding one null. `C11-P1` was red on every vector that publishes
+# no `requiredFacets` -- with a blank where the facet name belongs in its own witness -- and two
+# evaluators already carried a local `if ($null -eq $history) { continue }` for the same thing, which
+# patches one reader and leaves every other read exposed. An unpublished collection is empty.
+function Get-List { param($Value) if ($null -eq $Value) { return @() } return @($Value) }
+
+# A scalar an obligation reads has no such default. A vector that does not say whether the realization
+# checked its declared bounds has not shown conformance and has not shown a violation either, and
+# taking the property red on it is the AE1 shape waiting for the next required-green member: five
+# properties were red on a conforming timeline whose interactions published no detail fields. Absence
+# is an error against the vector, raised through the result's own error list, and never a verdict.
+$script:UnpublishedFields = [System.Collections.Generic.List[string]]::new()
+function Read-Required {
+    param($Record, [Parameter(Mandatory = $true)][string]$Field, [Parameter(Mandatory = $true)][string]$Subject)
+
+    $member = if ($null -eq $Record) { $null } else { $Record.PSObject.Properties[$Field] }
+    if ($null -eq $member -or $null -eq $member.Value) {
+        [void]$script:UnpublishedFields.Add("$Subject publishes no '$Field'")
+        return $null
+    }
+    return $member.Value
+}
 # AR1. `-Conjunct` names WHICH clause of a multi-clause property went red. It is not new structure
 # invented here: the check at the bottom of this file already requires a mutation declared against a
 # conjunct to fire through that conjunct, and the reason it gave -- "a conjunct whose mutation fires
@@ -427,7 +454,18 @@ function Get-Interactions { param($Vector) if ($null -eq $Vector.interactions) {
 # two clauses in one sentence, each had one named mutation, and each mutation fired through the first
 # clause. Naming the clauses is the mechanical decomposition that lets the existing rule reach them;
 # the statement itself stays the contract's, verbatim and unrestated.
-function New-Red { param([string]$Witness, [string]$Conjunct) return [pscustomobject]@{ Verdict = 'red'; Conjunct = $Conjunct; Witness = $Witness; Errors = [System.Collections.Generic.List[string]]::new() } }
+# AU1. Every call of this constructor is one obligation the evaluators enforce, and the check at the
+# bottom of this file requires a declared input to reach each one. The unit is the constructor rather
+# than the clause because a clause is what the contract calls a thing and an obligation is what the
+# evaluator does: `C5-P1-clause-1` names one clause and returns two separate verdicts, and AR1's
+# correction -- which keys on properties that declare a conjunct -- pinned the first and left the
+# second deletable. Recording the call site here is what makes the class total over the file.
+$script:ObligationsReached = [System.Collections.Generic.HashSet[int]]::new()
+function New-Red {
+    param([string]$Witness, [string]$Conjunct)
+    [void]$script:ObligationsReached.Add((Get-PSCallStack)[1].ScriptLineNumber)
+    return [pscustomobject]@{ Verdict = 'red'; Conjunct = $Conjunct; Witness = $Witness; Errors = [System.Collections.Generic.List[string]]::new() }
+}
 function New-Green { return [pscustomobject]@{ Verdict = 'green'; Conjunct = $null; Witness = $null; Errors = [System.Collections.Generic.List[string]]::new() } }
 
 function Invoke-S1 {
@@ -508,9 +546,9 @@ function Invoke-S5 {
 function Invoke-S6 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     $forbidden = @('ready', 'release', 'authority', 'application-outcome')
-    foreach ($declaredEvent in @($Vector.sessionEvents)) {
+    foreach ($declaredEvent in (Get-List $Vector.sessionEvents)) {
         if ($null -eq $declaredEvent) { continue }
-        foreach ($created in @($declaredEvent.creates)) {
+        foreach ($created in (Get-List $declaredEvent.creates)) {
             if ($forbidden -contains [string]$created) {
                 return New-Red "session event $($declaredEvent.event) in session $($declaredEvent.session) creates $created"
             }
@@ -537,7 +575,7 @@ function Invoke-I1 {
 function Invoke-I2 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     foreach ($interaction in (Get-Interactions $Vector)) {
-        $histories = @($interaction.terminalHistories)
+        $histories = Get-List $interaction.terminalHistories
         if ($histories.Count -gt 1) {
             return New-Red "interaction $($interaction.identity) in session $($interaction.session) has $($histories.Count) terminal histories"
         }
@@ -549,7 +587,7 @@ function Invoke-I3 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     $nonSemantic = @('cancellation-acknowledgement', 'drain', 'timeout', 'protocol-fault')
     foreach ($interaction in (Get-Interactions $Vector)) {
-        foreach ($history in @($interaction.terminalHistories)) {
+        foreach ($history in (Get-List $interaction.terminalHistories)) {
             if ($null -eq $history) { continue }
             if (($nonSemantic -contains [string]$history.form) -and $history.semanticSuccess) {
                 return New-Red "interaction $($interaction.identity) records a $($history.form) terminal as a semantic success"
@@ -591,7 +629,7 @@ function Invoke-I5 {
         $sessionId = [string]$sessionEvent.session
         if (-not $live.ContainsKey($sessionId)) { $live[$sessionId] = 0 }
         if ([string]$sessionEvent.step -eq 'admit') { $live[$sessionId]++ }
-        elseif ([string]$sessionEvent.step -eq 'terminal' -and $sessionEvent.accepted) { $live[$sessionId] = [Math]::Max(0, $live[$sessionId] - @($sessionEvent.closes).Count) }
+        elseif ([string]$sessionEvent.step -eq 'terminal' -and $sessionEvent.accepted) { $live[$sessionId] = [Math]::Max(0, $live[$sessionId] - (Get-List $sessionEvent.closes).Count) }
         if ($bounds.ContainsKey($sessionId) -and $live[$sessionId] -gt $bounds[$sessionId]) {
             return New-Red "session $sessionId held $($live[$sessionId]) nonterminal interactions against its own established bound of $($bounds[$sessionId])"
         }
@@ -603,10 +641,11 @@ function Invoke-I6 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     foreach ($interaction in (Get-Interactions $Vector)) {
         if ([string]$interaction.class -ne 'relational') { continue }
-        if ([int]$interaction.declarationMatches -ne 1) {
+        $subject = "interaction $($interaction.identity) in session $($interaction.session)"
+        if ([int](Read-Required $interaction 'declarationMatches' $subject) -ne 1) {
             return New-Red "relational interaction $($interaction.identity) matches $($interaction.declarationMatches) declarations"
         }
-        if ($interaction.createsReadyOrRelease) {
+        if (Read-Required $interaction 'createsReadyOrRelease' $subject) {
             return New-Red "relational interaction $($interaction.identity) creates Ready or Release"
         }
     }
@@ -631,7 +670,7 @@ function Invoke-C4P1 {
     # one claim is the duplication W1 exists to retire, arriving in the gate instead of in the prose.
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
         if ([string]$sessionEvent.step -ne 'terminal' -or -not $sessionEvent.accepted) { continue }
-        $closes = @($sessionEvent.closes)
+        $closes = Get-List $sessionEvent.closes
         if ($closes.Count -ne 1) {
             return New-Red "an accepted terminal fact in session $($sessionEvent.session) closes $($closes.Count) admitted interactions"
         }
@@ -698,10 +737,13 @@ function Invoke-C3P1 {
     }
     foreach ($interaction in (Get-Interactions $Vector)) {
         if (-not $dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)")) { continue }
-        if (-not $interaction.profileMatch) {
+        $subject = "interaction $($interaction.identity) in session $($interaction.session)"
+        if (-not (Read-Required $interaction 'profileMatch' $subject)) {
             return New-Red "interaction $($interaction.identity) dispatched without its class and direction matching the established profile of session $($interaction.session)"
         }
-        # false and unknown both refuse admission: only an exact true satisfies the predicate.
+        # false and unknown both refuse admission: only an exact true satisfies the predicate. Absent
+        # is neither: a vector that does not publish the predicate has not stated an unknown one.
+        $null = Read-Required $interaction 'phasePredicate' $subject
         if ($interaction.phasePredicate -isnot [bool] -or -not $interaction.phasePredicate) {
             return New-Red "interaction $($interaction.identity) dispatched with external phase predicate $($interaction.phasePredicate), and only an exact true matches"
         }
@@ -717,10 +759,11 @@ function Invoke-C5P1 {
     }
     foreach ($interaction in (Get-Interactions $Vector)) {
         if ($dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)")) {
-            if (-not $interaction.boundsChecked) {
+            $subject = "interaction $($interaction.identity) in session $($interaction.session)"
+            if (-not (Read-Required $interaction 'boundsChecked' $subject)) {
                 return New-Red "interaction $($interaction.identity) dispatched without passing every declared bound" 'C5-P1-clause-1'
             }
-            if (-not $interaction.positionalShapeChecked) {
+            if (-not (Read-Required $interaction 'positionalShapeChecked' $subject)) {
                 return New-Red "interaction $($interaction.identity) dispatched without passing every positional Shape rule" 'C5-P1-clause-1'
             }
         }
@@ -740,7 +783,7 @@ function Invoke-C6P1 {
         if ([string]$sessionEvent.step -eq 'dispatch') { $dispatched["$($sessionEvent.session)|$($sessionEvent.identity)"] = $true }
     }
     foreach ($interaction in (Get-Interactions $Vector)) {
-        $decision = [string]$interaction.authorityDecision
+        $decision = [string](Read-Required $interaction 'authorityDecision' "interaction $($interaction.identity) in session $($interaction.session)")
         if ($dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)") -and $decision -ne 'permitted') {
             return New-Red "interaction $($interaction.identity) reached handler dispatch with local authority decision $decision" 'C6-P1-clause-1'
         }
@@ -762,13 +805,14 @@ function Invoke-C7P1 {
     foreach ($interaction in (Get-Interactions $Vector)) {
         if ([string]$interaction.class -ne 'relational') { continue }
         if (-not $dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)")) { continue }
-        if ([int]$interaction.declarationMatches -ne 1) {
+        $subject = "interaction $($interaction.identity) in session $($interaction.session)"
+        if ([int](Read-Required $interaction 'declarationMatches' $subject) -ne 1) {
             return New-Red "dispatched relational interaction $($interaction.identity) matches $($interaction.declarationMatches) lifecycle declarations"
         }
-        if (-not $interaction.inPreReadyWindow) {
+        if (-not (Read-Required $interaction 'inPreReadyWindow' $subject)) {
             return New-Red "dispatched relational interaction $($interaction.identity) does not occur in the pre-Ready window"
         }
-        if ($interaction.createsReadyOrRelease) {
+        if (Read-Required $interaction 'createsReadyOrRelease' $subject) {
             return New-Red "dispatched relational interaction $($interaction.identity) produces a Ready or Release fact by itself"
         }
     }
@@ -814,7 +858,7 @@ function Invoke-C10P1 {
         if ($null -ne $refusal -and [string]$refusal.effectCertainty -eq 'known-none' -and -not $refusal.explicitEvidence) {
             return New-Red "interaction $($interaction.identity) has a possible post-dispatch path and records known-none with no explicit evidence that the handler did not begin"
         }
-        foreach ($history in @($interaction.terminalHistories)) {
+        foreach ($history in (Get-List $interaction.terminalHistories)) {
             if ($null -eq $history) { continue }
             if ([string]$history.effectCertainty -eq 'known-none' -and -not $history.explicitEvidence) {
                 return New-Red "interaction $($interaction.identity) has a possible post-dispatch path and records a known-none terminal history with no explicit evidence that the handler did not begin"
@@ -827,8 +871,8 @@ function Invoke-C10P1 {
 function Invoke-C11P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     foreach ($session in @($Vector.sessions)) {
-        foreach ($required in @($session.requiredFacets)) {
-            if (@($session.supportedFacets) -notcontains [string]$required) {
+        foreach ($required in (Get-List $session.requiredFacets)) {
+            if ((Get-List $session.supportedFacets) -notcontains [string]$required) {
                 return New-Red "session $($session.id) requires facet $required and its established profile does not support it"
             }
         }
@@ -1146,7 +1190,14 @@ foreach ($property in $properties.properties) {
         }
         $vector = $vectorsById[$vectorId]
         $expected = $expectations[$vectorId]
+        $script:UnpublishedFields.Clear()
         $result = & $evaluator -VectorId $vectorId -Vector $vector -Steps $vectorIndex[$vectorId]
+        # AU2. A field the obligation read and this vector does not publish is reported against the
+        # vector, before the verdict is compared: an obligation red because the input is silent proves
+        # nothing about a realization, and a required-green member that is silent is the AE1 shape.
+        foreach ($unpublished in ($script:UnpublishedFields | Sort-Object -Unique)) {
+            $failures.Add("Property '$propertyId' reads a field vector '$vectorId' does not publish: $unpublished. An obligation cannot tell a realization that violates it from an input that does not state the fact, so a red here is not evidence and a green is not either.")
+        }
         $evaluationCount++
         if ($conditionTwoProperties -contains $propertyId) {
             $conditionTwoEvaluations++
@@ -1247,6 +1298,50 @@ foreach ($countClaim in $countClaims) {
     if ([int]($countMatch.Groups[2].Value -replace ',', '') -ne $countClaim.Inputs) {
         $failures.Add("The verification foundation plan says '$($countClaim.Name)' runs over $($countMatch.Groups[2].Value) declared inputs and it runs over $($countClaim.Inputs).")
     }
+}
+
+# ---------------------------------------------------------------------------------------------
+# AU1: every obligation is reached by a declared input.
+#
+# AR1 found a property clause that no input reached, and closed the class with a check over
+# properties that DECLARE a conjunct. AT1-AT3 found three more that check could not see, and closed
+# that class with a coverage measure over operands an expression never evaluated. Both instruments
+# are blind to the same thing: an obligation whose condition IS evaluated, on every input, and never
+# once takes the value that makes it fire. Eleven were, across nine properties -- including both
+# clauses of `C2-P1`, whose one named mutation fires through the middle clause -- and each could be
+# deleted outright with this gate, the design gate and the coverage gate all green.
+#
+# The unit is the `New-Red` call site, and that choice is the whole of the measure. The AT pass left
+# the open problem as "separating a defensive null check from a second semantic obligation hiding
+# beside it", after a deletion test over operands reported 124 of 247 and would have been abandoned
+# as noise. The answer is not to separate them by analysis but to measure a unit that contains only
+# semantic obligations: this constructor is the one place a property states a verdict, so a check
+# over its call sites reports obligations and nothing else. It reports eleven.
+#
+# It is structural rather than lexical, which is AL1's and AT1's lesson: an obligation is a
+# `New-Red` whatever the contract calls its clauses, so the class is total over this file by
+# construction, and a twelfth obligation added tomorrow joins it without anyone registering it.
+$obligationSites = [System.Collections.Generic.List[int]]::new()
+$selfAst = [System.Management.Automation.Language.Parser]::ParseFile($PSCommandPath, [ref]$null, [ref]$null)
+foreach ($call in $selfAst.FindAll({
+        param($node)
+        $node -is [System.Management.Automation.Language.CommandAst] -and $node.GetCommandName() -eq 'New-Red'
+    }, $true)) {
+    $obligationSites.Add($call.Extent.StartLineNumber)
+}
+if ($obligationSites.Count -lt 1) {
+    $failures.Add('No New-Red obligation site could be found in this file. Either the evaluators state no verdict, which is not what this gate is for, or the syntax-tree query no longer matches the constructor and this check is passing by seeing nothing.')
+}
+# The measure keys on the line, because that is what the call stack reports. Two obligations sharing a
+# line are therefore one site to it, and reaching either would mark both -- a hole of exactly the kind
+# this check exists to close, so it is refused rather than left to be discovered.
+foreach ($shared in ($obligationSites | Group-Object | Where-Object { $_.Count -gt 1 })) {
+    $failures.Add("Line $($shared.Name) of this file states $($shared.Count) obligations. This check identifies an obligation by the line its verdict is constructed on, so two on one line are indistinguishable to it and reaching either would report both as pinned. Put each on its own line.")
+}
+foreach ($site in ($obligationSites | Sort-Object -Unique)) {
+    if ($script:ObligationsReached.Contains($site)) { continue }
+    $sourceLine = (Get-Content -LiteralPath $PSCommandPath -Encoding UTF8)[$site - 1].Trim()
+    $failures.Add("No declared input makes the obligation at line ${site} of this file fire: $sourceLine  That obligation can be deleted outright with every gate green, so nothing in the suite distinguishes an implementation that honours it from one that does not. Give the property a named mutation that fires through it.")
 }
 
 if ($failures.Count -gt 0) {

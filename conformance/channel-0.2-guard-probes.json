@@ -490,8 +490,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "run in the gate on every commit: **70** evaluations over **31** declared inputs",
-          "replace": "run in the gate on every commit: **55** evaluations over **31** declared inputs"
+          "find": "run in the gate on every commit: **71** evaluations over **32** declared inputs",
+          "replace": "run in the gate on every commit: **55** evaluations over **32** declared inputs"
         }
       ]
     },
@@ -646,8 +646,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md",
-          "find": "| C3 | C3-P1 exact class/direction/phase |",
-          "replace": "| C3 | exact class/direction/phase |"
+          "find": "| C3 | C3-P1 exact class/direction/phase --",
+          "replace": "| C3 | exact class/direction/phase --"
         }
       ]
     },
@@ -763,7 +763,7 @@
       "edits": [
         {
           "path": "docs/future/README.md",
-          "find": "review has yet seen the AT corrections.",
+          "find": "review has yet seen the AU corrections.",
           "replace": "review has yet seen the AB corrections."
         }
       ]
@@ -967,6 +967,59 @@
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
           "append": "\n<!-- AT6-a: an uncommitted design artifact, which the review-target pin check skips on. -->\n"
+        }
+      ]
+    },
+    {
+      "id": "AU1-a",
+      "claim": "an obligation whose only named mutation is withdrawn is reported as reachable by no declared input, rather than staying green because the clause is never exercised",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-properties.json",
+          "find": ",\n        {\n          \"vector\": \"C11-required-facet-unsupported\",\n          \"expected\": \"red\",\n          \"note\": \"AU1. The declared mutation has a facet change a core result and fires through the second obligation, so the facet-support obligation read first had no input that reached it.\"\n        }",
+          "replace": ""
+        }
+      ]
+    },
+    {
+      "id": "AU2-a",
+      "claim": "a vector that stops publishing a field an obligation reads is named as the unpublished input rather than taking the property red on its own silence",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "\"profileMatch\": true,",
+          "replace": "\"profileMatchWithdrawn\": true,",
+          "all": true
+        }
+      ]
+    },
+    {
+      "id": "AU2-b",
+      "claim": "reading one published collection with @() again takes C11-P1 red on a conforming session that requires no facets, because @($null) is a one-element array",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "foreach ($required in (Get-List $session.requiredFacets)) {",
+          "replace": "foreach ($required in @($session.requiredFacets)) {"
+        }
+      ]
+    },
+    {
+      "id": "AU1-b",
+      "claim": "two obligations sharing one line are refused, because the obligation measure identifies a site by the line its verdict is constructed on",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "return New-Red \"relational interaction $($interaction.identity) creates Ready or Release\"",
+          "replace": "if ($false) { $null = New-Red \"AU1-b\" }; return New-Red \"relational interaction $($interaction.identity) creates Ready or Release\""
         }
       ]
     }

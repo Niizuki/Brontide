@@ -178,6 +178,7 @@ dependency instead of narrowing it.
 | AR | iteration | design | sixth W1-W3 verification-foundation iteration review |
 | AS | iteration | verification | seventh W1-W3 verification-foundation iteration review |
 | AT | iteration | design | eighth W1-W3 verification-foundation iteration review |
+| AU | iteration | design | ninth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -273,27 +274,31 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Seven such passes have run and none met the plan's condition 4, which asks for a pass that finds
+Nine such passes have run and none met the plan's condition 4, which asks for a pass that finds
 nothing it can fix. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
 [third](./channel-0.2-ao-iteration-review.md) (**AO1**-**AO3**),
 [fourth](./channel-0.2-ap-iteration-review.md) (**AP1**-**AP2**),
 [fifth](./channel-0.2-aq-iteration-review.md) (**AQ1**-**AQ5**),
-[sixth](./channel-0.2-ar-iteration-review.md) (**AR1**) and
-[seventh](./channel-0.2-as-iteration-review.md) (**AS1**-**AS7**) and
-[eighth](./channel-0.2-at-iteration-review.md) (**AT1**-**AT7**) W1-W3 verification-foundation
+[sixth](./channel-0.2-ar-iteration-review.md) (**AR1**),
+[seventh](./channel-0.2-as-iteration-review.md) (**AS1**-**AS7**),
+[eighth](./channel-0.2-at-iteration-review.md) (**AT1**-**AT7**) and
+[ninth](./channel-0.2-au-iteration-review.md) (**AU1**-**AU5**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
-**An eighth pass over the same scope is the live path.** It starts by running
-`build/verify-channel-0.2-guards.ps1`, which now holds 69 probes, and the retained coverage gate. The
-seventh pass closed five more character-bounded negative or recognizer extents, recorded one clean-
-package false positive exposed by the broader recognizer, and pinned transient mutation restoration
-after a failed restore left B7's edit in the plan. What it leaves is narrower and explicit:
-the coverage instrument measures the design, properties and facts gates but not the guard harness or
-itself, and it records whether a compound condition ran rather than whether each operand influenced a
-verdict. Those two surfaces are the eighth pass's brief. Nothing in this paragraph resumes the closure
-cycle or authorizes a closure-review dispatch.
+**A tenth pass over the same scope is the live path.** It starts by running
+`build/verify-channel-0.2-guards.ps1` and the retained coverage gate, whose sizes the plan's section 4
+owns and recomputes rather than this paragraph — **AU3** was this sentence carrying a probe count that
+had been wrong for a cycle while the gate computed the same number correctly one document away. The
+ninth pass found eleven property obligations that ran on every declared input and never fired, each
+deletable with every gate green, by measuring the verdict constructor rather than the operand; and six
+properties that could not tell a violation from a vector that omits the field. What it leaves is
+narrow and explicit: that measure works because the property gate routes every verdict through one
+constructor, and the design, facts and guard gates raise their failures from hundreds of sites with no
+equivalent chokepoint, so a guard there that runs and cannot fail is still found only by the probe
+corpus, one guard at a time. That surface is the tenth pass's brief. Nothing in this paragraph resumes
+the closure cycle or authorizes a closure-review dispatch.
 
 The sixteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
 blocking **AL1** and **AL2** and nonblocking **AL3** and **AL4**; its retained record is
@@ -932,11 +937,14 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `ci: put the gate self-checks behind an explicit switch`, committed 2026-09-02, which is the head of the correction sequence beginning at
-`fix(channel): make C4-P2 falsifiable`. It moves the pin off `feat(channel): retain the coverage
-instrument and close AR1` because the eighth pass's **AT1**-**AT3** corrections reach a design
-artifact -- the completeness review's per-capability audit rows for `I4`, `C6` and `C10`, which now
-name a mutation for each clause and each of one clause's three obligations. The other commits above
+The current review target is the commit titled `verification: pin the eleven property obligations no
+input reached`, committed 2026-09-03, which is the head of the correction sequence beginning at
+`fix(channel): make C4-P2 falsifiable`. It moves the pin off `ci: put the gate self-checks behind an
+explicit switch` because the ninth pass's **AU1** corrections reach a design artifact -- the
+completeness review's per-capability audit rows for `C2`, `C3`, `C5`, `C7`, `C8`, `C9`, `C10`, `C11`
+and `I6`, which now name a mutation for each obligation rather than for each clause. The pin was
+previously moved off `feat(channel): retain the coverage instrument and close AR1` for the eighth
+pass's **AT1**-**AT3** corrections, which reached the same audit for `I4`, `C6` and `C10`. The other commits above
 the previous pin are verification-foundation work done under the hold rather than corrections to a
 finding: all twenty-six properties now execute in
 the gate with their required-green sets stated, the three frame references and the recipient `unseen`
@@ -1049,6 +1057,17 @@ context elsewhere — never as evidence that their conclusions are right.
   **AR1 on a property AR1's own correction could not reach**, because that correction keys on
   properties which declare a conjunct and `I4` declares none. Like AR, AT is a **design** family: the
   corrections reach the per-capability property audit.
+- [Ninth W1-W3 verification-foundation iteration review](./channel-0.2-au-iteration-review.md) — the
+  same scope, after the AT corrections; raised **AU1**-**AU5** and corrected all five, so condition 4 is
+  **still not met**. It answered the brief AT left by rejecting its unit: the inherited class was an
+  operand that runs and always takes the same value, 124 of 247, and separating those from defensive
+  null checks is unanswerable because the two are the same shape. Measuring the verdict constructor
+  instead reports only semantic obligations, and **AU1** is eleven of them across nine properties, each
+  running on every declared input, never firing, and deletable outright with every gate green — AR1 and
+  AT1 a third time, including inside the very clause AR1 was raised against. **AU2** is the same eleven
+  audited for what would make them false pins: six properties could not tell a violation from a vector
+  that omits the field, which is AE1 latent. Like AR and AT, AU is a **design** family: the corrections
+  reach the per-capability property audit.
 
 ## Disclosed process deviation in the T1-T4 correction
 
