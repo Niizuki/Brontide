@@ -546,7 +546,7 @@ this verification work has produced.**
   this pass re-derived them again — and **four could not be set up at all**, because the text they
   anchored on had been corrected by the AN pass and nothing said so. "The guards fire" is a claim both
   retained reviews make and nothing was checking. `conformance/channel-0.2-guard-probes.json` now
-  holds the 45 probes the three passes validated and `build/verify-channel-0.2-guards.ps1` runs them,
+  holds the probes those three passes validated and `build/verify-channel-0.2-guards.ps1` runs them,
   failing on a probe whose anchor has moved rather than skipping it. It ran in the repository gate
   until **AT7** moved it behind `build/verify-gate-self-checks.ps1`.
 
@@ -977,7 +977,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   reason this list exists: a ceiling absorbs a cost and a switch names it. Of the PowerShell half's 442
   seconds, the probe corpus is 360 and the coverage measure 50, and the other twenty-two verifications
   are 31 between them; and
-- **guard probes executable** — currently **73 of 73**, run by
+- **guard probes executable** — currently **76 of 76**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did

@@ -262,7 +262,7 @@ if (-not $Probe) {
     $planPath = Join-Path $repositoryRoot 'docs\future\channel\Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md'
     if (Test-Path -LiteralPath $planPath) {
         $planText = [regex]::Replace(((Get-Content -Raw -LiteralPath $planPath -Encoding UTF8) -replace '\*\*', ''), '\s+', ' ')
-        $measureMatch = [regex]::Match($planText, 'guard probes executable . currently ([0-9,]+) of ([0-9,]+)')
+        $measureMatch = [regex]::Match($planText, 'guard probes executable . currently ([0-9,]*[0-9]) of ([0-9,]*[0-9])')
         if (-not $measureMatch.Success) {
             $failures.Add("The verification foundation plan's section 4 no longer states the guard-probe measure in the form 'currently <n> of <m>'. That measure is the claim the guards fire, which three passes asserted in prose while four probes had stopped applying.")
         }
