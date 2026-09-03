@@ -999,14 +999,14 @@
     },
     {
       "id": "AU2-b",
-      "claim": "reading a published collection with @() again takes C11-P1 red on a conforming session that requires no facets, because @($null) is a one-element array",
+      "claim": "reading one published collection with @() again takes C11-P1 red on a conforming session that requires no facets, because @($null) is a one-element array",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "foreach ($required in (Get-List $session.requiredFacets)) {\n            if ((Get-List $session.supportedFacets) -notcontains [string]$required) {",
-          "replace": "foreach ($required in @($session.requiredFacets)) {\n            if (@($session.supportedFacets) -notcontains [string]$required) {"
+          "find": "foreach ($required in (Get-List $session.requiredFacets)) {",
+          "replace": "foreach ($required in @($session.requiredFacets)) {"
         }
       ]
     }
