@@ -47,6 +47,10 @@
         {
           "anchor": "foreach ($unpublished in ($script:UnpublishedFields | Sort-Object -Unique)) {",
           "reason": "AU2's report loop. A property reads a field through `Read-Required`, which records the absence rather than returning a verdict, and this loop raises each recorded absence against the vector. Every declared input publishes every field its properties read, so a passing run records none and the loop walks an empty collection -- it fires the moment a vector stops publishing one, which is what the AU2-a probe pins."
+        },
+        {
+          "anchor": "foreach ($shared in ($obligationSites | Group-Object | Where-Object { $_.Count -gt 1 })) {",
+          "reason": "AU1's same-line refusal. Every obligation in this file is constructed on its own line, so the grouping selects nothing and the loop walks an empty collection. It fires the moment two verdicts share a line, which is what the AU1-b probe pins."
         }
       ],
       "operandExemptions": [
