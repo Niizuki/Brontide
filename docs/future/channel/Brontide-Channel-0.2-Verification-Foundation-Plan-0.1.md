@@ -196,7 +196,7 @@ second copy drift. Section 4's count of executable properties is checked against
 executes, so the measure cannot go stale in the direction that flatters the work.
 
 **All fifteen properties condition 2 names now execute.** `C4-P1`, `C4-P2`, `S1`-`S6` and `I1`-`I7`
-run in the gate on every commit: **70** evaluations over **31** declared inputs, plus the nine operand
+run in the gate on every commit: **71** evaluations over **32** declared inputs, plus the nine operand
 mutations. Each has at least one named mutation it goes red on and a required-green set it stays green
 on, and a property green on every input fails the gate as a finding against the property.
 
@@ -231,7 +231,7 @@ Both were probed.
 
 **All twenty-six properties now execute, and no cell in either audit table reads `owed`.** The eleven
 per-capability properties outside condition 2 -- `C1-P1`, `C2-P1`, `C3-P1`, `C5-P1` through `C12-P1`
--- were the last of them. The gate runs **119** evaluations over **46** declared inputs plus the nine operand
+-- were the last of them. The gate runs **131** evaluations over **55** declared inputs plus the nine operand
 mutations, and each property is red on the mutation the completeness review already named for it and
 green on both required-green members.
 
@@ -828,8 +828,79 @@ verdict -- **124 of the 247** are in that class, and separating a defensive null
 semantic obligation hiding beside it is the open problem. `C2-P1` and `C9-P1` each state two clauses
 against one mutation and are not reported, which is where that limit bites first. The operand measure
 also covers the three design gates and not the harness or the coverage gate, whose operands were
-measured by hand for this pass and not retained. A ninth pass starts with the 72 probes and both
+measured by hand for this pass and not retained. A ninth pass starts with the retained corpus and both
 measures; nothing here resumes the closure cycle.
+
+## 2l. What the ninth condition 4 pass found
+
+The ninth author-side pass has run and is retained as the
+[ninth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-au-iteration-review.md).
+It raised **AU1**-**AU5** and corrected all five, so **it does not meet condition 4** either. AU is a
+`design` family: AU1's corrections reach the completeness review's per-capability audit rows, and under
+the 2026-08-20 ruling a family whose correction reached the design is a design family whatever else it
+touched. Its disposition is in that review's history.
+
+**The inherited brief was the wrong unit, and answering it required saying so.** The AT pass left the
+class "an operand that is evaluated, always takes the same value, and could be deleted" -- 124 of 247 --
+and named separating a defensive null check from a semantic obligation as the open problem. Pursued
+directly it stays unanswerable, because the two are the same shape in the syntax tree. The pass changed
+the unit instead: `New-Red` is the one place a property states a verdict, so a measure over its call
+sites contains only semantic obligations and no null checks at all. It reports **eleven**, and needs no
+separation rule.
+
+**AU1 is those eleven, across nine of the twenty-six properties**, each an obligation that runs on every
+declared input and never once fires. Every one was deletable outright with the property, design and
+coverage gates all green, which the pass verified by deleting each in turn. Both clauses of `C2-P1` and
+the first of `C9-P1` are there -- the two the AT pass predicted -- and seven properties it did not:
+`C3-P1`, `C5-P1`, `C7-P1` twice, `C8-P1`, `C10-P1`, `C11-P1` and `I6`.
+
+**It is AR1 and AT1 a third time, and the reason all three exist is one rule stated at the wrong
+altitude.** AR1 closed its class with a check over properties that declare a `conjunct`; AT1 found the
+instance that declares none. AT closed *its* class with a coverage measure over operands an expression
+never evaluated; these eleven are evaluated. `C5-P1-clause-1` is the sharpest case: AR1 gave that clause
+a named mutation, the clause states **two** obligations, the mutation fires through the first and
+returns, and the second was still deletable with every gate green -- AR1's own finding one level below
+the clause AR1 was raised against. The obligation measure is total over the file by construction, which
+neither a declared conjunct list nor a clause count is.
+
+**AU2 is the same eleven examined for what would make them false pins, and it is AE1's shape latent.**
+Six properties were red on a vector that merely **omits** a field they read, so an obligation could not
+tell a realization that violates it from an input that does not state the fact -- and each of the eleven
+new mutations could have been "satisfied" by silence rather than by the violation it names. Two causes:
+`@($null)` is a one-element array in PowerShell, so an unpublished collection read as one holding a
+null and `C11-P1` was red with a blank where the facet name belongs in its own witness; and an
+unpublished scalar is falsy, so five more read silence as violation. Collections are read through
+`Get-List` and required scalars through `Read-Required`, which raises the absence against the vector
+instead of returning a verdict. The probe that pins it removes one field from the conforming
+single-session realization and reproduces `C3-P1` red on its own required-green member, which is AE1
+exactly. Two evaluators already carried a local `if ($null -eq $history) { continue }` for the
+collection half -- the defect had been met and patched at one reader.
+
+**AU3 and AU4 are the entry points, and both are AM2's lesson where AM2's correction did not reach.**
+The probe corpus was stated in four places with three values: the plan said 72 twice, its own section 2k
+said the AT pass took it from 69 to 73, and the review policy said 69. The one surface that was correct
+is section 4's measure, which this gate recomputes -- the same split AM2 recorded, one cycle later, in
+the same document. **AU4** is the review policy's own exact-next-work paragraph naming the *eighth* pass
+as the live path while listing the eighth as retained directly above it, and saying seven passes had run
+beside a list of eight; this plan's section 3 said "the seven" beside a tally of eight. Restatements are
+removed where a gate owns the number, and the harness now sweeps every narrative surface for a stated
+probe count and fails when one disagrees with the corpus it runs.
+
+**AU5 is the smallest finding here and the one with the most general lesson.** The disposition index's
+section for the redesign plan carried the AT disposition sentence twice, verbatim and consecutively.
+Five freshness checks read those sections and every one asks whether the newest family is *named*; a
+duplicated append is invariant under all five. That is AQ5's blind spot in the records rather than in
+the gates -- an assertion that something must be present, with nothing asking how much of it there is.
+No check is added, because a duplicate-clause rule written to the shape of one accident is the mistake
+AR1 and AT1 each paid for; it is reported so the next pass reads the appends and not only the ids.
+
+**What the next pass inherits.** The obligation measure works because the property gate routes every
+verdict through one constructor. The design, facts and guard gates have no such chokepoint -- they raise
+`$failures.Add` from hundreds of sites, and a guard there that runs and cannot fail is still found only
+by the probe corpus, one guard at a time and only where someone thought to write the probe. Whether
+those sites can be given an equivalent unit is the open question, and the honest answer may be that the
+corpus is the instrument and its completeness is the thing to measure. Nothing here resumes the closure
+cycle.
 
 ## 3. How the hold ends
 
@@ -846,29 +917,32 @@ The cycle resumes when, in this order:
 
 Then one fresh independent closure review is dispatched under the unchanged independence rules.
 
-**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run eight
-times and is met by none of them**: the passes found three, six, three, two, five, one, seven and seven
-defects and fixed them all, which is the opposite of what that condition asks. Sections 2d through 2k
-record them.
+**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run nine
+times and is met by none of them**: the passes found three, six, three, two, five, one, seven, seven and
+five defects and fixed them all, which is the opposite of what that condition asks. Sections 2d through
+2l record them.
 
-The seven are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
+The nine are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
 fact was stated; AO read each guard's comment as a claim and tested it against the code; AP asked
 whether each guard's *key* remained load-bearing; AQ traced statements; AR retained conditional
 coverage and used it to find unreachable property clauses; AS audited the negative assertion and
 compound-recognizer shapes that line coverage cannot see, then AS7 followed the guard harness itself
-when its restoration failed. Each brief came from the pass before it,
+when its restoration failed; AT measured an operand the enclosing expression never reached; and AU
+measured the obligation rather than the operand, which is what finally reported the clause that runs
+on every input and never fires. Each brief came from the pass before it,
 and **AO1 — two properties red on conforming behaviour — remains a defect a closure reviewer would
-have been entitled to call blocking.** The condition is doing what it was written to do; it has not
-yet run out of findings.
+have been entitled to call blocking**, as does **AU1**, eleven obligations that no declared input
+could distinguish an implementation honouring them from one that did not. The condition is doing what
+it was written to do; it has not yet run out of findings.
 
-The next work is therefore a ninth author-side pass over the same W1-W3 verification scope. It
-starts by running `build/verify-channel-0.2-guards.ps1`, which now holds 72 probes, and the coverage
-gate, which now measures operands as well as conditions. Its named question is the class that measure
-cannot see: an operand that is evaluated, always takes the same value, and could still be deleted
-without changing any observed verdict -- 124 of the 247 -- of which `C2-P1` and `C9-P1`, each stating
-two clauses against one mutation, are where it bites first. It meets condition
-4 only if it finds nothing it can fix. Nothing in this section authorizes dispatching a closure
-review, and the closure-cycle state at the head of this document is what says so.
+The next work is therefore a tenth author-side pass over the same W1-W3 verification scope. It
+starts by running `build/verify-channel-0.2-guards.ps1` and the coverage gate, whose sizes section 4
+owns and recomputes rather than this sentence. Its named question is what the ninth pass left, in
+section 2l: the obligation measure covers the property gate, where a verdict has one constructor, and
+the three gates that raise `$failures.Add` from hundreds of sites have no equivalent -- so a guard
+that runs and cannot fail is still found only by the probe corpus, one guard at a time. It meets
+condition 4 only if it finds nothing it can fix. Nothing in this section authorizes dispatching a
+closure review, and the closure-cycle state at the head of this document is what says so.
 
 ## 4. What to measure
 
@@ -887,7 +961,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,339** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,343** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved twice
   since, by four characters each time and for the same reason — registering a new iteration-review

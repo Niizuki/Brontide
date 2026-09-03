@@ -273,6 +273,32 @@ if (-not $Probe) {
             $failures.Add("The verification foundation plan says $($measureMatch.Groups[1].Value) probes return the verdict their guard owes and $passed do.")
         }
     }
+
+    # AU3, and it is AM2's lesson arriving where AM2's own correction did not reach: the measure this
+    # gate computes was right and every statement of the same number left to prose was wrong. The
+    # corpus held 73 while the plan said 72 in two places, its own section 2k said "from 69 to 73",
+    # and the review policy said 69 -- one fact, four surfaces, three values, and the one surface a
+    # gate recomputed was the one that was correct. The question that finds this is AN's, "where else
+    # is this stated", and it is asked here rather than answered once more by hand.
+    $countSurfaces = @(
+        'docs\future\channel\Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md',
+        'docs\future\channel\reviews\README.md',
+        'docs\future\README.md',
+        'docs\future\channel\README.md'
+    )
+    foreach ($countSurface in $countSurfaces) {
+        $surfacePath = Join-Path $repositoryRoot $countSurface
+        if (-not (Test-Path -LiteralPath $surfacePath)) {
+            $failures.Add("The probe-count sweep names '$countSurface' and no such file exists. A sweep over a path that is not there is a check that passes by looking at nothing.")
+            continue
+        }
+        $surfaceText = [regex]::Replace(((Get-Content -Raw -LiteralPath $surfacePath -Encoding UTF8) -replace '\*\*', ''), '\s+', ' ')
+        foreach ($stated in [regex]::Matches($surfaceText, '([0-9][0-9,]*) probes')) {
+            if ([int]($stated.Groups[1].Value -replace ',', '') -ne $probes.Count) {
+                $failures.Add("'$countSurface' says the corpus holds $($stated.Groups[1].Value) probes and it holds $($probes.Count). A count of this corpus is a fact this file owns, and every statement of it that a gate does not recompute has gone stale at least once.")
+            }
+        }
+    }
 }
 
 if ($failures.Count -gt 0) {

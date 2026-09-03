@@ -916,6 +916,11 @@
           "vector": "I6-relational-creates-ready",
           "expected": "red",
           "note": "See the vector's own summary for why this input violates the statement."
+        },
+        {
+          "vector": "I6-relational-matches-two-declarations",
+          "expected": "red",
+          "note": "AU1. The declared mutation makes the relational interaction create Ready, which the second obligation catches, so the declaration-count obligation read first had no input that reached it."
         }
       ],
       "requiredGreen": [
@@ -1119,6 +1124,16 @@
           "vector": "C2-accept-interaction-while-draining",
           "expected": "red",
           "note": "The mutation the completeness review's per-capability audit names for this property."
+        },
+        {
+          "vector": "S1-illegal-transition-accepted",
+          "expected": "red",
+          "note": "AU1. C2-P1 is evaluated through S1 and S4, and its declared mutation admits an interaction while draining, which the middle clause catches. The first clause -- S1's legal transition table -- had no input that reached it and could be deleted outright with every gate green. This is the input S1's own row already names, on the precedent I4's row states: the two clauses say the same thing about the same table."
+        },
+        {
+          "vector": "C2-terminal-session-resumed-legal-edge",
+          "expected": "red",
+          "note": "AU1. The third clause -- S4's terminal monotonicity -- could not be reached by S4's own mutation, because no legal edge leaves a terminal state and so the first clause returned first on every input that took S4 red. This vector resumes after `closed` on an edge the table does contain, which is the only way the third clause fires."
         }
       ],
       "requiredGreen": [
@@ -1168,6 +1183,11 @@
           "vector": "C3-unknown-phase-marked-true",
           "expected": "red",
           "note": "The mutation the completeness review's per-capability audit names for this property."
+        },
+        {
+          "vector": "C3-profile-mismatch-on-dispatch",
+          "expected": "red",
+          "note": "AU1. The declared mutation marks an unknown phase predicate true and fires through the second obligation, so the class-and-direction obligation read first had no input that reached it."
         }
       ],
       "requiredGreen": [
@@ -1223,6 +1243,12 @@
           "expected": "red",
           "conjunct": "C5-P1-clause-2",
           "note": "AR1. The second clause had no input that reached it: no declared vector carried a pre-dispatch refusal at all, so the clause could be deleted outright with the gate green. One mutation per clause, on the rule C4's audit row already states."
+        },
+        {
+          "vector": "C5-positional-shape-unchecked",
+          "expected": "red",
+          "conjunct": "C5-P1-clause-1",
+          "note": "AU1. AR1 gave this clause a mutation and the clause states two obligations: the mutation fails a declared bound and returns, so the positional Shape obligation beside it was still deletable with every gate green. One named mutation per obligation, which is the rule C6-P1's row already applies to its own three."
         }
       ],
       "requiredGreen": [
@@ -1338,6 +1364,16 @@
           "vector": "C7-success-creates-ready",
           "expected": "red",
           "note": "The mutation the completeness review's per-capability audit names for this property."
+        },
+        {
+          "vector": "I6-relational-matches-two-declarations",
+          "expected": "red",
+          "note": "AU1. The declared mutation lets a success create Ready and fires through the third obligation, so the declaration-count obligation read first had no input that reached it. The input is I6's, because the two obligations say the same thing about the same field."
+        },
+        {
+          "vector": "C7-relational-outside-pre-ready-window",
+          "expected": "red",
+          "note": "AU1. The pre-Ready window obligation, second of the three and unreached by either mutation before it."
         }
       ],
       "requiredGreen": [
@@ -1386,6 +1422,11 @@
           "vector": "C8-acknowledgement-recorded-as-success",
           "expected": "red",
           "note": "The mutation the completeness review's per-capability audit names for this property."
+        },
+        {
+          "vector": "I2-two-terminal-histories",
+          "expected": "red",
+          "note": "AU1. C8-P1 is evaluated through I2 and I3, and its declared mutation records a cancellation acknowledgement as a semantic success, which is I3 and the second clause. The first clause -- I2's one-terminal-history rule -- had no input that reached it. This is the input I2's own row already names."
         }
       ],
       "requiredGreen": [
@@ -1435,6 +1476,11 @@
           "vector": "C9-local-loss-mapped-to-peer-fault",
           "expected": "red",
           "note": "The mutation the completeness review's per-capability audit names for this property."
+        },
+        {
+          "vector": "C9-provenance-form-outside-the-four",
+          "expected": "red",
+          "note": "AU1. The declared mutation records one of the four forms for what was actually another and fires through the second obligation, so the closed-set obligation read first had no input that reached it."
         }
       ],
       "requiredGreen": [
@@ -1488,6 +1534,11 @@
           "vector": "C10-known-none-terminal-history",
           "expected": "red",
           "note": "AT3. The declared mutation above records the fabricated zero on the interaction's refusal, which is read first and returns, so the terminal-history obligation had no input that reached it and could be deleted with every gate green. This vector carries no refusal, so only the terminal history witnesses it."
+        },
+        {
+          "vector": "C10-observation-incomplete",
+          "expected": "red",
+          "note": "AU1. Both declared mutations fabricate a `known-none` effect certainty, and the completeness obligation is read before either of them, so nothing reached it. AT3 added the second of those two and did not reach this one."
         }
       ],
       "requiredGreen": [
@@ -1536,6 +1587,11 @@
           "vector": "C11-facet-changes-interaction-identity",
           "expected": "red",
           "note": "The mutation the completeness review's per-capability audit names for this property."
+        },
+        {
+          "vector": "C11-required-facet-unsupported",
+          "expected": "red",
+          "note": "AU1. The declared mutation has a facet change a core result and fires through the second obligation, so the facet-support obligation read first had no input that reached it."
         }
       ],
       "requiredGreen": [
@@ -1563,6 +1619,11 @@
           "vector": "S-conforming-fault-from-established",
           "raisedBy": "AO1",
           "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        },
+        {
+          "vector": "C11-session-with-no-required-facets",
+          "raisedBy": "AU2",
+          "member": "a conforming session that requires no facets and publishes that by omitting the field, which the collection read took as one facet named by the empty string"
         }
       ]
     },
