@@ -937,11 +937,14 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `ci: put the gate self-checks behind an explicit switch`, committed 2026-09-02, which is the head of the correction sequence beginning at
-`fix(channel): make C4-P2 falsifiable`. It moves the pin off `feat(channel): retain the coverage
-instrument and close AR1` because the eighth pass's **AT1**-**AT3** corrections reach a design
-artifact -- the completeness review's per-capability audit rows for `I4`, `C6` and `C10`, which now
-name a mutation for each clause and each of one clause's three obligations. The other commits above
+The current review target is the commit titled `verification: pin the eleven property obligations no
+input reached`, committed 2026-09-03, which is the head of the correction sequence beginning at
+`fix(channel): make C4-P2 falsifiable`. It moves the pin off `ci: put the gate self-checks behind an
+explicit switch` because the ninth pass's **AU1** corrections reach a design artifact -- the
+completeness review's per-capability audit rows for `C2`, `C3`, `C5`, `C7`, `C8`, `C9`, `C10`, `C11`
+and `I6`, which now name a mutation for each obligation rather than for each clause. The pin was
+previously moved off `feat(channel): retain the coverage instrument and close AR1` for the eighth
+pass's **AT1**-**AT3** corrections, which reached the same audit for `I4`, `C6` and `C10`. The other commits above
 the previous pin are verification-foundation work done under the hold rather than corrections to a
 finding: all twenty-six properties now execute in
 the gate with their required-green sets stated, the three frame references and the recipient `unseen`
