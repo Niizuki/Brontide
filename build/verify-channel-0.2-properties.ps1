@@ -1332,6 +1332,12 @@ foreach ($call in $selfAst.FindAll({
 if ($obligationSites.Count -lt 1) {
     $failures.Add('No New-Red obligation site could be found in this file. Either the evaluators state no verdict, which is not what this gate is for, or the syntax-tree query no longer matches the constructor and this check is passing by seeing nothing.')
 }
+# The measure keys on the line, because that is what the call stack reports. Two obligations sharing a
+# line are therefore one site to it, and reaching either would mark both -- a hole of exactly the kind
+# this check exists to close, so it is refused rather than left to be discovered.
+foreach ($shared in ($obligationSites | Group-Object | Where-Object { $_.Count -gt 1 })) {
+    $failures.Add("Line $($shared.Name) of this file states $($shared.Count) obligations. This check identifies an obligation by the line its verdict is constructed on, so two on one line are indistinguishable to it and reaching either would report both as pinned. Put each on its own line.")
+}
 foreach ($site in ($obligationSites | Sort-Object -Unique)) {
     if ($script:ObligationsReached.Contains($site)) { continue }
     $sourceLine = (Get-Content -LiteralPath $PSCommandPath -Encoding UTF8)[$site - 1].Trim()

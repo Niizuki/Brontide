@@ -977,7 +977,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   reason this list exists: a ceiling absorbs a cost and a switch names it. Of the PowerShell half's 442
   seconds, the probe corpus is 360 and the coverage measure 50, and the other twenty-two verifications
   are 31 between them; and
-- **guard probes executable** — currently **76 of 76**, run by
+- **guard probes executable** — currently **77 of 77**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did

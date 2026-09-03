@@ -1009,6 +1009,19 @@
           "replace": "foreach ($required in @($session.requiredFacets)) {"
         }
       ]
+    },
+    {
+      "id": "AU1-b",
+      "claim": "two obligations sharing one line are refused, because the obligation measure identifies a site by the line its verdict is constructed on",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "return New-Red \"relational interaction $($interaction.identity) creates Ready or Release\"",
+          "replace": "if ($false) { $null = New-Red \"AU1-b\" }; return New-Red \"relational interaction $($interaction.identity) creates Ready or Release\""
+        }
+      ]
     }
   ]
 }
