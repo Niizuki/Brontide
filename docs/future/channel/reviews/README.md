@@ -181,6 +181,7 @@ dependency instead of narrowing it.
 | AU | iteration | design | ninth W1-W3 verification-foundation iteration review |
 | AV | iteration | verification | tenth W1-W3 verification-foundation iteration review |
 | AW | iteration | verification | eleventh W1-W3 verification-foundation iteration review |
+| AX | iteration | verification | twelfth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -276,7 +277,7 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Ten such passes have run and none met the plan's condition 4, which asks for a pass that finds
+Twelve such passes have run and none has yet met the plan's condition 4, which asks for a pass that finds
 nothing it can fix. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
@@ -286,30 +287,26 @@ nothing it can fix. They are retained as the
 [sixth](./channel-0.2-ar-iteration-review.md) (**AR1**),
 [seventh](./channel-0.2-as-iteration-review.md) (**AS1**-**AS7**),
 [eighth](./channel-0.2-at-iteration-review.md) (**AT1**-**AT7**) and
-[ninth](./channel-0.2-au-iteration-review.md) (**AU1**-**AU5**) and
-[tenth](./channel-0.2-av-iteration-review.md) (**AV1**-**AV3**) W1-W3 verification-foundation
+[ninth](./channel-0.2-au-iteration-review.md) (**AU1**-**AU5**),
+[tenth](./channel-0.2-av-iteration-review.md) (**AV1**-**AV3**),
+[eleventh](./channel-0.2-aw-iteration-review.md) (**AW1**) and
+[twelfth](./channel-0.2-ax-iteration-review.md) (**AX1**-**AX2**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
-**An eleventh pass over the same scope is the live path.** It starts by running
-`build/verify-channel-0.2-guards.ps1` and the retained coverage gate, whose sizes the plan's section 4
-owns and recomputes rather than this paragraph — **AU3** was this sentence carrying a probe count that
-had been wrong for a cycle while the gate computed the same number correctly one document away. The
-tenth pass answered the brief it inherited: `$failures.Add` **is** the chokepoint those gates were said
-to lack, and the inputs that make those guards fire are the probes, so the measure is which guard sites
-the corpus reaches. It reaches **62 of 299**. Building it produced both findings — **AV1**, that a probe
-asserted the gate's exit code rather than its own guard firing, and **AV2**, a guard in the design gate
-that could never fire because a failing git call terminated the gate eight lines above it, with the
-probe written for it green on the crash since. What the tenth pass leaves — the 21% floor, a `guardMessage` that asserts
-presence rather than exclusivity, and the `Stop`-preference hazard unaudited outside the design gate's
-git calls — is recorded for a later pass and is **not** the eleventh's brief.
+**A thirteenth pass over the same scope is the live path.** It starts by running the frozen instrument
+set — `build/verify-channel-0.2-guards.ps1`, the coverage gate and the generated-vector run, whose
+sizes the plan's section 4 owns and recomputes rather than this paragraph — and records what it
+reports before building anything. That set now includes the generator, so it is strictly larger than
+the eleventh pass's, which is what the 2026-09-04 ruling requires of the second of two consecutive
+passes.
 
-**By owner decision of 2026-09-04 the eleventh pass's method is generated vectors run against the
-twenty-six executable properties.** Every property is checked today against hand-authored vectors with
-hand-chosen mutations, so the design is tested only where someone thought to look, and every pass from
-AM to AV was scoped to the verification machinery rather than to the design's own claims — which have
-had no fresh examination since closure review 16. The same ruling re-scopes condition 4 so that a
-pass's frozen instrument set and its newly built instruments are counted separately; both are stated in
-the [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md#3-how-the-hold-ends).
+**Its method is the increment the eleventh pass left: teaching the generator to produce refusals.**
+That generator evaluates all twenty-six properties over conforming vectors and is green over two
+thousand of them, but it produces no refusal of any kind — no pre-dispatch refusal, no recorded
+`unseen` refusal, no late-traffic latch, no declared stimulus steps. So `C4-P2`'s two conjuncts are
+evaluated over empty observation records and are **vacuously green**, and the property eight finding
+families have been about is the one that instrument reaches least.
+
 Nothing in this paragraph resumes the closure cycle or authorizes a closure-review dispatch.
 
 The sixteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
@@ -1099,6 +1096,16 @@ context elsewhere — never as evidence that their conclusions are right.
   had to record at least one finding, which the ruling had just made false for the outcome condition 4
   asks for. **AW2** is reported to the owner rather than corrected — AW1 belongs to neither population
   that ruling counts, because it was found by reading. AW is a **verification** family.
+- [Twelfth W1-W3 verification-foundation iteration review](./channel-0.2-ax-iteration-review.md) — the
+  first pass whose frozen set is **strictly larger** than its predecessor's, the generator having
+  joined it under the quarantine rule; it reported nothing. Its method was the increment AW left,
+  teaching the generator to refuse before dispatch, which reached `I4`'s first clause, `C5-P1`'s second
+  and `C6-P1`'s second — three clauses that had no input at all while every generated interaction was
+  dispatched and permitted. **AX1** is the entry points going stale in the commit that recorded the
+  eleventh pass, and the class is closed by recomputing the condition-4 pass count and both next-work
+  ordinals rather than by correcting the five sentences. **AX2** came out of mutating the generator:
+  `dispatched` on an interaction record is read by **no property**, so a vector could state a dispatch
+  its own timeline does not and every property stayed green. AX is a **verification** family.
 
 ## Disclosed process deviation in the T1-T4 correction
 

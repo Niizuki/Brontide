@@ -182,6 +182,29 @@ foreach ($vector in $vectorFile.vectors) {
         }
     }
 
+    # AX2. `dispatched` on an interaction record is a second surface for a fact the timeline already
+    # states, and **no property reads it** -- every one of them derives dispatch from the timeline's
+    # `dispatch` steps. Forty-nine declared interaction records carry the field, so a vector could say
+    # an interaction was dispatched while its timeline never dispatches it, read to a human as one
+    # thing and evaluate as another, with nothing to notice. That is the W1 class -- one fact, two
+    # surfaces, maintained by hand -- on a field small enough that nobody looked at it, and it was
+    # found by mutating a generated vector to disagree with itself and watching every property stay
+    # green. The field is kept, because it is what a reader of the record sees, and reconciled here.
+    # Accessed directly rather than through Get-Interactions/Get-Timeline: those are defined further
+    # down this file, and a call to a function declared after the caller finds nothing at run time.
+    foreach ($interaction in @(if ($null -eq $vector.interactions) { @() } else { $vector.interactions })) {
+        $declaredDispatch = $interaction.PSObject.Properties['dispatched']
+        if ($null -eq $declaredDispatch) { continue }
+        $timelineDispatches = @(@(if ($null -eq $vector.sessionTimeline) { @() } else { $vector.sessionTimeline }) | Where-Object {
+            [string]$_.step -eq 'dispatch' -and
+            [string]$_.session -eq [string]$interaction.session -and
+            [string]$_.identity -eq [string]$interaction.identity
+        }).Count -gt 0
+        if ([bool]$declaredDispatch.Value -ne $timelineDispatches) {
+            $failures.Add("Vector '$($vector.id)' records interaction '$($interaction.identity)' in session '$($interaction.session)' as dispatched=$([bool]$declaredDispatch.Value) and its timeline says otherwise. Every property derives dispatch from the timeline, so the record's own field is read by nobody and can disagree with the fact it restates.")
+        }
+    }
+
     $steps = @($stepsById.Values | Sort-Object DeclaredOrder)
     foreach ($group in ($steps | Group-Object { "$($_.CommittingEndpoint)|$($_.Session)|$($_.InteractionIdentity)" })) {
         $expectedIndex = 1
@@ -1454,13 +1477,23 @@ if ($GeneratedCount -gt 0) {
             for ($interactionOrdinal = 1; $interactionOrdinal -le $interactionCount; $interactionOrdinal++) {
                 $identity = "i$interactionOrdinal"
                 $isRelational = ($Random.Next(0, 2) -eq 0)
-                $terminalForm = if ($Random.Next(0, 2) -eq 0) { 'outcome' } else { 'cancellation-acknowledgement' }
+                # One in four admitted interactions is REFUSED before dispatch instead of dispatched.
+                # That is a legal realization and it is the half of the design the conforming-only
+                # generator could not reach: with no refusal anywhere in the population, `I4`'s first
+                # clause, `C5-P1`'s second and `C6-P1`'s second are evaluated by nothing, because each
+                # of them gates on a refusal or on a decision that is not `permitted`.
+                $isRefused = ($Random.Next(0, 4) -eq 0)
+                $terminalForm = if ($isRefused) { 'protocol-fault' }
+                    elseif ($Random.Next(0, 2) -eq 0) { 'outcome' }
+                    else { 'cancellation-acknowledgement' }
                 # I3 and C8-P1's second clause: only an application outcome is a semantic success.
                 $semanticSuccess = ($terminalForm -eq 'outcome')
                 $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'admit'; identity = $identity })
                 $waveLive++
                 $waveIdentities.Add([pscustomobject]@{ Identity = $identity; Form = $terminalForm })
-                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'dispatch'; identity = $identity })
+                if (-not $isRefused) {
+                    $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'dispatch'; identity = $identity })
+                }
                 # The wave closes when it is full or when the last interaction has been admitted, and
                 # each terminal names the one identity it closes and the form that identity's own
                 # record carries. Emitting a form here that the interaction record does not hold would
@@ -1479,20 +1512,30 @@ if ($GeneratedCount -gt 0) {
                     class = $(if ($isRelational) { 'relational' } else { 'operational' })
                     declarationMatches = 1
                     createsReadyOrRelease = $false
-                    dispatched = $true
-                    refusal = $null
-                    terminalHistories = @([pscustomobject]@{ form = $terminalForm; semanticSuccess = $semanticSuccess; effectCertainty = 'known' })
+                    dispatched = (-not $isRefused)
+                    # A pre-dispatch structural refusal records `known-none`, which is `I4`'s first
+                    # clause and `C5-P1`'s second saying the same thing about the same record.
+                    refusal = $(if ($isRefused) {
+                        [pscustomobject]@{ stage = 'pre-dispatch'; effectCertainty = 'known-none'; explicitEvidence = $true }
+                    } else { $null })
+                    terminalHistories = @([pscustomobject]@{ form = $terminalForm; semanticSuccess = $semanticSuccess; effectCertainty = $(if ($isRefused) { 'known-none' } else { 'known' }); explicitEvidence = $true })
                     direction = 'initiator-to-recipient'
                     phasePredicate = $true
                     profileMatch = $true
                     boundsChecked = $true
                     positionalShapeChecked = $true
-                    authorityDecision = 'permitted'
+                    # A refused interaction carries the denial and everything the denial owes:
+                    # `C6-P1`'s second clause requires a decision point, an initiator attribution and
+                    # `known-none` of every presentation that is not `permitted`, and with every
+                    # interaction permitted that clause had no input either.
+                    authorityDecision = $(if ($isRefused) { 'denied' } else { 'permitted' })
                     authorityRecord = [pscustomobject]@{ decisionPoint = 'pre-dispatch'; initiatorAttribution = "initiator-$sessionOrdinal"; effectCertainty = 'known-none' }
                     inPreReadyWindow = $true
-                    provenanceForm = $(if ($semanticSuccess) { 'semantic-outcome' } else { 'local-loss-observation' })
+                    provenanceForm = $(if ($isRefused) { 'local-pre-dispatch-refusal' } elseif ($semanticSuccess) { 'semantic-outcome' } else { 'local-loss-observation' })
                     observationComplete = $true
-                    possiblePostDispatchPath = $true
+                    # There is no post-dispatch path when the refusal precedes dispatch, which is why
+                    # `C10-P1` does not require explicit evidence narrowing one here.
+                    possiblePostDispatchPath = (-not $isRefused)
                     deterministicExpectedObservation = $true
                 })
             }
@@ -1549,6 +1592,7 @@ if ($GeneratedCount -gt 0) {
         'a session carrying no interaction at all'                 = 'empty-session'
         'a vector carrying more than one session'                  = 'multi-session'
         'a wave that fills the session''s established bound'       = 'bound-filled'
+        'an interaction refused before dispatch'                   = 'pre-dispatch-refusal'
     }
 
     $generatedEvaluations = 0
@@ -1568,6 +1612,9 @@ if ($GeneratedCount -gt 0) {
             # The wave filled the bound when the session admitted at least that many, which is the
             # boundary I5 and C4-P1's third clause are evaluated at from the legal side.
             if ($sessionAdmits -ge [int]$shapeSession.establishedBound) { $shapesSeen['bound-filled'] = $true }
+        }
+        foreach ($shapeInteraction in @(if ($null -eq $generatedVector.interactions) { @() } else { $generatedVector.interactions })) {
+            if ($null -ne $shapeInteraction.refusal -and [string]$shapeInteraction.refusal.stage -eq 'pre-dispatch') { $shapesSeen['pre-dispatch-refusal'] = $true }
         }
 
         foreach ($propertyId in ($evaluators.Keys | Sort-Object)) {
