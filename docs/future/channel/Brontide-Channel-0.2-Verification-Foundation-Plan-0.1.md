@@ -984,9 +984,51 @@ The cycle resumes when, in this order:
 3. W3 has shrunk the status blocks; and
 4. an author-side iteration pass over W1-W3 finds nothing it can fix — which under the
    [two kinds of review](./reviews/README.md#two-kinds-of-review) means the work is ready to be
-   reviewed, not that it passed.
+   reviewed, not that it passed. **Judged as the 2026-09-04 ruling below states**, which is a
+   re-scoping of this condition and not a relaxation of it.
 
 Then one fresh independent closure review is dispatched under the unchanged independence rules.
+
+**Owner ruling, 2026-09-04 — condition 4 counts two populations separately, and only one of them is
+supposed to reach zero.** Ten passes have run and none has met this condition as it was written. The
+reason is not that the work is unsound; it is that the condition adds two different numbers together.
+
+A pass's findings fall into two populations. **Package findings** are what the instruments as they
+stood at the *start* of the pass report about the design and its verification. **First-run findings**
+are what an instrument built *during* the pass reports the first time it runs, which is a measure of
+what was previously undetectable rather than of anything having got worse.
+
+The second population cannot reach zero while each pass extends the machinery, and part of it is
+manufactured by the process itself: **AV3** was a defect in a guard the pass before it built, and
+**AU5** was a clause the pass before *that* had duplicated. Counting those beside a long-standing
+defect like **AV2** — latent for roughly eight cycles — and requiring the total to be zero asks the
+programme to stop improving its own instruments before it may finish.
+
+Measured separately, the first population is **already zero and has been for four passes**: the
+retained instruments were green at the start of AP, AT, AU and AV, and every finding in those passes
+came from work the pass newly did. That is the fact this ruling is built on.
+
+So, from this ruling:
+
+- The instrument set is **frozen at the start of each pass**. A pass runs the frozen set first and
+  records what it reports as its package findings.
+- An instrument **built during a pass is quarantined**: its first-run findings are recorded under
+  their own heading, and the instrument joins the frozen set at the *next* pass.
+- **Condition 4 is met when a pass's frozen set reports nothing and a newly built instrument finds
+  nothing in the package — for two consecutive passes, the second running a strictly larger frozen
+  set than the first.**
+
+Two passes rather than one, and a strictly larger frozen set, because a single pass that builds
+nothing new would satisfy the first half trivially and prove nothing; that is the failure mode this
+condition was written against and it is not being conceded. Corrections to a first-run finding still
+land in the same pass, and every other rule is unchanged — the independence requirements, the
+2026-08-15 closure standard under which only an unqualified `conforms` closes the batch, and the
+requirement that only an independent closure review can close it.
+
+**This ruling can end the hold sooner than the previous reading would have**, and that is its
+intention rather than a side effect. It is recorded with the caution that a frozen set reporting
+nothing means the package is sound *under what the programme can currently detect*, which is a floor
+and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run ten
 times and is met by none of them**: the passes found three, six, three, two, five, one, seven, seven,
@@ -1007,13 +1049,36 @@ have been entitled to call blocking**, as does **AU1**, eleven obligations that 
 could distinguish an implementation honouring them from one that did not. The condition is doing what
 it was written to do; it has not yet run out of findings.
 
-The next work is therefore an eleventh author-side pass over the same W1-W3 verification scope. It
-starts by running `build/verify-channel-0.2-guards.ps1` and the coverage gate, whose sizes section 4
-owns and recomputes rather than this sentence. Its named question is what the tenth pass left, in
-section 2m, and the cheapest of the three is the last: AV2 closed the `Stop`-preference hazard for the
-design gate's git calls and audited no other gate's native-command calls, and that hazard hides a guard
-that cannot fire. It meets condition 4 only if it finds nothing it can fix. Nothing in this section authorizes dispatching a
-closure review, and the closure-cycle state at the head of this document is what says so.
+The next work is therefore an eleventh author-side pass, and by owner decision of 2026-09-04 its method
+is **generated vectors run against the twenty-six executable properties** rather than a further audit
+of the gates.
+
+The reason is a limit no instrument in this programme has touched. Every property is checked against
+**hand-authored** vectors with hand-chosen mutations, so the design is tested only in the cases someone
+thought to write, and every pass from AM to AV was scoped to the verification machinery rather than to
+the design's own claims — the design itself has had no fresh examination since closure review 16.
+Generating vectors against the neutral brief's declared vector format and evaluating all twenty-six
+properties over them attacks exactly the class that hand-authoring cannot: the design being wrong where
+nobody looked.
+
+It is also the first instrument here whose output is a **rate rather than a list**. "No property went
+red over ten thousand generated vectors" is a quantitative statement that strengthens with more vectors
+and a wider generator, and it converges in a way a list of hand-picked inputs cannot — which is what the
+2026-09-04 ruling above asks a new instrument to provide.
+
+The pass runs its frozen set first — `build/verify-channel-0.2-guards.ps1` and the coverage gate, whose
+sizes section 4 owns and recomputes rather than this sentence — and records what it reports as package
+findings before building anything. The generator's own first run is a quarantined first-run finding
+under that ruling, and **it should be expected to find something**: hand-authored vectors are precisely
+where the blind spots are, so a generator that reports defects on its first run is the instrument
+working rather than the treadmill turning.
+
+What the tenth pass left in section 2m is not discharged and is not this pass's brief: the 21% guard
+coverage, the `guardMessage` that asserts presence rather than exclusivity, and the `Stop`-preference
+hazard unaudited outside the design gate's git calls remain recorded for a later pass.
+
+Nothing in this section authorizes dispatching a closure review, and the closure-cycle state at the
+head of this document is what says so.
 
 ## 4. What to measure
 

@@ -338,7 +338,17 @@ message its guard owes. **AV2** is what the corrected check found on its first r
 design gate that could never fire, because a failing git call terminates the gate eight lines above it
 under the gate's own `Stop` preference, skipping every check after that point, with the probe written
 for it green on the crash. That is AO1's class one level down, and it is the class the pass was briefed
-to look for. An eleventh pass is the next work. The closure-review hold remains in force.
+to look for. **An owner ruling of 2026-09-04 re-scopes condition 4 and sets the eleventh pass's method.** The
+condition had added two populations together: what a pass's *frozen* instruments report about the
+package, and what an instrument built during the pass reports on its first run. The first has been
+**zero for four passes**; the second cannot reach zero while each pass extends the machinery, and part
+of it is manufactured — **AV3** was a defect in a guard the previous pass built. They are now counted
+separately, an instrument is quarantined until the pass after the one that built it, and the condition
+is met when the frozen set reports nothing and a new instrument finds nothing in the package, for two
+consecutive passes over a growing frozen set. The eleventh pass's method is **generated vectors run
+against the twenty-six executable properties**: every property is checked today against hand-authored
+vectors, so the design is tested only where someone thought to look, and it is the first instrument
+here whose output is a rate rather than a list. The closure-review hold remains in force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
