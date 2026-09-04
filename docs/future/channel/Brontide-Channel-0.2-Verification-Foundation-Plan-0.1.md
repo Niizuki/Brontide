@@ -798,9 +798,9 @@ the gate passed at 23 to 25 minutes against a 30-minute ceiling with two minutes
 lanes, which fails on a slow morning rather than on a defect.
 
 **The owner's decision was to move the expensive half behind an explicit switch rather than to raise the
-ceiling**, and the measurement that settled which half is in section 4: the probe corpus is 360 of the
-PowerShell half's 442 seconds and the coverage measure 50, against 31 for the other twenty-two
-verifications. Both now run under `build/verify-gate-self-checks.ps1`, which the repository gate invokes
+ceiling**, and the measurement that settled which half is the one section 4 owns and recomputes: the
+probe corpus and the coverage measure are almost all of the PowerShell half between them, against a
+few tens of seconds for the other twenty-two verifications. Both now run under `build/verify-gate-self-checks.ps1`, which the repository gate invokes
 only with `-IncludeGateSelfChecks`, and which CI runs on a weekly schedule and on request. **What that
 gives up is AO3's argument**: a probe that stops applying now merges, and the scheduled run is the floor
 that catches it rather than the plan. That file states the trade where the switch is.
@@ -1045,9 +1045,12 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   that ceiling on a branch whose gates were green one at a time, which is what a verification cost looks
   like when it is only ever measured in isolation. **The first answer was to raise the ceiling to 45 and
   the owner's answer was to move the expensive half behind an explicit switch**, which is better for the
-  reason this list exists: a ceiling absorbs a cost and a switch names it. Of the PowerShell half's 442
-  seconds, the probe corpus is 360 and the coverage measure 50, and the other twenty-two verifications
-  are 31 between them; and
+  reason this list exists: a ceiling absorbs a cost and a switch names it. Of the PowerShell half's 540
+  seconds, the probe corpus is 423 and the coverage measure 86, and the other twenty-two verifications
+  are 31 between them. The corpus was 360 until **AV1**, which captures each gate's output so a probe
+  can assert its own guard rather than the exit code; that is the price of the assertion and it is
+  named here rather than absorbed, on this section's own rule. All measured in verifying mode on one
+  machine, so the figures are comparable with each other and not with CI; and
 - **guard probes executable** — currently **77 of 77**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
