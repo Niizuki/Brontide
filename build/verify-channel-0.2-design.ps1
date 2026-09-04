@@ -2236,7 +2236,18 @@ foreach ($reviewNumber in $narrativeReviewNumbers) {
         if ($reviewNarrative.Text -cnotmatch "\b$provenanceFamily[0-9]") {
             $failures.Add("$($reviewNarrative.Name) names no finding in the '$provenanceFamily' family, which the provenance table attributes to closure review $reviewNumber. A family reachable only from a table row or a status sentence is a family the prose never introduced, and this is the narrative half of AI2 -- AJ2.")
         }
-        if ($reviewNarrative.Text -notmatch "(?i)\b$reviewOrdinal\b") {
+        # AX3. The key was the bare ordinal word anywhere in the narrative, which was enough while
+        # ordinals in these documents only ever numbered closure reviews. They no longer do: the
+        # condition-4 passes are numbered too, and the sentence naming the next one -- "a thirteenth
+        # pass is the next work" -- satisfies `\bthirteenth\b` on its own. So the guard kept passing
+        # while the narrative had dropped the review it is about, and the AQ1-a probe is what noticed.
+        # It is the third time a bare-word key has been wider than its question, after AU3 and AV3.
+        # Requiring the ordinal to sit immediately before the word `review` was tried and is wrong:
+        # these narratives legitimately write "the eighth **U1**-**U8**" and "the eleventh raised",
+        # naming the review by its findings. What actually distinguishes the two populations is the
+        # other one's noun, so an ordinal that introduces a *pass* does not count as introducing a
+        # review, and every existing phrasing still does.
+        if ($reviewNarrative.Text -notmatch "(?i)\b$reviewOrdinal\b(?!\s+pass\b)") {
             $failures.Add("$($reviewNarrative.Name) never introduces the $reviewOrdinal independent closure review, whose findings it is required to carry. Substituting the newest family token into a sentence about an earlier review leaves the reader with a narrative that jumps from the tenth review to a family raised by the thirteenth. This is AJ2.")
         }
     }
