@@ -179,6 +179,7 @@ dependency instead of narrowing it.
 | AS | iteration | verification | seventh W1-W3 verification-foundation iteration review |
 | AT | iteration | design | eighth W1-W3 verification-foundation iteration review |
 | AU | iteration | design | ninth W1-W3 verification-foundation iteration review |
+| AV | iteration | verification | tenth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -274,7 +275,7 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Nine such passes have run and none met the plan's condition 4, which asks for a pass that finds
+Ten such passes have run and none met the plan's condition 4, which asks for a pass that finds
 nothing it can fix. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
@@ -284,21 +285,25 @@ nothing it can fix. They are retained as the
 [sixth](./channel-0.2-ar-iteration-review.md) (**AR1**),
 [seventh](./channel-0.2-as-iteration-review.md) (**AS1**-**AS7**),
 [eighth](./channel-0.2-at-iteration-review.md) (**AT1**-**AT7**) and
-[ninth](./channel-0.2-au-iteration-review.md) (**AU1**-**AU5**) W1-W3 verification-foundation
+[ninth](./channel-0.2-au-iteration-review.md) (**AU1**-**AU5**) and
+[tenth](./channel-0.2-av-iteration-review.md) (**AV1**-**AV2**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
-**A tenth pass over the same scope is the live path.** It starts by running
+**An eleventh pass over the same scope is the live path.** It starts by running
 `build/verify-channel-0.2-guards.ps1` and the retained coverage gate, whose sizes the plan's section 4
 owns and recomputes rather than this paragraph — **AU3** was this sentence carrying a probe count that
 had been wrong for a cycle while the gate computed the same number correctly one document away. The
-ninth pass found eleven property obligations that ran on every declared input and never fired, each
-deletable with every gate green, by measuring the verdict constructor rather than the operand; and six
-properties that could not tell a violation from a vector that omits the field. What it leaves is
-narrow and explicit: that measure works because the property gate routes every verdict through one
-constructor, and the design, facts and guard gates raise their failures from hundreds of sites with no
-equivalent chokepoint, so a guard there that runs and cannot fail is still found only by the probe
-corpus, one guard at a time. That surface is the tenth pass's brief. Nothing in this paragraph resumes
-the closure cycle or authorizes a closure-review dispatch.
+tenth pass answered the brief it inherited: `$failures.Add` **is** the chokepoint those gates were said
+to lack, and the inputs that make those guards fire are the probes, so the measure is which guard sites
+the corpus reaches. It reaches **62 of 299**. Building it produced both findings — **AV1**, that a probe
+asserted the gate's exit code rather than its own guard firing, and **AV2**, a guard in the design gate
+that could never fire because a failing git call terminated the gate eight lines above it, with the
+probe written for it green on the crash since. What the tenth pass leaves is narrow: the 21% is a floor
+and raising it is a judgement about which guards are worth doubting, not a task; a `guardMessage`
+asserts that a probe's guard fired and not that it was the only one, which sixteen probes cannot
+currently distinguish; and the `Stop`-preference hazard AV2 closed for the design gate's git calls is
+unaudited in the other gates' native-command calls. Nothing in this paragraph resumes the closure cycle
+or authorizes a closure-review dispatch.
 
 The sixteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
 blocking **AL1** and **AL2** and nonblocking **AL3** and **AL4**; its retained record is
@@ -1068,6 +1073,16 @@ context elsewhere — never as evidence that their conclusions are right.
   audited for what would make them false pins: six properties could not tell a violation from a vector
   that omits the field, which is AE1 latent. Like AR and AT, AU is a **design** family: the corrections
   reach the per-capability property audit.
+- [Tenth W1-W3 verification-foundation iteration review](./channel-0.2-av-iteration-review.md) — the
+  same scope at `7798db4`; raised **AV1**-**AV2** and corrected both, so condition 4 is **still not
+  met**. It answered the brief AU left by finding the chokepoint those gates were said to lack —
+  `$failures.Add` — and the inputs that reach it, which are the probes; the corpus makes 62 of 299
+  guard sites fire. **AV1** is what building that measure exposed: a probe asserted the gate's exit
+  code, so it could not tell its own guard firing from the gate failing for any other reason, and the
+  corpus reported 77 of 77 while three gates were failing to parse. **AV2** is what the corrected check
+  found on its first run — a guard that could never fire, because a failing git call terminates the
+  gate above it under the gate's own `Stop` preference, with every check after that point skipped.
+  Unlike AR, AT and AU, AV is a **verification** family: neither correction reaches a design artifact.
 
 ## Disclosed process deviation in the T1-T4 correction
 

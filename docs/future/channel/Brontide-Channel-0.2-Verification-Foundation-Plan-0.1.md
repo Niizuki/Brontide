@@ -902,6 +902,68 @@ those sites can be given an equivalent unit is the open question, and the honest
 corpus is the instrument and its completeness is the thing to measure. Nothing here resumes the closure
 cycle.
 
+## 2m. What the tenth condition 4 pass found
+
+The tenth author-side pass has run, at `7798db4`, and is retained as the
+[tenth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-av-iteration-review.md).
+It raised **AV1**-**AV2** and corrected both, so **it does not meet condition 4** either. AV is a
+`verification` family — both corrections are in the gates and the probe corpus and neither reaches a
+design artifact — so its disposition is here.
+
+**The inherited brief had a wrong premise, and correcting it is the pass.** The AU review recorded that
+the design, facts and guard gates "raise `$failures.Add` from hundreds of sites with no equivalent
+chokepoint". `$failures.Add` **is** the chokepoint: it is the one place those gates state a finding,
+exactly as `New-Red` is for the property gate. What is different is not the unit but the input. A
+passing run of a design gate produces no findings at all, so asking which sites a passing run reaches
+is vacuous — and the inputs that make those guards fire are the probes. **The measure is which guard
+sites the corpus reaches, and it reaches 62 of 299**: design 29 of 209, properties 16 of 51, facts 11
+of 17, coverage 6 of 11, and the harness 0 of 11, which no probe names because it is the runner.
+
+That number is a floor on how much of the guard population anything makes fire. It is not a defect
+count, and raising it by writing 237 probes would be a poor use of a pass — the corpus is worth what
+the doubts behind its probes were worth. Both findings came from **building** the measure rather than
+from reading it.
+
+**AV1 is the corpus asserting the wrong thing, and it announced itself.** The measurement needs an
+instrumented copy of each gate; the first attempt prepended the recorder, which pushed `param()` out of
+first position and made three of the five gates fail to **parse**. The corpus reported **77 of 77
+probes returned the verdict their guard owes** while three gates were not running. A probe declares
+that it makes one guard's own subject present and asserts the verdict that guard must return; what it
+asserted was the gate's exit code, which is a whole-gate verdict, so every `expect: fail` probe passed
+whenever the gate failed for any reason.
+
+The evidence is stated precisely because the obvious experiment overstates it. An unconditional
+unrelated failure added to the design gate leaves 76 of 77 probes green — but their own guards still
+fire there, so passing is uninformative rather than wrong. The decisive case is a guard that stops
+firing while the gate still fails: silencing `AP1-a`'s guard and leaving an unrelated failure takes
+that probe **red** now and could only have passed before. Every `expect: fail` probe now declares a
+`guardMessage` that must appear in the gate's output, mandatory rather than optional. Two details were
+each wrong first: `Out-String` renders at the console width and cut every `Write-Error` message in
+half, and a child process wraps its own output mid-word, so both sides are compared with whitespace
+**removed** rather than collapsed.
+
+**AV2 is what the corrected check found on its first run, and it is the class this pass was briefed
+for.** One probe could not be given a message at all: `AN3-b`'s gate failed while printing no guard
+message of any kind. Every git call in the design gate redirects stderr with `2>$null`; in Windows
+PowerShell that wraps each stderr line in an `ErrorRecord`, and the gate's own `Stop` preference turns
+the first into a **terminating error at the call**. A failing git call therefore never hands a non-zero
+`$LASTEXITCODE` to the check written to read it. The guard reporting a historical measure whose commit
+cannot be read sits eight lines below the `git show` that dies, so it **could never fire** — and every
+check after that point in a 2,700-line gate was skipped too, with the exit code indistinguishable from
+a clean finding.
+
+That is **AO1's class**, a guard no input can reach, one level below where AO1 found it. It was
+invisible to the coverage measure, because the guard's condition is evaluated on a passing run and
+simply never true; and invisible to the corpus, because the probe read only the exit code. All seven
+git calls now route through one helper that lowers the preference for the call, so the class is closed
+rather than the instance.
+
+**What the next pass inherits.** The 21% is a floor and which guards deserve probes is a judgement, not
+a task. A `guardMessage` asserts that a probe's guard fired and not that it was the only one; sixteen
+probes fire more than one guard site and nothing distinguishes them. And the `Stop`-preference hazard
+is closed for the design gate's git calls and unaudited in the other gates' native-command calls, which
+is the same shape as AV2 and is the cheapest place to look next.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -917,31 +979,31 @@ The cycle resumes when, in this order:
 
 Then one fresh independent closure review is dispatched under the unchanged independence rules.
 
-**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run nine
-times and is met by none of them**: the passes found three, six, three, two, five, one, seven, seven and
-five defects and fixed them all, which is the opposite of what that condition asks. Sections 2d through
-2l record them.
+**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run ten
+times and is met by none of them**: the passes found three, six, three, two, five, one, seven, seven,
+five and two defects and fixed them all, which is the opposite of what that condition asks. Sections 2d
+through 2m record them.
 
-The nine are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
+The ten are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
 fact was stated; AO read each guard's comment as a claim and tested it against the code; AP asked
 whether each guard's *key* remained load-bearing; AQ traced statements; AR retained conditional
 coverage and used it to find unreachable property clauses; AS audited the negative assertion and
 compound-recognizer shapes that line coverage cannot see, then AS7 followed the guard harness itself
-when its restoration failed; AT measured an operand the enclosing expression never reached; and AU
+when its restoration failed; AT measured an operand the enclosing expression never reached; AU
 measured the obligation rather than the operand, which is what finally reported the clause that runs
-on every input and never fires. Each brief came from the pass before it,
+on every input and never fires; and AV measured which guard sites the probe corpus reaches, and found
+both its defects in the building of that measure rather than in its result. Each brief came from the pass before it,
 and **AO1 — two properties red on conforming behaviour — remains a defect a closure reviewer would
 have been entitled to call blocking**, as does **AU1**, eleven obligations that no declared input
 could distinguish an implementation honouring them from one that did not. The condition is doing what
 it was written to do; it has not yet run out of findings.
 
-The next work is therefore a tenth author-side pass over the same W1-W3 verification scope. It
+The next work is therefore an eleventh author-side pass over the same W1-W3 verification scope. It
 starts by running `build/verify-channel-0.2-guards.ps1` and the coverage gate, whose sizes section 4
-owns and recomputes rather than this sentence. Its named question is what the ninth pass left, in
-section 2l: the obligation measure covers the property gate, where a verdict has one constructor, and
-the three gates that raise `$failures.Add` from hundreds of sites have no equivalent -- so a guard
-that runs and cannot fail is still found only by the probe corpus, one guard at a time. It meets
-condition 4 only if it finds nothing it can fix. Nothing in this section authorizes dispatching a
+owns and recomputes rather than this sentence. Its named question is what the tenth pass left, in
+section 2m, and the cheapest of the three is the last: AV2 closed the `Stop`-preference hazard for the
+design gate's git calls and audited no other gate's native-command calls, and that hazard hides a guard
+that cannot fire. It meets condition 4 only if it finds nothing it can fix. Nothing in this section authorizes dispatching a
 closure review, and the closure-cycle state at the head of this document is what says so.
 
 ## 4. What to measure
@@ -961,7 +1023,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,343** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,316** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved twice
   since, by four characters each time and for the same reason — registering a new iteration-review
