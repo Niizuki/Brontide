@@ -927,8 +927,8 @@ from reading it.
 
 **AV1 is the corpus asserting the wrong thing, and it announced itself.** The measurement needs an
 instrumented copy of each gate; the first attempt prepended the recorder, which pushed `param()` out of
-first position and made three of the five gates fail to **parse**. The corpus reported **77 of 77
-probes returned the verdict their guard owes** while three gates were not running. A probe declares
+first position and made three of the five gates fail to **parse**. The corpus reported **every probe
+returning the verdict its guard owes** while three gates were not running. A probe declares
 that it makes one guard's own subject present and asserts the verdict that guard must return; what it
 asserted was the gate's exit code, which is a whole-gate verdict, so every `expect: fail` probe passed
 whenever the gate failed for any reason.
@@ -981,7 +981,7 @@ It is the first run under the 2026-09-04 ruling, and the first pass whose method
 rather than at the machinery that checks it. AW is a `verification` family: neither finding reaches a
 design artifact.
 
-**The frozen set was run first and reported nothing** — 77 of 77 probes and the coverage measure, before
+**The frozen set was run first and reported nothing** — the whole probe corpus and the coverage measure, before
 any of this pass's work existed. That is the fifth consecutive pass whose retained instruments have
 found nothing.
 
@@ -1041,7 +1041,7 @@ It raised **AX1**-**AX3** and corrected all three. AX is a `verification` family
 
 **Its frozen set reported nothing, and it is the first frozen set strictly larger than its
 predecessor's** — the generator built by the eleventh pass joined it under the quarantine rule, so the
-run is 77 probes, the coverage measure and 2,000 generated vectors. That is the sixth consecutive
+run is the whole probe corpus, the coverage measure and 2,000 generated vectors. That is the sixth consecutive
 clean frozen set.
 
 **The method was the increment the eleventh pass left: teaching the generator to refuse.** With every
@@ -1228,7 +1228,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   can assert its own guard rather than the exit code; that is the price of the assertion and it is
   named here rather than absorbed, on this section's own rule. All measured in verifying mode on one
   machine, so the figures are comparable with each other and not with CI; and
-- **guard probes executable** — currently **77 of 77**, run by
+- **guard probes executable** — currently **80 of 80**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
