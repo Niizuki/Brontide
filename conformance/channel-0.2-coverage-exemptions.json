@@ -34,6 +34,11 @@
     },
     {
       "gate": "verify-channel-0.2-properties.ps1",
+      "arguments": [
+        "-GeneratedCount",
+        "15"
+      ],
+      "argumentsWhy": "The properties gate evaluates generated conforming vectors on every run, and tracing a hundred of them costs several times this whole measure. Fifteen is the smallest count that still satisfies the generator's own required-shape assertions at the declared seed -- a faulting session, an `establishing` route, a drained close, a session with no interaction, a vector with more than one session, and a wave that fills the bound -- so every construct in the generated block is reached without paying for a population this file is not the one measuring. A smaller count fails those assertions rather than silently narrowing what is traced.",
       "measureOperands": true,
       "exemptions": [
         {
@@ -51,6 +56,14 @@
         {
           "anchor": "foreach ($shared in ($obligationSites | Group-Object | Where-Object { $_.Count -gt 1 })) {",
           "reason": "AU1's same-line refusal. Every obligation in this file is constructed on its own line, so the grouping selects nothing and the loop walks an empty collection. It fires the moment two verdicts share a line, which is what the AU1-b probe pins."
+        },
+        {
+          "anchor": "if ($generatedRed.Count -lt 10) {",
+          "reason": "The cap on reported generated findings, inside the branch that records a field the generator does not publish. A passing run publishes every field its properties read, so nothing is recorded and the cap is never consulted."
+        },
+        {
+          "anchor": "foreach ($generatedFinding in $generatedRed) {",
+          "reason": "The loop that turns recorded generated findings into failures. Empty on a passing run, for the same reason."
         }
       ],
       "operandExemptions": [
@@ -58,6 +71,11 @@
           "operand": "$contractPlain.IndexOf([string]$mutation.vector, [System.StringComparison]::Ordinal) -lt 0",
           "within": "$auditPlain.IndexOf([string]$mutation.vector, [System.StringComparison]::Ordinal) -lt 0 -and $contractPlain.IndexOf([string]$mutation.vector, [System.StringComparison]::Ordinal) -lt 0",
           "reason": "The second of the two artifacts a named mutation may be stated in. Every declared mutation is named by the completeness review's per-capability audit, so the first operand is false for all of them and the contract is never consulted. The operand is a deliberate second source rather than a missing input: the contract names C4's two scenarios, and a mutation moved out of the audit into the contract alone must not become a failure. It is reached only by an input that has one and not the other, which no conforming package has."
+        },
+        {
+          "operand": "$generatedRed.Count -lt 10",
+          "within": "$generatedResult.Verdict -eq 'red' -and $generatedRed.Count -lt 10",
+          "reason": "The cap on reported findings, behind the test for a property red on a generated conforming vector. That first operand is false on every generated vector a passing run produces, so short-circuiting reaches the cap in no input. It is reached the moment the instrument finds something, which is when the cap matters."
         }
       ]
     },

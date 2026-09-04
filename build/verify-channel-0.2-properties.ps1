@@ -1,3 +1,17 @@
+[CmdletBinding()]
+param(
+    # How many generated conforming vectors to evaluate every property over. This runs on every
+    # commit rather than behind a switch: a hundred of them cost seven tenths of a second, and a
+    # measure that runs only weekly protects the design only weekly. `verify-gate-self-checks.ps1`
+    # raises the count for the deep run.
+    #
+    # Zero is allowed and skips generation, for bisecting a failure onto the declared corpus alone.
+    [int]$GeneratedCount = 100,
+    # The generator is seeded, so a reported counterexample is reproducible by re-running with the
+    # seed and count it was found under. A rate nobody can reproduce is an anecdote.
+    [int]$GeneratedSeed = 20260904
+)
+
 $ErrorActionPreference = 'Stop'
 
 # Channel 0.2 executable capability-wide properties.
@@ -1342,6 +1356,247 @@ foreach ($site in ($obligationSites | Sort-Object -Unique)) {
     if ($script:ObligationsReached.Contains($site)) { continue }
     $sourceLine = (Get-Content -LiteralPath $PSCommandPath -Encoding UTF8)[$site - 1].Trim()
     $failures.Add("No declared input makes the obligation at line ${site} of this file fire: $sourceLine  That obligation can be deleted outright with every gate green, so nothing in the suite distinguishes an implementation that honours it from one that does not. Give the property a named mutation that fires through it.")
+}
+
+# ---------------------------------------------------------------------------------------------
+# Generated conforming vectors -- the eleventh condition-4 pass, by owner ruling of 2026-09-04.
+#
+# WHY THIS RUNS ON EVERY COMMIT. A hundred vectors cost seven tenths of a second against this gate's
+# one second, and a measure that runs weekly protects the design weekly. The deep run raises the count
+# under `verify-gate-self-checks.ps1`; the cost is superlinear, so the count is a dial rather than a
+# thing to maximise -- 100 costs 0.7s, 500 costs 5.7s and 2,000 costs 47s.
+#
+# WHY THIS EXISTS. Every property above is checked against HAND-AUTHORED vectors with hand-chosen
+# mutations, so the design is tested only in the cases someone thought to write. Ten passes have now
+# audited the verification machinery and none has examined the design's own claims; the last reading
+# of those was closure review 16. This generates vectors from the design's declared rules instead,
+# and a property that goes red on one is red on conforming behaviour -- AE1's class, which this
+# programme has already paid for twice.
+#
+# WHY IT RUNS AFTER THE OBLIGATION CHECK ABOVE, AND NOT BEFORE. That check requires a DECLARED input
+# to reach each obligation. Generated vectors reach obligations too, and if they ran first an
+# obligation pinned by nothing but a random vector would read as pinned. The order is the whole of
+# that separation, so this block must stay below it.
+#
+# WHY IT IS A RATE AND NOT A LIST. This is the first instrument here whose output is a number that
+# strengthens with more input: "no property was red over N generated vectors" says more at 10,000
+# than at 100, and a list of hand-picked inputs cannot say it at all. The generator is seeded so a
+# counterexample is reproducible from the seed and count it was found under.
+#
+# WHAT CONFORMANCE MEANS HERE, AND THE LIMIT THAT COMES WITH IT. Each vector is built to satisfy the
+# design's stated rules by construction: transitions are drawn only from the legal table this file
+# already cross-checks against the session state machine, interactions dispatch only from
+# `established`, admission stops at the session's first drain, concurrency stays inside the
+# established bound, and every per-interaction fact is set to the conforming value. So a red is
+# either a property that is wrong or a generator that is wrong, and the two are told apart by
+# reading the witness against the artifact -- the artifact is the authority, exactly as it is for a
+# probe. A generator asserting its own idea of the design would be a twelfth surface publishing it,
+# which is the failure W1 exists to retire.
+if ($GeneratedCount -gt 0) {
+    $random = [System.Random]::new($GeneratedSeed)
+
+    function New-ConformingVector {
+        param([Parameter(Mandatory = $true)][string]$Id, [Parameter(Mandatory = $true)][System.Random]$Random)
+
+        $sessions = [System.Collections.Generic.List[object]]::new()
+        $timeline = [System.Collections.Generic.List[object]]::new()
+        $interactions = [System.Collections.Generic.List[object]]::new()
+        $sessionEvents = [System.Collections.Generic.List[object]]::new()
+
+        foreach ($sessionOrdinal in 1..($Random.Next(1, 4))) {
+            $sessionId = "s$sessionOrdinal"
+            $bound = $Random.Next(1, 4)
+            # The profile record is one value used twice: S5 compares fixed against negotiated
+            # establishment of the session's own declared profile, and they are equal on a conforming
+            # realization.
+            $profileRecord = [pscustomobject]@{
+                fixed = [pscustomobject]@{ version = '0.2'; facets = @('core'); limits = [pscustomobject]@{ maxInFlight = $bound } }
+                negotiated = [pscustomobject]@{ version = '0.2'; facets = @('core'); limits = [pscustomobject]@{ maxInFlight = $bound } }
+            }
+            $sessions.Add([pscustomobject]@{
+                id = $sessionId
+                establishedProfile = "neutral-fixed-$sessionOrdinal"
+                initialSessionState = 'unestablished'
+                initialInteractionState = 'idle'
+                establishedBound = $bound
+                establishedProfileRecord = $profileRecord
+                establishedProfiles = 1
+                profileFactsMatchExpected = $true
+                dispatchable = $true
+                requiredFacets = @('core')
+                supportedFacets = @('core')
+                facetChangesCore = $false
+            })
+
+            # Establishment takes one of the two legal routes to `established`. Both are edges the
+            # legal table carries, and which one a realization takes is not a property's business.
+            if ($Random.Next(0, 2) -eq 0) {
+                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'unestablished'; to = 'established'; event = 'validate-fixed-profile'; accepted = $true })
+            }
+            else {
+                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'unestablished'; to = 'establishing'; event = 'offer-profile'; accepted = $true })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'establishing'; to = 'established'; event = 'accept-profile'; accepted = $true })
+            }
+
+            # Admitted interactions, in waves that run up to but never past the session's own
+            # established bound -- I5 and C4-P1's third clause are what that is about. The wave is the
+            # point: admitting each interaction and closing it before admitting the next leaves the
+            # live count at one, which satisfies every bound trivially and tests neither property. A
+            # wave of exactly `bound` reaches the boundary from the legal side, which is where a
+            # comparison written with the wrong operator shows itself.
+            #
+            # `1..0` counts DOWN in PowerShell and yields 1,0, so a range is not how a possibly-empty
+            # sequence is written. A session carrying no interaction at all is a legal input, and this
+            # is what lets the generator produce one.
+            $interactionCount = $Random.Next(0, ($bound * 2) + 2)
+            $waveLive = 0
+            $waveIdentities = [System.Collections.Generic.List[object]]::new()
+            for ($interactionOrdinal = 1; $interactionOrdinal -le $interactionCount; $interactionOrdinal++) {
+                $identity = "i$interactionOrdinal"
+                $isRelational = ($Random.Next(0, 2) -eq 0)
+                $terminalForm = if ($Random.Next(0, 2) -eq 0) { 'outcome' } else { 'cancellation-acknowledgement' }
+                # I3 and C8-P1's second clause: only an application outcome is a semantic success.
+                $semanticSuccess = ($terminalForm -eq 'outcome')
+                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'admit'; identity = $identity })
+                $waveLive++
+                $waveIdentities.Add([pscustomobject]@{ Identity = $identity; Form = $terminalForm })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'dispatch'; identity = $identity })
+                # The wave closes when it is full or when the last interaction has been admitted, and
+                # each terminal names the one identity it closes and the form that identity's own
+                # record carries. Emitting a form here that the interaction record does not hold would
+                # make the vector incoherent, and an incoherent vector produces a finding about the
+                # generator wearing the shape of a finding about the design.
+                if ($waveLive -ge $bound -or $interactionOrdinal -eq $interactionCount) {
+                    foreach ($waveMember in $waveIdentities) {
+                        $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $waveMember.Identity; form = $waveMember.Form; semanticSuccess = ($waveMember.Form -eq 'outcome'); closes = $waveMember.Identity; accepted = $true })
+                    }
+                    $waveIdentities.Clear()
+                    $waveLive = 0
+                }
+                $interactions.Add([pscustomobject]@{
+                    session = $sessionId
+                    identity = $identity
+                    class = $(if ($isRelational) { 'relational' } else { 'operational' })
+                    declarationMatches = 1
+                    createsReadyOrRelease = $false
+                    dispatched = $true
+                    refusal = $null
+                    terminalHistories = @([pscustomobject]@{ form = $terminalForm; semanticSuccess = $semanticSuccess; effectCertainty = 'known' })
+                    direction = 'initiator-to-recipient'
+                    phasePredicate = $true
+                    profileMatch = $true
+                    boundsChecked = $true
+                    positionalShapeChecked = $true
+                    authorityDecision = 'permitted'
+                    authorityRecord = [pscustomobject]@{ decisionPoint = 'pre-dispatch'; initiatorAttribution = "initiator-$sessionOrdinal"; effectCertainty = 'known-none' }
+                    inPreReadyWindow = $true
+                    provenanceForm = $(if ($semanticSuccess) { 'semantic-outcome' } else { 'local-loss-observation' })
+                    observationComplete = $true
+                    possiblePostDispatchPath = $true
+                    deterministicExpectedObservation = $true
+                })
+            }
+
+            # The session ends terminal, by drain or by a recognized fault from a nonterminal state.
+            # Both are legal edges; S4 is what forbids anything after one.
+            if ($Random.Next(0, 4) -eq 0) {
+                # From `established`, and not from a randomly drawn nonterminal state: the session is
+                # in `established` by this point, and a transition out of a state it is not in is a
+                # fact the timeline does not support. The machine's `any nonterminal` fault rows are
+                # wider than that, and their width is exercised by the establishment route above
+                # rather than pretended at here.
+                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'established'; to = 'faulted'; event = 'recognized-violation'; accepted = $true })
+                $sessionEvents.Add([pscustomobject]@{ session = $sessionId; event = 'recognized-violation'; creates = @() })
+            }
+            else {
+                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'established'; to = 'draining'; event = 'begin-drain'; accepted = $true })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'draining'; to = 'closed'; event = 'close'; accepted = $true })
+                $sessionEvents.Add([pscustomobject]@{ session = $sessionId; event = 'begin-drain'; creates = @() })
+                $sessionEvents.Add([pscustomobject]@{ session = $sessionId; event = 'close'; creates = @() })
+            }
+        }
+
+        return [pscustomobject]@{
+            id = $Id
+            capability = 'generated'
+            propertyMemberships = @()
+            role = 'generated-conforming'
+            summary = "Generated conforming vector $Id."
+            sessions = @($sessions)
+            sessionTimeline = @($timeline)
+            interactions = @($interactions)
+            sessionEvents = @($sessionEvents)
+            declaredSteps = @()
+            deterministicExpectedObservation = $true
+        }
+    }
+
+    # The generator's own required shapes, and the reason they are asserted here rather than measured
+    # by the coverage gate next door. That gate runs each covered gate under a line trace, and tracing
+    # even twenty-five generated vectors costs several times the whole of that measure -- so the
+    # generated block is declared exempt there and covered here instead, by something stronger than a
+    # line trace: a line trace says a branch was taken, and these say the population actually contains
+    # the shapes the properties are supposed to be exercised over.
+    #
+    # A generator that quietly stopped producing one of these would keep reporting a large number of
+    # green evaluations over a population that had lost its variety, which is the failure this whole
+    # instrument would otherwise be prone to -- a rate is only worth what its inputs cover.
+    $shapesSeen = @{}
+    $requiredShapes = @{
+        'a session that reaches a terminal state by faulting'      = 'faulted'
+        'a session that establishes through `establishing`'        = 'establishing'
+        'a session that drains and closes'                         = 'closed'
+        'a session carrying no interaction at all'                 = 'empty-session'
+        'a vector carrying more than one session'                  = 'multi-session'
+        'a wave that fills the session''s established bound'       = 'bound-filled'
+    }
+
+    $generatedEvaluations = 0
+    $generatedRed = [System.Collections.Generic.List[string]]::new()
+    foreach ($generatedOrdinal in 1..$GeneratedCount) {
+        $generatedId = "generated-$generatedOrdinal"
+        $generatedVector = New-ConformingVector -Id $generatedId -Random $random
+
+        $generatedTimeline = @($generatedVector.sessionTimeline)
+        foreach ($shapeTo in @($generatedTimeline | Where-Object { [string]$_.step -eq 'transition' } | ForEach-Object { [string]$_.to })) {
+            $shapesSeen[$shapeTo] = $true
+        }
+        if (@($generatedVector.sessions).Count -gt 1) { $shapesSeen['multi-session'] = $true }
+        foreach ($shapeSession in @($generatedVector.sessions)) {
+            $sessionAdmits = @($generatedTimeline | Where-Object { [string]$_.step -eq 'admit' -and [string]$_.session -eq [string]$shapeSession.id }).Count
+            if ($sessionAdmits -eq 0) { $shapesSeen['empty-session'] = $true }
+            # The wave filled the bound when the session admitted at least that many, which is the
+            # boundary I5 and C4-P1's third clause are evaluated at from the legal side.
+            if ($sessionAdmits -ge [int]$shapeSession.establishedBound) { $shapesSeen['bound-filled'] = $true }
+        }
+
+        foreach ($propertyId in ($evaluators.Keys | Sort-Object)) {
+            $script:UnpublishedFields.Clear()
+            $generatedResult = & $evaluators[$propertyId] -VectorId $generatedId -Vector $generatedVector -Steps @()
+            $generatedEvaluations++
+            # Guarded rather than piped unconditionally: `Sort-Object` on an empty list, run once per
+            # property per vector, is most of the cost of the whole measure at any useful count.
+            if ($script:UnpublishedFields.Count -gt 0) {
+                foreach ($unpublished in ($script:UnpublishedFields | Sort-Object -Unique)) {
+                    if ($generatedRed.Count -lt 10) {
+                        $generatedRed.Add("'$propertyId' reads a field the generator does not publish on '$generatedId': $unpublished")
+                    }
+                }
+            }
+            if ($generatedResult.Verdict -eq 'red' -and $generatedRed.Count -lt 10) {
+                $generatedRed.Add("'$propertyId' is red on generated conforming vector '$generatedId': $($generatedResult.Witness)")
+            }
+        }
+    }
+    foreach ($requiredShape in ($requiredShapes.Keys | Sort-Object)) {
+        if (-not $shapesSeen.ContainsKey($requiredShapes[$requiredShape])) {
+            $failures.Add("No generated vector carried $requiredShape over $GeneratedCount at seed $GeneratedSeed. A rate is worth what its inputs cover, and a generator that has quietly stopped producing one of the shapes the properties are meant to be exercised over reports the same large green number over a narrower population.")
+        }
+    }
+    foreach ($generatedFinding in $generatedRed) {
+        $failures.Add("$generatedFinding. Reproduce with -GeneratedSeed $GeneratedSeed -GeneratedCount $GeneratedCount. Either the property is red on conforming behaviour, which is AE1's class, or the generator builds a vector the design does not permit -- read the witness against the artifact, which is the authority here exactly as it is for a probe.")
+    }
+    Write-Host "Channel 0.2 generated-vector evaluation: $generatedEvaluations evaluations over $GeneratedCount generated conforming vectors at seed $GeneratedSeed, $($generatedRed.Count) red."
 }
 
 if ($failures.Count -gt 0) {
