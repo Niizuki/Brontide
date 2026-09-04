@@ -1195,10 +1195,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all fourteen iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all fifteen iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
 }
 
 # The closure-cycle hold. The review policy tells an agent not to dispatch a closure review while the
@@ -1349,8 +1349,28 @@ else {
         # which is how it ran blind past the AA and AB families. A retained iteration review exists to
         # record findings, so parsing none from one is the defect, and this is the assertion that
         # makes the pattern itself falsifiable.
-        if ($findingMatches.Count -lt 1) {
-            $failures.Add("No finding heading could be parsed from '$($reviewFile.Name)'. Either the review records no finding, which is not what a retained iteration review is for, or the heading pattern no longer matches its finding ids and the disposition check above is passing by seeing nothing.")
+        # AW1. This asserted that a retained iteration review records at least one finding, which was
+        # true of the ten that had run and stopped being true the moment the 2026-09-04 ruling made
+        # "found nothing in the package" the outcome condition 4 asks for. The two-kinds-of-review
+        # section still requires such a pass to be retained as evidence, so the guard forbade
+        # recording the one result the programme is working toward -- AP1's class, a key that was
+        # correct when written and expired when the work moved.
+        #
+        # The pattern stays falsifiable, which is what this check is for. A review that parses no
+        # finding must SAY so in the declared form below, and a review that says so must carry no
+        # finding heading at all -- so a heading pattern that has quietly stopped matching still
+        # fails, because nobody writes that sentence into a review that found things.
+        $noFindingsDeclaration = 'This pass records no finding against the package.'
+        # Matched as a WHOLE LINE, not as a substring. The first form of this check fired on the
+        # review that introduced it, because a review describing the declaration quotes it in a
+        # sentence -- so the declaration is a line a review writes deliberately, and a mention of it
+        # inside prose is a mention.
+        $declaresNoFindings = [regex]::IsMatch($iterationRaw, '(?m)^' + [regex]::Escape($noFindingsDeclaration) + '?$')
+        if ($findingMatches.Count -lt 1 -and -not $declaresNoFindings) {
+            $failures.Add("No finding heading could be parsed from '$($reviewFile.Name)', and it does not state '$noFindingsDeclaration'. Either the heading pattern no longer matches its finding ids and the disposition check above is passing by seeing nothing, or the pass genuinely found nothing and must say so in that form.")
+        }
+        if ($findingMatches.Count -gt 0 -and $declaresNoFindings) {
+            $failures.Add("'$($reviewFile.Name)' states '$noFindingsDeclaration' and also records $($findingMatches.Count) finding heading(s). One of the two is wrong, and a review that says both leaves the next reader to guess which.")
         }
     }
 

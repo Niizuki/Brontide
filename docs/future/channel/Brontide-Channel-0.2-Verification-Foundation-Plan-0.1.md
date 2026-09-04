@@ -973,6 +973,66 @@ probes fire more than one guard site and nothing distinguishes them. And the `St
 is closed for the design gate's git calls and unaudited in the other gates' native-command calls, which
 is the same shape as AV2 and is the cheapest place to look next.
 
+## 2n. What the eleventh condition 4 pass found
+
+The eleventh author-side pass has run, at `07b4884`, and is retained as the
+[eleventh W1-W3 verification-foundation iteration review](./reviews/channel-0.2-aw-iteration-review.md).
+It is the first run under the 2026-09-04 ruling, and the first pass whose method is aimed at the design
+rather than at the machinery that checks it. AW is a `verification` family: neither finding reaches a
+design artifact.
+
+**The frozen set was run first and reported nothing** — 77 of 77 probes and the coverage measure, before
+any of this pass's work existed. That is the fifth consecutive pass whose retained instruments have
+found nothing.
+
+**The instrument this pass built evaluates the twenty-six properties over generated conforming
+vectors, and it is green: 0 red over 2,000 vectors and 52,000 evaluations.** Each vector satisfies the
+design's stated rules by construction — transitions drawn only from the legal table, dispatch only from
+`established`, admission stopping at the session's first drain, and admitted interactions running in
+waves that reach the established bound and never pass it — so a property red on one would be red on
+conforming behaviour, which is AE1's class.
+
+**The number is worth what the falsification behind it is worth**, and that is where the work went. Six
+violations injected into the generator were each caught by the property that owns the rule: dispatch
+while draining by `S2` and `S3`, two terminal histories by `I2` and `C8-P1`, an acknowledgement recorded
+as a success by `I3` and `C8-P1`, a session resuming after a terminal state by `S4` and `C2-P1`, and a
+wave one past the bound by `I5` and `C4-P1`. The bound is therefore evaluated at its boundary from the
+legal side and from one step past it. Two defects in the generator were found and fixed before it was
+believed — `1..0` counts down in PowerShell, and a wave was closing with a terminal form the
+interaction's own record did not carry — and both are recorded as what the falsification was for rather
+than as findings against the design.
+
+The population carries one to three sessions, zero to eleven interactions, both routes to `established`,
+sessions that fault and sessions that drain, sessions with no interaction at all, and **interaction
+identities reused across sessions** — the case AH1's ruling and the AK7, AK8 and AL1 session scopes
+exist for, now exercised over roughly 1,300 multi-session vectors. The generator asserts those shapes
+itself and fails when the population loses one, because a rate is worth what its inputs cover.
+
+It runs on **every commit** at a hundred vectors, which is seven tenths of a second, and the deep run
+lives under `verify-gate-self-checks.ps1`.
+
+**AW1 is the pass's one finding, and the machinery raised it against itself.** A retained iteration
+review had to record at least one finding — true of the ten passes that had run, and false the moment
+the 2026-09-04 ruling made "found nothing in the package" the outcome condition 4 asks for, while the
+two-kinds-of-review section still requires such a pass to be retained. The guard forbade recording the
+one result the programme is working toward. It is AP1's class, and it expired one day after the ruling
+that expired it. The pattern stays falsifiable: a review that parses no finding must state so in a
+declared form on a line of its own, and a review that states it must carry no finding heading.
+
+**AW2 is reported to the owner and not decided here.** The 2026-09-04 ruling counts package findings and
+first-run findings, and AW1 is in neither: it was found by reading, while trying to record this pass's
+result. Both of the ruling's tests pass for this pass; the previous reading of condition 4 fails it,
+because AW1 was a defect and it was fixed. Which governs is an owner decision, and it decides whether
+this pass is the first of the two consecutive passes the ruling requires.
+
+**What the next pass inherits.** The generator produces no refusals — no pre-dispatch refusal, no
+recorded `unseen` refusal, no late-traffic latch, no declared stimulus steps — so `C4-P2`'s two
+conjuncts are evaluated over empty observation records and are vacuously green, and `I4`'s first clause
+and `C5-P1`'s second are unexercised by it. The property eight finding families have been about is the
+one this instrument reaches least, and refusals are the obvious next increment. The mutation direction
+that falsified the generator is not retained, and retaining it would give falsifiability the same rate
+treatment soundness now has.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -1097,7 +1157,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,316** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,320** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved twice
   since, by four characters each time and for the same reason — registering a new iteration-review
@@ -1122,7 +1182,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   place for a measure to live and is the cost that decision accepted. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
-- **design-verifier lines** — **2,772** now, recomputed by the verifier against itself. Every step
+- **design-verifier lines** — **2,793** now, recomputed by the verifier against itself. Every step
   of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
   the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
   `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491**, `138af11` **2,626** — counted the way this verifier counts

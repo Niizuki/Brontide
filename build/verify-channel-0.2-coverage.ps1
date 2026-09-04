@@ -133,7 +133,8 @@ function Invoke-GateChild {
         [Parameter(Mandatory = $true)][string]$GatePath,
         [Parameter(Mandatory = $true)][string]$OutputFile,
         [switch]$Trace,
-        [hashtable]$Environment = @{}
+        [hashtable]$Environment = @{},
+        [string[]]$Arguments = @()
     )
 
     # A CHILD PROCESS under `Set-PSDebug -Trace 1`, for the reason the probe harness runs gates as
@@ -147,7 +148,12 @@ function Invoke-GateChild {
         [System.Environment]::SetEnvironmentVariable($name, $Environment[$name])
     }
     try {
-        $command = if ($Trace) { "Set-PSDebug -Trace 1; & '$GatePath'" } else { "& '$GatePath'" }
+        # AW1: a covered gate may need arguments to reach its own constructs. The properties gate
+        # generates vectors on every run, and tracing a hundred of them costs more than the whole of
+        # this measure -- so the declaration names a small count that reaches every construct in the
+        # generated block without paying for a population this file is not measuring.
+        $argumentText = if ($Arguments.Count -gt 0) { ' ' + ($Arguments -join ' ') } else { '' }
+        $command = if ($Trace) { "Set-PSDebug -Trace 1; & '$GatePath'$argumentText" } else { "& '$GatePath'$argumentText" }
         $previousPreference = $ErrorActionPreference
         try {
             $ErrorActionPreference = 'Continue'
@@ -167,12 +173,13 @@ function Invoke-GateChild {
 function Get-ExecutedLines {
     param(
         [Parameter(Mandatory = $true)][string]$GatePath,
-        [hashtable]$Environment = @{}
+        [hashtable]$Environment = @{},
+        [string[]]$Arguments = @()
     )
 
     $traceFile = [System.IO.Path]::GetTempFileName()
     try {
-        $gateExit = Invoke-GateChild -GatePath $GatePath -OutputFile $traceFile -Trace -Environment $Environment
+        $gateExit = Invoke-GateChild -GatePath $GatePath -OutputFile $traceFile -Trace -Environment $Environment -Arguments $Arguments
         $executed = [System.Collections.Generic.HashSet[int]]::new()
         foreach ($traceLine in Get-Content -LiteralPath $traceFile) {
             if ($traceLine -match '^DEBUG:\s+(\d+)\+') { [void]$executed.Add([int]$Matches[1]) }
@@ -372,7 +379,8 @@ foreach ($coveredGate in $coveredGates) {
         continue
     }
 
-    $run = Get-ExecutedLines -GatePath $gatePath
+    $gateArguments = @($coveredGate.arguments | Where-Object { $_ })
+    $run = Get-ExecutedLines -GatePath $gatePath -Arguments $gateArguments
     if ($run.ExitCode -ne 0) {
         # Coverage of a failing gate measures nothing: the run stopped early, so every construct after
         # the failure reads as never evaluated. The gate is fixed first and this file is run after.

@@ -180,6 +180,7 @@ dependency instead of narrowing it.
 | AT | iteration | design | eighth W1-W3 verification-foundation iteration review |
 | AU | iteration | design | ninth W1-W3 verification-foundation iteration review |
 | AV | iteration | verification | tenth W1-W3 verification-foundation iteration review |
+| AW | iteration | verification | eleventh W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -1089,6 +1090,15 @@ context elsewhere — never as evidence that their conclusions are right.
   found on its first run — a guard that could never fire, because a failing git call terminates the
   gate above it under the gate's own `Stop` preference, with every check after that point skipped.
   Unlike AR, AT and AU, AV is a **verification** family: neither correction reaches a design artifact.
+- [Eleventh W1-W3 verification-foundation iteration review](./channel-0.2-aw-iteration-review.md) — the
+  first pass aimed at the design rather than at the machinery that checks it, and the first run under
+  the 2026-09-04 ruling. Its frozen set reported nothing, and the instrument it built — the twenty-six
+  properties evaluated over generated conforming vectors — is **green at 0 red over 2,000 vectors and
+  52,000 evaluations**, with six injected violations each caught by the property that owns the rule.
+  **AW1** is its one finding and the machinery raised it against itself: a retained iteration review
+  had to record at least one finding, which the ruling had just made false for the outcome condition 4
+  asks for. **AW2** is reported to the owner rather than corrected — AW1 belongs to neither population
+  that ruling counts, because it was found by reading. AW is a **verification** family.
 
 ## Disclosed process deviation in the T1-T4 correction
 
