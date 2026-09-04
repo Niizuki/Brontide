@@ -1086,6 +1086,44 @@ over, and reaching that needs declared stimulus steps with commit indices and fi
 references. Both conjuncts remain vacuously green on generated input, and that is the property eight
 finding families have been about.
 
+## 2p. What the thirteenth condition 4 pass found
+
+The thirteenth author-side pass has run, at `182c95c`, and is retained as the
+[thirteenth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-ay-iteration-review.md).
+**It found nothing, and it is the first pass to satisfy condition 4 as the 2026-09-04 ruling states
+it.** Its frozen set reported nothing and the instrument it extended found nothing in the package. No
+finding family is raised, so there is none to disposition.
+
+**Its subject was `C4-P2`, and the point was that the property had never been evaluated over anything.**
+S1, U1, V1, V2, W1-W6, X1, X5, Y1-Y4, Z1-Z3, AC1, AE1, AF1, AG1, AI1, AJ1, AK1, AK5, AK6 and AL2 all
+converged on that property, and on generated input both of its conjuncts iterated an empty collection
+and returned green having asserted nothing.
+
+The generator now emits C4's frame-level view — declared stimulus steps with commit indices, their
+delivery dispositions and arrival ordinals, the recipient's admitted-identity sets, an `unseen` refusal
+and a settled late-traffic latch — and builds the step index those references resolve against. Both
+records are conforming **while still being examined**, which is the difficulty: the refusal is of a
+control naming an identity no request ever opened, which is the legitimate `unseen` case, and the latch
+settles against a frame committed after the endpoint's own terminal frame, which is what late traffic
+is. Each conjunct therefore matches its selectors, resolves its references, runs its comparison and
+finds nothing.
+
+**Both conjuncts now fire.** A control naming an identity the request opened and the recipient admits
+takes `C4-P2` red through conjunct 1; a latch settling against a frame committed before the terminal
+takes it red through conjunct 2. Neither was reachable at any vector count before this pass. Two
+further required shapes keep the records in the population, each checked by breaking it.
+
+**Two defects were found in the instrument and none in the design.** The first mutation written for
+conjunct 2 did not reorder the frames as intended and reported no red — the mutation was wrong, not the
+conjunct, and a pass that stopped at "no red" would have recorded a false negative about the very
+property it was there to reach. That is the risk this whole method carries and the reason both
+conjuncts were driven red before the green was believed.
+
+**What the next pass inherits.** The generated `C4-P2` inputs are one shape each, and every operand
+correction this programme made — AF8, AG2, AH1, AI1, AJ1, AK1, AK5, AK6 — is about a reference that had
+**lost a field**. A generator that always publishes all five tests none of them, so the nine retained
+operand mutations are still asserted by hand.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -1143,15 +1181,20 @@ intention rather than a side effect. It is recorded with the caution that a froz
 nothing means the package is sound *under what the programme can currently detect*, which is a floor
 and not a proof — the same limit the coverage measure states about itself.
 
-**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run twelve
-times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one and three
-defects and fixed them all. Sections 2d through 2o record them. Whether the **eleventh** met the
+**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run thirteen
+times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one, three and
+**zero** defects. Sections 2d through 2p record them.
+
+**The thirteenth is the first pass to satisfy this condition as the 2026-09-04 ruling states it**: its
+frozen set reported nothing, and the instrument it extended found nothing in the package. That ruling
+requires **two consecutive** such passes, the second over a strictly larger frozen set, so one more is
+owed before the cycle resumes. Whether the **eleventh** met the
 condition is the open question **AW2** puts to the owner: under the 2026-09-04 ruling both of its
 tests passed, and under the previous reading its one finding fails it. The twelfth does not meet it
 under either reading, because the instrument it extended found a real defect in the package — which is
 that ruling working rather than failing.
 
-The twelve are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
+The thirteen are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
 fact was stated; AO read each guard's comment as a claim and tested it against the code; AP asked
 whether each guard's *key* remained load-bearing; AQ traced statements; AR retained conditional
 coverage and used it to find unreachable property clauses; AS audited the negative assertion and
@@ -1167,27 +1210,23 @@ have been entitled to call blocking**, as does **AU1**, eleven obligations that 
 could distinguish an implementation honouring them from one that did not. The condition is doing what
 it was written to do; it has not yet run out of findings.
 
-The next work is therefore a thirteenth author-side pass, and its method is the increment the twelfth
-left: **teaching the generator to produce the `unseen` refusal record and the late-traffic latch**, so
-that `C4-P2` is evaluated over something.
+The next work is therefore a fourteenth author-side pass, and it is the **second of the two
+consecutive passes** the 2026-09-04 ruling requires before the closure cycle resumes. Its method is
+the increment the thirteenth left: **generating frame references with fields dropped.**
 
-The twelfth pass taught the generator the pre-dispatch refusal, which reached `I4`'s first clause,
-`C5-P1`'s second and `C6-P1`'s second. What it did not reach is a different record: the `unseen`
-refusal `C4-P2`'s first conjunct quantifies over, the late-traffic latch its second reads, and the
-declared stimulus steps the precedence relation is defined over. So both conjuncts of `C4-P2` are
-still evaluated over empty observation records and are **vacuously green** on generated input, and
-that is the property eight finding families have been about. Reaching it needs declared steps carrying
-commit indices and frame references in the five-field form the owned-fact declaration renders.
+The thirteenth pass gave `C4-P2` records to quantify over, and both its conjuncts now reach a verdict
+on generated input. What that population does not explore is the shape every operand correction in
+this programme was about. AF8, AG2, AH1, AI1, AJ1, AK1, AK5 and AK6 are each a reference that had
+**lost a field** — a session, an identity, an arrival ordinal — and a generator that always publishes
+all five fields tests none of them. A reference resolves to every step matching the fields it
+publishes, so dropping one widens the candidate set, and that widening is exactly what those nine
+retained operand mutations assert by hand today.
 
-The pass runs its frozen set first — which now includes the generator, so it is strictly larger than
-the eleventh's, as the ruling requires of the second of two consecutive passes — and records what it
-reports as package findings before building anything.
-
-Two further increments are recorded and are not this brief. The mutation direction that falsified the
-generator is not retained, and retaining it would give falsifiability the same rate treatment soundness
-has. And what the tenth pass left in section 2m is still not discharged: the 21% guard coverage, the
-`guardMessage` that asserts presence rather than exclusivity, and the `Stop`-preference hazard
-unaudited outside the design gate's git calls.
+Generating the dropped-field cases would turn those nine into a rate, which is the same move the
+eleventh pass made for the properties themselves. It is also the first place where a generated vector
+may legitimately be **unevaluable** rather than green or red: a reference resolving to no step raises
+an error rather than a verdict, which is `C4-P2`'s AK6 machinery, and the pass has to say which
+droppings are legal inputs and which are the design's own defect being reproduced.
 
 Nothing in this section authorizes dispatching a closure review, and the closure-cycle state at the
 head of this document is what says so.

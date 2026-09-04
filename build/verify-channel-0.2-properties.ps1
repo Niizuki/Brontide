@@ -1425,6 +1425,17 @@ if ($GeneratedCount -gt 0) {
         $timeline = [System.Collections.Generic.List[object]]::new()
         $interactions = [System.Collections.Generic.List[object]]::new()
         $sessionEvents = [System.Collections.Generic.List[object]]::new()
+        # C4's frame-level view, which is a different record from the session timeline above: declared
+        # stimulus steps are what `Test-Precedes` orders and what a frame reference resolves against,
+        # and the observation records are what `C4-P2`'s two conjuncts quantify over. Without them
+        # both conjuncts iterate an empty collection and return green having asserted nothing, which
+        # is where the twelfth pass left the instrument.
+        $declaredSteps = [System.Collections.Generic.List[object]]::new()
+        $delivery = [System.Collections.Generic.List[object]]::new()
+        $unseenRefusals = [System.Collections.Generic.List[object]]::new()
+        $lateTrafficLatches = [System.Collections.Generic.List[object]]::new()
+        $admittedSets = [System.Collections.Generic.List[object]]::new()
+        $arrivalOrdinal = 0
 
         foreach ($sessionOrdinal in 1..($Random.Next(1, 4))) {
             $sessionId = "s$sessionOrdinal"
@@ -1540,6 +1551,83 @@ if ($GeneratedCount -gt 0) {
                 })
             }
 
+            # C4's frames for this session, and the two observation records that read them. Both are
+            # built to be **conforming**, which for `C4-P2` means the two situations its conjuncts
+            # forbid do not occur while the records they quantify over do exist:
+            #
+            #   * Conjunct 1 forbids an `unseen` refusal of a cancellation control whose request the
+            #     same endpoint had already committed AND whose identity the recipient afterwards
+            #     admits. The control here names an identity **no request ever opened**, which is the
+            #     legitimate `unseen` case the design keeps `rejected-protocol` for, so the conjunct's
+            #     request set is empty and it is green on a record it actually examined.
+            #   * Conjunct 2 forbids a late-traffic latch settled against a frame committed BEFORE the
+            #     endpoint's own terminal frame. Here the settling frame is committed after it, which
+            #     is what late traffic is, so the comparison runs and finds nothing.
+            #
+            # The refusal's `detailedReason`, `provenance` and `frameDecision` are the selectors the
+            # conjunct narrows on; a record missing them would be skipped and prove nothing.
+            $unopenedIdentity = "u$sessionOrdinal"
+            $requestStep = "$sessionId-request"
+            $controlStep = "$sessionId-control-unopened"
+            $terminalStep = "$sessionId-terminal"
+            $lateStep = "$sessionId-late"
+            $frameSpecs = @(
+                @{ Id = $requestStep; Kind = 'request'; Endpoint = 'initiator'; Identity = 'f1'; Commit = 1 },
+                @{ Id = $controlStep; Kind = 'cancellation-control'; Endpoint = 'initiator'; Identity = $unopenedIdentity; Commit = 1 },
+                @{ Id = $terminalStep; Kind = 'outcome'; Endpoint = 'recipient'; Identity = 'f1'; Commit = 1 },
+                @{ Id = $lateStep; Kind = 'cancellation-control'; Endpoint = 'recipient'; Identity = 'f1'; Commit = 2 })
+            foreach ($frameSpec in $frameSpecs) {
+                $arrivalOrdinal++
+                $declaredSteps.Add([pscustomobject]@{
+                    id = $frameSpec.Id
+                    kind = $frameSpec.Kind
+                    committingEndpoint = $frameSpec.Endpoint
+                    session = $sessionId
+                    interactionIdentity = $frameSpec.Identity
+                    commitIndex = $frameSpec.Commit
+                })
+                $delivery.Add([pscustomobject]@{
+                    step = $frameSpec.Id
+                    disposition = 'delivered'
+                    receivingEndpoint = $(if ($frameSpec.Endpoint -eq 'initiator') { 'recipient' } else { 'initiator' })
+                    arrivalOrdinal = $arrivalOrdinal
+                })
+            }
+            # The recipient admits the identity it was asked to open, and never the unopened one --
+            # which is the operand AF8 scoped to the session and AK1 was raised for.
+            $admittedSets.Add([pscustomobject]@{ session = $sessionId; identities = @('f1') })
+            $unseenRefusals.Add([pscustomobject]@{
+                provenance = 'recipient'
+                frameDecision = 'rejected-protocol'
+                detailedReason = 'unopened-interaction-identity'
+                effectCertainty = 'known-none'
+                refusedFrame = [pscustomobject]@{
+                    kind = 'cancellation-control'
+                    session = $sessionId
+                    interactionIdentity = $unopenedIdentity
+                    committingEndpoint = 'initiator'
+                    arrivalOrdinal = ($arrivalOrdinal - 2)
+                }
+            })
+            $lateTrafficLatches.Add([pscustomobject]@{
+                category = 'state-violation'
+                latchValue = 'fault-committed'
+                settlingFrame = [pscustomobject]@{
+                    kind = 'cancellation-control'
+                    session = $sessionId
+                    interactionIdentity = 'f1'
+                    committingEndpoint = 'recipient'
+                    arrivalOrdinal = $arrivalOrdinal
+                }
+                terminalFrame = [pscustomobject]@{
+                    kind = 'outcome'
+                    session = $sessionId
+                    interactionIdentity = 'f1'
+                    committingEndpoint = 'recipient'
+                    arrivalOrdinal = ($arrivalOrdinal - 1)
+                }
+            })
+
             # The session ends terminal, by drain or by a recognized fault from a nonterminal state.
             # Both are legal edges; S4 is what forbids anything after one.
             if ($Random.Next(0, 4) -eq 0) {
@@ -1569,9 +1657,52 @@ if ($GeneratedCount -gt 0) {
             sessionTimeline = @($timeline)
             interactions = @($interactions)
             sessionEvents = @($sessionEvents)
-            declaredSteps = @()
+            declaredSteps = @($declaredSteps)
+            delivery = @($delivery)
+            observations = [pscustomobject]@{
+                recipientAdmittedIdentities = @($admittedSets)
+                unseenRefusals = @($unseenRefusals)
+                lateTrafficLatches = @($lateTrafficLatches)
+            }
             deterministicExpectedObservation = $true
         }
+    }
+
+    # The step index `C4-P2` is evaluated against, built the way the declared corpus's is at load:
+    # `DeclaredOrder` is the position in the declared sequence and the only thing `Test-Precedes`
+    # reads, and `ArrivalOrdinal` is an identifier a reference matches for equality and never an
+    # ordering operand. Building it here rather than reusing the loader is the one duplication this
+    # block carries, and it is why the shape assertions below check the index rather than trusting it.
+    function New-GeneratedStepIndex {
+        param([Parameter(Mandatory = $true)]$Vector)
+
+        $order = 0
+        $byId = @{}
+        foreach ($step in @($Vector.declaredSteps)) {
+            $byId[[string]$step.id] = [pscustomobject]@{
+                Id = [string]$step.id
+                Kind = [string]$step.kind
+                CommittingEndpoint = [string]$step.committingEndpoint
+                Session = [string]$step.session
+                InteractionIdentity = [string]$step.interactionIdentity
+                CommitIndex = [int]$step.commitIndex
+                DeclaredOrder = $order
+                ArrivalOrdinal = $null
+                ReceivingEndpoint = $null
+                Delivered = $false
+            }
+            $order++
+        }
+        foreach ($disposition in @($Vector.delivery)) {
+            $entry = $byId[[string]$disposition.step]
+            if ($null -eq $entry) { continue }
+            if ([string]$disposition.disposition -eq 'delivered') {
+                $entry.Delivered = $true
+                $entry.ReceivingEndpoint = [string]$disposition.receivingEndpoint
+                $entry.ArrivalOrdinal = [int]$disposition.arrivalOrdinal
+            }
+        }
+        return @($byId.Values | Sort-Object DeclaredOrder)
     }
 
     # The generator's own required shapes, and the reason they are asserted here rather than measured
@@ -1593,6 +1724,8 @@ if ($GeneratedCount -gt 0) {
         'a vector carrying more than one session'                  = 'multi-session'
         'a wave that fills the session''s established bound'       = 'bound-filled'
         'an interaction refused before dispatch'                   = 'pre-dispatch-refusal'
+        'an `unseen` refusal record C4-P2''s first conjunct selects' = 'unseen-refusal'
+        'a settled late-traffic latch its second conjunct reads'   = 'late-traffic-latch'
     }
 
     $generatedEvaluations = 0
@@ -1600,6 +1733,7 @@ if ($GeneratedCount -gt 0) {
     foreach ($generatedOrdinal in 1..$GeneratedCount) {
         $generatedId = "generated-$generatedOrdinal"
         $generatedVector = New-ConformingVector -Id $generatedId -Random $random
+        $generatedSteps = New-GeneratedStepIndex -Vector $generatedVector
 
         $generatedTimeline = @($generatedVector.sessionTimeline)
         foreach ($shapeTo in @($generatedTimeline | Where-Object { [string]$_.step -eq 'transition' } | ForEach-Object { [string]$_.to })) {
@@ -1616,10 +1750,24 @@ if ($GeneratedCount -gt 0) {
         foreach ($shapeInteraction in @(if ($null -eq $generatedVector.interactions) { @() } else { $generatedVector.interactions })) {
             if ($null -ne $shapeInteraction.refusal -and [string]$shapeInteraction.refusal.stage -eq 'pre-dispatch') { $shapesSeen['pre-dispatch-refusal'] = $true }
         }
+        # Keyed on the selector values the conjunct narrows on, not merely on a record existing:
+        # a refusal the conjunct skips proves as little as no refusal at all.
+        foreach ($shapeRefusal in @($generatedVector.observations.unseenRefusals)) {
+            if ($null -eq $shapeRefusal) { continue }
+            if ([string]$shapeRefusal.provenance -eq 'recipient' -and
+                [string]$shapeRefusal.frameDecision -eq 'rejected-protocol' -and
+                [string]$shapeRefusal.detailedReason -eq 'unopened-interaction-identity' -and
+                [string]$shapeRefusal.refusedFrame.kind -eq 'cancellation-control') { $shapesSeen['unseen-refusal'] = $true }
+        }
+        foreach ($shapeLatch in @($generatedVector.observations.lateTrafficLatches)) {
+            if ($null -eq $shapeLatch) { continue }
+            if ([string]$shapeLatch.category -eq 'state-violation' -and [string]$shapeLatch.latchValue -eq 'fault-committed' -and
+                $null -ne $shapeLatch.settlingFrame -and $null -ne $shapeLatch.terminalFrame) { $shapesSeen['late-traffic-latch'] = $true }
+        }
 
         foreach ($propertyId in ($evaluators.Keys | Sort-Object)) {
             $script:UnpublishedFields.Clear()
-            $generatedResult = & $evaluators[$propertyId] -VectorId $generatedId -Vector $generatedVector -Steps @()
+            $generatedResult = & $evaluators[$propertyId] -VectorId $generatedId -Vector $generatedVector -Steps $generatedSteps
             $generatedEvaluations++
             # Guarded rather than piped unconditionally: `Sort-Object` on an empty list, run once per
             # property per vector, is most of the cost of the whole measure at any useful count.

@@ -277,7 +277,7 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Twelve such passes have run and none has yet met the plan's condition 4, which asks for a pass that finds
+Thirteen such passes have run, and the thirteenth is the first to meet the plan's condition 4, which asks for a pass that finds
 nothing it can fix. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
@@ -289,23 +289,25 @@ nothing it can fix. They are retained as the
 [eighth](./channel-0.2-at-iteration-review.md) (**AT1**-**AT7**) and
 [ninth](./channel-0.2-au-iteration-review.md) (**AU1**-**AU5**),
 [tenth](./channel-0.2-av-iteration-review.md) (**AV1**-**AV3**),
-[eleventh](./channel-0.2-aw-iteration-review.md) (**AW1**) and
-[twelfth](./channel-0.2-ax-iteration-review.md) (**AX1**-**AX3**) W1-W3 verification-foundation
+[eleventh](./channel-0.2-aw-iteration-review.md) (**AW1**),
+[twelfth](./channel-0.2-ax-iteration-review.md) (**AX1**-**AX3**) and
+[thirteenth](./channel-0.2-ay-iteration-review.md) (no finding) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
-**A thirteenth pass over the same scope is the live path.** It starts by running the frozen instrument
-set — `build/verify-channel-0.2-guards.ps1`, the coverage gate and the generated-vector run, whose
-sizes the plan's section 4 owns and recomputes rather than this paragraph — and records what it
-reports before building anything. That set now includes the generator, so it is strictly larger than
-the eleventh pass's, which is what the 2026-09-04 ruling requires of the second of two consecutive
-passes.
+**A fourteenth pass over the same scope is the live path, and it is the second of the two consecutive
+passes the 2026-09-04 ruling requires.** It starts by running the frozen instrument set — the probe
+corpus, the coverage gate and the generated-vector run, whose sizes the plan's section 4 owns and
+recomputes rather than this paragraph — and records what it reports before building anything.
 
-**Its method is the increment the eleventh pass left: teaching the generator to produce refusals.**
-That generator evaluates all twenty-six properties over conforming vectors and is green over two
-thousand of them, but it produces no refusal of any kind — no pre-dispatch refusal, no recorded
-`unseen` refusal, no late-traffic latch, no declared stimulus steps. So `C4-P2`'s two conjuncts are
-evaluated over empty observation records and are **vacuously green**, and the property eight finding
-families have been about is the one that instrument reaches least.
+**The thirteenth pass found nothing**, which is the first time that has happened here, and it is why
+one more clean pass is owed rather than none. It gave `C4-P2` records to quantify over: both conjuncts
+now reach a verdict on generated input, and each was driven red through its own named conjunct before
+the green was believed.
+
+**The fourteenth pass's method is generating frame references with fields dropped.** Every operand
+correction in this programme — AF8, AG2, AH1, AI1, AJ1, AK1, AK5, AK6 — is about a reference that had
+lost a session, an identity or an arrival ordinal, and a generator that always publishes all five
+fields tests none of them.
 
 Nothing in this paragraph resumes the closure cycle or authorizes a closure-review dispatch.
 
@@ -1108,6 +1110,15 @@ context elsewhere — never as evidence that their conclusions are right.
   its own timeline does not and every property stayed green. **AX3** is the AJ2 narrative guard going
   silent because pass ordinals now collide with review ordinals, caught by the `AQ1-a` probe. AX is a
   **verification** family.
+- [Thirteenth W1-W3 verification-foundation iteration review](./channel-0.2-ay-iteration-review.md) —
+  **the first pass here to find nothing**, and the first to satisfy condition 4 as the 2026-09-04
+  ruling states it: its frozen set reported nothing and the instrument it extended found nothing in
+  the package. Its subject was `C4-P2`, which twenty-one findings had converged on and which was
+  **vacuously green** on generated input, both conjuncts iterating an empty collection. The generator
+  now emits declared stimulus steps, delivery dispositions, admitted-identity sets, an `unseen` refusal
+  and a settled late-traffic latch, and both conjuncts reach a verdict — each driven red through its
+  own named conjunct before the green was believed. It raises no family, so there is none to
+  disposition.
 
 ## Disclosed process deviation in the T1-T4 correction
 
