@@ -290,7 +290,7 @@ nothing it can fix. They are retained as the
 [ninth](./channel-0.2-au-iteration-review.md) (**AU1**-**AU5**),
 [tenth](./channel-0.2-av-iteration-review.md) (**AV1**-**AV3**),
 [eleventh](./channel-0.2-aw-iteration-review.md) (**AW1**) and
-[twelfth](./channel-0.2-ax-iteration-review.md) (**AX1**-**AX2**) W1-W3 verification-foundation
+[twelfth](./channel-0.2-ax-iteration-review.md) (**AX1**-**AX3**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
 **A thirteenth pass over the same scope is the live path.** It starts by running the frozen instrument
@@ -1105,7 +1105,9 @@ context elsewhere — never as evidence that their conclusions are right.
   eleventh pass, and the class is closed by recomputing the condition-4 pass count and both next-work
   ordinals rather than by correcting the five sentences. **AX2** came out of mutating the generator:
   `dispatched` on an interaction record is read by **no property**, so a vector could state a dispatch
-  its own timeline does not and every property stayed green. AX is a **verification** family.
+  its own timeline does not and every property stayed green. **AX3** is the AJ2 narrative guard going
+  silent because pass ordinals now collide with review ordinals, caught by the `AQ1-a` probe. AX is a
+  **verification** family.
 
 ## Disclosed process deviation in the T1-T4 correction
 

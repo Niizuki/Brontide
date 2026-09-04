@@ -5,7 +5,7 @@ Reviewer identity: `agent:claude-opus-5-channel-0.2-condition-4-twelfth-pass-202
 Reviewed work: the Channel 0.2 design's own claims through the twenty-six executable properties, and
 the entry points that route a pass to its work, at `65a2b80`,
 `Merge pull request #145 from Niizuki/channel-0.2-condition-4-eleventh-pass`; raised and corrected
-AX1-AX2
+AX1-AX3
 
 Date: 2026-09-04
 
@@ -89,14 +89,37 @@ is the class W1 spent a whole work item retiring for the frame references.
 is what a reader of the record sees. No declared vector disagrees today, so this was latent; the check
 was pinned by flipping the field on the conforming single-session realization and watching it fire.
 
+### AX3 -- the narrative freshness guard counted a pass ordinal as a review ordinal -- corrected
+
+The AJ2 guard requires each entry-point narrative to introduce the newest independent closure review
+by its ordinal. Its key was the bare ordinal word **anywhere** in the narrative, which was sufficient
+while ordinals in these documents only ever numbered closure reviews.
+
+They no longer do. The condition-4 passes are numbered too, and this pass's own sentence naming the
+next one -- "a thirteenth pass is the next work" -- satisfies a bare-word match on `thirteenth` by itself. So the guard
+would keep passing on a narrative that had dropped the review it is about.
+
+**The corpus is what noticed.** `AQ1-a` removes the sentence introducing closure review 13 and requires
+the guard to fire; it returned pass, which is the probe reporting that the guard it pins has stopped
+measuring. That is AO3's argument for keeping the corpus, paying out on a guard that a reading would
+not have questioned.
+
+It is the **third** bare-word key found wider than its question, after **AU3** and **AV3**, and this
+one was introduced by the programme numbering a second population of things.
+
+**Corrected** by excluding the other population's noun rather than by demanding the word `review`
+beside the ordinal -- that was tried first and is wrong, because these narratives legitimately write
+"the eighth **U1**-**U8**" and "the eleventh raised", naming a review by its findings. An ordinal that
+introduces a *pass* no longer counts as introducing a review, and every existing phrasing still does.
+
 ## What this pass verified rather than believed
 
 - **The frozen set was run first**, and it is strictly larger than the eleventh pass's.
 - **The new inputs reach their clauses.** Three mutations, each caught by the owning property — an
   extension that added shape without reach would have shown as no property going red.
 - **The refusal shape assertion is load-bearing**: switching refusals off makes it fire.
-- **AX1's check fails on the stale text** it was written for, and **AX2's** on a vector made to
-  disagree with itself.
+- **AX1's check fails on the stale text** it was written for, **AX2's** on a vector made to disagree
+  with itself, and **AX3's** guard fires again on the probe that reported it silent.
 - **The normal path is unchanged**: 26 of 26 properties, 131 evaluations over 55 declared inputs.
 
 ## What remains outside the pass
@@ -119,10 +142,11 @@ between a pass that would have met condition 4 and one that plainly does not, an
 decision.
 
 The closure review remains on hold. The finding count by condition-4 pass is now three, six, three,
-two, five, one, seven, seven, five, three, one, **two**.
+two, five, one, seven, seven, five, three, one, **three**.
 
 ## Where this family is dispositioned
 
 AX is a `verification` family. AX1 is in the entry points and the design verifier, AX2 in the vector
-format's reconciliation and the properties gate; neither reaches a design artifact, so the disposition
+format's reconciliation and the properties gate, AX3 in the design verifier's narrative guard; none
+reaches a design artifact, so the disposition
 belongs in the verification foundation plan.

@@ -47,7 +47,7 @@ diagnosis, the work that lands before the cycle resumes, and the conditions that
 of its four conditions are met; the fourth asks for an author-side pass over that work which finds
 nothing it can fix, and the twelve that have run raised **AM1**-**AM3**, **AN1**-**AN6**,
 **AO1**-**AO3**, **AP1**-**AP2**, **AQ1**-**AQ5**, **AR1**, **AS1**-**AS7**, **AT1**-**AT7**,
-**AU1**-**AU5**, **AV1**-**AV3**, **AW1**, and **AX1**-**AX2**. Batch 2 stays closed
+**AU1**-**AU5**, **AV1**-**AV3**, **AW1**, and **AX1**-**AX3**. Batch 2 stays closed
 and no correction is withdrawn. The V through
 AD families were raised by author-side iteration passes over each other's corrections rather than by
 an independent review, each by asking what the previous fix depended on; that method has not yet

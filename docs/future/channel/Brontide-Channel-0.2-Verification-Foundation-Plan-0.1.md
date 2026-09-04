@@ -1037,7 +1037,7 @@ treatment soundness now has.
 
 The twelfth author-side pass has run, at `65a2b80`, and is retained as the
 [twelfth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-ax-iteration-review.md).
-It raised **AX1**-**AX2** and corrected both. AX is a `verification` family.
+It raised **AX1**-**AX3** and corrected all three. AX is a `verification` family.
 
 **Its frozen set reported nothing, and it is the first frozen set strictly larger than its
 predecessor's** — the generator built by the eleventh pass joined it under the quarantine rule, so the
@@ -1069,6 +1069,16 @@ property green, because **no property reads that field**: all six that care deri
 timeline's `dispatch` steps, and forty-nine declared interaction records carry it anyway. A vector
 could therefore read to a human as one thing and evaluate as another. The record is reconciled against
 the timeline rather than deleted, because it is what a reader of the record sees.
+
+**AX3 is a guard the probe corpus caught going silent.** The AJ2 narrative freshness guard requires
+each entry point to introduce the newest closure review by its ordinal, and its key was the bare
+ordinal word anywhere in the narrative. That was enough while only closure reviews were numbered here;
+the condition-4 passes are numbered too, and this pass's own sentence naming the next one satisfies the
+key on its own. The `AQ1-a` probe returned pass where it owes a fail, which is the corpus reporting a
+guard that has stopped measuring -- AO3's argument paying out on something no reading would have
+questioned. It is the third bare-word key found wider than its question, after AU3 and AV3, and the
+correction excludes the other population's noun rather than demanding `review` beside the ordinal,
+which was tried and breaks the narratives that name a review by its findings.
 
 **What the next pass inherits.** `C4-P2` is still evaluated over empty observation records: a
 pre-dispatch refusal is a different record from the `unseen` refusal its first conjunct quantifies
@@ -1134,7 +1144,7 @@ nothing means the package is sound *under what the programme can currently detec
 and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run twelve
-times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one and two
+times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one and three
 defects and fixed them all. Sections 2d through 2o record them. Whether the **eleventh** met the
 condition is the open question **AW2** puts to the owner: under the 2026-09-04 ruling both of its
 tests passed, and under the previous reading its one finding fails it. The twelfth does not meet it
