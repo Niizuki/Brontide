@@ -1099,29 +1099,29 @@
     },
     {
       "id": "AX1-a",
-      "claim": "the plan's condition-4 tally falls behind the retained passes",
+      "claim": "the plan no longer states its condition-4 tally in the form the count is recomputed against",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
-      "guardMessage": "condition-4 tally says",
+      "guardMessage": "condition-4 tally is no longer stated in the form this check recomputes",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "**Condition 4 has run eleven\ntimes**",
-          "replace": "**Condition 4 has run ten\ntimes**"
+          "find": "Condition 4 has run",
+          "replace": "Condition 4 has been attempted"
         }
       ]
     },
     {
       "id": "AX1-b",
-      "claim": "the live-path sentence names a pass that has already run",
+      "claim": "the review policy no longer names the next pass in the form its ordinal is recomputed against",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
-      "guardMessage": "live-path sentence calls the next pass the",
+      "guardMessage": "live-path sentence no longer names the next pass in the form this check recomputes",
       "edits": [
         {
           "path": "docs/future/channel/reviews/README.md",
-          "find": "**A twelfth pass over the same scope is the live path.**",
-          "replace": "**An eleventh pass over the same scope is the live path.**"
+          "find": "pass over the same scope is the live path",
+          "replace": "pass over the same scope is the current path"
         }
       ]
     },
