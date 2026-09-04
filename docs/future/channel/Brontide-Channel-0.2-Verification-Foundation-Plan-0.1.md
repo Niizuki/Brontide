@@ -906,7 +906,7 @@ cycle.
 
 The tenth author-side pass has run, at `7798db4`, and is retained as the
 [tenth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-av-iteration-review.md).
-It raised **AV1**-**AV2** and corrected both, so **it does not meet condition 4** either. AV is a
+It raised **AV1**-**AV3** and corrected all three, so **it does not meet condition 4** either. AV is a
 `verification` family — both corrections are in the gates and the probe corpus and neither reaches a
 design artifact — so its disposition is here.
 
@@ -920,7 +920,8 @@ sites the corpus reaches, and it reaches 62 of 299**: design 29 of 209, properti
 of 17, coverage 6 of 11, and the harness 0 of 11, which no probe names because it is the runner.
 
 That number is a floor on how much of the guard population anything makes fire. It is not a defect
-count, and raising it by writing 237 probes would be a poor use of a pass — the corpus is worth what
+count, and raising it by writing a probe for each of those 237 guards would be a poor use of a pass —
+the corpus is worth what
 the doubts behind its probes were worth. Both findings came from **building** the measure rather than
 from reading it.
 
@@ -933,7 +934,7 @@ asserted was the gate's exit code, which is a whole-gate verdict, so every `expe
 whenever the gate failed for any reason.
 
 The evidence is stated precisely because the obvious experiment overstates it. An unconditional
-unrelated failure added to the design gate leaves 76 of 77 probes green — but their own guards still
+unrelated failure added to the design gate leaves every probe but one green — but their own guards still
 fire there, so passing is uninformative rather than wrong. The decisive case is a guard that stops
 firing while the gate still fails: silencing `AP1-a`'s guard and leaving an unrelated failure takes
 that probe **red** now and could only have passed before. Every `expect: fail` probe now declares a
@@ -958,6 +959,14 @@ simply never true; and invisible to the corpus, because the probe read only the 
 git calls now route through one helper that lowers the preference for the call, so the class is closed
 rather than the instance.
 
+**AV3 is the ninth pass's own sweep, found by it firing on this pass's prose.** The probe-count sweep
+keys on any `<number> probes` in four documents, which is broader than the question "does this document
+state the size of the corpus": it fires on a sentence that counts probes for some other reason, and it
+fired on two here. Narrowing the key to a declared phrasing is what AN1 and AN2 were each raised for,
+and a sweep that recognises one phrasing is the hole AU3 closed, so the breadth is kept and the rule is
+stated where the guard is -- in those four documents `<number> probes` means the size of this corpus,
+and a count of probes written for anything else is phrased another way.
+
 **What the next pass inherits.** The 21% is a floor and which guards deserve probes is a judgement, not
 a task. A `guardMessage` asserts that a probe's guard fired and not that it was the only one; sixteen
 probes fire more than one guard site and nothing distinguishes them. And the `Stop`-preference hazard
@@ -981,7 +990,7 @@ Then one fresh independent closure review is dispatched under the unchanged inde
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run ten
 times and is met by none of them**: the passes found three, six, three, two, five, one, seven, seven,
-five and two defects and fixed them all, which is the opposite of what that condition asks. Sections 2d
+five and three defects and fixed them all, which is the opposite of what that condition asks. Sections 2d
 through 2m record them.
 
 The ten are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected

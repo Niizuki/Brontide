@@ -308,6 +308,15 @@ if (-not $Probe) {
     # and the review policy said 69 -- one fact, four surfaces, three values, and the one surface a
     # gate recomputed was the one that was correct. The question that finds this is AN's, "where else
     # is this stated", and it is asked here rather than answered once more by hand.
+    #
+    # AV3, and it is the rule this sweep imposes rather than a narrowing of it. The key is any
+    # `<number> probes` in these four documents, which is broader than the question "does this
+    # document state the size of the corpus": it fires on a sentence that counts probes for some other
+    # reason, and it did, on prose describing an experiment over the corpus and on prose proposing to
+    # write probes for a population of guards. Narrowing the key to a declared phrasing is what AN1
+    # and AN2 were each raised for, so the breadth is kept and the rule is stated instead: **in these
+    # four documents, `<number> probes` means the size of this corpus.** A count of probes written for
+    # any other purpose is phrased another way, and the two sentences that were not have been.
     $countSurfaces = @(
         'docs\future\channel\Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md',
         'docs\future\channel\reviews\README.md',

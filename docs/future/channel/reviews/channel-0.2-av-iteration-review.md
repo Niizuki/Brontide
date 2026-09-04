@@ -6,7 +6,7 @@ Reviewed work: the verification-foundation work done under the closure-cycle hol
 facts and their gates), W2 (the twenty-six executable properties), W3 (the status blocks and Channel
 index rows), the retained guard corpus, the coverage instrument, and the AU corrections -- at
 `7798db4`, `Merge pull request #142 from Niizuki/channel-0.2-condition-4-ninth-pass`; raised and
-corrected AV1-AV2
+corrected AV1-AV3
 
 Date: 2026-09-04
 
@@ -17,7 +17,7 @@ supply the conforming verdict the Closure section requires.
 
 It is the **tenth** pass condition 4 of the
 [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md#3-how-the-hold-ends)
-names. **Condition 4 is not met by it**, because it found two defects and corrected them.
+names. **Condition 4 is not met by it**, because it found three defects and corrected them.
 
 ## Method
 
@@ -37,8 +37,8 @@ produces no findings at all, so measuring which sites a passing run reaches is v
 that make those guards fire are the probes. So the measure is: **which guard sites does the corpus
 reach**, and the instrument is the corpus with the failure constructor recorded.
 
-That measurement is reported below. What it produced along the way is both findings, and neither came
-from the number.
+That measurement is reported below. AV1 and AV2 both came out of **building** it rather than out of
+reading it, and AV3 came out of the guard the ninth pass left behind.
 
 ## Findings
 
@@ -102,6 +102,24 @@ the corpus, because the probe read only the exit code.
 reintroduce it. With the fix in place the guard fires with the message it was written to produce, and
 AN3-b is anchored on it.
 
+### AV3 -- the probe-count sweep reads any count of probes as a claim about the corpus -- corrected
+
+The sweep AU3 added recomputes the corpus size against every statement of it in four documents. Its
+key is any `<number> probes`, which is broader than the question it is asked: it fires on a sentence
+that counts probes for some other reason.
+
+It found that itself, on this pass's own prose -- one sentence describing the experiment above over the
+corpus, and one proposing to write a probe for each of 237 guards. Neither was a claim about the size
+of the corpus and both would have been wrong the moment the corpus grew, so the guard was right to be
+suspicious and wrong about what it had found.
+
+**Corrected by keeping the breadth and stating the rule.** Narrowing the key to a declared phrasing is
+what AN1 and AN2 were each raised for -- a guard whose scope is narrower than its own question -- and a
+sweep that only recognises one phrasing is exactly the hole AU3 was raised to close. So the rule stands
+where the guard is: in those four documents, `<number> probes` means the size of this corpus, and a
+count of probes written for any other purpose is phrased another way. The two sentences that were not
+have been reworded.
+
 ## What this pass measured
 
 **The corpus reaches 62 of the 299 guard sites in the five gates — 21%.** By gate: design 29 of 209,
@@ -146,7 +164,7 @@ other gates' native-command calls.** The class is closed where it was proven; wh
 properties, coverage or harness gates hold the same shape is unexamined.
 
 The closure review remains on hold. The finding count by condition-4 pass is now three, six, three,
-two, five, one, seven, seven, five, **two**; a pass with findings cannot satisfy condition 4 even when
+two, five, one, seven, seven, five, **three**; a pass with findings cannot satisfy condition 4 even when
 all findings are corrected.
 
 ## Where this family is dispositioned

@@ -286,7 +286,7 @@ nothing it can fix. They are retained as the
 [seventh](./channel-0.2-as-iteration-review.md) (**AS1**-**AS7**),
 [eighth](./channel-0.2-at-iteration-review.md) (**AT1**-**AT7**) and
 [ninth](./channel-0.2-au-iteration-review.md) (**AU1**-**AU5**) and
-[tenth](./channel-0.2-av-iteration-review.md) (**AV1**-**AV2**) W1-W3 verification-foundation
+[tenth](./channel-0.2-av-iteration-review.md) (**AV1**-**AV3**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
 **An eleventh pass over the same scope is the live path.** It starts by running
@@ -1074,7 +1074,7 @@ context elsewhere — never as evidence that their conclusions are right.
   that omits the field, which is AE1 latent. Like AR and AT, AU is a **design** family: the corrections
   reach the per-capability property audit.
 - [Tenth W1-W3 verification-foundation iteration review](./channel-0.2-av-iteration-review.md) — the
-  same scope at `7798db4`; raised **AV1**-**AV2** and corrected both, so condition 4 is **still not
+  same scope at `7798db4`; raised **AV1**-**AV3** and corrected all three, so condition 4 is **still not
   met**. It answered the brief AU left by finding the chokepoint those gates were said to lack —
   `$failures.Add` — and the inputs that reach it, which are the probes; the corpus makes 62 of 299
   guard sites fire. **AV1** is what building that measure exposed: a probe asserted the gate's exit
