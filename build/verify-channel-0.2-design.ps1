@@ -8,6 +8,34 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $channelPath = Join-Path $repositoryRoot 'docs\future\channel'
 $failures = [System.Collections.Generic.List[string]]::new()
 
+# AV2. Every git call in this file redirects stderr with `2>$null`, and in Windows PowerShell that
+# redirection wraps each stderr line in an ErrorRecord -- which this file's `Stop` preference turns
+# into a TERMINATING error at the call. So a git invocation that fails does not hand a non-zero
+# `$LASTEXITCODE` to the check written to read it: it kills the gate where it stands, every check
+# after that point is skipped, and the exit code is 1, which is indistinguishable from a clean
+# finding.
+#
+# It was proven on the historical-measure read below. Naming an unreadable revision died inside
+# `Get-BlobText`, so the guard that reports exactly that condition -- "this verifier cannot be read
+# at it" -- could never fire, and the probe written for that guard had been green on the crash rather
+# than on the guard. That is AO1's class, a guard no input can reach, one level below where AO1 found
+# it, and it was invisible because a probe read only the exit code.
+#
+# Lowering the preference for the duration of the call is what the guard harness already does around
+# the gate it runs, for the same reason and after the same defect. Routed through one helper rather
+# than repeated at seven call sites, because the next git call added here would otherwise reintroduce
+# it.
+function Invoke-Git {
+    param([Parameter(Mandatory = $true)][string[]]$Arguments)
+
+    $previousPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        return (& git -C $repositoryRoot @Arguments 2>$null)
+    }
+    finally { $ErrorActionPreference = $previousPreference }
+}
+
 $artifactNames = @(
     'README.md',
     'Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md',
@@ -1037,8 +1065,8 @@ $designArtifactPathspec = @(
 # same answer in both views: a pin is valid when the artifacts at the pinned commit are the artifacts
 # a reviewer would read now.
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot '.git')) {
-    $pendingDesignEdits = & git -C $repositoryRoot status --porcelain -- $designArtifactPathspec 2>$null
-    $latestDesignSubject = (& git -C $repositoryRoot log -1 --format=%s -- $designArtifactPathspec 2>$null)
+    $pendingDesignEdits = Invoke-Git (@('status', '--porcelain', '--') + $designArtifactPathspec)
+    $latestDesignSubject = Invoke-Git (@('log', '-1', '--format=%s', '--') + $designArtifactPathspec)
     if ($LASTEXITCODE -eq 0 -and $latestDesignSubject -and -not $pendingDesignEdits) {
         $flowedReviewReadme = Get-FlowedText $reviewReadme
         $pinnedSubjectMatch = [regex]::Match($flowedReviewReadme, 'The current review target is the commit titled `([^`]+)`')
@@ -1052,7 +1080,7 @@ if (Test-Path -LiteralPath (Join-Path $repositoryRoot '.git')) {
             # Matched against the SUBJECT LINE, not against the message: these commit bodies quote
             # other commits' subjects, and `--grep` would resolve a pin to whichever commit mentioned
             # it last.
-            $pinnedCommit = @(& git -C $repositoryRoot log --format="%H`t%s" 2>$null |
+            $pinnedCommit = @(Invoke-Git @('log', "--format=%H`t%s") |
                 Where-Object { ($_ -split "`t", 2)[1] -ceq $pinnedSubject } |
                 ForEach-Object { ($_ -split "`t", 2)[0] } |
                 Select-Object -First 1)
@@ -1065,8 +1093,8 @@ if (Test-Path -LiteralPath (Join-Path $repositoryRoot '.git')) {
                 # which is what the policy's sentence is about.
                 $movedArtifacts = [System.Collections.Generic.List[string]]::new()
                 foreach ($designArtifact in $designArtifactPathspec) {
-                    $pinnedBlob = (& git -C $repositoryRoot rev-parse "$($pinnedCommit[0]):$designArtifact" 2>$null)
-                    $currentBlob = (& git -C $repositoryRoot rev-parse "HEAD:$designArtifact" 2>$null)
+                    $pinnedBlob = (Invoke-Git @('rev-parse', "$($pinnedCommit[0]):$designArtifact"))
+                    $currentBlob = (Invoke-Git @('rev-parse', "HEAD:$designArtifact"))
                     if (-not $pinnedBlob -or -not $currentBlob -or $pinnedBlob -cne $currentBlob) {
                         $movedArtifacts.Add(($designArtifact -split '/')[-1])
                     }
@@ -1891,7 +1919,7 @@ function Get-BlobText {
     $previousEncoding = [Console]::OutputEncoding
     try {
         [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
-        return ((& git -C $repositoryRoot show "${Revision}:${RepositoryPath}" 2>$null) -join "`n")
+        return ((Invoke-Git @('show', "${Revision}:${RepositoryPath}")) -join "`n")
     }
     finally { [Console]::OutputEncoding = $previousEncoding }
 }
@@ -2473,7 +2501,7 @@ foreach ($perSessionMatch in [regex]::Matches($flowedBrief, 'profile(.{0,120}?)(
 # view and the branch view. It agreed today only because both commits fall on 2026-08-20. The date is
 # now the date of the PINNED commit, which is the commit the clause is dating.
 if ($pinnedCommit -and $pinnedCommit[0] -and -not $pendingDesignEdits) {
-    $latestDesignDate = (& git -C $repositoryRoot log -1 --format=%ad --date=short $pinnedCommit[0] 2>$null)
+    $latestDesignDate = (Invoke-Git @('log', '-1', '--format=%ad', '--date=short', $pinnedCommit[0]))
     if ($latestDesignDate -and (Get-FlowedText $reviewReadme) -notmatch "committed $latestDesignDate") {
         $failures.Add("The review policy's pin clause does not date the review target '$latestDesignDate', which is when the commit it names was made. The X6 check compares the subject and never the date, so a wrong date survives every correction that rewrites the sentence. This is AI8.")
     }
