@@ -1366,7 +1366,11 @@ else {
         # sentence -- so the declaration is a line a review writes deliberately, and a mention of it
         # inside prose is a mention.
         $declaresNoFindings = [regex]::IsMatch($iterationRaw, '(?m)^' + [regex]::Escape($noFindingsDeclaration) + '?$')
-        if ($findingMatches.Count -lt 1 -and -not $declaresNoFindings) {
+        # The declaration is tested FIRST so that both operands are reached. Written the other way
+        # round, `$findingMatches.Count -lt 1` is false for every review retained so far and
+        # short-circuiting means nothing ever evaluates the declaration -- an operand that could be
+        # deleted with every gate green, which is AT4's unit and would have been a finding here.
+        if (-not $declaresNoFindings -and $findingMatches.Count -lt 1) {
             $failures.Add("No finding heading could be parsed from '$($reviewFile.Name)', and it does not state '$noFindingsDeclaration'. Either the heading pattern no longer matches its finding ids and the disposition check above is passing by seeing nothing, or the pass genuinely found nothing and must say so in that form.")
         }
         if ($findingMatches.Count -gt 0 -and $declaresNoFindings) {
