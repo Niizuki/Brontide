@@ -323,9 +323,22 @@ third time**, and the sharpest instance is inside the very clause AR1 was raised
 vector that merely omits a field they read, which is AE1's shape latent, and one cause is that
 `@($null)` is a one-element array in PowerShell. **AU3** and **AU4** are the entry points: the probe
 corpus was stated in four places with three values, and the only surface a gate recomputed was the only
-one that was right. A tenth pass is the next work, and what it inherits is that the obligation measure
-depends on a single verdict constructor, which the design, facts and guard gates do not have. The
-closure-review hold remains in force.
+one that was right. The closure-review hold remains in force.
+
+**The tenth pass found that premise wrong and both its defects in correcting it**, and is retained as
+the
+[tenth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-av-iteration-review.md).
+It raised **AV1**-**AV3** and corrected all three. `$failures.Add` **is** the chokepoint the other gates
+were said to lack; what differs is the input, since a passing run of a design gate produces no findings
+at all and the inputs that make those guards fire are the probes. So the measure is which guard sites
+the corpus reaches, and it reaches **62 of 299**. **AV1** is what building it exposed: an instrumented
+copy that made three gates fail to *parse* still left the corpus reporting 77 of 77, because a probe
+asserted the gate's exit code rather than its own guard firing. Every fail-probe now declares the
+message its guard owes. **AV2** is what the corrected check found on its first run -- a guard in the
+design gate that could never fire, because a failing git call terminates the gate eight lines above it
+under the gate's own `Stop` preference, skipping every check after that point, with the probe written
+for it green on the crash. That is AO1's class one level down, and it is the class the pass was briefed
+to look for. An eleventh pass is the next work. The closure-review hold remains in force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
@@ -1909,7 +1922,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, and AU1-AU5 families; the closure cycle remains on hold while a tenth verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, and AV1-AV3 families; the closure cycle remains on hold while an eleventh verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

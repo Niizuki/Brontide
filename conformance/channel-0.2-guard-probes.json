@@ -11,6 +11,7 @@
       "claim": "AL1 history paragraph one blank line below the block",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "carries a paragraph between its status block and its first section heading that is not declared front matter",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
@@ -24,6 +25,7 @@
       "claim": "same history under an undeclared 'Correction history:' label",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "carries a paragraph between its status block and its first section heading that is not declared front matter",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
@@ -50,6 +52,7 @@
       "claim": "a six-line status block",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "the 'status-block lines across the nine artifacts' measure is now",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
@@ -63,6 +66,7 @@
       "claim": "status block loses its disposition pointer",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "the 'status-block lines across the nine artifacts' measure is now",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
@@ -76,6 +80,7 @@
       "claim": "status pointer resolves to no index section",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "in the disposition index and no heading there carries that anchor. The pointer is the whole of what this surface says about disposition, so one that lands nowhere leaves the reader with less than the history it replaced. This is AN1",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
@@ -89,6 +94,7 @@
       "claim": "the pointed-at index section is really deleted (AM's recorded probe)",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "in the disposition index and no heading there carries that anchor. The pointer is the whole of what this surface says about disposition, so one that lands nowhere leaves the reader with less than the history it replaced. This is AN1",
       "edits": [
         {
           "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
@@ -102,6 +108,7 @@
       "claim": "S3's two-session required-green member removed",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "and the property declares no expectation for it. An input in a property's group with no stated expectation is the condition AE1 arose from",
       "edits": [
         {
           "path": "conformance/channel-0.2-properties.json",
@@ -116,6 +123,7 @@
       "claim": "a field added to a nested fact's field list, nothing re-rendered",
       "gate": "verify-channel-0.2-facts.ps1",
       "expect": "fail",
+      "guardMessage": "The field list is the fact and the rendering is derived from it, so a rendering edited by hand is the hand-maintained copy this file exists to abolish",
       "edits": [
         {
           "path": "conformance/channel-0.2-facts.json",
@@ -130,6 +138,7 @@
       "claim": "the class assertion - one frame reference loses a field name",
       "gate": "verify-channel-0.2-facts.ps1",
       "expect": "fail",
+      "guardMessage": "The field list is the fact and the rendering is derived from it, so a rendering edited by hand is the hand-maintained copy this file exists to abolish",
       "edits": [
         {
           "path": "conformance/channel-0.2-facts.json",
@@ -144,6 +153,7 @@
       "claim": "the status-block measure's NOW value is wrong",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "the 'status-block lines across the nine artifacts' measure is now",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -157,6 +167,7 @@
       "claim": "the status-block measure's THEN value is restored to 289",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "The historical half is checked as well because it is the half that was wrong: nothing recomputes a number a reader cannot reach",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -170,6 +181,7 @@
       "claim": "the status-block measure's stated form is removed",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "and **<now>** now'. That form is what lets this check recompute it; a measure stated only in prose is one nobody recomputes, which is how it came to say 289 and 1,208",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -183,6 +195,7 @@
       "claim": "the index-row measure's NOW value is wrong",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "the 'Channel index row characters' measure is now",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -196,6 +209,7 @@
       "claim": "the index-row measure's THEN value is wrong",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "The historical half is checked as well because it is the half that was wrong: nothing recomputes a number a reader cannot reach",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -209,6 +223,7 @@
       "claim": "the index-row measure's stated form is removed",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "and **<now>** now'. That form is what lets this check recompute it; a measure stated only in prose is one nobody recomputes, which is how it came to say 289 and 1,208",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -222,6 +237,7 @@
       "claim": "the design-verifier line measure loses the stated form the check recomputes",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "The verification foundation plan's section 4 no longer states the design-verifier line count in the form '**<n>** now'. It is one of the five measures that section exists to keep honest and the only one about this file",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -235,6 +251,7 @@
       "claim": "a Channel index row loses its disposition pointer",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "does not point at the disposition index. A row that carries its own correction history is a second place that history has to be kept current, and keeping it current is what AE4, AF2, AG4, AH4 and AJ5 were each about",
       "edits": [
         {
           "path": "docs/future/channel/README.md",
@@ -248,6 +265,7 @@
       "claim": "a Channel index row grows its state cell back into history",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "Disposition history belongs in the disposition index; these eleven cells averaged 795 characters of it before W3",
       "edits": [
         {
           "path": "docs/future/channel/README.md",
@@ -261,6 +279,7 @@
       "claim": "the closure-cycle state is edited to resumed without meeting the conditions",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "A state outside a closed set cannot be acted on by this check or by a reader, which is the defect B4 was raised for in the migration ledger's categories",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -274,6 +293,7 @@
       "claim": "the retained attestation count is edited upward",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "A closure review was run and retained while the cycle was held. Lifting the hold is an owner decision recorded in the verification foundation plan against that plan's four stated conditions -- it is not this number being edited to match, and an attestation retained ahead of the decision cannot be un-run",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -287,6 +307,7 @@
       "claim": "the index heading is renamed and nine pointers go stale",
       "gate": "verify-doc-links.ps1",
       "expect": "fail",
+      "guardMessage": "whose fragment matches no heading in the document it points at. A pointer that resolves to nothing tells the reader the material is elsewhere and leaves them with nothing, which is worse than saying nothing at all",
       "edits": [
         {
           "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
@@ -300,6 +321,7 @@
       "claim": "a status block's anchor points at no heading",
       "gate": "verify-doc-links.ps1",
       "expect": "fail",
+      "guardMessage": "whose fragment matches no heading in the document it points at. A pointer that resolves to nothing tells the reader the material is elsewhere and leaves them with nothing, which is worse than saying nothing at all",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
@@ -313,6 +335,7 @@
       "claim": "a Channel index row's anchor points at no heading",
       "gate": "verify-doc-links.ps1",
       "expect": "fail",
+      "guardMessage": "whose fragment matches no heading in the document it points at. A pointer that resolves to nothing tells the reader the material is elsewhere and leaves them with nothing, which is worse than saying nothing at all",
       "edits": [
         {
           "path": "docs/future/channel/README.md",
@@ -339,6 +362,7 @@
       "claim": "a status block points at another artifact's section, which resolves",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "A pointer that resolves to the wrong artifact's history reads as an answer and is not one. This is AN1",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
@@ -352,6 +376,7 @@
       "claim": "a wrong historical line count in the step table",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "This is AN3's own class: a number about a commit that nothing recomputes",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -365,6 +390,7 @@
       "claim": "a step naming a commit this verifier cannot be read at",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "measure names the commit '0000000' and this verifier cannot be read at it",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -378,6 +404,7 @@
       "claim": "the step form removed, leaving the history in prose",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "**<n>**'. That form is what lets this check recompute the history; a history stated only in prose is what AN3 was, and what AM2 and AM3 were in the two measures above it",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -391,6 +418,7 @@
       "claim": "the plan's publication-site count is wrong",
       "gate": "verify-channel-0.2-facts.ps1",
       "expect": "fail",
+      "guardMessage": "The verification foundation plan says the declared facts are rendered into",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -404,6 +432,7 @@
       "claim": "the plan's publishing-artifact count is wrong",
       "gate": "verify-channel-0.2-facts.ps1",
       "expect": "fail",
+      "guardMessage": "The verification foundation plan says the publication sites are spread across",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -417,6 +446,7 @@
       "claim": "the stated form removed",
       "gate": "verify-channel-0.2-facts.ps1",
       "expect": "fail",
+      "guardMessage": "The verification foundation plan's W1 section no longer states the publication-site count in the form 'rendered into all <n> publication sites across <m> artifacts'. That form is what lets this file recompute it, and a count of these sites left to prose is exactly what AN4 was",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -430,6 +460,7 @@
       "claim": "the disposition index restates a status-block line total",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "; a second copy is a number nothing recomputes, which is what said 289 for three commits after AM2 corrected the two surfaces it had found. Cite the measure instead of restating it. This is AN5",
       "edits": [
         {
           "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
@@ -443,6 +474,7 @@
       "claim": "the Channel index restates a status-block line total",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "; a second copy is a number nothing recomputes, which is what said 289 for three commits after AM2 corrected the two surfaces it had found. Cite the measure instead of restating it. This is AN5",
       "edits": [
         {
           "path": "docs/future/channel/README.md",
@@ -456,6 +488,7 @@
       "claim": "both wildcard rows narrowed, so the artifact no longer declares two edges the list carries",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "legal and the session state machine's transition table has no such row. S1 is evaluated against this list, so an edge here that the artifact does not have is a property that stays green on an illegal transition",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
@@ -474,6 +507,7 @@
       "claim": "the list drops an edge the artifact declares",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "legal and this file does not carry it. S1 would go red on a conforming realization taking that edge, which is the false red AL1 and AK7 were each raised for",
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
@@ -487,6 +521,7 @@
       "claim": "the plan's condition-2 evaluation count is wrong",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "The verification foundation plan says this gate runs",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -500,6 +535,7 @@
       "claim": "the plan's all-properties input count is wrong",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "declared inputs and it runs over",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -513,6 +549,7 @@
       "claim": "the stated form is removed",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "in the form this check recomputes. A count of a run that only prose carries is a stale number waiting for the next input, which is what adding one vector did to all four of them",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
@@ -526,6 +563,7 @@
       "claim": "a From cell the parser cannot read is a failure, not a skipped row",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "rows is what made S1 and C2-P1 red on a conforming session fault -- AO1. Either the cell names a state, or it names a class this parser is taught",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
@@ -539,6 +577,7 @@
       "claim": "the state table loses its rows, so a wildcard would expand over nothing",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "legal and the session state machine's transition table has no such row. S1 is evaluated against this list, so an edge here that the artifact does not have is a property that stays green on an illegal transition",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
@@ -553,6 +592,7 @@
       "claim": "C4-P2's named mutation is removed from the declaration",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "and the property declares no expectation for it. An input in a property's group with no stated expectation is the condition AE1 arose from",
       "edits": [
         {
           "path": "conformance/channel-0.2-properties.json",
@@ -566,6 +606,7 @@
       "claim": "a rendered site is hand-corrected inside its fence",
       "gate": "verify-channel-0.2-facts.ps1",
       "expect": "fail",
+      "guardMessage": "rather than editing the artifact: a surface corrected by hand is one of many, which is how AI1, AJ1, AK1 and AL2 each reached some of their sites and not the rest",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
@@ -579,6 +620,7 @@
       "claim": "a fence is deleted and the text left standing",
       "gate": "verify-channel-0.2-facts.ps1",
       "expect": "fail",
+      "guardMessage": "A publication that disappears takes its own fence with it, so the count is what notices; a publication that appears without being declared is a surface nothing renders",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
@@ -592,6 +634,7 @@
       "claim": "the `unseen` record is enumerated in prose outside any fence",
       "gate": "verify-channel-0.2-facts.ps1",
       "expect": "fail",
+      "guardMessage": "Either fence it, or write about the record rather than listing what it holds",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-State-Event-Coverage-0.1.md",
@@ -604,6 +647,7 @@
       "claim": "the falsifiability claim is deleted, which used to silence twenty-four checks",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "no longer asserts which named mutation",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
@@ -630,6 +674,7 @@
       "claim": "a property's audit row keeps its text and loses its id",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "That audit is the register of property/mutation pairs and the artifact Batch 2 authors property files from, so a property missing from it is a property the design has stopped claiming to have audited. This is AP2",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md",
@@ -643,6 +688,7 @@
       "claim": "a capability property is no longer named in its capability's audit row",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "That audit is the register of property/mutation pairs and the artifact Batch 2 authors property files from, so a property missing from it is a property the design has stopped claiming to have audited. This is AP2",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md",
@@ -656,6 +702,7 @@
       "claim": "the `unseen` retention sentence is reworded, which its own checks catch",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "Nothing says whether a recipient retains a terminal history for an identity refused at",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
@@ -669,6 +716,7 @@
       "claim": "the parity list's settling-frame phrase is reworded, which its own checks catch",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "The parity profile compares the late-traffic latch value but not the frame that settled it",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md",
@@ -682,6 +730,7 @@
       "claim": "a numbered attestation entry is filed out of sequence",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "The list is read top to bottom for the newest record, so an entry out of sequence or missing is read as the state of the programme. This is AJ7",
       "edits": [
         {
           "path": "docs/future/channel/reviews/README.md",
@@ -695,6 +744,7 @@
       "claim": "an iteration review drops the disclaimer that it cannot close the batch",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "is an iteration review but does not state that it cannot close the batch. An author-side pass that reads as a verdict is how a programme talks itself into closure",
       "edits": [
         {
           "path": "docs/future/channel/reviews/channel-0.2-ao-iteration-review.md",
@@ -708,6 +758,7 @@
       "claim": "a narrative drops the ordinal that introduces closure review 13 while keeping every AI family token",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "independent closure review, whose findings it is required to carry. Substituting the newest family token into a sentence about an earlier review leaves the reader with a narrative that jumps from the tenth review to a family raised by the thirteenth. This is AJ2",
       "edits": [
         {
           "path": "docs/future/README.md",
@@ -721,6 +772,7 @@
       "claim": "the settling-frame publication count is wrong where the disposition index states it",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "others do. The brief publishes each reference twice, so the count of publishing surfaces and the count of publishing artifacts are different numbers and a reader who takes this one literally looks for an artifact that does not exist. This is AK4, swept under AQ2 over the record W3 moved the claim into and over both wordings it is stated in",
       "edits": [
         {
           "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
@@ -734,6 +786,7 @@
       "claim": "the same count is wrong in the second wording, which names no phrase the first sweep keys on",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "others do. The brief publishes each reference twice, so the count of publishing surfaces and the count of publishing artifacts are different numbers and a reader who takes this one literally looks for an artifact that does not exist. This is AK4, swept under AQ2 over the record W3 moved the claim into and over both wordings it is stated in",
       "edits": [
         {
           "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
@@ -747,6 +800,7 @@
       "claim": "the disposition history understates how far it runs, in the record that now owns it",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "retained review cycles. A record that understates its own history is what a reader consulting it alone is told, and appending the newest family leaves the sentence beside it saying what it always said. This is AJ4, asked under AQ3 of the record W3 moved the history into",
       "edits": [
         {
           "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
@@ -760,6 +814,7 @@
       "claim": "the future-work index names the wrong family as the one no independent review has seen",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "corrections, and a later review has. An affirmative false claim about review coverage is worse than a stale one, because it tells a reader the newest work is unreviewed when it has been reviewed and corrected. This is AH3",
       "edits": [
         {
           "path": "docs/future/README.md",
@@ -773,6 +828,7 @@
       "claim": "the contract states a member count for C4-P2's required vector group that the declared set contradicts",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "legal members in its required vector group and this file declares",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
@@ -786,6 +842,7 @@
       "claim": "AF1's superseded expected-observation wording restored at the far end of its own passage",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "still states that the ordering mutations' expected observations are exactly what the receiving endpoint records",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
@@ -799,6 +856,7 @@
       "claim": "AG3's superseded operand scope restored at the far end of the dated AE1 ruling",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "still states the membership operand is scoped within the vector",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Redesign-and-Migration-Plan-0.1.md",
@@ -812,6 +870,7 @@
       "claim": "C5-P1's second clause loses its mutation, so no input reaches the clause again",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "Property 'C5-P1' is red on 'C5-pre-dispatch-refusal-possible-effect' (named-mutation) and must be green",
       "edits": [
         {
           "path": "conformance/channel-0.2-properties.json",
@@ -825,6 +884,7 @@
       "claim": "C6-P1's clause-2 mutation is declared against the clause its verdict does not come from",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "One mutation per conjunct is the requirement: a conjunct whose mutation fires through the other conjunct is unfalsifiable in the suite however well the contract names it",
       "edits": [
         {
           "path": "conformance/channel-0.2-properties.json",
@@ -838,6 +898,7 @@
       "claim": "a coverage exemption whose construct no longer occurs is stale rather than silent",
       "gate": "verify-channel-0.2-coverage.ps1",
       "expect": "fail",
+      "guardMessage": "is never evaluated by a passing run, so the check it guards did not run. Either an input that reaches it is missing, or its key stopped selecting anything when the work moved -- which is AP1's class and five of the six AQ findings. If it is correctly unreachable, declare it in conformance/channel-0.2-coverage-exemptions.json with the reason. The construct is",
       "edits": [
         {
           "path": "conformance/channel-0.2-coverage-exemptions.json",
@@ -851,6 +912,7 @@
       "claim": "a frame-reference field subset is identified by position later in the publication's own paragraph",
       "gate": "verify-channel-0.2-facts.ps1",
       "expect": "fail",
+      "guardMessage": "identifies part of a frame reference's field list by position rather than by name in the paragraph that publishes it. Inserting a field renumbers every such sentence. This is AJ6",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-State-Event-Coverage-0.1.md",
@@ -864,6 +926,7 @@
       "claim": "an abbreviated frame-reference publication spreads four field names beyond the gate's character window",
       "gate": "verify-channel-0.2-facts.ps1",
       "expect": "fail",
+      "guardMessage": "with no fact fence. Either it is a surface stating the reference in an abbreviated form, which is AJ1's shape, or it is a new surface that has to be fenced",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-State-Event-Coverage-0.1.md",
@@ -876,6 +939,7 @@
       "claim": "a retained-review denial names its finding family earlier in the same sentence but outside the gate's character window",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "pass left no retained iteration review, and a retained review records that family's findings under its own headings. The next reviewer is sent to reconstruct evidence that already exists, or to re-decide a question that is already answered",
       "edits": [
         {
           "path": "docs/future/channel/reviews/channel-0.2-w-correction-iteration-review.md",
@@ -889,6 +953,7 @@
       "claim": "a maintained index restates the status-block line measure earlier in the same sentence but outside the gate's character window",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "; a second copy is a number nothing recomputes, which is what said 289 for three commits after AM2 corrected the two surfaces it had found. Cite the measure instead of restating it. This is AN5",
       "edits": [
         {
           "path": "docs/future/channel/README.md",
@@ -901,6 +966,7 @@
       "claim": "an interaction property reads the established finite bound without a session qualifier after its fact words grow apart",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
+      "guardMessage": "in a clause that names no session. A vector may carry more than one session under AH1",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
@@ -914,6 +980,7 @@
       "claim": "an operand exemption whose expression no longer occurs in the gate is stale rather than silent",
       "gate": "verify-channel-0.2-coverage.ps1",
       "expect": "fail",
+      "guardMessage": "this operand is never evaluated by a passing run although the expression around it is, so short-circuiting reached it in no input and it could be deleted with every gate green. That is AR1's shape one level down. If the missing input is the defect it belongs in the vector corpus rather than here; if the operand is correctly unreachable, declare it in conformance/channel-0.2-coverage-exemptions.json with the reason. The operand is",
       "edits": [
         {
           "path": "conformance/channel-0.2-coverage-exemptions.json",
@@ -927,6 +994,7 @@
       "claim": "an operand exemption naming an operand a passing run does evaluate is refused rather than honoured",
       "gate": "verify-channel-0.2-coverage.ps1",
       "expect": "fail",
+      "guardMessage": "this operand is never evaluated by a passing run although the expression around it is, so short-circuiting reached it in no input and it could be deleted with every gate green. That is AR1's shape one level down. If the missing input is the defect it belongs in the vector corpus rather than here; if the operand is correctly unreachable, declare it in conformance/channel-0.2-coverage-exemptions.json with the reason. The operand is",
       "edits": [
         {
           "path": "conformance/channel-0.2-coverage-exemptions.json",
@@ -940,6 +1008,7 @@
       "claim": "an operand of an evaluated expression that no declared input reaches is reported, which is the unit AT1-AT3 were found with",
       "gate": "verify-channel-0.2-coverage.ps1",
       "expect": "fail",
+      "guardMessage": "so its coverage cannot be measured -- a gate that stops early leaves every check after the stop looking dead. Fix the gate, then run this",
       "edits": [
         {
           "path": "conformance/channel-0.2-property-vectors.json",
@@ -963,6 +1032,7 @@
       "claim": "coverage measured while a design artifact is uncommitted is refused, which is the half of the dirty-tree refusal its own reason covers",
       "gate": "verify-channel-0.2-coverage.ps1",
       "expect": "fail",
+      "guardMessage": "a Channel 0.2 design artifact has uncommitted changes, and coverage measured on one understates itself",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
@@ -975,6 +1045,7 @@
       "claim": "an obligation whose only named mutation is withdrawn is reported as reachable by no declared input, rather than staying green because the clause is never exercised",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "and the property declares no expectation for it. An input in a property's group with no stated expectation is the condition AE1 arose from",
       "edits": [
         {
           "path": "conformance/channel-0.2-properties.json",
@@ -988,6 +1059,7 @@
       "claim": "a vector that stops publishing a field an obligation reads is named as the unpublished input rather than taking the property red on its own silence",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "An obligation cannot tell a realization that violates it from an input that does not state the fact, so a red here is not evidence and a green is not either",
       "edits": [
         {
           "path": "conformance/channel-0.2-property-vectors.json",
@@ -1002,6 +1074,7 @@
       "claim": "reading one published collection with @() again takes C11-P1 red on a conforming session that requires no facets, because @($null) is a one-element array",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "Property 'C11-P1' is red on 'C11-session-with-no-required-facets' (additional-green) and must be green",
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
@@ -1015,6 +1088,7 @@
       "claim": "two obligations sharing one line are refused, because the obligation measure identifies a site by the line its verdict is constructed on",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
+      "guardMessage": "obligations. This check identifies an obligation by the line its verdict is constructed on, so two on one line are indistinguishable to it and reaching either would report both as pinned. Put each on its own line",
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",

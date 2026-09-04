@@ -212,11 +212,29 @@ foreach ($guardProbe in $probes) {
         # failed exactly as the probe asked into "this probe could not be applied". The preference
         # is lowered around the call and restored after it, so the gate's verdict is its exit code
         # and nothing else.
+        #
+        # AV1: the exit code is no longer the whole verdict, and this sentence used to end "and
+        # nothing else" as a statement of design rather than of a limit. The output is captured too,
+        # because a probe that reads only the exit code cannot tell its own guard firing from the
+        # gate failing for any other reason. Measured: an unconditional failure added to the design
+        # gate left 76 of 77 probes still reporting the verdict their guard owes, and the one that
+        # noticed was the single probe on that gate expecting a pass.
         $previousPreference = $ErrorActionPreference
         try {
             $ErrorActionPreference = 'Continue'
-            $null = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot "build\$($guardProbe.gate)") 2>&1
+            $gateOutput = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot "build\$($guardProbe.gate)") 2>&1
             $exitCode = $LASTEXITCODE
+            # Not `Out-String`: it renders at the console width and truncates, which cut every
+            # `Write-Error` message in half and would have made a message assertion unmatchable for
+            # the one gate that reports that way. Each record is taken as its own string instead.
+            # Whitespace is REMOVED rather than collapsed. A child process renders its output at its
+            # own console width, and the break lands mid-word -- 'Session-Stat e-Machine' -- so no
+            # amount of collapsing makes the message match. Comparing both sides without whitespace
+            # is insensitive to where the host chose to wrap.
+            $gateLines = @($gateOutput | ForEach-Object {
+                if ($_ -is [System.Management.Automation.ErrorRecord]) { $_.ToString() } else { [string]$_ }
+            })
+            $gateText = [regex]::Replace((($gateLines -join ' ') -replace '﻿', ''), '\s+', '')
         }
         finally { $ErrorActionPreference = $previousPreference }
     }
@@ -234,6 +252,16 @@ foreach ($guardProbe in $probes) {
     $observed = if ($exitCode -eq 0) { 'pass' } else { 'fail' }
     if ($observed -cne [string]$guardProbe.expect) {
         $failures.Add("Probe '$($guardProbe.id)' -- $($guardProbe.claim) -- expected '$($guardProbe.gate)' to $($guardProbe.expect) and it returned $observed. A guard that no longer answers its own subject is a guard that has stopped measuring.")
+    }
+    elseif ([string]$guardProbe.expect -ceq 'fail' -and -not $guardProbe.guardMessage) {
+        # AV1. Mandatory rather than optional: a probe with no declared message is one that asserts
+        # only the exit code, which is the state this finding is about, and an optional field would
+        # leave the corpus half in it while reporting a whole number.
+        $failures.Add("Probe '$($guardProbe.id)' expects '$($guardProbe.gate)' to fail and declares no ``guardMessage``. Without one it asserts that the gate failed and not that its own guard fired, so it stays green when the gate is broken by something else entirely.")
+    }
+    elseif ([string]$guardProbe.expect -ceq 'fail' -and
+            $gateText.IndexOf([regex]::Replace([string]$guardProbe.guardMessage, '\s+', ''), [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add("Probe '$($guardProbe.id)' -- $($guardProbe.claim) -- made '$($guardProbe.gate)' fail and its own guard did not report: the output does not contain '$($guardProbe.guardMessage)'. Either the gate is now failing for a different reason, in which case this probe has stopped measuring what it names, or the guard's message moved and this probe must be re-anchored on it.")
     }
     else {
         $passed++
@@ -280,6 +308,15 @@ if (-not $Probe) {
     # and the review policy said 69 -- one fact, four surfaces, three values, and the one surface a
     # gate recomputed was the one that was correct. The question that finds this is AN's, "where else
     # is this stated", and it is asked here rather than answered once more by hand.
+    #
+    # AV3, and it is the rule this sweep imposes rather than a narrowing of it. The key is any
+    # `<number> probes` in these four documents, which is broader than the question "does this
+    # document state the size of the corpus": it fires on a sentence that counts probes for some other
+    # reason, and it did, on prose describing an experiment over the corpus and on prose proposing to
+    # write probes for a population of guards. Narrowing the key to a declared phrasing is what AN1
+    # and AN2 were each raised for, so the breadth is kept and the rule is stated instead: **in these
+    # four documents, `<number> probes` means the size of this corpus.** A count of probes written for
+    # any other purpose is phrased another way, and the two sentences that were not have been.
     $countSurfaces = @(
         'docs\future\channel\Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md',
         'docs\future\channel\reviews\README.md',
