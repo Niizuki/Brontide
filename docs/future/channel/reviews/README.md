@@ -298,12 +298,18 @@ to lack, and the inputs that make those guards fire are the probes, so the measu
 the corpus reaches. It reaches **62 of 299**. Building it produced both findings — **AV1**, that a probe
 asserted the gate's exit code rather than its own guard firing, and **AV2**, a guard in the design gate
 that could never fire because a failing git call terminated the gate eight lines above it, with the
-probe written for it green on the crash since. What the tenth pass leaves is narrow: the 21% is a floor
-and raising it is a judgement about which guards are worth doubting, not a task; a `guardMessage`
-asserts that a probe's guard fired and not that it was the only one, which sixteen probes cannot
-currently distinguish; and the `Stop`-preference hazard AV2 closed for the design gate's git calls is
-unaudited in the other gates' native-command calls. Nothing in this paragraph resumes the closure cycle
-or authorizes a closure-review dispatch.
+probe written for it green on the crash since. What the tenth pass leaves — the 21% floor, a `guardMessage` that asserts
+presence rather than exclusivity, and the `Stop`-preference hazard unaudited outside the design gate's
+git calls — is recorded for a later pass and is **not** the eleventh's brief.
+
+**By owner decision of 2026-09-04 the eleventh pass's method is generated vectors run against the
+twenty-six executable properties.** Every property is checked today against hand-authored vectors with
+hand-chosen mutations, so the design is tested only where someone thought to look, and every pass from
+AM to AV was scoped to the verification machinery rather than to the design's own claims — which have
+had no fresh examination since closure review 16. The same ruling re-scopes condition 4 so that a
+pass's frozen instrument set and its newly built instruments are counted separately; both are stated in
+the [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md#3-how-the-hold-ends).
+Nothing in this paragraph resumes the closure cycle or authorizes a closure-review dispatch.
 
 The sixteenth review has run, from a fresh isolated clone, and returned `does-not-conform` with
 blocking **AL1** and **AL2** and nonblocking **AL3** and **AL4**; its retained record is
