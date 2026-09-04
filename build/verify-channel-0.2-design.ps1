@@ -1195,10 +1195,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-ax-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all fifteen iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all sixteen iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
 }
 
 # The closure-cycle hold. The review policy tells an agent not to dispatch a closure review while the
@@ -1397,6 +1397,79 @@ else {
         foreach ($required in @("$attestationCount retained attestations", "$iterationCount iteration reviews")) {
             if ($indexReviewRow[0].IndexOf($required, [System.StringComparison]::Ordinal) -lt 0) {
                 $failures.Add("The Channel index's Design reviews row does not say '$required', which is what the reviews directory actually holds. A count in prose is a claim that goes stale the next time a review is retained.")
+            }
+        }
+    }
+
+    # AX1, and this is AA1's correction applied to the two surfaces AA1 did not reach. The Channel
+    # index row above is recomputed and was correct after the eleventh pass; the plan's own condition-4
+    # tally and the review policy's pass count are prose, and both went stale in the commit that
+    # RECORDED that pass. That is the ninth time an entry point has gone stale in this programme and
+    # the same split every time -- what a gate recomputes is right, what is left to prose is wrong.
+    #
+    # The population is keyed on what the review calls itself rather than on its filename: a
+    # condition-4 pass is a retained iteration review titled a W1-W3 verification-foundation iteration
+    # review. A filename key would be a lexical key over a naming convention, which is the shape AL1
+    # and AT1 were each raised against.
+    $conditionFourPasses = @($iterationReviewFiles | Where-Object {
+        (Get-Content -LiteralPath $_.FullName -Encoding UTF8 -TotalCount 1) -match 'W1-W3 verification-foundation iteration review'
+    }).Count
+    # Written out here rather than read from `$numberWords`, which this file defines nine hundred
+    # lines below: PowerShell runs top to bottom, and a check that reads a map declared after it
+    # reads `$null` and throws where it meant to compare.
+    $passCardinals = @('zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+        'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen',
+        'eighteen', 'nineteen', 'twenty')
+    $ordinalWords = @('first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth',
+        'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth',
+        'seventeenth', 'eighteenth', 'nineteenth', 'twentieth')
+    $cardinalWord = if ($conditionFourPasses -lt $passCardinals.Count) { $passCardinals[$conditionFourPasses] } else { $null }
+    $nextOrdinal = if ($conditionFourPasses -lt $ordinalWords.Count) { $ordinalWords[$conditionFourPasses] } else { $null }
+
+    if (-not $cardinalWord) {
+        $failures.Add("There are $conditionFourPasses retained condition-4 passes and this file has no number word for that count, so the tallies below cannot be checked. Teach it the word rather than dropping the check.")
+    }
+    else {
+        $countClaims = @(
+            @{ Text = Get-FlowedText $verificationPlanText
+               Pattern = 'Condition 4 has run ([a-z-]+) times'
+               Where = "the verification foundation plan's condition-4 tally" }
+            @{ Text = Get-FlowedText $reviewReadme
+               Pattern = '([A-Za-z-]+) such passes have run'
+               Where = "the review policy's condition-4 pass count" }
+        )
+        foreach ($countClaim in $countClaims) {
+            $claimMatch = [regex]::Match($countClaim.Text, $countClaim.Pattern)
+            if (-not $claimMatch.Success) {
+                $failures.Add("$($countClaim.Where) is no longer stated in the form this check recomputes. That sentence is what tells a reader how many times condition 4 has been attempted, and a count only prose carries is one that goes stale in the commit that records the next pass.")
+                continue
+            }
+            $claimedWord = $claimMatch.Groups[1].Value.ToLowerInvariant()
+            if ($claimedWord -cne $cardinalWord) {
+                $failures.Add("$($countClaim.Where) says '$claimedWord' and $conditionFourPasses condition-4 passes are retained, which is '$cardinalWord'.")
+            }
+        }
+    }
+
+    # And the ordinal the next pass is named by, which is where the staleness actually shows: both
+    # entry points still called the next pass the eleventh after the eleventh had run and been
+    # retained beside the sentence.
+    if ($nextOrdinal) {
+        $ordinalClaims = @(
+            @{ Text = Get-FlowedText $verificationPlanText
+               Pattern = 'The next work is therefore an? ([a-z-]+) author-side pass'
+               Where = "the verification foundation plan's next-work sentence" }
+            @{ Text = Get-FlowedText $reviewReadme
+               Pattern = 'An? ([a-z-]+) pass over the same scope is the live path'
+               Where = "the review policy's live-path sentence" }
+        )
+        foreach ($ordinalClaim in $ordinalClaims) {
+            $ordinalMatch = [regex]::Match($ordinalClaim.Text, $ordinalClaim.Pattern)
+            if (-not $ordinalMatch.Success) {
+                $failures.Add("$($ordinalClaim.Where) no longer names the next pass in the form this check recomputes. That sentence is what the next agent reads to know which pass it is running.")
+            }
+            elseif ($ordinalMatch.Groups[1].Value -cne $nextOrdinal) {
+                $failures.Add("$($ordinalClaim.Where) calls the next pass the '$($ordinalMatch.Groups[1].Value)' and $conditionFourPasses have been retained, so the next one is the '$nextOrdinal'. A pass named after one that has already run sends the next agent to repeat it.")
             }
         }
     }
@@ -2163,7 +2236,18 @@ foreach ($reviewNumber in $narrativeReviewNumbers) {
         if ($reviewNarrative.Text -cnotmatch "\b$provenanceFamily[0-9]") {
             $failures.Add("$($reviewNarrative.Name) names no finding in the '$provenanceFamily' family, which the provenance table attributes to closure review $reviewNumber. A family reachable only from a table row or a status sentence is a family the prose never introduced, and this is the narrative half of AI2 -- AJ2.")
         }
-        if ($reviewNarrative.Text -notmatch "(?i)\b$reviewOrdinal\b") {
+        # AX3. The key was the bare ordinal word anywhere in the narrative, which was enough while
+        # ordinals in these documents only ever numbered closure reviews. They no longer do: the
+        # condition-4 passes are numbered too, and the sentence naming the next one -- "a thirteenth
+        # pass is the next work" -- satisfies `\bthirteenth\b` on its own. So the guard kept passing
+        # while the narrative had dropped the review it is about, and the AQ1-a probe is what noticed.
+        # It is the third time a bare-word key has been wider than its question, after AU3 and AV3.
+        # Requiring the ordinal to sit immediately before the word `review` was tried and is wrong:
+        # these narratives legitimately write "the eighth **U1**-**U8**" and "the eleventh raised",
+        # naming the review by its findings. What actually distinguishes the two populations is the
+        # other one's noun, so an ordinal that introduces a *pass* does not count as introducing a
+        # review, and every existing phrasing still does.
+        if ($reviewNarrative.Text -notmatch "(?i)\b$reviewOrdinal\b(?!\s+pass\b)") {
             $failures.Add("$($reviewNarrative.Name) never introduces the $reviewOrdinal independent closure review, whose findings it is required to carry. Substituting the newest family token into a sentence about an earlier review leaves the reader with a narrative that jumps from the tenth review to a family raised by the thirteenth. This is AJ2.")
         }
     }

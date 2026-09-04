@@ -927,8 +927,8 @@ from reading it.
 
 **AV1 is the corpus asserting the wrong thing, and it announced itself.** The measurement needs an
 instrumented copy of each gate; the first attempt prepended the recorder, which pushed `param()` out of
-first position and made three of the five gates fail to **parse**. The corpus reported **77 of 77
-probes returned the verdict their guard owes** while three gates were not running. A probe declares
+first position and made three of the five gates fail to **parse**. The corpus reported **every probe
+returning the verdict its guard owes** while three gates were not running. A probe declares
 that it makes one guard's own subject present and asserts the verdict that guard must return; what it
 asserted was the gate's exit code, which is a whole-gate verdict, so every `expect: fail` probe passed
 whenever the gate failed for any reason.
@@ -981,7 +981,7 @@ It is the first run under the 2026-09-04 ruling, and the first pass whose method
 rather than at the machinery that checks it. AW is a `verification` family: neither finding reaches a
 design artifact.
 
-**The frozen set was run first and reported nothing** — 77 of 77 probes and the coverage measure, before
+**The frozen set was run first and reported nothing** — the whole probe corpus and the coverage measure, before
 any of this pass's work existed. That is the fifth consecutive pass whose retained instruments have
 found nothing.
 
@@ -1032,6 +1032,59 @@ and `C5-P1`'s second are unexercised by it. The property eight finding families 
 one this instrument reaches least, and refusals are the obvious next increment. The mutation direction
 that falsified the generator is not retained, and retaining it would give falsifiability the same rate
 treatment soundness now has.
+
+## 2o. What the twelfth condition 4 pass found
+
+The twelfth author-side pass has run, at `65a2b80`, and is retained as the
+[twelfth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-ax-iteration-review.md).
+It raised **AX1**-**AX3** and corrected all three. AX is a `verification` family.
+
+**Its frozen set reported nothing, and it is the first frozen set strictly larger than its
+predecessor's** — the generator built by the eleventh pass joined it under the quarantine rule, so the
+run is the whole probe corpus, the coverage measure and 2,000 generated vectors. That is the sixth consecutive
+clean frozen set.
+
+**The method was the increment the eleventh pass left: teaching the generator to refuse.** With every
+generated interaction dispatched and permitted, three property clauses had no input at all — `I4`'s
+first and `C5-P1`'s second each gate on a refusal, and `C6-P1`'s second on a decision that is not
+`permitted`. One admitted interaction in four is now refused before dispatch, recording `known-none`,
+carrying the denial's decision point and initiator attribution, and selecting
+`local-pre-dispatch-refusal`. The population is still green, and the new inputs demonstrably reach
+those clauses: a refusal recording another certainty takes `I4` and `C5-P1` red, a denial omitting its
+decision point takes `C6-P1` red, and a refusal form outside the four takes `C9-P1` red.
+
+**AX1 is the entry points going stale in the commit that recorded the eleventh pass.** Four sentences
+across two documents still called the eleventh pass the work ahead after it had run and been retained
+beside them, and a fifth surface listed only ten. The split is the one recorded nine times now: the
+Channel index's counts were right because a gate recomputes them, and the plan's tally and the review
+policy's count are prose that nothing read. AA1 made the index row structural and never reached the
+two surfaces that tell the next agent which pass it is running. The design verifier now counts the
+retained condition-4 passes — keyed on what a review calls itself rather than on its filename, because
+a filename key is the lexical shape AL1 and AT1 were each raised against — and requires both tallies
+and both next-work ordinals to agree with it.
+
+**AX2 came from mutating the generator, and it is the W1 class on a field nobody had looked at.**
+Marking a refused interaction `dispatched = true` — a vector disagreeing with itself — left every
+property green, because **no property reads that field**: all six that care derive dispatch from the
+timeline's `dispatch` steps, and forty-nine declared interaction records carry it anyway. A vector
+could therefore read to a human as one thing and evaluate as another. The record is reconciled against
+the timeline rather than deleted, because it is what a reader of the record sees.
+
+**AX3 is a guard the probe corpus caught going silent.** The AJ2 narrative freshness guard requires
+each entry point to introduce the newest closure review by its ordinal, and its key was the bare
+ordinal word anywhere in the narrative. That was enough while only closure reviews were numbered here;
+the condition-4 passes are numbered too, and this pass's own sentence naming the next one satisfies the
+key on its own. The `AQ1-a` probe returned pass where it owes a fail, which is the corpus reporting a
+guard that has stopped measuring -- AO3's argument paying out on something no reading would have
+questioned. It is the third bare-word key found wider than its question, after AU3 and AV3, and the
+correction excludes the other population's noun rather than demanding `review` beside the ordinal,
+which was tried and breaks the narratives that name a review by its findings.
+
+**What the next pass inherits.** `C4-P2` is still evaluated over empty observation records: a
+pre-dispatch refusal is a different record from the `unseen` refusal its first conjunct quantifies
+over, and reaching that needs declared stimulus steps with commit indices and five-field frame
+references. Both conjuncts remain vacuously green on generated input, and that is the property eight
+finding families have been about.
 
 ## 3. How the hold ends
 
@@ -1090,12 +1143,15 @@ intention rather than a side effect. It is recorded with the caution that a froz
 nothing means the package is sound *under what the programme can currently detect*, which is a floor
 and not a proof — the same limit the coverage measure states about itself.
 
-**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run ten
-times and is met by none of them**: the passes found three, six, three, two, five, one, seven, seven,
-five and three defects and fixed them all, which is the opposite of what that condition asks. Sections 2d
-through 2m record them.
+**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run twelve
+times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one and three
+defects and fixed them all. Sections 2d through 2o record them. Whether the **eleventh** met the
+condition is the open question **AW2** puts to the owner: under the 2026-09-04 ruling both of its
+tests passed, and under the previous reading its one finding fails it. The twelfth does not meet it
+under either reading, because the instrument it extended found a real defect in the package — which is
+that ruling working rather than failing.
 
-The ten are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
+The twelve are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
 fact was stated; AO read each guard's comment as a claim and tested it against the code; AP asked
 whether each guard's *key* remained load-bearing; AQ traced statements; AR retained conditional
 coverage and used it to find unreachable property clauses; AS audited the negative assertion and
@@ -1103,39 +1159,35 @@ compound-recognizer shapes that line coverage cannot see, then AS7 followed the 
 when its restoration failed; AT measured an operand the enclosing expression never reached; AU
 measured the obligation rather than the operand, which is what finally reported the clause that runs
 on every input and never fires; and AV measured which guard sites the probe corpus reaches, and found
-both its defects in the building of that measure rather than in its result. Each brief came from the pass before it,
+both its defects in the building of that measure rather than in its result; and AW left the machinery
+alone and generated conforming vectors to test the design's own claims, which is the first instrument
+here whose output is a rate. Each brief came from the pass before it,
 and **AO1 — two properties red on conforming behaviour — remains a defect a closure reviewer would
 have been entitled to call blocking**, as does **AU1**, eleven obligations that no declared input
 could distinguish an implementation honouring them from one that did not. The condition is doing what
 it was written to do; it has not yet run out of findings.
 
-The next work is therefore an eleventh author-side pass, and by owner decision of 2026-09-04 its method
-is **generated vectors run against the twenty-six executable properties** rather than a further audit
-of the gates.
+The next work is therefore a thirteenth author-side pass, and its method is the increment the twelfth
+left: **teaching the generator to produce the `unseen` refusal record and the late-traffic latch**, so
+that `C4-P2` is evaluated over something.
 
-The reason is a limit no instrument in this programme has touched. Every property is checked against
-**hand-authored** vectors with hand-chosen mutations, so the design is tested only in the cases someone
-thought to write, and every pass from AM to AV was scoped to the verification machinery rather than to
-the design's own claims — the design itself has had no fresh examination since closure review 16.
-Generating vectors against the neutral brief's declared vector format and evaluating all twenty-six
-properties over them attacks exactly the class that hand-authoring cannot: the design being wrong where
-nobody looked.
+The twelfth pass taught the generator the pre-dispatch refusal, which reached `I4`'s first clause,
+`C5-P1`'s second and `C6-P1`'s second. What it did not reach is a different record: the `unseen`
+refusal `C4-P2`'s first conjunct quantifies over, the late-traffic latch its second reads, and the
+declared stimulus steps the precedence relation is defined over. So both conjuncts of `C4-P2` are
+still evaluated over empty observation records and are **vacuously green** on generated input, and
+that is the property eight finding families have been about. Reaching it needs declared steps carrying
+commit indices and frame references in the five-field form the owned-fact declaration renders.
 
-It is also the first instrument here whose output is a **rate rather than a list**. "No property went
-red over ten thousand generated vectors" is a quantitative statement that strengthens with more vectors
-and a wider generator, and it converges in a way a list of hand-picked inputs cannot — which is what the
-2026-09-04 ruling above asks a new instrument to provide.
+The pass runs its frozen set first — which now includes the generator, so it is strictly larger than
+the eleventh's, as the ruling requires of the second of two consecutive passes — and records what it
+reports as package findings before building anything.
 
-The pass runs its frozen set first — `build/verify-channel-0.2-guards.ps1` and the coverage gate, whose
-sizes section 4 owns and recomputes rather than this sentence — and records what it reports as package
-findings before building anything. The generator's own first run is a quarantined first-run finding
-under that ruling, and **it should be expected to find something**: hand-authored vectors are precisely
-where the blind spots are, so a generator that reports defects on its first run is the instrument
-working rather than the treadmill turning.
-
-What the tenth pass left in section 2m is not discharged and is not this pass's brief: the 21% guard
-coverage, the `guardMessage` that asserts presence rather than exclusivity, and the `Stop`-preference
-hazard unaudited outside the design gate's git calls remain recorded for a later pass.
+Two further increments are recorded and are not this brief. The mutation direction that falsified the
+generator is not retained, and retaining it would give falsifiability the same rate treatment soundness
+has. And what the tenth pass left in section 2m is still not discharged: the 21% guard coverage, the
+`guardMessage` that asserts presence rather than exclusivity, and the `Stop`-preference hazard
+unaudited outside the design gate's git calls.
 
 Nothing in this section authorizes dispatching a closure review, and the closure-cycle state at the
 head of this document is what says so.
@@ -1157,7 +1209,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,320** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,324** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved twice
   since, by four characters each time and for the same reason — registering a new iteration-review
@@ -1176,13 +1228,13 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   can assert its own guard rather than the exit code; that is the price of the assertion and it is
   named here rather than absorbed, on this section's own rule. All measured in verifying mode on one
   machine, so the figures are comparable with each other and not with CI; and
-- **guard probes executable** — currently **77 of 77**, run by
+- **guard probes executable** — currently **80 of 80**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
-- **design-verifier lines** — **2,797** now, recomputed by the verifier against itself. Every step
+- **design-verifier lines** — **2,881** now, recomputed by the verifier against itself. Every step
   of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
   the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
   `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491**, `138af11` **2,626** — counted the way this verifier counts

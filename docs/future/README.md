@@ -345,10 +345,23 @@ package, and what an instrument built during the pass reports on its first run. 
 of it is manufactured — **AV3** was a defect in a guard the previous pass built. They are now counted
 separately, an instrument is quarantined until the pass after the one that built it, and the condition
 is met when the frozen set reports nothing and a new instrument finds nothing in the package, for two
-consecutive passes over a growing frozen set. The eleventh pass's method is **generated vectors run
-against the twenty-six executable properties**: every property is checked today against hand-authored
-vectors, so the design is tested only where someone thought to look, and it is the first instrument
-here whose output is a rate rather than a list. The closure-review hold remains in force.
+consecutive passes over a growing frozen set.
+
+**The eleventh pass ran under that ruling and is the first here aimed at the design rather than at the
+machinery that checks it**, retained as the
+[eleventh W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-aw-iteration-review.md).
+Its frozen set reported nothing, and the instrument it built — the twenty-six properties evaluated over
+vectors generated from the design's own declared rules — is **green at 0 red over 2,000 vectors and
+52,000 evaluations**, with six injected violations each caught by the property that owns the rule. It
+raised **AW1**: a retained iteration review had to record at least one finding, which the ruling had
+just made false for the outcome condition 4 asks for, so the machinery forbade recording a pass that
+found nothing. **AW2** is put to the owner rather than decided — AW1 came from neither population that
+ruling counts, because it was found by reading. The twelfth pass then taught the generator to refuse before
+dispatch, reaching three property clauses that had no input at all, and raised **AX1**, the entry
+points going stale in the commit that recorded the eleventh, **AX2**, an interaction record field
+that **no property reads** and nothing reconciled against the timeline, and **AX3**, a freshness guard
+the probe corpus caught going silent. A thirteenth pass is the next
+work: `C4-P2`'s conjuncts are still evaluated over empty observation records and are vacuously green. The closure-review hold remains in force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
@@ -1932,7 +1945,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, and AV1-AV3 families; the closure cycle remains on hold while an eleventh verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, AV1-AV3, AW1, and AX1-AX3 families; the closure cycle remains on hold while a thirteenth verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |
