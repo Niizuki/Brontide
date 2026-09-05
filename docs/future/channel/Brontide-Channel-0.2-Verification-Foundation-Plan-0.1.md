@@ -1375,8 +1375,10 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   seconds, the probe corpus was 423 and the coverage measure 86, and the other twenty-two verifications
   are 31 between them. The corpus was 360 until **AV1**, which captures each gate's output so a probe
   can assert its own guard rather than the exit code; that is the price of the assertion and it is
-  named here rather than absorbed, on this section's own rule. **The coverage measure is now 308
-  seconds**, from 86, and AZ2's correction is most of what it bought: the generated population went
+  named here rather than absorbed, on this section's own rule. **The corpus is now 791 seconds and the
+  coverage measure 308**, from 423 and 86. The corpus rose because it gained five probes and re-runs
+  the properties gate once per probe; AZ2's correction is most of what the coverage rise bought,
+  because the generated population went
   from four frames and one observation record per session to eight frames, three interaction
   identities and two refusals, and the coverage gate traces every one of them at fifteen vectors.
   Turning AZ3's traced sweep off leaves **230**, so the sweep is about 78 of the rise and the
