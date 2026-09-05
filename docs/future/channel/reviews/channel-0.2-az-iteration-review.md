@@ -186,7 +186,11 @@ keeping every one of these mutations in the probe corpus rather than in a transc
   distinguishes a check that drains a collection from one that does not.
 - **The rewritten `Resolve-FrameReference` kept its meaning.** It is one pass over the steps instead of
   five pipelines, and the nine declared operand mutations, the 55-vector declared corpus and the
-  sweep's eight load-bearing droppings all still report exactly what they did before it.
+  sweep's eight load-bearing droppings all still report exactly what they did before it. Its two
+  filters were also each disabled to confirm the corpus notices.
+- **The cost figures were re-measured after the first set turned out to be contended**, and the
+  conclusion they had supported was withdrawn rather than kept. Three runs of one configuration
+  spanning 269 to 328 seconds is the reason.
 - **The normal path is unchanged**: 26 of 26 properties, 131 evaluations over 55 declared inputs.
 
 ## What remains outside the pass
@@ -211,12 +215,19 @@ further `C4-P2` evaluations per vector it covers, and the guard corpus re-runs t
 probe, so it has its own count: forty per commit, four under the coverage trace, five hundred on the
 deep run. But the sweep is the smaller half. AZ2's correction took the generated population from four
 frames and one observation record per session to eight frames, three identities and two refusals, and
-the coverage measure went from **86 seconds to 618** because it traces all of them. That is attributed
-rather than guessed: with the sweep off it is 555, so the sweep is 63 of the rise, and with the old
-five-pipeline `Resolve-FrameReference` it is 1,040, so the single-pass rewrite saves 422 seconds under
-the trace as well as in wall clock — the opposite of what it was expected to cost. Section 4 carries
-the figures. The gate is behind `-IncludeGateSelfChecks`, which is the AT7 ruling's distinction
-between absorbing a cost and naming it.
+the coverage measure went from **86 seconds to 308** because it traces all of them; with the sweep off
+it is 230, so the sweep is about 78 of the rise and the population is the rest.
+
+That attribution was got wrong twice before it was got right, and the reason is worth recording next to
+it. The first set of figures — 618, 555 and 1,040 — was measured with other work running on the same
+machine, and on them the single-pass `Resolve-FrameReference` appeared to save 422 seconds under the
+trace. Measured sequentially with nothing else running, the pipeline form gives **285** against the
+rewrite's 308, and three runs of the *identical* committed configuration give 269, 308 and 328 — so
+the rewrite makes no difference to the trace at all, and its benefit is wall clock alone. A measure
+whose run-to-run spread is 60 seconds cannot support a claim about a 20-second difference, and the
+first attribution did not notice it was making one. Section 4 carries the corrected figures. The gate
+is behind `-IncludeGateSelfChecks`, which is the AT7 ruling's distinction between absorbing a cost and
+naming it.
 
 The closure review remains on hold. The finding count by condition-4 pass is now three, six, three,
 two, five, one, seven, seven, five, three, one, three, zero, **three**.

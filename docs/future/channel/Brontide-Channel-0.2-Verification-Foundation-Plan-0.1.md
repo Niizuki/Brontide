@@ -1370,16 +1370,21 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   seconds, the probe corpus was 423 and the coverage measure 86, and the other twenty-two verifications
   are 31 between them. The corpus was 360 until **AV1**, which captures each gate's output so a probe
   can assert its own guard rather than the exit code; that is the price of the assertion and it is
-  named here rather than absorbed, on this section's own rule. **The coverage measure is now 618
-  seconds**, and AZ2's correction is what it bought: the generated population went from four frames and
-  one observation record per session to eight frames, three interaction identities and two refusals,
-  and the coverage gate traces every one of them at fifteen vectors. The figure is attributed rather
-  than guessed, because the first two explanations for it were wrong. Turning AZ3's traced sweep off
-  entirely leaves **555**, so the sweep is 63 of the rise and the population is the rest; and putting
-  `Resolve-FrameReference` back to five `Where-Object` pipelines gives **1,040**, so the single-pass
-  rewrite saves 422 seconds *here* as well as in wall clock, which is the opposite of what it was
-  expected to cost. All measured in verifying mode on one machine, so the figures are comparable with
-  each other and not with CI; and
+  named here rather than absorbed, on this section's own rule. **The coverage measure is now 308
+  seconds**, from 86, and AZ2's correction is most of what it bought: the generated population went
+  from four frames and one observation record per session to eight frames, three interaction
+  identities and two refusals, and the coverage gate traces every one of them at fifteen vectors.
+  Turning AZ3's traced sweep off leaves **230**, so the sweep is about 78 of the rise and the
+  population is the remaining 144. **The variance on this measure is large** — three runs of the
+  identical committed configuration gave 269, 308 and 328 — so a difference under about fifty seconds
+  is not a difference. That is why the third figure here is a non-result rather than a saving: putting
+  `Resolve-FrameReference` back to five `Where-Object` pipelines gives **285**, indistinguishable from
+  308 at that variance, so the single-pass rewrite neither helps nor hurts the trace and its benefit is
+  in wall clock alone — the properties gate at its default count is 6 seconds rewritten against 17 with
+  the pipelines, and the probe corpus runs that gate once per probe. An earlier reading of this
+  comparison claimed the rewrite saved 422 seconds here; that was measured with other work running on
+  the same machine and it was wrong. All measured in verifying mode on one machine with nothing else
+  running, so the figures are comparable with each other and not with CI; and
 - **guard probes executable** — currently **85 of 85**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
