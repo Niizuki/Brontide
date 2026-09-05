@@ -36,9 +36,11 @@
       "gate": "verify-channel-0.2-properties.ps1",
       "arguments": [
         "-GeneratedCount",
-        "15"
+        "15",
+        "-SweptCount",
+        "4"
       ],
-      "argumentsWhy": "The properties gate evaluates generated conforming vectors on every run, and tracing a hundred of them costs several times this whole measure. Fifteen is the smallest count that still satisfies the generator's own required-shape assertions at the declared seed -- a faulting session, an `establishing` route, a drained close, a session with no interaction, a vector with more than one session, and a wave that fills the bound -- so every construct in the generated block is reached without paying for a population this file is not the one measuring. A smaller count fails those assertions rather than silently narrowing what is traced.",
+      "argumentsWhy": "The properties gate evaluates generated conforming vectors on every run, and tracing a hundred of them costs several times this whole measure. Fifteen is the smallest count that still satisfies the generator's own required-shape assertions at the declared seed -- a faulting session, an `establishing` route, a drained close, a session with no interaction, a vector with more than one session, and a wave that fills the bound -- so every construct in the generated block is reached without paying for a population this file is not the one measuring. A smaller count fails those assertions rather than silently narrowing what is traced. AZ3's dropped-field sweep is bounded separately for the same reason and by a much smaller number: it evaluates `C4-P2` eighteen further times per vector it covers, and under a line trace that took this measure from about ninety seconds to over ten minutes. Four is enough because every construct the sweep adds is reached by whether a vector carries one session or several, and at the declared seed the first four carry three, one, two and one -- so both branches of the scope test, all three outcome classes and all eighteen droppings are traced. A smaller count loses the single-session vector and fails the sweep's own coverage rather than silently narrowing what is traced.",
       "measureOperands": true,
       "exemptions": [
         {
