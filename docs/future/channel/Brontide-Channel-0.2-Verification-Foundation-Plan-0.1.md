@@ -1132,9 +1132,9 @@ It was to be the **second of the two consecutive clean passes** the 2026-09-04 r
 
 **It is not clean. It raises AZ1, AZ2 and AZ4, all against the retained verification and none against
 the design, so the two-consecutive count resets and the thirteenth again stands alone.** Its frozen set
-— 80 probes, the coverage measure, the owned-fact and design gates and the 2,000-vector generated run
-— reported nothing, and was strictly larger than the thirteenth's. What it found, it found by reading
-the instruments it had been sent to extend.
+— the whole probe corpus, the coverage measure, the owned-fact and design gates and the 2,000-vector
+generated run — reported nothing, and was strictly larger than the thirteenth's. What it found, it
+found by reading the instruments it had been sent to extend.
 
 **AZ1. The generated-vector loop discarded every "cannot be evaluated" report.** An evaluator returns
 an `Errors` collection beside its verdict, through which a property says it could not be evaluated over
