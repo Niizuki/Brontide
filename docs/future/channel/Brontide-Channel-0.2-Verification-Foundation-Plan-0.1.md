@@ -1124,6 +1124,89 @@ correction this programme made — AF8, AG2, AH1, AI1, AJ1, AK1, AK5, AK6 — is
 **lost a field**. A generator that always publishes all five tests none of them, so the nine retained
 operand mutations are still asserted by hand.
 
+## 2q. What the fourteenth condition 4 pass found
+
+The fourteenth author-side pass has run, at `9d615bf`, and is retained as the
+[fourteenth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-az-iteration-review.md).
+It was to be the **second of the two consecutive clean passes** the 2026-09-04 ruling requires.
+
+**It is not clean. It raises AZ1, AZ2 and AZ4, all against the retained verification and none against
+the design, so the two-consecutive count resets and the thirteenth again stands alone.** Its frozen set
+— 80 probes, the coverage measure, the owned-fact and design gates and the 2,000-vector generated run
+— reported nothing, and was strictly larger than the thirteenth's. What it found, it found by reading
+the instruments it had been sent to extend.
+
+**AZ1. The generated-vector loop discarded every "cannot be evaluated" report.** An evaluator returns
+an `Errors` collection beside its verdict, through which a property says it could not be evaluated over
+a record at all — a reference carrying no operand, or one resolving to no declared step. That is
+`C4-P2`'s own AK6 machinery. The declared-input loop has always drained it; the generated loop read
+only the verdict, and the verdict beside a non-empty `Errors` is `green`. Pointing the generated
+refusal at an identity no declared step carries makes **every** first-conjunct record in the population
+unresolvable, and the run reported `0 red` over 25 vectors and **passed**.
+
+That is the vacuous pass this instrument exists to detect, one level below where the twelfth pass found
+it, and it bears directly on the record: the thirteenth pass's review offers "an unresolvable one
+raises an error the run would report, and the run is clean" as evidence for its green. The run would
+not have reported it. That pass's verdict still appears to be correct; the sentence it gave as evidence
+for it was not evidence, and a closure reviewer would have been entitled to say so.
+
+**AZ2. The generator gave arrival ordinals a uniqueness the design does not give them.** The contract
+carries "its arrival ordinal **for that interaction identity**", and the declared corpus counts it per
+receiving endpoint, per session, per identity — in `C4-two-sessions-one-identity` the two sessions'
+frames for one identity are both ordinal 1, and that collision is the only reason the session operand
+is load-bearing there. The generator used one counter across the whole vector, so every generated
+ordinal was globally unique and a reference publishing one was **fully determined by it alone**.
+
+Every other field was then redundant by construction, and the consequence is exactly the increment this
+pass was sent to deliver: fourteen of the fifteen droppable fields moved no verdict, and **AK1 and AK5
+could not reproduce on generated input at any vector count**. An instrument that made the design's own
+operands look redundant would have been read as evidence for removing them.
+
+**AZ3, the instrument, and what it reports.** The dropped-field sweep removes each field of each of
+`C4-P2`'s three frame references, evaluates the property, and requires the outcome it declares — with
+every red required to arrive through its **named** conjunct. Eighteen droppings and three outcome
+classes, all three occurring: the three whole-reference drops are **unevaluable**; `refusedFrame`'s
+arrival ordinal and interaction identity are **red on every vector**, which is AK5 and the identity
+operand; the session field of the refused, settling and terminal references is **red on every
+multi-session vector**, which is AK1 on both conjuncts; and the remaining seven are green. Eight of the
+eighteen are load-bearing. The seven greens are recorded as a limit of the population, not as evidence
+the fields are redundant — the same way closure review 16 recorded their declared counterparts.
+
+The sweep found **nothing in the package**. The 2,000-vector run remains 0 red.
+
+**AZ4. A guard whose regex ended in a newline typed into its own source.** The AW1 guard requires a
+pass that parses no finding heading to *say* it found nothing, in a declared form. It matched that
+declaration as a whole line, and the line terminator in its pattern was a literal newline in the gate's
+own source. `.gitattributes` declares `*.ps1 text eol=crlf`, so a fresh checkout makes the pattern
+`\r\n?$`, which cannot match a line in an LF-only markdown file — and every artifact here is LF by the
+same `.gitattributes`. The guard then fires on **every review that legitimately declares no findings**,
+which is the one outcome condition 4 asks a pass to produce.
+
+It is invisible in this working tree only by accident: these gate files predate the renormalization
+`.gitattributes` describes and are still LF on this disk. It was reproduced by running a CRLF copy of
+the gate — what `actions/checkout` produces — against the unchanged corpus, where it reported the
+thirteenth pass's review as carrying neither a finding nor the declaration. So the design gate has been
+failing on a fresh checkout since that review landed, and this repository could not see it. That is
+AM4's lesson on a second axis: a verifier that reads text reads through a line-ending convention nobody
+chose. Corrected by writing the terminator as the escape sequence `\r?$`; the other gates were searched
+for the same shape and carry none.
+
+**A correction to the brief section 3 gave this pass.** It expected a dropped field to be able to leave
+a reference "resolving to no step". It cannot: dropping a filter only widens a candidate set and never
+empties one. The unevaluable class is reachable by dropping a whole reference, which is what the sweep
+does.
+
+**Two defects were found in this pass's own mutations before its instruments were believed**, both the
+same shape as the thirteenth pass's: a mutation written to revert AZ2 that did not revert it, twice
+over, each reporting nothing and each looking like the instrument failing to detect its own subject.
+That is the argument for keeping these mutations in the probe corpus rather than in a transcript, and
+AZ1-a, AZ2-a and AZ3-a through AZ3-c now do.
+
+**What the next pass inherits.** The two consecutive clean passes are owed again from zero. The seven
+inert droppings are inert because the population carries one frame shape per session; the generator
+still produces conforming vectors only, with the mutation direction applied by hand and discarded; and
+nothing in this pass touched that.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -1181,14 +1264,30 @@ intention rather than a side effect. It is recorded with the caution that a froz
 nothing means the package is sound *under what the programme can currently detect*, which is a floor
 and not a proof — the same limit the coverage measure states about itself.
 
-**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run thirteen
-times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one, three and
-**zero** defects. Sections 2d through 2p record them.
+**Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
+fourteen times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one,
+three, zero and **three** defects. Sections 2d through 2q record them.
 
-**The thirteenth is the first pass to satisfy this condition as the 2026-09-04 ruling states it**: its
-frozen set reported nothing, and the instrument it extended found nothing in the package. That ruling
-requires **two consecutive** such passes, the second over a strictly larger frozen set, so one more is
-owed before the cycle resumes. Whether the **eleventh** met the
+**The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
+it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
+That ruling requires **two consecutive** such passes, the second over a strictly larger frozen set.
+**The fourteenth was to be the second and is not**: its frozen set did report nothing, and it was
+strictly larger, but the instrument that pass built found **AZ2** in the package, and the pass found
+**AZ1** and **AZ4** by reading the instruments it had been sent to extend. All three are in the
+verification rather than in the design, and the ruling's two populations do not turn on that
+distinction — a package finding is what the instruments report "about the design **and its
+verification**".
+
+**So the count resets and two consecutive clean passes are owed again from zero.** That is the ruling
+working rather than failing, in the same way the twelfth was: a pass that extends an instrument and
+finds a real defect with it has learned something the previous reading of condition 4 would have
+buried in a total.
+
+AZ1 is the sharpest of the three for this section's purposes, because it says something about what the
+seven previous clean frozen sets were worth. It made a whole class of failure — a property that could
+not be evaluated over its record at all — **invisible to the generated run**, so every "N generated
+vectors, 0 red" this programme has recorded is a floor against the failures that run could see, and
+not against that one. Whether the **eleventh** met the
 condition is the open question **AW2** puts to the owner: under the 2026-09-04 ruling both of its
 tests passed, and under the previous reading its one finding fails it. The twelfth does not meet it
 under either reading, because the instrument it extended found a real defect in the package — which is
@@ -1210,23 +1309,28 @@ have been entitled to call blocking**, as does **AU1**, eleven obligations that 
 could distinguish an implementation honouring them from one that did not. The condition is doing what
 it was written to do; it has not yet run out of findings.
 
-The next work is therefore a fourteenth author-side pass, and it is the **second of the two
-consecutive passes** the 2026-09-04 ruling requires before the closure cycle resumes. Its method is
-the increment the thirteenth left: **generating frame references with fields dropped.**
+The next work is therefore a fifteenth author-side pass, and it is the **first of the two consecutive
+passes** the 2026-09-04 ruling now requires again. Its method is the direction the fourteenth's own
+finding points at: **read what the retained instruments do with what an evaluator hands back, rather
+than extending them.**
 
-The thirteenth pass gave `C4-P2` records to quantify over, and both its conjuncts now reach a verdict
-on generated input. What that population does not explore is the shape every operand correction in
-this programme was about. AF8, AG2, AH1, AI1, AJ1, AK1, AK5 and AK6 are each a reference that had
-**lost a field** — a session, an identity, an arrival ordinal — and a generator that always publishes
-all five fields tests none of them. A reference resolves to every step matching the fields it
-publishes, so dropping one widens the candidate set, and that widening is exactly what those nine
-retained operand mutations assert by hand today.
+AZ1 was not a defect in a check. It was a whole return channel that one of the two loops consuming it
+never read, so the failure it carries could not be reported however many vectors ran. AZ4 is the same
+shape at the other end — a guard whose *input* was silently transformed by a convention nobody chose —
+and both were invisible to every instrument that runs here. That class is not
+specific to `Errors`: the question "what does each consumer do with each thing its producer returns,
+and which of those has no consumer at all" has not been asked of this file, and the answer is exactly
+where AZ1 was. `UnpublishedFields`, `Witness`, `Conjunct`, the reached-count that operand mutations
+return, and the tallies the coverage and probe gates hand back are the same shape of thing.
 
-Generating the dropped-field cases would turn those nine into a rate, which is the same move the
-eleventh pass made for the properties themselves. It is also the first place where a generated vector
-may legitimately be **unevaluable** rather than green or red: a reference resolving to no step raises
-an error rather than a verdict, which is `C4-P2`'s AK6 machinery, and the pass has to say which
-droppings are legal inputs and which are the design's own defect being reproduced.
+The obvious second candidate is that AZ1's fix has only one consumer of its own. The generated loop now
+reports what `Errors` carries; nothing yet requires an evaluator to **fill** it where a record is
+genuinely unevaluable, which is the AU1-shaped question one level in.
+
+What the fourteenth left undone is narrower and should not be confused with the above: the seven inert
+droppings are inert because the generated population carries one frame shape per session, and the
+generator still produces conforming vectors only, with the mutation direction applied by hand and
+discarded.
 
 Nothing in this section authorizes dispatching a closure review, and the closure-cycle state at the
 head of this document is what says so.
@@ -1248,7 +1352,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,324** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,332** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved twice
   since, by four characters each time and for the same reason — registering a new iteration-review
@@ -1267,13 +1371,13 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   can assert its own guard rather than the exit code; that is the price of the assertion and it is
   named here rather than absorbed, on this section's own rule. All measured in verifying mode on one
   machine, so the figures are comparable with each other and not with CI; and
-- **guard probes executable** — currently **80 of 80**, run by
+- **guard probes executable** — currently **85 of 85**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
-- **design-verifier lines** — **2,881** now, recomputed by the verifier against itself. Every step
+- **design-verifier lines** — **2,895** now, recomputed by the verifier against itself. Every step
   of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
   the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
   `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491**, `138af11` **2,626** — counted the way this verifier counts

@@ -9,7 +9,17 @@ param(
     [int]$GeneratedCount = 100,
     # The generator is seeded, so a reported counterexample is reproducible by re-running with the
     # seed and count it was found under. A rate nobody can reproduce is an anecdote.
-    [int]$GeneratedSeed = 20260904
+    [int]$GeneratedSeed = 20260904,
+    # How many of those vectors AZ3's dropped-field sweep also runs over, counted from the first and
+    # never more than `GeneratedCount`. It has its own count because it costs eighteen further
+    # `C4-P2` evaluations per vector where the main measure costs twenty-six across all properties,
+    # and because the guard corpus re-runs this whole gate once per probe -- so a sweep pinned to
+    # `GeneratedCount` would multiply the cost of the probe corpus rather than of one run.
+    #
+    # Forty is well past what the sweep needs: every dropping's outcome is fixed by whether the
+    # vector carries one session or several, so forty vectors cover each declared case many times
+    # over. `verify-gate-self-checks.ps1` raises it for the deep run, exactly as it does the other.
+    [int]$SweptCount = 40
 )
 
 $ErrorActionPreference = 'Stop'
@@ -242,24 +252,35 @@ function Resolve-FrameReference {
         [Parameter(Mandatory = $true)]$Reference
     )
 
-    $candidates = @($Steps)
-    foreach ($pair in @(
-            @{ Field = 'kind'; Property = 'Kind' },
-            @{ Field = 'session'; Property = 'Session' },
-            @{ Field = 'interactionIdentity'; Property = 'InteractionIdentity' },
-            @{ Field = 'committingEndpoint'; Property = 'CommittingEndpoint' })) {
-        $published = Get-Field $Reference $pair.Field
-        if ($null -ne $published) {
-            $candidates = @($candidates | Where-Object { $_.($pair.Property) -eq [string]$published })
-        }
-    }
-
+    # One pass over the steps rather than a `Where-Object` pipeline per field. The filters are a
+    # conjunction, so applying them in one loop admits exactly the steps five successive filters
+    # admitted; what changes is the cost, and only the cost. It was five pipelines per call, whose
+    # SETUP -- not their element count -- was about twenty milliseconds of every `C4-P2` evaluation,
+    # and AZ3's sweep multiplies those evaluations by eighteen. The declared corpus, the nine operand
+    # mutations and the sweep's own eight load-bearing droppings all constrain this function, and all
+    # of them are what say the rewrite kept its meaning.
+    $publishedKind = Get-Field $Reference 'kind'
+    $publishedSession = Get-Field $Reference 'session'
+    $publishedIdentity = Get-Field $Reference 'interactionIdentity'
+    $publishedEndpoint = Get-Field $Reference 'committingEndpoint'
     $publishedOrdinal = Get-Field $Reference 'arrivalOrdinal'
-    if ($null -ne $publishedOrdinal) {
-        $candidates = @($candidates | Where-Object { $null -ne $_.ArrivalOrdinal -and $_.ArrivalOrdinal -eq [int]$publishedOrdinal })
+    if ($null -ne $publishedKind) { $publishedKind = [string]$publishedKind }
+    if ($null -ne $publishedSession) { $publishedSession = [string]$publishedSession }
+    if ($null -ne $publishedIdentity) { $publishedIdentity = [string]$publishedIdentity }
+    if ($null -ne $publishedEndpoint) { $publishedEndpoint = [string]$publishedEndpoint }
+    if ($null -ne $publishedOrdinal) { $publishedOrdinal = [int]$publishedOrdinal }
+
+    $candidates = [System.Collections.Generic.List[object]]::new()
+    foreach ($step in $Steps) {
+        if ($null -ne $publishedKind -and $step.Kind -ne $publishedKind) { continue }
+        if ($null -ne $publishedSession -and $step.Session -ne $publishedSession) { continue }
+        if ($null -ne $publishedIdentity -and $step.InteractionIdentity -ne $publishedIdentity) { continue }
+        if ($null -ne $publishedEndpoint -and $step.CommittingEndpoint -ne $publishedEndpoint) { continue }
+        if ($null -ne $publishedOrdinal -and ($null -eq $step.ArrivalOrdinal -or $step.ArrivalOrdinal -ne $publishedOrdinal)) { continue }
+        [void]$candidates.Add($step)
     }
 
-    return $candidates
+    return @($candidates)
 }
 
 function Test-Precedes {
@@ -1161,7 +1182,16 @@ function Remove-PublishedField {
     # 16's P3 did by hand. It returns how many records it reached: a mutation that reaches none would
     # report the unmutated verdict and read as "no fire", which is a false negative rather than a
     # finding.
-    param([Parameter(Mandatory = $true)]$Vector, [Parameter(Mandatory = $true)][string]$DropPath)
+    #
+    # `Undo` is optional and does not change what this returns. A caller that supplies a list gets one
+    # entry per field actually removed, and `Restore-PublishedFields` puts them back -- which is how
+    # AZ3's sweep drops eighteen fields per generated vector without deep-copying the vector eighteen
+    # times. The alternative measured at nineteen milliseconds a copy, which is most of an hour across
+    # the deep run and enough to change what the guard corpus costs to run at all.
+    param(
+        [Parameter(Mandatory = $true)]$Vector,
+        [Parameter(Mandatory = $true)][string]$DropPath,
+        [System.Collections.Generic.List[object]]$Undo)
 
     $segments = $DropPath.Split('.')
     $collection = $segments[0]
@@ -1180,11 +1210,29 @@ function Remove-PublishedField {
         }
         if ($null -eq $parent) { continue }
         if ($null -ne $parent.PSObject.Properties[$tail[-1]]) {
+            if ($null -ne $Undo) {
+                [void]$Undo.Add([pscustomobject]@{ Parent = $parent; Name = $tail[-1]; Value = $parent.PSObject.Properties[$tail[-1]].Value })
+            }
             $parent.PSObject.Properties.Remove($tail[-1])
             $removed++
         }
     }
     return $removed
+}
+
+function Restore-PublishedFields {
+    # Puts back exactly what one `Remove-PublishedField` call took out. Property ORDER is not
+    # preserved -- a restored field is appended -- and nothing in this file reads a record's property
+    # order, only its property names through `Get-Field`.
+    param([Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.List[object]]$Undo)
+
+    for ($index = $Undo.Count - 1; $index -ge 0; $index--) {
+        $entry = $Undo[$index]
+        # `Add-Member` rather than this costs about a millisecond a call, and the sweep makes tens of
+        # thousands of them on the deep run.
+        $entry.Parent.PSObject.Properties.Add([System.Management.Automation.PSNoteProperty]::new($entry.Name, $entry.Value))
+    }
+    $Undo.Clear()
 }
 
 $evaluationCount = 0
@@ -1418,6 +1466,70 @@ foreach ($site in ($obligationSites | Sort-Object -Unique)) {
 if ($GeneratedCount -gt 0) {
     $random = [System.Random]::new($GeneratedSeed)
 
+    # ---------------------------------------------------------------------------------------------
+    # AZ3. The dropped-field sweep: the nine retained operand mutations, as a rate.
+    #
+    # Every operand correction this programme made -- AF8, AG2, AH1, AI1, AJ1, AK1, AK5, AK6 -- is
+    # about a frame reference that had LOST A FIELD. A reference resolves to every declared step
+    # matching the fields it publishes, so dropping one WIDENS the candidate set, and that widening is
+    # what the nine retained operand mutations assert by hand on hand-written vectors today.
+    #
+    # This drops each field from each of `C4-P2`'s three references on every generated vector and
+    # states what must happen. Three outcomes are possible and all three occur:
+    #
+    #   * `red`         -- the field is LOAD-BEARING: without it a conforming realization is misjudged.
+    #   * `green`       -- the field moves no verdict on this population. Recorded as a limit, NOT as
+    #                      evidence the field is redundant: the declared corpus keeps its own mutations
+    #                      for exactly the shapes a generator does not reach.
+    #   * `unevaluable` -- the record carries no operand at all, so the property cannot be evaluated.
+    #                      Only dropping a WHOLE reference reaches this. The plan's brief for this pass
+    #                      expected a dropped FIELD to be able to leave a reference "resolving to no
+    #                      step"; it cannot, because dropping a filter only ever widens a candidate set
+    #                      and never empties one. That is a correction to the brief, not a finding.
+    #
+    # A `red` must fire through the NAMED conjunct, for the reason the declared harness gives: a
+    # mutation that fires through the other conjunct is unfalsifiable however well it is named.
+    $referenceDrops = @(
+        # Whole references. `C4-P2` reports these as errors rather than verdicts, which is AK6's
+        # machinery, and until AZ1 this block discarded them.
+        @{ Drop = 'unseen-refusals.refusedFrame'; Verdict = 'unevaluable'; Conjunct = $null; Discriminates = 'every' },
+        @{ Drop = 'late-traffic-latches.settlingFrame'; Verdict = 'unevaluable'; Conjunct = $null; Discriminates = 'every' },
+        @{ Drop = 'late-traffic-latches.terminalFrame'; Verdict = 'unevaluable'; Conjunct = $null; Discriminates = 'every' },
+
+        # AK1, on both conjuncts. One session's frames and another's collide on every field a
+        # reference publishes except the session, because the arrival ordinal is counted per identity
+        # and restarts in each session -- so the session is the only thing separating them, and
+        # dropping it is AF8's two-session failure reproduced rather than read. It discriminates only
+        # where there are two sessions to conflate, which is why the scope is stated.
+        @{ Drop = 'unseen-refusals.refusedFrame.session'; Verdict = 'red'; Conjunct = 'C4-P2-conjunct-1'; Discriminates = 'multi-session' },
+        @{ Drop = 'late-traffic-latches.settlingFrame.session'; Verdict = 'red'; Conjunct = 'C4-P2-conjunct-2'; Discriminates = 'multi-session' },
+        @{ Drop = 'late-traffic-latches.terminalFrame.session'; Verdict = 'red'; Conjunct = 'C4-P2-conjunct-2'; Discriminates = 'multi-session' },
+
+        # AK5, and Y4's argument on this operand: one endpoint commits two controls naming one identity
+        # in one session, the request arrives between them, and the record has to say which was
+        # refused. Without the ordinal the reference binds to the later control too, and the property
+        # goes red on delivery that matched commit order.
+        @{ Drop = 'unseen-refusals.refusedFrame.arrivalOrdinal'; Verdict = 'red'; Conjunct = 'C4-P2-conjunct-1'; Discriminates = 'every' },
+
+        # The identity operand of the membership test and of the request set both.
+        @{ Drop = 'unseen-refusals.refusedFrame.interactionIdentity'; Verdict = 'red'; Conjunct = 'C4-P2-conjunct-1'; Discriminates = 'every' },
+
+        # Recorded and not raised, exactly as closure review 16 recorded their declared counterparts:
+        # these move no verdict on this population. That is a limit of the population and not a case
+        # for removing the field -- adding an operand is strictly more precise than inferring one.
+        @{ Drop = 'unseen-refusals.refusedFrame.kind'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' },
+        @{ Drop = 'unseen-refusals.refusedFrame.committingEndpoint'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' },
+        @{ Drop = 'late-traffic-latches.settlingFrame.kind'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' },
+        @{ Drop = 'late-traffic-latches.settlingFrame.interactionIdentity'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' },
+        @{ Drop = 'late-traffic-latches.settlingFrame.committingEndpoint'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' },
+        @{ Drop = 'late-traffic-latches.settlingFrame.arrivalOrdinal'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' },
+        @{ Drop = 'late-traffic-latches.terminalFrame.kind'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' },
+        @{ Drop = 'late-traffic-latches.terminalFrame.interactionIdentity'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' },
+        @{ Drop = 'late-traffic-latches.terminalFrame.committingEndpoint'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' },
+        @{ Drop = 'late-traffic-latches.terminalFrame.arrivalOrdinal'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' })
+    $dropTally = @{}
+    foreach ($referenceDrop in $referenceDrops) { $dropTally[[string]$referenceDrop.Drop] = @{ Discriminating = 0; Inert = 0 } }
+
     function New-ConformingVector {
         param([Parameter(Mandatory = $true)][string]$Id, [Parameter(Mandatory = $true)][System.Random]$Random)
 
@@ -1435,7 +1547,6 @@ if ($GeneratedCount -gt 0) {
         $unseenRefusals = [System.Collections.Generic.List[object]]::new()
         $lateTrafficLatches = [System.Collections.Generic.List[object]]::new()
         $admittedSets = [System.Collections.Generic.List[object]]::new()
-        $arrivalOrdinal = 0
 
         foreach ($sessionOrdinal in 1..($Random.Next(1, 4))) {
             $sessionId = "s$sessionOrdinal"
@@ -1551,33 +1662,70 @@ if ($GeneratedCount -gt 0) {
                 })
             }
 
-            # C4's frames for this session, and the two observation records that read them. Both are
+            # C4's frames for this session, and the three observation records that read them. All are
             # built to be **conforming**, which for `C4-P2` means the two situations its conjuncts
-            # forbid do not occur while the records they quantify over do exist:
+            # forbid do not occur while the records they quantify over do exist. Each is also built to
+            # be conforming for a DIFFERENT reason, because a conjunct that is green for one reason on
+            # every record in the population is tested by one record however many there are:
             #
             #   * Conjunct 1 forbids an `unseen` refusal of a cancellation control whose request the
             #     same endpoint had already committed AND whose identity the recipient afterwards
-            #     admits. The control here names an identity **no request ever opened**, which is the
-            #     legitimate `unseen` case the design keeps `rejected-protocol` for, so the conjunct's
-            #     request set is empty and it is green on a record it actually examined.
+            #     admits. The first refusal is green because its identity was opened in NO session at
+            #     all (session 1) or in a DIFFERENT one (every later session), so the conjunct's
+            #     session-scoped request set is empty. The second is green because the control it names
+            #     was committed BEFORE the request that opens its identity, so the precedence half is
+            #     false although the membership half is true. Both are the legitimate `unseen` case the
+            #     design keeps `rejected-protocol` for, and each is green on a record it examined.
             #   * Conjunct 2 forbids a late-traffic latch settled against a frame committed BEFORE the
             #     endpoint's own terminal frame. Here the settling frame is committed after it, which
             #     is what late traffic is, so the comparison runs and finds nothing.
             #
             # The refusal's `detailedReason`, `provenance` and `frameDecision` are the selectors the
             # conjunct narrows on; a record missing them would be skipped and prove nothing.
-            $unopenedIdentity = "u$sessionOrdinal"
-            $requestStep = "$sessionId-request"
-            $controlStep = "$sessionId-control-unopened"
-            $terminalStep = "$sessionId-terminal"
-            $lateStep = "$sessionId-late"
+            # AZ2. The arrival ordinal is "its arrival ordinal FOR THAT INTERACTION IDENTITY", and the
+            # declared corpus counts it per receiving endpoint, per session, per identity: in
+            # `C4-two-sessions-one-identity` one identity's frames in two sessions are BOTH ordinal 1,
+            # and that collision is the only reason the session operand is load-bearing there.
+            #
+            # This generator used a single counter running across the whole vector, so every generated
+            # ordinal was globally unique and a reference publishing one was fully determined by it
+            # alone. Every other field it published was then redundant BY CONSTRUCTION, and dropping
+            # any one of them could not move a verdict -- which is why fourteen of the fifteen field
+            # droppings were green before this pass and why AK1 and AK5 could not reproduce here at any
+            # vector count. The generator was publishing a uniqueness the design does not give.
+            $ordinalCounters = @{}
+            $stepOrdinals = @{}
+
+            # Three interaction identities per session, because one identity cannot carry the shapes
+            # the retained operand mutations are about:
+            #   * `f1` is REUSED across sessions, so the latch's two references collide on ordinal
+            #     between sessions and their session field is what separates them -- AK1 on conjunct 2.
+            #   * `g<k>` is opened in this session and named by the NEXT session's `unseen` refusal,
+            #     which is the two-session identity reuse AF8's sentence was written for: conforming at
+            #     both endpoints, refusal in one session and admission in the other -- AK1 on conjunct 1.
+            #   * `h<k>` is opened by a request that arrives BETWEEN two controls naming it, so the
+            #     record has to say which control it refused -- AK5, and Y4's argument on that operand.
+            $sharedIdentity = 'f1'
+            $carriedIdentity = "g$sessionOrdinal"
+            $twoControlIdentity = "h$sessionOrdinal"
+            # Session 1 has no predecessor to have opened anything, so its refusal names an identity no
+            # session opens at all. That is the other legitimate `unseen` case and both belong here.
+            $unopenedIdentity = if ($sessionOrdinal -eq 1) { 'u1' } else { "g$($sessionOrdinal - 1)" }
             $frameSpecs = @(
-                @{ Id = $requestStep; Kind = 'request'; Endpoint = 'initiator'; Identity = 'f1'; Commit = 1 },
-                @{ Id = $controlStep; Kind = 'cancellation-control'; Endpoint = 'initiator'; Identity = $unopenedIdentity; Commit = 1 },
-                @{ Id = $terminalStep; Kind = 'outcome'; Endpoint = 'recipient'; Identity = 'f1'; Commit = 1 },
-                @{ Id = $lateStep; Kind = 'cancellation-control'; Endpoint = 'recipient'; Identity = 'f1'; Commit = 2 })
+                @{ Id = "$sessionId-control-early"; Kind = 'cancellation-control'; Endpoint = 'initiator'; Identity = $twoControlIdentity; Commit = 1 },
+                @{ Id = "$sessionId-request"; Kind = 'request'; Endpoint = 'initiator'; Identity = $sharedIdentity; Commit = 1 },
+                @{ Id = "$sessionId-request-carried"; Kind = 'request'; Endpoint = 'initiator'; Identity = $carriedIdentity; Commit = 1 },
+                @{ Id = "$sessionId-request-two-control"; Kind = 'request'; Endpoint = 'initiator'; Identity = $twoControlIdentity; Commit = 1 },
+                @{ Id = "$sessionId-control-unopened"; Kind = 'cancellation-control'; Endpoint = 'initiator'; Identity = $unopenedIdentity; Commit = 1 },
+                @{ Id = "$sessionId-control-late"; Kind = 'cancellation-control'; Endpoint = 'initiator'; Identity = $twoControlIdentity; Commit = 1 },
+                @{ Id = "$sessionId-terminal"; Kind = 'outcome'; Endpoint = 'recipient'; Identity = $sharedIdentity; Commit = 1 },
+                @{ Id = "$sessionId-late"; Kind = 'cancellation-control'; Endpoint = 'recipient'; Identity = $sharedIdentity; Commit = 2 })
             foreach ($frameSpec in $frameSpecs) {
-                $arrivalOrdinal++
+                $receiving = $(if ($frameSpec.Endpoint -eq 'initiator') { 'recipient' } else { 'initiator' })
+                $ordinalKey = "$receiving|$sessionId|$($frameSpec.Identity)"
+                if (-not $ordinalCounters.ContainsKey($ordinalKey)) { $ordinalCounters[$ordinalKey] = 0 }
+                $ordinalCounters[$ordinalKey]++
+                $stepOrdinals[$frameSpec.Id] = $ordinalCounters[$ordinalKey]
                 $declaredSteps.Add([pscustomobject]@{
                     id = $frameSpec.Id
                     kind = $frameSpec.Kind
@@ -1589,13 +1737,17 @@ if ($GeneratedCount -gt 0) {
                 $delivery.Add([pscustomobject]@{
                     step = $frameSpec.Id
                     disposition = 'delivered'
-                    receivingEndpoint = $(if ($frameSpec.Endpoint -eq 'initiator') { 'recipient' } else { 'initiator' })
-                    arrivalOrdinal = $arrivalOrdinal
+                    receivingEndpoint = $receiving
+                    arrivalOrdinal = $ordinalCounters[$ordinalKey]
                 })
             }
             # The recipient admits the identity it was asked to open, and never the unopened one --
             # which is the operand AF8 scoped to the session and AK1 was raised for.
-            $admittedSets.Add([pscustomobject]@{ session = $sessionId; identities = @('f1') })
+            $admittedSets.Add([pscustomobject]@{ session = $sessionId; identities = @($sharedIdentity, $carriedIdentity, $twoControlIdentity) })
+            # Refusal one: the control names an identity THIS session never opened. For session 1 no
+            # session opened it; for every later session the previous one did, and admits it. Both are
+            # conforming -- an identity is opened within a session, so one opened elsewhere is unopened
+            # here -- and the second is the shape that makes the session operand load-bearing.
             $unseenRefusals.Add([pscustomobject]@{
                 provenance = 'recipient'
                 frameDecision = 'rejected-protocol'
@@ -1606,7 +1758,25 @@ if ($GeneratedCount -gt 0) {
                     session = $sessionId
                     interactionIdentity = $unopenedIdentity
                     committingEndpoint = 'initiator'
-                    arrivalOrdinal = ($arrivalOrdinal - 2)
+                    arrivalOrdinal = $stepOrdinals["$sessionId-control-unopened"]
+                }
+            })
+            # Refusal two: the earlier of two controls naming one identity in one session from one
+            # endpoint, refused before the request that opens it arrived. Conforming for the same
+            # reason -- nothing had opened the identity yet -- and green only because the ordinal says
+            # WHICH control was refused. Drop that ordinal and the reference binds to the later control
+            # as well, which the request does precede.
+            $unseenRefusals.Add([pscustomobject]@{
+                provenance = 'recipient'
+                frameDecision = 'rejected-protocol'
+                detailedReason = 'unopened-interaction-identity'
+                effectCertainty = 'known-none'
+                refusedFrame = [pscustomobject]@{
+                    kind = 'cancellation-control'
+                    session = $sessionId
+                    interactionIdentity = $twoControlIdentity
+                    committingEndpoint = 'initiator'
+                    arrivalOrdinal = $stepOrdinals["$sessionId-control-early"]
                 }
             })
             $lateTrafficLatches.Add([pscustomobject]@{
@@ -1615,16 +1785,16 @@ if ($GeneratedCount -gt 0) {
                 settlingFrame = [pscustomobject]@{
                     kind = 'cancellation-control'
                     session = $sessionId
-                    interactionIdentity = 'f1'
+                    interactionIdentity = $sharedIdentity
                     committingEndpoint = 'recipient'
-                    arrivalOrdinal = $arrivalOrdinal
+                    arrivalOrdinal = $stepOrdinals["$sessionId-late"]
                 }
                 terminalFrame = [pscustomobject]@{
                     kind = 'outcome'
                     session = $sessionId
-                    interactionIdentity = 'f1'
+                    interactionIdentity = $sharedIdentity
                     committingEndpoint = 'recipient'
-                    arrivalOrdinal = ($arrivalOrdinal - 1)
+                    arrivalOrdinal = $stepOrdinals["$sessionId-terminal"]
                 }
             })
 
@@ -1726,6 +1896,11 @@ if ($GeneratedCount -gt 0) {
         'an interaction refused before dispatch'                   = 'pre-dispatch-refusal'
         'an `unseen` refusal record C4-P2''s first conjunct selects' = 'unseen-refusal'
         'a settled late-traffic latch its second conjunct reads'   = 'late-traffic-latch'
+        # The two shapes AZ3's sweep needs, keyed on what makes each one discriminating rather than
+        # on a record existing. Without the first, dropping the session operand conflates nothing;
+        # without the second, dropping the arrival ordinal binds to the same single control.
+        'a refusal naming an identity another session opened'      = 'carried-identity-refusal'
+        'a refusal of the earlier of two controls naming one identity' = 'two-control-refusal'
     }
 
     $generatedEvaluations = 0
@@ -1759,6 +1934,27 @@ if ($GeneratedCount -gt 0) {
                 [string]$shapeRefusal.detailedReason -eq 'unopened-interaction-identity' -and
                 [string]$shapeRefusal.refusedFrame.kind -eq 'cancellation-control') { $shapesSeen['unseen-refusal'] = $true }
         }
+        foreach ($shapeRefusal in @($generatedVector.observations.unseenRefusals)) {
+            if ($null -eq $shapeRefusal -or $null -eq $shapeRefusal.refusedFrame) { continue }
+            $shapeIdentity = [string]$shapeRefusal.refusedFrame.interactionIdentity
+            $shapeSession = [string]$shapeRefusal.refusedFrame.session
+            # Carried: some OTHER session admits the identity this one refused as unopened. That is
+            # the two-session reuse AF8's sentence is about, and it is what the session operand
+            # separates.
+            foreach ($shapeAdmitted in @($generatedVector.observations.recipientAdmittedIdentities)) {
+                if ([string]$shapeAdmitted.session -ne $shapeSession -and @($shapeAdmitted.identities) -contains $shapeIdentity) {
+                    $shapesSeen['carried-identity-refusal'] = $true
+                }
+            }
+            # Two controls: the refused reference names one of at least two declared controls sharing
+            # its session, identity and committing endpoint, so the arrival ordinal is the only thing
+            # saying which of them was refused.
+            $shapeControls = @($generatedVector.declaredSteps | Where-Object {
+                [string]$_.kind -eq 'cancellation-control' -and [string]$_.session -eq $shapeSession -and
+                [string]$_.interactionIdentity -eq $shapeIdentity -and
+                [string]$_.committingEndpoint -eq [string]$shapeRefusal.refusedFrame.committingEndpoint })
+            if ($shapeControls.Count -gt 1) { $shapesSeen['two-control-refusal'] = $true }
+        }
         foreach ($shapeLatch in @($generatedVector.observations.lateTrafficLatches)) {
             if ($null -eq $shapeLatch) { continue }
             if ([string]$shapeLatch.category -eq 'state-violation' -and [string]$shapeLatch.latchValue -eq 'fault-committed' -and
@@ -1778,8 +1974,72 @@ if ($GeneratedCount -gt 0) {
                     }
                 }
             }
+            # AZ1. An evaluator reports two different things and this block read only one of them.
+            # `Errors` is how a property says it could not be evaluated over a record -- a reference
+            # carrying no operand, or one resolving to no declared step -- and the verdict that comes
+            # back beside a non-empty `Errors` is `green`, because a record the property could not
+            # read produced no witness. The declared loop has always drained it; this one discarded
+            # it, so a generated population whose every `C4-P2` record was unevaluable reported `0
+            # red` and passed. It was proven that way: naming an identity no step carries made all
+            # 25 vectors' first-conjunct records unresolvable, and the run was clean.
+            #
+            # That is the vacuous pass this whole instrument exists to detect, one level below where
+            # the twelfth pass found it, and it silently held open the exact hole the thirteenth
+            # pass's review reported as closed.
+            foreach ($evaluationError in $generatedResult.Errors) {
+                if ($generatedRed.Count -lt 10) {
+                    $generatedRed.Add("'$propertyId' could not be evaluated over generated conforming vector '$generatedId': $evaluationError")
+                }
+            }
             if ($generatedResult.Verdict -eq 'red' -and $generatedRed.Count -lt 10) {
                 $generatedRed.Add("'$propertyId' is red on generated conforming vector '$generatedId': $($generatedResult.Witness)")
+            }
+        }
+
+        # The sweep removes one published field from the vector's own observation records, evaluates
+        # `C4-P2`, and puts the field back. In place and restored rather than over a copy: copying
+        # cost nineteen milliseconds a drop, thirty-six thousand times on the deep run, and the guard
+        # corpus re-runs this gate once per probe. The restore is in a `finally` so a throwing
+        # evaluator cannot leave the next drop reading a record with two fields missing.
+        #
+        # That the restore is faithful is not asserted separately -- it is what the eight load-bearing
+        # droppings below establish, since a record that had lost a field permanently would take the
+        # NEXT drop's declared verdict somewhere it is not declared, and the table reports that.
+        $dropSessionCount = @($generatedVector.sessions).Count
+        foreach ($referenceDrop in $(if ($generatedOrdinal -le $SweptCount) { $referenceDrops } else { @() })) {
+            $dropPath = [string]$referenceDrop.Drop
+            $dropUndo = [System.Collections.Generic.List[object]]::new()
+            $dropReached = Remove-PublishedField -Vector $generatedVector -DropPath $dropPath -Undo $dropUndo
+            if ($dropReached -le 0) {
+                # A drop that reaches no record reports the undropped verdict, so a green from it is a
+                # false negative rather than evidence the field is inert. Same guard, same reason, as
+                # the declared operand harness above.
+                Restore-PublishedFields -Undo $dropUndo
+                if ($generatedRed.Count -lt 10) {
+                    $generatedRed.Add("the dropped-field sweep reverted no published field for '$dropPath' on '$generatedId'")
+                }
+                continue
+            }
+            try { $dropResult = Invoke-C4P2 -VectorId $generatedId -Vector $generatedVector -Steps $generatedSteps }
+            finally { Restore-PublishedFields -Undo $dropUndo }
+            $dropObserved = if ($dropResult.Errors.Count -gt 0) { 'unevaluable' }
+                elseif ($dropResult.Verdict -eq 'red') { 'red' }
+                else { 'green' }
+            # A drop declared to discriminate only between sessions is REQUIRED to be inert on a
+            # single-session vector, not merely allowed to be. A field that moved a verdict where the
+            # scope says it cannot would mean the scope, not the field, is what is wrong.
+            $dropDiscriminates = ([string]$referenceDrop.Discriminates -eq 'every' -or $dropSessionCount -gt 1)
+            $dropExpected = if ($dropDiscriminates) { [string]$referenceDrop.Verdict } else { 'green' }
+            if ($dropDiscriminates) { $dropTally[$dropPath].Discriminating++ } else { $dropTally[$dropPath].Inert++ }
+            if ($dropObserved -ne $dropExpected) {
+                if ($generatedRed.Count -lt 10) {
+                    $dropWitness = if ($dropObserved -eq 'red') { " Witness: $($dropResult.Witness)." }
+                        elseif ($dropObserved -eq 'unevaluable') { " $($dropResult.Errors[0])" } else { '' }
+                    $generatedRed.Add("dropping '$dropPath' leaves 'C4-P2' $dropObserved on '$generatedId', which carries $dropSessionCount session(s), and the sweep declares $dropExpected there.$dropWitness")
+                }
+            }
+            elseif ($dropObserved -eq 'red' -and [string]$dropResult.Conjunct -ne [string]$referenceDrop.Conjunct -and $generatedRed.Count -lt 10) {
+                $generatedRed.Add("dropping '$dropPath' takes 'C4-P2' red on '$generatedId' through '$($dropResult.Conjunct)' and the sweep declares it fires through '$($referenceDrop.Conjunct)'. A drop whose red arrives through the other conjunct witnesses something other than the operand it names.")
             }
         }
     }
@@ -1791,7 +2051,23 @@ if ($GeneratedCount -gt 0) {
     foreach ($generatedFinding in $generatedRed) {
         $failures.Add("$generatedFinding. Reproduce with -GeneratedSeed $GeneratedSeed -GeneratedCount $GeneratedCount. Either the property is red on conforming behaviour, which is AE1's class, or the generator builds a vector the design does not permit -- read the witness against the artifact, which is the authority here exactly as it is for a probe.")
     }
+    # The rate AZ3 reports, stated per outcome class rather than as one number: "no drop misbehaved"
+    # says nothing about how many of them could have. A drop with no discriminating vector behind it
+    # is the vacuity this instrument was built to end, so it is a failure and not a footnote.
+    $dropDiscriminating = 0
+    $dropInert = 0
+    $dropSwept = [Math]::Min($SweptCount, $GeneratedCount)
+    foreach ($referenceDrop in $referenceDrops) {
+        $dropPath = [string]$referenceDrop.Drop
+        $dropDiscriminating += $dropTally[$dropPath].Discriminating
+        $dropInert += $dropTally[$dropPath].Inert
+        if ($dropTally[$dropPath].Discriminating -le 0) {
+            $failures.Add("No generated vector let the sweep evaluate '$dropPath' where it is declared to discriminate, over the first $dropSwept of $GeneratedCount at seed $GeneratedSeed. A dropped field with no vector behind it reports its declared verdict by never having been tried.")
+        }
+    }
+    $dropLoadBearing = @($referenceDrops | Where-Object { [string]$_.Verdict -ne 'green' }).Count
     Write-Host "Channel 0.2 generated-vector evaluation: $generatedEvaluations evaluations over $GeneratedCount generated conforming vectors at seed $GeneratedSeed, $($generatedRed.Count) red."
+    Write-Host "Channel 0.2 dropped-field sweep: $($referenceDrops.Count) frame-reference droppings over the first $dropSwept of those vectors, $dropDiscriminating evaluated where declared to discriminate and $dropInert where declared inert, $dropLoadBearing of them load-bearing."
 }
 
 if ($failures.Count -gt 0) {

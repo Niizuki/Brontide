@@ -65,9 +65,12 @@ Invoke-Checked {
 # "is a property red on conforming behaviour nobody thought to write down". The properties gate
 # evaluates a hundred generated conforming vectors on every commit, which is the continuous floor;
 # this raises the count, because a rate is worth more at two thousand than at a hundred and the cost
-# is superlinear enough that the deep run belongs here rather than in every commit.
+# is superlinear enough that the deep run belongs here rather than in every commit. It raises AZ3s
+# dropped-field sweep with it, for the same reason and on its own count: the sweep costs eighteen
+# further C4-P2 evaluations per vector it covers, so pinning it to the generated count would multiply
+# what the probe corpus next door costs rather than what one run costs.
 Invoke-Checked {
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-properties.ps1') -GeneratedCount 2000
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-properties.ps1') -GeneratedCount 2000 -SweptCount 500
 }
 
 Write-Host 'Channel 0.2 gate self-checks passed: the guard corpus, the gate-coverage measure and the deep generated-vector run all agree with the gates they check.'

@@ -182,6 +182,7 @@ dependency instead of narrowing it.
 | AV | iteration | verification | tenth W1-W3 verification-foundation iteration review |
 | AW | iteration | verification | eleventh W1-W3 verification-foundation iteration review |
 | AX | iteration | verification | twelfth W1-W3 verification-foundation iteration review |
+| AZ | iteration | verification | fourteenth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -277,7 +278,7 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Thirteen such passes have run, and the thirteenth is the first to meet the plan's condition 4, which asks for a pass that finds
+Fourteen such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
 nothing it can fix. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
@@ -290,24 +291,29 @@ nothing it can fix. They are retained as the
 [ninth](./channel-0.2-au-iteration-review.md) (**AU1**-**AU5**),
 [tenth](./channel-0.2-av-iteration-review.md) (**AV1**-**AV3**),
 [eleventh](./channel-0.2-aw-iteration-review.md) (**AW1**),
-[twelfth](./channel-0.2-ax-iteration-review.md) (**AX1**-**AX3**) and
-[thirteenth](./channel-0.2-ay-iteration-review.md) (no finding) W1-W3 verification-foundation
+[twelfth](./channel-0.2-ax-iteration-review.md) (**AX1**-**AX3**),
+[thirteenth](./channel-0.2-ay-iteration-review.md) (no finding) and
+[fourteenth](./channel-0.2-az-iteration-review.md) (**AZ1**-**AZ2**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
-**A fourteenth pass over the same scope is the live path, and it is the second of the two consecutive
-passes the 2026-09-04 ruling requires.** It starts by running the frozen instrument set — the probe
+**A fifteenth pass over the same scope is the live path, and it is the first of two consecutive clean
+passes that are owed again from zero.** It starts by running the frozen instrument set — the probe
 corpus, the coverage gate and the generated-vector run, whose sizes the plan's section 4 owns and
 recomputes rather than this paragraph — and records what it reports before building anything.
 
-**The thirteenth pass found nothing**, which is the first time that has happened here, and it is why
-one more clean pass is owed rather than none. It gave `C4-P2` records to quantify over: both conjuncts
-now reach a verdict on generated input, and each was driven red through its own named conjunct before
-the green was believed.
+**The fourteenth pass was to be the second clean pass and was not.** It generated frame references with
+fields dropped, which turned eight of the nine retained operand mutations into a rate, and the sweep
+found nothing in the package. But it raised **AZ1**, a return channel the generated loop never read —
+so a population whose every `C4-P2` record was *unevaluable* reported `0 red` and passed — and **AZ2**,
+a generator counting arrival ordinals across the whole vector where the design counts them per
+interaction identity, which had made all four other operands of a frame reference redundant by
+construction. Both are in the verification and neither in the design, and the ruling's package
+population covers both.
 
-**The fourteenth pass's method is generating frame references with fields dropped.** Every operand
-correction in this programme — AF8, AG2, AH1, AI1, AJ1, AK1, AK5, AK6 — is about a reference that had
-lost a session, an identity or an arrival ordinal, and a generator that always publishes all five
-fields tests none of them.
+**The fifteenth pass's method comes from AZ1 rather than from the increment.** AZ1 was a whole return
+channel with a consumer that ignored it, and the question that finds that class — what does each
+consumer do with each thing its producer hands back, and which of those has no consumer at all — has
+not been asked of these gates.
 
 Nothing in this paragraph resumes the closure cycle or authorizes a closure-review dispatch.
 
@@ -1119,6 +1125,21 @@ context elsewhere — never as evidence that their conclusions are right.
   and a settled late-traffic latch, and both conjuncts reach a verdict — each driven red through its
   own named conjunct before the green was believed. It raises no family, so there is none to
   disposition.
+- [Fourteenth W1-W3 verification-foundation iteration review](./channel-0.2-az-iteration-review.md) —
+  the same scope at `9d615bf`; raised **AZ1**, **AZ2** and **AZ4** and corrected all three, so it is
+  **not** the second consecutive clean pass the 2026-09-04 ruling requires and the count resets. All
+  three are in the verification and none in the design. Its own increment — generating frame
+  references with fields dropped, which turned eight of the nine retained operand mutations into a
+  rate — found nothing in the package. **AZ1** is a return channel with a consumer that ignored it:
+  an evaluator reports "I could not evaluate this record at all" through `Errors`, the generated loop
+  read only the verdict, and a population whose every `C4-P2` record was unresolvable reported `0 red`
+  and passed. **AZ2** is the generator counting arrival ordinals across the whole vector where the
+  design counts them per interaction identity, which made all four other operands of a frame reference
+  redundant by construction — the reason AK1 and AK5 could not reproduce on generated input at any
+  vector count. **AZ4** is a guard whose regex ended in a newline typed into its own source: under
+  `.gitattributes`' `*.ps1 text eol=crlf` a fresh checkout makes it `\r\n?$`, which cannot match an
+  LF-only markdown line, so the check that requires a no-finding pass to say so **fired on the review
+  that said it**. It was invisible here only because these gate files are still LF on this disk.
 
 ## Disclosed process deviation in the T1-T4 correction
 

@@ -64,6 +64,14 @@
         {
           "anchor": "foreach ($generatedFinding in $generatedRed) {",
           "reason": "The loop that turns recorded generated findings into failures. Empty on a passing run, for the same reason."
+        },
+        {
+          "anchor": "foreach ($evaluationError in $generatedResult.Errors) {",
+          "reason": "AZ1's report loop. An evaluator returns `Errors` beside its verdict to say it could not be evaluated over a record -- a reference carrying no operand, or one resolving to no declared step -- and this raises each one against the generated vector. A passing run generates records every property can read, so the collection is empty and the loop walks nothing. It fires the moment a generated reference stops resolving, which is what the AZ1-a probe pins, and which this block silently discarded until this pass."
+        },
+        {
+          "anchor": "$dropWitness = if ($dropObserved -eq 'red') { \" Witness: $($dropResult.Witness).\" }",
+          "reason": "Inside the branch that reports a dropped frame-reference field whose verdict is not the one the sweep declares for it. A passing run has no such dropping, so the message this line decorates is never built. The AZ3-a probe pins the branch."
         }
       ],
       "operandExemptions": [
@@ -76,6 +84,11 @@
           "operand": "$generatedRed.Count -lt 10",
           "within": "$generatedResult.Verdict -eq 'red' -and $generatedRed.Count -lt 10",
           "reason": "The cap on reported findings, behind the test for a property red on a generated conforming vector. That first operand is false on every generated vector a passing run produces, so short-circuiting reaches the cap in no input. It is reached the moment the instrument finds something, which is when the cap matters."
+        },
+        {
+          "operand": "$generatedRed.Count -lt 10",
+          "within": "$dropObserved -eq 'red' -and [string]$dropResult.Conjunct -ne [string]$referenceDrop.Conjunct -and $generatedRed.Count -lt 10",
+          "reason": "The cap on reported findings, behind the test for a dropped field whose red arrives through a conjunct other than the one the sweep names it against. Every declared red fires through its named conjunct on a passing run, so the second operand is false throughout and short-circuiting reaches the cap in no input. The AZ3-b probe pins it by swapping a declared conjunct."
         }
       ]
     },
@@ -84,7 +97,7 @@
       "measureOperands": true,
       "exemptions": [
         {
-          "anchor": "if ($Apply) { $rewritten = $true }",
+          "anchor": "if ($Apply) { $rewrittenXX = $true }",
           "reason": "The `-Apply` rewrite path. The gate runs without it in verification, where it compares each fenced publication against the declaration; with it, it regenerates them. A verifying run correctly never rewrites."
         },
         {
