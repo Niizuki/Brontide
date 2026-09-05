@@ -1139,6 +1139,81 @@
           "all": true
         }
       ]
+    },
+    {
+      "id": "AZ1-a",
+      "claim": "a generated vector whose C4-P2 record cannot be evaluated is reported, rather than counted as one of the green evaluations the rate is made of",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "could not be evaluated over generated conforming vector",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "interactionIdentity = $unopenedIdentity",
+          "replace": "interactionIdentity = 'an-identity-no-declared-step-carries'"
+        }
+      ]
+    },
+    {
+      "id": "AZ2-a",
+      "claim": "counting the generated arrival ordinal across the whole vector instead of per receiving endpoint, session and interaction identity makes every other field of a frame reference redundant by construction, and the sweep reports the operands that stop discriminating",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "and the sweep declares red there",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "$ordinalCounters = @{}",
+          "replace": "if ($null -eq $vectorOrdinalCounters) { $vectorOrdinalCounters = @{} }; $ordinalCounters = $vectorOrdinalCounters"
+        },
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "$ordinalKey = \"$receiving|$sessionId|$($frameSpec.Identity)\"",
+          "replace": "$ordinalKey = \"one-counter-for-the-whole-vector\""
+        }
+      ]
+    },
+    {
+      "id": "AZ3-a",
+      "claim": "a dropped frame-reference field whose verdict is not the one the sweep declares for it is reported, which is what stops the sweep from being a list of droppings nobody checked",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "and the sweep declares red there",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "@{ Drop = 'late-traffic-latches.settlingFrame.kind'; Verdict = 'green'",
+          "replace": "@{ Drop = 'late-traffic-latches.settlingFrame.kind'; Verdict = 'red'"
+        }
+      ]
+    },
+    {
+      "id": "AZ3-b",
+      "claim": "a dropped field whose red arrives through the other conjunct is reported, for the reason the declared mutation harness gives: it witnesses something other than the operand it names",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "A drop whose red arrives through the other conjunct witnesses something other than the operand it names",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "@{ Drop = 'late-traffic-latches.settlingFrame.session'; Verdict = 'red'; Conjunct = 'C4-P2-conjunct-2'",
+          "replace": "@{ Drop = 'late-traffic-latches.settlingFrame.session'; Verdict = 'red'; Conjunct = 'C4-P2-conjunct-1'"
+        }
+      ]
+    },
+    {
+      "id": "AZ3-c",
+      "claim": "a generated population that has stopped carrying the shape a dropped field needs in order to discriminate is reported, rather than reporting the declared verdict by never having been tried",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "A rate is worth what its inputs cover",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "$unopenedIdentity = if ($sessionOrdinal -eq 1) { 'u1' } else { \"g$($sessionOrdinal - 1)\" }",
+          "replace": "$unopenedIdentity = 'u1'"
+        }
+      ]
     }
   ]
 }
