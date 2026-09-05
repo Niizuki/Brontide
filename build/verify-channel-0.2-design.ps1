@@ -1195,10 +1195,10 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-ax-iteration-review.md', 'channel-0.2-ay-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-ax-iteration-review.md', 'channel-0.2-ay-iteration-review.md', 'channel-0.2-az-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
-    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all seventeen iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
+    $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, all sixteen retained attestations, and all eighteen iteration reviews, plus the disposition index the status blocks point at, before the next closure review.')
 }
 
 # The closure-cycle hold. The review policy tells an agent not to dispatch a closure review while the
@@ -1365,7 +1365,22 @@ else {
         # review that introduced it, because a review describing the declaration quotes it in a
         # sentence -- so the declaration is a line a review writes deliberately, and a mention of it
         # inside prose is a mention.
-        $declaresNoFindings = [regex]::IsMatch($iterationRaw, '(?m)^' + [regex]::Escape($noFindingsDeclaration) + '?$')
+        # AZ4. This pattern's line terminator was a LITERAL NEWLINE typed into the source, so what it
+        # matched depended on the line endings of THIS FILE -- and `.gitattributes` declares
+        # `*.ps1 text eol=crlf`, so a fresh checkout makes the terminator a CR followed by an
+        # optional LF, which cannot match a line in an LF-only markdown file -- and every artifact
+        # here is LF by that same `.gitattributes`. The guard then fires on every review that
+        # legitimately declares no findings, which is the one outcome condition 4 asks a pass to
+        # produce. It went unnoticed here only because these gate files predate the renormalization
+        # and are still LF on this disk; it was reproduced by running a CRLF copy of this gate,
+        # which is what `actions/checkout` produces. That is AM4's lesson on a second axis -- a
+        # verifier that reads text reads through a line-ending convention nobody chose -- and AP1's
+        # class, a key correct when written and expired when something moved.
+        #
+        # Written as the two-character escape below rather than as a newline, it matches under both
+        # conventions: under `(?m)` the anchor sits before the LF, and the optional CR absorbs the
+        # other. The pattern no longer depends on the bytes of the file it is written in.
+        $declaresNoFindings = [regex]::IsMatch($iterationRaw, '(?m)^' + [regex]::Escape($noFindingsDeclaration) + '\r?$')
         # The declaration is tested FIRST so that both operands are reached. Written the other way
         # round, `$findingMatches.Count -lt 1` is false for every review retained so far and
         # short-circuiting means nothing ever evaluates the declaration -- an operand that could be

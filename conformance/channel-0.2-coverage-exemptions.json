@@ -36,9 +36,11 @@
       "gate": "verify-channel-0.2-properties.ps1",
       "arguments": [
         "-GeneratedCount",
-        "15"
+        "15",
+        "-SweptCount",
+        "4"
       ],
-      "argumentsWhy": "The properties gate evaluates generated conforming vectors on every run, and tracing a hundred of them costs several times this whole measure. Fifteen is the smallest count that still satisfies the generator's own required-shape assertions at the declared seed -- a faulting session, an `establishing` route, a drained close, a session with no interaction, a vector with more than one session, and a wave that fills the bound -- so every construct in the generated block is reached without paying for a population this file is not the one measuring. A smaller count fails those assertions rather than silently narrowing what is traced.",
+      "argumentsWhy": "The properties gate evaluates generated conforming vectors on every run, and tracing a hundred of them costs several times this whole measure. Fifteen is the smallest count that still satisfies the generator's own required-shape assertions at the declared seed -- a faulting session, an `establishing` route, a drained close, a session with no interaction, a vector with more than one session, and a wave that fills the bound -- so every construct in the generated block is reached without paying for a population this file is not the one measuring. A smaller count fails those assertions rather than silently narrowing what is traced. AZ3's dropped-field sweep is bounded separately for the same reason and by a much smaller number: it evaluates `C4-P2` eighteen further times per vector it covers, and under a line trace that took this measure from about ninety seconds to over ten minutes. Four is enough because every construct the sweep adds is reached by whether a vector carries one session or several, and at the declared seed the first four carry three, one, two and one -- so both branches of the scope test, all three outcome classes and all eighteen droppings are traced. A smaller count loses the single-session vector and fails the sweep's own coverage rather than silently narrowing what is traced.",
       "measureOperands": true,
       "exemptions": [
         {
@@ -64,6 +66,14 @@
         {
           "anchor": "foreach ($generatedFinding in $generatedRed) {",
           "reason": "The loop that turns recorded generated findings into failures. Empty on a passing run, for the same reason."
+        },
+        {
+          "anchor": "foreach ($evaluationError in $generatedResult.Errors) {",
+          "reason": "AZ1's report loop. An evaluator returns `Errors` beside its verdict to say it could not be evaluated over a record -- a reference carrying no operand, or one resolving to no declared step -- and this raises each one against the generated vector. A passing run generates records every property can read, so the collection is empty and the loop walks nothing. It fires the moment a generated reference stops resolving, which is what the AZ1-a probe pins, and which this block silently discarded until this pass."
+        },
+        {
+          "anchor": "$dropWitness = if ($dropObserved -eq 'red') { \" Witness: $($dropResult.Witness).\" }",
+          "reason": "Inside the branch that reports a dropped frame-reference field whose verdict is not the one the sweep declares for it. A passing run has no such dropping, so the message this line decorates is never built. The AZ3-a probe pins the branch."
         }
       ],
       "operandExemptions": [
@@ -76,6 +86,11 @@
           "operand": "$generatedRed.Count -lt 10",
           "within": "$generatedResult.Verdict -eq 'red' -and $generatedRed.Count -lt 10",
           "reason": "The cap on reported findings, behind the test for a property red on a generated conforming vector. That first operand is false on every generated vector a passing run produces, so short-circuiting reaches the cap in no input. It is reached the moment the instrument finds something, which is when the cap matters."
+        },
+        {
+          "operand": "$generatedRed.Count -lt 10",
+          "within": "$dropObserved -eq 'red' -and [string]$dropResult.Conjunct -ne [string]$referenceDrop.Conjunct -and $generatedRed.Count -lt 10",
+          "reason": "The cap on reported findings, behind the test for a dropped field whose red arrives through a conjunct other than the one the sweep names it against. Every declared red fires through its named conjunct on a passing run, so the second operand is false throughout and short-circuiting reaches the cap in no input. The AZ3-b probe pins it by swapping a declared conjunct."
         }
       ]
     },

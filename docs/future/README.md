@@ -360,14 +360,24 @@ ruling counts, because it was found by reading. The twelfth pass then taught the
 dispatch, reaching three property clauses that had no input at all, and raised **AX1**, the entry
 points going stale in the commit that recorded the eleventh, **AX2**, an interaction record field
 that **no property reads** and nothing reconciled against the timeline, and **AX3**, a freshness guard
-the probe corpus caught going silent. **The thirteenth pass then found nothing** -- the first here to do so, and the first to satisfy
+the probe corpus caught going silent. **The thirteenth pass then found nothing** -- the only pass here to do so, and the only one to satisfy
 condition 4 as that ruling states it. Its subject was `C4-P2`, the property twenty-one findings had
 converged on and which was **vacuously green** on generated input, both conjuncts iterating an empty
 collection. The generator now emits declared stimulus steps, delivery dispositions, admitted-identity
 sets, an `unseen` refusal and a settled late-traffic latch, and both conjuncts reach a verdict, each
 driven red through its own named conjunct before the green was believed. The ruling requires **two
-consecutive** such passes, so a fourteenth is the next work: it generates frame references with fields
-dropped, which is the shape every operand correction in this programme was about. The closure-review hold remains in force.
+consecutive** such passes, and **the fourteenth was to be the second and was not.** It generated frame
+references with fields dropped, turning eight of the nine retained operand mutations into a rate and
+finding nothing in the package by doing so -- but it raised **AZ1**, a return channel through which a
+property says it could not be evaluated at all and which the generated loop never read, so a population
+whose every `C4-P2` record was unevaluable reported `0 red` and passed; and **AZ2**, a generator
+counting arrival ordinals across the whole vector where the design counts them per interaction
+identity, which had made all four other operands of a frame reference redundant by construction; and
+**AZ4**, a guard whose regex ended in a newline typed into its own source, so that under the repository
+line-ending policy a fresh checkout made it fire on the very review that declared no findings. All
+three are in the verification and none in the design, the count resets, and a fifteenth pass is the next
+work: it asks what each consumer does with each thing its producer hands back, which is the class AZ1
+belongs to. The closure-review hold remains in force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
@@ -1951,7 +1961,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, AV1-AV3, AW1, and AX1-AX3 families; the closure cycle remains on hold while a fourteenth verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, AV1-AV3, AW1, AX1-AX3, and AZ1-AZ2 families; the closure cycle remains on hold while a fifteenth verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |
