@@ -202,11 +202,17 @@ discarded, in this pass as in the three before it.
 profile in which both endpoints initiate is still undecided — a limit the completeness review states
 rather than one this pass changed.
 
-**A cost was moved rather than removed.** The sweep costs eighteen further `C4-P2` evaluations per
-vector it covers, and the guard corpus re-runs this gate once per probe, so it has its own count:
-forty per commit and five hundred on the deep run. Pinning it to the generated count would have
-multiplied what the probe corpus costs rather than what one run costs, which is the AT7 ruling's
-distinction between absorbing a cost and naming it.
+**A cost was moved rather than removed, and it is larger than the sweep.** The sweep costs eighteen
+further `C4-P2` evaluations per vector it covers, and the guard corpus re-runs this gate once per
+probe, so it has its own count: forty per commit, four under the coverage trace, five hundred on the
+deep run. But the sweep is the smaller half. AZ2's correction took the generated population from four
+frames and one observation record per session to eight frames, three identities and two refusals, and
+the coverage measure went from **86 seconds to 618** because it traces all of them. That is attributed
+rather than guessed: with the sweep off it is 555, so the sweep is 63 of the rise, and with the old
+five-pipeline `Resolve-FrameReference` it is 1,040, so the single-pass rewrite saves 422 seconds under
+the trace as well as in wall clock — the opposite of what it was expected to cost. Section 4 carries
+the figures. The gate is behind `-IncludeGateSelfChecks`, which is the AT7 ruling's distinction
+between absorbing a cost and naming it.
 
 The closure review remains on hold. The finding count by condition-4 pass is now three, six, three,
 two, five, one, seven, seven, five, three, one, three, zero, **three**.

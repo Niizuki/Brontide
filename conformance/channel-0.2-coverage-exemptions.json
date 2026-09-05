@@ -99,7 +99,7 @@
       "measureOperands": true,
       "exemptions": [
         {
-          "anchor": "if ($Apply) { $rewrittenXX = $true }",
+          "anchor": "if ($Apply) { $rewritten = $true }",
           "reason": "The `-Apply` rewrite path. The gate runs without it in verification, where it compares each fenced publication against the declaration; with it, it regenerates them. A verifying run correctly never rewrites."
         },
         {

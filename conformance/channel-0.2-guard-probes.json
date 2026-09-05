@@ -734,8 +734,8 @@
       "edits": [
         {
           "path": "docs/future/channel/reviews/README.md",
-          "find": "- [Closure review 10](./channel-0.2-design-foundation-closure-review-10-attestation.md) — reviewed",
-          "replace": "- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) — reviewed"
+          "find": "- [Closure review 10](./channel-0.2-design-foundation-closure-review-10-attestation.md) \u2014 reviewed",
+          "replace": "- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) \u2014 reviewed"
         }
       ]
     },
