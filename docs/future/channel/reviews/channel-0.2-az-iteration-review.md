@@ -150,6 +150,15 @@ convention nobody chose. Corrected by writing the terminator as the escape seque
 matches under both conventions and no longer depends on the gate's own bytes. The rest of the gates
 were searched for the same shape and carry none.
 
+**The same root cause then caught this pass's own new probes**, which is the reason to record it as a
+class rather than as one guard. `AZ1-a` and `AZ2-a` were first written with anchors spanning two lines.
+A probe anchor is matched literally, so a two-line anchor carries a line terminator — and these are the
+only probes in the corpus that anchor into a `.ps1` file, which `.gitattributes` keeps as CRLF while
+every `.md` and `.json` the other twenty-four multi-line anchors target is kept as LF. Both probes went
+stale the moment the file was re-materialized by a `git checkout`, and the corpus reported them as
+such. Re-anchored to single lines, which carry no terminator and so match under either convention. The
+lesson is narrow and worth keeping: **an anchor into a `.ps1` file must not span lines.**
+
 ## Findings
 
 Three, **AZ1**, **AZ2** and **AZ4**, all against the retained verification and none against the

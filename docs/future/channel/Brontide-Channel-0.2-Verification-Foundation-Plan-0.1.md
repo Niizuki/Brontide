@@ -1189,7 +1189,12 @@ thirteenth pass's review as carrying neither a finding nor the declaration. So t
 failing on a fresh checkout since that review landed, and this repository could not see it. That is
 AM4's lesson on a second axis: a verifier that reads text reads through a line-ending convention nobody
 chose. Corrected by writing the terminator as the escape sequence `\r?$`; the other gates were searched
-for the same shape and carry none.
+for the same shape and carry none. The same cause then caught this pass's own probes `AZ1-a` and
+`AZ2-a`, whose anchors spanned two lines and so carried a terminator: they are the only probes in the
+corpus anchoring into a `.ps1`, which `.gitattributes` keeps as CRLF while every `.md` and `.json` the
+other twenty-four multi-line anchors target is kept as LF. Both went stale on the first `git checkout`
+of that file and were re-anchored to single lines. **An anchor into a `.ps1` must not span lines**, and
+that is the durable half of AZ4.
 
 **A correction to the brief section 3 gave this pass.** It expected a dropped field to be able to leave
 a reference "resolving to no step". It cannot: dropping a filter only widens a candidate set and never

@@ -1149,8 +1149,8 @@
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "                    interactionIdentity = $unopenedIdentity\n                    committingEndpoint = 'initiator'",
-          "replace": "                    interactionIdentity = 'an-identity-no-declared-step-carries'\n                    committingEndpoint = 'initiator'"
+          "find": "interactionIdentity = $unopenedIdentity",
+          "replace": "interactionIdentity = 'an-identity-no-declared-step-carries'"
         }
       ]
     },
@@ -1163,8 +1163,8 @@
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "            $ordinalCounters = @{}\n            $stepOrdinals = @{}",
-          "replace": "            if ($null -eq $vectorOrdinalCounters) { $vectorOrdinalCounters = @{} }\n            $ordinalCounters = $vectorOrdinalCounters\n            $stepOrdinals = @{}"
+          "find": "$ordinalCounters = @{}",
+          "replace": "if ($null -eq $vectorOrdinalCounters) { $vectorOrdinalCounters = @{} }; $ordinalCounters = $vectorOrdinalCounters"
         },
         {
           "path": "build/verify-channel-0.2-properties.ps1",
