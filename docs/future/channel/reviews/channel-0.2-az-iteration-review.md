@@ -191,9 +191,13 @@ keeping every one of these mutations in the probe corpus rather than in a transc
 
 ## What remains outside the pass
 
-**The seven inert droppings are inert because the population is one frame shape per session.** They
-are the fields the declared corpus also records as moving no verdict, and nothing here promotes that
-to a claim about the design.
+**The seven inert droppings are inert because the other four fields already pin the reference.** On
+this population a reference that still publishes its session, identity, endpoint and ordinal resolves
+to one step whichever of the remaining seven is dropped, so each of them is redundant *given the rest*
+rather than redundant. Reaching them needs a shape where two steps agree on the four and differ on the
+seventh — a recipient-committed and an initiator-committed frame sharing session, identity and
+ordinal, say — and this pass did not build one. They are the fields the declared corpus also records
+as moving no verdict, and nothing here promotes that to a claim about the design.
 
 **The generator produces conforming vectors only.** The mutation direction is still applied by hand and
 discarded, in this pass as in the three before it.

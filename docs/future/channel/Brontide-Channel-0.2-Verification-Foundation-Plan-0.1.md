@@ -1203,9 +1203,10 @@ That is the argument for keeping these mutations in the probe corpus rather than
 AZ1-a, AZ2-a and AZ3-a through AZ3-c now do.
 
 **What the next pass inherits.** The two consecutive clean passes are owed again from zero. The seven
-inert droppings are inert because the population carries one frame shape per session; the generator
-still produces conforming vectors only, with the mutation direction applied by hand and discarded; and
-nothing in this pass touched that.
+inert droppings are redundant *given the four fields that already pin the reference* rather than
+redundant — reaching them needs two steps agreeing on those four and differing on the seventh, which
+this population does not contain — and the generator still produces conforming vectors only, with the
+mutation direction applied by hand and discarded. Nothing in this pass touched either.
 
 ## 3. How the hold ends
 
