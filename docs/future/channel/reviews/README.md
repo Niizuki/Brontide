@@ -311,8 +311,8 @@ package on its first run, all in the verification and none in the design, so the
 is not met. **BA1** is AZ1 one level lower and worse in kind: three properties evaluate a clause by
 calling another property's evaluator, and each then returned a record built by a constructor that
 makes a **fresh empty** `Errors` collection — so the delegate's "I could not evaluate this record at
-all" was destroyed rather than merely unread, across thirty-four delegated evaluations per declared
-run. **BA2** is the same channel discarded at the operand-mutation harness, which AZ1's own correction
+all" was destroyed rather than merely unread, across up to thirty-four delegated evaluations per
+declared run. **BA2** is the same channel discarded at the operand-mutation harness, which AZ1's own correction
 did not reach because it went to the loop the finding was found in; a mutation that leaves the record
 unevaluable and is declared green was accepted by the gate as it stood. **BA5** and **BA6** are the
 census's own, found before it was believed, and **BA6** is the sharpest thing in the pass: **BA1's

@@ -194,17 +194,20 @@ foreach ($censusGate in $censusGates) {
         }
     }
 
-    $exemptProducers = @{}
+    # A set rather than a map. The first draft of this file stored `$false` against each exempt name
+    # and then `$true`, and read neither -- only `Contains`. A stored value with no consumer, in the
+    # file whose whole subject is stored values with no consumer, found by reading this file against
+    # its own question rather than by running it.
+    $exemptProducers = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     foreach ($producerExemption in @($censusGate.producerExemptions)) {
-        $exemptProducers[[string]$producerExemption.producer] = $false
+        [void]$exemptProducers.Add([string]$producerExemption.producer)
     }
-    foreach ($exemptName in @($exemptProducers.Keys)) {
+    foreach ($exemptName in $exemptProducers) {
         if (-not $members.ContainsKey($exemptName)) {
             $failures.Add("'$gateName' declares a producer exemption for '$exemptName', which this file does not census as a producer. The exemption has stopped applying and must be re-anchored or deleted with the code it was written for.")
         }
-        else { $exemptProducers[$exemptName] = $true }
     }
-    $producerTotal += @($members.Keys | Where-Object { -not $exemptProducers.ContainsKey($_) }).Count
+    $producerTotal += @($members.Keys | Where-Object { -not $exemptProducers.Contains($_) }).Count
 
     # `& $variable` reaches whatever a dispatch table holds, and the table is built from
     # `${function:...}` references. The consumer is censused against the union of those, because the
@@ -220,11 +223,11 @@ foreach ($censusGate in $censusGates) {
         $rightText = $assignment.Right.Extent.Text
         # The dispatch table itself is not a consumer of what it holds.
         if ($rightText -match '^\s*(\[pscustomobject\]\s*)?@\{') { continue }
-        $named = @($members.Keys | Where-Object { (Test-NamesIdentifier -Text $rightText -Identifier $_) -and -not $exemptProducers.ContainsKey($_) })
+        $named = @($members.Keys | Where-Object { (Test-NamesIdentifier -Text $rightText -Identifier $_) -and -not $exemptProducers.Contains($_) })
         $targets = $named
         if ($named.Count -lt 1) {
             if ($rightText -notmatch '&\s*\$\w+') { continue }
-            $targets = @($dispatchable | Where-Object { $members.ContainsKey($_) -and -not $exemptProducers.ContainsKey($_) })
+            $targets = @($dispatchable | Where-Object { $members.ContainsKey($_) -and -not $exemptProducers.Contains($_) })
         }
         if ($targets.Count -lt 1) { continue }
         # Whether this consumer is itself inside a producer, which is what bounds unit 2 below.

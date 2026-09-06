@@ -69,8 +69,11 @@ input, and the gate run twice:
 - **after it, eight** — the same four, plus four of `C4-P1`'s six, which are the inputs on which
   `C4-P1` reaches its delegate at all.
 
-The declared corpus runs thirty-four such delegated evaluations and the generated population adds six
-hundred more. Every one of them discarded whatever its delegate reported through that channel.
+The declared corpus runs **up to** thirty-four such delegated evaluations and the generated population
+up to six hundred more. Both are upper bounds rather than counts: a composed evaluator returns before
+reaching its second delegate when the first clause fires, which is why the injection reached four of
+`C4-P1`'s six inputs and not six. Every delegation that did happen discarded whatever its delegate
+reported through that channel.
 
 Nothing fills `Errors` today except `Invoke-C4P2`, and `C4-P2` is delegated to by nothing, so no
 information was actually lost at the pin. That is what makes this a latent defect rather than a live
@@ -258,7 +261,8 @@ pass that wrote the code.
 plan's section 4 records what a contended measurement was worth the last time one was believed.
 
 The closure review remains on hold. The finding count by condition-4 pass is now three, six, three,
-two, five, one, seven, seven, five, three, one, three, zero, three, **four**.
+two, five, one, seven, seven, five, three, one, three, zero, three, **six** — four of this pass's six
+in the package and two in the instrument it built.
 
 ## Where this family is dispositioned
 

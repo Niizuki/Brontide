@@ -1242,8 +1242,10 @@ channel can be made to, and a producer that rebuilds it empty has already thrown
 Demonstrated rather than argued: `I1` was made to report an evaluation error on every input, and the
 gate reported it **four** times before the correction — `I1`'s own four declared inputs, and nothing
 from `C4-P1` — and **eight** after, the four plus the four of `C4-P1`'s six on which it reaches its
-delegate at all. The declared corpus runs thirty-four delegated evaluations and the generated
-population six hundred more.
+delegate at all. The declared corpus runs **up to** thirty-four delegated evaluations and the
+generated population up to six hundred more -- upper bounds rather than counts, because a composed
+evaluator returns before reaching its second delegate when the first clause fires, which is why the
+injection reached four of `C4-P1`'s six inputs and not six.
 
 Nothing but `Invoke-C4P2` fills `Errors` today and nothing delegates to `C4-P2`, so no information was
 actually lost at the pin. That is what makes it latent rather than live, and it is the state AZ1 was
@@ -1377,7 +1379,10 @@ and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
 fifteen times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one,
-three, zero, three and **four** defects. Sections 2d through 2r record them.
+three, zero, three and **six** defects. Sections 2d through 2r record them. This tally counts what a
+reader counts -- the numbered findings in each pass's retained review. Where the 2026-09-04 ruling's
+two populations differ from that total, the pass's own section states the split: of the fifteenth's
+six, four are in the package and two are in the instrument that pass built.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -1390,8 +1395,8 @@ distinction — a package finding is what the instruments report "about the desi
 verification**".
 
 **The fifteenth was to be the first of the two owed from zero and is not either.** Its frozen set
-reported nothing — 85 of 85 probes, the coverage measure, both design gates, and 52,000 evaluations
-over 2,000 generated vectors at 0 red with AZ3's sweep green — which is the ninth consecutive clean
+reported nothing — the whole probe corpus as it then stood, the coverage measure, both design gates,
+and 52,000 evaluations over 2,000 generated vectors at 0 red with AZ3's sweep green — which is the ninth consecutive clean
 frozen set and a strictly larger one again. The instrument it built found **BA1**, **BA2**, **BA3** and
 **BA4** in the package on its first run. Nine of these fifteen passes have now had a clean frozen set
 and a new instrument that found something, which is the pattern the ruling predicted and priced: what
@@ -1527,7 +1532,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   document used to assert, or a guard replacing a hand-written list, and whether that stays worth it is
   the question this measure exists to keep visible. Three further gates sit beside it in the
   repository gate — `verify-channel-0.2-properties.ps1`, `verify-channel-0.2-facts.ps1` and, since
-  **BA**, `verify-channel-0.2-return-channels.ps1` at **394** lines — so the total verification code in
+  **BA**, `verify-channel-0.2-return-channels.ps1` — so the total verification code in
   the repository has grown throughout; what this measure is for is whether the DESIGN verifier is
   still absorbing the cost of a structural problem. It did not move for BA: that pass added a gate and
   changed one line here, the review-file roster.

@@ -380,7 +380,7 @@ asked that question mechanically and it was answered four times.** Its frozen se
 ninth consecutive -- and the census it built raised **BA1**, a composed evaluator that delegates a
 clause to another property's evaluator and then returns a record whose `Errors` collection is built
 fresh and empty, so the delegate's "I could not evaluate this record" was **destroyed** rather than
-merely unread, across thirty-four delegated evaluations per declared run; **BA2**, the same channel
+merely unread, across up to thirty-four delegated evaluations per declared run; **BA2**, the same channel
 discarded at both dispatches of the operand-mutation harness, where a mutation that leaves the record
 unevaluable and is declared green was accepted by the gate as it stood; **BA3**, the per-evaluation
 accumulator cleared and drained at two of five dispatches; and **BA4**, the generated loop never
