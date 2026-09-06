@@ -530,8 +530,10 @@ function Read-Required {
 # not drain a channel can be made to drain it; a producer that rebuilds the channel empty has thrown
 # the contents away first. It was demonstrated rather than argued: made to report an evaluation error
 # on every input, `I1` surfaced it on all four of its own declared inputs and on **none** of `C4-P1`'s
-# six, across the thirty-four delegated evaluations the declared corpus runs and the six hundred the
-# generated population adds.
+# six. The declared corpus runs up to thirty-four delegated evaluations and the generated population up
+# to six hundred more -- upper bounds rather than counts, because a composed evaluator returns before
+# reaching its second delegate when the first clause fires, which is why the injection reached four of
+# those six and not six.
 $script:ObligationsReached = [System.Collections.Generic.HashSet[int]]::new()
 function New-Red {
     param([string]$Witness, [string]$Conjunct, [AllowEmptyCollection()][string[]]$Inherited = @())
