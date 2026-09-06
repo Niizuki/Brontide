@@ -21,7 +21,9 @@ requires before the closure cycle resumes.
 **It is not clean.** Its frozen set reported nothing. The instrument it built found **BA1**, **BA2**,
 **BA3** and **BA4** in the package on its first run, all in the retained verification and none in the
 design, so the ruling's second test is not met and the two-consecutive count stays at zero. It raises
-**BA5** and **BA6** against the instrument itself, found before the instrument was believed.
+**BA5** and **BA6** against the instrument itself, found before the instrument was believed, and
+**BA7** against a frozen instrument — the coverage measure — found by reading, in the way AZ1 and AZ4
+were.
 
 The method was not chosen by this pass. The fourteenth's own finding set it: AZ1 was a whole return
 channel with a consumer that ignored it, and the question that finds that class — *what does each
@@ -30,10 +32,14 @@ never been asked of these files.
 
 ## Section numbering
 
-**BA1**-**BA4** are the package findings. **BA5** and **BA6** are defects in the census this pass
-built, found and corrected before its result was believed; under the 2026-09-04 ruling they belong to
-neither counted population, and they are numbered rather than left in prose because the corrections
+**BA1**-**BA4** and **BA7** are the package findings — the first four reported by the instrument this
+pass built, the last found by reading a frozen one. **BA5** and **BA6** are defects in the census this
+pass built, found and corrected before its result was believed; under the 2026-09-04 ruling they belong
+to neither counted population, and they are numbered rather than left in prose because the corrections
 cite them.
+
+The tally in the plan counts all seven, because that is what a reader counts. Where the ruling's
+populations differ from the total, the split is stated rather than the total adjusted.
 
 ## The frozen set, run first
 
@@ -176,6 +182,42 @@ happened to write is a measure of that syntax.
 assigned to the variable it returns. The depth is a stated limit and not a claim: a producer reaching
 its record through two variables is not censused.
 
+### BA7 — the coverage measure cannot see a loop body that sits on its header line
+
+Found while declaring the exemptions BA2 and BA4's new reporting paths need, by asking why the twin of
+one of them needed no exemption at all.
+
+`build/verify-channel-0.2-coverage.ps1` decides whether a `foreach` body ran by asking whether the
+body's **first line** ran. Where the body sits on the header line those are one line, the header always
+runs, and the loop reports as covered whether or not its body was ever entered.
+
+The two drains of `Errors` in the properties gate are the demonstration, and they were sitting side by
+side:
+
+- `foreach ($evaluationError in $result.Errors) { $failures.Add($evaluationError) }` — the declared
+  loop's, on one line, empty on every passing run, **silently green** and in no exemption list;
+- the one BA2 added at the operand harness, on three lines, empty for exactly the same reason,
+  correctly reported and required to be declared.
+
+Same semantics, opposite verdicts, decided by where a brace sits. Every "0 uncovered constructs" this
+measure has reported was a floor against the loops whose bodies it could see.
+
+**Corrected in the unit rather than in the instance.** A `foreach` whose body starts on its header line
+is now reported as **unmeasurable**, with its own message saying so — it is not known to be uncovered,
+and declaring it exempt would be the wrong answer, because an exemption asserts a construct is
+correctly unreachable and that is the fact nobody can establish. The fix is to put the body on its own
+line, which is what makes the question answerable. Sixteen such loops existed across the five gates;
+four are the `foreach ($failure in $failures)` reporting loops the measure already exempts
+structurally, and the other twelve are now split.
+
+**Splitting them immediately exposed three loop bodies that never run**, which the measure had been
+passing for as long as they had been written that way: the declared loop's `Errors` drain above, and
+the two `foreach ($inheritedError in $Inherited)` loops BA1 itself added. All three are correctly
+unreachable by a passing run and are now declared with their reasons. The last two are worth reading
+twice: they are BA1's correction, and their emptiness is the measured statement that **no evaluator
+but `C4-P2` reports an unevaluable record** — which is the sixteenth pass's brief, arrived at from the
+other end.
+
 ## The instrument, and what it reports
 
 `build/verify-channel-0.2-return-channels.ps1`, declared by
@@ -206,11 +248,14 @@ sixteenth pass.
 
 ## Findings
 
-Four against the package — **BA1**, **BA2**, **BA3** and **BA4** — all in the retained verification and
-none in the design. Two against this pass's own instrument, **BA5** and **BA6**. All six are corrected
-in this pass.
+Five against the package — **BA1**, **BA2**, **BA3**, **BA4** and **BA7** — all in the retained
+verification and none in the design. Two against this pass's own instrument, **BA5** and **BA6**. All
+seven are corrected in this pass.
 
-The frozen set found **nothing**, for the ninth consecutive pass.
+The frozen set found **nothing**, for the ninth consecutive pass — and **BA7** is what that sentence is
+worth. The coverage measure was in that set, it was green, and it could not see a loop body written on
+its header line. Its greens were a floor against the loops it could read, which is AZ1's lesson about
+the generated run arriving at a second instrument.
 
 ## What this pass verified rather than believed
 
@@ -225,8 +270,9 @@ The frozen set found **nothing**, for the ninth consecutive pass.
   declared against the other conjunct; a red mutation declaring no conjunct; an obligation reading a
   field the mutated vector does not publish, which fires at both operand dispatches; and a generated
   red, whose message now names its conjunct.
-- **Eleven probes were added and each returns the verdict its guard owes**, including one `pass` probe
-  that exercises the member-exemption path no clean run reaches.
+- **Twelve probes were added and each returns the verdict its guard owes**, including one `pass` probe
+  that exercises the member-exemption path no clean run reaches, and one that puts a loop body back on
+  its header line and requires the coverage measure to call it unmeasurable.
 - **BA6 was found by re-running the census after the correction rather than by trusting it.** The pass
   that did not re-run it would have reported a clean census over a package the census had stopped
   reading.
@@ -261,8 +307,8 @@ pass that wrote the code.
 plan's section 4 records what a contended measurement was worth the last time one was believed.
 
 The closure review remains on hold. The finding count by condition-4 pass is now three, six, three,
-two, five, one, seven, seven, five, three, one, three, zero, three, **six** — four of this pass's six
-in the package and two in the instrument it built.
+two, five, one, seven, seven, five, three, one, three, zero, three, **seven** — five of this pass's
+seven in the package and two in the instrument it built.
 
 ## Where this family is dispositioned
 

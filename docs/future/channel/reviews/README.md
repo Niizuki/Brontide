@@ -295,7 +295,7 @@ nothing it can fix. They are retained as the
 [twelfth](./channel-0.2-ax-iteration-review.md) (**AX1**-**AX3**),
 [thirteenth](./channel-0.2-ay-iteration-review.md) (no finding),
 [fourteenth](./channel-0.2-az-iteration-review.md) (**AZ1**-**AZ2**) and
-[fifteenth](./channel-0.2-ba-iteration-review.md) (**BA1**-**BA6**) W1-W3 verification-foundation
+[fifteenth](./channel-0.2-ba-iteration-review.md) (**BA1**-**BA7**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
 **A sixteenth pass over the same scope is the live path, and it is the first of two consecutive clean
@@ -1151,7 +1151,7 @@ context elsewhere — never as evidence that their conclusions are right.
   LF-only markdown line, so the check that requires a no-finding pass to say so **fired on the review
   that said it**. It was invisible here only because these gate files are still LF on this disk.
 - [Fifteenth W1-W3 verification-foundation iteration review](./channel-0.2-ba-iteration-review.md) —
-  the same scope at `32861c6`; raised **BA1**-**BA6** and corrected all six, so it is **not** the first
+  the same scope at `32861c6`; raised **BA1**-**BA7** and corrected all seven, so it is **not** the first
   of the two consecutive clean passes and the count stays at zero. Its frozen set reported nothing.
   Its instrument is a census of what every consumer in these gates does with what its producer hands
   back, and **BA1**-**BA4** are what it found in the package: a composed evaluator that destroys its
@@ -1160,7 +1160,10 @@ context elsewhere — never as evidence that their conclusions are right.
   loop never reading the conjunct. **BA5** and **BA6** are the census's own, corrected before its
   result was believed; **BA6** is BA1's correction changing a constructor's form and blinding the
   census to BA1's own subject inside one commit, which is AP1's class over the shortest interval it
-  can have.
+  can have. **BA7** is against a frozen instrument and found by reading it: the coverage measure
+  decides whether a `foreach` body ran by asking whether the body's first line ran, so a body written
+  on the header line reports as covered either way — and the declared loop's `Errors` drain, empty on
+  every passing run, had been silently green beside the identical one BA2 was required to declare.
 
 ## Disclosed process deviation in the T1-T4 correction
 

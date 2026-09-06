@@ -387,7 +387,10 @@ accumulator cleared and drained at two of five dispatches; and **BA4**, the gene
 reading the conjunct. **BA5** and **BA6** are the census's own, found before it was believed, and BA6
 is the one to weigh: BA1's correction changed a constructor's syntactic form and the census went
 **blind to BA1's own subject**, reporting a clean package it had stopped reading. All six are in the
-verification and none in the design; the two consecutive clean passes stay owed from zero, and a
+verification and none in the design. **BA7** is the seventh and is against a frozen instrument: the
+coverage measure decides whether a `foreach` body ran by asking whether the body's first line ran, so a
+body on the header line reports as covered either way, and splitting the sixteen such loops exposed
+three never-run bodies it had been passing. The two consecutive clean passes stay owed from zero, and a
 sixteenth pass is the next work -- it asks whether an evaluator ever **fills** that channel, since one
 of the twenty-six does and for the rest "unevaluable" and "conforms" are the same verdict. The
 closure-review hold remains in force.

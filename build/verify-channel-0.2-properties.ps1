@@ -537,13 +537,17 @@ function New-Red {
     param([string]$Witness, [string]$Conjunct, [AllowEmptyCollection()][string[]]$Inherited = @())
     [void]$script:ObligationsReached.Add((Get-PSCallStack)[1].ScriptLineNumber)
     $record = [pscustomobject]@{ Verdict = 'red'; Conjunct = $Conjunct; Witness = $Witness; Errors = [System.Collections.Generic.List[string]]::new() }
-    foreach ($inheritedError in $Inherited) { [void]$record.Errors.Add($inheritedError) }
+    foreach ($inheritedError in $Inherited) {
+        [void]$record.Errors.Add($inheritedError)
+    }
     return $record
 }
 function New-Green {
     param([AllowEmptyCollection()][string[]]$Inherited = @())
     $record = [pscustomobject]@{ Verdict = 'green'; Conjunct = $null; Witness = $null; Errors = [System.Collections.Generic.List[string]]::new() }
-    foreach ($inheritedError in $Inherited) { [void]$record.Errors.Add($inheritedError) }
+    foreach ($inheritedError in $Inherited) {
+        [void]$record.Errors.Add($inheritedError)
+    }
     return $record
 }
 
@@ -702,7 +706,9 @@ function Invoke-I5 {
     # Concurrency is counted per session against THAT session bound, which is AK7. Counted across the
     # vector, two sessions each holding one nonterminal interaction breach a bound neither did.
     $bounds = @{}
-    foreach ($session in @($Vector.sessions)) { $bounds[[string]$session.id] = [int]$session.establishedBound }
+    foreach ($session in @($Vector.sessions)) {
+        $bounds[[string]$session.id] = [int]$session.establishedBound
+    }
     $live = @{}
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
         $sessionId = [string]$sessionEvent.session
@@ -1172,7 +1178,9 @@ foreach ($transitionRow in [regex]::Matches($transitionSection, '(?m)^\| ([^|]+)
         $failures.Add("The session state machine's legal transition table has a From cell this check cannot read: '$fromCell'. A row it cannot read is a row it drops, and dropping the two ``any nonterminal`` rows is what made S1 and C2-P1 red on a conforming session fault -- AO1. Either the cell names a state, or it names a class this parser is taught.")
         continue
     }
-    foreach ($fromState in $fromStates) { $artifactEdgeList.Add("$fromState>$toState") }
+    foreach ($fromState in $fromStates) {
+        $artifactEdgeList.Add("$fromState>$toState")
+    }
 }
 $artifactEdges = @($artifactEdgeList | Sort-Object -Unique)
 if ($declaredSessionStates.Count -eq 0) {
@@ -1295,9 +1303,15 @@ foreach ($property in $properties.properties) {
     $evaluator = $evaluators[$propertyId]
 
     $expectations = @{}
-    foreach ($member in $property.requiredGreen) { $expectations[[string]$member.vector] = @{ Verdict = 'green'; Conjunct = $null; Role = 'required-green' } }
-    foreach ($member in $property.additionalGreen) { $expectations[[string]$member.vector] = @{ Verdict = 'green'; Conjunct = $null; Role = 'additional-green' } }
-    foreach ($mutation in $property.namedMutations) { $expectations[[string]$mutation.vector] = @{ Verdict = [string]$mutation.expected; Conjunct = [string]$mutation.conjunct; Role = 'named-mutation' } }
+    foreach ($member in $property.requiredGreen) {
+        $expectations[[string]$member.vector] = @{ Verdict = 'green'; Conjunct = $null; Role = 'required-green' }
+    }
+    foreach ($member in $property.additionalGreen) {
+        $expectations[[string]$member.vector] = @{ Verdict = 'green'; Conjunct = $null; Role = 'additional-green' }
+    }
+    foreach ($mutation in $property.namedMutations) {
+        $expectations[[string]$mutation.vector] = @{ Verdict = [string]$mutation.expected; Conjunct = [string]$mutation.conjunct; Role = 'named-mutation' }
+    }
 
     # No input is evaluated that the property does not claim, and no input the property claims is
     # missing. A vector file and a property file are two statements about which inputs matter, and the
@@ -1330,7 +1344,9 @@ foreach ($property in $properties.properties) {
             $conditionTwoEvaluations++
             [void]$conditionTwoVectors.Add($vectorId)
         }
-        foreach ($evaluationError in $result.Errors) { $failures.Add($evaluationError) }
+        foreach ($evaluationError in $result.Errors) {
+            $failures.Add($evaluationError)
+        }
 
         if ($result.Verdict -eq 'red') { $redCount++ } else { $greenCount++ }
 
@@ -1611,7 +1627,9 @@ if ($GeneratedCount -gt 0) {
         @{ Drop = 'late-traffic-latches.terminalFrame.committingEndpoint'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' },
         @{ Drop = 'late-traffic-latches.terminalFrame.arrivalOrdinal'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' })
     $dropTally = @{}
-    foreach ($referenceDrop in $referenceDrops) { $dropTally[[string]$referenceDrop.Drop] = @{ Discriminating = 0; Inert = 0 } }
+    foreach ($referenceDrop in $referenceDrops) {
+        $dropTally[[string]$referenceDrop.Drop] = @{ Discriminating = 0; Inert = 0 }
+    }
 
     function New-ConformingVector {
         param([Parameter(Mandatory = $true)][string]$Id, [Parameter(Mandatory = $true)][System.Random]$Random)

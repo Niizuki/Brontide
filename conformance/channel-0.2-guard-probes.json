@@ -1382,6 +1382,20 @@
           "replace": "\"memberExemptions\": [ { \"consumer\": \"& $evaluator -VectorId $vectorId -Vector $mutated -Steps $mutatedSteps\", \"member\": \"Errors\", \"reason\": \"BA-census-e probe: the negative control for the exemption path, which no clean run reaches.\" } ],"
         }
       ]
+    },
+    {
+      "id": "BA7-a",
+      "claim": "a foreach whose body sits on its header line, which no line trace can decide",
+      "gate": "verify-channel-0.2-coverage.ps1",
+      "expect": "fail",
+      "guardMessage": "has its body on the header line, so whether the body ever ran cannot be decided by a line trace",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-facts.ps1",
+          "find": "    $expectedBy = @{}",
+          "replace": "    $expectedBy = @{}; foreach ($unmeasurableByProbe in @(1)) { $null = $unmeasurableByProbe }"
+        }
+      ]
     }
   ]
 }

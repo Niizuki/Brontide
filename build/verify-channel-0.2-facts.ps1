@@ -158,7 +158,11 @@ $artifactFiles = @(Get-ChildItem -LiteralPath $channelPath -Filter '*.md' -File)
 $publicationCounts = @{}
 $perArtifactCounts = @{}
 $publishingArtifacts = @{}
-foreach ($factId in $declared.Keys) { $publicationCounts[$factId] = 0; $perArtifactCounts[$factId] = @{}; $publishingArtifacts[$factId] = [System.Collections.Generic.List[string]]::new() }
+foreach ($factId in $declared.Keys) {
+    $publicationCounts[$factId] = 0
+    $perArtifactCounts[$factId] = @{}
+    $publishingArtifacts[$factId] = [System.Collections.Generic.List[string]]::new()
+}
 
 foreach ($artifactFile in $artifactFiles) {
     # `-Raw` returns $null for an empty file rather than an empty string, and every check below takes
@@ -251,7 +255,9 @@ foreach ($fact in $facts.facts) {
         $failures.Add("No artifact publishes '$factId'. A declared fact that nothing renders is a fact this file owns and no reader ever sees.")
     }
     $expectedBy = @{}
-    foreach ($declaredArtifact in $fact.publishedBy.PSObject.Properties) { $expectedBy[$declaredArtifact.Name] = [int]$declaredArtifact.Value }
+    foreach ($declaredArtifact in $fact.publishedBy.PSObject.Properties) {
+        $expectedBy[$declaredArtifact.Name] = [int]$declaredArtifact.Value
+    }
     foreach ($expectedArtifact in ($expectedBy.Keys | Sort-Object)) {
         $actual = 0
         if ($perArtifactCounts.ContainsKey($factId) -and $perArtifactCounts[$factId].ContainsKey($expectedArtifact)) { $actual = $perArtifactCounts[$factId][$expectedArtifact] }

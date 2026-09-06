@@ -1222,9 +1222,10 @@ from zero.
 
 **It is not clean. Its frozen set reported nothing, and the instrument it built raised BA1, BA2, BA3
 and BA4 in the package on its first run — all against the retained verification, none against the
-design — so the two-consecutive count stays at zero.** It also raised **BA5** and **BA6** against the
-instrument itself, before that instrument was believed; under this section's own ruling those belong
-to neither counted population, and they are numbered because the corrections cite them.
+design — so the two-consecutive count stays at zero.** It also raised **BA7** against a frozen
+instrument by reading it, in the way AZ1 and AZ4 were found, and **BA5** and **BA6** against the
+instrument it built, before that instrument was believed; under this section's own ruling the last two
+belong to neither counted population, and all three are numbered because the corrections cite them.
 
 The method was the fourteenth pass's own finding pointing forward. AZ1 was a whole return channel with
 a consumer that ignored it, and the question that finds that class — **what does each consumer do with
@@ -1280,6 +1281,23 @@ still dropped after AZ1. It declares no expected conjunct there, so this is diag
 check, and it is the difference between a counterexample a reader can act on and one they have to
 reproduce by re-running the seed.
 
+**BA7. The coverage measure cannot see a loop body that sits on its header line.** Found by reading a
+frozen instrument rather than by the new one, while declaring the exemptions BA2's own reporting paths
+need -- by asking why the twin of one of them needed no exemption at all. That measure decides whether a
+`foreach` body ran by asking whether the body's **first line** ran, and where the body is on the header
+line those are one line and the header always runs. The two drains of `Errors` in the properties gate
+sat side by side: the declared loop's on one line, empty on every passing run, **silently green and in
+no exemption list**; the one BA2 added at the operand harness on three lines, empty for the same
+reason, correctly reported and required to be declared.
+
+Corrected in the unit. Such a loop is now reported as **unmeasurable** rather than assumed covered,
+with its own message, because it is not known to be uncovered and an exemption would assert exactly the
+fact nobody can establish. Sixteen existed across the five gates; four are the failure-reporting loops
+the measure already exempts structurally and the other twelve are split. **Splitting them exposed three
+never-run bodies the measure had been passing** -- the declared loop's drain, and the two
+`foreach ($inheritedError in $Inherited)` loops BA1 itself added, whose emptiness is the measured
+statement that no evaluator but `C4-P2` reports an unevaluable record.
+
 **BA5 and BA6, the instrument's own.** The first run of the census reported **two of seven** producers
 while reading as a total, because a function returning a single-element list unrolls it in PowerShell
 and the caller's count guard skipped the scalar. And then **BA1's own correction blinded it**: the
@@ -1298,8 +1316,8 @@ units: every member a producer can return must be read from the consumer's varia
 own scope, and every `$script:` collection anything adds to must be declared `per-evaluation` — cleared
 before each top-level dispatch and drained after — or `cumulative`, read once and never cleared. It
 reports **31 producers and 14 consumers** across the five gates, with one declared producer exemption
-and no member exemptions; against the package as this pass found it, twenty-one findings. Eleven probes
-were added, taking the corpus from 85 to 96, one of them a `pass` probe over the member-exemption path
+and no member exemptions; against the package as this pass found it, twenty-one findings. Twelve probes
+were added, taking the corpus from 85 to 97, one of them a `pass` probe over the member-exemption path
 no clean run reaches.
 
 **What the next pass inherits.** The census is a floor and states three limits at the point they
@@ -1379,10 +1397,10 @@ and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
 fifteen times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one,
-three, zero, three and **six** defects. Sections 2d through 2r record them. This tally counts what a
+three, zero, three and **seven** defects. Sections 2d through 2r record them. This tally counts what a
 reader counts -- the numbered findings in each pass's retained review. Where the 2026-09-04 ruling's
 two populations differ from that total, the pass's own section states the split: of the fifteenth's
-six, four are in the package and two are in the instrument that pass built.
+seven, five are in the package and two are in the instrument that pass built.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -1398,7 +1416,9 @@ verification**".
 reported nothing — the whole probe corpus as it then stood, the coverage measure, both design gates,
 and 52,000 evaluations over 2,000 generated vectors at 0 red with AZ3's sweep green — which is the ninth consecutive clean
 frozen set and a strictly larger one again. The instrument it built found **BA1**, **BA2**, **BA3** and
-**BA4** in the package on its first run. Nine of these fifteen passes have now had a clean frozen set
+**BA4** in the package on its first run, and **BA7** says what that clean frozen set was worth: the
+coverage measure was in it, it was green, and it could not see a `foreach` body written on its header
+line. Nine of these fifteen passes have now had a clean frozen set
 and a new instrument that found something, which is the pattern the ruling predicted and priced: what
 is being measured is what the programme could not previously detect, and it has not run out.
 
@@ -1509,7 +1529,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   comparison claimed the rewrite saved 422 seconds here; that was measured with other work running on
   the same machine and it was wrong. All measured in verifying mode on one machine with nothing else
   running, so the figures are comparable with each other and not with CI; and
-- **guard probes executable** — currently **96 of 96**, run by
+- **guard probes executable** — currently **97 of 97**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did

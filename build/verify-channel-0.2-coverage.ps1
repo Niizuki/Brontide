@@ -409,10 +409,27 @@ foreach ($coveredGate in $coveredGates) {
     foreach ($node in $ast.FindAll({ param($candidate) $candidate -is [System.Management.Automation.Language.ForEachStatementAst] }, $true)) {
         $bodyStatements = @($node.Body.Statements)
         if ($bodyStatements.Count -lt 1) { continue }
-        if ($run.Executed.Contains($bodyStatements[0].Extent.StartLineNumber)) { continue }
         if (Test-InsideCatch -Node $node) { continue }
         if (Test-FailureReportingLoop -Node $node) { continue }
         $line = $node.Extent.StartLineNumber
+        # BA7. This unit asks whether the BODY ran by asking whether the body's first line ran, and a
+        # `foreach` whose body sits on the header line makes those two questions the same question.
+        # The header always runs, so such a loop reports as covered whether or not its body ever
+        # executed -- and a line trace cannot tell them apart, because there is only one line.
+        #
+        # It is not hypothetical. `foreach ($evaluationError in $result.Errors) { ... }` in the
+        # properties gate is empty on every passing run, exactly like the multi-line drain BA2 added
+        # beside it; the multi-line one was reported and had to be declared, and the single-line one
+        # was silently green. Same semantics, opposite verdicts, decided by where a brace sits.
+        #
+        # So the unmeasurable case is reported as unmeasurable rather than assumed covered. Splitting
+        # the body onto its own line is the fix, and it is a fix rather than a formality: it is what
+        # makes the question answerable at all.
+        if ($bodyStatements[0].Extent.StartLineNumber -eq $line) {
+            [void]$neverEvaluated.Add(@{ Kind = 'foreach-unmeasurable'; Line = $line; Text = $gateLines[$line - 1].Trim() })
+            continue
+        }
+        if ($run.Executed.Contains($bodyStatements[0].Extent.StartLineNumber)) { continue }
         [void]$neverEvaluated.Add(@{ Kind = 'foreach'; Line = $line; Text = $gateLines[$line - 1].Trim() })
     }
 
@@ -427,6 +444,14 @@ foreach ($coveredGate in $coveredGates) {
         }
         [void]$reportRows.Add([pscustomobject]@{ Gate = $gateName; Kind = $construct.Kind; Line = $construct.Line; Text = $construct.Text })
         if (-not $Report) {
+            # BA7's report says something different from the one below it, and must: this construct is
+            # not known to be uncovered, it is one whose coverage cannot be decided. Declaring it
+            # exempt would be the wrong answer -- an exemption claims a construct is correctly
+            # unreachable, and nobody knows whether this one is.
+            if ($construct.Kind -ceq 'foreach-unmeasurable') {
+                $failures.Add("'$gateName' line $($construct.Line): this foreach has its body on the header line, so whether the body ever ran cannot be decided by a line trace -- the header runs either way. It is not known to be uncovered; it is unmeasurable, and a construct this measure cannot decide must not read as one it has passed. Put the body on its own line. Do NOT declare it exempt: an exemption asserts the construct is correctly unreachable, which is exactly the fact in question. The construct is: $($construct.Text)")
+                continue
+            }
             $failures.Add("'$gateName' line $($construct.Line): this $($construct.Kind) is never evaluated by a passing run, so the check it guards did not run. Either an input that reaches it is missing, or its key stopped selecting anything when the work moved -- which is AP1's class and five of the six AQ findings. If it is correctly unreachable, declare it in conformance/channel-0.2-coverage-exemptions.json with the reason. The construct is: $($construct.Text)")
         }
     }

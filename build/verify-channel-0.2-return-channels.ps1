@@ -127,7 +127,9 @@ function Get-ReturnedText {
     param([Parameter(Mandatory = $true)]$FunctionAst)
 
     $texts = [System.Collections.Generic.List[string]]::new()
-    foreach ($expression in (Get-HandedBack -FunctionAst $FunctionAst)) { $texts.Add($expression.Extent.Text) }
+    foreach ($expression in (Get-HandedBack -FunctionAst $FunctionAst)) {
+        $texts.Add($expression.Extent.Text)
+    }
     return , $texts
 }
 
@@ -167,7 +169,11 @@ foreach ($censusGate in $censusGates) {
         $shapes = Get-RecordShape -FunctionAst $function
         if ($shapes.Count -lt 1) { continue }
         $union = [System.Collections.Generic.HashSet[string]]::new()
-        foreach ($shape in $shapes) { foreach ($member in $shape) { [void]$union.Add([string]$member) } }
+        foreach ($shape in $shapes) {
+            foreach ($member in $shape) {
+                [void]$union.Add([string]$member)
+            }
+        }
         $members[$function.Name] = $union
     }
 
@@ -266,7 +272,11 @@ foreach ($censusGate in $censusGates) {
         }
 
         $offered = [System.Collections.Generic.HashSet[string]]::new()
-        foreach ($target in $consumer.Targets) { foreach ($member in $members[$target]) { [void]$offered.Add($member) } }
+        foreach ($target in $consumer.Targets) {
+            foreach ($member in $members[$target]) {
+                [void]$offered.Add($member)
+            }
+        }
 
         foreach ($member in ($offered | Sort-Object)) {
             if ($readMembers.Contains($member)) { continue }
