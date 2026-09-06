@@ -734,8 +734,8 @@
       "edits": [
         {
           "path": "docs/future/channel/reviews/README.md",
-          "find": "- [Closure review 10](./channel-0.2-design-foundation-closure-review-10-attestation.md) \u2014 reviewed",
-          "replace": "- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) \u2014 reviewed"
+          "find": "- [Closure review 10](./channel-0.2-design-foundation-closure-review-10-attestation.md) — reviewed",
+          "replace": "- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) — reviewed"
         }
       ]
     },
@@ -1212,6 +1212,174 @@
           "path": "build/verify-channel-0.2-properties.ps1",
           "find": "$unopenedIdentity = if ($sessionOrdinal -eq 1) { 'u1' } else { \"g$($sessionOrdinal - 1)\" }",
           "replace": "$unopenedIdentity = 'u1'"
+        }
+      ]
+    },
+    {
+      "id": "BA1-a",
+      "claim": "a composed evaluator stops carrying its delegate's Errors on either path",
+      "gate": "verify-channel-0.2-return-channels.ps1",
+      "expect": "fail",
+      "guardMessage": "is handed a 'Errors' by its producer and nothing reads it",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": " -Inherited $dispatchResult.Errors",
+          "replace": ""
+        },
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "    return New-Green -Inherited (@($dispatchResult.Errors) + @($boundResult.Errors))",
+          "replace": "    return New-Green -Inherited (@($boundResult.Errors))"
+        }
+      ]
+    },
+    {
+      "id": "BA2-a",
+      "claim": "the operand harness stops draining an evaluator's Errors",
+      "gate": "verify-channel-0.2-return-channels.ps1",
+      "expect": "fail",
+      "guardMessage": "is handed a 'Errors' by its producer and nothing reads it",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        foreach ($evaluationError in $mutatedResult.Errors) {",
+          "replace": "        foreach ($evaluationError in @()) {"
+        }
+      ]
+    },
+    {
+      "id": "BA2-b",
+      "claim": "an operand mutation whose drop leaves the record unevaluable",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "A mutation whose record the property cannot read reports the constructor's own verdict rather than a judgement",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-properties.json",
+          "find": "\"unseen-refusals.refusedFrame.session\"",
+          "replace": "\"unseen-refusals.refusedFrame\""
+        }
+      ]
+    },
+    {
+      "id": "BA2-c",
+      "claim": "a red operand mutation declared against the conjunct it does not fire through",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "A red arriving through the other conjunct witnesses something other than the operand this mutation reverts",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-properties.json",
+          "find": "\"mutated\": \"red\",\n          \"conjunct\": \"C4-P2-conjunct-1\"",
+          "occurrence": 0,
+          "replace": "\"mutated\": \"red\",\n          \"conjunct\": \"C4-P2-conjunct-2\""
+        }
+      ]
+    },
+    {
+      "id": "BA2-d",
+      "claim": "a red operand mutation that declares no conjunct at all",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "is declared to leave 'C4-P2' red and names no conjunct",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-properties.json",
+          "find": "\"mutated\": \"red\",\n          \"conjunct\": \"C4-P2-conjunct-1\"",
+          "occurrence": 0,
+          "replace": "\"mutated\": \"red\",\n          \"conjunctWithdrawn\": \"C4-P2-conjunct-1\""
+        }
+      ]
+    },
+    {
+      "id": "BA3-a",
+      "claim": "a per-evaluation accumulator no longer cleared before the operand dispatch",
+      "gate": "verify-channel-0.2-return-channels.ps1",
+      "expect": "fail",
+      "guardMessage": "is declared per-evaluation and is not cleared before it at this consumer",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        $script:UnpublishedFields.Clear()",
+          "occurrence": 1,
+          "replace": "        # BA3-a: the clear this consumer owes"
+        }
+      ]
+    },
+    {
+      "id": "BA-census-a",
+      "claim": "an accumulator the declaration does not know about",
+      "gate": "verify-channel-0.2-return-channels.ps1",
+      "expect": "fail",
+      "guardMessage": "and conformance/channel-0.2-return-channels.json does not declare it",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "$script:ObligationsReached = [System.Collections.Generic.HashSet[int]]::new()",
+          "replace": "$script:ObligationsReached = [System.Collections.Generic.HashSet[int]]::new()\n$script:UndeclaredByProbe = [System.Collections.Generic.List[string]]::new()\nfunction Add-UndeclaredByProbe { [void]$script:UndeclaredByProbe.Add('x') }"
+        }
+      ]
+    },
+    {
+      "id": "BA-census-b",
+      "claim": "a cumulative accumulator cleared, which discards part of what it was told",
+      "gate": "verify-channel-0.2-return-channels.ps1",
+      "expect": "fail",
+      "guardMessage": "is declared cumulative and is cleared here",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "$script:ObligationsReached = [System.Collections.Generic.HashSet[int]]::new()",
+          "replace": "$script:ObligationsReached = [System.Collections.Generic.HashSet[int]]::new()\n$script:ObligationsReached.Clear()"
+        }
+      ]
+    },
+    {
+      "id": "BA-census-c",
+      "claim": "a producer exemption whose producer no longer exists",
+      "gate": "verify-channel-0.2-return-channels.ps1",
+      "expect": "fail",
+      "guardMessage": "which this file does not census as a producer. The exemption has stopped applying",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-return-channels.json",
+          "find": "\"producer\": \"New-ConformingVector\"",
+          "replace": "\"producer\": \"New-ConformingVectorRenamed\""
+        }
+      ]
+    },
+    {
+      "id": "BA-census-d",
+      "claim": "a member exemption anchored on a consumer the gate no longer has",
+      "gate": "verify-channel-0.2-return-channels.ps1",
+      "expect": "fail",
+      "guardMessage": "declares a member exemption whose consumer no longer occurs in the gate",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-return-channels.json",
+          "find": "\"memberExemptions\": [],",
+          "occurrence": 0,
+          "replace": "\"memberExemptions\": [ { \"consumer\": \"Invoke-NothingHere -X 1\", \"member\": \"Errors\", \"reason\": \"BA-census-d probe\" } ],"
+        }
+      ]
+    },
+    {
+      "id": "BA-census-e",
+      "claim": "a member genuinely exempted at the consumer that drops it still passes",
+      "gate": "verify-channel-0.2-return-channels.ps1",
+      "expect": "pass",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        foreach ($evaluationError in $mutatedResult.Errors) {",
+          "replace": "        foreach ($evaluationError in @()) {"
+        },
+        {
+          "path": "conformance/channel-0.2-return-channels.json",
+          "find": "\"memberExemptions\": [],",
+          "occurrence": 0,
+          "replace": "\"memberExemptions\": [ { \"consumer\": \"& $evaluator -VectorId $vectorId -Vector $mutated -Steps $mutatedSteps\", \"member\": \"Errors\", \"reason\": \"BA-census-e probe: the negative control for the exemption path, which no clean run reaches.\" } ],"
         }
       ]
     }

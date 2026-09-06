@@ -183,6 +183,7 @@ dependency instead of narrowing it.
 | AW | iteration | verification | eleventh W1-W3 verification-foundation iteration review |
 | AX | iteration | verification | twelfth W1-W3 verification-foundation iteration review |
 | AZ | iteration | verification | fourteenth W1-W3 verification-foundation iteration review |
+| BA | iteration | verification | fifteenth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -278,7 +279,7 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Fourteen such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
+Fifteen such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
 nothing it can fix. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
@@ -292,28 +293,37 @@ nothing it can fix. They are retained as the
 [tenth](./channel-0.2-av-iteration-review.md) (**AV1**-**AV3**),
 [eleventh](./channel-0.2-aw-iteration-review.md) (**AW1**),
 [twelfth](./channel-0.2-ax-iteration-review.md) (**AX1**-**AX3**),
-[thirteenth](./channel-0.2-ay-iteration-review.md) (no finding) and
-[fourteenth](./channel-0.2-az-iteration-review.md) (**AZ1**-**AZ2**) W1-W3 verification-foundation
+[thirteenth](./channel-0.2-ay-iteration-review.md) (no finding),
+[fourteenth](./channel-0.2-az-iteration-review.md) (**AZ1**-**AZ2**) and
+[fifteenth](./channel-0.2-ba-iteration-review.md) (**BA1**-**BA6**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
-**A fifteenth pass over the same scope is the live path, and it is the first of two consecutive clean
+**A sixteenth pass over the same scope is the live path, and it is the first of two consecutive clean
 passes that are owed again from zero.** It starts by running the frozen instrument set — the probe
-corpus, the coverage gate and the generated-vector run, whose sizes the plan's section 4 owns and
-recomputes rather than this paragraph — and records what it reports before building anything.
+corpus, the coverage gate, the generated-vector run and the return-channel census, whose sizes the
+plan's section 4 owns and recomputes rather than this paragraph — and records what it reports before
+building anything.
 
-**The fourteenth pass was to be the second clean pass and was not.** It generated frame references with
-fields dropped, which turned eight of the nine retained operand mutations into a rate, and the sweep
-found nothing in the package. But it raised **AZ1**, a return channel the generated loop never read —
-so a population whose every `C4-P2` record was *unevaluable* reported `0 red` and passed — and **AZ2**,
-a generator counting arrival ordinals across the whole vector where the design counts them per
-interaction identity, which had made all four other operands of a frame reference redundant by
-construction. Both are in the verification and neither in the design, and the ruling's package
-population covers both.
+**The fifteenth pass was to be the first of those two and was not.** Its frozen set reported nothing,
+for the ninth consecutive pass. The instrument it built — a census of what every consumer in these
+gates does with what its producer hands back — found **BA1**, **BA2**, **BA3** and **BA4** in the
+package on its first run, all in the verification and none in the design, so the ruling's second test
+is not met. **BA1** is AZ1 one level lower and worse in kind: three properties evaluate a clause by
+calling another property's evaluator, and each then returned a record built by a constructor that
+makes a **fresh empty** `Errors` collection — so the delegate's "I could not evaluate this record at
+all" was destroyed rather than merely unread, across thirty-four delegated evaluations per declared
+run. **BA2** is the same channel discarded at the operand-mutation harness, which AZ1's own correction
+did not reach because it went to the loop the finding was found in; a mutation that leaves the record
+unevaluable and is declared green was accepted by the gate as it stood. **BA5** and **BA6** are the
+census's own, found before it was believed, and **BA6** is the sharpest thing in the pass: **BA1's
+correction changed the syntactic form of a constructor and the census went blind to BA1's own
+subject**, reporting a clean package it had stopped reading.
 
-**The fifteenth pass's method comes from AZ1 rather than from the increment.** AZ1 was a whole return
-channel with a consumer that ignored it, and the question that finds that class — what does each
-consumer do with each thing its producer hands back, and which of those has no consumer at all — has
-not been asked of these gates.
+**The sixteenth pass's method is the candidate the plan named beside AZ1 and this pass did not take.**
+The fifteenth made the `Errors` channel reach its consumers; nothing yet requires an evaluator to
+**fill** it where a record is genuinely unevaluable, and one evaluator of twenty-six populates it at
+all. Whether the other twenty-five have unevaluable records they silently call green is the AU1-shaped
+question one level in.
 
 Nothing in this paragraph resumes the closure cycle or authorizes a closure-review dispatch.
 
@@ -1140,6 +1150,17 @@ context elsewhere — never as evidence that their conclusions are right.
   `.gitattributes`' `*.ps1 text eol=crlf` a fresh checkout makes it `\r\n?$`, which cannot match an
   LF-only markdown line, so the check that requires a no-finding pass to say so **fired on the review
   that said it**. It was invisible here only because these gate files are still LF on this disk.
+- [Fifteenth W1-W3 verification-foundation iteration review](./channel-0.2-ba-iteration-review.md) —
+  the same scope at `32861c6`; raised **BA1**-**BA6** and corrected all six, so it is **not** the first
+  of the two consecutive clean passes and the count stays at zero. Its frozen set reported nothing.
+  Its instrument is a census of what every consumer in these gates does with what its producer hands
+  back, and **BA1**-**BA4** are what it found in the package: a composed evaluator that destroys its
+  delegate's `Errors` by rebuilding the collection empty, the same channel discarded at both operand
+  dispatches, the per-evaluation accumulator cleared at two of five dispatches, and the generated
+  loop never reading the conjunct. **BA5** and **BA6** are the census's own, corrected before its
+  result was believed; **BA6** is BA1's correction changing a constructor's form and blinding the
+  census to BA1's own subject inside one commit, which is AP1's class over the shortest interval it
+  can have.
 
 ## Disclosed process deviation in the T1-T4 correction
 

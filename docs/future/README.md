@@ -375,9 +375,22 @@ counting arrival ordinals across the whole vector where the design counts them p
 identity, which had made all four other operands of a frame reference redundant by construction; and
 **AZ4**, a guard whose regex ended in a newline typed into its own source, so that under the repository
 line-ending policy a fresh checkout made it fire on the very review that declared no findings. All
-three are in the verification and none in the design, the count resets, and a fifteenth pass is the next
-work: it asks what each consumer does with each thing its producer hands back, which is the class AZ1
-belongs to. The closure-review hold remains in force.
+three are in the verification and none in the design, and the count resets. **The fifteenth pass then
+asked that question mechanically and it was answered four times.** Its frozen set reported nothing --
+ninth consecutive -- and the census it built raised **BA1**, a composed evaluator that delegates a
+clause to another property's evaluator and then returns a record whose `Errors` collection is built
+fresh and empty, so the delegate's "I could not evaluate this record" was **destroyed** rather than
+merely unread, across thirty-four delegated evaluations per declared run; **BA2**, the same channel
+discarded at both dispatches of the operand-mutation harness, where a mutation that leaves the record
+unevaluable and is declared green was accepted by the gate as it stood; **BA3**, the per-evaluation
+accumulator cleared and drained at two of five dispatches; and **BA4**, the generated loop never
+reading the conjunct. **BA5** and **BA6** are the census's own, found before it was believed, and BA6
+is the one to weigh: BA1's correction changed a constructor's syntactic form and the census went
+**blind to BA1's own subject**, reporting a clean package it had stopped reading. All six are in the
+verification and none in the design; the two consecutive clean passes stay owed from zero, and a
+sixteenth pass is the next work -- it asks whether an evaluator ever **fills** that channel, since one
+of the twenty-six does and for the rest "unevaluable" and "conforms" are the same verdict. The
+closure-review hold remains in force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
