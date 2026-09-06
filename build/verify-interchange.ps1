@@ -40,6 +40,12 @@ Invoke-Checked {
 Invoke-Checked {
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-facts.ps1')
 }
+# The fourth gate checks the other three rather than the design, and it is here rather than behind the
+# switch below because it PARSES them instead of running them: a whole census costs about a second,
+# where the two below cost minutes by executing what they measure. BA.
+Invoke-Checked {
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-return-channels.ps1')
+}
 # The three gates above check the design package. The two that check THOSE GATES -- the probe corpus
 # and the gate-coverage measure -- are behind the switch, because they cost 411 of the 442 seconds the
 # PowerShell half of this gate takes, and they cost it by running the gates they measure. The reason,

@@ -74,6 +74,30 @@
         {
           "anchor": "$dropWitness = if ($dropObserved -eq 'red') { \" Witness: $($dropResult.Witness).\" }",
           "reason": "Inside the branch that reports a dropped frame-reference field whose verdict is not the one the sweep declares for it. A passing run has no such dropping, so the message this line decorates is never built. The AZ3-a probe pins the branch."
+        },
+        {
+          "anchor": "foreach ($evaluationError in $mutatedResult.Errors) {",
+          "reason": "BA2's report loop at the operand harness, and empty on a passing run for the same reason AZ1's is next door: a declared operand mutation whose record the property can read produces no errors. It fires the moment a mutation's drop leaves the record unevaluable, which is the false green BA2 was raised for, and probe `BA2-b` is that input."
+        },
+        {
+          "anchor": "foreach ($evaluationError in $publishedResult.Errors) {",
+          "reason": "The same loop over the published baseline a mutation is measured against. A baseline the property cannot evaluate is not a baseline, and on a passing run there is no such vector."
+        },
+        {
+          "anchor": "if ($publishedResult.Verdict -eq 'red') { $detail = \" Witness: $($publishedResult.Witness), through '$($publishedResult.Conjunct)'.\" }",
+          "reason": "Inside the branch that reports a published verdict which is not the one the operand mutation declares. A passing run has no such mutation, so the message this line decorates is never built."
+        },
+        {
+          "anchor": "$generatedConjunct = if ($generatedResult.Conjunct) { \" through '$($generatedResult.Conjunct)'\" } else { '' }",
+          "reason": "BA4's diagnosis, inside the branch that records a property red on a generated conforming vector. A passing run has no such vector, which is the whole claim that block exists to make."
+        },
+        {
+          "anchor": "foreach ($evaluationError in $result.Errors) {",
+          "reason": "The declared loop's drain of AZ1's channel, empty on a passing run for the same reason the generated one beside it is: a declared input the property can evaluate produces no errors. It was on its header line until BA7, so this measure reported it covered without being able to see its body -- it is the instance that finding was raised for, and it is declared here rather than left to look measured."
+        },
+        {
+          "anchor": "foreach ($inheritedError in $Inherited) {",
+          "reason": "BA1's inheritance, in `New-Red` and `New-Green`. A composed evaluator passes its delegate's `Errors` forward through this loop, and on a passing run no delegate reports any: `Invoke-C4P2` is the only evaluator that fills that collection and nothing delegates to `C4-P2`. The loop is the correction for a latent defect, so an empty run of it is what latent means -- it fires the moment any other evaluator learns to report an unevaluable record, which is the sixteenth pass's brief."
         }
       ],
       "operandExemptions": [

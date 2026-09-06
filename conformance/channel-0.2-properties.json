@@ -260,6 +260,7 @@
           "vector": "C4-two-sessions-one-identity",
           "published": "green",
           "mutated": "red",
+          "conjunct": "C4-P2-conjunct-1",
           "note": "Stripping the session from the refused-frame reference takes a vector conforming at both endpoints in both sessions red. This is AK1 reproduced rather than read."
         },
         {
@@ -280,6 +281,7 @@
           "vector": "C4-two-controls-one-identity",
           "published": "green",
           "mutated": "red",
+          "conjunct": "C4-P2-conjunct-1",
           "note": "Without the ordinal a control committed before the request binds to the one committed after it, and the property goes red on delivery that matched commit order. This is AK5 reproduced."
         },
         {
@@ -327,7 +329,8 @@
           ],
           "vector": "C4-outcome-precedes-ack",
           "published": "red",
-          "mutated": "red"
+          "mutated": "red",
+          "conjunct": "C4-P2-conjunct-2"
         },
         {
           "id": "Y4-arrival-ordinal-on-settling-frame",
@@ -350,6 +353,7 @@
           "vector": "C4-duplicate-terminal-nonconformant-peer",
           "published": "green",
           "mutated": "red",
+          "conjunct": "C4-P2-conjunct-2",
           "note": "The pair is why AK6 is defensible although it moves no verdict alone: the terminal-frame reference removes the design's dependence on the settling frame's ordinal to carry both operands of the conjunct."
         }
       ],

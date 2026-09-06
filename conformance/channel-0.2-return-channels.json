@@ -1,0 +1,51 @@
+{
+  "$comment": "Channel 0.2 return-channel census. Producers and consumers are discovered from each gate's syntax tree and nothing here lists them; this file holds only the exemptions and the accumulator kinds, each anchored on the text it exempts so it fails when that text moves. build/verify-channel-0.2-return-channels.ps1 states the units and their limits.",
+  "gates": [
+    {
+      "gate": "verify-channel-0.2-properties.ps1",
+      "producerExemptions": [
+        {
+          "producer": "New-ConformingVector",
+          "reason": "It hands back a generated VECTOR, not a gate-internal record, and its consumers are the twenty-six evaluators, which read it by dynamic field path -- `Get-Field $Vector 'observations.unseenRefusals'`, `Read-Required`, `$Vector.PSObject.Properties['...']` -- through a parameter named `$Vector` rather than through the variable this census follows. A member census over the assigned variable therefore measures nothing here and would report every field of a conforming vector as unread. The question it looks like it is asking -- which declared vector field does no property read -- is AX2's unit, and it is answered by the reconciliation the vector index performs before any property runs."
+        }
+      ],
+      "memberExemptions": [],
+      "accumulators": [
+        {
+          "name": "UnpublishedFields",
+          "kind": "per-evaluation",
+          "reason": "`Read-Required` adds to it the fields one evaluation read and its vector does not publish, and AU2's rule is that such a verdict is evidence of neither conformance nor violation. It is therefore about the evaluation that just ran and must be cleared before each top-level dispatch and drained after it."
+        },
+        {
+          "name": "ObligationsReached",
+          "kind": "cumulative",
+          "reason": "`New-Red` records the call site of every obligation any input reaches, and AU1's check asks at the end of the run which obligation no declared input reached. That question is over the whole run, so a clear anywhere would make an unreached obligation indistinguishable from one reached before the clear."
+        }
+      ]
+    },
+    {
+      "gate": "verify-channel-0.2-coverage.ps1",
+      "producerExemptions": [],
+      "memberExemptions": [],
+      "accumulators": []
+    },
+    {
+      "gate": "verify-channel-0.2-design.ps1",
+      "producerExemptions": [],
+      "memberExemptions": [],
+      "accumulators": []
+    },
+    {
+      "gate": "verify-channel-0.2-facts.ps1",
+      "producerExemptions": [],
+      "memberExemptions": [],
+      "accumulators": []
+    },
+    {
+      "gate": "verify-channel-0.2-guards.ps1",
+      "producerExemptions": [],
+      "memberExemptions": [],
+      "accumulators": []
+    }
+  ]
+}

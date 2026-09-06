@@ -518,13 +518,40 @@ function Read-Required {
 # evaluator does: `C5-P1-clause-1` names one clause and returns two separate verdicts, and AR1's
 # correction -- which keys on properties that declare a conjunct -- pinned the first and left the
 # second deletable. Recording the call site here is what makes the class total over the file.
+# BA1. `-Inherited` carries forward what a DELEGATE reported through its own `Errors`. Three
+# properties evaluate a clause by calling another property's evaluator -- `C4-P1` delegates two
+# clauses to `I1` and `I5`, `C2-P1` two to `S1` and `S4`, `C8-P1` two to `I2` and `I3` -- and each
+# then returns a record built here, which until this pass constructed a FRESH empty collection. So a
+# delegate saying "I could not be evaluated over this record at all" was not merely unread by the
+# composed property: it was destroyed before any consumer could see it, and the composed property
+# reported green over a record nobody could read.
+#
+# That is AZ1 one level below the loop AZ1 was raised against, and worse in kind. A loop that does
+# not drain a channel can be made to drain it; a producer that rebuilds the channel empty has thrown
+# the contents away first. It was demonstrated rather than argued: made to report an evaluation error
+# on every input, `I1` surfaced it on all four of its own declared inputs and on **none** of `C4-P1`'s
+# six. The declared corpus runs up to thirty-four delegated evaluations and the generated population up
+# to six hundred more -- upper bounds rather than counts, because a composed evaluator returns before
+# reaching its second delegate when the first clause fires, which is why the injection reached four of
+# those six and not six.
 $script:ObligationsReached = [System.Collections.Generic.HashSet[int]]::new()
 function New-Red {
-    param([string]$Witness, [string]$Conjunct)
+    param([string]$Witness, [string]$Conjunct, [AllowEmptyCollection()][string[]]$Inherited = @())
     [void]$script:ObligationsReached.Add((Get-PSCallStack)[1].ScriptLineNumber)
-    return [pscustomobject]@{ Verdict = 'red'; Conjunct = $Conjunct; Witness = $Witness; Errors = [System.Collections.Generic.List[string]]::new() }
+    $record = [pscustomobject]@{ Verdict = 'red'; Conjunct = $Conjunct; Witness = $Witness; Errors = [System.Collections.Generic.List[string]]::new() }
+    foreach ($inheritedError in $Inherited) {
+        [void]$record.Errors.Add($inheritedError)
+    }
+    return $record
 }
-function New-Green { return [pscustomobject]@{ Verdict = 'green'; Conjunct = $null; Witness = $null; Errors = [System.Collections.Generic.List[string]]::new() } }
+function New-Green {
+    param([AllowEmptyCollection()][string[]]$Inherited = @())
+    $record = [pscustomobject]@{ Verdict = 'green'; Conjunct = $null; Witness = $null; Errors = [System.Collections.Generic.List[string]]::new() }
+    foreach ($inheritedError in $Inherited) {
+        [void]$record.Errors.Add($inheritedError)
+    }
+    return $record
+}
 
 function Invoke-S1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
@@ -681,7 +708,9 @@ function Invoke-I5 {
     # Concurrency is counted per session against THAT session bound, which is AK7. Counted across the
     # vector, two sessions each holding one nonterminal interaction breach a bound neither did.
     $bounds = @{}
-    foreach ($session in @($Vector.sessions)) { $bounds[[string]$session.id] = [int]$session.establishedBound }
+    foreach ($session in @($Vector.sessions)) {
+        $bounds[[string]$session.id] = [int]$session.establishedBound
+    }
     $live = @{}
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
         $sessionId = [string]$sessionEvent.session
@@ -733,11 +762,19 @@ function Invoke-C4P1 {
             return New-Red "an accepted terminal fact in session $($sessionEvent.session) closes $($closes.Count) admitted interactions"
         }
     }
+    # BA1. Everything the delegate hands back is read: its verdict, its witness, the conjunct its red
+    # arrived through, and the `Errors` through which it says it could not be evaluated at all. The
+    # last of those is the one that was being destroyed; the conjunct is inert until a delegate names
+    # one, and is read now so that a delegate which starts naming them does not lose it silently.
     $dispatchResult = Invoke-I1 -VectorId $VectorId -Vector $Vector -Steps $Steps
-    if ($dispatchResult.Verdict -eq 'red') { return New-Red "$($dispatchResult.Witness), which the second clause of C4-P1 forbids" }
+    if ($dispatchResult.Verdict -eq 'red') {
+        return New-Red -Witness "$($dispatchResult.Witness)$(if ($dispatchResult.Conjunct) { " through $($dispatchResult.Conjunct)" }), which the second clause of C4-P1 forbids" -Inherited $dispatchResult.Errors
+    }
     $boundResult = Invoke-I5 -VectorId $VectorId -Vector $Vector -Steps $Steps
-    if ($boundResult.Verdict -eq 'red') { return New-Red "$($boundResult.Witness), which the third clause of C4-P1 forbids" }
-    return New-Green
+    if ($boundResult.Verdict -eq 'red') {
+        return New-Red -Witness "$($boundResult.Witness)$(if ($boundResult.Conjunct) { " through $($boundResult.Conjunct)" }), which the third clause of C4-P1 forbids" -Inherited $boundResult.Errors
+    }
+    return New-Green -Inherited (@($dispatchResult.Errors) + @($boundResult.Errors))
 }
 
 # ---------------------------------------------------------------------------------------------
@@ -767,10 +804,18 @@ function Invoke-C1P1 {
 
 function Invoke-C2P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
+    # BA1, as in C4-P1 above: the delegate's `Errors` are carried forward rather than rebuilt empty.
     $tableResult = Invoke-S1 -VectorId $VectorId -Vector $Vector -Steps $Steps
-    if ($tableResult.Verdict -eq 'red') { return New-Red "$($tableResult.Witness), which the first clause of C2-P1 forbids" }
+    if ($tableResult.Verdict -eq 'red') {
+        return New-Red -Witness "$($tableResult.Witness)$(if ($tableResult.Conjunct) { " through $($tableResult.Conjunct)" }), which the first clause of C2-P1 forbids" -Inherited $tableResult.Errors
+    }
     $monotonic = Invoke-S4 -VectorId $VectorId -Vector $Vector -Steps $Steps
-    if ($monotonic.Verdict -eq 'red') { return New-Red "$($monotonic.Witness), which the third clause of C2-P1 forbids" }
+    if ($monotonic.Verdict -eq 'red') {
+        return New-Red -Witness "$($monotonic.Witness)$(if ($monotonic.Conjunct) { " through $($monotonic.Conjunct)" }), which the third clause of C2-P1 forbids" -Inherited $monotonic.Errors
+    }
+    # Both delegates ran green and either may still have reported that it could not be evaluated over
+    # a record. That travels with every verdict this function can now return, including its own.
+    $inheritedErrors = @($tableResult.Errors) + @($monotonic.Errors)
     # The middle clause: any other input leaves the prior state unchanged or enters faulted. An input
     # recorded as an accepted transition that the table does not contain is caught above; an admission
     # recorded as accepted outside established is caught here.
@@ -781,10 +826,10 @@ function Invoke-C2P1 {
         if ([string]$sessionEvent.step -ne 'admit' -or -not $sessionEvent.acceptedTransition) { continue }
         $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { 'unestablished' }
         if ($current -ne 'established') {
-            return New-Red "session $sessionId accepted a new interaction while it was $current, so an input that must leave the state unchanged or enter faulted admitted instead"
+            return New-Red -Witness "session $sessionId accepted a new interaction while it was $current, so an input that must leave the state unchanged or enter faulted admitted instead" -Inherited $inheritedErrors
         }
     }
-    return New-Green
+    return New-Green -Inherited $inheritedErrors
 }
 
 function Invoke-C3P1 {
@@ -879,11 +924,16 @@ function Invoke-C7P1 {
 
 function Invoke-C8P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
+    # BA1, as in C4-P1 and C2-P1 above.
     $singleTerminal = Invoke-I2 -VectorId $VectorId -Vector $Vector -Steps $Steps
-    if ($singleTerminal.Verdict -eq 'red') { return New-Red "$($singleTerminal.Witness), which the first clause of C8-P1 forbids" }
+    if ($singleTerminal.Verdict -eq 'red') {
+        return New-Red -Witness "$($singleTerminal.Witness)$(if ($singleTerminal.Conjunct) { " through $($singleTerminal.Conjunct)" }), which the first clause of C8-P1 forbids" -Inherited $singleTerminal.Errors
+    }
     $notSuccess = Invoke-I3 -VectorId $VectorId -Vector $Vector -Steps $Steps
-    if ($notSuccess.Verdict -eq 'red') { return New-Red "$($notSuccess.Witness), which the second clause of C8-P1 forbids" }
-    return New-Green
+    if ($notSuccess.Verdict -eq 'red') {
+        return New-Red -Witness "$($notSuccess.Witness)$(if ($notSuccess.Conjunct) { " through $($notSuccess.Conjunct)" }), which the second clause of C8-P1 forbids" -Inherited $notSuccess.Errors
+    }
+    return New-Green -Inherited (@($singleTerminal.Errors) + @($notSuccess.Errors))
 }
 
 function Invoke-C9P1 {
@@ -1130,7 +1180,9 @@ foreach ($transitionRow in [regex]::Matches($transitionSection, '(?m)^\| ([^|]+)
         $failures.Add("The session state machine's legal transition table has a From cell this check cannot read: '$fromCell'. A row it cannot read is a row it drops, and dropping the two ``any nonterminal`` rows is what made S1 and C2-P1 red on a conforming session fault -- AO1. Either the cell names a state, or it names a class this parser is taught.")
         continue
     }
-    foreach ($fromState in $fromStates) { $artifactEdgeList.Add("$fromState>$toState") }
+    foreach ($fromState in $fromStates) {
+        $artifactEdgeList.Add("$fromState>$toState")
+    }
 }
 $artifactEdges = @($artifactEdgeList | Sort-Object -Unique)
 if ($declaredSessionStates.Count -eq 0) {
@@ -1253,9 +1305,15 @@ foreach ($property in $properties.properties) {
     $evaluator = $evaluators[$propertyId]
 
     $expectations = @{}
-    foreach ($member in $property.requiredGreen) { $expectations[[string]$member.vector] = @{ Verdict = 'green'; Conjunct = $null; Role = 'required-green' } }
-    foreach ($member in $property.additionalGreen) { $expectations[[string]$member.vector] = @{ Verdict = 'green'; Conjunct = $null; Role = 'additional-green' } }
-    foreach ($mutation in $property.namedMutations) { $expectations[[string]$mutation.vector] = @{ Verdict = [string]$mutation.expected; Conjunct = [string]$mutation.conjunct; Role = 'named-mutation' } }
+    foreach ($member in $property.requiredGreen) {
+        $expectations[[string]$member.vector] = @{ Verdict = 'green'; Conjunct = $null; Role = 'required-green' }
+    }
+    foreach ($member in $property.additionalGreen) {
+        $expectations[[string]$member.vector] = @{ Verdict = 'green'; Conjunct = $null; Role = 'additional-green' }
+    }
+    foreach ($mutation in $property.namedMutations) {
+        $expectations[[string]$mutation.vector] = @{ Verdict = [string]$mutation.expected; Conjunct = [string]$mutation.conjunct; Role = 'named-mutation' }
+    }
 
     # No input is evaluated that the property does not claim, and no input the property claims is
     # missing. A vector file and a property file are two statements about which inputs matter, and the
@@ -1288,7 +1346,9 @@ foreach ($property in $properties.properties) {
             $conditionTwoEvaluations++
             [void]$conditionTwoVectors.Add($vectorId)
         }
-        foreach ($evaluationError in $result.Errors) { $failures.Add($evaluationError) }
+        foreach ($evaluationError in $result.Errors) {
+            $failures.Add($evaluationError)
+        }
 
         if ($result.Verdict -eq 'red') { $redCount++ } else { $greenCount++ }
 
@@ -1343,17 +1403,58 @@ foreach ($property in $properties.properties) {
         }
 
         $mutatedSteps = $vectorIndex[$vectorId]
+        # BA3. The one input class this file builds by REMOVING fields is the one whose silence was
+        # never checked. AU2's rule is that a field the obligation read and the vector does not
+        # publish makes the verdict evidence of neither conformance nor violation, and the declared
+        # and generated loops both clear this before the call and drain it after; the operand harness
+        # did neither, so a mutation could report a verdict produced by silence and be believed.
+        $script:UnpublishedFields.Clear()
         $mutatedResult = & $evaluator -VectorId $vectorId -Vector $mutated -Steps $mutatedSteps
         $mutationCount++
+        foreach ($unpublished in ($script:UnpublishedFields | Sort-Object -Unique)) {
+            $failures.Add("Operand mutation '$($operandMutation.id)' leaves '$propertyId' reading a field '$vectorId' then does not publish: $unpublished. The mutation's verdict is then produced by the vector's silence rather than by the operand it names, so it pins nothing either way.")
+        }
+        # BA2, and it is AZ1 at the harness AZ1's own correction did not reach. This block read the
+        # verdict and nothing else. A drop that leaves the record unevaluable -- a whole reference
+        # rather than one of its fields -- comes back `green` beside a non-empty `Errors`, because a
+        # record the property could not read produces no witness, so a mutation declared green passed
+        # by never having been evaluated. Demonstrated: dropping `unseen-refusals.refusedFrame` on
+        # `C4-two-sessions-one-identity` and declaring it green was accepted, and the gate reported
+        # ten operand mutations.
+        foreach ($evaluationError in $mutatedResult.Errors) {
+            $failures.Add("Operand mutation '$($operandMutation.id)' leaves '$propertyId' unable to be evaluated on '$vectorId': $evaluationError A mutation whose record the property cannot read reports the constructor's own verdict rather than a judgement, so it is neither a fire nor evidence that the field is redundant.")
+        }
         if ($mutatedResult.Verdict -ne [string]$operandMutation.mutated) {
             $detail = ''
             if ($mutatedResult.Verdict -eq 'red') { $detail = " Witness: $($mutatedResult.Witness)." }
             $failures.Add("Operand mutation '$($operandMutation.id)' leaves '$propertyId' $($mutatedResult.Verdict) on '$vectorId' and is declared to leave it $($operandMutation.mutated).$detail")
         }
+        # BA2's second half. The declared-input loop requires a red to arrive through the conjunct its
+        # mutation is declared against, and AZ3's sweep requires the same of a dropped field, both for
+        # the reason each states: a red arriving through the other conjunct witnesses something other
+        # than the operand it names. This harness is the third place a declared red is checked and was
+        # the only one not asking.
+        elseif ([string]$operandMutation.mutated -ceq 'red') {
+            if (-not $operandMutation.conjunct) {
+                $failures.Add("Operand mutation '$($operandMutation.id)' is declared to leave '$propertyId' red and names no conjunct. Without one it asserts that something went red and not that the operand it reverts is what the property read, which is the state the declared-input loop and the dropped-field sweep are both written against.")
+            }
+            elseif ([string]$mutatedResult.Conjunct -cne [string]$operandMutation.conjunct) {
+                $failures.Add("Operand mutation '$($operandMutation.id)' leaves '$propertyId' red on '$vectorId' through '$($mutatedResult.Conjunct)' and is declared against '$($operandMutation.conjunct)'. A red arriving through the other conjunct witnesses something other than the operand this mutation reverts.")
+            }
+        }
 
+        $script:UnpublishedFields.Clear()
         $publishedResult = & $evaluator -VectorId $vectorId -Vector $vectorsById[$vectorId] -Steps $mutatedSteps
+        foreach ($unpublished in ($script:UnpublishedFields | Sort-Object -Unique)) {
+            $failures.Add("Operand mutation '$($operandMutation.id)' compares against a published form in which '$propertyId' reads a field '$vectorId' does not publish: $unpublished. The baseline the mutation is measured against is then produced by silence too.")
+        }
+        foreach ($evaluationError in $publishedResult.Errors) {
+            $failures.Add("Operand mutation '$($operandMutation.id)' cannot evaluate '$propertyId' over the PUBLISHED form of '$vectorId': $evaluationError The baseline a mutation is measured against must itself be a judgement.")
+        }
         if ($publishedResult.Verdict -ne [string]$operandMutation.published) {
-            $failures.Add("Operand mutation '$($operandMutation.id)' records the published verdict on '$vectorId' as $($operandMutation.published) and the published form evaluates $($publishedResult.Verdict).")
+            $detail = ''
+            if ($publishedResult.Verdict -eq 'red') { $detail = " Witness: $($publishedResult.Witness), through '$($publishedResult.Conjunct)'." }
+            $failures.Add("Operand mutation '$($operandMutation.id)' records the published verdict on '$vectorId' as $($operandMutation.published) and the published form evaluates $($publishedResult.Verdict).$detail")
         }
     }
 }
@@ -1528,7 +1629,9 @@ if ($GeneratedCount -gt 0) {
         @{ Drop = 'late-traffic-latches.terminalFrame.committingEndpoint'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' },
         @{ Drop = 'late-traffic-latches.terminalFrame.arrivalOrdinal'; Verdict = 'green'; Conjunct = $null; Discriminates = 'every' })
     $dropTally = @{}
-    foreach ($referenceDrop in $referenceDrops) { $dropTally[[string]$referenceDrop.Drop] = @{ Discriminating = 0; Inert = 0 } }
+    foreach ($referenceDrop in $referenceDrops) {
+        $dropTally[[string]$referenceDrop.Drop] = @{ Discriminating = 0; Inert = 0 }
+    }
 
     function New-ConformingVector {
         param([Parameter(Mandatory = $true)][string]$Id, [Parameter(Mandatory = $true)][System.Random]$Random)
@@ -1991,8 +2094,14 @@ if ($GeneratedCount -gt 0) {
                     $generatedRed.Add("'$propertyId' could not be evaluated over generated conforming vector '$generatedId': $evaluationError")
                 }
             }
+            # BA4. The conjunct was the one thing an evaluator hands back that this block did not
+            # read. It declares no expected conjunct here -- every red on a conforming vector is a
+            # failure whichever clause produces it -- so this is diagnosis rather than a check, and
+            # it is read because a reader of a rate needs to know which clause the counterexample
+            # came from without re-running the seed by hand.
             if ($generatedResult.Verdict -eq 'red' -and $generatedRed.Count -lt 10) {
-                $generatedRed.Add("'$propertyId' is red on generated conforming vector '$generatedId': $($generatedResult.Witness)")
+                $generatedConjunct = if ($generatedResult.Conjunct) { " through '$($generatedResult.Conjunct)'" } else { '' }
+                $generatedRed.Add("'$propertyId' is red$generatedConjunct on generated conforming vector '$generatedId': $($generatedResult.Witness)")
             }
         }
 
@@ -2020,8 +2129,18 @@ if ($GeneratedCount -gt 0) {
                 }
                 continue
             }
+            # BA3, as at the operand harness above: this is the sweep's own field-removing input and
+            # its silence was equally unchecked. `Invoke-C4P2` reads its record through `Get-Field`
+            # rather than `Read-Required`, so nothing reaches this today; the rule is over the
+            # dispatch rather than over which evaluator happens to sit behind it.
+            $script:UnpublishedFields.Clear()
             try { $dropResult = Invoke-C4P2 -VectorId $generatedId -Vector $generatedVector -Steps $generatedSteps }
             finally { Restore-PublishedFields -Undo $dropUndo }
+            foreach ($unpublished in ($script:UnpublishedFields | Sort-Object -Unique)) {
+                if ($generatedRed.Count -lt 10) {
+                    $generatedRed.Add("dropping '$dropPath' leaves 'C4-P2' reading a field '$generatedId' does not publish: $unpublished")
+                }
+            }
             $dropObserved = if ($dropResult.Errors.Count -gt 0) { 'unevaluable' }
                 elseif ($dropResult.Verdict -eq 'red') { 'red' }
                 else { 'green' }
