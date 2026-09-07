@@ -308,11 +308,29 @@ foreach ($censusGate in $censusGates) {
 
     # ---- Unit 2: script-scope accumulators -------------------------------------------------------
 
+    # BB3. Two write shapes, not one. This unit recognised an accumulator by `.Add(...)` alone, and a
+    # hashtable accumulated by `$script:X[$key] = $value` is the same channel written the other way --
+    # undeclared, and so unchecked for a consumer, with the gate green. It was found by writing one:
+    # BB1's `$script:OptionalReads` records which declared-optional field some input left absent, and
+    # this unit reported instead that the declaration for it applied to nothing.
+    #
+    # That is BA6's class inside the instrument BA6 was raised in, which is the argument against
+    # recognising a thing by the syntax someone happened to write, made a second time. The limit that
+    # remains is stated rather than closed: a write through an alias, or through a member other than
+    # `Add` on a collection type that has one, is still invisible here.
     $accumulators = [System.Collections.Generic.HashSet[string]]::new()
     foreach ($invocation in $ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.InvokeMemberExpressionAst] }, $true)) {
         if ([string]$invocation.Member.Extent.Text -cne 'Add') { continue }
         if ($invocation.Expression -isnot [System.Management.Automation.Language.VariableExpressionAst]) { continue }
         if ($invocation.Expression.VariablePath.UserPath -notmatch '^script:(.+)$') { continue }
+        [void]$accumulators.Add($Matches[1])
+    }
+    foreach ($assignment in $ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.AssignmentStatementAst] }, $true)) {
+        $target = $assignment.Left
+        if ($target -is [System.Management.Automation.Language.ConvertExpressionAst]) { $target = $target.Child }
+        if ($target -isnot [System.Management.Automation.Language.IndexExpressionAst]) { continue }
+        if ($target.Target -isnot [System.Management.Automation.Language.VariableExpressionAst]) { continue }
+        if ($target.Target.VariablePath.UserPath -notmatch '^script:(.+)$') { continue }
         [void]$accumulators.Add($Matches[1])
     }
 

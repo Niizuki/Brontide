@@ -734,8 +734,8 @@
       "edits": [
         {
           "path": "docs/future/channel/reviews/README.md",
-          "find": "- [Closure review 10](./channel-0.2-design-foundation-closure-review-10-attestation.md) — reviewed",
-          "replace": "- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) — reviewed"
+          "find": "- [Closure review 10](./channel-0.2-design-foundation-closure-review-10-attestation.md) \u2014 reviewed",
+          "replace": "- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) \u2014 reviewed"
         }
       ]
     },
@@ -1078,7 +1078,7 @@
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "foreach ($required in (Get-List $session.requiredFacets)) {",
+          "find": "foreach ($required in (Get-List $session 'requiredFacets')) {",
           "replace": "foreach ($required in @($session.requiredFacets)) {"
         }
       ]
@@ -1092,8 +1092,8 @@
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "return New-Red \"relational interaction $($interaction.identity) creates Ready or Release\"",
-          "replace": "if ($false) { $null = New-Red \"AU1-b\" }; return New-Red \"relational interaction $($interaction.identity) creates Ready or Release\""
+          "find": "return New-Red \"relational interaction $identity creates Ready or Release\"",
+          "replace": "if ($false) { $null = New-Red \"AU1-b\" }; return New-Red \"relational interaction $identity creates Ready or Release\""
         }
       ]
     },
@@ -1394,6 +1394,92 @@
           "path": "build/verify-channel-0.2-facts.ps1",
           "find": "    $expectedBy = @{}",
           "replace": "    $expectedBy = @{}; foreach ($unmeasurableByProbe in @(1)) { $null = $unmeasurableByProbe }"
+        }
+      ]
+    },
+    {
+      "id": "BB1-a",
+      "claim": "an evaluator reading a record field raw, which is how an unreadable record and a conforming one become the same verdict",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "without a sanctioned reader, and making that field unreadable",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        if ([string](Read-Required $sessionEvent 'step' $timelineSubject) -ne 'dispatch') { continue }",
+          "occurrence": 0,
+          "replace": "        if ([string]$sessionEvent.step -ne 'dispatch') { continue }"
+        }
+      ]
+    },
+    {
+      "id": "BB1-b",
+      "claim": "a Read-Optional declaring an absence no declared input produces, which is a Read-Required written the long way",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "and no declared input leaves that field absent, so the declaration is unfalsified",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        $refusal = Read-Optional $interaction 'refusal' $refusalIsAbsence",
+          "occurrence": 0,
+          "replace": "        $refusal = Read-Optional $interaction 'class' $refusalIsAbsence"
+        }
+      ]
+    },
+    {
+      "id": "BB1-c",
+      "claim": "a raw read on a path no green-expected input reaches is NOT reported, which is the census's first declared limit",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "pass",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "            return New-Red \"session $(Read-Required $sessionEvent 'session' $timelineSubject) accepted the transition $edge on event $(Read-Required $sessionEvent 'event' $timelineSubject), which the legal table does not contain\"",
+          "replace": "            return New-Red \"session $($sessionEvent.session) accepted the transition $edge on event $($sessionEvent.event), which the legal table does not contain\""
+        }
+      ]
+    },
+    {
+      "id": "BB3-a",
+      "claim": "a script-scope accumulator written by index assignment rather than by Add, which the census could not see",
+      "gate": "verify-channel-0.2-return-channels.ps1",
+      "expect": "fail",
+      "guardMessage": "and conformance/channel-0.2-return-channels.json does not declare it",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "$script:UnpublishedFields = [System.Collections.Generic.List[string]]::new()",
+          "replace": "$script:UnpublishedFields = [System.Collections.Generic.List[string]]::new()\n$script:ProbeIndexedAccumulator = @{}\n$script:ProbeIndexedAccumulator['BB3-a'] = 1"
+        }
+      ]
+    },
+    {
+      "id": "BB4-a",
+      "claim": "a profile-record leaf the vector does not publish, which renders as null and makes a whole-record comparison report a difference it cannot substantiate",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "with a null leaf, so the whole-record comparison cannot tell an unpublished leaf from a genuine difference",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "\"maxInFlight\": 2",
+          "occurrence": 0,
+          "replace": "\"maxInFlight\": null"
+        }
+      ]
+    },
+    {
+      "id": "BB7-a",
+      "claim": "a census whose getter stops recording, which reports a clean zero over a package it has stopped reading",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "and observed",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "            [void]$censusSiteReaders.Add($censusFrame.FunctionName)",
+          "replace": "            $null = $censusFrame.FunctionName"
         }
       ]
     }

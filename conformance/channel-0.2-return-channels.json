@@ -17,6 +17,11 @@
           "reason": "`Read-Required` adds to it the fields one evaluation read and its vector does not publish, and AU2's rule is that such a verdict is evidence of neither conformance nor violation. It is therefore about the evaluation that just ran and must be cleared before each top-level dispatch and drained after it."
         },
         {
+          "name": "OptionalReads",
+          "kind": "cumulative",
+          "reason": "It records, over the WHOLE declared run, whether any input left each declared-optional field absent. The check at the end asks which declaration no input exercised, exactly as ObligationsReached's does for obligations, so a clear anywhere would make an unexercised declaration indistinguishable from one exercised before the clear."
+        },
+        {
           "name": "ObligationsReached",
           "kind": "cumulative",
           "reason": "`New-Red` records the call site of every obligation any input reaches, and AU1's check asks at the end of the run which obligation no declared input reached. That question is over the whole run, so a clear anywhere would make an unreached obligation indistinguishable from one reached before the clear."

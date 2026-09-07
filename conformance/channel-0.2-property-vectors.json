@@ -3855,8 +3855,7 @@
         {
           "session": "s1",
           "step": "admit",
-          "identity": "i2",
-          "acceptedTransition": true
+          "identity": "i2"
         },
         {
           "session": "s1",

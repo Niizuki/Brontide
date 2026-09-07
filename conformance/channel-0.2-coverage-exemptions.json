@@ -98,6 +98,34 @@
         {
           "anchor": "foreach ($inheritedError in $Inherited) {",
           "reason": "BA1's inheritance, in `New-Red` and `New-Green`. A composed evaluator passes its delegate's `Errors` forward through this loop, and on a passing run no delegate reports any: `Invoke-C4P2` is the only evaluator that fills that collection and nothing delegates to `C4-P2`. The loop is the correction for a latent defect, so an empty run of it is what latent means -- it fires the moment any other evaluator learns to report an unevaluable record, which is the sixteenth pass's brief."
+        },
+        {
+          "anchor": "foreach ($censusFrame in (Get-PSCallStack)) {",
+          "reason": "Inside the read-provenance census's poison getter, which is a `PSScriptProperty` scriptblock. `Set-PSDebug -Trace 1` does not emit trace lines from inside one, so this measure cannot see the getter's own lines. That it RUNS is established here rather than assumed: every construct downstream of a read being recorded -- the child walk, the reader loop -- is covered by this same run, and it is only reachable when the getter has recorded a read. BB7 is what made that distinction visible, and it is the safe direction of the measure's error: it reports covered code as uncovered, where BA7's was the reverse."
+        },
+        {
+          "anchor": "if ($censusFrame.FunctionName -match '^(Read-Required|Read-Optional|Read-Rendering|Get-List|Get-Timeline|Get-Interactions|Get-Sessions|Get-Field)$') {",
+          "reason": "Inside the read-provenance census's poison getter, which is a `PSScriptProperty` scriptblock. `Set-PSDebug -Trace 1` does not emit trace lines from inside one, so this measure cannot see the getter's own lines. That it RUNS is established here rather than assumed: every construct downstream of a read being recorded -- the child walk, the reader loop -- is covered by this same run, and it is only reachable when the getter has recorded a read. BB7 is what made that distinction visible, and it is the safe direction of the measure's error: it reports covered code as uncovered, where BA7's was the reverse."
+        },
+        {
+          "anchor": "if ($censusFrame.FunctionName -like 'Invoke-*') {",
+          "reason": "Inside the read-provenance census's poison getter, which is a `PSScriptProperty` scriptblock. `Set-PSDebug -Trace 1` does not emit trace lines from inside one, so this measure cannot see the getter's own lines. That it RUNS is established here rather than assumed: every construct downstream of a read being recorded -- the child walk, the reader loop -- is covered by this same run, and it is only reachable when the getter has recorded a read. BB7 is what made that distinction visible, and it is the safe direction of the measure's error: it reports covered code as uncovered, where BA7's was the reverse."
+        },
+        {
+          "anchor": "foreach ($evaluationError in $censusBaselineResult.Errors) {",
+          "reason": "The census's drain of its own baseline evaluation, empty on a passing run for the reason every other `Errors` drain in this file is: a baseline the property could not evaluate is a failure, and a passing run has none. BA2's rule at this dispatch, and the same exemption its siblings carry."
+        },
+        {
+          "anchor": "if (-not $censusReported.Add(\"$propertyId|$vectorId|$censusName|$censusReader\")) { continue }",
+          "reason": "The census's per-finding dedupe, inside the branch reached only when a RAW read is found. A passing run finds none -- every read goes through a sanctioned reader -- so nothing is ever reported and nothing is ever deduped. `BB1-a` is the probe that reaches it, by putting one raw read back."
+        },
+        {
+          "anchor": "$censusWitness = if ($censusResult.Witness) { \" Witness: $($censusResult.Witness)$(if ($censusResult.Conjunct) { \", through '$($censusResult.Conjunct)'\" }).\" } else { '' }",
+          "reason": "The witness half of a raw-read finding's message, unreachable for the same reason: a passing run reports no raw read. `BB1-a` reaches it."
+        },
+        {
+          "anchor": "$censusObserved = if ([string]$censusResult.Verdict -ne $censusBaseline) { \"moved the verdict to $([string]$censusResult.Verdict).$censusWitness\" }",
+          "reason": "The classification of what a raw read DID -- silent, or moved the verdict -- inside the same unreachable branch. `BB1-a` reaches it."
         }
       ],
       "operandExemptions": [
@@ -117,6 +145,41 @@
           "reason": "The cap on reported findings, behind the test for a dropped field whose red arrives through a conjunct other than the one the sweep names it against. Every declared red fires through its named conjunct on a passing run, so the second operand is false throughout and short-circuiting reaches the cap in no input. The AZ3-b probe pins it by swapping a declared conjunct."
         }
       ]
+    },
+    {
+      "gate": "verify-channel-0.2-return-channels.ps1",
+      "$comment": "BB registered this gate under the coverage measure, which the fifteenth pass left owed on the judgement that the exemptions belonged to the pass inheriting the instrument under quarantine. Every exemption below is a branch reached by a probe and by no clean run, which is what the fifteenth pass predicted of it.",
+      "exemptions": [
+        {
+          "anchor": "if ($exemption.Count -ge 1) {",
+          "reason": "The member-exemption match. A clean run declares no member exemptions -- the census reports 0 of them -- so nothing ever matches one, and this branch is reached only once someone declares one. `BA-census-e` is the probe that reaches it, and it is a `pass` probe for exactly that reason: it is the negative control for a path no green run takes."
+        },
+        {
+          "anchor": "if (-not $Report) {",
+          "reason": "The verifying half of the report/verify split, inside the branch that has already recorded an unread member. A passing run has no unread member, so the enclosing block is never entered. `BA1-a` and `BA2-a` reach it by making a member unread."
+        },
+        {
+          "anchor": "foreach ($memberExemption in $declaredMemberExemptions) {",
+          "reason": "The stale-member-exemption sweep. It iterates the declared member exemptions, of which a clean run has none, so the body runs zero times. `BA-census-d` is the probe that puts one there."
+        },
+        {
+          "anchor": "if ($matchedMemberExemptions.ContainsKey($key)) { continue }",
+          "reason": "Inside the stale-member-exemption sweep above and unreachable for the same reason: on a clean run the loop it sits in has nothing to iterate."
+        },
+        {
+          "anchor": "if ($stillPresent) {",
+          "reason": "The branch that tells a member exemption whose consumer now reads the member from one whose consumer has gone. Both sides are conditions on a declared member exemption and a clean run declares none; `BA-census-d` reaches the condition through the second. Reaching it through the first is owed a probe and has none, which is stated here rather than left implied."
+        },
+        {
+          "anchor": "$missing = if (-not $clearedBefore -and -not $readAfter) { 'neither cleared before it nor read after it' }",
+          "reason": "The wording of an accumulator finding, inside the branch that has already recorded one. On a clean run every per-evaluation accumulator is cleared before and read after each dispatch, so no finding is recorded and this is never reached. `BA3-a` is the probe that removes a clear."
+        },
+        {
+          "anchor": "if ($reportRows.Count -lt 1) { Write-Host 'Every member a producer returns has a consumer, and every per-evaluation accumulator is cleared and drained at each of them.' }",
+          "reason": "The `-Report` summary. This gate runs in verifying mode both in the repository gate and under the coverage measure, so the whole `-Report` block is unreached -- the same trade the owned-fact gate's `-Apply` path is exempted under."
+        }
+      ],
+      "operandExemptions": []
     },
     {
       "gate": "verify-channel-0.2-facts.ps1",

@@ -184,6 +184,7 @@ dependency instead of narrowing it.
 | AX | iteration | verification | twelfth W1-W3 verification-foundation iteration review |
 | AZ | iteration | verification | fourteenth W1-W3 verification-foundation iteration review |
 | BA | iteration | verification | fifteenth W1-W3 verification-foundation iteration review |
+| BB | iteration | verification | sixteenth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -279,7 +280,7 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Fifteen such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
+Sixteen such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
 nothing it can fix. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
@@ -294,15 +295,16 @@ nothing it can fix. They are retained as the
 [eleventh](./channel-0.2-aw-iteration-review.md) (**AW1**),
 [twelfth](./channel-0.2-ax-iteration-review.md) (**AX1**-**AX3**),
 [thirteenth](./channel-0.2-ay-iteration-review.md) (no finding),
-[fourteenth](./channel-0.2-az-iteration-review.md) (**AZ1**-**AZ2**) and
-[fifteenth](./channel-0.2-ba-iteration-review.md) (**BA1**-**BA7**) W1-W3 verification-foundation
+[fourteenth](./channel-0.2-az-iteration-review.md) (**AZ1**-**AZ2**),
+[fifteenth](./channel-0.2-ba-iteration-review.md) (**BA1**-**BA7**) and
+[sixteenth](./channel-0.2-bb-iteration-review.md) (**BB1**-**BB7**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
-**A sixteenth pass over the same scope is the live path, and it is the first of two consecutive clean
-passes that are owed again from zero.** It starts by running the frozen instrument set — the probe
-corpus, the coverage gate, the generated-vector run and the return-channel census, whose sizes the
-plan's section 4 owns and recomputes rather than this paragraph — and records what it reports before
-building anything.
+**A seventeenth pass over the same scope is the live path, and it is the first of two consecutive
+clean passes that are owed again from zero.** It starts by running the frozen instrument set — the
+probe corpus, the coverage gate, the generated-vector run, the return-channel census and the
+read-provenance census, whose sizes the plan's section 4 owns and recomputes rather than this
+paragraph — and records what it reports before building anything.
 
 **The fifteenth pass was to be the first of those two and was not.** Its frozen set reported nothing,
 for the ninth consecutive pass. The instrument it built — a census of what every consumer in these
@@ -319,11 +321,28 @@ census's own, found before it was believed, and **BA6** is the sharpest thing in
 correction changed the syntactic form of a constructor and the census went blind to BA1's own
 subject**, reporting a clean package it had stopped reading.
 
-**The sixteenth pass's method is the candidate the plan named beside AZ1 and this pass did not take.**
-The fifteenth made the `Errors` channel reach its consumers; nothing yet requires an evaluator to
-**fill** it where a record is genuinely unevaluable, and one evaluator of twenty-six populates it at
-all. Whether the other twenty-five have unevaluable records they silently call green is the AU1-shaped
-question one level in.
+**The sixteenth pass was to be the first of those two and was not either.** Its frozen set reported
+nothing, for the tenth consecutive pass. The instrument it built — a census that makes each field of
+each vector unreadable in turn and asks which reader performed the read — found **BB1**, **BB2** and
+**BB4** in the package on its first run, and **BB3** against a frozen instrument. **BB1** is that
+twenty-five of the twenty-six evaluators read their records raw, so an unreadable record and a
+conforming one produced the same verdict: 945 reads of an unreadable field, 760 leaving the property
+green with nothing reported and 125 moving the verdict with nothing reported. **BB2** is what that was
+hiding — `C2-P1`'s middle clause was gated on a field that one admit event of fifty-one publishes and
+no artifact names, so it evaluated one record in the declared corpus and none in the generated
+population while reporting green over both. **BB3** is **BA6**'s class inside the instrument BA6 was
+raised in, one commit later: the return-channel census recognises an accumulator by `.Add(...)` and is
+blind to `$script:Table[$key] = $value`. **BB7** is the pass's own and the one to read first: invoked
+the way the coverage measure invokes a gate, the new census recorded no reads at all and reported that
+as a clean zero, and the coverage measure's report of eleven never-executed constructs is what exposed
+it — after the exemptions to silence all eleven had been drafted.
+
+**The seventeenth pass's method is the candidate this one left behind, and it is about the sixteenth's
+own work.** The read-provenance census checks that a `Read-Optional` was declared and that some input
+exercises it; it cannot check that the declaration is **true**. Five now assert, inside a gate, that an
+absent field is a fact the design states — and a declaration that is exercised and wrong looks exactly
+like one that is exercised and right. That is AO3's question put to a claim this programme introduced
+last.
 
 Nothing in this paragraph resumes the closure cycle or authorizes a closure-review dispatch.
 
@@ -1164,6 +1183,29 @@ context elsewhere — never as evidence that their conclusions are right.
   decides whether a `foreach` body ran by asking whether the body's first line ran, so a body written
   on the header line reports as covered either way — and the declared loop's `Errors` drain, empty on
   every passing run, had been silently green beside the identical one BA2 was required to declare.
+
+- [Sixteenth W1-W3 verification-foundation iteration review](./channel-0.2-bb-iteration-review.md) —
+  the same scope at `a3b22f4`; raised **BB1**-**BB7** and corrected all seven, so it is **not** the
+  first of the two consecutive clean passes and the count stays at zero. Its frozen set reported
+  nothing. Its instrument makes each field of each vector unreadable in turn and asks which reader
+  performed the read, and **BB1**, **BB2** and **BB4** are what it found in the package: twenty-five
+  of twenty-six evaluators reading their records raw, so a record the evaluator could not read and one
+  that conforms produced the same verdict; `C2-P1`'s middle clause gated on `acceptedTransition`, a
+  field one admit event of fifty-one publishes and no artifact names, so the clause evaluated one
+  record in the declared corpus and none in the generated population; and `S5` comparing two rendered
+  profile records, where a leaf the vector does not publish renders as `null` and reports as a
+  difference the property cannot substantiate. **BB3** is against a frozen instrument and found by
+  running into it: BA's return-channel census recognises a `$script:` accumulator by `.Add(...)` and is
+  blind to index assignment, which is BA6's own class one commit later. **BB5** and **BB6** are the
+  pass's own, corrected before its result was believed — nine of fourteen new `Read-Optional`
+  declarations unfalsified by any declared input, and the new collection reader's two unrolling
+  defects, the second of which AZ3's sweep caught when two droppings it declares red went green.
+  **BB7** is the third and the sharpest: the census's poison getter called a script function through a
+  `GetNewClosure` scope that cannot resolve one under the call operator, the getter threw where a
+  `PSScriptProperty` swallows the error, and the census reported a clean **0 raw reads** over a package
+  it had stopped reading — BA6's class one pass later and total rather than partial. The coverage
+  measure found it by reporting eleven never-executed constructs, which the pass had already drafted
+  exemptions for.
 
 ## Disclosed process deviation in the T1-T4 correction
 
