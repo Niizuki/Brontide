@@ -49,7 +49,12 @@ function Invoke-Checked {
 # guard to return the verdict it owes. It mutates the working tree and restores from bytes it read
 # first, and it refuses to run over a path with uncommitted changes. AO3.
 Invoke-Checked {
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-guards.ps1')
+    # `-Parallel 0` is one worker per processor, each in its own copy of the repository. The corpus
+    # is a hundred and three independent probes and it was the largest thing in this file; running
+    # them together took it from 587 seconds to 427 on sixteen workers. It does not go lower
+    # because one probe -- the coverage measure over the properties gate -- is six minutes on its
+    # own and bounds the run.
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-channel-0.2-guards.ps1') -Parallel 0
 }
 
 # And the question the probes cannot ask: not "does this guard fire on its own subject" but "did this

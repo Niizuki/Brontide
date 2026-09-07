@@ -81,11 +81,86 @@ catch { Write-Host "FAIL: invalid JSON in '$declarationPath': $($_.Exception.Mes
 # the argument for resolving the form rather than matching it. The one-level depth is the limit this
 # measure states rather than the depth it happens to need; a producer that reaches its record through
 # two variables is not censused, and the probe corpus is where that would be noticed.
+# ONE walk per gate, and every question below is a lookup into it.
+#
+# Each unit here asks the syntax tree for the nodes of one type, and `FindAll` is a full walk whose
+# predicate is a PowerShell scriptblock invoked once per node. Asked from inside the loops over
+# functions, consumers and accumulators, that was on the order of a hundred walks per gate and five
+# hundred across the five. It cost 2.2 seconds standing alone, which is why it was never the thing
+# anyone looked at -- and about 250 times that under the line trace the coverage measure runs this
+# gate beneath, because a traced scriptblock invocation writes several lines per node visited.
+# Registering this gate for coverage is what made the cost visible, and the measure that found it is
+# the one this file was slowing down.
+#
+# So the tree is walked once, its nodes bucketed by type name, and a question about a SUB-TREE is
+# answered by filtering that bucket on extent offsets -- an integer comparison where it used to be
+# another walk. The results are identical by construction: `FindAll($node -is [T], $true)` over a
+# sub-tree is exactly the nodes of type T whose extent lies inside that sub-tree's extent, and
+# `FindAll` includes the node it is called on, which an inclusive offset range also does.
+function Get-AstIndex {
+    param([Parameter(Mandatory = $true)]$Ast)
+
+    # Each bucket is SORTED by start offset so the parallel offset array below can be binary-searched.
+    # It is sorted rather than assumed sorted: `FindAll` looked like it visited in document order and
+    # does not for every node type -- `StatementBlockAst` comes back out of order -- and an unsorted
+    # bucket would make the range search silently return a subset, which is the shape of defect this
+    # whole file exists to report. The assumption was written first and the check that replaced it
+    # found it wrong on the first run.
+    $index = @{}
+    foreach ($node in $Ast.FindAll({ param($visited) $null -ne $visited }, $true)) {
+        $kind = $node.GetType().Name
+        if (-not $index.ContainsKey($kind)) { $index[$kind] = [System.Collections.Generic.List[object]]::new() }
+        [void]$index[$kind].Add($node)
+    }
+    $built = @{}
+    foreach ($kind in $index.Keys) {
+        $nodes = @($index[$kind] | Sort-Object { $_.Extent.StartOffset })
+        $starts = [int[]]::new($nodes.Count)
+        for ($position = 0; $position -lt $nodes.Count; $position++) {
+            $starts[$position] = $nodes[$position].Extent.StartOffset
+        }
+        $built[$kind] = @{ Nodes = $nodes; Starts = $starts }
+    }
+    return $built
+}
+
+function Get-AstNodes {
+    param(
+        [Parameter(Mandatory = $true)]$Index,
+        [Parameter(Mandatory = $true)][string]$Kind,
+        [System.Management.Automation.Language.Ast]$Within)
+
+    # Returned WITHOUT the unary comma `Get-List` next door needs. Every caller here consumes this in
+    # a `foreach` or inside `@(...)`, where the comma's surviving wrapper arrives as a one-element
+    # collection holding the array -- which is the same unrolling defect from the other side.
+    if (-not $Index.ContainsKey($Kind)) { return @() }
+    $bucket = $Index[$Kind]
+    if ($null -eq $Within) { return @($bucket.Nodes) }
+
+    # A binary search and a walk of the range, rather than a `Where-Object` over the whole bucket.
+    # This is the hot path and it is the whole cost of this file: the sub-tree question is asked once
+    # per consumer and once per accumulator-and-consumer pair, and a `Where-Object` invokes a
+    # scriptblock per node each time -- about half a million invocations per gate. Under the line
+    # trace the coverage measure runs this file beneath, each of those writes several lines at about a
+    # millisecond apiece, which is where nine minutes of a twenty-minute coverage run went.
+    $start = $Within.Extent.StartOffset
+    $end = $Within.Extent.EndOffset
+    $first = [Array]::BinarySearch($bucket.Starts, $start)
+    if ($first -lt 0) { $first = -$first - 1 }
+    $found = [System.Collections.Generic.List[object]]::new()
+    for ($position = $first; $position -lt $bucket.Nodes.Count; $position++) {
+        $node = $bucket.Nodes[$position]
+        if ($node.Extent.StartOffset -gt $end) { break }
+        if ($node.Extent.EndOffset -le $end) { [void]$found.Add($node) }
+    }
+    return @($found)
+}
+
 function Get-HandedBack {
-    param([Parameter(Mandatory = $true)]$FunctionAst)
+    param([Parameter(Mandatory = $true)]$FunctionAst, [Parameter(Mandatory = $true)]$Index)
 
     $direct = [System.Collections.Generic.List[object]]::new()
-    foreach ($returned in $FunctionAst.FindAll({ param($node) $node -is [System.Management.Automation.Language.ReturnStatementAst] }, $true)) {
+    foreach ($returned in (Get-AstNodes -Index $Index -Kind 'ReturnStatementAst' -Within $FunctionAst)) {
         if ($null -ne $returned.Pipeline) { $direct.Add($returned.Pipeline) }
     }
     $trailing = @($FunctionAst.Body.EndBlock.Statements)
@@ -96,7 +171,7 @@ function Get-HandedBack {
         $resolved.Add($expression)
         $bare = [regex]::Match($expression.Extent.Text, '^\s*\$(\w+)\s*$')
         if (-not $bare.Success) { continue }
-        foreach ($assignment in $FunctionAst.FindAll({ param($node) $node -is [System.Management.Automation.Language.AssignmentStatementAst] }, $true)) {
+        foreach ($assignment in (Get-AstNodes -Index $Index -Kind 'AssignmentStatementAst' -Within $FunctionAst)) {
             if ($assignment.Left -isnot [System.Management.Automation.Language.VariableExpressionAst]) { continue }
             if ($assignment.Left.VariablePath.UserPath -cne $bare.Groups[1].Value) { continue }
             $resolved.Add($assignment.Right)
@@ -107,12 +182,12 @@ function Get-HandedBack {
 
 # Every shape a function hands back as a record literal.
 function Get-RecordShape {
-    param([Parameter(Mandatory = $true)]$FunctionAst)
+    param([Parameter(Mandatory = $true)]$FunctionAst, [Parameter(Mandatory = $true)]$Index)
 
     $shapes = [System.Collections.Generic.List[object]]::new()
-    foreach ($candidate in (Get-HandedBack -FunctionAst $FunctionAst)) {
+    foreach ($candidate in (Get-HandedBack -FunctionAst $FunctionAst -Index $Index)) {
         if ($candidate.Extent.Text -notmatch '^\s*(\[pscustomobject\]\s*)?@\{') { continue }
-        $tables = @($candidate.FindAll({ param($node) $node -is [System.Management.Automation.Language.HashtableAst] }, $true))
+        $tables = @(Get-AstNodes -Index $Index -Kind 'HashtableAst' -Within $candidate)
         if ($tables.Count -lt 1) { continue }
         $shapes.Add(@($tables[0].KeyValuePairs | ForEach-Object { $_.Item1.Extent.Text.Trim("'`"") }))
     }
@@ -124,10 +199,10 @@ function Get-RecordShape {
 
 # The same expressions as text, for the fixed point below.
 function Get-ReturnedText {
-    param([Parameter(Mandatory = $true)]$FunctionAst)
+    param([Parameter(Mandatory = $true)]$FunctionAst, [Parameter(Mandatory = $true)]$Index)
 
     $texts = [System.Collections.Generic.List[string]]::new()
-    foreach ($expression in (Get-HandedBack -FunctionAst $FunctionAst)) {
+    foreach ($expression in (Get-HandedBack -FunctionAst $FunctionAst -Index $Index)) {
         $texts.Add($expression.Extent.Text)
     }
     return , $texts
@@ -163,10 +238,11 @@ foreach ($censusGate in $censusGates) {
         continue
     }
 
-    $functions = @($ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true))
+    $gateIndex = Get-AstIndex -Ast $ast
+    $functions = @(Get-AstNodes -Index $gateIndex -Kind 'FunctionDefinitionAst')
     $members = @{}
     foreach ($function in $functions) {
-        $shapes = Get-RecordShape -FunctionAst $function
+        $shapes = Get-RecordShape -FunctionAst $function -Index $gateIndex
         if ($shapes.Count -lt 1) { continue }
         $union = [System.Collections.Generic.HashSet[string]]::new()
         foreach ($shape in $shapes) {
@@ -185,7 +261,7 @@ foreach ($censusGate in $censusGates) {
     while ($growing) {
         $growing = $false
         foreach ($function in $functions) {
-            foreach ($returnedText in (Get-ReturnedText -FunctionAst $function)) {
+            foreach ($returnedText in (Get-ReturnedText -FunctionAst $function -Index $gateIndex)) {
                 foreach ($producerName in @($members.Keys)) {
                     if (-not (Test-NamesIdentifier -Text $returnedText -Identifier $producerName)) { continue }
                     if (-not $members.ContainsKey($function.Name)) {
@@ -219,12 +295,12 @@ foreach ($censusGate in $censusGates) {
     # `${function:...}` references. The consumer is censused against the union of those, because the
     # dispatch is by property id at run time and every one of them is reachable there.
     $dispatchable = [System.Collections.Generic.HashSet[string]]::new()
-    foreach ($variable in $ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.VariableExpressionAst] }, $true)) {
+    foreach ($variable in (Get-AstNodes -Index $gateIndex -Kind 'VariableExpressionAst')) {
         if ($variable.VariablePath.UserPath -match '^function:(.+)$') { [void]$dispatchable.Add($Matches[1]) }
     }
 
     $consumers = [System.Collections.Generic.List[object]]::new()
-    foreach ($assignment in $ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.AssignmentStatementAst] }, $true)) {
+    foreach ($assignment in (Get-AstNodes -Index $gateIndex -Kind 'AssignmentStatementAst')) {
         if ($assignment.Left -isnot [System.Management.Automation.Language.VariableExpressionAst]) { continue }
         $rightText = $assignment.Right.Extent.Text
         # The dispatch table itself is not a consumer of what it holds.
@@ -260,7 +336,7 @@ foreach ($censusGate in $censusGates) {
         # same-named variable in an unrelated function cannot answer for this one.
         $readMembers = [System.Collections.Generic.HashSet[string]]::new()
         $scope = if ($consumer.Enclosing) { $consumer.Enclosing } else { $ast }
-        foreach ($memberRead in $scope.FindAll({ param($node) $node -is [System.Management.Automation.Language.MemberExpressionAst] }, $true)) {
+        foreach ($memberRead in (Get-AstNodes -Index $gateIndex -Kind 'MemberExpressionAst' -Within $scope)) {
             if ($memberRead.Expression -isnot [System.Management.Automation.Language.VariableExpressionAst]) { continue }
             if ($memberRead.Expression.VariablePath.UserPath -cne $consumer.Variable) { continue }
             if (-not $consumer.Enclosing) {
@@ -308,11 +384,29 @@ foreach ($censusGate in $censusGates) {
 
     # ---- Unit 2: script-scope accumulators -------------------------------------------------------
 
+    # BB3. Two write shapes, not one. This unit recognised an accumulator by `.Add(...)` alone, and a
+    # hashtable accumulated by `$script:X[$key] = $value` is the same channel written the other way --
+    # undeclared, and so unchecked for a consumer, with the gate green. It was found by writing one:
+    # BB1's `$script:OptionalReads` records which declared-optional field some input left absent, and
+    # this unit reported instead that the declaration for it applied to nothing.
+    #
+    # That is BA6's class inside the instrument BA6 was raised in, which is the argument against
+    # recognising a thing by the syntax someone happened to write, made a second time. The limit that
+    # remains is stated rather than closed: a write through an alias, or through a member other than
+    # `Add` on a collection type that has one, is still invisible here.
     $accumulators = [System.Collections.Generic.HashSet[string]]::new()
-    foreach ($invocation in $ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.InvokeMemberExpressionAst] }, $true)) {
+    foreach ($invocation in (Get-AstNodes -Index $gateIndex -Kind 'InvokeMemberExpressionAst')) {
         if ([string]$invocation.Member.Extent.Text -cne 'Add') { continue }
         if ($invocation.Expression -isnot [System.Management.Automation.Language.VariableExpressionAst]) { continue }
         if ($invocation.Expression.VariablePath.UserPath -notmatch '^script:(.+)$') { continue }
+        [void]$accumulators.Add($Matches[1])
+    }
+    foreach ($assignment in (Get-AstNodes -Index $gateIndex -Kind 'AssignmentStatementAst')) {
+        $target = $assignment.Left
+        if ($target -is [System.Management.Automation.Language.ConvertExpressionAst]) { $target = $target.Child }
+        if ($target -isnot [System.Management.Automation.Language.IndexExpressionAst]) { continue }
+        if ($target.Target -isnot [System.Management.Automation.Language.VariableExpressionAst]) { continue }
+        if ($target.Target.VariablePath.UserPath -notmatch '^script:(.+)$') { continue }
         [void]$accumulators.Add($Matches[1])
     }
 
@@ -337,7 +431,7 @@ foreach ($censusGate in $censusGates) {
         if ($declaredAccumulators[$accumulator] -cne 'per-evaluation') {
             # Cumulative: read once over the whole run, so a `Clear()` anywhere would silently
             # discard part of what it accumulated.
-            foreach ($invocation in $ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.InvokeMemberExpressionAst] }, $true)) {
+            foreach ($invocation in (Get-AstNodes -Index $gateIndex -Kind 'InvokeMemberExpressionAst')) {
                 if ([string]$invocation.Member.Extent.Text -cne 'Clear') { continue }
                 if ($invocation.Expression -isnot [System.Management.Automation.Language.VariableExpressionAst]) { continue }
                 if ($invocation.Expression.VariablePath.UserPath -cne "script:$accumulator") { continue }
@@ -369,7 +463,7 @@ foreach ($censusGate in $censusGates) {
             if (-not $block) { continue }
             $clearedBefore = $false
             $readAfter = $false
-            foreach ($use in $block.FindAll({ param($node) $node -is [System.Management.Automation.Language.VariableExpressionAst] }, $true)) {
+            foreach ($use in (Get-AstNodes -Index $gateIndex -Kind 'VariableExpressionAst' -Within $block)) {
                 if ($use.VariablePath.UserPath -cne "script:$accumulator") { continue }
                 $isClear = ($use.Parent -is [System.Management.Automation.Language.InvokeMemberExpressionAst]) -and
                     ([string]$use.Parent.Member.Extent.Text -ceq 'Clear')

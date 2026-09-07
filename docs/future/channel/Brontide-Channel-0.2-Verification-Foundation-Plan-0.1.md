@@ -1338,6 +1338,158 @@ quarantine rather than to the one that wrote it.
 **No timing measure was re-taken**, because another process ran on this machine throughout. Section 4
 records what a contended measurement was worth the last time one was believed.
 
+## 2s. What the sixteenth condition 4 pass found
+
+The sixteenth author-side pass has run, at `a3b22f4`, and is retained as the
+[sixteenth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-bb-iteration-review.md).
+It was to be the **first of the two consecutive clean passes** the 2026-09-04 ruling requires from
+zero.
+
+**It is not clean. Its frozen set reported nothing, and the instrument it built raised BA-successors
+BB1, BB2 and BB4 in the package on its first run — all against the retained verification, none against
+the design — so the two-consecutive count stays at zero.** It also raised **BB3** against a frozen
+instrument, in the way AZ1, AZ4 and BA7 were found, and **BB5**, **BB6** and **BB7** against its own
+new code; under this section's own ruling the last three belong to neither counted population, and all
+four are numbered because the corrections cite them.
+
+**BB7 is the one to read first**, because it is about what a clean report from a new instrument is
+worth. Invoked the way the coverage measure invokes a gate, the census recorded no reads at all and
+reported a clean *0 raw reads* over a package it had entirely stopped reading. The package findings
+below stand because they were found under the invocation where it does work -- but that had to be
+established rather than assumed.
+
+The method was the fifteenth pass's own finding pointing forward. AZ1 made the `Errors` channel reach
+its consumers and BA1 stopped three composed evaluators from rebuilding it empty, and neither asked the
+question one level in: **nothing required an evaluator to FILL it.** One evaluator of twenty-six
+populated it at all, so for the other twenty-five "I could not read this record" and "this realization
+conforms" were the same verdict. Asked mechanically, it answered.
+
+**BB1. Twenty-five of twenty-six evaluators read their records raw.** `Invoke-C4P2` reads every operand
+through `Get-Field` and pairs each with an entry in its own `Errors` list where the operand is required;
+it is the one evaluator that does. The other twenty-five read `$sessionEvent.step`,
+`$interaction.identity`, `$session.establishedBound` directly, and a direct read of an absent field
+yields `$null` silently. Both halves are the same defect: `S1` opens
+`if ([string]$sessionEvent.step -ne 'transition') { continue }`, so an event that does not publish
+`step` is skipped and the property is green having evaluated nothing about it, and `I5` writes
+`[int]$session.establishedBound`, where `[int]$null` is **0**, so a session that does not publish its
+bound is evaluated against a bound of zero and the first admission breaches it. The second is AU2's
+other half — an obligation firing on what the vector did not SAY — one level below where AU2 found it.
+
+Measured rather than argued. The census poisons each field of each vector in turn and asks which reader
+performed the read. Against the package as this pass found it: **933 reads of a field the evaluator
+could not read**, of which 48 reported, **760 left the property green having reported nothing**, and
+**125 moved the verdict with nothing reported**. After the correction it is 945, all through a named
+reader -- twelve more rather than fewer, because routing a read through `Read-Required` takes it out of
+a short-circuit that used to skip it. The
+correction is a taxonomy rather than eighty patches — four readers, differing in what an absent field
+MEANS: `Get-List` (empty, AU2's ruling unchanged), `Read-Required` (unevaluable, reported),
+`Read-Optional` (absence is a design fact, and the call site says which), and `Get-Field` (absence
+widens the candidate set, closure review 16's P3 rule, `C4-P2` only).
+
+**BB2. `C2-P1`'s middle clause evaluated one admit event of fifty-one.** Routing that evaluator's reads
+reported that no vector but one publishes `acceptedTransition`, and the clause was gated on it. The
+field occurs **twice in the repository**: on that line, and on one admit event of the property's own
+named mutation. No design artifact names it. So the clause the contract states as *every other input
+leaves the prior state unchanged or enters `faulted`* evaluated one of the fifty-one admit events in the
+declared corpus and none at all in the generated population, and was green everywhere else by never
+having looked. That an `admit` step happened is what the timeline records by carrying the step, so the
+second field restated a fact the step's own presence already carried — W1's duplication arriving as a
+guard. The guard is deleted and the field with it; the clause is now green over all 55 declared inputs
+and 100 generated vectors and still red on its mutation.
+
+**This is the finding that says what BB1 was worth**, and it was not found by reading the clause. Three
+passes have read this file.
+
+**BB3. The return-channel census cannot see an accumulator written by index.** BA's census discovers a
+`$script:` accumulator by walking for an invocation whose member is `Add`, so `$script:Table[$key] = $value`
+is invisible to it — the same channel written the other way, undeclared and therefore unchecked for a
+consumer, with the gate green. Found by writing one: this pass's `$script:OptionalReads` is written by
+index, and the census reported instead that the declaration for it applied to nothing. That is **BA6**'s
+class inside the instrument BA6 was raised in, one commit later. Corrected over index assignments as
+well, with the remaining limit stated: a write through an alias, or through a member other than `Add`,
+is still invisible.
+
+**BB4. A whole-record comparison reports a null leaf as a difference.** `S5` compares the profile record
+two establishment routes produce. The operand is the RECORD — naming its fields in the gate would make
+that file a second surface for the profile's shape — so both subtrees are rendered and the renderings
+compared. A leaf the vector does not publish renders as `null`, the renderings differ, and `S5` reports
+*produces different normative profile records*. Every previous instrument here missed it because no
+field of `S5`'s is unread and no condition of `S5`'s fails to run: it arrives through a comparison
+rather than through a read. Corrected by performing the rendering inside a reader that reports a `null`
+in it as an unreadable record instead of letting it become a verdict.
+
+**BB7. The census reported a clean zero over a package it had stopped reading.** The poison getter is
+a scriptblock made with `.GetNewClosure()`, and it called a script function to walk the call stack.
+`GetNewClosure` snapshots the VARIABLES of the enclosing scope, and a function the script defines is not
+resolvable from that scope when the script is invoked through the call operator rather than through
+`-File`; the getter throws `CommandNotFound`, and a `PSScriptProperty` getter that throws yields `$null`
+to its reader **without surfacing the error**. So every read came back unattributed and the census
+printed `0 of 942 poisoned fields were read ... and 0 raw` and passed. Zero raw reads is what a clean
+census says; it is also what a census that has stopped reading says, and nothing distinguished them.
+That is BA6 one pass later, total rather than partial, in the instrument built to find exactly this.
+
+**How it was found is the part worth keeping.** The coverage measure runs each gate in a child process
+through the call operator, and it reported **eleven constructs of the census as never executed** -- every
+construct downstream of a read being recorded. The exemptions to silence all eleven were drafted first
+and were not written, because *a construct that never runs is a finding until it is explained*. Reading
+a coverage report as a symptom rather than as noise is what produced this finding.
+
+Corrected in both halves: the call-stack walk is written out inside the getter, so it calls no script
+function -- `Get-PSCallStack` is a cmdlet and resolves from the closure's scope where a script function
+does not, and the census now reports the same figures under both invocations, verified both ways. And a
+census that poisons every field of an input and observes the property reading **none** of them is now a
+failure, asserted per property and per input rather than as one total, because a census blinded for one
+property and working for the rest is the partial case BA6 was. The second half is the one that fails the
+next such defect without another instrument having to notice.
+
+**BB5 and BB6, the pass's own.** `Read-Optional` is a judgement, and a judgement nothing checks is a way
+of spelling a raw read — so the gate fails on a declaration **no declared input exercises**, which is
+AU1's unit one level out. Written for the first time, fourteen declarations went in and the check
+reported **nine**, all wrong in the same direction: the field is published by every record that reaches
+the read, and each is now the stronger `Read-Required`. Two thirds of the first draft's judgements were
+guesses. And **BB6** is the new collection reader's two unrolling defects — `return @()` handing the
+caller `$null`, which is BA5's defect one function along, and the `,@(...)` that corrects it surviving
+exactly ONE unrolling, so a `ForEach-Object` over it yields the inner array whole and `[string]` renders
+every identity into one space-joined string. **AZ3's sweep caught the second**: two droppings it declares
+red went green while the declared corpus and every named mutation stayed where they were.
+
+**The instrument, and where it lives.** A new unit in `build/verify-channel-0.2-properties.ps1`, because
+it has to RUN the evaluators and they live there. Each field of each vector is replaced in turn by a
+property whose getter records that it was read and returns nothing; the evaluator is then run, and the
+census asks which reader performed the read, taken off the call stack rather than inferred from the
+outcome. The reader is the rule and the outcome is the demonstration: classifying by outcome would pass
+a raw read whose absence happens not to move today's verdict, which is AP1's class and the reason the
+coverage measure counts conditions rather than failures. It reports **945 of 3,594 poisoned fields
+read, all through a sanctioned reader, over 5 exercised `Read-Optional` declarations**. Six probes were
+added, taking the corpus from 97 to 103, one of them a `pass` probe over the census's own first stated
+limit and one, `BB7-a`, over the blindness BB7 was.
+
+**The walk prunes.** A field beneath a container the evaluator did not read cannot have been read,
+because the container is the only path to it, so a container whose poisoning goes unread takes its
+subtree out of the walk. Flat it poisoned 10,862 fields to find 945 reads; pruned it poisons 3,594 and
+finds the same 945, and the properties gate at `-GeneratedCount 0` goes from 10.6 seconds to 3.2. Both
+forms were run against each other, with and without an injected raw read, before the flat one was
+removed. That is what puts this measure in the per-commit gate rather than behind the self-check
+switch.
+
+**The owed registration is done.** The fifteenth pass left the return-channel census outside the
+coverage measure, on the judgement that its exemptions belonged to the pass inheriting it under
+quarantine. It is registered here, with its exemptions written with their reasons.
+
+**What the next pass inherits.** The census states three limits where they apply: it measures the reads
+a declared green-expected input provokes, so a read on a path no such input reaches is invisible;
+`declaredSteps` is outside the poisoned set because the harness builds the step index from it before any
+evaluator runs; and a `Read-Optional` is checked to have been declared and exercised, **not to be
+right**.
+
+That last one is the sharpest thing a seventeenth pass could ask, and it is this pass's own work it
+would be asking about. Five declarations now say that an absent `refusal`, `decisionPoint`,
+`initiatorAttribution`, `provenanceFormActually` or `terminalHistoryChangedBy` is a fact the design
+states rather than a silence in the vector. Each is exercised by some input and each is written beside
+the read, and **none is checked against the artifact that would settle it**. A declaration that is
+exercised and wrong looks exactly like one that is exercised and right — which is AO3's question, asked
+of a claim this pass introduced rather than of a guard comment someone else wrote.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -1396,11 +1548,12 @@ nothing means the package is sound *under what the programme can currently detec
 and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
-fifteen times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one,
-three, zero, three and **seven** defects. Sections 2d through 2r record them. This tally counts what a
-reader counts -- the numbered findings in each pass's retained review. Where the 2026-09-04 ruling's
-two populations differ from that total, the pass's own section states the split: of the fifteenth's
-seven, five are in the package and two are in the instrument that pass built.
+sixteen times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one,
+three, zero, three, seven and **seven** defects. Sections 2d through 2s record them. This tally counts
+what a reader counts -- the numbered findings in each pass's retained review. Where the 2026-09-04
+ruling's two populations differ from that total, the pass's own section states the split: of the
+fifteenth's seven, five are in the package and two are in the instrument that pass built, and of the
+sixteenth's seven, four are in the package and three are in its own new code.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -1421,6 +1574,29 @@ coverage measure was in it, it was green, and it could not see a `foreach` body 
 line. Nine of these fifteen passes have now had a clean frozen set
 and a new instrument that found something, which is the pattern the ruling predicted and priced: what
 is being measured is what the programme could not previously detect, and it has not run out.
+
+**The sixteenth was to be the first of the two owed from zero and is not either.** Its frozen set
+reported nothing -- the 97-probe corpus, the coverage measure, both design gates, the return-channel
+census, and 52,000 evaluations over 2,000 generated vectors at 0 red with AZ3's sweep green -- which
+is the tenth consecutive clean frozen set and a strictly larger one again, having gained the
+return-channel census and that pass's twelve probes. The instrument it built found **BB1**, **BB2**
+and **BB4** in the package on its first run, and **BB3** says what that clean frozen set was worth a
+second time: the return-channel census was in it, it was green, and it could not see an accumulator
+written `$script:Table[$key] = $value` rather than `.Add(...)`. Ten of these sixteen passes have now
+had a clean frozen set and a new instrument that found something.
+
+**And BB7 is what the frozen set was worth in the other direction.** The coverage measure reported
+eleven constructs of the new census as never executed, which was that census reporting a clean zero
+over a package it had stopped reading. A frozen instrument caught a new one lying, which is the case
+for keeping the frozen set large that this programme has been making since AO3 -- and the pass came
+within one edit of silencing it with eleven exemptions.
+
+**BB2 is the sharpest of them for this section's purposes.** `C2-P1`'s middle clause was gated on a
+field one admit event of fifty-one publishes and no artifact names, so it evaluated one record in the
+declared corpus and none at all in the generated population while reporting green over both. Every
+"N generated vectors, 0 red" this programme has recorded includes that clause reporting a green it had
+not earned -- which is AZ1's lesson arriving through a different door, and the reason the floor these
+numbers establish keeps having to be re-stated lower.
 
 **So the count stays at zero and two consecutive clean passes are still owed.** That is the ruling
 working rather than failing, in the same way the twelfth was: a pass that extends an instrument and
@@ -1453,27 +1629,32 @@ have been entitled to call blocking**, as does **AU1**, eleven obligations that 
 could distinguish an implementation honouring them from one that did not. The condition is doing what
 it was written to do; it has not yet run out of findings.
 
-The next work is therefore a sixteenth author-side pass, and it is the **first of the two consecutive
-passes** the 2026-09-04 ruling requires. The fifteenth took the question the fourteenth's finding
-pointed at — what does each consumer do with each thing its producer hands back, and which of those
-has no consumer at all — asked it mechanically over these five gates, and found it answered four
-times; section 2r records what and the census now enforces it on every commit.
+The next work is therefore a seventeenth author-side pass, and it is the **first of the two
+consecutive passes** the 2026-09-04 ruling requires. The sixteenth took the question the fifteenth's
+finding pointed at — nothing requires an evaluator to FILL the `Errors` channel where a record is
+genuinely unevaluable — asked it mechanically by making each field of each vector unreadable in turn,
+and found that twenty-five of the twenty-six evaluators could not tell an unreadable record from a
+conforming one; section 2s records what, and the four-reader taxonomy that replaced the raw reads is
+now enforced on every commit.
 
-**The sixteenth's method is the candidate that question left behind.** The fifteenth made the `Errors`
-channel reach its consumers. **Nothing yet requires an evaluator to FILL it** where a record is
-genuinely unevaluable, and exactly one evaluator of twenty-six populates it at all. So for the other
-twenty-five, "I could not read this record" and "this realization conforms" are the same verdict, and
-no instrument here can tell them apart. That is **AU1**'s question — an obligation no declared input
-can distinguish being honoured from being ignored — one level in, and it is where the next pass should
-spend its increment.
+**The seventeenth's method is the candidate that question left behind, and it is about this pass's own
+work.** The census checks that a `Read-Optional` was DECLARED and that some input EXERCISES it. It
+cannot check that the declaration is **true**. Five now stand — an absent `refusal`, `decisionPoint`,
+`initiatorAttribution`, `provenanceFormActually` or `terminalHistoryChangedBy` is a fact the design
+states rather than a silence in the vector — and each is a claim about the design asserted inside a
+gate, which is the second-surface problem W1 exists to retire arriving as a judgement rather than as a
+copied fact. A declaration that is exercised and wrong looks exactly like one that is exercised and
+right. That is **AO3**'s question — read each claim as a claim and test it against the authority — put
+to a claim this programme introduced last, and it is where the next pass should spend its increment.
 
 What the fourteenth left undone is narrower and should not be confused with the above: the seven inert
 droppings are inert because the generated population carries one frame shape per session, and the
 generator still produces conforming vectors only, with the mutation direction applied by hand and
-discarded. The fifteenth left one thing of the same size: **the census gate is not itself under the
-coverage measure**, because its exemption-matching branches are reached by probes and by no clean run,
-so registering it needs coverage exemptions written with their reasons — a judgement left to the pass
-that inherits the instrument under quarantine rather than made by the pass that wrote it.
+discarded. The fifteenth's own item — the census gate outside the coverage measure — **is done**, and
+the sixteenth left one thing of the same size: the read-provenance census poisons fields for the
+DECLARED corpus only, so whether an evaluator reads a generated record raw is the same question over a
+population a thousand times larger, at a thousand times the cost. That trade was not made and is left
+named rather than absorbed.
 
 Nothing in this section authorizes dispatching a closure review, and the closure-cycle state at the
 head of this document is what says so.
@@ -1495,9 +1676,9 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,336** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,340** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
-  commits, which was never the value at any commit; it is corrected under **AM3**. It has moved three
+  commits, which was never the value at any commit; it is corrected under **AM3**. It has moved four
   times since, by four characters each time and for the same reason — registering a new
   iteration-review family in the Design reviews row — and on each occasion the check that recomputes it failed the
   figure on the commit that wrote it, which is the check working rather than a defect in it; and
@@ -1528,8 +1709,40 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   the pipelines, and the probe corpus runs that gate once per probe. An earlier reading of this
   comparison claimed the rewrite saved 422 seconds here; that was measured with other work running on
   the same machine and it was wrong. All measured in verifying mode on one machine with nothing else
-  running, so the figures are comparable with each other and not with CI; and
-- **guard probes executable** — currently **97 of 97**, run by
+  running, so the figures are comparable with each other and not with CI.
+
+  **BB re-measured all of this, because BB made it worse before it made it better, and the figures
+  above had gone stale in both directions.** The properties gate is **18.0 seconds** at its default
+  count and this section recorded 0.7; the generated loop and AZ3's sweep are 15.2 of it, and the
+  figure had not been retaken since AZ2 enriched the population. One coverage run is **19.6 minutes**,
+  not 308 seconds, and the whole probe corpus was about **110 minutes**, not 791.
+
+  What the corpus was spending it on was five probes. Each asserts one thing about one gate's coverage
+  declaration and each was running the full four-gate traced measure to do it, because a probe could
+  not name the arguments its gate runs under. Scoping those to the gate their guard is about takes four
+  of them from about twenty minutes each to about ten seconds. With that, cheaper arguments for the
+  twenty-six properties probes whose guards are not in the generated block, and one repository copy per
+  worker, the corpus is **427 seconds on sixteen workers** and 587 serial. A worker copy is 0.6
+  seconds, so isolation is not what costs; what bounds the run is the single probe that covers the
+  properties gate, at about six minutes.
+
+  The coverage measure is **809 seconds**, from 1,176. **Its parallelism is the disappointment of this
+  work and is recorded as one**: running its four traced gates together should have left it at the cost
+  of the slowest, about 320 seconds, and it did not — four concurrent traced runs each writing hundreds
+  of thousands of lines contend on something this measurement did not isolate. Most of the saving that
+  did arrive came from `-CensusPairs`, which halves the traced properties run at 582.6 to 288.6, and
+  from the operand unit finally running the gate with the arguments the declaration names. Against
+  that, BB itself put the return-channel census under this measure, which is 318 seconds of traced run
+  that did not exist before; the registration was owed and it is not free, and both halves belong in
+  the same sentence.
+
+  A traced statement costs about a millisecond and that is the whole shape of this measure's cost.
+  Two things were tried and did not help, recorded so nobody tries them again: capturing the trace
+  through a process redirection rather than the pipeline is 18.2 seconds against 17.2, which is
+  nothing, and cutting the return-channel census from about a hundred syntax-tree walks per gate to one
+  moved it from 530 traced seconds to 318 — real, but a fifth of what the walk count suggested, because
+  what costs is executed statements and not walks; and
+- **guard probes executable** — currently **103 of 103**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
@@ -1555,7 +1768,9 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   **BA**, `verify-channel-0.2-return-channels.ps1` — so the total verification code in
   the repository has grown throughout; what this measure is for is whether the DESIGN verifier is
   still absorbing the cost of a structural problem. It did not move for BA: that pass added a gate and
-  changed one line here, the review-file roster.
+  changed one line here, the review-file roster. It did not move for BB either, and for the same
+  reason -- that pass's work is all in the properties gate, the return-channel census and their
+  declarations, and the one line it changed here is again the review-file roster.
 
 ## 5. Open questions for the owner
 

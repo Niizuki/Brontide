@@ -19,7 +19,20 @@ param(
     # Forty is well past what the sweep needs: every dropping's outcome is fixed by whether the
     # vector carries one session or several, so forty vectors cover each declared case many times
     # over. `verify-gate-self-checks.ps1` raises it for the deep run, exactly as it does the other.
-    [int]$SweptCount = 40
+    [int]$SweptCount = 40,
+    # How many (property, input) pairs BB1's read-provenance census walks, counted from the first and
+    # never more than the corpus holds. Zero, the default, means all of them.
+    #
+    # It exists for the same reason `SweptCount` does and it is a COST dial, not a fidelity one. The
+    # coverage measure runs this gate under a line trace where every executed statement costs about a
+    # millisecond, and the census is thousands of evaluator calls -- so tracing the whole of it was ten
+    # minutes of one probe. Coverage needs each construct REACHED once, which two pairs do.
+    #
+    # What a cap does NOT weaken: the `Read-Optional` exercise check below is fed by the declared
+    # corpus loop rather than by the census -- census reads are suppressed from it deliberately -- so a
+    # capped census still checks every declaration. What it does weaken is the census itself, and the
+    # summary line says so rather than reading like a full run.
+    [int]$CensusPairs = 0
 )
 
 $ErrorActionPreference = 'Stop'
@@ -306,12 +319,27 @@ function Test-MemberOf {
         $Identity
     )
 
+    # BB1. Both reads go through the widening readers, which is what the comment above already said
+    # this test does: a set publishing no session is not excluded by the session filter, and one
+    # publishing no identities contributes none. Written raw they said it by accident.
     $sets = @($AdmittedSets)
     if ($null -ne $Session) {
-        $sets = @($sets | Where-Object { [string]$_.session -eq [string]$Session })
+        $sets = @($sets | Where-Object { [string](Get-Field $_ 'session') -eq [string]$Session })
     }
 
-    $identities = @($sets | ForEach-Object { $_.identities } | Where-Object { $null -ne $_ } | ForEach-Object { [string]$_ })
+    # Flattened by an explicit loop rather than through the pipeline. `Get-List` returns `,@(...)`
+    # so that an assignment gets a collection, and that wrapper is exactly what survives ONE
+    # unrolling -- so a `ForEach-Object` emitting it yields the inner array as a single object, and
+    # `[string]` on that renders every identity into one space-joined string that matches nothing.
+    # It was caught here by AZ3's sweep going green where it declares red, which is the point of
+    # having a measure whose inputs are not the ones the change was written against.
+    $identities = [System.Collections.Generic.List[string]]::new()
+    foreach ($set in $sets) {
+        foreach ($setIdentity in (Get-List $set 'identities')) {
+            if ($null -eq $setIdentity) { continue }
+            [void]$identities.Add([string]$setIdentity)
+        }
+    }
     if ($null -eq $Identity) { return $identities.Count -gt 0 }
     return $identities -contains [string]$Identity
 }
@@ -332,14 +360,14 @@ function Invoke-C4P2 {
     )
 
     $errors = [System.Collections.Generic.List[string]]::new()
-    $observations = $Vector.observations
-    $admitted = @()
-    if ($null -ne $observations.recipientAdmittedIdentities) { $admitted = @($observations.recipientAdmittedIdentities) }
+    $observations = Read-Required $Vector 'observations' "vector '$VectorId'"
+
+    $admitted = Get-List $observations 'recipientAdmittedIdentities'
 
     # Conjunct 1. No endpoint records a recipient `rejected-protocol` at `unseen` for a cancellation
     # control whose committing endpoint had already committed the request naming that identity and
     # whose recipient afterwards admits an interaction for that identity in the same session.
-    foreach ($refusal in @($observations.unseenRefusals)) {
+    foreach ($refusal in (Get-List $observations 'unseenRefusals')) {
         if ($null -eq $refusal) { continue }
         $selectors = @(
             @{ Path = 'provenance'; Value = 'recipient' },
@@ -396,7 +424,7 @@ function Invoke-C4P2 {
     # Conjunct 2. None records a late-traffic `state-violation` latched against a frame whose
     # committing endpoint had committed it before that endpoint's own frame the interaction's terminal
     # history was accepted on.
-    foreach ($latch in @($observations.lateTrafficLatches)) {
+    foreach ($latch in (Get-List $observations 'lateTrafficLatches')) {
         if ($null -eq $latch) { continue }
         $category = Get-Field $latch 'category'
         $latchValue = Get-Field $latch 'latchValue'
@@ -475,8 +503,29 @@ $legalSessionTransitions = @(
     'unestablished>faulted', 'establishing>faulted', 'established>faulted')
 $terminalSessionStates = @('closed', 'faulted')
 
-function Get-Timeline { param($Vector) if ($null -eq $Vector.sessionTimeline) { return @() } return @($Vector.sessionTimeline) }
-function Get-Interactions { param($Vector) if ($null -eq $Vector.interactions) { return @() } return @($Vector.interactions) }
+# BB1. A `Read-Optional` reason two properties give for the same field is stated once, for the reason
+# W1 states any fact once: the second copy is the one that goes stale while both gates stay green.
+$refusalIsAbsence = 'an interaction that records no refusal was not refused, which is a fact the design states rather than a silence in the vector'
+$presentationIsAbsence = 'the clause is about an authority presentation that OMITS one of its three parts, so an absent field is the violation being detected and not a vector that failed to state one'
+
+# ---------------------------------------------------------------------------------------------
+# The four sanctioned readers, and the rule that there are only four -- BB1.
+#
+# Every field an evaluator reads off a vector record is read through one of these. A read written as
+# `$record.field` is not one of them, and the read-provenance census at the bottom of this file fails
+# on one, because a raw read is how a record the evaluator COULD NOT READ becomes indistinguishable
+# from one that conforms. That census's own section says what it measured; the rule is stated here,
+# beside the readers, because this is the file the rule binds.
+#
+# The four differ in what an ABSENT field means, and that difference is the whole of the taxonomy:
+#
+#   * `Get-List`, and `Get-Timeline`/`Get-Interactions`/`Get-Sessions` over it -- absent means EMPTY.
+#     AU2's ruling, unchanged.
+#   * `Read-Required` -- absent means the record cannot be evaluated, reported against the vector.
+#   * `Read-Optional` -- absent is itself a fact the design states, and the call site says which.
+#   * `Get-Field` -- absent WIDENS the candidate set rather than erroring. Closure review 16's P3
+#     rule, and `C4-P2` is the only property whose operands are resolved that way.
+# ---------------------------------------------------------------------------------------------
 
 # AU2, and both halves are one defect: an obligation that fires on what a vector does not SAY reports
 # the same red as one that fires on what a realization did wrong, so nothing distinguishes them.
@@ -486,7 +535,28 @@ function Get-Interactions { param($Vector) if ($null -eq $Vector.interactions) {
 # no `requiredFacets` -- with a blank where the facet name belongs in its own witness -- and two
 # evaluators already carried a local `if ($null -eq $history) { continue }` for the same thing, which
 # patches one reader and leaves every other read exposed. An unpublished collection is empty.
-function Get-List { param($Value) if ($null -eq $Value) { return @() } return @($Value) }
+#
+# BB1 moved the READ inside. `Get-List $interaction.terminalHistories` performed the read in the
+# CALLER and handed this function a value, so the caller was the raw reader and this function only
+# ever saw what had already been read -- a producer's channel rebuilt one level out. It takes the
+# record and the field name now, exactly as `Read-Required` beside it does.
+function Get-List {
+    param($Record, [Parameter(Mandatory = $true)][string]$Field)
+
+    # The unary comma is BA5's lesson, and it is load-bearing rather than stylistic: PowerShell
+    # unrolls a returned collection, so `return @()` hands the caller `$null` and a one-element list
+    # comes back as a scalar. BA5 was a count guard that skipped exactly that scalar and reported two
+    # producers of seven while reading as a total. Every caller here takes a collection.
+    if ($null -eq $Record) { return ,@() }
+    $member = $Record.PSObject.Properties[$Field]
+    if ($null -eq $member -or $null -eq $member.Value) { return ,@() }
+    return ,@($member.Value)
+}
+
+# The three vector-level collections, each `Get-List` against the vector and named for what it holds.
+function Get-Timeline { param($Vector) return (Get-List $Vector 'sessionTimeline') }
+function Get-Interactions { param($Vector) return (Get-List $Vector 'interactions') }
+function Get-Sessions { param($Vector) return (Get-List $Vector 'sessions') }
 
 # A scalar an obligation reads has no such default. A vector that does not say whether the realization
 # checked its declared bounds has not shown conformance and has not shown a violation either, and
@@ -504,6 +574,72 @@ function Read-Required {
     }
     return $member.Value
 }
+
+# BB1. The third reader, and the one that carries a reason.
+#
+# Not every absent field leaves a record unevaluable. An interaction that records no refusal has not
+# been silent about its refusal; the design says an interaction need not have one, and `I4` reading
+# `refusal` and finding nothing has learned a fact rather than lost one. Routing such a read through
+# `Read-Required` would report every conforming interaction in the corpus, which is the false report
+# AU2 was raised against, arriving from the other direction.
+#
+# So the distinction between the two is a JUDGEMENT, and this reader is where it is written down. The
+# `-Because` is mandatory and is not decoration: the census below counts the distinct reasons and
+# prints them with the measure, so an optional read is a declaration a reader can audit against the
+# design rather than a way of spelling a raw read. That is the AZ1 lesson applied to this file's own
+# new channel -- a channel nobody reads is one nobody can check.
+#
+# And the declaration is CHECKED rather than counted. A `Read-Optional` claims that some record the
+# properties are run over does not publish the field; if every record publishes it, the claim is
+# unfalsified and the read should be `Read-Required`. That is AU1's unit one more level out -- a
+# declaration no declared input exercises is one nothing in the suite distinguishes from a wrong one
+# -- and the check below is what makes writing the reason cost something.
+#
+# `$script:CensusPoisoning` is why the census cannot satisfy the check for free: the census makes
+# every field absent by construction, so an absence observed under it proves nothing about the
+# corpus and is not counted.
+$script:OptionalReads = @{}
+$script:CensusPoisoning = $false
+function Read-Optional {
+    param($Record, [Parameter(Mandatory = $true)][string]$Field,
+          [Parameter(Mandatory = $true)][string]$Because)
+
+    $value = $null
+    $member = if ($null -eq $Record) { $null } else { $Record.PSObject.Properties[$Field] }
+    if ($null -ne $member) { $value = $member.Value }
+    if (-not $script:CensusPoisoning) {
+        $declaration = "'$Field': $Because"
+        if (-not $script:OptionalReads.ContainsKey($declaration)) { $script:OptionalReads[$declaration] = $false }
+        if ($null -eq $value) { $script:OptionalReads[$declaration] = $true }
+    }
+    return $value
+}
+# BB1. The fourth reader, for an operand that is a whole RECORD rather than a field of one.
+#
+# `S5` compares the profile record two establishment routes produce. The operand is the record, not
+# any named field of it -- naming the fields here would make this file a second surface for the
+# profile's shape, which is the duplication W1 exists to retire -- so the comparison is over a
+# rendering of the whole subtree.
+#
+# That is what the census found, and the finding is real rather than a labelling problem. A leaf the
+# vector does not publish renders as `null`, the two renderings differ, and `S5` reports "produces
+# different normative profile records" -- a violation it cannot substantiate, which is AU2's half
+# that fires on what the vector did not SAY. So the rendering is performed here, where the leaf reads
+# happen inside a named reader, and a `null` in it is reported as an unreadable record instead of
+# being allowed to become a verdict. A normative profile record carries no nulls; one in the
+# rendering is a leaf the vector left out.
+function Read-Rendering {
+    param($Record, [Parameter(Mandatory = $true)][string]$Field, [Parameter(Mandatory = $true)][string]$Subject)
+
+    $value = Read-Required $Record $Field $Subject
+    if ($null -eq $value) { return $null }
+    $rendering = ($value | ConvertTo-Json -Depth 12 -Compress)
+    if ($rendering -match '(:|,|\[)null(,|\}|\])') {
+        [void]$script:UnpublishedFields.Add("$Subject renders '$Field' with a null leaf, so the whole-record comparison cannot tell an unpublished leaf from a genuine difference")
+    }
+    return $rendering
+}
+
 # AR1. `-Conjunct` names WHICH clause of a multi-clause property went red. It is not new structure
 # invented here: the check at the bottom of this file already requires a mutation declared against a
 # conjunct to fire through that conjunct, and the reason it gave -- "a conjunct whose mutation fires
@@ -555,11 +691,13 @@ function New-Green {
 
 function Invoke-S1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
+    $timelineSubject = 'a session-timeline event'
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
-        if ([string]$sessionEvent.step -ne 'transition' -or -not $sessionEvent.accepted) { continue }
-        $edge = "$($sessionEvent.from)>$($sessionEvent.to)"
+        if ([string](Read-Required $sessionEvent 'step' $timelineSubject) -ne 'transition') { continue }
+        if (-not (Read-Required $sessionEvent 'accepted' $timelineSubject)) { continue }
+        $edge = "$(Read-Required $sessionEvent 'from' $timelineSubject)>$(Read-Required $sessionEvent 'to' $timelineSubject)"
         if ($legalSessionTransitions -notcontains $edge) {
-            return New-Red "session $($sessionEvent.session) accepted the transition $edge on event $($sessionEvent.event), which the legal table does not contain"
+            return New-Red "session $(Read-Required $sessionEvent 'session' $timelineSubject) accepted the transition $edge on event $(Read-Required $sessionEvent 'event' $timelineSubject), which the legal table does not contain"
         }
     }
     return New-Green
@@ -568,13 +706,18 @@ function Invoke-S1 {
 function Invoke-S2 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     $state = @{}
+    $timelineSubject = 'a session-timeline event'
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
-        $sessionId = [string]$sessionEvent.session
-        if ([string]$sessionEvent.step -eq 'transition' -and $sessionEvent.accepted) { $state[$sessionId] = [string]$sessionEvent.to; continue }
-        if ([string]$sessionEvent.step -ne 'dispatch') { continue }
+        $sessionId = [string](Read-Required $sessionEvent 'session' $timelineSubject)
+        $step = [string](Read-Required $sessionEvent 'step' $timelineSubject)
+        if ($step -eq 'transition') {
+            if (Read-Required $sessionEvent 'accepted' $timelineSubject) { $state[$sessionId] = [string](Read-Required $sessionEvent 'to' $timelineSubject) }
+            continue
+        }
+        if ($step -ne 'dispatch') { continue }
         $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { 'unestablished' }
         if ($current -ne 'established') {
-            return New-Red "interaction $($sessionEvent.identity) dispatched while its own session $sessionId was $current"
+            return New-Red "interaction $(Read-Required $sessionEvent 'identity' $timelineSubject) dispatched while its own session $sessionId was $current"
         }
     }
     return New-Green
@@ -585,14 +728,19 @@ function Invoke-S3 {
     # Per session. A second session establishing and admitting after the first drains is legal, and
     # reading the drain across the vector is exactly the false red AL1 found.
     $drained = @{}
+    $timelineSubject = 'a session-timeline event'
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
-        $sessionId = [string]$sessionEvent.session
-        if ([string]$sessionEvent.step -eq 'transition' -and $sessionEvent.accepted -and [string]$sessionEvent.to -eq 'draining') {
-            if (-not $drained.ContainsKey($sessionId)) { $drained[$sessionId] = $true }
+        $sessionId = [string](Read-Required $sessionEvent 'session' $timelineSubject)
+        $step = [string](Read-Required $sessionEvent 'step' $timelineSubject)
+        if ($step -eq 'transition') {
+            if ((Read-Required $sessionEvent 'accepted' $timelineSubject) -and
+                [string](Read-Required $sessionEvent 'to' $timelineSubject) -eq 'draining') {
+                if (-not $drained.ContainsKey($sessionId)) { $drained[$sessionId] = $true }
+            }
             continue
         }
-        if ([string]$sessionEvent.step -eq 'admit' -and $drained.ContainsKey($sessionId)) {
-            return New-Red "session $sessionId admitted interaction $($sessionEvent.identity) after its own first drain transition"
+        if ($step -eq 'admit' -and $drained.ContainsKey($sessionId)) {
+            return New-Red "session $sessionId admitted interaction $(Read-Required $sessionEvent 'identity' $timelineSubject) after its own first drain transition"
         }
     }
     return New-Green
@@ -601,13 +749,16 @@ function Invoke-S3 {
 function Invoke-S4 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     $terminal = @{}
+    $timelineSubject = 'a session-timeline event'
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
-        if ([string]$sessionEvent.step -ne 'transition' -or -not $sessionEvent.accepted) { continue }
-        $sessionId = [string]$sessionEvent.session
+        if ([string](Read-Required $sessionEvent 'step' $timelineSubject) -ne 'transition') { continue }
+        if (-not (Read-Required $sessionEvent 'accepted' $timelineSubject)) { continue }
+        $sessionId = [string](Read-Required $sessionEvent 'session' $timelineSubject)
+        $to = [string](Read-Required $sessionEvent 'to' $timelineSubject)
         if ($terminal.ContainsKey($sessionId)) {
-            return New-Red "session $sessionId reached terminal state $($terminal[$sessionId]) and then transitioned to $($sessionEvent.to) under the same session identity"
+            return New-Red "session $sessionId reached terminal state $($terminal[$sessionId]) and then transitioned to $to under the same session identity"
         }
-        if ($terminalSessionStates -contains [string]$sessionEvent.to) { $terminal[$sessionId] = [string]$sessionEvent.to }
+        if ($terminalSessionStates -contains $to) { $terminal[$sessionId] = $to }
     }
     return New-Green
 }
@@ -616,13 +767,14 @@ function Invoke-S5 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     # For EACH session, over that session own declared profile. Two sessions carrying two different
     # declared profiles are conforming and this property says nothing about them, which is AL4.
-    foreach ($session in @($Vector.sessions)) {
-        $record = $session.establishedProfileRecord
+    foreach ($session in (Get-Sessions $Vector)) {
+        $record = Read-Required $session 'establishedProfileRecord' 'a session record'
         if ($null -eq $record) { continue }
-        $fixed = ($record.fixed | ConvertTo-Json -Depth 12 -Compress)
-        $negotiated = ($record.negotiated | ConvertTo-Json -Depth 12 -Compress)
+        $recordSubject = 'a session established-profile record'
+        $fixed = Read-Rendering $record 'fixed' $recordSubject
+        $negotiated = Read-Rendering $record 'negotiated' $recordSubject
         if ($fixed -cne $negotiated) {
-            return New-Red "session $($session.id) produces different normative profile records from fixed and negotiated establishment of its own declared profile"
+            return New-Red "session $(Read-Required $session 'id' 'a session record') produces different normative profile records from fixed and negotiated establishment of its own declared profile"
         }
     }
     return New-Green
@@ -631,11 +783,12 @@ function Invoke-S5 {
 function Invoke-S6 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     $forbidden = @('ready', 'release', 'authority', 'application-outcome')
-    foreach ($declaredEvent in (Get-List $Vector.sessionEvents)) {
+    foreach ($declaredEvent in (Get-List $Vector 'sessionEvents')) {
         if ($null -eq $declaredEvent) { continue }
-        foreach ($created in (Get-List $declaredEvent.creates)) {
+        $eventSubject = 'a declared session event'
+        foreach ($created in (Get-List $declaredEvent 'creates')) {
             if ($forbidden -contains [string]$created) {
-                return New-Red "session event $($declaredEvent.event) in session $($declaredEvent.session) creates $created"
+                return New-Red "session event $(Read-Required $declaredEvent 'event' $eventSubject) in session $(Read-Required $declaredEvent 'session' $eventSubject) creates $created"
             }
         }
     }
@@ -646,11 +799,14 @@ function Invoke-I1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     # Per session: one identity may legitimately be dispatched in each of two sessions.
     $seen = @{}
+    $timelineSubject = 'a session-timeline event'
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
-        if ([string]$sessionEvent.step -ne 'dispatch') { continue }
-        $key = "$($sessionEvent.session)|$($sessionEvent.identity)"
+        if ([string](Read-Required $sessionEvent 'step' $timelineSubject) -ne 'dispatch') { continue }
+        $sessionId = [string](Read-Required $sessionEvent 'session' $timelineSubject)
+        $identity = [string](Read-Required $sessionEvent 'identity' $timelineSubject)
+        $key = "$sessionId|$identity"
         if ($seen.ContainsKey($key)) {
-            return New-Red "identity $($sessionEvent.identity) crossed the dispatch boundary twice in session $($sessionEvent.session)"
+            return New-Red "identity $identity crossed the dispatch boundary twice in session $sessionId"
         }
         $seen[$key] = $true
     }
@@ -659,10 +815,11 @@ function Invoke-I1 {
 
 function Invoke-I2 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
+    $interactionSubject = 'an interaction record'
     foreach ($interaction in (Get-Interactions $Vector)) {
-        $histories = Get-List $interaction.terminalHistories
+        $histories = Get-List $interaction 'terminalHistories'
         if ($histories.Count -gt 1) {
-            return New-Red "interaction $($interaction.identity) in session $($interaction.session) has $($histories.Count) terminal histories"
+            return New-Red "interaction $(Read-Required $interaction 'identity' $interactionSubject) in session $(Read-Required $interaction 'session' $interactionSubject) has $($histories.Count) terminal histories"
         }
     }
     return New-Green
@@ -671,11 +828,14 @@ function Invoke-I2 {
 function Invoke-I3 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     $nonSemantic = @('cancellation-acknowledgement', 'drain', 'timeout', 'protocol-fault')
+    $interactionSubject = 'an interaction record'
     foreach ($interaction in (Get-Interactions $Vector)) {
-        foreach ($history in (Get-List $interaction.terminalHistories)) {
+        foreach ($history in (Get-List $interaction 'terminalHistories')) {
             if ($null -eq $history) { continue }
-            if (($nonSemantic -contains [string]$history.form) -and $history.semanticSuccess) {
-                return New-Red "interaction $($interaction.identity) records a $($history.form) terminal as a semantic success"
+            $historySubject = 'an interaction terminal history'
+            $form = [string](Read-Required $history 'form' $historySubject)
+            if (($nonSemantic -contains $form) -and (Read-Required $history 'semanticSuccess' $historySubject)) {
+                return New-Red "interaction $(Read-Required $interaction 'identity' $interactionSubject) records a $form terminal as a semantic success"
             }
         }
     }
@@ -684,20 +844,23 @@ function Invoke-I3 {
 
 function Invoke-I4 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
+    $interactionSubject = 'an interaction record'
     foreach ($interaction in (Get-Interactions $Vector)) {
-        $refusal = $interaction.refusal
+        $refusal = Read-Optional $interaction 'refusal' $refusalIsAbsence
         if ($null -eq $refusal) { continue }
-        $stage = [string]$refusal.stage
-        $certainty = [string]$refusal.effectCertainty
+        $refusalSubject = 'an interaction refusal record'
+        $stage = [string](Read-Required $refusal 'stage' $refusalSubject)
+        $certainty = [string](Read-Required $refusal 'effectCertainty' $refusalSubject)
         # AT1: the two clauses are named, so a mutation cannot fire through the one it was not written
         # for. Until the operand measure reached it, nothing carried a pre-dispatch refusal into this
         # property's group at all and the first clause was deleteable with both gates green -- AR1's
         # finding on C5-P1, which declares conjuncts, on a property that did not.
         if ($stage -eq 'pre-dispatch' -and $certainty -ne 'known-none') {
-            return New-Red "interaction $($interaction.identity) records a pre-dispatch refusal with effect certainty $certainty" 'I4-clause-1'
+            return New-Red "interaction $(Read-Required $interaction 'identity' $interactionSubject) records a pre-dispatch refusal with effect certainty $certainty" 'I4-clause-1'
         }
-        if ($stage -eq 'post-dispatch' -and $certainty -ne 'unknown' -and -not $refusal.explicitEvidence) {
-            return New-Red "interaction $($interaction.identity) records a possible post-dispatch loss as $certainty with no explicit evidence narrowing it" 'I4-clause-2'
+        if ($stage -eq 'post-dispatch' -and $certainty -ne 'unknown' -and
+            -not (Read-Required $refusal 'explicitEvidence' $refusalSubject)) {
+            return New-Red "interaction $(Read-Required $interaction 'identity' $interactionSubject) records a possible post-dispatch loss as $certainty with no explicit evidence narrowing it" 'I4-clause-2'
         }
     }
     return New-Green
@@ -708,15 +871,18 @@ function Invoke-I5 {
     # Concurrency is counted per session against THAT session bound, which is AK7. Counted across the
     # vector, two sessions each holding one nonterminal interaction breach a bound neither did.
     $bounds = @{}
-    foreach ($session in @($Vector.sessions)) {
-        $bounds[[string]$session.id] = [int]$session.establishedBound
+    $sessionSubject = 'a session record'
+    foreach ($session in (Get-Sessions $Vector)) {
+        $bounds[[string](Read-Required $session 'id' $sessionSubject)] = [int](Read-Required $session 'establishedBound' $sessionSubject)
     }
     $live = @{}
+    $timelineSubject = 'a session-timeline event'
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
-        $sessionId = [string]$sessionEvent.session
+        $sessionId = [string](Read-Required $sessionEvent 'session' $timelineSubject)
+        $step = [string](Read-Required $sessionEvent 'step' $timelineSubject)
         if (-not $live.ContainsKey($sessionId)) { $live[$sessionId] = 0 }
-        if ([string]$sessionEvent.step -eq 'admit') { $live[$sessionId]++ }
-        elseif ([string]$sessionEvent.step -eq 'terminal' -and $sessionEvent.accepted) { $live[$sessionId] = [Math]::Max(0, $live[$sessionId] - (Get-List $sessionEvent.closes).Count) }
+        if ($step -eq 'admit') { $live[$sessionId]++ }
+        elseif ($step -eq 'terminal' -and (Read-Required $sessionEvent 'accepted' $timelineSubject)) { $live[$sessionId] = [Math]::Max(0, $live[$sessionId] - (Get-List $sessionEvent 'closes').Count) }
         if ($bounds.ContainsKey($sessionId) -and $live[$sessionId] -gt $bounds[$sessionId]) {
             return New-Red "session $sessionId held $($live[$sessionId]) nonterminal interactions against its own established bound of $($bounds[$sessionId])"
         }
@@ -726,14 +892,17 @@ function Invoke-I5 {
 
 function Invoke-I6 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
+    $interactionSubject = 'an interaction record'
     foreach ($interaction in (Get-Interactions $Vector)) {
-        if ([string]$interaction.class -ne 'relational') { continue }
-        $subject = "interaction $($interaction.identity) in session $($interaction.session)"
-        if ([int](Read-Required $interaction 'declarationMatches' $subject) -ne 1) {
-            return New-Red "relational interaction $($interaction.identity) matches $($interaction.declarationMatches) declarations"
+        if ([string](Read-Required $interaction 'class' $interactionSubject) -ne 'relational') { continue }
+        $identity = [string](Read-Required $interaction 'identity' $interactionSubject)
+        $subject = "interaction $identity in session $(Read-Required $interaction 'session' $interactionSubject)"
+        $matches = [int](Read-Required $interaction 'declarationMatches' $subject)
+        if ($matches -ne 1) {
+            return New-Red "relational interaction $identity matches $matches declarations"
         }
         if (Read-Required $interaction 'createsReadyOrRelease' $subject) {
-            return New-Red "relational interaction $($interaction.identity) creates Ready or Release"
+            return New-Red "relational interaction $identity creates Ready or Release"
         }
     }
     return New-Green
@@ -741,10 +910,12 @@ function Invoke-I6 {
 
 function Invoke-I7 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
+    $interactionSubject = 'an interaction record'
     foreach ($interaction in (Get-Interactions $Vector)) {
-        $changedBy = [string]$interaction.terminalHistoryChangedBy
-        if ($changedBy -and $changedBy -ne [string]$interaction.identity) {
-            return New-Red "interaction $($interaction.identity) had its terminal history changed by sibling $changedBy"
+        $changedBy = [string](Read-Optional $interaction 'terminalHistoryChangedBy' 'an interaction whose terminal history no sibling changed does not record a changer, and this property is about the interactions that do')
+        $identity = [string](Read-Required $interaction 'identity' $interactionSubject)
+        if ($changedBy -and $changedBy -ne $identity) {
+            return New-Red "interaction $identity had its terminal history changed by sibling $changedBy"
         }
     }
     return New-Green
@@ -755,11 +926,13 @@ function Invoke-C4P1 {
     # Three clauses, each session-scoped under AK7. The second and third are the same claims I1 and I5
     # make, so they are evaluated by those functions rather than restated here: two implementations of
     # one claim is the duplication W1 exists to retire, arriving in the gate instead of in the prose.
+    $timelineSubject = 'a session-timeline event'
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
-        if ([string]$sessionEvent.step -ne 'terminal' -or -not $sessionEvent.accepted) { continue }
-        $closes = Get-List $sessionEvent.closes
+        if ([string](Read-Required $sessionEvent 'step' $timelineSubject) -ne 'terminal') { continue }
+        if (-not (Read-Required $sessionEvent 'accepted' $timelineSubject)) { continue }
+        $closes = Get-List $sessionEvent 'closes'
         if ($closes.Count -ne 1) {
-            return New-Red "an accepted terminal fact in session $($sessionEvent.session) closes $($closes.Count) admitted interactions"
+            return New-Red "an accepted terminal fact in session $(Read-Required $sessionEvent 'session' $timelineSubject) closes $($closes.Count) admitted interactions"
         }
     }
     # BA1. Everything the delegate hands back is read: its verdict, its witness, the conjunct its red
@@ -777,6 +950,21 @@ function Invoke-C4P1 {
     return New-Green -Inherited (@($dispatchResult.Errors) + @($boundResult.Errors))
 }
 
+# The session/identity keys of every dispatch the timeline records. Four capability properties index
+# their interactions by it and each had written the loop out; BB1 read all four while routing their
+# reads, and four copies of one index is the duplication W1 retires wherever it is found.
+function Get-DispatchedKeys {
+    param($Vector)
+
+    $dispatched = @{}
+    $timelineSubject = 'a session-timeline event'
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        if ([string](Read-Required $sessionEvent 'step' $timelineSubject) -ne 'dispatch') { continue }
+        $dispatched["$(Read-Required $sessionEvent 'session' $timelineSubject)|$(Read-Required $sessionEvent 'identity' $timelineSubject)"] = $true
+    }
+    return $dispatched
+}
+
 # ---------------------------------------------------------------------------------------------
 # The per-capability properties C1-P1 through C12-P1.
 #
@@ -792,11 +980,13 @@ function Invoke-C1P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     # Per session, and the disjunction is the property: an exact profile, OR nothing dispatchable with
     # known-none. A realization that has neither is what the mutation produces.
-    foreach ($session in @($Vector.sessions)) {
-        $exact = ([int]$session.establishedProfiles -eq 1) -and $session.profileFactsMatchExpected
+    $sessionSubject = 'a session record'
+    foreach ($session in (Get-Sessions $Vector)) {
+        $exact = ([int](Read-Required $session 'establishedProfiles' $sessionSubject) -eq 1) -and
+            (Read-Required $session 'profileFactsMatchExpected' $sessionSubject)
         if ($exact) { continue }
-        if ($session.dispatchable) {
-            return New-Red "session $($session.id) has no established profile equal to the profile it expects, and interactions remain dispatchable"
+        if (Read-Required $session 'dispatchable' $sessionSubject) {
+            return New-Red "session $(Read-Required $session 'id' $sessionSubject) has no established profile equal to the profile it expects, and interactions remain dispatchable"
         }
     }
     return New-Green
@@ -820,10 +1010,15 @@ function Invoke-C2P1 {
     # recorded as an accepted transition that the table does not contain is caught above; an admission
     # recorded as accepted outside established is caught here.
     $state = @{}
+    $timelineSubject = 'a session-timeline event'
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
-        $sessionId = [string]$sessionEvent.session
-        if ([string]$sessionEvent.step -eq 'transition' -and $sessionEvent.accepted) { $state[$sessionId] = [string]$sessionEvent.to; continue }
-        if ([string]$sessionEvent.step -ne 'admit' -or -not $sessionEvent.acceptedTransition) { continue }
+        $sessionId = [string](Read-Required $sessionEvent 'session' $timelineSubject)
+        $step = [string](Read-Required $sessionEvent 'step' $timelineSubject)
+        if ($step -eq 'transition') {
+            if (Read-Required $sessionEvent 'accepted' $timelineSubject) { $state[$sessionId] = [string](Read-Required $sessionEvent 'to' $timelineSubject) }
+            continue
+        }
+        if ($step -ne 'admit') { continue }
         $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { 'unestablished' }
         if ($current -ne 'established') {
             return New-Red -Witness "session $sessionId accepted a new interaction while it was $current, so an input that must leave the state unchanged or enter faulted admitted instead" -Inherited $inheritedErrors
@@ -834,21 +1029,21 @@ function Invoke-C2P1 {
 
 function Invoke-C3P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
-    $dispatched = @{}
-    foreach ($sessionEvent in (Get-Timeline $Vector)) {
-        if ([string]$sessionEvent.step -eq 'dispatch') { $dispatched["$($sessionEvent.session)|$($sessionEvent.identity)"] = $true }
-    }
+    $dispatched = Get-DispatchedKeys $Vector
+    $interactionSubject = 'an interaction record'
     foreach ($interaction in (Get-Interactions $Vector)) {
-        if (-not $dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)")) { continue }
-        $subject = "interaction $($interaction.identity) in session $($interaction.session)"
+        $identity = [string](Read-Required $interaction 'identity' $interactionSubject)
+        $sessionId = [string](Read-Required $interaction 'session' $interactionSubject)
+        if (-not $dispatched.ContainsKey("$sessionId|$identity")) { continue }
+        $subject = "interaction $identity in session $sessionId"
         if (-not (Read-Required $interaction 'profileMatch' $subject)) {
-            return New-Red "interaction $($interaction.identity) dispatched without its class and direction matching the established profile of session $($interaction.session)"
+            return New-Red "interaction $identity dispatched without its class and direction matching the established profile of session $sessionId"
         }
         # false and unknown both refuse admission: only an exact true satisfies the predicate. Absent
         # is neither: a vector that does not publish the predicate has not stated an unknown one.
-        $null = Read-Required $interaction 'phasePredicate' $subject
-        if ($interaction.phasePredicate -isnot [bool] -or -not $interaction.phasePredicate) {
-            return New-Red "interaction $($interaction.identity) dispatched with external phase predicate $($interaction.phasePredicate), and only an exact true matches"
+        $predicate = Read-Required $interaction 'phasePredicate' $subject
+        if ($predicate -isnot [bool] -or -not $predicate) {
+            return New-Red "interaction $identity dispatched with external phase predicate $predicate, and only an exact true matches"
         }
     }
     return New-Green
@@ -856,24 +1051,27 @@ function Invoke-C3P1 {
 
 function Invoke-C5P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
-    $dispatched = @{}
-    foreach ($sessionEvent in (Get-Timeline $Vector)) {
-        if ([string]$sessionEvent.step -eq 'dispatch') { $dispatched["$($sessionEvent.session)|$($sessionEvent.identity)"] = $true }
-    }
+    $dispatched = Get-DispatchedKeys $Vector
+    $interactionSubject = 'an interaction record'
     foreach ($interaction in (Get-Interactions $Vector)) {
-        if ($dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)")) {
-            $subject = "interaction $($interaction.identity) in session $($interaction.session)"
+        $identity = [string](Read-Required $interaction 'identity' $interactionSubject)
+        $sessionId = [string](Read-Required $interaction 'session' $interactionSubject)
+        if ($dispatched.ContainsKey("$sessionId|$identity")) {
+            $subject = "interaction $identity in session $sessionId"
             if (-not (Read-Required $interaction 'boundsChecked' $subject)) {
-                return New-Red "interaction $($interaction.identity) dispatched without passing every declared bound" 'C5-P1-clause-1'
+                return New-Red "interaction $identity dispatched without passing every declared bound" 'C5-P1-clause-1'
             }
             if (-not (Read-Required $interaction 'positionalShapeChecked' $subject)) {
-                return New-Red "interaction $($interaction.identity) dispatched without passing every positional Shape rule" 'C5-P1-clause-1'
+                return New-Red "interaction $identity dispatched without passing every positional Shape rule" 'C5-P1-clause-1'
             }
         }
-        $refusal = $interaction.refusal
-        if ($null -eq $refusal -or [string]$refusal.stage -ne 'pre-dispatch') { continue }
-        if ([string]$refusal.effectCertainty -ne 'known-none') {
-            return New-Red "interaction $($interaction.identity) records a pre-dispatch structural refusal with effect certainty $($refusal.effectCertainty)" 'C5-P1-clause-2'
+        $refusal = Read-Optional $interaction 'refusal' $refusalIsAbsence
+        if ($null -eq $refusal) { continue }
+        $refusalSubject = 'an interaction refusal record'
+        if ([string](Read-Required $refusal 'stage' $refusalSubject) -ne 'pre-dispatch') { continue }
+        $certainty = [string](Read-Required $refusal 'effectCertainty' $refusalSubject)
+        if ($certainty -ne 'known-none') {
+            return New-Red "interaction $identity records a pre-dispatch structural refusal with effect certainty $certainty" 'C5-P1-clause-2'
         }
     }
     return New-Green
@@ -881,19 +1079,26 @@ function Invoke-C5P1 {
 
 function Invoke-C6P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
-    $dispatched = @{}
-    foreach ($sessionEvent in (Get-Timeline $Vector)) {
-        if ([string]$sessionEvent.step -eq 'dispatch') { $dispatched["$($sessionEvent.session)|$($sessionEvent.identity)"] = $true }
-    }
+    $dispatched = Get-DispatchedKeys $Vector
+    $interactionSubject = 'an interaction record'
     foreach ($interaction in (Get-Interactions $Vector)) {
-        $decision = [string](Read-Required $interaction 'authorityDecision' "interaction $($interaction.identity) in session $($interaction.session)")
-        if ($dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)") -and $decision -ne 'permitted') {
-            return New-Red "interaction $($interaction.identity) reached handler dispatch with local authority decision $decision" 'C6-P1-clause-1'
+        $identity = [string](Read-Required $interaction 'identity' $interactionSubject)
+        $sessionId = [string](Read-Required $interaction 'session' $interactionSubject)
+        $subject = "interaction $identity in session $sessionId"
+        $decision = [string](Read-Required $interaction 'authorityDecision' $subject)
+        if ($dispatched.ContainsKey("$sessionId|$identity") -and $decision -ne 'permitted') {
+            return New-Red "interaction $identity reached handler dispatch with local authority decision $decision" 'C6-P1-clause-1'
         }
         if ($decision -eq 'permitted') { continue }
-        $record = $interaction.authorityRecord
-        if ($null -eq $record -or -not $record.decisionPoint -or -not $record.initiatorAttribution -or [string]$record.effectCertainty -ne 'known-none') {
-            return New-Red "interaction $($interaction.identity) records a $decision authority presentation without its decision point, initiator attribution, and known-none" 'C6-P1-clause-2'
+        # The second clause is about a presentation that OMITS one of the three, so each is read as an
+        # optional whose absence is the violation. Reading them as required would report the vector as
+        # silent on exactly the fields the mutation removes, which is AU2 pointed at its own detector.
+        $record = Read-Required $interaction 'authorityRecord' $subject
+        if ($null -eq $record -or
+            -not (Read-Optional $record 'decisionPoint' $presentationIsAbsence) -or
+            -not (Read-Optional $record 'initiatorAttribution' $presentationIsAbsence) -or
+            [string](Read-Required $record 'effectCertainty' 'an interaction authority record') -ne 'known-none') {
+            return New-Red "interaction $identity records a $decision authority presentation without its decision point, initiator attribution, and known-none" 'C6-P1-clause-2'
         }
     }
     return New-Green
@@ -901,22 +1106,23 @@ function Invoke-C6P1 {
 
 function Invoke-C7P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
-    $dispatched = @{}
-    foreach ($sessionEvent in (Get-Timeline $Vector)) {
-        if ([string]$sessionEvent.step -eq 'dispatch') { $dispatched["$($sessionEvent.session)|$($sessionEvent.identity)"] = $true }
-    }
+    $dispatched = Get-DispatchedKeys $Vector
+    $interactionSubject = 'an interaction record'
     foreach ($interaction in (Get-Interactions $Vector)) {
-        if ([string]$interaction.class -ne 'relational') { continue }
-        if (-not $dispatched.ContainsKey("$($interaction.session)|$($interaction.identity)")) { continue }
-        $subject = "interaction $($interaction.identity) in session $($interaction.session)"
-        if ([int](Read-Required $interaction 'declarationMatches' $subject) -ne 1) {
-            return New-Red "dispatched relational interaction $($interaction.identity) matches $($interaction.declarationMatches) lifecycle declarations"
+        if ([string](Read-Required $interaction 'class' $interactionSubject) -ne 'relational') { continue }
+        $identity = [string](Read-Required $interaction 'identity' $interactionSubject)
+        $sessionId = [string](Read-Required $interaction 'session' $interactionSubject)
+        if (-not $dispatched.ContainsKey("$sessionId|$identity")) { continue }
+        $subject = "interaction $identity in session $sessionId"
+        $matches = [int](Read-Required $interaction 'declarationMatches' $subject)
+        if ($matches -ne 1) {
+            return New-Red "dispatched relational interaction $identity matches $matches lifecycle declarations"
         }
         if (-not (Read-Required $interaction 'inPreReadyWindow' $subject)) {
-            return New-Red "dispatched relational interaction $($interaction.identity) does not occur in the pre-Ready window"
+            return New-Red "dispatched relational interaction $identity does not occur in the pre-Ready window"
         }
         if (Read-Required $interaction 'createsReadyOrRelease' $subject) {
-            return New-Red "dispatched relational interaction $($interaction.identity) produces a Ready or Release fact by itself"
+            return New-Red "dispatched relational interaction $identity produces a Ready or Release fact by itself"
         }
     }
     return New-Green
@@ -938,18 +1144,20 @@ function Invoke-C8P1 {
 
 function Invoke-C9P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
+    $interactionSubject = 'an interaction record'
     foreach ($interaction in (Get-Interactions $Vector)) {
-        $form = [string]$interaction.provenanceForm
+        $form = [string](Read-Required $interaction 'provenanceForm' $interactionSubject)
         if (-not $form) { continue }
+        $identity = [string](Read-Required $interaction 'identity' $interactionSubject)
         if ($provenanceForms -notcontains $form) {
-            return New-Red "interaction $($interaction.identity) selects provenance form $form, which is not one of the four"
+            return New-Red "interaction $identity selects provenance form $form, which is not one of the four"
         }
         # The second clause: no field permits a local inference to be accepted as a peer statement.
         # The vector states what the observation actually was where the two differ, and a recorded form
         # that is not the actual one is exactly that acceptance.
-        $actual = [string]$interaction.provenanceFormActually
+        $actual = [string](Read-Optional $interaction 'provenanceFormActually' 'the vector states what an observation ACTUALLY was only where that differs from the recorded form, so an absent field is agreement and not silence')
         if ($actual -and $actual -ne $form) {
-            return New-Red "interaction $($interaction.identity) records provenance form $form for what was actually a $actual"
+            return New-Red "interaction $identity records provenance form $form for what was actually a $actual"
         }
     }
     return New-Green
@@ -957,19 +1165,24 @@ function Invoke-C9P1 {
 
 function Invoke-C10P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
+    $interactionSubject = 'an interaction record'
     foreach ($interaction in (Get-Interactions $Vector)) {
-        if ($interaction.PSObject.Properties['observationComplete'] -and -not $interaction.observationComplete) {
-            return New-Red "interaction $($interaction.identity) records an observation that is not complete for its provenance form"
+        $identity = [string](Read-Required $interaction 'identity' $interactionSubject)
+        if (-not (Read-Required $interaction 'observationComplete' $interactionSubject)) {
+            return New-Red "interaction $identity records an observation that is not complete for its provenance form"
         }
-        if (-not $interaction.possiblePostDispatchPath) { continue }
-        $refusal = $interaction.refusal
-        if ($null -ne $refusal -and [string]$refusal.effectCertainty -eq 'known-none' -and -not $refusal.explicitEvidence) {
-            return New-Red "interaction $($interaction.identity) has a possible post-dispatch path and records known-none with no explicit evidence that the handler did not begin"
+        if (-not (Read-Required $interaction 'possiblePostDispatchPath' $interactionSubject)) { continue }
+        $refusal = Read-Optional $interaction 'refusal' $refusalIsAbsence
+        if ($null -ne $refusal -and
+            [string](Read-Required $refusal 'effectCertainty' 'an interaction refusal record') -eq 'known-none' -and
+            -not (Read-Required $refusal 'explicitEvidence' 'an interaction refusal record')) {
+            return New-Red "interaction $identity has a possible post-dispatch path and records known-none with no explicit evidence that the handler did not begin"
         }
-        foreach ($history in (Get-List $interaction.terminalHistories)) {
+        foreach ($history in (Get-List $interaction 'terminalHistories')) {
             if ($null -eq $history) { continue }
-            if ([string]$history.effectCertainty -eq 'known-none' -and -not $history.explicitEvidence) {
-                return New-Red "interaction $($interaction.identity) has a possible post-dispatch path and records a known-none terminal history with no explicit evidence that the handler did not begin"
+            if ([string](Read-Required $history 'effectCertainty' 'an interaction terminal history') -eq 'known-none' -and
+                -not (Read-Required $history 'explicitEvidence' 'an interaction terminal history')) {
+                return New-Red "interaction $identity has a possible post-dispatch path and records a known-none terminal history with no explicit evidence that the handler did not begin"
             }
         }
     }
@@ -978,14 +1191,15 @@ function Invoke-C10P1 {
 
 function Invoke-C11P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
-    foreach ($session in @($Vector.sessions)) {
-        foreach ($required in (Get-List $session.requiredFacets)) {
-            if ((Get-List $session.supportedFacets) -notcontains [string]$required) {
-                return New-Red "session $($session.id) requires facet $required and its established profile does not support it"
+    $sessionSubject = 'a session record'
+    foreach ($session in (Get-Sessions $Vector)) {
+        foreach ($required in (Get-List $session 'requiredFacets')) {
+            if ((Get-List $session 'supportedFacets') -notcontains [string]$required) {
+                return New-Red "session $(Read-Required $session 'id' $sessionSubject) requires facet $required and its established profile does not support it"
             }
         }
-        if ($session.facetChangesCore) {
-            return New-Red "session $($session.id) has a facet that changes a core identity, authority, terminal-provenance, or uncertainty result"
+        if (Read-Required $session 'facetChangesCore' $sessionSubject) {
+            return New-Red "session $(Read-Required $session 'id' $sessionSubject) has a facet that changes a core identity, authority, terminal-provenance, or uncertainty result"
         }
     }
     return New-Green
@@ -995,7 +1209,7 @@ function Invoke-C12P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
     # Only the first clause is per vector. The second is over the declaration set and is evaluated once
     # below; the third is a dependency fact no vector carries and is enforced by the repository guards.
-    if ($Vector.PSObject.Properties['deterministicExpectedObservation'] -and -not $Vector.deterministicExpectedObservation) {
+    if (-not (Read-Required $Vector 'deterministicExpectedObservation' "vector '$VectorId'")) {
         return New-Red "vector $VectorId has no single deterministic expected portable observation"
     }
     return New-Green
@@ -1529,6 +1743,234 @@ foreach ($site in ($obligationSites | Sort-Object -Unique)) {
     $sourceLine = (Get-Content -LiteralPath $PSCommandPath -Encoding UTF8)[$site - 1].Trim()
     $failures.Add("No declared input makes the obligation at line ${site} of this file fire: $sourceLine  That obligation can be deleted outright with every gate green, so nothing in the suite distinguishes an implementation that honours it from one that does not. Give the property a named mutation that fires through it.")
 }
+
+# ---------------------------------------------------------------------------------------------
+# BB1: the read-provenance census. Every field an evaluator reads off a vector goes through one of
+# the four sanctioned readers, and this is what says so.
+#
+# WHAT IT IS FOR. `Errors` is how an evaluator says it could not be evaluated over a record. AZ1
+# found the generated loop discarding that channel, BA1 found three composed evaluators rebuilding it
+# empty, and both corrections made the channel REACH its consumers. Neither asked the question one
+# level in, which the fifteenth pass named and left: nothing requires an evaluator to FILL it. One
+# evaluator of twenty-six populated it at all, so for the other twenty-five "I could not read this
+# record" and "this realization conforms" were the same verdict, and no instrument here could tell
+# them apart.
+#
+# HOW IT MEASURES. Each field of each vector is replaced, one at a time, by a property whose getter
+# records that it was read and returns nothing -- the record still has the field, and the field has
+# no value. The evaluator is then run. A getter that never fired says the evaluator does not read
+# that field, and the site is not the census's business. A getter that fired says the evaluator read
+# a field it could not read, and the census asks one question about it: WHICH READER performed the
+# read, taken off the call stack rather than inferred from the outcome.
+#
+# WHY THE READER AND NOT THE OUTCOME. The outcome is the demonstration and the reader is the rule.
+# Classifying by outcome would pass a raw read whose absence happens not to move this vector's
+# verdict, which is the same mistake as measuring a guard by whether today's corpus makes it fire --
+# AP1's class, and the reason the coverage measure counts conditions rather than failures. So the
+# census fails on a raw read and reports what that raw read DID as the evidence a reader can act on:
+# `silent` where the verdict stayed and nothing was reported, which is the vacuous pass this whole
+# section exists to end, and `moved` where the verdict changed with nothing reported, which is AU2 --
+# a property reporting a violation it cannot substantiate.
+#
+# WHY IT RUNS HERE, BETWEEN AU1'S CHECK AND THE GENERATED LOOP. A poisoned evaluation can take a
+# property red and so REACH an obligation, and AU1's check asks which obligation no declared input
+# reached. Running above it would let an obligation pinned by nothing but a poisoned record read as
+# pinned, which is the generated loop's own reason one block down. The order is the whole of that
+# separation and this block must stay between them.
+#
+# THREE LIMITS, STATED WHERE THEY APPLY RATHER THAN CLAIMED AWAY.
+#
+#   * It measures the reads a declared GREEN-EXPECTED input provokes. A read on a path no such input
+#     reaches is invisible here, exactly as an unreached guard is invisible to the probe corpus, and
+#     the `BB1-c` probe is what demonstrates that rather than asserting it. Green-expected because on
+#     a declared mutation the property is supposed to be red, and a poisoned field that leaves it red
+#     says nothing about whether the record could be read.
+#   * `declaredSteps` is outside the poisoned set. The harness builds the step index from it once,
+#     before any evaluator runs, so no evaluator reads those fields and poisoning them would measure
+#     the harness rather than the properties. AZ3's dropped-field sweep is what covers that surface.
+#   * A `Read-Optional` is a JUDGEMENT that an absent field is a fact the design states. This census
+#     checks that the judgement was DECLARED, and the check beside it that some input EXERCISES it;
+#     neither can check that it is RIGHT. The count of surviving declarations is printed with the
+#     measure and each reason is written at its call site, which is where a reader audits it against
+#     the artifact. Nothing here can do that for them.
+# ---------------------------------------------------------------------------------------------
+
+# The readers that performed the read now in progress. It is a closure-captured LOCAL and not a
+# `$script:` accumulator, and that is the point rather than a detail: BA3's rule is that a
+# per-evaluation `$script:` collection must be cleared and drained at every top-level dispatch in
+# this file, and this one is meaningful at exactly one of the five. A collection that is empty and
+# ignored at four dispatches would have to be declared and checked at all five to say so. Captured
+# here, it does not exist for the other four to get wrong.
+$censusSiteReaders = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+
+# BB7, and the reason this walk is written out inside the getter instead of calling a function that
+# holds it. `GetNewClosure` snapshots the VARIABLES of the enclosing scope into a new module scope,
+# and a function this script defines is not resolvable from that scope when the script is invoked
+# through the call operator rather than through `-File`. The getter then throws `CommandNotFound`,
+# and a `PSScriptProperty` getter that throws yields `$null` to its reader **without surfacing the
+# error** -- so every read came back unattributed, `$censusSiteReaders` stayed empty, and the census
+# reported a clean 0 raw reads over a package it had entirely stopped reading.
+#
+# That is BA6's class in the instrument built one pass after BA6, and total rather than partial. The
+# coverage measure is what found it: it runs each gate through the call operator in a child process,
+# reported eleven constructs of this census as never executed, and the eleven were every construct
+# downstream of a read being recorded. **The exemptions that would have silenced it were drafted
+# before the question "why did this not run" was asked**, which is the mistake this note exists to
+# stop the next reader repeating -- a coverage report is a finding until it is explained.
+#
+# `Get-PSCallStack` is a cmdlet and resolves from the closure's scope; a script function does not.
+# The `$censusObserved` check below is the second half of the correction, and it is the half that
+# would have caught this without the coverage measure.
+$censusPoison = {
+    foreach ($censusFrame in (Get-PSCallStack)) {
+        if ($censusFrame.FunctionName -match '^(Read-Required|Read-Optional|Read-Rendering|Get-List|Get-Timeline|Get-Interactions|Get-Sessions|Get-Field)$') {
+            [void]$censusSiteReaders.Add($censusFrame.FunctionName)
+            break
+        }
+        if ($censusFrame.FunctionName -like 'Invoke-*') {
+            [void]$censusSiteReaders.Add("$($censusFrame.FunctionName):$($censusFrame.ScriptLineNumber)")
+            break
+        }
+    }
+    return $null
+}.GetNewClosure()
+
+# The fields of one record, in the order they are poisoned. `declaredSteps` is excluded at the top
+# level for the reason above; the depth bound is a guard against a self-referencing record rather than
+# a judgement about the data, since the deepest path any vector carries is four.
+function Get-CensusFields {
+    param($Node, [int]$Depth)
+
+    if ($null -eq $Node -or $Depth -gt 8) { return ,@() }
+    if ($Node -is [string] -or $Node -is [bool] -or $Node -is [int] -or $Node -is [long] -or $Node -is [double]) { return ,@() }
+    if ($Node -is [System.Collections.IEnumerable]) { return ,@() }
+    return ,@($Node.PSObject.Properties | Where-Object { $_ -is [System.Management.Automation.PSNoteProperty] })
+}
+
+$censusSiteCount = 0
+$censusRawCount = 0
+$censusReadCount = 0
+# One finding per (property, input, field, reading site). A vector carries many records of one shape
+# and each is its own site, so the same raw read is found once per record; the finding names the
+# reading line and the field, and a reader cannot act on the copies differently.
+$censusReported = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+foreach ($property in $properties.properties) {
+    $propertyId = [string]$property.id
+    if (-not $evaluators.ContainsKey($propertyId)) { continue }
+    $evaluator = $evaluators[$propertyId]
+    $censusPairsWalked = 0
+
+    # Green-expected inputs only. On a declared mutation the property is SUPPOSED to be red, and a
+    # poisoned field that leaves it red says nothing about whether the record could be read.
+    $censusInputs = [System.Collections.Generic.List[string]]::new()
+    foreach ($member in @($property.requiredGreen) + @($property.additionalGreen)) {
+        if ($null -ne $member) { [void]$censusInputs.Add([string]$member.vector) }
+    }
+
+    foreach ($vectorId in ($censusInputs | Sort-Object -Unique)) {
+        if (-not $vectorsById.ContainsKey($vectorId)) { continue }
+        if ($CensusPairs -gt 0 -and $censusPairsWalked -ge $CensusPairs) { break }
+        $censusPairsWalked++
+        $censusVector = $vectorsById[$vectorId]
+        $censusSteps = $vectorIndex[$vectorId]
+        $script:UnpublishedFields.Clear()
+        $censusBaselineResult = & $evaluator -VectorId $vectorId -Vector $censusVector -Steps $censusSteps
+        # BA2's rule at its own dispatch: a baseline the property could not evaluate is not a baseline,
+        # and every member of the record is read here for the reason AZ1 and BA1 were raised.
+        foreach ($evaluationError in $censusBaselineResult.Errors) {
+            $failures.Add("The read-provenance census cannot evaluate '$propertyId' over the unpoisoned form of '$vectorId': $evaluationError Every poisoned run below is compared against this one.")
+        }
+        if ([string]$censusBaselineResult.Verdict -eq 'red') {
+            $failures.Add("The read-provenance census takes '$propertyId' red on '$vectorId' before poisoning anything, through '$($censusBaselineResult.Conjunct)': $($censusBaselineResult.Witness) It measures green-expected inputs, so a red baseline means the input's declared role and its verdict disagree.")
+        }
+        $censusBaseline = [string]$censusBaselineResult.Verdict
+        $censusVectorReads = 0
+
+        # Depth-first, and it PRUNES: a field beneath a container the evaluator did not read cannot
+        # itself have been read, because the container is the only path to it. So a container whose
+        # poisoning went unread takes its whole subtree out of the walk. That is not an optimisation
+        # bolted on afterwards -- it is what makes this measure affordable in a gate the probe corpus
+        # re-runs once per probe. Flat, the walk poisoned 10,862 fields to find 945 reads; pruned it
+        # poisons 3,594 and finds the same 945, because the ones it skips are exactly the ones no
+        # evaluator could reach, and this gate at `-GeneratedCount 0` goes from 10.6 seconds to 3.2.
+        # The two forms were run against each other before the flat one was removed -- with and
+        # without an injected raw read, where both report the same forty raw reads.
+        $censusPending = [System.Collections.Generic.Stack[object]]::new()
+        foreach ($topLevel in (Get-CensusFields -Node $censusVector -Depth 0)) {
+            if ($topLevel.Name -eq 'declaredSteps') { continue }
+            $censusPending.Push([pscustomobject]@{ Parent = $censusVector; Name = $topLevel.Name; Depth = 1 })
+        }
+
+        while ($censusPending.Count -gt 0) {
+            $censusSite = $censusPending.Pop()
+            $censusParent = $censusSite.Parent
+            $censusName = $censusSite.Name
+            $censusOriginal = $censusParent.PSObject.Properties[$censusName]
+            if ($null -eq $censusOriginal -or $censusOriginal -isnot [System.Management.Automation.PSNoteProperty]) { continue }
+            $censusValue = $censusOriginal.Value
+            $censusSiteCount++
+
+            # In place and restored in a `finally`, for AZ3's reason next door: copying the vector per
+            # site costs nineteen milliseconds and there are thousands of sites.
+            $censusSiteReaders.Clear()
+            $script:UnpublishedFields.Clear()
+            $censusParent.PSObject.Properties.Remove($censusName)
+            $censusParent.PSObject.Properties.Add([System.Management.Automation.PSScriptProperty]::new($censusName, $censusPoison))
+            $script:CensusPoisoning = $true
+            try { $censusResult = & $evaluator -VectorId $vectorId -Vector $censusVector -Steps $censusSteps }
+            finally {
+                $script:CensusPoisoning = $false
+                $censusParent.PSObject.Properties.Remove($censusName)
+                $censusParent.PSObject.Properties.Add([System.Management.Automation.PSNoteProperty]::new($censusName, $censusValue))
+            }
+            if ($censusSiteReaders.Count -eq 0) { continue }
+            $censusReadCount++
+            $censusVectorReads++
+
+            # Read, so what it holds is reachable and is walked. A collection is walked per element,
+            # since each record of one shape is its own site.
+            foreach ($censusChildHolder in @(if ($censusValue -is [System.Collections.IEnumerable] -and $censusValue -isnot [string]) { $censusValue } else { $censusValue })) {
+                foreach ($censusChild in (Get-CensusFields -Node $censusChildHolder -Depth $censusSite.Depth)) {
+                    $censusPending.Push([pscustomobject]@{ Parent = $censusChildHolder; Name = $censusChild.Name; Depth = $censusSite.Depth + 1 })
+                }
+            }
+
+            foreach ($censusReader in ($censusSiteReaders | Sort-Object)) {
+                if ($censusReader -notmatch '^Invoke-|^unattributed$') { continue }
+                $censusRawCount++
+                if (-not $censusReported.Add("$propertyId|$vectorId|$censusName|$censusReader")) { continue }
+                # Every member of the poisoned record is read, and each says something a reader of the
+                # finding needs: the verdict says which of the two failure classes this is, the errors
+                # and the unpublished fields say whether some OTHER reader on the same record caught
+                # what this one missed, and the conjunct and witness are BA4's diagnosis -- the
+                # counterexample a reader can act on without re-deriving which clause produced it.
+                $censusWitness = if ($censusResult.Witness) { " Witness: $($censusResult.Witness)$(if ($censusResult.Conjunct) { ", through '$($censusResult.Conjunct)'" })." } else { '' }
+                $censusObserved = if ([string]$censusResult.Verdict -ne $censusBaseline) { "moved the verdict to $([string]$censusResult.Verdict).$censusWitness" }
+                    elseif (@($censusResult.Errors).Count -gt 0 -or $script:UnpublishedFields.Count -gt 0) { 'was reported, but by another reader on the same record.' }
+                    else { 'left the property green and reported nothing.' }
+                $failures.Add("Property '$propertyId' reads '$censusName' off a record of '$vectorId' at $censusReader without a sanctioned reader, and making that field unreadable $censusObserved A raw read cannot say it could not read the record, so the property's green over an unreadable record is indistinguishable from its green over a conforming one. Read it through Read-Required, Read-Optional with the reason absence is a fact, or Get-List.")
+            }
+        }
+
+        # BB7's second half, and the one that does not depend on another instrument noticing. Every
+        # property reads SOMETHING off every input it is declared green on -- the least any of them
+        # reads is one field of the vector -- so a walk that poisoned this vector's fields and
+        # observed no read at all did not measure this property: it measured its own machinery
+        # failing. Reported per property and input rather than as one total, because a census blinded
+        # for one property and working for the rest is the partial case BA6 was, and a total would
+        # hide it.
+        if ($censusVectorReads -le 0) {
+            $failures.Add("The read-provenance census poisoned every field of '$vectorId' and observed '$propertyId' reading none of them. Every property reads at least one field of every input it is declared green on, so this is the census failing to observe rather than the property failing to read -- a green from it here would be a clean report over a package it had stopped reading.")
+        }
+    }
+}
+foreach ($optionalDeclaration in ($script:OptionalReads.Keys | Sort-Object)) {
+    if ($script:OptionalReads[$optionalDeclaration]) { continue }
+    $failures.Add("A Read-Optional declares that an absent $optionalDeclaration -- and no declared input leaves that field absent, so the declaration is unfalsified and the read is a Read-Required written the long way. Either make it required, or add the input whose silence the reason describes.")
+}
+$censusSanctioned = $censusReadCount - $censusRawCount
+$censusScope = if ($CensusPairs -gt 0) { " -- CAPPED at $CensusPairs pairs per property by -CensusPairs, so this is not a census of the corpus" } else { '' }
+Write-Host "Channel 0.2 read-provenance census: $censusReadCount of $censusSiteCount poisoned fields were read by an evaluator, $censusSanctioned of those through a sanctioned reader and $censusRawCount raw, over $($script:OptionalReads.Count) exercised Read-Optional declarations.$censusScope"
 
 # ---------------------------------------------------------------------------------------------
 # Generated conforming vectors -- the eleventh condition-4 pass, by owner ruling of 2026-09-04.

@@ -116,6 +116,12 @@
           "replace": "",
           "occurrence": 2
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -500,6 +506,12 @@
           "find": "| any nonterminal | transport/process loss prevents continuation | `faulted` |",
           "replace": "| `established` | transport/process loss prevents continuation | `faulted` |"
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -514,6 +526,12 @@
           "find": "    'unestablished>faulted', 'establishing>faulted', 'established>faulted')",
           "replace": "    'unestablished>faulted', 'establishing>faulted')"
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -528,6 +546,12 @@
           "find": "run in the gate on every commit: **71** evaluations over **32** declared inputs",
           "replace": "run in the gate on every commit: **55** evaluations over **32** declared inputs"
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -542,6 +566,12 @@
           "find": "** declared inputs plus the nine operand",
           "replace": "0** declared inputs plus the nine operand"
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -556,6 +586,12 @@
           "find": "The gate runs **",
           "replace": "The gate runs every property over every input. **"
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -570,6 +606,12 @@
           "find": "| any nonterminal | transport/process loss prevents continuation | `faulted` |",
           "replace": "| whichever state is live | transport/process loss prevents continuation | `faulted` |"
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -585,6 +627,12 @@
           "replace": "| `unestablished`. | no | no | No profile is accepted.",
           "all": true
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -599,6 +647,12 @@
           "find": "        {\n          \"vector\": \"C4-control-precedes-request\",\n          \"conjunct\": \"C4-P2-conjunct-1\",\n          \"expected\": \"red\",\n          \"note\": \"A realization delivers one interaction's cancellation control before the request that opens it. The expected observation is the complete set of records both endpoints produce, including the displaced request's subsequent admission -- a vector authored to stop at the refusal leaves the membership test an empty set and takes the property green on its own named mutation, which is AF1.\"\n        },\n",
           "replace": ""
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -681,6 +735,12 @@
           "find": "| I4 | every pre-dispatch refusal is `known-none`",
           "replace": "| (withdrawn) | every pre-dispatch refusal is `known-none`"
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -695,6 +755,12 @@
           "find": "| C3 | C3-P1 exact class/direction/phase --",
           "replace": "| C3 | exact class/direction/phase --"
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -734,8 +800,8 @@
       "edits": [
         {
           "path": "docs/future/channel/reviews/README.md",
-          "find": "- [Closure review 10](./channel-0.2-design-foundation-closure-review-10-attestation.md) — reviewed",
-          "replace": "- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) — reviewed"
+          "find": "- [Closure review 10](./channel-0.2-design-foundation-closure-review-10-attestation.md) \u2014 reviewed",
+          "replace": "- [Closure review 13](./channel-0.2-design-foundation-closure-review-13-attestation.md) \u2014 reviewed"
         }
       ]
     },
@@ -835,6 +901,12 @@
           "find": "seven legal members and the set names all seven",
           "replace": "three legal members and the set names all seven"
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -877,6 +949,12 @@
           "find": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"red\",\n          \"conjunct\": \"C5-P1-clause-2\",",
           "replace": "\"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"green\",\n          \"conjunct\": \"C5-P1-clause-2\","
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -891,6 +969,12 @@
           "find": "\"vector\": \"C6-denial-without-decision-point\",\n          \"expected\": \"red\",\n          \"conjunct\": \"C6-P1-clause-2\",",
           "replace": "\"vector\": \"C6-denial-without-decision-point\",\n          \"expected\": \"red\",\n          \"conjunct\": \"C6-P1-clause-1\","
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -905,6 +989,10 @@
           "find": "\"anchor\": \"if ($Apply) { $rewritten = $true }\",",
           "replace": "\"anchor\": \"if ($Apply) { $rewrittenXX = $true }\","
         }
+      ],
+      "gateArguments": [
+        "-Gate",
+        "verify-channel-0.2-facts.ps1"
       ]
     },
     {
@@ -987,6 +1075,10 @@
           "find": "\"within\": \"$Apply -and $rewritten\",",
           "replace": "\"within\": \"$ApplyXX -and $rewritten\","
         }
+      ],
+      "gateArguments": [
+        "-Gate",
+        "verify-channel-0.2-facts.ps1"
       ]
     },
     {
@@ -1001,6 +1093,10 @@
           "find": "\"operand\": \"$rewritten\",\n          \"within\": \"$Apply -and $rewritten\",",
           "replace": "\"operand\": \"$Apply\",\n          \"within\": \"$Apply -and $rewritten\","
         }
+      ],
+      "gateArguments": [
+        "-Gate",
+        "verify-channel-0.2-facts.ps1"
       ]
     },
     {
@@ -1025,6 +1121,10 @@
           "find": ",\n        {\n          \"vector\": \"C5-pre-dispatch-refusal-possible-effect\",\n          \"expected\": \"red\",\n          \"conjunct\": \"I4-clause-1\",\n          \"note\": \"AT1. The first clause had no input that reached it: no vector in I4's group carried a pre-dispatch refusal at all, so `$certainty -ne 'known-none'` was evaluated by nothing and the clause could be deleted outright with both gates green. That is AR1's finding on `C5-P1`, found here by the operand measure rather than by a reading -- and it is the same input, because C5-P1's second clause and I4's first say the same thing about the same record. One named mutation per clause, on the rule C4's audit row already states.\"\n        }",
           "replace": ""
         }
+      ],
+      "gateArguments": [
+        "-Gate",
+        "verify-channel-0.2-properties.ps1"
       ]
     },
     {
@@ -1052,6 +1152,12 @@
           "find": ",\n        {\n          \"vector\": \"C11-required-facet-unsupported\",\n          \"expected\": \"red\",\n          \"note\": \"AU1. The declared mutation has a facet change a core result and fires through the second obligation, so the facet-support obligation read first had no input that reached it.\"\n        }",
           "replace": ""
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -1067,6 +1173,12 @@
           "replace": "\"profileMatchWithdrawn\": true,",
           "all": true
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -1078,9 +1190,15 @@
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "foreach ($required in (Get-List $session.requiredFacets)) {",
+          "find": "foreach ($required in (Get-List $session 'requiredFacets')) {",
           "replace": "foreach ($required in @($session.requiredFacets)) {"
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -1092,9 +1210,15 @@
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "return New-Red \"relational interaction $($interaction.identity) creates Ready or Release\"",
-          "replace": "if ($false) { $null = New-Red \"AU1-b\" }; return New-Red \"relational interaction $($interaction.identity) creates Ready or Release\""
+          "find": "return New-Red \"relational interaction $identity creates Ready or Release\"",
+          "replace": "if ($false) { $null = New-Red \"AU1-b\" }; return New-Red \"relational interaction $identity creates Ready or Release\""
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -1138,6 +1262,12 @@
           "replace": "\"dispatched\": false,",
           "all": true
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -1260,6 +1390,12 @@
           "find": "\"unseen-refusals.refusedFrame.session\"",
           "replace": "\"unseen-refusals.refusedFrame\""
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -1275,6 +1411,12 @@
           "occurrence": 0,
           "replace": "\"mutated\": \"red\",\n          \"conjunct\": \"C4-P2-conjunct-2\""
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -1290,6 +1432,12 @@
           "occurrence": 0,
           "replace": "\"mutated\": \"red\",\n          \"conjunctWithdrawn\": \"C4-P2-conjunct-1\""
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
       ]
     },
     {
@@ -1395,6 +1543,112 @@
           "find": "    $expectedBy = @{}",
           "replace": "    $expectedBy = @{}; foreach ($unmeasurableByProbe in @(1)) { $null = $unmeasurableByProbe }"
         }
+      ],
+      "gateArguments": [
+        "-Gate",
+        "verify-channel-0.2-facts.ps1"
+      ]
+    },
+    {
+      "id": "BB1-a",
+      "claim": "an evaluator reading a record field raw, which is how an unreadable record and a conforming one become the same verdict",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "without a sanctioned reader, and making that field unreadable",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        if ([string](Read-Required $sessionEvent 'step' $timelineSubject) -ne 'dispatch') { continue }",
+          "occurrence": 0,
+          "replace": "        if ([string]$sessionEvent.step -ne 'dispatch') { continue }"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BB1-b",
+      "claim": "a Read-Optional declaring an absence no declared input produces, which is a Read-Required written the long way",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "and no declared input leaves that field absent, so the declaration is unfalsified",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        $refusal = Read-Optional $interaction 'refusal' $refusalIsAbsence",
+          "occurrence": 0,
+          "replace": "        $refusal = Read-Optional $interaction 'class' $refusalIsAbsence"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BB1-c",
+      "claim": "a raw read on a path no green-expected input reaches is NOT reported, which is the census's first declared limit",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "pass",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "            return New-Red \"session $(Read-Required $sessionEvent 'session' $timelineSubject) accepted the transition $edge on event $(Read-Required $sessionEvent 'event' $timelineSubject), which the legal table does not contain\"",
+          "replace": "            return New-Red \"session $($sessionEvent.session) accepted the transition $edge on event $($sessionEvent.event), which the legal table does not contain\""
+        }
+      ]
+    },
+    {
+      "id": "BB3-a",
+      "claim": "a script-scope accumulator written by index assignment rather than by Add, which the census could not see",
+      "gate": "verify-channel-0.2-return-channels.ps1",
+      "expect": "fail",
+      "guardMessage": "and conformance/channel-0.2-return-channels.json does not declare it",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "$script:UnpublishedFields = [System.Collections.Generic.List[string]]::new()",
+          "replace": "$script:UnpublishedFields = [System.Collections.Generic.List[string]]::new()\n$script:ProbeIndexedAccumulator = @{}\n$script:ProbeIndexedAccumulator['BB3-a'] = 1"
+        }
+      ]
+    },
+    {
+      "id": "BB4-a",
+      "claim": "a profile-record leaf the vector does not publish, which renders as null and makes a whole-record comparison report a difference it cannot substantiate",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "with a null leaf, so the whole-record comparison cannot tell an unpublished leaf from a genuine difference",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "\"maxInFlight\": 2",
+          "occurrence": 0,
+          "replace": "\"maxInFlight\": null"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BB7-a",
+      "claim": "a census whose getter stops recording, which reports a clean zero over a package it has stopped reading",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "and observed",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "            [void]$censusSiteReaders.Add($censusFrame.FunctionName)",
+          "replace": "            $null = $censusFrame.FunctionName"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
       ]
     }
   ]
