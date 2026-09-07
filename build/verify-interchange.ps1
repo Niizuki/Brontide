@@ -22,9 +22,73 @@ function Invoke-Checked {
     }
 }
 
-Invoke-Checked {
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-sdk.ps1')
+
+# The read-only verifications run TOGETHER, and the ones that build or test do not.
+#
+# Every file below reads the repository and reports; none of them writes to it, none depends on
+# another having run, and each is already a child process. Run one after another they are the sum of
+# their costs; run together they are the cost of the slowest, which is the Channel 0.2 properties
+# gate. The `dotnet` phases underneath keep their order, because those DO write -- restore before
+# build, build before test, and the provider executables exist only once their projects are built.
+#
+# TWO THINGS THIS CHANGES, STATED RATHER THAN ABSORBED. Output no longer interleaves with execution:
+# each verification's output is captured and printed whole, in the order this file lists them, so a
+# reader sees the same sequence and not the same timing. And a failure no longer stops the rest --
+# every verification runs and every failure is reported, where before the first one threw. That is a
+# better report and it is a different one; a run that used to stop after the first failure now costs
+# what a whole run costs.
+function Invoke-CheckedTogether {
+    param([Parameter(Mandatory = $true)][string[]]$GatePaths)
+
+    $running = [System.Collections.Generic.List[object]]::new()
+    $outputRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("brontide-gate-" + [guid]::NewGuid().ToString('n'))
+    $null = New-Item -ItemType Directory -Path $outputRoot -Force
+    try {
+        $ordinal = 0
+        foreach ($gatePath in $GatePaths) {
+            $outputPath = Join-Path $outputRoot ("$ordinal.out")
+            $running.Add([pscustomobject]@{
+                Path    = $gatePath
+                Output  = $outputPath
+                Error   = "$outputPath.err"
+                Process = Start-Process -FilePath 'powershell.exe' -NoNewWindow -PassThru -RedirectStandardOutput $outputPath -RedirectStandardError "$outputPath.err" -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $gatePath)
+            })
+            # Reading `.Handle` is what makes `.ExitCode` readable after the process ends. Without it
+            # `Start-Process -PassThru` hands back an object whose ExitCode is `$null` forever, and
+            # `$null -ne 0` is true -- so every verification reported as failed while every one of
+            # them had passed. Found by running the block and disbelieving seven simultaneous
+            # failures; it is the same shape as a channel nobody reads, one process boundary out.
+            $null = $running[$running.Count - 1].Process.Handle
+            $ordinal++
+        }
+
+        $failed = [System.Collections.Generic.List[string]]::new()
+        foreach ($verification in $running) {
+            $verification.Process.WaitForExit()
+            foreach ($streamPath in @($verification.Output, $verification.Error)) {
+                if (-not (Test-Path -LiteralPath $streamPath)) { continue }
+                foreach ($line in (Get-Content -LiteralPath $streamPath)) { Write-Host $line }
+            }
+            if ($verification.Process.ExitCode -ne 0) {
+                $failed.Add("$(Split-Path -Leaf $verification.Path) exited $($verification.Process.ExitCode)")
+            }
+        }
+        if ($failed.Count -gt 0) {
+            throw "Verifications failed: $($failed -join '; ')"
+        }
+    }
+    finally { Remove-Item -LiteralPath $outputRoot -Recurse -Force -ErrorAction SilentlyContinue }
 }
+
+Invoke-CheckedTogether -GatePaths @(
+    (Join-Path $repositoryRoot 'build\verify-sdk.ps1')
+    (Join-Path $repositoryRoot 'build\verify-text.ps1')
+    (Join-Path $repositoryRoot 'build\verify-doc-links.ps1')
+    (Join-Path $repositoryRoot 'build\verify-channel-0.2-design.ps1')
+    (Join-Path $repositoryRoot 'build\verify-channel-0.2-properties.ps1')
+    (Join-Path $repositoryRoot 'build\verify-channel-0.2-facts.ps1')
+    (Join-Path $repositoryRoot 'build\verify-channel-0.2-return-channels.ps1')
+)
 Invoke-Checked {
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'build\verify-text.ps1')
 }

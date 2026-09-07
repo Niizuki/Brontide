@@ -1709,7 +1709,39 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   the pipelines, and the probe corpus runs that gate once per probe. An earlier reading of this
   comparison claimed the rewrite saved 422 seconds here; that was measured with other work running on
   the same machine and it was wrong. All measured in verifying mode on one machine with nothing else
-  running, so the figures are comparable with each other and not with CI; and
+  running, so the figures are comparable with each other and not with CI.
+
+  **BB re-measured all of this, because BB made it worse before it made it better, and the figures
+  above had gone stale in both directions.** The properties gate is **18.0 seconds** at its default
+  count and this section recorded 0.7; the generated loop and AZ3's sweep are 15.2 of it, and the
+  figure had not been retaken since AZ2 enriched the population. One coverage run is **19.6 minutes**,
+  not 308 seconds, and the whole probe corpus was about **110 minutes**, not 791.
+
+  What the corpus was spending it on was five probes. Each asserts one thing about one gate's coverage
+  declaration and each was running the full four-gate traced measure to do it, because a probe could
+  not name the arguments its gate runs under. Scoping those to the gate their guard is about takes four
+  of them from about twenty minutes each to about ten seconds. With that, cheaper arguments for the
+  twenty-six properties probes whose guards are not in the generated block, and one repository copy per
+  worker, the corpus is **427 seconds on sixteen workers** and 587 serial. A worker copy is 0.6
+  seconds, so isolation is not what costs; what bounds the run is the single probe that covers the
+  properties gate, at about six minutes.
+
+  The coverage measure is **809 seconds**, from 1,176. **Its parallelism is the disappointment of this
+  work and is recorded as one**: running its four traced gates together should have left it at the cost
+  of the slowest, about 320 seconds, and it did not — four concurrent traced runs each writing hundreds
+  of thousands of lines contend on something this measurement did not isolate. Most of the saving that
+  did arrive came from `-CensusPairs`, which halves the traced properties run at 582.6 to 288.6, and
+  from the operand unit finally running the gate with the arguments the declaration names. Against
+  that, BB itself put the return-channel census under this measure, which is 318 seconds of traced run
+  that did not exist before; the registration was owed and it is not free, and both halves belong in
+  the same sentence.
+
+  A traced statement costs about a millisecond and that is the whole shape of this measure's cost.
+  Two things were tried and did not help, recorded so nobody tries them again: capturing the trace
+  through a process redirection rather than the pipeline is 18.2 seconds against 17.2, which is
+  nothing, and cutting the return-channel census from about a hundred syntax-tree walks per gate to one
+  moved it from 530 traced seconds to 318 — real, but a fifth of what the walk count suggested, because
+  what costs is executed statements and not walks; and
 - **guard probes executable** — currently **103 of 103**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker

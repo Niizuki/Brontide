@@ -2,7 +2,19 @@
 param(
     # Report every never-evaluated construct with its trace evidence instead of comparing against the
     # declared exemptions, for working on this file or on a gate it covers.
-    [switch]$Report
+    [switch]$Report,
+    # Cover ONE registered gate instead of all of them.
+    #
+    # This exists for the probe corpus and it is a cost decision with a stated limit. A probe on this
+    # file asserts one thing about one gate's declaration -- that a stale exemption is reported, that
+    # an operand no input reaches is found -- and it paid for all four gates to be traced to assert it.
+    # Measured, that was five full runs of this measure inside one run of the corpus and by far the
+    # largest thing in it.
+    #
+    # THE LIMIT: a filtered run is NOT a coverage measurement of the package, and its summary line says
+    # so rather than reading like one. Nothing but a probe should pass this, and the repository gate
+    # and the self-check runner both call this file with no arguments.
+    [string]$Gate
 )
 
 $ErrorActionPreference = 'Stop'
@@ -84,6 +96,13 @@ try { $exemptionFile = Get-Content -Raw -LiteralPath $exemptionsPath -Encoding U
 catch { Write-Host "FAIL: invalid JSON in '$exemptionsPath': $($_.Exception.Message)"; exit 1 }
 
 $coveredGates = @($exemptionFile.gates)
+if ($Gate) {
+    $coveredGates = @($coveredGates | Where-Object { [string]$_.gate -ceq $Gate })
+    if ($coveredGates.Count -ne 1) {
+        Write-Host "FAIL: -Gate names '$Gate' and the coverage declaration registers no such gate. A filtered run that silently covers nothing would report a pass over a measurement it never took."
+        exit 1
+    }
+}
 if ($coveredGates.Count -lt 1) {
     Write-Host 'FAIL: the coverage exemption declaration names no gate to cover.'
     exit 1
@@ -132,12 +151,11 @@ function Invoke-GateChild {
     param(
         [Parameter(Mandatory = $true)][string]$GatePath,
         [Parameter(Mandatory = $true)][string]$OutputFile,
-        [switch]$Trace,
         [hashtable]$Environment = @{},
         [string[]]$Arguments = @()
     )
 
-    # A CHILD PROCESS under `Set-PSDebug -Trace 1`, for the reason the probe harness runs gates as
+    # A CHILD PROCESS, for the reason the probe harness runs gates as
     # children: a gate reports through `exit` and through the error stream, and an in-scope call under
     # this file's `Stop` preference turns a correctly failing gate into an error here. The trace goes
     # to a temporary file rather than through the pipeline so a gate's own output cannot be mistaken
@@ -153,7 +171,7 @@ function Invoke-GateChild {
         # this measure -- so the declaration names a small count that reaches every construct in the
         # generated block without paying for a population this file is not measuring.
         $argumentText = if ($Arguments.Count -gt 0) { ' ' + ($Arguments -join ' ') } else { '' }
-        $command = if ($Trace) { "Set-PSDebug -Trace 1; & '$GatePath'$argumentText" } else { "& '$GatePath'$argumentText" }
+        $command = "& '$GatePath'$argumentText"
         $previousPreference = $ErrorActionPreference
         try {
             $ErrorActionPreference = 'Continue'
@@ -168,25 +186,6 @@ function Invoke-GateChild {
             [System.Environment]::SetEnvironmentVariable($name, $previousEnvironment[$name])
         }
     }
-}
-
-function Get-ExecutedLines {
-    param(
-        [Parameter(Mandatory = $true)][string]$GatePath,
-        [hashtable]$Environment = @{},
-        [string[]]$Arguments = @()
-    )
-
-    $traceFile = [System.IO.Path]::GetTempFileName()
-    try {
-        $gateExit = Invoke-GateChild -GatePath $GatePath -OutputFile $traceFile -Trace -Environment $Environment -Arguments $Arguments
-        $executed = [System.Collections.Generic.HashSet[int]]::new()
-        foreach ($traceLine in Get-Content -LiteralPath $traceFile) {
-            if ($traceLine -match '^DEBUG:\s+(\d+)\+') { [void]$executed.Add([int]$Matches[1]) }
-        }
-        return @{ Executed = $executed; ExitCode = $gateExit }
-    }
-    finally { Remove-Item -LiteralPath $traceFile -Force -ErrorAction SilentlyContinue }
 }
 
 function Test-InsideCatch {
@@ -280,7 +279,8 @@ function Get-EvaluatedOperand {
     param(
         [Parameter(Mandatory = $true)][string]$GatePath,
         [Parameter(Mandatory = $true)]$Operands,
-        [Parameter(Mandatory = $true)][string]$GateText)
+        [Parameter(Mandatory = $true)][string]$GateText,
+        [string[]]$Arguments = @())
 
     # The operand trace needs the operand's value at the moment the expression evaluated it, and a
     # line trace cannot supply that: both operands of an `-and` sit on one line, and the short-circuit
@@ -349,7 +349,13 @@ function Get-EvaluatedOperand {
     try {
         [System.IO.File]::WriteAllText($copyPath, $text, (New-Object System.Text.UTF8Encoding($false)))
         Remove-Item -LiteralPath $logPath -Force -ErrorAction SilentlyContinue
-        $exitCode = Invoke-GateChild -GatePath $copyPath -OutputFile $outputPath -Environment @{ 'BRONTIDE_CHANNEL_02_OPERAND_LOG' = $logPath }
+        # The DECLARED arguments, the same ones the condition unit runs the gate with. Without them
+        # the two units measured the same gate under different parameters: the condition unit honoured
+        # `arguments` and this one took the gate's defaults, so an operand guarded by a parameter the
+        # declaration sets was reported as never evaluated when the declaration is exactly what
+        # evaluates it. Found by adding such an operand -- `-CensusPairs` on the properties gate --
+        # and having this unit report it against a run where the cap was never on.
+        $exitCode = Invoke-GateChild -GatePath $copyPath -OutputFile $outputPath -Arguments $Arguments -Environment @{ 'BRONTIDE_CHANNEL_02_OPERAND_LOG' = $logPath }
 
         $evaluated = [System.Collections.Generic.HashSet[string]]::new()
         if (Test-Path -LiteralPath $logPath) {
@@ -371,6 +377,46 @@ function Get-EvaluatedOperand {
 $reportRows = [System.Collections.Generic.List[object]]::new()
 $operandGateCount = 0
 
+# ---------------------------------------------------------------------------------------------
+# The traced runs happen TOGETHER, before any of them is read.
+#
+# Each covered gate is executed once under `Set-PSDebug -Trace 1` in a child process, and those runs
+# are the whole cost of this measure -- a traced statement costs about a millisecond, and these gates
+# execute millions. They are independent: each writes only its own trace file, and nothing one gate's
+# run produces is read by another's. Run one after another they are the sum; run together they are
+# the cost of the slowest.
+#
+# The ANALYSIS below stays in order and stays serial. It is syntax-tree work against a trace file
+# that already exists, it is seconds rather than minutes, and keeping it ordered keeps this file's
+# output in the order the declaration lists its gates.
+$tracedRuns = @{}
+$tracedLaunched = [System.Collections.Generic.List[object]]::new()
+foreach ($coveredGate in $coveredGates) {
+    $gateName = [string]$coveredGate.gate
+    $gatePath = Join-Path $repositoryRoot "build\$gateName"
+    if (-not (Test-Path -LiteralPath $gatePath)) { continue }
+    $traceFile = [System.IO.Path]::GetTempFileName()
+    $gateArguments = @($coveredGate.arguments | Where-Object { $_ })
+    $argumentText = if ($gateArguments.Count -gt 0) { ' ' + ($gateArguments -join ' ') } else { '' }
+    $process = Start-Process -FilePath 'powershell.exe' -NoNewWindow -PassThru `
+        -RedirectStandardOutput $traceFile -RedirectStandardError "$traceFile.err" `
+        -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', "Set-PSDebug -Trace 1; & '$gatePath'$argumentText")
+    # `.Handle` is read so `.ExitCode` is readable once the child ends; without it the property stays
+    # `$null` for the life of the object and every gate would read as having failed.
+    $null = $process.Handle
+    $tracedLaunched.Add([pscustomobject]@{ Name = $gateName; TraceFile = $traceFile; Process = $process })
+}
+foreach ($launched in $tracedLaunched) {
+    $launched.Process.WaitForExit()
+    $executed = [System.Collections.Generic.HashSet[int]]::new()
+    foreach ($traceLine in (Get-Content -LiteralPath $launched.TraceFile)) {
+        if ($traceLine -match '^DEBUG:\s+(\d+)\+') { [void]$executed.Add([int]$Matches[1]) }
+    }
+    $tracedRuns[$launched.Name] = @{ Executed = $executed; ExitCode = $launched.Process.ExitCode }
+    Remove-Item -LiteralPath $launched.TraceFile -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath "$($launched.TraceFile).err" -Force -ErrorAction SilentlyContinue
+}
+
 foreach ($coveredGate in $coveredGates) {
     $gateName = [string]$coveredGate.gate
     $gatePath = Join-Path $repositoryRoot "build\$gateName"
@@ -380,7 +426,7 @@ foreach ($coveredGate in $coveredGates) {
     }
 
     $gateArguments = @($coveredGate.arguments | Where-Object { $_ })
-    $run = Get-ExecutedLines -GatePath $gatePath -Arguments $gateArguments
+    $run = $tracedRuns[$gateName]
     if ($run.ExitCode -ne 0) {
         # Coverage of a failing gate measures nothing: the run stopped early, so every construct after
         # the failure reads as never evaluated. The gate is fixed first and this file is run after.
@@ -476,7 +522,7 @@ foreach ($coveredGate in $coveredGates) {
 
     $gateText = [System.IO.File]::ReadAllText($gatePath)
     $operands = Get-LogicalOperand -Ast ([System.Management.Automation.Language.Parser]::ParseInput($gateText, [ref]$tokens, [ref]$parseErrors))
-    $operandRun = Get-EvaluatedOperand -GatePath $gatePath -Operands $operands -GateText $gateText
+    $operandRun = Get-EvaluatedOperand -GatePath $gatePath -Operands $operands -GateText $gateText -Arguments $gateArguments
     if ($operandRun.Error) {
         $failures.Add("The operand coverage of '$gateName' could not be measured: $($operandRun.Error)")
         continue
@@ -543,4 +589,5 @@ if ($failures.Count -gt 0) {
 
 $exemptionCount = @($coveredGates | ForEach-Object { $_.exemptions } | Where-Object { $_ }).Count
 $operandExemptionCount = @($coveredGates | ForEach-Object { $_.operandExemptions } | Where-Object { $_ }).Count
-Write-Host "Channel 0.2 gate coverage passed: every conditional in $($coveredGates.Count) gates and every operand in $operandGateCount of them is evaluated by a passing run, with $exemptionCount declared condition exemptions and $operandExemptionCount declared operand exemptions."
+$coverageScope = if ($Gate) { " -- FILTERED to '$Gate' by -Gate, so this is not a coverage measurement of the package" } else { '' }
+Write-Host "Channel 0.2 gate coverage passed: every conditional in $($coveredGates.Count) gates and every operand in $operandGateCount of them is evaluated by a passing run, with $exemptionCount declared condition exemptions and $operandExemptionCount declared operand exemptions.$coverageScope"

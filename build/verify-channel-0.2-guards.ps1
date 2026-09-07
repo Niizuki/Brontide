@@ -1,7 +1,32 @@
 [CmdletBinding()]
 param(
     # Run one probe by id instead of the whole corpus, for working on a single guard.
-    [string]$Probe
+    [string]$Probe,
+    # How many probes to run at once, each in its own copy of the repository.
+    #
+    # WHY ISOLATION AND NOT LOCKING. A probe edits a real file in the working tree and restores it, so
+    # two probes running at once would each restore over the other's mutation and both would report a
+    # verdict about a package neither wrote. That is why this corpus has always been serial. The
+    # answer is a copy per worker rather than a lock, because the probes are otherwise independent and
+    # a lock would serialise exactly the part that costs.
+    #
+    # WHAT IT COSTS. The repository is 28 MB with its git directory and without build output, and a
+    # worker copy measures at 0.6 seconds. A dozen of those is seconds against a corpus measured in
+    # minutes.
+    #
+    # WHAT IT DOES NOT CHANGE. Each worker runs this same file over a subset of ids, in a full copy
+    # that has its own `.git`, so every probe still gets the dirty-tree refusal and the residual check
+    # it gets today. One means today's behaviour in this tree with no copying, and is the default so
+    # that nothing about a single run changes unless it is asked for.
+    [int]$Parallel = 1,
+    # Set by the parent when it fans out: a file holding one probe id per line. Not for a person to
+    # pass, and a run over a subset is not a run of the corpus.
+    #
+    # A FILE rather than an argument list, and that is not a style choice. Twenty-five of these ids
+    # contain a space -- `D2 W2`, `C7 hold` -- and `powershell -File script -ProbeIds a b c` neither
+    # quotes them nor binds them as an array, so the first attempt handed each worker one mangled id
+    # and every worker reported nothing. One path is one argument whatever the ids contain.
+    [string]$ProbeIdFile
 )
 
 $ErrorActionPreference = 'Stop'
@@ -45,9 +70,132 @@ catch { Write-Host "FAIL: invalid JSON in '$corpusPath': $($_.Exception.Message)
 
 $probes = @($corpus.probes)
 if ($Probe) { $probes = @($probes | Where-Object { $_.id -eq $Probe }) }
+if ($ProbeIdFile) {
+    if (-not (Test-Path -LiteralPath $ProbeIdFile)) {
+        Write-Host "FAIL: this worker was given the probe list '$ProbeIdFile' and no such file exists."
+        exit 1
+    }
+    $assigned = @(Get-Content -LiteralPath $ProbeIdFile | Where-Object { $_.Trim().Length -gt 0 })
+    $wanted = [System.Collections.Generic.HashSet[string]]::new([string[]]$assigned, [System.StringComparer]::Ordinal)
+    $probes = @($probes | Where-Object { $wanted.Contains([string]$_.id) })
+    if ($probes.Count -ne $wanted.Count) {
+        Write-Host "FAIL: this worker was given $($wanted.Count) probe ids and the corpus holds $($probes.Count) of them. A worker that silently runs fewer probes than it was given reports a pass for the ones it never ran."
+        exit 1
+    }
+}
 if ($probes.Count -lt 1) {
     Write-Host "FAIL: no probe to run$(if ($Probe) { " with id '$Probe'" })."
     exit 1
+}
+
+# ---------------------------------------------------------------------------------------------
+# The fan-out. A parent with -Parallel greater than one runs no probe itself: it partitions the ids,
+# gives each worker its own copy of the repository, and merges what they report.
+# ---------------------------------------------------------------------------------------------
+if ($Parallel -ne 1 -and -not $ProbeIdFile) {
+    $workerCount = if ($Parallel -le 0) { [Environment]::ProcessorCount } else { $Parallel }
+    if ($workerCount -gt $probes.Count) { $workerCount = $probes.Count }
+
+    # Dealt round-robin over a cost-ordered list rather than cut into blocks. The corpus is not
+    # uniform -- one probe on the coverage measure is minutes where a probe on the owned-fact gate is
+    # under a second -- so a block partition leaves one worker holding every expensive probe and the
+    # run takes as long as that worker. Ordering by the gate's own cost and dealing one at a time
+    # spreads them.
+    $gateCost = @{
+        'verify-channel-0.2-coverage.ps1'        = 600
+        'verify-channel-0.2-properties.ps1'      = 18
+        'verify-channel-0.2-design.ps1'          = 4
+        'verify-channel-0.2-return-channels.ps1' = 2
+        'verify-doc-links.ps1'                   = 2
+        'verify-channel-0.2-facts.ps1'           = 1
+    }
+    $ordered = @($probes | Sort-Object -Property @{ Expression = {
+        $named = [string]$_.gate
+        if ($gateCost.ContainsKey($named)) { $gateCost[$named] } else { 10 } } } -Descending)
+
+    $buckets = @{}
+    foreach ($index in 0..($workerCount - 1)) { $buckets[$index] = [System.Collections.Generic.List[string]]::new() }
+    for ($index = 0; $index -lt $ordered.Count; $index++) {
+        [void]$buckets[$index % $workerCount].Add([string]$ordered[$index].id)
+    }
+
+    # A worker is a COPY, and a copy is only self-contained when `.git` is a directory. In a git
+    # worktree `.git` is a file pointing at the main repository's worktree metadata, so the copy's
+    # git commands would answer about the original path instead of about the copy -- and two of the
+    # things a probe relies on are git answers: the dirty-tree refusal a probe expects a gate to
+    # make, and the residual check that catches a probe which failed to restore. Refused rather than
+    # worked around, because a worker whose git answers are about somewhere else reports verdicts
+    # nobody can act on.
+    $gitPath = Join-Path $repositoryRoot '.git'
+    if ((Test-Path -LiteralPath $gitPath) -and -not (Test-Path -LiteralPath $gitPath -PathType Container)) {
+        Write-Host "FAIL: -Parallel needs a repository whose '.git' is a directory, and this one is a git worktree, where '.git' is a pointer file. A worker copy of it would answer git questions about the original tree. Run the corpus here without -Parallel, or run it in a clone."
+        exit 1
+    }
+
+    $workerRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("brontide-probes-" + [guid]::NewGuid().ToString('n'))
+    $started = [System.Collections.Generic.List[object]]::new()
+    try {
+        foreach ($index in 0..($workerCount - 1)) {
+            if ($buckets[$index].Count -lt 1) { continue }
+            $workerPath = Join-Path $workerRoot "w$index"
+            $null = New-Item -ItemType Directory -Path $workerPath -Force
+            # `robocopy` rather than `Copy-Item`, for the reason it is always chosen on Windows: it
+            # is multi-threaded and it does not walk the tree in PowerShell. Exit codes below 8 are
+            # success. Build output is excluded because no gate reads it and it is fifty times the
+            # size of everything that matters.
+            $null = robocopy $repositoryRoot $workerPath /MIR /NFL /NDL /NJH /NJS /NP /MT:8 /XD bin obj .vs node_modules
+            if ($LASTEXITCODE -ge 8) { throw "could not copy the repository to '$workerPath': robocopy exit $LASTEXITCODE." }
+
+            $outputPath = Join-Path $workerRoot "w$index.out"
+            $listPath = Join-Path $workerRoot "w$index.ids"
+            Set-Content -LiteralPath $listPath -Value $buckets[$index] -Encoding UTF8
+            $arguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+                (Join-Path $workerPath 'build\verify-channel-0.2-guards.ps1'),
+                '-ProbeIdFile', $listPath)
+            $started.Add([pscustomobject]@{
+                Index   = $index
+                Ids     = @($buckets[$index])
+                Output  = $outputPath
+                Process = Start-Process -FilePath 'powershell.exe' -ArgumentList $arguments -NoNewWindow -PassThru -RedirectStandardOutput $outputPath -RedirectStandardError "$outputPath.err"
+            })
+            # `.Handle` is read so `.ExitCode` is readable after the worker ends; without it the
+            # property stays `$null` and the silent-worker guard below can never fire.
+            $null = $started[$started.Count - 1].Process.Handle
+        }
+
+        $passed = 0
+        foreach ($worker in $started) {
+            $failuresBefore = $failures.Count
+            $worker.Process.WaitForExit()
+            $reported = if (Test-Path -LiteralPath $worker.Output) { @(Get-Content -LiteralPath $worker.Output) } else { @() }
+            foreach ($errorPath in @("$($worker.Output).err")) {
+                if (Test-Path -LiteralPath $errorPath) { $reported += @(Get-Content -LiteralPath $errorPath) }
+            }
+            $sawVerdict = $false
+            foreach ($line in $reported) {
+                if ($line -match '^FAIL: (.*)$') { $failures.Add($Matches[1]) }
+                elseif ($line -match 'probes returned the verdict their guard owes\.') {
+                    $sawVerdict = $true
+                    if ($line -match ': ([0-9]+) of ([0-9]+) probes') { $passed += [int]$Matches[1] }
+                }
+            }
+            # A worker that reported neither a failure nor a verdict did not run. Silence from a
+            # child is the one outcome a parent must never read as success -- it is AZ1's shape at
+            # the process boundary -- and it is reported whatever the worker exited with, because the
+            # first version asked for exit 0 as well and a worker that died reported nothing at all.
+            if (-not $sawVerdict -and $failures.Count -eq $failuresBefore) {
+                $failures.Add("Probe worker $($worker.Index) exited $($worker.Process.ExitCode) and reported neither a verdict nor a failure for the $($worker.Ids.Count) probes it was given: $($worker.Ids -join ', '). A worker that says nothing has not passed.")
+            }
+        }
+    }
+    finally {
+        Remove-Item -LiteralPath $workerRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    # The count claim below is about the CORPUS, and a parallel run is a run of the whole corpus, so
+    # it is checked here too. Returning early past it is how a check stops applying while every gate
+    # stays green, which is AP1 and the family this file exists to catch.
+    $parallelWorkerCount = $started.Count
 }
 
 # A probe corpus is a second surface for the set of gates, so the gate a probe names has to exist.
@@ -128,9 +276,9 @@ if ($restoreTest.Attempts -ne 3 -or
 }
 
 $gitAvailable = Test-Path -LiteralPath (Join-Path $repositoryRoot '.git')
-$passed = 0
+if (-not $parallelWorkerCount) { $parallelWorkerCount = 0; $passed = 0 }
 
-foreach ($guardProbe in $probes) {
+foreach ($guardProbe in $(if ($parallelWorkerCount -gt 0) { @() } else { $probes })) {
     $paths = @($guardProbe.edits | ForEach-Object { [string]$_.path } | Sort-Object -Unique)
     $absolute = @{}
     $snapshots = @{}
@@ -222,7 +370,13 @@ foreach ($guardProbe in $probes) {
         $previousPreference = $ErrorActionPreference
         try {
             $ErrorActionPreference = 'Continue'
-            $gateOutput = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot "build\$($guardProbe.gate)") 2>&1
+            # A probe may name the arguments its gate is run with. It is a COST control and never a
+            # fidelity one: the arguments a probe passes must not be able to switch off the guard it
+            # asserts, and the check below refuses a probe whose guard then fails to report. Measured,
+            # the corpus was five full runs of the coverage measure and thirty-three runs of the
+            # generated-vector loop that no probe on this list asserts anything about.
+            $probeArguments = @([string[]]($guardProbe.gateArguments) | Where-Object { $_ })
+            $gateOutput = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot "build\$($guardProbe.gate)") @probeArguments 2>&1
             $exitCode = $LASTEXITCODE
             # Not `Out-String`: it renders at the console width and truncates, which cut every
             # `Write-Error` message in half and would have made a message assertion unmatchable for
@@ -270,7 +424,7 @@ foreach ($guardProbe in $probes) {
 
 # The restore is checked rather than assumed: this file writes to the working tree, and a probe that
 # left a mutation behind would hand the next command a package nobody wrote.
-if ($gitAvailable) {
+if ($gitAvailable -and $parallelWorkerCount -eq 0) {
     $allPaths = @($probes | ForEach-Object { $_.edits } | ForEach-Object { [string]$_.path } | Sort-Object -Unique)
     $residual = & git -C $repositoryRoot status --porcelain -- $allPaths 2>$null
     if ($LASTEXITCODE -eq 0 -and $residual) {
@@ -286,7 +440,7 @@ if ($failures.Count -gt 0) {
 # The plan states this count as a measure, so the file that determines it checks the claim -- AO2's
 # remedy applied to the measure AO3 added. Skipped when a single probe was requested, since the
 # corpus was not run whole.
-if (-not $Probe) {
+if (-not $Probe -and -not $ProbeIdFile) {
     $planPath = Join-Path $repositoryRoot 'docs\future\channel\Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md'
     if (Test-Path -LiteralPath $planPath) {
         $planText = [regex]::Replace(((Get-Content -Raw -LiteralPath $planPath -Encoding UTF8) -replace '\*\*', ''), '\s+', ' ')
@@ -343,4 +497,9 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host "Channel 0.2 guard verification passed: $passed of $($probes.Count) probes returned the verdict their guard owes."
+if ($parallelWorkerCount -gt 0 -and $passed -ne $probes.Count) {
+    Write-Host "FAIL: the corpus holds $($probes.Count) probes and its workers accounted for $passed. A probe that no worker reported on is one nobody ran."
+    exit 1
+}
+$parallelNote = if ($parallelWorkerCount -gt 0) { ", over $parallelWorkerCount parallel workers" } else { '' }
+Write-Host "Channel 0.2 guard verification passed: $passed of $($probes.Count) probes returned the verdict their guard owes$parallelNote."
