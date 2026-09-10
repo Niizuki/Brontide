@@ -195,9 +195,15 @@ let a property that is wrongly green certify the declaration that made it wrong 
 as measuring a guard by whether today's corpus makes it fire, which is AP1's class and why the coverage
 measure counts conditions rather than failures.
 
-It reports **3 `Read-Optional` declarations exercised by a conforming input and 2 `Read-Obligation`
-declarations exercised by a mutation**, where the package as found reported five of the former and
-none of the latter.
+It reports **3 `Read-Optional` and 2 `Read-Obligation` declarations, each checked against the declared
+verdict of the inputs whose silence exercises it**, where the package as found reported five of the
+former and none of the latter.
+
+That sentence is the second draft, and the first was caught by re-reading the diff rather than by
+anything in the gate. It said *3 `Read-Optional` declarations exercised by a conforming input*, which
+is the verdict of the check and not a property of the count — and the line prints whether or not the
+checks above added a failure, so on the run that fails one of them it would have asserted precisely
+what that run had just contradicted. The measure now says what it measured.
 
 **Two limits, stated in the file where they apply rather than discovered later:**
 
@@ -227,6 +233,13 @@ none of the latter.
   `Read-Optional` back where the absence is a violation; `BC1-b` points a `Read-Obligation` at
   `refusal`, whose absences are all on conforming inputs, and the mirror check fires. Each was run and
   returned the verdict its guard owes.
+- **And `BC1-b`'s key then went stale inside this same pass, which is AP1's class committed by the
+  author of the probe.** The obligation check's failure message was rewritten two corrections later —
+  a nested conditional in it was reachable only on a failing run, so the coverage measure reported it
+  as never executed and it was removed rather than exempted — and the probe still keyed on a phrase
+  that rewrite deleted. **A probe whose key was correct when written stops being correct when the work
+  moves**, and four passes have now produced an instance. It is re-anchored on the guard's stable
+  claim rather than on its wording, and the corpus is what reports the next one.
 - **BC2's vector was pinned to reach the clause, not merely to be green.** Removing its decision point
   takes `C6-P1` red through `C6-P1-clause-2` with the clause named in the witness; the three session
   vectors never reach that clause at all.

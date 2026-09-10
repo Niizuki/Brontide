@@ -2093,7 +2093,11 @@ foreach ($obligationDeclaration in ($script:ObligationReads.Keys | Sort-Object))
 }
 $censusSanctioned = $censusReadCount - $censusRawCount
 $censusScope = if ($CensusPairs -gt 0) { " -- CAPPED at $CensusPairs pairs per property by -CensusPairs, so this is not a census of the corpus" } else { '' }
-Write-Host "Channel 0.2 read-provenance census: $censusReadCount of $censusSiteCount poisoned fields were read by an evaluator, $censusSanctioned of those through a sanctioned reader and $censusRawCount raw, over $($script:OptionalReads.Count) Read-Optional declarations exercised by a conforming input and $($script:ObligationReads.Count) Read-Obligation declarations exercised by a mutation.$censusScope"
+# This line runs whether or not the checks above added a failure, so it states what was MEASURED and
+# not what a passing run would imply about it. "Exercised by a conforming input" is the verdict of the
+# check, not a property of the count, and printing it here would have the measure assert on a failing
+# run exactly what that run had just contradicted.
+Write-Host "Channel 0.2 read-provenance census: $censusReadCount of $censusSiteCount poisoned fields were read by an evaluator, $censusSanctioned of those through a sanctioned reader and $censusRawCount raw, over $($script:OptionalReads.Count) Read-Optional and $($script:ObligationReads.Count) Read-Obligation declarations, each checked against the declared verdict of the inputs whose silence exercises it.$censusScope"
 
 # ---------------------------------------------------------------------------------------------
 # Generated conforming vectors -- the eleventh condition-4 pass, by owner ruling of 2026-09-04.

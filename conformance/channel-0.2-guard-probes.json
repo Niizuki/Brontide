@@ -1674,7 +1674,7 @@
       "claim": "a Read-Obligation no declared mutation exercises, which is a clause nothing shows catching the omission",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
-      "guardMessage": "never by one the reading property is declared red on",
+      "guardMessage": "Nothing then demonstrates the clause catches the omission",
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
