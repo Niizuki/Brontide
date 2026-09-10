@@ -231,7 +231,7 @@ Both were probed.
 
 **All twenty-six properties now execute, and no cell in either audit table reads `owed`.** The eleven
 per-capability properties outside condition 2 -- `C1-P1`, `C2-P1`, `C3-P1`, `C5-P1` through `C12-P1`
--- were the last of them. The gate runs **131** evaluations over **55** declared inputs plus the nine operand
+-- were the last of them. The gate runs **132** evaluations over **56** declared inputs plus the nine operand
 mutations, and each property is red on the mutation the completeness review already named for it and
 green on both required-green members.
 
@@ -1394,7 +1394,7 @@ leaves the prior state unchanged or enters `faulted`* evaluated one of the fifty
 declared corpus and none at all in the generated population, and was green everywhere else by never
 having looked. That an `admit` step happened is what the timeline records by carrying the step, so the
 second field restated a fact the step's own presence already carried — W1's duplication arriving as a
-guard. The guard is deleted and the field with it; the clause is now green over all 55 declared inputs
+guard. The guard is deleted and the field with it; the clause is now green over every declared input
 and 100 generated vectors and still red on its mutation.
 
 **This is the finding that says what BB1 was worth**, and it was not found by reading the clause. Three
@@ -1490,6 +1490,78 @@ the read, and **none is checked against the artifact that would settle it**. A d
 exercised and wrong looks exactly like one that is exercised and right — which is AO3's question, asked
 of a claim this pass introduced rather than of a guard comment someone else wrote.
 
+## 2t. What the seventeenth condition 4 pass found
+
+The seventeenth author-side pass has run, at `ceeddc3`, and is retained as the
+[seventeenth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-bc-iteration-review.md).
+It was to be the **first of the two consecutive clean passes** the 2026-09-04 ruling requires from
+zero.
+
+**It is not clean. Its frozen set reported nothing — eleventh consecutive — and the instrument it built
+raised BC1 and BC2 in the package on its first run, both against the retained verification and neither
+against the design, so the two-consecutive count stays at zero.** It also raised **BC3** against its own
+new code; under this section's own ruling that belongs to neither counted population, and it is
+numbered because the correction cites it.
+
+**The method was the one section 2s named, and it was aimed at section 2s's own work.** A
+`Read-Optional` declares that an absent field is a fact the design states. The census checks the
+declaration was made; BB5's check beside it requires that some input exercise it; **neither can check
+that it is right**. Five declarations stood on that footing.
+
+**BC1 is two of the five, and they were wrong in the way that needs no artifact to see.** `C6-P1` reads
+the three parts of an authority presentation, its second clause is about a presentation that omits one
+of them, and `decisionPoint` and `initiatorAttribution` were read as optionals whose stated reason was
+*an absent field is the violation being detected*. That is the negation of what the reader means. The
+contract settles it in its own sentence — every denial or unevaluatable presentation **records** the
+decision point, initiator attribution, and `known-none` — so no conforming record leaves either absent,
+and the measure confirms it: the only input that leaves `decisionPoint` absent anywhere in the corpus is
+`C6-denial-without-decision-point`, and the only one that leaves `initiatorAttribution` absent is
+`C6-denial-without-initiator-attribution`. **Each declaration was exercised by exactly the vector
+written to make its own property go red.** The other three are exercised by 43, 48 and 48 conforming
+records, which is what a fact the design states looks like.
+
+BB5 could not ask this. It counts an absence wherever one occurs, and an absence occurs on a declared
+mutation as readily as on a conforming input.
+
+**The correction is a fifth reader and a pair of opposite requirements.** The four readers differed in
+what an absent field means — empty, unevaluable, a stated fact, a widened candidate set — and none of
+them meant *the violation this clause detects*, which is a real meaning `C6-P1` needs. `Read-Obligation`
+is that meaning written down, and the two meaning-carrying readers are now checked against the
+**declared verdict** of the input that exercises them: a `Read-Optional` needs one the property is
+declared green on, a `Read-Obligation` one it is declared red on. Either exercised only by the other
+polarity is AR1's unfalsifiable clause, or BB5's unfalsified declaration, arriving through the reader.
+
+**BC2 came out of correcting BC1 and is the sharper of the two.** Asking which inputs reach `C6-P1`'s
+second clause at all returns four, and **every one of them is one of that clause's own mutations**: the
+three green members all record `permitted` and the evaluator returns before the clause. So the clause was
+covered by the coverage measure, falsifiable through all three operands after AT2, and had **never once
+been observed staying green**. That is AE3's rule — nothing required a property to stay green, only to be
+able to fail — one level below where AE3 put it: AE3 bound the property, and a property with a
+required-green set can still hold a clause every green member skips. Corrected with
+`C6-conforming-denial-records-all-three`, pinned to reach the clause rather than merely to be green.
+
+**BC3 is against this pass's own first draft, and it walked into a limit written one pass earlier.** The
+draft factored both readers' accumulation into a helper taking the accumulator as a parameter, and the
+return-channel census failed: `$script:OptionalReads` is declared and nothing in the gate adds to it. It
+was right. BB3 widened that census from `.Add(...)` to index assignment and stated the limit that
+remained — *a write through an alias is still invisible* — and a collection reached through a parameter
+is that alias. Corrected by writing the six lines out at each reader: a helper that hides a declared
+channel from the instrument that checks the channel costs more than the duplication it saves.
+
+**What the next pass inherits.** Polarity is a proxy for truth and this pass says so where it applies.
+`provenanceFormActually` and `terminalHistoryChangedBy` are correctly polarised and named by **no design
+artifact at all**: the rules *an absent actual form means agreement* and *an absent changer means no
+sibling changed it* are the gate's own conventions. The next unit is the citation — a declaration names
+the artifact and the words that settle it, and the gate checks the words are still there — which is
+section 2s's question with the half this pass could answer removed.
+
+**And one owner question, put rather than decided.** `Read-Obligation` names an ambiguity it does not
+close: a vector that omits `decisionPoint` because the realization omitted it is byte-identical to one
+whose author did not write it down, which is exactly what AU2 says an obligation cannot tell apart.
+Closing it means the authority record stating what the realization recorded rather than the reader
+inferring it from what is missing, which changes what a conforming record must carry and therefore what
+the neutral brief's vector format says. It is recorded in section 5.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -1548,12 +1620,13 @@ nothing means the package is sound *under what the programme can currently detec
 and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
-sixteen times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one,
-three, zero, three, seven and **seven** defects. Sections 2d through 2s record them. This tally counts
-what a reader counts -- the numbered findings in each pass's retained review. Where the 2026-09-04
-ruling's two populations differ from that total, the pass's own section states the split: of the
-fifteenth's seven, five are in the package and two are in the instrument that pass built, and of the
-sixteenth's seven, four are in the package and three are in its own new code.
+seventeen times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one,
+three, zero, three, seven, seven and **three** defects. Sections 2d through 2t record them. This tally
+counts what a reader counts -- the numbered findings in each pass's retained review. Where the
+2026-09-04 ruling's two populations differ from that total, the pass's own section states the split: of
+the fifteenth's seven, five are in the package and two are in the instrument that pass built; of the
+sixteenth's seven, four are in the package and three are in its own new code; and of the seventeenth's
+three, two are in the package and one is in its own new code.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -1584,6 +1657,17 @@ and **BB4** in the package on its first run, and **BB3** says what that clean fr
 second time: the return-channel census was in it, it was green, and it could not see an accumulator
 written `$script:Table[$key] = $value` rather than `.Add(...)`. Ten of these sixteen passes have now
 had a clean frozen set and a new instrument that found something.
+
+**The seventeenth was to be the first of the two owed from zero and is not either.** Its frozen set
+reported nothing -- the 103-probe corpus, the coverage measure, both design gates, the return-channel
+census, the read-provenance census, and 52,000 evaluations over 2,000 generated vectors at 0 red with
+AZ3's sweep green -- which is the eleventh consecutive clean frozen set and a strictly larger one
+again, having gained the read-provenance census and that pass's six probes. The instrument it built
+found **BC1** and **BC2** in the package on its first run, and **BC3** says what that clean frozen set
+was worth a third time: the return-channel census was in it, it was green, and it failed the moment
+this pass's own draft reached a declared accumulator through a parameter -- the alias limit BB3 had
+written down one pass earlier, walked into by the commit after the sentence describing it. Eleven of
+these seventeen passes have now had a clean frozen set and a new instrument that found something.
 
 **And BB7 is what the frozen set was worth in the other direction.** The coverage measure reported
 eleven constructs of the new census as never executed, which was that census reporting a clean zero
@@ -1629,23 +1713,27 @@ have been entitled to call blocking**, as does **AU1**, eleven obligations that 
 could distinguish an implementation honouring them from one that did not. The condition is doing what
 it was written to do; it has not yet run out of findings.
 
-The next work is therefore a seventeenth author-side pass, and it is the **first of the two
-consecutive passes** the 2026-09-04 ruling requires. The sixteenth took the question the fifteenth's
-finding pointed at — nothing requires an evaluator to FILL the `Errors` channel where a record is
-genuinely unevaluable — asked it mechanically by making each field of each vector unreadable in turn,
-and found that twenty-five of the twenty-six evaluators could not tell an unreadable record from a
-conforming one; section 2s records what, and the four-reader taxonomy that replaced the raw reads is
-now enforced on every commit.
+The next work is therefore an eighteenth author-side pass, and it is the **first of the two
+consecutive passes** the 2026-09-04 ruling requires. The seventeenth took the question the sixteenth
+named against its own work — the census checks a `Read-Optional` was declared and exercised, never that
+it is true — and answered the half a machine can: two of the five declarations were exercised by
+exactly the vector written to make the reading property go red, which is the absence of a violation and
+not a fact the design states. Section 2t records what, and the fifth reader that carries the other
+meaning, with the two opposite falsification requirements, is now enforced on every commit.
 
-**The seventeenth's method is the candidate that question left behind, and it is about this pass's own
-work.** The census checks that a `Read-Optional` was DECLARED and that some input EXERCISES it. It
-cannot check that the declaration is **true**. Five now stand — an absent `refusal`, `decisionPoint`,
-`initiatorAttribution`, `provenanceFormActually` or `terminalHistoryChangedBy` is a fact the design
-states rather than a silence in the vector — and each is a claim about the design asserted inside a
-gate, which is the second-surface problem W1 exists to retire arriving as a judgement rather than as a
-copied fact. A declaration that is exercised and wrong looks exactly like one that is exercised and
-right. That is **AO3**'s question — read each claim as a claim and test it against the authority — put
-to a claim this programme introduced last, and it is where the next pass should spend its increment.
+**The eighteenth's method is the half the seventeenth could not reach, and it is the same question one
+level in.** Polarity is a proxy for truth: the check now asks whether the inputs exercising a
+declaration carry the verdict the declaration's kind implies, which caught the two that asserted the
+negation of their own contract sentence. It does not ask whether any artifact says what the reason
+claims, and **two of the three surviving declarations are named by no design artifact at all** —
+`provenanceFormActually` and `terminalHistoryChangedBy` occur in the gate, in the vectors and in this
+plan, and nowhere in the design. The rules *an absent actual form means agreement* and *an absent
+changer means no sibling changed it* are the gate's own conventions, correctly polarised and cited
+nowhere, which is the second-surface problem W1 exists to retire arriving as a judgement rather than as
+a copied fact. The unit is the citation: a declaration names the artifact and the words that settle it,
+and the gate checks the words are still there. That is **AO3**'s question — read each claim as a claim
+and test it against the authority — put to a claim this programme introduced last, and it is where the
+next pass should spend its increment.
 
 What the fourteenth left undone is narrower and should not be confused with the above: the seven inert
 droppings are inert because the generated population carries one frame shape per session, and the
@@ -1676,9 +1764,9 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,340** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,344** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
-  commits, which was never the value at any commit; it is corrected under **AM3**. It has moved four
+  commits, which was never the value at any commit; it is corrected under **AM3**. It has moved five
   times since, by four characters each time and for the same reason — registering a new
   iteration-review family in the Design reviews row — and on each occasion the check that recomputes it failed the
   figure on the commit that wrote it, which is the check working rather than a defect in it; and
@@ -1788,3 +1876,11 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
    with each new guard is an acceptance criterion someone can fail, as W1's registry deletion was, or a
    habit that decays the first time a pass is in a hurry. The measure in section 4 makes the decay
    visible either way, which is the argument for leaving it as a practice.
+5. **Should a vector state a realization's omission positively?** **BC1** added `Read-Obligation` for a
+   field whose absence is the violation a clause detects, and the reader names an ambiguity it does not
+   close: a vector that omits `decisionPoint` because the realization omitted it is byte-identical to
+   one whose author did not write it down, which is what **AU2** says an obligation cannot tell apart.
+   Closing it means the authority record carrying what the realization recorded rather than the reader
+   inferring it from what is missing. That changes what a conforming record must state, and therefore
+   what the neutral brief's vector format says, so it is a choice between defensible designs rather than
+   an author's call — the trigger **S1** and **R1** established for a ruling.

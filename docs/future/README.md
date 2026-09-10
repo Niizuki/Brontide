@@ -390,10 +390,37 @@ is the one to weigh: BA1's correction changed a constructor's syntactic form and
 verification and none in the design. **BA7** is the seventh and is against a frozen instrument: the
 coverage measure decides whether a `foreach` body ran by asking whether the body's first line ran, so a
 body on the header line reports as covered either way, and splitting the sixteen such loops exposed
-three never-run bodies it had been passing. The two consecutive clean passes stay owed from zero, and a
-sixteenth pass is the next work -- it asks whether an evaluator ever **fills** that channel, since one
-of the twenty-six does and for the rest "unevaluable" and "conforms" are the same verdict. The
-closure-review hold remains in force.
+three never-run bodies it had been passing.
+
+**The sixteenth pass then asked whether an evaluator ever fills that channel**, and it did not: one
+evaluator of twenty-six populated it, so for the other twenty-five *I could not read this record* and
+*this realization conforms* were the same verdict. It raised **BB1**-**BB7**. **BB1** is twenty-five of
+twenty-six evaluators reading their records raw, measured at 945 reads of a field the evaluator could
+not read; **BB2** is what that was hiding, `C2-P1`'s middle clause gated on a field one admit event of
+fifty-one publishes and no artifact names, so it evaluated one record and reported green over both
+populations; and **BB7**, against its own new code, is the census reporting a clean **0 raw reads** over
+a package it had entirely stopped reading -- BA6 one pass later and total rather than partial, found
+because eleven never-executed constructs were read as a symptom instead of silenced by the exemptions
+already drafted for them.
+
+**The seventeenth pass then asked whether those declarations are TRUE**, which is the question the
+sixteenth named against its own work, and is retained as the
+[seventeenth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-bc-iteration-review.md).
+Its frozen set reported nothing -- eleventh consecutive -- and it raised **BC1**-**BC3**, two in the
+package and one in its own new code. **BC1** is that a `Read-Optional` declares an absent field to be a
+fact the design states, and two of the five said the opposite of the contract sentence they served:
+`C6-P1` requires every denial to **record** its decision point and initiator attribution, and the only
+input in the corpus leaving either absent is that clause's own named mutation, so each declaration was
+exercised by exactly the vector written to make its property go red. The correction is a fifth reader
+whose falsification requirement is the mirror of the fourth's. **BC2** is the one to weigh: **all four
+inputs that reach `C6-P1`'s second clause are that clause's own mutations**, so a clause the coverage
+measure covers and three operands falsify had never once been observed staying green -- AE3's rule at
+the clause, where a property's required-green set does not reach. **BC3** is the pass's own draft
+hiding a declared accumulator from the return-channel census by passing it through a parameter, which
+is the alias limit BB3 stated one pass earlier. The two consecutive clean passes stay owed from zero,
+and an eighteenth pass is the next work -- it asks the half polarity cannot reach, whether the artifact
+a declaration cites says what the declaration claims, since two of the surviving three are named by no
+design artifact at all. The closure-review hold remains in force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition

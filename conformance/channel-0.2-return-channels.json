@@ -19,7 +19,12 @@
         {
           "name": "OptionalReads",
           "kind": "cumulative",
-          "reason": "It records, over the WHOLE declared run, whether any input left each declared-optional field absent. The check at the end asks which declaration no input exercised, exactly as ObligationsReached's does for obligations, so a clear anywhere would make an unexercised declaration indistinguishable from one exercised before the clear."
+          "reason": "It records, over the WHOLE declared run, the declared verdicts of the inputs that left each declared-optional field absent. The check at the end asks which declaration no input exercised and which none of the inputs that exercised it is declared green on, exactly as ObligationsReached's does for obligations, so a clear anywhere would make an unexercised declaration indistinguishable from one exercised before the clear."
+        },
+        {
+          "name": "ObligationReads",
+          "kind": "cumulative",
+          "reason": "BC1. The mirror of OptionalReads, over the same whole run and for the same reason: it records the declared verdicts of the inputs that left each declared-obligation field absent, and the check at the end asks which declaration no input the property is declared RED on exercised. A clear anywhere would make an obligation no mutation reaches indistinguishable from one reached before the clear."
         },
         {
           "name": "ObligationsReached",

@@ -5463,6 +5463,132 @@
       "deterministicExpectedObservation": true
     },
     {
+      "id": "C6-conforming-denial-records-all-three",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C6-P1"
+      ],
+      "role": "additional-green",
+      "summary": "The conforming counterpart of C6-P1's second-clause mutations: a local authority denial that records its decision point, its initiator attribution, and `known-none`, and is never dispatched. Every declared input that reached that clause was one of its own mutations, so the clause had no input it is declared green on and nothing showed it staying green over a denial that satisfies it. BC2.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "initialInteractionState": "idle",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": false,
+          "refusal": {
+            "stage": "pre-dispatch",
+            "effectCertainty": "known-none"
+          },
+          "terminalHistories": [],
+          "direction": "initiator-to-recipient",
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": false,
+          "positionalShapeChecked": true,
+          "authorityDecision": "denied",
+          "authorityRecord": {
+          "decisionPoint": "pre-dispatch",
+          "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "local-refusal",
+          "observationComplete": true,
+          "possiblePostDispatchPath": false,
+          "deterministicExpectedObservation": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C6-P1": "green"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
       "id": "C6-denial-without-initiator-attribution",
       "capability": "C2/C4",
       "propertyMemberships": [

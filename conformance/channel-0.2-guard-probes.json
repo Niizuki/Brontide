@@ -1650,6 +1650,43 @@
         "-GeneratedCount",
         "0"
       ]
+    },
+    {
+      "id": "BC1-a",
+      "claim": "a Read-Optional whose absence only a declared mutation produces, which declares a fact the design states where the contract says the field is always recorded",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "never green. An absence a conforming input never produces is not a fact the design states",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "            -not (Read-Obligation $record 'decisionPoint' $presentationIsOmission) -or",
+          "replace": "            -not (Read-Optional $record 'decisionPoint' $presentationIsOmission) -or"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BC1-b",
+      "claim": "a Read-Obligation no declared mutation exercises, which is a clause nothing shows catching the omission",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "never by one the reading property is declared red on",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        $refusal = Read-Optional $interaction 'refusal' $refusalIsAbsence",
+          "occurrence": 0,
+          "replace": "        $refusal = Read-Obligation $interaction 'refusal' $refusalIsAbsence"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
     }
   ]
 }
