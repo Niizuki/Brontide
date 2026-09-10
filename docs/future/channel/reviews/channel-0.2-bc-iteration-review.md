@@ -245,9 +245,13 @@ what that run had just contradicted. The measure now says what it measured.
   vectors never reach that clause at all.
 - **BC3 was found by a frozen instrument and not by inspection**, which is the whole argument for
   keeping the return-channel census in the per-commit gate.
-- **The recomputed measures caught the corpus change before a reader did.** Adding one vector took the
-  gate to 132 evaluations over 56 declared inputs, and the plan's section 4 measures failed on the two
-  figures stated in prose until they were recomputed. That is AM2's machinery working.
+- **The recomputed measures caught every count this pass moved, before a reader did.** Adding one
+  vector took the gate to 132 evaluations over 56 declared inputs; adding two probes took the corpus to
+  105; registering the family took the Channel index row to 1,344 characters. Each figure stated in
+  prose failed on the commit that made it stale — the properties gate, the probe corpus and the design
+  gate each recomputing its own — and none of the three was found by reading. That is AM2's and AU4's
+  machinery working, and it is the answer to the question AU3 raised: the surfaces a gate recomputes
+  are the ones that stay right.
 - **The design gate's five entry-point findings were the gate working, not the pass failing.** The
   narrative tally, the next-work sentence, the provenance table's missing `BC` row, the Channel index
   row, and the retained-review list each failed on the commit that made them stale, which is the AJ2

@@ -1659,8 +1659,8 @@ written `$script:Table[$key] = $value` rather than `.Add(...)`. Ten of these six
 had a clean frozen set and a new instrument that found something.
 
 **The seventeenth was to be the first of the two owed from zero and is not either.** Its frozen set
-reported nothing -- the 103-probe corpus, the coverage measure, both design gates, the return-channel
-census, the read-provenance census, and 52,000 evaluations over 2,000 generated vectors at 0 red with
+reported nothing -- the 103-probe corpus as it then stood, the coverage measure, both design gates, the
+return-channel census, the read-provenance census, and 52,000 evaluations over 2,000 generated vectors at 0 red with
 AZ3's sweep green -- which is the eleventh consecutive clean frozen set and a strictly larger one
 again, having gained the read-provenance census and that pass's six probes. The instrument it built
 found **BC1** and **BC2** in the package on its first run, and **BC3** says what that clean frozen set
@@ -1830,7 +1830,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   nothing, and cutting the return-channel census from about a hundred syntax-tree walks per gate to one
   moved it from 530 traced seconds to 318 — real, but a fifth of what the walk count suggested, because
   what costs is executed statements and not walks; and
-- **guard probes executable** — currently **103 of 103**, run by
+- **guard probes executable** — currently **105 of 105**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
