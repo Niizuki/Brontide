@@ -505,12 +505,32 @@ $terminalSessionStates = @('closed', 'faulted')
 
 # BB1. A `Read-Optional` reason two properties give for the same field is stated once, for the reason
 # W1 states any fact once: the second copy is the one that goes stale while both gates stay green.
-$refusalIsAbsence = 'an interaction that records no refusal was not refused, which is a fact the design states rather than a silence in the vector'
+#
+# BD. A declaration is a reason AND a citation, made together, because the reason is a claim about
+# the design and the citation is what makes the claim checkable. `Because` is what the reader says an
+# absence means; `Artifact` and `Words` are where the design says it, and the check at the bottom of
+# this file fails when the words are not in the artifact or the artifact is not one of the design's.
+# BC checked the POLARITY of the inputs that exercise a declaration and said polarity is a proxy: a
+# reason that cites a sentence which does not say what the reason claims is exercised, correctly
+# polarised, and wrong. The citation is the half polarity could not reach, and it is declared here
+# rather than looked up so that the reason and its authority cannot go stale separately.
+$contractArtifact = 'docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md'
+$refusalIsAbsence = @{
+    Because  = 'an interaction that records no refusal was not refused, which is a fact the design states rather than a silence in the vector'
+    Artifact = $contractArtifact
+    # C8's first sentence: a refusal before dispatch is one of the five terminal histories, and an
+    # interaction reaches exactly one, so one whose terminal history is any of the other four has
+    # no refusal to record.
+    Words    = 'An interaction reaches exactly one terminal history: local refusal before dispatch, semantic Outcome, peer protocol fault, locally observed loss, or cancellation completed by a valid terminal Outcome.'
+}
 # BC1. This reason was always the sentence of an obligation and never of an optional -- "the violation
 # being detected" is not a fact the design states -- and it moved to the reader that means it. C6-P1
-# is the contract sentence it cites: every denial or unevaluatable presentation records the decision
-# point, initiator attribution, and `known-none`.
-$presentationIsOmission = 'authority presentation part C6-P1 requires every denial or unevaluatable presentation to record, so a presentation that omits it is the violation this clause detects'
+# is the contract sentence it cites, and under BD the citation is the sentence itself.
+$presentationIsOmission = @{
+    Because  = 'authority presentation part C6-P1 requires every denial or unevaluatable presentation to record, so a presentation that omits it is the violation this clause detects'
+    Artifact = $contractArtifact
+    Words    = 'every denial or unevaluatable presentation records the decision point, initiator attribution, and `known-none`'
+}
 
 # ---------------------------------------------------------------------------------------------
 # The five sanctioned readers, and the rule that there are only five -- BB1, widened by BC1.
@@ -621,6 +641,11 @@ function Read-Required {
 # produced the absence carry, and the check below reads the polarity rather than the count.
 $script:OptionalReads = @{}
 $script:ObligationReads = @{}
+# BD. The citation each declaration was made with, keyed exactly as the two tables above are, so the
+# check at the end reads a declaration's polarities and its citation off the same key. Cumulative for
+# the same reason they are: a declaration's citation does not change between inputs, and the check
+# asks about every declaration the run made.
+$script:DeclarationCitations = @{}
 $script:CensusPoisoning = $false
 
 # BC1. The verdict the input now being evaluated is DECLARED to produce, or `$null` outside the
@@ -649,16 +674,19 @@ function Get-AbsencePolarity {
 }
 function Read-Optional {
     param($Record, [Parameter(Mandatory = $true)][string]$Field,
-          [Parameter(Mandatory = $true)][string]$Because)
+          # BD. The whole declaration -- `Because`, `Artifact`, `Words` -- rather than the reason
+          # alone, so a call site cannot state a reason without saying where the design states it.
+          [Parameter(Mandatory = $true)][hashtable]$Declares)
 
     $value = $null
     $member = if ($null -eq $Record) { $null } else { $Record.PSObject.Properties[$Field] }
     if ($null -ne $member) { $value = $member.Value }
     if (-not $script:CensusPoisoning) {
-        $declaration = "'$Field': $Because"
+        $declaration = "'$Field': $($Declares.Because)"
         if (-not $script:OptionalReads.ContainsKey($declaration)) {
             $script:OptionalReads[$declaration] = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
         }
+        $script:DeclarationCitations[$declaration] = $Declares
         if ($null -eq $value) { [void]$script:OptionalReads[$declaration].Add((Get-AbsencePolarity)) }
     }
     return $value
@@ -688,16 +716,17 @@ function Read-Optional {
 # recorded as this pass's open question.
 function Read-Obligation {
     param($Record, [Parameter(Mandatory = $true)][string]$Field,
-          [Parameter(Mandatory = $true)][string]$Because)
+          [Parameter(Mandatory = $true)][hashtable]$Declares)
 
     $value = $null
     $member = if ($null -eq $Record) { $null } else { $Record.PSObject.Properties[$Field] }
     if ($null -ne $member) { $value = $member.Value }
     if (-not $script:CensusPoisoning) {
-        $declaration = "'$Field': $Because"
+        $declaration = "'$Field': $($Declares.Because)"
         if (-not $script:ObligationReads.ContainsKey($declaration)) {
             $script:ObligationReads[$declaration] = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
         }
+        $script:DeclarationCitations[$declaration] = $Declares
         if ($null -eq $value) { [void]$script:ObligationReads[$declaration].Add((Get-AbsencePolarity)) }
     }
     return $value
@@ -998,12 +1027,24 @@ function Invoke-I6 {
 
 function Invoke-I7 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
-    $interactionSubject = 'an interaction record'
-    foreach ($interaction in (Get-Interactions $Vector)) {
-        $changedBy = [string](Read-Optional $interaction 'terminalHistoryChangedBy' 'an interaction whose terminal history no sibling changed does not record a changer, and this property is about the interactions that do')
-        $identity = [string](Read-Required $interaction 'identity' $interactionSubject)
-        if ($changedBy -and $changedBy -ne $identity) {
-            return New-Red "interaction $identity had its terminal history changed by sibling $changedBy"
+    # BD1. This read a `terminalHistoryChangedBy` off the interaction record, declared optional with
+    # the reason that an interaction no sibling changed records no changer -- a rule no design
+    # artifact states, and the field occurred on one interaction record in the corpus: the mutation's.
+    # That is BB2's shape. Which interactions a terminal fact changes is what the timeline already
+    # states by naming, on each accepted terminal step, the admitted interaction it `closes` -- C4-P1's
+    # first clause reads the same field to count them -- so the fact was published twice and the second
+    # copy carried a convention of its own. The evaluator reads the timeline now: a terminal fact for
+    # one interaction closes that interaction, and one that closes a sibling has changed the sibling's
+    # terminal history.
+    $timelineSubject = 'a session-timeline event'
+    foreach ($sessionEvent in (Get-Timeline $Vector)) {
+        if ([string](Read-Required $sessionEvent 'step' $timelineSubject) -ne 'terminal') { continue }
+        if (-not (Read-Required $sessionEvent 'accepted' $timelineSubject)) { continue }
+        $identity = [string](Read-Required $sessionEvent 'identity' $timelineSubject)
+        foreach ($closed in (Get-List $sessionEvent 'closes')) {
+            if ([string]$closed -ne $identity) {
+                return New-Red "the terminal fact for interaction $identity in session $(Read-Required $sessionEvent 'session' $timelineSubject) changed sibling $closed's terminal history"
+            }
         }
     }
     return New-Green
@@ -1243,9 +1284,18 @@ function Invoke-C9P1 {
             return New-Red "interaction $identity selects provenance form $form, which is not one of the four"
         }
         # The second clause: no field permits a local inference to be accepted as a peer statement.
-        # The vector states what the observation actually was where the two differ, and a recorded form
-        # that is not the actual one is exactly that acceptance.
-        $actual = [string](Read-Optional $interaction 'provenanceFormActually' 'the vector states what an observation ACTUALLY was only where that differs from the recorded form, so an absent field is agreement and not silence')
+        # `provenanceForm` is what the realization recorded and `provenanceFormActually` is what the
+        # vector says the observation was, and a recorded form that is not the actual one is exactly
+        # that acceptance.
+        #
+        # BD2. The actual form was read as optional, with the reason that the vector states it only
+        # where it differs from the recorded form -- a rule no design artifact states, and one the
+        # artifact that owns the vector format contradicts: the neutral brief's format has every vector
+        # carry its expected frame decision and peer/local provenance, and says expected observations
+        # are complete data. So the corpus was stating the expected provenance only where the realization
+        # disagreed with it, which made an absence carry a verdict, and the read is required now, as the
+        # brief says the vector carries it.
+        $actual = [string](Read-Required $interaction 'provenanceFormActually' $interactionSubject)
         if ($actual -and $actual -ne $form) {
             return New-Red "interaction $identity records provenance form $form for what was actually a $actual"
         }
@@ -2091,13 +2141,51 @@ foreach ($obligationDeclaration in ($script:ObligationReads.Keys | Sort-Object))
         $failures.Add("A Read-Obligation declares that an absent $obligationDeclaration -- and the inputs that leave it absent are declared '$(($obligationPolarities | Sort-Object) -join '/')', never red; an empty list there means no input leaves it absent at all. Nothing then demonstrates the clause catches the omission, which is the unfalsifiable clause AR1 was raised against reached through the reader. Add the mutation whose omission the reason describes, or read the field through Read-Required.")
     }
 }
+# BD. The half polarity cannot reach. BC checks that the inputs exercising a declaration carry the
+# verdict its kind implies, and said in the file that this is a proxy: a reason citing a contract
+# sentence that does not say what the reason claims is exercised, correctly polarised, and wrong.
+# So every declaration names the artifact and the words that settle it, and this reads the words
+# back. The words are matched flowed and emphasis-stripped, as the property statements are, because
+# the sentence is the fact and its line wrap is not; and they are matched case-sensitively and
+# verbatim, because a citation that has to be paraphrased to be found is one whose sentence moved.
+#
+# Which artifacts may be cited is derived from the declaration file this gate already executes
+# rather than listed here: the artifacts its statements name as stating them, and the ones its
+# authority block names -- except the verification foundation plan, which that block lists as the
+# authority for this gate's own history and which the Channel index records as not a design artifact
+# and assessed by no closure review. A declaration citing the plan cites the gate's own convention
+# written down one document over, which is the second surface W1 exists to retire.
+$citableArtifacts = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+# BD3. The body is on its own line because the coverage measure decides whether a `foreach` body ran
+# by whether its first line ran, and a body on the header line reports as covered either way -- BA7,
+# the frozen instrument that reported this loop as unmeasurable on the first run over this pass's
+# own code.
+foreach ($statingProperty in $properties.properties) {
+    [void]$citableArtifacts.Add([string]$statingProperty.statedIn)
+}
+foreach ($authorityEntry in $properties.authority.PSObject.Properties) {
+    if ($authorityEntry.Name -eq 'plan') { continue }
+    [void]$citableArtifacts.Add([string]$authorityEntry.Value)
+}
+foreach ($citedDeclaration in (@($script:OptionalReads.Keys) + @($script:ObligationReads.Keys) | Sort-Object)) {
+    $citation = $script:DeclarationCitations[$citedDeclaration]
+    $citedArtifact = [string]$citation.Artifact
+    $citedWords = [string]$citation.Words
+    if (-not $citableArtifacts.Contains($citedArtifact)) {
+        $failures.Add("A declaration that an absent $citedDeclaration -- cites '$citedArtifact' for the words `"$citedWords`", and that is not a design artifact: it is none of the artifacts channel-0.2-properties.json names as stating a property or as its authority for the design. A rule the design does not state is the gate's own convention, and a reader declaring it a fact the design states is the second surface W1 exists to retire, arriving as a judgement. Cite the design artifact that states it, or read the field the way the design says the vector carries it.")
+        continue
+    }
+    if ((Get-ArtifactPlain $citedArtifact).IndexOf($citedWords, [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add("A declaration that an absent $citedDeclaration -- cites '$citedArtifact' for the words `"$citedWords`", and that artifact does not contain them. Either the sentence moved and the declaration did not, which is AP1's class arriving through a citation, or the declaration claims a sentence the design never had. Re-anchor the citation on the words the artifact states, or change the declaration to what they say.")
+    }
+}
 $censusSanctioned = $censusReadCount - $censusRawCount
 $censusScope = if ($CensusPairs -gt 0) { " -- CAPPED at $CensusPairs pairs per property by -CensusPairs, so this is not a census of the corpus" } else { '' }
 # This line runs whether or not the checks above added a failure, so it states what was MEASURED and
 # not what a passing run would imply about it. "Exercised by a conforming input" is the verdict of the
 # check, not a property of the count, and printing it here would have the measure assert on a failing
 # run exactly what that run had just contradicted.
-Write-Host "Channel 0.2 read-provenance census: $censusReadCount of $censusSiteCount poisoned fields were read by an evaluator, $censusSanctioned of those through a sanctioned reader and $censusRawCount raw, over $($script:OptionalReads.Count) Read-Optional and $($script:ObligationReads.Count) Read-Obligation declarations, each checked against the declared verdict of the inputs whose silence exercises it.$censusScope"
+Write-Host "Channel 0.2 read-provenance census: $censusReadCount of $censusSiteCount poisoned fields were read by an evaluator, $censusSanctioned of those through a sanctioned reader and $censusRawCount raw, over $($script:OptionalReads.Count) Read-Optional and $($script:ObligationReads.Count) Read-Obligation declarations, each checked against the declared verdict of the inputs whose silence exercises it and against the words of the design artifact it cites.$censusScope"
 
 # ---------------------------------------------------------------------------------------------
 # Generated conforming vectors -- the eleventh condition-4 pass, by owner ruling of 2026-09-04.
@@ -2300,6 +2388,10 @@ if ($GeneratedCount -gt 0) {
                     $waveIdentities.Clear()
                     $waveLive = 0
                 }
+                # BD2. What the vector expects the observation's provenance to be. A conforming
+                # realization records exactly this, and the vector states it on every interaction rather
+                # than only where the two differ, which is what the neutral brief's vector format asks.
+                $expectedProvenance = $(if ($isRefused) { 'local-pre-dispatch-refusal' } elseif ($semanticSuccess) { 'semantic-outcome' } else { 'local-loss-observation' })
                 $interactions.Add([pscustomobject]@{
                     session = $sessionId
                     identity = $identity
@@ -2325,7 +2417,8 @@ if ($GeneratedCount -gt 0) {
                     authorityDecision = $(if ($isRefused) { 'denied' } else { 'permitted' })
                     authorityRecord = [pscustomobject]@{ decisionPoint = 'pre-dispatch'; initiatorAttribution = "initiator-$sessionOrdinal"; effectCertainty = 'known-none' }
                     inPreReadyWindow = $true
-                    provenanceForm = $(if ($isRefused) { 'local-pre-dispatch-refusal' } elseif ($semanticSuccess) { 'semantic-outcome' } else { 'local-loss-observation' })
+                    provenanceForm = $expectedProvenance
+                    provenanceFormActually = $expectedProvenance
                     observationComplete = $true
                     # There is no post-dispatch path when the refusal precedes dispatch, which is why
                     # `C10-P1` does not require explicit evidence narrowing one here.

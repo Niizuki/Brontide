@@ -1126,6 +1126,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -1309,6 +1310,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -1557,6 +1559,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -1589,6 +1592,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -3099,7 +3103,7 @@
         "I7"
       ],
       "role": "named-mutation",
-      "summary": "A terminal fact for one interaction changes a sibling interaction's terminal history. Interactions are independent once admitted, so one interaction's terminal reaching into another's history is the mutation -- and it is the concurrency case a bounded in-flight set makes reachable.",
+      "summary": "A terminal fact for one interaction changes a sibling interaction's terminal history: the accepted terminal for i1 closes i2. Interactions are independent once admitted, so one interaction's terminal reaching into another's history is the mutation -- and it is the concurrency case a bounded in-flight set makes reachable. BD1: the mutation is stated by the terminal step's own `closes`, which is where the timeline says what a terminal fact changes, rather than by a field only this vector carried.",
       "sessions": [
         {
           "id": "s1",
@@ -3164,7 +3168,7 @@
           "identity": "i1",
           "form": "outcome",
           "semanticSuccess": true,
-          "closes": "i1",
+          "closes": "i2",
           "accepted": true
         },
         {
@@ -3215,8 +3219,7 @@
               "semanticSuccess": true,
               "effectCertainty": "known"
             }
-          ],
-          "terminalHistoryChangedBy": "i1"
+          ]
         }
       ],
       "sessionEvents": [
@@ -3747,6 +3750,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -3895,6 +3899,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -4038,6 +4043,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -4181,6 +4187,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -4324,6 +4331,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -4467,6 +4475,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -4610,6 +4619,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -4901,6 +4911,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -5044,6 +5055,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -5187,6 +5199,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -5313,7 +5326,8 @@
             "effectCertainty": "known-none"
           },
           "inPreReadyWindow": true,
-          "provenanceForm": "local-refusal",
+          "provenanceForm": "local-pre-dispatch-refusal",
+          "provenanceFormActually": "local-pre-dispatch-refusal",
           "observationComplete": true,
           "possiblePostDispatchPath": false,
           "deterministicExpectedObservation": true
@@ -5439,7 +5453,8 @@
             "effectCertainty": "known-none"
           },
           "inPreReadyWindow": true,
-          "provenanceForm": "local-refusal",
+          "provenanceForm": "local-pre-dispatch-refusal",
+          "provenanceFormActually": "local-pre-dispatch-refusal",
           "observationComplete": true,
           "possiblePostDispatchPath": false,
           "deterministicExpectedObservation": true
@@ -5565,7 +5580,8 @@
             "effectCertainty": "known-none"
           },
           "inPreReadyWindow": true,
-          "provenanceForm": "local-refusal",
+          "provenanceForm": "local-pre-dispatch-refusal",
+          "provenanceFormActually": "local-pre-dispatch-refusal",
           "observationComplete": true,
           "possiblePostDispatchPath": false,
           "deterministicExpectedObservation": true
@@ -5690,7 +5706,8 @@
             "effectCertainty": "known-none"
           },
           "inPreReadyWindow": true,
-          "provenanceForm": "local-refusal",
+          "provenanceForm": "local-pre-dispatch-refusal",
+          "provenanceFormActually": "local-pre-dispatch-refusal",
           "observationComplete": true,
           "possiblePostDispatchPath": false,
           "deterministicExpectedObservation": true
@@ -5816,7 +5833,8 @@
             "effectCertainty": "possible"
           },
           "inPreReadyWindow": true,
-          "provenanceForm": "local-refusal",
+          "provenanceForm": "local-pre-dispatch-refusal",
+          "provenanceFormActually": "local-pre-dispatch-refusal",
           "observationComplete": true,
           "possiblePostDispatchPath": false,
           "deterministicExpectedObservation": true
@@ -5960,6 +5978,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -6111,6 +6130,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -6255,6 +6275,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -6399,6 +6420,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -6542,6 +6564,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -6685,6 +6708,7 @@
           },
           "inPreReadyWindow": false,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -6828,6 +6852,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "peer-inference",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -6971,6 +6996,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": false,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -7114,6 +7140,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
@@ -7251,6 +7278,7 @@
           },
           "inPreReadyWindow": true,
           "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
           "deterministicExpectedObservation": true
