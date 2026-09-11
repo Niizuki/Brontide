@@ -186,6 +186,7 @@ dependency instead of narrowing it.
 | BA | iteration | verification | fifteenth W1-W3 verification-foundation iteration review |
 | BB | iteration | verification | sixteenth W1-W3 verification-foundation iteration review |
 | BC | iteration | verification | seventeenth W1-W3 verification-foundation iteration review |
+| BD | iteration | verification | eighteenth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -281,7 +282,7 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Seventeen such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
+Eighteen such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
 nothing it can fix. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
@@ -298,15 +299,17 @@ nothing it can fix. They are retained as the
 [thirteenth](./channel-0.2-ay-iteration-review.md) (no finding),
 [fourteenth](./channel-0.2-az-iteration-review.md) (**AZ1**-**AZ2**),
 [fifteenth](./channel-0.2-ba-iteration-review.md) (**BA1**-**BA7**),
-[sixteenth](./channel-0.2-bb-iteration-review.md) (**BB1**-**BB7**) and
-[seventeenth](./channel-0.2-bc-iteration-review.md) (**BC1**-**BC3**) W1-W3 verification-foundation
+[sixteenth](./channel-0.2-bb-iteration-review.md) (**BB1**-**BB7**),
+[seventeenth](./channel-0.2-bc-iteration-review.md) (**BC1**-**BC3**) and
+[eighteenth](./channel-0.2-bd-iteration-review.md) (**BD1**-**BD2**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
-**An eighteenth pass over the same scope is the live path, and it is the first of two consecutive
+**A nineteenth pass over the same scope is the live path, and it is the first of two consecutive
 clean passes that are owed again from zero.** It starts by running the frozen instrument set — the
 probe corpus, the coverage gate, the generated-vector run, the return-channel census, the
-read-provenance census and the declaration-polarity check, whose sizes the plan's section 4 owns and
-recomputes rather than this paragraph — and records what it reports before building anything.
+read-provenance census, the declaration-polarity check and the declaration-citation check, whose
+sizes the plan's section 4 owns and recomputes rather than this paragraph — and records what it
+reports before building anything.
 
 **The fifteenth pass was to be the first of those two and was not.** Its frozen set reported nothing,
 for the ninth consecutive pass. The instrument it built — a census of what every consumer in these
@@ -353,14 +356,29 @@ AE3's rule at the clause, where a property's required-green set does not reach. 
 pass's own draft, which passed a declared accumulator through a helper parameter and vanished from the
 return-channel census: BB3's own stated limit, one pass after BB3 stated it.
 
-**The eighteenth pass's method is the half the seventeenth could not reach.** Polarity is a proxy for
-truth: it asks whether the inputs exercising a declaration carry the verdict the declaration's kind
-implies, not whether any artifact says what the reason claims. `provenanceFormActually` and
-`terminalHistoryChangedBy` are correctly polarised and named by **no design artifact at all** — the rules
-*an absent actual form means agreement* and *an absent changer means no sibling changed it* are the
-gate's own conventions. The unit is the citation: a declaration names the artifact and the words that
-settle it, and the gate checks the words are still there. That is AO3's question put to a claim this
-programme introduced last.
+**The eighteenth pass was to be the first of those two and was not either.** Its frozen set reported
+nothing, for the twelfth consecutive pass. It took the half the seventeenth said polarity could not
+reach — whether the artifact a declaration cites says what the declaration claims — made every
+meaning-carrying declaration name the artifact and the words that settle it, and had the gate read the
+words back. Three resolved; two could cite nothing but the verification foundation plan, and the
+instrument reported both as **BD1** and **BD2**. **BD1** is `I7` reading `terminalHistoryChangedBy`
+as a fact the design states, where no artifact states it, the field occurs on one record in the corpus
+— the mutation's — and every accepted terminal step already states what a terminal fact changes
+through `closes`, which `C4-P1` reads: the fact was published twice and the second copy carried a
+convention of its own, which is BB2's shape. **BD2** is `C9-P1` reading `provenanceFormActually` as
+stated only where it differs from the recorded form, where the brief that owns the vector format has
+every vector carry its expected provenance as complete data — so the corpus was stating the expected
+form on exactly the record that disagreed with it, and an absence carried a verdict the brief says
+the vector must state. Both are in the verification and neither in the design.
+
+**The nineteenth pass's method is the same question put to every field rather than to the five that
+carried a reason.** A `Read-Required` read claims that the design says the vector carries the field,
+and that claim is a comment checked by nothing; which fields the brief's format requires, against
+which fields the corpus's records state, is AX2's unit from the other side. Beside it is the narrower
+unit with a known instance: the gate's closed vocabularies are checked only at the one evaluator that
+reads each, over that evaluator's group, which is how five interaction records carried a provenance
+form outside the set of four and no property saw them. Every closed-set field of every record against
+its set, regardless of group, is the unit.
 
 Nothing in this paragraph resumes the closure cycle or authorizes a closure-review dispatch.
 
@@ -1241,6 +1259,18 @@ context elsewhere — never as evidence that their conclusions are right.
   pass's own, corrected before its result was believed: its first draft passed a declared accumulator
   through a helper parameter and disappeared from the return-channel census, which is the alias limit
   BB3 wrote down one pass earlier.
+- [Eighteenth W1-W3 verification-foundation iteration review](./channel-0.2-bd-iteration-review.md) —
+  the same scope at `3fa4de6`; raised **BD1**-**BD2** and corrected both, so it is **not** the first
+  of the two consecutive clean passes and the count stays at zero. Its frozen set reported nothing,
+  for the twelfth consecutive pass. Its instrument makes every meaning-carrying declaration name the
+  design artifact and the words that settle it, and reads the words back, and **BD1** and **BD2** are
+  what it found in the package: two of the five declarations could cite nothing but the verification
+  foundation plan. **BD1** is `I7` reading a fact the timeline already states through `closes`, via
+  a field only its mutation carried, which is BB2's shape; **BD2** is `C9-P1` reading the vector's
+  expected provenance as optional where the brief that owns the vector format has every vector carry
+  it as complete data. Both corrections read what the vector states the way the design says it
+  carries it, and both were pinned by deliberate failure before they were believed. Nothing was
+  raised against the pass's own new code.
 
 ## Disclosed process deviation in the T1-T4 correction
 
