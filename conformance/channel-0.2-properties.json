@@ -1347,6 +1347,11 @@
           "vector": "S-conforming-fault-from-established",
           "raisedBy": "AO1",
           "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        },
+        {
+          "vector": "C6-conforming-denial-records-all-three",
+          "raisedBy": "BC2",
+          "member": "a local authority denial that records all three of what C6 requires of one, which is the only input in the corpus that reaches the second clause and satisfies it -- the other four are its own mutations, so the clause was covered, falsifiable through three operands, and never once observed staying green"
         }
       ]
     },

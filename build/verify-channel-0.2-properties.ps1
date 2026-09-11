@@ -506,10 +506,14 @@ $terminalSessionStates = @('closed', 'faulted')
 # BB1. A `Read-Optional` reason two properties give for the same field is stated once, for the reason
 # W1 states any fact once: the second copy is the one that goes stale while both gates stay green.
 $refusalIsAbsence = 'an interaction that records no refusal was not refused, which is a fact the design states rather than a silence in the vector'
-$presentationIsAbsence = 'the clause is about an authority presentation that OMITS one of its three parts, so an absent field is the violation being detected and not a vector that failed to state one'
+# BC1. This reason was always the sentence of an obligation and never of an optional -- "the violation
+# being detected" is not a fact the design states -- and it moved to the reader that means it. C6-P1
+# is the contract sentence it cites: every denial or unevaluatable presentation records the decision
+# point, initiator attribution, and `known-none`.
+$presentationIsOmission = 'authority presentation part C6-P1 requires every denial or unevaluatable presentation to record, so a presentation that omits it is the violation this clause detects'
 
 # ---------------------------------------------------------------------------------------------
-# The four sanctioned readers, and the rule that there are only four -- BB1.
+# The five sanctioned readers, and the rule that there are only five -- BB1, widened by BC1.
 #
 # Every field an evaluator reads off a vector record is read through one of these. A read written as
 # `$record.field` is not one of them, and the read-provenance census at the bottom of this file fails
@@ -517,14 +521,23 @@ $presentationIsAbsence = 'the clause is about an authority presentation that OMI
 # from one that conforms. That census's own section says what it measured; the rule is stated here,
 # beside the readers, because this is the file the rule binds.
 #
-# The four differ in what an ABSENT field means, and that difference is the whole of the taxonomy:
+# The five differ in what an ABSENT field means, and that difference is the whole of the taxonomy:
 #
 #   * `Get-List`, and `Get-Timeline`/`Get-Interactions`/`Get-Sessions` over it -- absent means EMPTY.
 #     AU2's ruling, unchanged.
 #   * `Read-Required` -- absent means the record cannot be evaluated, reported against the vector.
 #   * `Read-Optional` -- absent is itself a fact the design states, and the call site says which.
+#   * `Read-Obligation` -- absent is the VIOLATION the reading clause detects. BC1, and it is the one
+#     `Read-Optional` was being used for where the contract says the field is always recorded.
 #   * `Get-Field` -- absent WIDENS the candidate set rather than erroring. Closure review 16's P3
 #     rule, and `C4-P2` is the only property whose operands are resolved that way.
+#
+# The two whose absence carries meaning are the two that can be WRONG, so each is checked against the
+# declared verdict of the input that exercises it, and the two requirements are opposite: a
+# `Read-Optional` needs an input the property is declared GREEN on to leave the field absent, and a
+# `Read-Obligation` needs one it is declared RED on. Either declaration exercised only by the other
+# polarity is a declaration the suite does not distinguish from a wrong one -- BB5's unit, which
+# counted any absence at all, one level in.
 # ---------------------------------------------------------------------------------------------
 
 # AU2, and both halves are one defect: an obligation that fires on what a vector does not SAY reports
@@ -598,8 +611,42 @@ function Read-Required {
 # `$script:CensusPoisoning` is why the census cannot satisfy the check for free: the census makes
 # every field absent by construction, so an absence observed under it proves nothing about the
 # corpus and is not counted.
+#
+# BC1 is what that check could not ask. It counts an absence wherever one occurs, and an absence
+# occurs on a declared MUTATION as readily as on a conforming input -- so a declaration exercised
+# only by the very vector the reading property is declared red on satisfied it. `decisionPoint` and
+# `initiatorAttribution` were two such, and C6-P1's own sentence says every denial RECORDS them: what
+# their absence is, is the violation the clause detects, which is the opposite of what this reader
+# declares. So the record is no longer a flag but the set of DECLARED VERDICTS the inputs that
+# produced the absence carry, and the check below reads the polarity rather than the count.
 $script:OptionalReads = @{}
+$script:ObligationReads = @{}
 $script:CensusPoisoning = $false
+
+# BC1. The verdict the input now being evaluated is DECLARED to produce, or `$null` outside the
+# declared-corpus dispatch -- which is the only one of this file's five whose inputs carry a stated
+# expectation at all. A generated vector, an operand mutation and a dropped field have no declared
+# verdict, and an absence observed under one of them is recorded as `undeclared` rather than guessed
+# at. It is a scalar rather than a `$script:` collection deliberately: BA3's rule binds a collection
+# that must be cleared and drained at every dispatch, and a value that means "no declared
+# expectation" when unset does not accumulate.
+$script:DeclaredExpectation = $null
+
+# The polarity an absence observed right now carries. Both readers record the same value and differ
+# only in which polarity makes their declaration true, so the value is computed once here and the
+# six lines that store it are written out at each reader rather than shared.
+#
+# BC3 is why they are written out. The first draft passed the accumulator to one helper as a
+# parameter, and the return-channel census -- a frozen instrument -- reported that
+# `$script:OptionalReads` was declared and that nothing in the gate adds to it. It was right: the
+# census recognises a producer by a write to the `$script:` name, and a collection reached through a
+# parameter is BB3's own stated limit, "a write through an alias", arriving one pass after BB3 wrote
+# it down. A helper that hides a declared channel from the instrument that checks the channel costs
+# more than the duplication it saves.
+function Get-AbsencePolarity {
+    if ($script:DeclaredExpectation) { return [string]$script:DeclaredExpectation }
+    return 'undeclared'
+}
 function Read-Optional {
     param($Record, [Parameter(Mandatory = $true)][string]$Field,
           [Parameter(Mandatory = $true)][string]$Because)
@@ -609,8 +656,49 @@ function Read-Optional {
     if ($null -ne $member) { $value = $member.Value }
     if (-not $script:CensusPoisoning) {
         $declaration = "'$Field': $Because"
-        if (-not $script:OptionalReads.ContainsKey($declaration)) { $script:OptionalReads[$declaration] = $false }
-        if ($null -eq $value) { $script:OptionalReads[$declaration] = $true }
+        if (-not $script:OptionalReads.ContainsKey($declaration)) {
+            $script:OptionalReads[$declaration] = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        }
+        if ($null -eq $value) { [void]$script:OptionalReads[$declaration].Add((Get-AbsencePolarity)) }
+    }
+    return $value
+}
+
+# BC1. The fifth reader, and the one the four could not express.
+#
+# `C6-P1` reads the three parts of an authority presentation and its second clause is about a
+# presentation that OMITS one of them. Reading a part through `Read-Required` reports the vector as
+# silent on exactly the field the mutation removes -- AU2 pointed at its own detector -- so the two
+# were written as `Read-Optional`, which says the absence is a fact the design STATES. It is not:
+# C6-P1's own sentence is that every denial or unevaluatable presentation records the decision point,
+# initiator attribution, and `known-none`, so an absent part is the violation being detected. A
+# reader that declares the opposite of the contract it serves is a raw read with a reason attached,
+# and the polarity check below is what makes that visible instead of plausible.
+#
+# What this reader means: the field's PRESENCE is an obligation the reading clause enforces, and its
+# absence is that clause's own red rather than a fact about the vector. Its falsification requirement
+# is therefore the MIRROR of `Read-Optional`'s -- some input the property is declared RED on must
+# leave the field absent, or nothing in the suite demonstrates the clause catches the omission.
+#
+# WHAT IT DOES NOT FIX, STATED HERE BECAUSE IT IS THE HALF A READER WILL LOOK FOR. A vector that
+# omits the field because it models a realization that omitted it, and a vector that omits it because
+# its author did not write it down, are still the same bytes. This reader names that rather than
+# closing it; closing it needs the vector to state the omission POSITIVELY, which changes what a
+# conforming authority record must carry and is an owner question rather than an author's. It is
+# recorded as this pass's open question.
+function Read-Obligation {
+    param($Record, [Parameter(Mandatory = $true)][string]$Field,
+          [Parameter(Mandatory = $true)][string]$Because)
+
+    $value = $null
+    $member = if ($null -eq $Record) { $null } else { $Record.PSObject.Properties[$Field] }
+    if ($null -ne $member) { $value = $member.Value }
+    if (-not $script:CensusPoisoning) {
+        $declaration = "'$Field': $Because"
+        if (-not $script:ObligationReads.ContainsKey($declaration)) {
+            $script:ObligationReads[$declaration] = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        }
+        if ($null -eq $value) { [void]$script:ObligationReads[$declaration].Add((Get-AbsencePolarity)) }
     }
     return $value
 }
@@ -1090,13 +1178,15 @@ function Invoke-C6P1 {
             return New-Red "interaction $identity reached handler dispatch with local authority decision $decision" 'C6-P1-clause-1'
         }
         if ($decision -eq 'permitted') { continue }
-        # The second clause is about a presentation that OMITS one of the three, so each is read as an
-        # optional whose absence is the violation. Reading them as required would report the vector as
-        # silent on exactly the fields the mutation removes, which is AU2 pointed at its own detector.
+        # The second clause is about a presentation that OMITS one of the three, so each part is read
+        # through the reader whose absence IS that omission. Reading them as required would report the
+        # vector as silent on exactly the fields the mutation removes, which is AU2 pointed at its own
+        # detector; reading them as optional declared the absence a fact the design states, which is
+        # what this property's own sentence denies. BC1.
         $record = Read-Required $interaction 'authorityRecord' $subject
         if ($null -eq $record -or
-            -not (Read-Optional $record 'decisionPoint' $presentationIsAbsence) -or
-            -not (Read-Optional $record 'initiatorAttribution' $presentationIsAbsence) -or
+            -not (Read-Obligation $record 'decisionPoint' $presentationIsOmission) -or
+            -not (Read-Obligation $record 'initiatorAttribution' $presentationIsOmission) -or
             [string](Read-Required $record 'effectCertainty' 'an interaction authority record') -ne 'known-none') {
             return New-Red "interaction $identity records a $decision authority presentation without its decision point, initiator attribution, and known-none" 'C6-P1-clause-2'
         }
@@ -1548,7 +1638,13 @@ foreach ($property in $properties.properties) {
         $vector = $vectorsById[$vectorId]
         $expected = $expectations[$vectorId]
         $script:UnpublishedFields.Clear()
-        $result = & $evaluator -VectorId $vectorId -Vector $vector -Steps $vectorIndex[$vectorId]
+        # BC1. The declared verdict is in scope for exactly this evaluation, so an absence the two
+        # meaning-carrying readers observe is attributed to an input whose expectation is stated. It
+        # is cleared in a `finally` rather than after the call: an evaluator that throws would
+        # otherwise leave the next dispatch attributing its absences to this vector's verdict.
+        $script:DeclaredExpectation = [string]$expected.Verdict
+        try { $result = & $evaluator -VectorId $vectorId -Vector $vector -Steps $vectorIndex[$vectorId] }
+        finally { $script:DeclaredExpectation = $null }
         # AU2. A field the obligation read and this vector does not publish is reported against the
         # vector, before the verdict is compared: an obligation red because the input is silent proves
         # nothing about a realization, and a required-green member that is silent is the AE1 shape.
@@ -1788,11 +1884,14 @@ foreach ($site in ($obligationSites | Sort-Object -Unique)) {
 #   * `declaredSteps` is outside the poisoned set. The harness builds the step index from it once,
 #     before any evaluator runs, so no evaluator reads those fields and poisoning them would measure
 #     the harness rather than the properties. AZ3's dropped-field sweep is what covers that surface.
-#   * A `Read-Optional` is a JUDGEMENT that an absent field is a fact the design states. This census
-#     checks that the judgement was DECLARED, and the check beside it that some input EXERCISES it;
-#     neither can check that it is RIGHT. The count of surviving declarations is printed with the
-#     measure and each reason is written at its call site, which is where a reader audits it against
-#     the artifact. Nothing here can do that for them.
+#   * A `Read-Optional` is a JUDGEMENT that an absent field is a fact the design states, and a
+#     `Read-Obligation` the judgement that the absence is a violation. This census checks that the
+#     judgement was DECLARED; the checks beside it require the POLARITY of the input that exercises
+#     each to match what the judgement claims, which is BC1 and is what turned two of these into
+#     obligations. What none of them can do is read the artifact: a declaration whose reason cites a
+#     contract sentence that does not say what it claims is exercised, correctly polarised, and still
+#     wrong. Each reason is written at its call site, which is where a reader audits it, and BC1's
+#     own record names that as the next question rather than an answered one.
 # ---------------------------------------------------------------------------------------------
 
 # The readers that performed the read now in progress. It is a closure-captured LOCAL and not a
@@ -1823,7 +1922,7 @@ $censusSiteReaders = [System.Collections.Generic.HashSet[string]]::new([System.S
 # would have caught this without the coverage measure.
 $censusPoison = {
     foreach ($censusFrame in (Get-PSCallStack)) {
-        if ($censusFrame.FunctionName -match '^(Read-Required|Read-Optional|Read-Rendering|Get-List|Get-Timeline|Get-Interactions|Get-Sessions|Get-Field)$') {
+        if ($censusFrame.FunctionName -match '^(Read-Required|Read-Optional|Read-Obligation|Read-Rendering|Get-List|Get-Timeline|Get-Interactions|Get-Sessions|Get-Field)$') {
             [void]$censusSiteReaders.Add($censusFrame.FunctionName)
             break
         }
@@ -1948,7 +2047,7 @@ foreach ($property in $properties.properties) {
                 $censusObserved = if ([string]$censusResult.Verdict -ne $censusBaseline) { "moved the verdict to $([string]$censusResult.Verdict).$censusWitness" }
                     elseif (@($censusResult.Errors).Count -gt 0 -or $script:UnpublishedFields.Count -gt 0) { 'was reported, but by another reader on the same record.' }
                     else { 'left the property green and reported nothing.' }
-                $failures.Add("Property '$propertyId' reads '$censusName' off a record of '$vectorId' at $censusReader without a sanctioned reader, and making that field unreadable $censusObserved A raw read cannot say it could not read the record, so the property's green over an unreadable record is indistinguishable from its green over a conforming one. Read it through Read-Required, Read-Optional with the reason absence is a fact, or Get-List.")
+                $failures.Add("Property '$propertyId' reads '$censusName' off a record of '$vectorId' at $censusReader without a sanctioned reader, and making that field unreadable $censusObserved A raw read cannot say it could not read the record, so the property's green over an unreadable record is indistinguishable from its green over a conforming one. Read it through Read-Required, Read-Optional with the reason absence is a fact, Read-Obligation where the absence is the violation, or Get-List.")
             }
         }
 
@@ -1964,13 +2063,41 @@ foreach ($property in $properties.properties) {
         }
     }
 }
+# BB5, and BC1 beneath it. The first branch is BB5 unchanged in meaning: a declaration nothing
+# exercises is a `Read-Required` written the long way. The second is what BB5 could not see -- an
+# absence observed ONLY where the reading property is declared red is the absence of a conforming
+# record, so it says nothing about a fact the design states and everything about a violation.
 foreach ($optionalDeclaration in ($script:OptionalReads.Keys | Sort-Object)) {
-    if ($script:OptionalReads[$optionalDeclaration]) { continue }
-    $failures.Add("A Read-Optional declares that an absent $optionalDeclaration -- and no declared input leaves that field absent, so the declaration is unfalsified and the read is a Read-Required written the long way. Either make it required, or add the input whose silence the reason describes.")
+    $optionalPolarities = $script:OptionalReads[$optionalDeclaration]
+    if ($optionalPolarities.Count -eq 0) {
+        $failures.Add("A Read-Optional declares that an absent $optionalDeclaration -- and no declared input leaves that field absent, so the declaration is unfalsified and the read is a Read-Required written the long way. Either make it required, or add the input whose silence the reason describes.")
+        continue
+    }
+    if (-not $optionalPolarities.Contains('green')) {
+        $failures.Add("A Read-Optional declares that an absent $optionalDeclaration -- and every input that leaves it absent is one the reading property is declared $(($optionalPolarities | Sort-Object) -join '/') on, never green. An absence a conforming input never produces is not a fact the design states about a conforming record; it is the violation the clause detects, which is Read-Obligation. Either read it through that, or add the conforming input whose silence the reason describes.")
+    }
+}
+# The mirror, and it is the whole reason the fifth reader is checkable rather than merely honest. A
+# declared obligation no red input exercises is a clause nothing shows catching the omission -- AR1's
+# unfalsifiable clause, arriving through the reader instead of through the mutation table.
+foreach ($obligationDeclaration in ($script:ObligationReads.Keys | Sort-Object)) {
+    $obligationPolarities = $script:ObligationReads[$obligationDeclaration]
+    if (-not $obligationPolarities.Contains('red')) {
+        # The observed polarities are rendered without a conditional, and an empty list is the case
+        # where no input leaves the field absent at all. A branch here would be reachable only on a
+        # failing run, which the coverage measure reports as a never-executed construct and which the
+        # exemption for it would then have to assert away -- BB7's lesson about drafting the exemption
+        # before asking why the construct did not run.
+        $failures.Add("A Read-Obligation declares that an absent $obligationDeclaration -- and the inputs that leave it absent are declared '$(($obligationPolarities | Sort-Object) -join '/')', never red; an empty list there means no input leaves it absent at all. Nothing then demonstrates the clause catches the omission, which is the unfalsifiable clause AR1 was raised against reached through the reader. Add the mutation whose omission the reason describes, or read the field through Read-Required.")
+    }
 }
 $censusSanctioned = $censusReadCount - $censusRawCount
 $censusScope = if ($CensusPairs -gt 0) { " -- CAPPED at $CensusPairs pairs per property by -CensusPairs, so this is not a census of the corpus" } else { '' }
-Write-Host "Channel 0.2 read-provenance census: $censusReadCount of $censusSiteCount poisoned fields were read by an evaluator, $censusSanctioned of those through a sanctioned reader and $censusRawCount raw, over $($script:OptionalReads.Count) exercised Read-Optional declarations.$censusScope"
+# This line runs whether or not the checks above added a failure, so it states what was MEASURED and
+# not what a passing run would imply about it. "Exercised by a conforming input" is the verdict of the
+# check, not a property of the count, and printing it here would have the measure assert on a failing
+# run exactly what that run had just contradicted.
+Write-Host "Channel 0.2 read-provenance census: $censusReadCount of $censusSiteCount poisoned fields were read by an evaluator, $censusSanctioned of those through a sanctioned reader and $censusRawCount raw, over $($script:OptionalReads.Count) Read-Optional and $($script:ObligationReads.Count) Read-Obligation declarations, each checked against the declared verdict of the inputs whose silence exercises it.$censusScope"
 
 # ---------------------------------------------------------------------------------------------
 # Generated conforming vectors -- the eleventh condition-4 pass, by owner ruling of 2026-09-04.

@@ -106,7 +106,7 @@
           "reason": "Inside the read-provenance census's poison getter, which is a `PSScriptProperty` scriptblock. `Set-PSDebug -Trace 1` does not emit trace lines from inside one, so this measure cannot see the getter's own lines. That it RUNS is established here rather than assumed: every construct downstream of a read being recorded -- the child walk, the reader loop -- is covered by this same run, and it is only reachable when the getter has recorded a read. BB7 is what made that distinction visible, and it is the safe direction of the measure's error: it reports covered code as uncovered, where BA7's was the reverse."
         },
         {
-          "anchor": "if ($censusFrame.FunctionName -match '^(Read-Required|Read-Optional|Read-Rendering|Get-List|Get-Timeline|Get-Interactions|Get-Sessions|Get-Field)$') {",
+          "anchor": "if ($censusFrame.FunctionName -match '^(Read-Required|Read-Optional|Read-Obligation|Read-Rendering|Get-List|Get-Timeline|Get-Interactions|Get-Sessions|Get-Field)$') {",
           "reason": "Inside the read-provenance census's poison getter, which is a `PSScriptProperty` scriptblock. `Set-PSDebug -Trace 1` does not emit trace lines from inside one, so this measure cannot see the getter's own lines. That it RUNS is established here rather than assumed: every construct downstream of a read being recorded -- the child walk, the reader loop -- is covered by this same run, and it is only reachable when the getter has recorded a read. BB7 is what made that distinction visible, and it is the safe direction of the measure's error: it reports covered code as uncovered, where BA7's was the reverse."
         },
         {

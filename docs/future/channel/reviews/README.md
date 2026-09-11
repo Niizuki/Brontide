@@ -185,6 +185,7 @@ dependency instead of narrowing it.
 | AZ | iteration | verification | fourteenth W1-W3 verification-foundation iteration review |
 | BA | iteration | verification | fifteenth W1-W3 verification-foundation iteration review |
 | BB | iteration | verification | sixteenth W1-W3 verification-foundation iteration review |
+| BC | iteration | verification | seventeenth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -280,7 +281,7 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Sixteen such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
+Seventeen such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
 nothing it can fix. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
@@ -296,15 +297,16 @@ nothing it can fix. They are retained as the
 [twelfth](./channel-0.2-ax-iteration-review.md) (**AX1**-**AX3**),
 [thirteenth](./channel-0.2-ay-iteration-review.md) (no finding),
 [fourteenth](./channel-0.2-az-iteration-review.md) (**AZ1**-**AZ2**),
-[fifteenth](./channel-0.2-ba-iteration-review.md) (**BA1**-**BA7**) and
-[sixteenth](./channel-0.2-bb-iteration-review.md) (**BB1**-**BB7**) W1-W3 verification-foundation
+[fifteenth](./channel-0.2-ba-iteration-review.md) (**BA1**-**BA7**),
+[sixteenth](./channel-0.2-bb-iteration-review.md) (**BB1**-**BB7**) and
+[seventeenth](./channel-0.2-bc-iteration-review.md) (**BC1**-**BC3**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
-**A seventeenth pass over the same scope is the live path, and it is the first of two consecutive
+**An eighteenth pass over the same scope is the live path, and it is the first of two consecutive
 clean passes that are owed again from zero.** It starts by running the frozen instrument set — the
-probe corpus, the coverage gate, the generated-vector run, the return-channel census and the
-read-provenance census, whose sizes the plan's section 4 owns and recomputes rather than this
-paragraph — and records what it reports before building anything.
+probe corpus, the coverage gate, the generated-vector run, the return-channel census, the
+read-provenance census and the declaration-polarity check, whose sizes the plan's section 4 owns and
+recomputes rather than this paragraph — and records what it reports before building anything.
 
 **The fifteenth pass was to be the first of those two and was not.** Its frozen set reported nothing,
 for the ninth consecutive pass. The instrument it built — a census of what every consumer in these
@@ -337,12 +339,28 @@ the way the coverage measure invokes a gate, the new census recorded no reads at
 as a clean zero, and the coverage measure's report of eleven never-executed constructs is what exposed
 it — after the exemptions to silence all eleven had been drafted.
 
-**The seventeenth pass's method is the candidate this one left behind, and it is about the sixteenth's
-own work.** The read-provenance census checks that a `Read-Optional` was declared and that some input
-exercises it; it cannot check that the declaration is **true**. Five now assert, inside a gate, that an
-absent field is a fact the design states — and a declaration that is exercised and wrong looks exactly
-like one that is exercised and right. That is AO3's question put to a claim this programme introduced
-last.
+**The seventeenth pass was to be the first of those two and was not either.** Its frozen set reported
+nothing, for the eleventh consecutive pass. It took the method the sixteenth left — the census checks a
+`Read-Optional` was declared and exercised, never that it is **true** — and found **BC1** and **BC2** in
+the package on its first run. **BC1** is that two of the five declarations assert the negation of the
+contract sentence the clause reading them enforces: `C6-P1` says every denial **records** its decision
+point and initiator attribution, and the only input in the corpus that leaves either absent is that
+clause's own named mutation, so each declaration was exercised by exactly the vector written to make its
+property go red. **BC2** came out of correcting it and is the sharper one: **every one of the four inputs
+that reach `C6-P1`'s second clause is one of that clause's own mutations**, so a clause covered by the
+coverage measure and falsifiable through all three operands had never once been observed staying green —
+AE3's rule at the clause, where a property's required-green set does not reach. **BC3** is against this
+pass's own draft, which passed a declared accumulator through a helper parameter and vanished from the
+return-channel census: BB3's own stated limit, one pass after BB3 stated it.
+
+**The eighteenth pass's method is the half the seventeenth could not reach.** Polarity is a proxy for
+truth: it asks whether the inputs exercising a declaration carry the verdict the declaration's kind
+implies, not whether any artifact says what the reason claims. `provenanceFormActually` and
+`terminalHistoryChangedBy` are correctly polarised and named by **no design artifact at all** — the rules
+*an absent actual form means agreement* and *an absent changer means no sibling changed it* are the
+gate's own conventions. The unit is the citation: a declaration names the artifact and the words that
+settle it, and the gate checks the words are still there. That is AO3's question put to a claim this
+programme introduced last.
 
 Nothing in this paragraph resumes the closure cycle or authorizes a closure-review dispatch.
 
@@ -1206,6 +1224,23 @@ context elsewhere — never as evidence that their conclusions are right.
   it had stopped reading — BA6's class one pass later and total rather than partial. The coverage
   measure found it by reporting eleven never-executed constructs, which the pass had already drafted
   exemptions for.
+- [Seventeenth W1-W3 verification-foundation iteration review](./channel-0.2-bc-iteration-review.md) —
+  the same scope at `ceeddc3`; raised **BC1**-**BC3** and corrected all three, so it is **not** the
+  first of the two consecutive clean passes and the count stays at zero. Its frozen set reported
+  nothing, for the eleventh consecutive pass. Its instrument records, for every absence a
+  meaning-carrying reader observes, the verdict the input producing it is **declared** to yield, and
+  **BC1** and **BC2** are what it found in the package. **BC1** is two of the five `Read-Optional`
+  declarations exercised by exactly one input each — the named mutation of the very clause that reads
+  them — where the contract sentence that clause enforces says every denial **records** the field, so
+  each declaration asserted the negation of what it was written to serve. The correction is a fifth
+  reader, `Read-Obligation`, whose falsification requirement is the mirror: an obligation needs a
+  red-declared input to leave the field absent as an optional needs a green-declared one. **BC2** came
+  out of correcting it — all four inputs that reach `C6-P1`'s second clause are that clause's own
+  mutations, so a clause the coverage measure covers and three operands falsify had never been observed
+  staying green, which is AE3's rule at a level a required-green set does not reach. **BC3** is the
+  pass's own, corrected before its result was believed: its first draft passed a declared accumulator
+  through a helper parameter and disappeared from the return-channel census, which is the alias limit
+  BB3 wrote down one pass earlier.
 
 ## Disclosed process deviation in the T1-T4 correction
 
