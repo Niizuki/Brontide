@@ -2156,7 +2156,13 @@ foreach ($obligationDeclaration in ($script:ObligationReads.Keys | Sort-Object))
 # and assessed by no closure review. A declaration citing the plan cites the gate's own convention
 # written down one document over, which is the second surface W1 exists to retire.
 $citableArtifacts = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
-foreach ($statingProperty in $properties.properties) { [void]$citableArtifacts.Add([string]$statingProperty.statedIn) }
+# BD3. The body is on its own line because the coverage measure decides whether a `foreach` body ran
+# by whether its first line ran, and a body on the header line reports as covered either way -- BA7,
+# the frozen instrument that reported this loop as unmeasurable on the first run over this pass's
+# own code.
+foreach ($statingProperty in $properties.properties) {
+    [void]$citableArtifacts.Add([string]$statingProperty.statedIn)
+}
 foreach ($authorityEntry in $properties.authority.PSObject.Properties) {
     if ($authorityEntry.Name -eq 'plan') { continue }
     [void]$citableArtifacts.Add([string]$authorityEntry.Value)

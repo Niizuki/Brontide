@@ -422,8 +422,8 @@ is the alias limit BB3 stated one pass earlier.
 **The eighteenth pass then asked the half polarity cannot reach, whether the artifact a declaration
 cites says what the declaration claims**, and is retained as the
 [eighteenth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-bd-iteration-review.md).
-Its frozen set reported nothing -- twelfth consecutive -- and it raised **BD1**-**BD2**, both in the
-package and neither in the design. Every meaning-carrying declaration now names the artifact and the
+Its frozen set reported nothing -- twelfth consecutive -- and it raised **BD1**-**BD3**, two in the
+package and one in its own new code, and none in the design. Every meaning-carrying declaration now names the artifact and the
 words that settle it and the gate reads the words back; three resolved, and two could cite nothing but
 the verification foundation plan. **BD1** is `I7` reading `terminalHistoryChangedBy` as a fact the
 design states, where the field occurs on one record in the corpus -- the mutation's -- and every
@@ -433,7 +433,9 @@ the one to weigh: `C9-P1` read `provenanceFormActually` as stated only where it 
 recorded form, and the brief that owns the vector format says the opposite -- every vector carries its
 expected provenance, and expected observations are complete data -- so the corpus was stating the
 expected form on exactly the record that disagreed with it. Both reads now take what the vector states
-the way the design says it carries it. The two consecutive clean passes stay owed from zero, and a
+the way the design says it carries it. **BD3** is the coverage measure refusing the new check's first
+loop for having its body on its header line -- BA7's class, caught by BA7's own frozen instrument on
+the first run over the branch. The two consecutive clean passes stay owed from zero, and a
 nineteenth pass is the next work -- it puts the same question to every field rather than to the five
 that carried a reason, and to the closed vocabularies the gate checks only where one property reads
 them, which is how five records carried a provenance form outside the set of four unseen. The

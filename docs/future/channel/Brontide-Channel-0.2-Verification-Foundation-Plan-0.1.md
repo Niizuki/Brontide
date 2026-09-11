@@ -1571,9 +1571,9 @@ zero.
 
 **It is not clean. Its frozen set reported nothing — twelfth consecutive — and the instrument it built
 raised BD1 and BD2 in the package on its first run, both against the retained verification and neither
-against the design, so the two-consecutive count stays at zero.** It raised nothing against its own new
-code, which is a measurement and not a merit: the frozen instruments that caught BB6, BB7 and BC3 ran
-over the corrected package and reported nothing.
+against the design, so the two-consecutive count stays at zero.** It also raised **BD3** against its own
+new code; under this section's own ruling that belongs to neither counted population, and it is
+numbered because the correction cites it.
 
 **The method was the one section 2t named, and it is the half section 2t's own instrument could not
 reach.** That pass checked the polarity of the inputs exercising a declaration and said polarity is a
@@ -1600,6 +1600,13 @@ The corpus was stating the expected provenance on the one record whose realizati
 which made an absence carry a verdict the brief says the vector must state. The read is required now,
 every interaction record that records a provenance form states the expected one, and the generator
 emits it.
+
+**BD3 is against this pass's own new code, and it is BA7's class caught by BA7's instrument.** The
+citation check's first loop was written with its body on the header line, and the coverage measure —
+frozen since the fifteenth pass — refused it on its first run over the branch: a body on the header
+line reports as covered whether or not it ran, so the measure cannot decide it and says so rather than
+passing it. Corrected by putting the body on its own line. It is the third pass running whose own new
+code was caught by a frozen instrument before the pass reported, which is what the frozen set is for.
 
 **And one correction on contact, recorded because it is the brief the next pass inherits.** Five
 interaction records recorded the provenance form `local-refusal`, outside the closed set of four, on
@@ -1675,13 +1682,13 @@ and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
 eighteen times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one,
-three, zero, three, seven, seven, three and **two** defects. Sections 2d through 2u record them. This
+three, zero, three, seven, seven, three and **three** defects. Sections 2d through 2u record them. This
 tally counts what a reader counts -- the numbered findings in each pass's retained review. Where the
 2026-09-04 ruling's two populations differ from that total, the pass's own section states the split: of
 the fifteenth's seven, five are in the package and two are in the instrument that pass built; of the
 sixteenth's seven, four are in the package and three are in its own new code; of the seventeenth's
-three, two are in the package and one is in its own new code; and both of the eighteenth's two are in
-the package.
+three, two are in the package and one is in its own new code; and of the eighteenth's three, two are
+in the package and one is in its own new code.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -1730,10 +1737,11 @@ return-channel census, the read-provenance census, the declaration-polarity chec
 evaluations over 2,000 generated vectors at 0 red with AZ3's sweep green -- which is the twelfth
 consecutive clean frozen set and a strictly larger one again, having gained the polarity check and that
 pass's two probes. The instrument it built found **BD1** and **BD2** in the package on its first run,
-and this time nothing in the frozen set had a defect of its own to report: the citation check is a
-question none of them asked, and the two it found are a rule cited nowhere and a rule the cited
-artifact contradicts. Twelve of these eighteen passes have now had a clean frozen set and a new
-instrument that found something.
+and **BD3** says what that clean frozen set was worth a fourth time: the coverage measure was in it,
+it was green, and it refused the first loop of this pass's own new check for having its body on the
+header line -- BA7's rule, applied by BA7's instrument to the pass after the pass after it was written.
+Twelve of these eighteen passes have now had a clean frozen set and a new instrument that found
+something.
 
 **And BB7 is what the frozen set was worth in the other direction.** The coverage measure reported
 eleven constructs of the new census as never executed, which was that census reporting a clean zero

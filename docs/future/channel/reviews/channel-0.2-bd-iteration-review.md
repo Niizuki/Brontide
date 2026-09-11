@@ -20,7 +20,8 @@ requires from zero.
 **It is not clean.** Its frozen set reported nothing, for the twelfth consecutive pass. The instrument
 it built found **BD1** and **BD2** in the package on its first run, so the ruling's second test is not
 met and the two-consecutive count stays at zero. Both are in the verification and neither in the
-design.
+design. It raises **BD3** against its own new code; under the ruling that belongs to neither counted
+population, and it is numbered because the correction cites it.
 
 The method was not chosen by this pass. The seventeenth named it, and named it as the half its own
 instrument could not reach: that pass checked the **polarity** of the inputs exercising a declaration
@@ -37,10 +38,8 @@ state is the gate's own convention*.
 ## Section numbering
 
 **BD1** and **BD2** are what the instrument this pass built reported about the package on its first
-run. Nothing was raised against this pass's own new code: the frozen instruments that caught BB6,
-BB7 and BC3 in the passes before ran over the corrected package and reported nothing, and this pass
-found no defect of its own by reading. That is stated as a measurement and not as a merit — see the
-limits below for what those instruments do not see.
+run. **BD3** is a defect in this pass's own new code, found by a frozen instrument in the way BB7 and
+BC3 were found — and by the same instrument that found BB7.
 
 ## The frozen set, run first
 
@@ -140,6 +139,29 @@ green, because that mutation returns red through the closed-set clause before th
 read — recorded here because a pin that is green for that reason is AN1's class, a check whose reach
 is narrower than the claim, and the second pin is what showed where the read is reached.
 
+### BD3 — the new check's first loop was written where the coverage measure cannot see it
+
+The check collects the citable artifacts in two loops, and the first was written on one line:
+
+```
+foreach ($statingProperty in $properties.properties) { [void]$citableArtifacts.Add(...) }
+```
+
+The coverage measure — a frozen instrument — failed on it, on its first run over this pass's own code:
+
+> this foreach has its body on the header line, so whether the body ever ran cannot be decided by a
+> line trace -- the header runs either way. It is not known to be uncovered; it is unmeasurable, and a
+> construct this measure cannot decide must not read as one it has passed.
+
+That is **BA7**'s class, in the commit after the pass that wrote BA7's rule into the measure had
+become part of the frozen set. The measure decides whether a `foreach` body ran by whether the body's
+first line ran, and a body on the header line reports as covered either way; BA7 split sixteen such
+loops and exposed three never-run bodies among them. The measure now refuses the shape outright rather
+than passing it, which is why this was reported and not silently counted — and it says in its own
+message not to exempt it, because an exemption asserts the construct is correctly unreachable, which is
+exactly the fact in question. Corrected by putting the body on its own line. The loop runs on every
+input, so nothing about the check's verdict changes; what changes is that the measure can now say so.
+
 ## What the three surviving citations resolve to
 
 | declaration | cites | the words |
@@ -161,6 +183,7 @@ reported three of the former.
 | --- | --- | --- |
 | **BD1** | package | `I7` read `terminalHistoryChangedBy` as a fact the design states; no artifact states it, the field occurs on one record in the corpus, and the timeline already states what a terminal fact changes through `closes` |
 | **BD2** | package | `C9-P1` read `provenanceFormActually` as stated only where it differs from the recorded form; no artifact states that, and the brief that owns the vector format has every vector carry its expected provenance as complete data |
+| **BD3** | this pass's own | the citation check's first loop had its body on its header line, where the coverage measure cannot decide whether it ran — BA7's class, reported by BA7's own instrument |
 
 ## What this pass verified rather than believed
 
@@ -174,6 +197,9 @@ reported three of the former.
   guard owes.
 - **Both corrections were pinned by deliberate failure**, as the two findings above record, and the
   second pin's first attempt was green for a reason worth keeping.
+- **The coverage measure was run over the corrected package, in a clone at the branch head, and BD3 is
+  what it reported.** Every other conditional and operand the pass added is evaluated by the passing
+  run, and none needed an exemption.
 - **The return-channel census saw the new accumulator.** `$script:DeclarationCitations` is declared
   cumulative beside the two polarity tables, and the census — the frozen instrument that caught BC3
   — is green over it, which means the declaration is anchored on a write it can see.
@@ -226,12 +252,12 @@ produces conforming vectors only. Unchanged since the fourteenth, and unreached 
 corpus gains two probes at the properties gate's `-GeneratedCount 0` cost each.
 
 The closure review remains on hold. The finding count by condition-4 pass is now three, six, three,
-two, five, one, seven, seven, five, three, one, three, zero, three, seven, seven, three, **two** — both
-of this pass's two in the package and none in its own new code.
+two, five, one, seven, seven, five, three, one, three, zero, three, seven, seven, three, **three** —
+two of this pass's three in the package and one in its own new code.
 
 ## Where this family is dispositioned
 
-**BD1** and **BD2** are corrections to the verification instruments, two evaluators, one declared
+**BD1** through **BD3** are corrections to the verification instruments, two evaluators, one declared
 input and the corpus — not to the design — so under the 2026-08-20 ruling they belong in the
 verification foundation plan's own record and not in the completeness review's disposition index. The
 plan's section 2u carries them, and this document is the pass's evidence.

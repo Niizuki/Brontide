@@ -301,7 +301,7 @@ nothing it can fix. They are retained as the
 [fifteenth](./channel-0.2-ba-iteration-review.md) (**BA1**-**BA7**),
 [sixteenth](./channel-0.2-bb-iteration-review.md) (**BB1**-**BB7**),
 [seventeenth](./channel-0.2-bc-iteration-review.md) (**BC1**-**BC3**) and
-[eighteenth](./channel-0.2-bd-iteration-review.md) (**BD1**-**BD2**) W1-W3 verification-foundation
+[eighteenth](./channel-0.2-bd-iteration-review.md) (**BD1**-**BD3**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
 **A nineteenth pass over the same scope is the live path, and it is the first of two consecutive
@@ -369,7 +369,9 @@ convention of its own, which is BB2's shape. **BD2** is `C9-P1` reading `provena
 stated only where it differs from the recorded form, where the brief that owns the vector format has
 every vector carry its expected provenance as complete data — so the corpus was stating the expected
 form on exactly the record that disagreed with it, and an absence carried a verdict the brief says
-the vector must state. Both are in the verification and neither in the design.
+the vector must state. Both are in the verification and neither in the design, and **BD3** is against
+the pass's own new check: its first loop was written with its body on the header line, and the coverage
+measure refused it on the first run over the branch — BA7's class, reported by BA7's instrument.
 
 **The nineteenth pass's method is the same question put to every field rather than to the five that
 carried a reason.** A `Read-Required` read claims that the design says the vector carries the field,
@@ -1260,7 +1262,7 @@ context elsewhere — never as evidence that their conclusions are right.
   through a helper parameter and disappeared from the return-channel census, which is the alias limit
   BB3 wrote down one pass earlier.
 - [Eighteenth W1-W3 verification-foundation iteration review](./channel-0.2-bd-iteration-review.md) —
-  the same scope at `3fa4de6`; raised **BD1**-**BD2** and corrected both, so it is **not** the first
+  the same scope at `3fa4de6`; raised **BD1**-**BD3** and corrected all three, so it is **not** the first
   of the two consecutive clean passes and the count stays at zero. Its frozen set reported nothing,
   for the twelfth consecutive pass. Its instrument makes every meaning-carrying declaration name the
   design artifact and the words that settle it, and reads the words back, and **BD1** and **BD2** are
@@ -1269,8 +1271,10 @@ context elsewhere — never as evidence that their conclusions are right.
   a field only its mutation carried, which is BB2's shape; **BD2** is `C9-P1` reading the vector's
   expected provenance as optional where the brief that owns the vector format has every vector carry
   it as complete data. Both corrections read what the vector states the way the design says it
-  carries it, and both were pinned by deliberate failure before they were believed. Nothing was
-  raised against the pass's own new code.
+  carries it, and both were pinned by deliberate failure before they were believed. **BD3** is the
+  pass's own, found by the coverage measure on its first run over the branch: the new check's first
+  loop had its body on the header line, where that measure cannot decide whether it ran, which is BA7's
+  class reported by BA7's instrument.
 
 ## Disclosed process deviation in the T1-T4 correction
 
