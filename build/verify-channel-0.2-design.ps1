@@ -2262,7 +2262,24 @@ foreach ($reviewNumber in $narrativeReviewNumbers) {
         # naming the review by its findings. What actually distinguishes the two populations is the
         # other one's noun, so an ordinal that introduces a *pass* does not count as introducing a
         # review, and every existing phrasing still does.
-        if ($reviewNarrative.Text -notmatch "(?i)\b$reviewOrdinal\b(?!\s+pass\b)") {
+        #
+        # BF1. That exclusion was the bare-word key made one noun narrower, and the next noun arrived
+        # one pass later: the nineteenth pass's narrative counts clean frozen sets -- "thirteenth
+        # consecutive" -- so `\bthirteenth\b(?!\s+pass\b)` was satisfied by a streak count while the
+        # sentence introducing closure review 13 could be deleted, which is what the AQ1-a probe
+        # reported at the head this pass started from, in the corpus the pass that wrote the
+        # sentence merged without running. A key that names what does NOT count expires with every
+        # new use of an ordinal; this one names what does. An ordinal introduces a closure review
+        # when the word `review`, optionally qualified `independent` or `closure`, follows it
+        # directly -- "the ninth independent closure review", "the eighth review" -- or when a bold
+        # finding token of THAT review's own family follows within eighty characters, which is how the
+        # Channel index names each review by what it raised -- "the tenth raised **AF1**-**AF8**". A
+        # streak count, a pass, and a link to an iteration review satisfy neither, and a narrative
+        # that introduces a review some third way fails here loudly rather than passing by accident.
+        # The pass exclusion is kept as well, so an iteration review linked right after "the eighth
+        # pass" is not read as the eighth closure review.
+        $introduces = "(?i)\b$reviewOrdinal\b(?!\s+pass\b)(?:(?:\s+(?:independent|closure))*\s+(?:review|re-review)\b|(?=.{0,80}?\*\*$provenanceFamily[0-9]))"
+        if ((Get-FlowedText $reviewNarrative.Text) -notmatch $introduces) {
             $failures.Add("$($reviewNarrative.Name) never introduces the $reviewOrdinal independent closure review, whose findings it is required to carry. Substituting the newest family token into a sentence about an earlier review leaves the reader with a narrative that jumps from the tenth review to a family raised by the thirteenth. This is AJ2.")
         }
     }

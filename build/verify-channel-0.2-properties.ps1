@@ -534,6 +534,16 @@ $presentationIsOmission = @{
     Artifact = $contractArtifact
     Words    = 'every denial or unevaluatable presentation records the decision point, initiator attribution, and `known-none`'
 }
+# BF. C10 lists what every interaction's local observation must be sufficient to distinguish, and the
+# direction was the one item on that list no property read: `C3-P1` compares class, direction and
+# phase against the profile through a `profileMatch` the vector asserts, so the field itself was
+# stated on thirty records and read by nothing. An observation that omits it cannot distinguish it,
+# which is the incompleteness `C10-P1`'s first clause is about.
+$observationOmitsDirection = @{
+    Because  = 'observation content C10 requires every interaction''s local observation to be sufficient to distinguish, so an observation that omits it is the incompleteness this clause detects'
+    Artifact = $contractArtifact
+    Words    = 'sufficient to distinguish profile, session and interaction identities, direction, class, admission and authority decisions'
+}
 
 # ---------------------------------------------------------------------------------------------
 # The five sanctioned readers, and the rule that there are only five -- BB1, widened by BC1.
@@ -593,6 +603,22 @@ function Get-List {
 function Get-Timeline { param($Vector) return (Get-List $Vector 'sessionTimeline') }
 function Get-Interactions { param($Vector) return (Get-List $Vector 'interactions') }
 function Get-Sessions { param($Vector) return (Get-List $Vector 'sessions') }
+
+# BF. The state a session is in before its timeline's first transition, which the vector STATES on the
+# session record because the brief's vector format says every vector carries the initial session
+# state of each session it carries. `S2` and `C2-P1` each defaulted it to `unestablished` in code
+# while fifty-eight records stated it and nobody read them -- one fact, two surfaces, the record's
+# read by nobody, which is AX2's shape on the field beside the one BE1 deleted. A session the vector
+# carries no record for is silent on the fact, and `Read-Required` says so against the vector.
+function Get-InitialSessionState {
+    param($Vector, [Parameter(Mandatory = $true)][AllowEmptyString()][string]$SessionId)
+
+    $sessionRecord = $null
+    foreach ($session in (Get-Sessions $Vector)) {
+        if ([string](Read-Required $session 'id' 'a session record') -eq $SessionId) { $sessionRecord = $session }
+    }
+    return [string](Read-Required $sessionRecord 'initialSessionState' "the record of session '$SessionId'")
+}
 
 # A scalar an obligation reads has no such default. A vector that does not say whether the realization
 # checked its declared bounds has not shown conformance and has not shown a violation either, and
@@ -835,7 +861,7 @@ function Invoke-S2 {
             continue
         }
         if ($step -ne 'dispatch') { continue }
-        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { 'unestablished' }
+        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { Get-InitialSessionState $Vector $sessionId }
         if ($current -ne 'established') {
             return New-Red "interaction $(Read-Required $sessionEvent 'identity' $timelineSubject) dispatched while its own session $sessionId was $current"
         }
@@ -894,7 +920,12 @@ function Invoke-S5 {
         $fixed = Read-Rendering $record 'fixed' $recordSubject
         $negotiated = Read-Rendering $record 'negotiated' $recordSubject
         if ($fixed -cne $negotiated) {
-            return New-Red "session $(Read-Required $session 'id' 'a session record') produces different normative profile records from fixed and negotiated establishment of its own declared profile"
+            # The witness names the declared profile the two routes were establishing, which is the
+            # property's own operand and the one session field the brief's format requires that no
+            # property read: naming it is what the witness is for, and comparing it against the
+            # profile's own declaration is the larger unit BE left open, since the corpus carries no
+            # profile record. BF.
+            return New-Red "session $(Read-Required $session 'id' 'a session record') produces different normative profile records from fixed and negotiated establishment of its own declared profile $(Read-Required $session 'establishedProfile' 'a session record')"
         }
     }
     return New-Green
@@ -980,6 +1011,20 @@ function Invoke-I4 {
         if ($stage -eq 'post-dispatch' -and $certainty -ne 'unknown' -and
             -not (Read-Required $refusal 'explicitEvidence' $refusalSubject)) {
             return New-Red "interaction $(Read-Required $interaction 'identity' $interactionSubject) records a possible post-dispatch loss as $certainty with no explicit evidence narrowing it" 'I4-clause-2'
+        }
+    }
+    # BF. The refusal recorded at `unseen` is the other pre-dispatch refusal: nothing was admitted and
+    # nothing dispatched, and the record C10 owns states its effect certainty `known-none` beside the
+    # provenance and detailed reason `C4-P2` selects on. That field was stated on every such record
+    # and read by nothing, so a record carrying `unknown` there contradicted the design's own fact
+    # with every gate green. The first clause quantifies over every pre-dispatch refusal, so it reads
+    # this record too, through the same words.
+    $refusalRecordSubject = 'an unseen refusal record'
+    foreach ($unseenRefusal in (Get-List (Read-Required $Vector 'observations' "vector '$VectorId'") 'unseenRefusals')) {
+        if ($null -eq $unseenRefusal) { continue }
+        $unseenCertainty = [string](Read-Required $unseenRefusal 'effectCertainty' $refusalRecordSubject)
+        if ($unseenCertainty -ne 'known-none') {
+            return New-Red "the refusal recorded at unseen for interaction identity $(Read-Required (Read-Required $unseenRefusal 'refusedFrame' $refusalRecordSubject) 'interactionIdentity' 'a refused-frame reference') carries effect certainty $unseenCertainty, and every pre-dispatch refusal is known-none" 'I4-clause-1'
         }
     }
     return New-Green
@@ -1148,7 +1193,7 @@ function Invoke-C2P1 {
             continue
         }
         if ($step -ne 'admit') { continue }
-        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { 'unestablished' }
+        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { Get-InitialSessionState $Vector $sessionId }
         if ($current -ne 'established') {
             return New-Red -Witness "session $sessionId accepted a new interaction while it was $current, so an input that must leave the state unchanged or enter faulted admitted instead" -Inherited $inheritedErrors
         }
@@ -1310,6 +1355,14 @@ function Invoke-C10P1 {
         $identity = [string](Read-Required $interaction 'identity' $interactionSubject)
         if (-not (Read-Required $interaction 'observationComplete' $interactionSubject)) {
             return New-Red "interaction $identity records an observation that is not complete for its provenance form"
+        }
+        # BF. `observationComplete` is a Boolean the vector asserts, the way `profileMatch` is for
+        # C3-P1, standing in for a comparison the gate cannot make without the profile record. The
+        # direction is the one item on C10's list that no property read through any surface, so this
+        # clause checks that one item itself: an observation that omits it is not sufficient to
+        # distinguish it, whatever the Boolean asserts.
+        if ($null -eq (Read-Obligation $interaction 'direction' $observationOmitsDirection)) {
+            return New-Red "interaction $identity records an observation that omits its direction, which C10 requires the observation to be sufficient to distinguish"
         }
         if (-not (Read-Required $interaction 'possiblePostDispatchPath' $interactionSubject)) { continue }
         $refusal = Read-Optional $interaction 'refusal' $refusalIsAbsence
@@ -1665,7 +1718,7 @@ $closedVocabularies = @(
        Citations = @(@{ Artifact = $sessionMachineArtifact; Words = '| Event | Initiator | Peer transmission | Application/provider effect possible? |' }) }
     @{ Name = 'effect certainty'
        Fields = @('interactions[].authorityRecord.effectCertainty', 'interactions[].refusal.effectCertainty',
-                  'interactions[].terminalHistories[].effectCertainty', 'observations.unseenRefusals[].effectCertainty')
+                  'interactions[].terminalHistories[].effectCertainty')
        Members = @('known-none', 'known', 'unknown')
        Citations = @(@{ Artifact = $contractArtifact; Words = '`known-none`, `known`, or `unknown`, with a reason where unknown. Channel owns the certainty form' }) }
     @{ Name = 'provenance form'
@@ -1677,7 +1730,7 @@ $closedVocabularies = @(
        Members = @('local-pre-dispatch-refusal', 'semantic-outcome', 'peer-protocol-fault', 'local-loss-observation')
        Citations = @(@{ Artifact = $contractArtifact; Words = "Channel separates four forms: 1. local pre-dispatch refusal, which emits no peer frame; 2. semantic Outcome, which asserts the Operation's terminal result; 3. peer protocol fault, which asserts only that the peer endpoint rejected Channel processing; and 4. local loss observation, used when no valid peer terminal fact is available." }) }
     @{ Name = 'terminal form'
-       Fields = @('interactions[].terminalHistories[].form', 'sessionTimeline[].form')
+       Fields = @('interactions[].terminalHistories[].form')
        # I3's four non-semantic forms, which the evaluator reads, and the semantic Outcome. Stated
        # once here and read by I3 rather than listed twice.
        Members = @($nonSemanticTerminalForms) + @('outcome')
@@ -1703,6 +1756,16 @@ $closedVocabularies = @(
     @{ Name = 'unseen refusal detailed reason'
        Fields = @('observations.unseenRefusals[].detailedReason')
        Members = @('unopened-interaction-identity')
+       Citations = @(@{ Artifact = $contractArtifact; Words = 'its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`' }) }
+    @{ Name = 'unseen refusal effect certainty'
+       Fields = @('observations.unseenRefusals[].effectCertainty')
+       # BF. The third field of the record C10 owns, stated by the same words as the two above and,
+       # until this entry, checked against the three-member certainty set -- so `unknown` on an
+       # `unseen` refusal was inside a set the design states and outside the fact the design states.
+       # I4's first clause reads it, and the one vector written to show that clause catching it is
+       # where the value may be outside the set.
+       Enforced = @{ 'observations.unseenRefusals[].effectCertainty' = 'I4' }
+       Members = @('known-none')
        Citations = @(@{ Artifact = $contractArtifact; Words = 'its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`' }) }
     @{ Name = 'frame kind'
        Fields = @('declaredSteps[].kind', 'observations.lateTrafficLatches[].settlingFrame.kind',
@@ -2563,6 +2626,386 @@ $censusScope = if ($CensusPairs -gt 0) { " -- CAPPED at $CensusPairs pairs per p
 Write-Host "Channel 0.2 read-provenance census: $censusReadCount of $censusSiteCount poisoned fields were read by an evaluator, $censusSanctioned of those through a sanctioned reader and $censusRawCount raw, over $($script:OptionalReads.Count) Read-Optional and $($script:ObligationReads.Count) Read-Obligation declarations, each checked against the declared verdict of the inputs whose silence exercises it and against the words of the design artifact it cites.$censusScope"
 
 # ---------------------------------------------------------------------------------------------
+# BF: the field-readership census. Every field the declared corpus states, against whether anything
+# reads it -- a property, on any input it declares, green-expected or red-expected, or the step index.
+#
+# WHY. AX2 found `dispatched` on forty-nine interaction records, a second surface for a fact the
+# timeline states and read by no property; BD1 found `terminalHistoryChangedBy` on one record, read
+# as a fact the design never stated; BE1 found `initialInteractionState` on every session record, read
+# by nobody and naming a state no artifact has. Each is one instance of one shape -- a field the
+# corpus states and no property reads, on which a wrong value is invisible to every instrument that
+# asks whether something runs, fires, or is in a set -- and each was found by a reader looking at one
+# field. The nineteenth pass named the class and left it, because "read by no property" is harder to
+# measure than it looks: the read-provenance census above walks green-expected inputs only, so a
+# field read only where a property is declared red is read by nobody it can see.
+#
+# HOW IT MEASURES. Every field of a COPY of each declared vector is replaced by a getter that records
+# the field's path and returns the value it replaced, so an evaluator sees exactly what the declared
+# loop showed it and reaches exactly the verdict it reached there -- which the replay checks rather
+# than assumes, because an instrument that changed what it was measuring would report readership of
+# a vector nobody evaluated. One run per (property, input) pair, over every input a property
+# declares whichever verdict it declares, records every field that run dereferenced, through a
+# sanctioned reader or raw. The step index is replayed over the same copy, so a field a property
+# reads THROUGH the index -- a declared step's, a delivery's -- is read. It is not the read-provenance
+# census over the other polarity: that census poisons one field at a time to ask WHICH READER
+# performed a read, and this one asks only WHETHER anything did, which is why it costs one
+# evaluation per pair rather than one per field and can walk both polarities uncapped.
+#
+# WHAT A FIELD READ BY NOBODY MEANS. The corpus note says these inputs carry only what a property
+# statement quantifies over, and the brief's vector format says expected observations are complete
+# data. A field nothing reads satisfies neither: a wrong value on it -- a state the design does not
+# have, a provenance the record does not state -- changes no verdict and fails no check, so the
+# corpus can say one thing to a reader and another to the gate. That is W1's class on the corpus.
+# Where the field is a second surface for a fact a property reads elsewhere, the harness reconciles
+# the two and declares that here, anchored on the reconciling line so a deleted reconciliation fails
+# as stale rather than passing as read. Where it is the vector's own statement about itself -- its
+# id, the finding that raised it, the injection it declares -- it is read by the harness or by a
+# person, and it is declared as such. Everything else is read by a property or reported.
+#
+# TWO LIMITS, STATED WHERE THEY APPLY. A read is a dereference, not an operand: a field read only into
+# a witness string is read, and whether a value can move a verdict is the dropped-field sweep's
+# question, asked below over frame references and nowhere else. And a read on a red-expected input
+# is recorded without asking which reader performed it, so a raw read on a path only a mutation
+# reaches -- the read-provenance census's first declared limit -- is a read here and a raw read
+# nowhere; that is the next unit, and it is named rather than half-built.
+#
+# `ConvertTo-Json` renders a collection-valued script property as `{value, Count}` rather than as
+# the collection, so `Read-Rendering` sees a wrapped profile record differently from a plain one.
+# Both operands of the one comparison that reads a rendering are wrapped alike, so the comparison is
+# unaffected, and the replay's verdict check is what says so on every input rather than this note.
+# ---------------------------------------------------------------------------------------------
+
+# The step index `C4-P2` is evaluated against, built the way the declared corpus's is at load:
+# `DeclaredOrder` is the position in the declared sequence and the only thing `Test-Precedes` reads,
+# and `ArrivalOrdinal` is an identifier a reference matches for equality and never an ordering
+# operand. Building it here rather than reusing the loader is the one duplication the generated
+# block carries, and it is why that block's shape assertions check the index rather than trusting it.
+# The readership census replays it over a recording copy of each vector for the same reason it
+# replays the evaluators: the fields the index reads are the fields a property reads through it.
+function New-StepIndex {
+    param([Parameter(Mandatory = $true)]$Vector)
+
+    $order = 0
+    $byId = @{}
+    foreach ($step in @($Vector.declaredSteps)) {
+        $byId[[string]$step.id] = [pscustomobject]@{
+            Id = [string]$step.id
+            Kind = [string]$step.kind
+            CommittingEndpoint = [string]$step.committingEndpoint
+            Session = [string]$step.session
+            InteractionIdentity = [string]$step.interactionIdentity
+            CommitIndex = [int]$step.commitIndex
+            DeclaredOrder = $order
+            ArrivalOrdinal = $null
+            ReceivingEndpoint = $null
+            Delivered = $false
+        }
+        $order++
+    }
+    foreach ($disposition in @($Vector.delivery)) {
+        $entry = $byId[[string]$disposition.step]
+        if ($null -eq $entry) { continue }
+        if ([string]$disposition.disposition -eq 'delivered') {
+            $entry.Delivered = $true
+            $entry.ReceivingEndpoint = [string]$disposition.receivingEndpoint
+            $entry.ArrivalOrdinal = [int]$disposition.arrivalOrdinal
+        }
+    }
+    return @($byId.Values | Sort-Object DeclaredOrder)
+}
+
+# The reconciliations the census's first run made necessary, in AX2's form: a field the record states
+# and no property reads is checked against the surface a property does read, before any verdict is
+# believed, and declared reconciled below. Each is a second surface for one fact, kept because it is
+# what a reader of the record sees.
+foreach ($vector in $vectorFile.vectors) {
+    $vectorId = [string]$vector.id
+    $reconcileSteps = $vectorIndex[$vectorId]
+
+    # A session's stated initial state and its timeline's first transition are two statements of
+    # the state the session was in before anything happened to it. `S2` and `C2-P1` now start from
+    # the record; a first transition departing from any other state would have them tracking a
+    # session the timeline never describes.
+    foreach ($session in (Get-Sessions $vector)) {
+        $sessionId = [string]$session.id
+        $firstTransition = $null
+        foreach ($sessionEvent in (Get-Timeline $vector)) {
+            if ([string]$sessionEvent.step -eq 'transition' -and [string]$sessionEvent.session -eq $sessionId) { $firstTransition = $sessionEvent; break }
+        }
+        if ($null -eq $firstTransition) { continue }
+        if ([string]$firstTransition.from -ne [string]$session.initialSessionState) {
+            $failures.Add("Vector '$vectorId' states that session '$sessionId' starts in '$($session.initialSessionState)' and its timeline's first transition for that session departs from '$($firstTransition.from)'. S2 and C2-P1 start from the state the record states, so the record and the timeline would have them tracking two different sessions.")
+        }
+    }
+
+    foreach ($latch in (Get-List (Get-Field $vector 'observations') 'lateTrafficLatches')) {
+        if ($null -eq $latch) { continue }
+        # The latch is one terminal interaction's, and the terminal-frame reference names that
+        # interaction's own frame: the record's session and identity are the reference's, restated.
+        # `C4-P2` reads the references and requires the settling frame to share them.
+        $terminalReference = Get-Field $latch 'terminalFrame'
+        if ($null -ne $terminalReference) {
+            foreach ($identityField in @('session', 'interactionIdentity')) {
+                if ([string](Get-Field $latch $identityField) -ne [string](Get-Field $terminalReference $identityField)) {
+                    $failures.Add("Vector '$vectorId' records a late-traffic latch whose own '$identityField' is '$(Get-Field $latch $identityField)' and whose terminal-frame reference names '$(Get-Field $terminalReference $identityField)'. The latch is that terminal interaction's and the reference names that interaction's own frame, so the two are one fact; C4-P2 reads the reference and nothing reads the latch's own copy.")
+                }
+            }
+        }
+        # A latch settles against a frame the recording endpoint RECEIVED -- the committing endpoint
+        # is never the endpoint that records it -- so a settled latch's recorder is the receiving
+        # endpoint of the frame it settled against. A clear latch settled against nothing and names
+        # no received frame, so its recorder has no second surface and is not checked here.
+        $settlingReference = Get-Field $latch 'settlingFrame'
+        if ($null -ne $settlingReference) {
+            foreach ($settlingStep in (Resolve-FrameReference -Steps $reconcileSteps -Reference $settlingReference)) {
+                if ($settlingStep.Delivered -and [string]$settlingStep.ReceivingEndpoint -ne [string](Get-Field $latch 'recordedBy')) {
+                    $failures.Add("Vector '$vectorId' records a late-traffic latch as recorded by '$(Get-Field $latch 'recordedBy')' and settled against '$($settlingStep.Id)', which was delivered to '$($settlingStep.ReceivingEndpoint)'. A latch settles against a frame its endpoint received, so the recorder and the receiving endpoint are one fact stated twice.")
+                }
+            }
+        }
+    }
+    # The same rule for the refusal at `unseen`: it is the receiving endpoint's observation of a frame
+    # it refused, so its recorder is the endpoint the refused frame was delivered to.
+    foreach ($refusal in (Get-List (Get-Field $vector 'observations') 'unseenRefusals')) {
+        if ($null -eq $refusal) { continue }
+        $refusedReference = Get-Field $refusal 'refusedFrame'
+        if ($null -eq $refusedReference) { continue }
+        foreach ($refusedStep in (Resolve-FrameReference -Steps $reconcileSteps -Reference $refusedReference)) {
+            if ($refusedStep.Delivered -and [string]$refusedStep.ReceivingEndpoint -ne [string](Get-Field $refusal 'recordedBy')) {
+                $failures.Add("Vector '$vectorId' records a refusal at unseen as recorded by '$(Get-Field $refusal 'recordedBy')' of '$($refusedStep.Id)', which was delivered to '$($refusedStep.ReceivingEndpoint)'. The refusal is the receiving endpoint's own observation, so the recorder and the receiving endpoint are one fact stated twice.")
+            }
+        }
+    }
+}
+
+# The paths the run now in progress has dereferenced. A closure-captured local for BA3's reason next
+# door: it is meaningful at exactly the dispatches this census makes, cleared before each and
+# harvested after it, and does not exist for the other dispatches in this file to get wrong.
+$readershipObserved = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+
+# Replaces every field of every record beneath `$Node` with a getter that records the field's path
+# into `$Observed` and returns the value it replaced. Depth-first, so a container's own getter
+# returns a subtree whose fields record themselves. `$Stated` collects, per path, how many records
+# state the field and which vectors, which is what a finding names.
+#
+# `return ,$fieldValue` is BA5's lesson at the getter: a getter's output is a pipeline, so a
+# collection returned bare is unrolled -- one element comes back as a scalar and none as `$null` --
+# and `Read-Required` would then report an empty collection as an unpublished field. The unary comma
+# is what makes the copy publish exactly what the vector published.
+#
+# `GetNewClosure` is BB7's subject and is used here within its stated limit: the getter calls no
+# function this file defines, only a method on the set it captured and a return of the value it
+# captured, which the eighteenth pass's probe of that limit found resolvable from the closure's scope.
+function ConvertTo-ReadingRecord {
+    param($Node, [string]$Path, [Parameter(Mandatory = $true)][string]$VectorId,
+          [Parameter(Mandatory = $true)][hashtable]$Stated,
+          [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.HashSet[string]]$Observed)
+
+    if ($null -eq $Node -or $Node -is [string] -or $Node -is [System.ValueType]) { return }
+    if ($Node -is [System.Collections.IEnumerable]) {
+        foreach ($element in $Node) {
+            ConvertTo-ReadingRecord -Node $element -Path "$Path[]" -VectorId $VectorId -Stated $Stated -Observed $Observed
+        }
+        return
+    }
+    foreach ($member in @($Node.PSObject.Properties | Where-Object { $_ -is [System.Management.Automation.PSNoteProperty] })) {
+        $fieldPath = if ($Path) { "$Path.$($member.Name)" } else { $member.Name }
+        $fieldValue = $member.Value
+        if (-not $Stated.ContainsKey($fieldPath)) {
+            $Stated[$fieldPath] = @{ Records = 0; Vectors = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal) }
+        }
+        $Stated[$fieldPath].Records++
+        [void]$Stated[$fieldPath].Vectors.Add($VectorId)
+        ConvertTo-ReadingRecord -Node $fieldValue -Path $fieldPath -VectorId $VectorId -Stated $Stated -Observed $Observed
+        $Node.PSObject.Properties.Remove($member.Name)
+        $Node.PSObject.Properties.Add([System.Management.Automation.PSScriptProperty]::new($member.Name, { [void]$Observed.Add($fieldPath); return ,$fieldValue }.GetNewClosure()))
+    }
+}
+
+# The vector's own statements about itself: what it is, which properties claim it, what it expects,
+# what a reader should know. Read by the harness above or by a person, never by a property, and
+# declared so rather than inferred, so that a new top-level member is a field a property must read
+# until someone says otherwise. Each must occur in the declared corpus, on BE-g's rule: a declaration
+# nothing carries is one the suite cannot tell from a wrong one.
+$vectorSelfMembers = @{
+    'id'                  = 'the vector''s identity, which the harness keys every expectation on'
+    'capability'          = 'the capability whose vector file the neutral brief says would own it'
+    'propertyMemberships' = 'the properties that claim it, which the harness reconciles against each property''s declared inputs'
+    'role'                = 'what the vector is to the property that claims it, which the harness reads from the property side'
+    'summary'             = 'prose for a reader, which the brief''s format forbids a property to interpret'
+    'raisedBy'            = 'the finding that raised the vector, which is provenance for a reader'
+    'reorderingInjection' = 'the injection the neutral provider boundary requires the two C4 mutations to declare, applied by the realization and not read by the property it is written to make red'
+    'expected'            = 'the vector''s own statement of each verdict, which the harness compares against the property''s'
+}
+# Fields the harness reconciles against the surface a property reads, rather than any property
+# reading them. Each is anchored on the reconciling line, which must be in this file: a
+# reconciliation deleted with its anchor fails here as stale rather than leaving the field declared
+# reconciled and read by nothing, which is AP1's class.
+$reconciledFields = @(
+    @{ Field = 'interactions[].dispatched'
+       Anchor = 'if ([bool]$declaredDispatch.Value -ne $timelineDispatches) {'
+       Why = 'AX2. A second surface for the timeline''s dispatch steps, kept because it is what a reader of the record sees, and reconciled against the timeline before any property runs.' }
+    @{ Field = 'observations.lateTrafficLatches[].session'
+       Anchor = 'if ([string](Get-Field $latch $identityField) -ne [string](Get-Field $terminalReference $identityField)) {'
+       Why = 'BF. The latch is one terminal interaction''s, and the terminal-frame reference C4-P2 reads names that interaction''s own frame; the latch''s own session restates the reference''s.' }
+    @{ Field = 'observations.lateTrafficLatches[].interactionIdentity'
+       Anchor = 'if ([string](Get-Field $latch $identityField) -ne [string](Get-Field $terminalReference $identityField)) {'
+       Why = 'BF. As the session: the latch''s own identity restates the terminal-frame reference''s.' }
+    @{ Field = 'observations.lateTrafficLatches[].recordedBy'
+       Anchor = 'if ($settlingStep.Delivered -and [string]$settlingStep.ReceivingEndpoint -ne [string](Get-Field $latch ''recordedBy'')) {'
+       Why = 'BF. A settled latch''s recorder is the endpoint that received the frame it settled against, which the delivery states. A clear latch names no received frame, so on those records the field has no second surface and is what a reader of the record sees.' }
+    @{ Field = 'observations.unseenRefusals[].recordedBy'
+       Anchor = 'if ($refusedStep.Delivered -and [string]$refusedStep.ReceivingEndpoint -ne [string](Get-Field $refusal ''recordedBy'')) {'
+       Why = 'BF. The refusal at unseen is the receiving endpoint''s own observation of the frame it refused, which the delivery states.' }
+)
+$gateSourceLines = Get-Content -LiteralPath $PSCommandPath -Encoding UTF8
+foreach ($reconciledField in $reconciledFields) {
+    if (@($gateSourceLines | Where-Object { $_.Trim() -ceq [string]$reconciledField.Anchor }).Count -eq 0) {
+        $failures.Add("The field-readership census declares '$($reconciledField.Field)' reconciled by the harness at the line '$($reconciledField.Anchor)', and this file no longer contains that line. Either the reconciliation moved and the declaration did not, or it was deleted and the field is now read by nothing; re-anchor it or delete the declaration with it.")
+    }
+}
+
+# Per path: which properties read it on a green-expected input, which on a red-expected one, and
+# whether the step index reads it. Cumulative over the whole census, which is the unit the question
+# is asked at -- a field is read if anything anywhere reads it.
+$readership = @{}
+function Add-Readership {
+    param([Parameter(Mandatory = $true)][hashtable]$Table, [Parameter(Mandatory = $true)][string]$Path,
+          [Parameter(Mandatory = $true)][string]$Reader, [Parameter(Mandatory = $true)][string]$Polarity)
+
+    if (-not $Table.ContainsKey($Path)) {
+        $Table[$Path] = @{
+            green = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+            red = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+            index = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        }
+    }
+    [void]$Table[$Path][$Polarity].Add($Reader)
+}
+
+$readershipStated = @{}
+$readershipCopies = @{}
+$readershipPairs = 0
+foreach ($property in $properties.properties) {
+    $propertyId = [string]$property.id
+    if (-not $evaluators.ContainsKey($propertyId)) { continue }
+    $evaluator = $evaluators[$propertyId]
+
+    # Both polarities, which is the whole point: a field read only where the property is declared
+    # red is read, and the census above cannot see it.
+    $replayInputs = @{}
+    foreach ($member in @($property.requiredGreen) + @($property.additionalGreen)) {
+        if ($null -ne $member) { $replayInputs[[string]$member.vector] = @{ Verdict = 'green'; Conjunct = $null } }
+    }
+    foreach ($mutation in @($property.namedMutations)) {
+        if ($null -ne $mutation) { $replayInputs[[string]$mutation.vector] = @{ Verdict = [string]$mutation.expected; Conjunct = [string]$mutation.conjunct } }
+    }
+
+    foreach ($vectorId in ($replayInputs.Keys | Sort-Object)) {
+        if (-not $vectorsById.ContainsKey($vectorId)) { continue }
+        # One recording copy per vector, shared across the properties that replay it: the getters
+        # record into one set that is cleared before each run, and wrapping costs more than a run.
+        if (-not $readershipCopies.ContainsKey($vectorId)) {
+            $readershipCopy = Copy-Vector $vectorsById[$vectorId]
+            ConvertTo-ReadingRecord -Node $readershipCopy -Path '' -VectorId $vectorId -Stated $readershipStated -Observed $readershipObserved
+            $readershipCopies[$vectorId] = $readershipCopy
+            # The index's reads, once per vector, attributed to the index rather than to a property.
+            $readershipObserved.Clear()
+            [void](New-StepIndex -Vector $readershipCopy)
+            foreach ($indexPath in $readershipObserved) {
+                Add-Readership -Table $readership -Path $indexPath -Reader 'step-index' -Polarity 'index'
+            }
+        }
+        $expected = $replayInputs[$vectorId]
+        $readershipPairs++
+        $readershipObserved.Clear()
+        $script:UnpublishedFields.Clear()
+        # The declared verdict is in scope exactly as it is in the declared loop, so the two
+        # meaning-carrying readers record the same polarity they recorded there and the replay adds
+        # nothing to the declaration record it did not already hold.
+        $script:DeclaredExpectation = [string]$expected.Verdict
+        try { $replayResult = & $evaluator -VectorId $vectorId -Vector $readershipCopies[$vectorId] -Steps $vectorIndex[$vectorId] }
+        finally { $script:DeclaredExpectation = $null }
+        foreach ($unpublished in ($script:UnpublishedFields | Sort-Object -Unique)) {
+            $failures.Add("The field-readership census replays '$propertyId' over a recording copy of '$vectorId' and the copy does not publish a field the declared loop's evaluation read: $unpublished. The copy publishes exactly what the vector publishes, so this is the recording changing what the evaluator saw, and readership measured over it is readership of a vector nobody evaluated.")
+        }
+        foreach ($evaluationError in $replayResult.Errors) {
+            $failures.Add("The field-readership census cannot evaluate '$propertyId' over a recording copy of '$vectorId': $evaluationError The declared loop evaluated the same input without error, so the recording changed what the evaluator saw.")
+        }
+        # The replay must reach the declared loop's verdict through the declared loop's conjunct. It
+        # is the same evaluator over the same values, so a difference is the recording changing what
+        # the evaluator saw, and readership measured over it is readership of a vector nobody evaluated.
+        if ([string]$replayResult.Verdict -ne [string]$expected.Verdict) {
+            # The witness is rendered without a conditional, as the polarity check's list is: a branch
+            # here runs only on a failing run, and the exemption for it would be one more claim.
+            $failures.Add("The field-readership census replays '$propertyId' over a recording copy of '$vectorId' and reaches $($replayResult.Verdict) where the declared loop reaches $($expected.Verdict). Witness, empty where the replay is green: '$($replayResult.Witness)'. The copy returns the vector's own values field by field, so this is the recording changing what the evaluator saw, and the readership it recorded is of a vector nobody evaluated.")
+        }
+        elseif ([string]$expected.Verdict -eq 'red' -and $expected.Conjunct -and [string]$replayResult.Conjunct -ne [string]$expected.Conjunct) {
+            $failures.Add("The field-readership census replays '$propertyId' over a recording copy of '$vectorId' and goes red through '$($replayResult.Conjunct)' where the mutation is declared against '$($expected.Conjunct)'. The declared loop requires the declared conjunct, so the recording changed which clause the evaluator reached.")
+        }
+        foreach ($readPath in $readershipObserved) {
+            Add-Readership -Table $readership -Path $readPath -Reader $propertyId -Polarity ([string]$expected.Verdict)
+        }
+    }
+}
+
+# The verdict, per path over the whole corpus. A path is the vector's own statement if its first
+# segment is a declared self member; reconciled if declared so above; otherwise it is read by a
+# property or the index, or it is a finding.
+$readershipFindings = [System.Collections.Generic.List[string]]::new()
+$readershipTally = @{ 'read on a green-expected input' = 0; 'read only on a red-expected input' = 0; 'read by the step index only' = 0; 'reconciled by the harness' = 0; 'the vector''s own statements' = 0 }
+$selfMembersSeen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+foreach ($statedPath in ($readershipStated.Keys | Sort-Object)) {
+    $topLevelMember = $statedPath.Split('.')[0] -replace '\[\]$', ''
+    if ($vectorSelfMembers.ContainsKey($topLevelMember)) {
+        [void]$selfMembersSeen.Add($topLevelMember)
+        $readershipTally['the vector''s own statements']++
+        continue
+    }
+    if (@($reconciledFields | Where-Object { [string]$_.Field -ceq $statedPath }).Count -gt 0) {
+        $readershipTally['reconciled by the harness']++
+        continue
+    }
+    $readers = $readership[$statedPath]
+    if ($null -ne $readers -and $readers.green.Count -gt 0) { $readershipTally['read on a green-expected input']++; continue }
+    if ($null -ne $readers -and $readers.red.Count -gt 0) { $readershipTally['read only on a red-expected input']++; continue }
+    if ($null -ne $readers -and $readers.index.Count -gt 0) { $readershipTally['read by the step index only']++; continue }
+    $stated = $readershipStated[$statedPath]
+    $readershipFindings.Add("The declared corpus states '$statedPath' on $($stated.Records) record(s) of $($stated.Vectors.Count) vector(s) and nothing reads it: no property on any input it declares, green-expected or red-expected, nor the step index, nor a declared reconciliation. A wrong value there changes no verdict and fails no check, so the corpus can say one thing to a reader and another to the gate. Either a property whose statement quantifies over it reads it, or the harness reconciles it against the surface a property does read and declares that, or the field is the corpus's own convention and is deleted.")
+}
+foreach ($readershipFinding in $readershipFindings) {
+    $failures.Add($readershipFinding)
+}
+foreach ($selfMember in ($vectorSelfMembers.Keys | Sort-Object)) {
+    if ($selfMembersSeen.Contains($selfMember)) { continue }
+    $failures.Add("The field-readership census declares '$selfMember' a vector's own statement about itself and no vector of the declared corpus carries that member. A declaration nothing exercises is one the suite cannot distinguish from a wrong one; delete it, or add the vector that carries the member.")
+}
+Write-Host "Channel 0.2 field-readership census: $($readershipStated.Count) distinct fields stated by $($readershipCopies.Count) declared vectors, replayed over $readershipPairs (property, input) pairs of both polarities -- $($readershipTally['read on a green-expected input']) read by a property on a green-expected input, $($readershipTally['read only on a red-expected input']) read by a property only on a red-expected input, $($readershipTally['read by the step index only']) read by the step index alone, $($readershipTally['reconciled by the harness']) reconciled by the harness, $($readershipTally['the vector''s own statements']) the vector's own statements about itself, and $($readershipFindings.Count) read by nothing."
+
+# The generator's half. The generator emits one field set, shaped by the same design the corpus is
+# written against, and the same evaluators read it -- so a field it emits is read if the declared
+# census found it read, and a field it emits that NO declared vector states is one whose readership
+# nothing here has measured: a convention of the generator's own, which is BB2's `admitted` event
+# one instrument later. The walk collects paths only, without wrapping, because the question is
+# about the generator's surface and not about a replay.
+function Add-StatedFields {
+    param($Node, [string]$Path, [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.HashSet[string]]$Stated)
+
+    if ($null -eq $Node -or $Node -is [string] -or $Node -is [System.ValueType]) { return }
+    if ($Node -is [System.Collections.IEnumerable]) {
+        foreach ($element in $Node) {
+            Add-StatedFields -Node $element -Path "$Path[]" -Stated $Stated
+        }
+        return
+    }
+    foreach ($member in $Node.PSObject.Properties) {
+        $fieldPath = if ($Path) { "$Path.$($member.Name)" } else { $member.Name }
+        [void]$Stated.Add($fieldPath)
+        Add-StatedFields -Node $member.Value -Path $fieldPath -Stated $Stated
+    }
+}
+
+# ---------------------------------------------------------------------------------------------
 # Generated conforming vectors -- the eleventh condition-4 pass, by owner ruling of 2026-09-04.
 #
 # WHY THIS RUNS ON EVERY COMMIT. A hundred vectors cost seven tenths of a second against this gate's
@@ -2751,13 +3194,13 @@ if ($GeneratedCount -gt 0) {
                     $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'dispatch'; identity = $identity })
                 }
                 # The wave closes when it is full or when the last interaction has been admitted, and
-                # each terminal names the one identity it closes and the form that identity's own
-                # record carries. Emitting a form here that the interaction record does not hold would
-                # make the vector incoherent, and an incoherent vector produces a finding about the
-                # generator wearing the shape of a finding about the design.
+                # each terminal names the one identity it closes. The form that identity reached is
+                # the interaction record's own terminal history and is stated there once: the
+                # timeline's copy of it was read by nothing, and a copy nothing reads is the one that
+                # goes stale while both stay green. BF.
                 if ($waveLive -ge $bound -or $interactionOrdinal -eq $interactionCount) {
                     foreach ($waveMember in $waveIdentities) {
-                        $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $waveMember.Identity; form = $waveMember.Form; semanticSuccess = ($waveMember.Form -eq 'outcome'); closes = $waveMember.Identity; accepted = $true })
+                        $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $waveMember.Identity; closes = $waveMember.Identity; accepted = $true })
                     }
                     $waveIdentities.Clear()
                     $waveLive = 0
@@ -2795,9 +3238,10 @@ if ($GeneratedCount -gt 0) {
                     provenanceFormActually = $expectedProvenance
                     observationComplete = $true
                     # There is no post-dispatch path when the refusal precedes dispatch, which is why
-                    # `C10-P1` does not require explicit evidence narrowing one here.
+                    # `C10-P1` does not require explicit evidence narrowing one here. The vector's one
+                    # deterministic expected observation is a fact of the vector, stated on it below
+                    # and not restated per interaction. BF.
                     possiblePostDispatchPath = (-not $isRefused)
-                    deterministicExpectedObservation = $true
                 })
             }
 
@@ -2975,43 +3419,6 @@ if ($GeneratedCount -gt 0) {
         }
     }
 
-    # The step index `C4-P2` is evaluated against, built the way the declared corpus's is at load:
-    # `DeclaredOrder` is the position in the declared sequence and the only thing `Test-Precedes`
-    # reads, and `ArrivalOrdinal` is an identifier a reference matches for equality and never an
-    # ordering operand. Building it here rather than reusing the loader is the one duplication this
-    # block carries, and it is why the shape assertions below check the index rather than trusting it.
-    function New-GeneratedStepIndex {
-        param([Parameter(Mandatory = $true)]$Vector)
-
-        $order = 0
-        $byId = @{}
-        foreach ($step in @($Vector.declaredSteps)) {
-            $byId[[string]$step.id] = [pscustomobject]@{
-                Id = [string]$step.id
-                Kind = [string]$step.kind
-                CommittingEndpoint = [string]$step.committingEndpoint
-                Session = [string]$step.session
-                InteractionIdentity = [string]$step.interactionIdentity
-                CommitIndex = [int]$step.commitIndex
-                DeclaredOrder = $order
-                ArrivalOrdinal = $null
-                ReceivingEndpoint = $null
-                Delivered = $false
-            }
-            $order++
-        }
-        foreach ($disposition in @($Vector.delivery)) {
-            $entry = $byId[[string]$disposition.step]
-            if ($null -eq $entry) { continue }
-            if ([string]$disposition.disposition -eq 'delivered') {
-                $entry.Delivered = $true
-                $entry.ReceivingEndpoint = [string]$disposition.receivingEndpoint
-                $entry.ArrivalOrdinal = [int]$disposition.arrivalOrdinal
-            }
-        }
-        return @($byId.Values | Sort-Object DeclaredOrder)
-    }
-
     # The generator's own required shapes, and the reason they are asserted here rather than measured
     # by the coverage gate next door. That gate runs each covered gate under a line trace, and tracing
     # even twenty-five generated vectors costs several times the whole of that measure -- so the
@@ -3049,11 +3456,15 @@ if ($GeneratedCount -gt 0) {
     $generatedVocabularyTally = @{ 'vocabulary fields' = 0; 'harness fields' = 0; 'profile-owned fields' = 0; 'identifier fields' = 0; 'out-of-set values the enforcing property is declared red on' = 0 }
     $generatedVocabularyFindings = [System.Collections.Generic.List[string]]::new()
     $generatedPathsSeen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    # BF. Every field the generator emits over the whole population, so a field it emits only on
+    # one shape -- a refusal's, a faulting session's -- is in the set whichever vector carried it.
+    $generatedFieldsStated = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     foreach ($generatedOrdinal in 1..$GeneratedCount) {
         $generatedId = "generated-$generatedOrdinal"
         $generatedVector = New-ConformingVector -Id $generatedId -Random $random
-        $generatedSteps = New-GeneratedStepIndex -Vector $generatedVector
+        $generatedSteps = New-StepIndex -Vector $generatedVector
         Test-VectorVocabularies -Vector $generatedVector -VectorId $generatedId -Expected $null -Findings $generatedVocabularyFindings -Tally $generatedVocabularyTally -Seen $generatedPathsSeen
+        Add-StatedFields -Node $generatedVector -Path '' -Stated $generatedFieldsStated
 
         $generatedTimeline = @($generatedVector.sessionTimeline)
         foreach ($shapeTo in @($generatedTimeline | Where-Object { [string]$_.step -eq 'transition' } | ForEach-Object { [string]$_.to })) {
@@ -3217,6 +3628,21 @@ if ($GeneratedCount -gt 0) {
         $failures.Add("$generatedVocabularyFinding Reproduce with -GeneratedSeed $GeneratedSeed -GeneratedCount $GeneratedCount. The generator is what emits it, so the correction is to the generator, not to a vector.")
     }
     Write-Host "Channel 0.2 closed-vocabulary census over the generated population: $($generatedVocabularyTally['vocabulary fields']) fields of $GeneratedCount generated vectors checked against the same $($closedVocabularies.Count) closed vocabularies, $($generatedVocabularyTally['harness fields']) harness fields, $($generatedVocabularyTally['profile-owned fields']) profile-owned fields and $($generatedVocabularyTally['identifier fields']) identifier fields classified, and $($generatedVocabularyFindings.Count) findings."
+    # BF. The generator's surface against the declared corpus's. A field the generator emits that no
+    # declared vector states has a readership nothing measured, and one the declared census reported
+    # read by nothing is reported there once rather than here again.
+    $generatedFieldsUnmeasured = [System.Collections.Generic.List[string]]::new()
+    $generatedFieldsRead = 0
+    foreach ($generatedField in ($generatedFieldsStated | Sort-Object)) {
+        $generatedTopLevelMember = $generatedField.Split('.')[0] -replace '\[\]$', ''
+        if ($vectorSelfMembers.ContainsKey($generatedTopLevelMember)) { continue }
+        if ($readershipStated.ContainsKey($generatedField)) { $generatedFieldsRead++; continue }
+        $generatedFieldsUnmeasured.Add($generatedField)
+    }
+    foreach ($generatedFieldUnmeasured in $generatedFieldsUnmeasured) {
+        $failures.Add("The generator emits '$generatedFieldUnmeasured' and no declared vector states that field, so nothing here has measured whether any property reads it. Reproduce with -GeneratedSeed $GeneratedSeed -GeneratedCount $GeneratedCount. A field only the generator carries is a convention of the generator's own; either a declared vector states it, so the field-readership census can say who reads it, or the generator stops emitting it.")
+    }
+    Write-Host "Channel 0.2 field-readership census over the generated population: $($generatedFieldsStated.Count) distinct fields emitted over $GeneratedCount generated vectors, $generatedFieldsRead of them stated by the declared corpus and measured there, and $($generatedFieldsUnmeasured.Count) stated by no declared vector."
     # The rate AZ3 reports, stated per outcome class rather than as one number: "no drop misbehaved"
     # says nothing about how many of them could have. A drop with no discriminating vector behind it
     # is the vacuity this instrument was built to end, so it is a failure and not a footnote.

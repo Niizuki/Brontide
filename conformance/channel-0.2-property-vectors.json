@@ -324,7 +324,8 @@
       "id": "C4-control-for-unopened-identity",
       "capability": "C4",
       "propertyMemberships": [
-        "C4-P2"
+        "C4-P2",
+        "I4"
       ],
       "role": "required-green",
       "summary": "Legal input from a nonconformant peer: a cancellation control for an identity the peer never opened. The recipient refuses it at unseen, retains nothing, and no request for that identity was ever committed.",
@@ -378,7 +379,8 @@
         "lateTrafficLatches": []
       },
       "expected": {
-        "C4-P2": "green"
+        "C4-P2": "green",
+        "I4": "green"
       }
     },
     {
@@ -1043,8 +1045,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -1096,8 +1096,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -1112,6 +1111,11 @@
           "creates": []
         }
       ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [],
+        "lateTrafficLatches": []
+      },
       "expected": {
         "S1": "green",
         "S2": "green",
@@ -1234,8 +1238,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -1279,8 +1281,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -1295,6 +1296,11 @@
           "creates": []
         }
       ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [],
+        "lateTrafficLatches": []
+      },
       "expected": {
         "S1": "green",
         "S2": "green",
@@ -1454,8 +1460,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -1489,8 +1493,6 @@
           "session": "s2",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         }
@@ -1526,8 +1528,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         },
         {
           "session": "s2",
@@ -1559,8 +1560,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -1570,6 +1570,11 @@
           "creates": []
         }
       ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [],
+        "lateTrafficLatches": []
+      },
       "expected": {
         "S1": "green",
         "S2": "green",
@@ -1659,8 +1664,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -1778,8 +1781,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -1837,6 +1838,46 @@
       ],
       "expected": {
         "S2": "red"
+      }
+    },
+    {
+      "id": "S-established-at-start",
+      "capability": "C2",
+      "propertyMemberships": [
+        "S2",
+        "C2-P1"
+      ],
+      "role": "additional-green",
+      "summary": "BF. A session the vector carries in `established` from its start, which admits, dispatches and closes one interaction with no transition in its timeline. The brief's vector format says every vector states the initial session state of each session it carries, and every C4 vector already carried a session that begins established; S2 and C2-P1 defaulted the state a session is in before its first transition to `unestablished` in code, so the stated field was read by nothing and this legal input was red on both. A conforming realization whose window opens mid-session is what this vector is.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "established"
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "closes": "i1",
+          "accepted": true
+        }
+      ],
+      "expected": {
+        "S2": "green",
+        "C2-P1": "green"
       }
     },
     {
@@ -1898,8 +1939,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -2018,8 +2057,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -2141,8 +2178,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -2256,8 +2291,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -2378,8 +2411,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -2494,8 +2525,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -2503,8 +2532,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": false,
           "closes": "i1",
           "accepted": true
         },
@@ -2624,8 +2651,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "cancellation-acknowledgement",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -2739,8 +2764,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -2795,6 +2818,72 @@
           "creates": []
         }
       ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [],
+        "lateTrafficLatches": []
+      },
+      "expected": {
+        "I4": "red"
+      }
+    },
+    {
+      "id": "I4-unseen-refusal-not-known-none",
+      "capability": "C4",
+      "propertyMemberships": [
+        "I4"
+      ],
+      "role": "named-mutation",
+      "summary": "BF. The refusal recorded at unseen carries effect certainty `unknown`. Nothing was admitted and nothing dispatched, so the record C10 owns states `known-none`; a realization recording anything else has recorded a pre-dispatch refusal as possibly effectful, which I4's first clause forbids. The corpus's five such records carried the field and no property read it.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "established"
+        }
+      ],
+      "declaredSteps": [
+        {
+          "id": "ctl",
+          "kind": "cancellation-control",
+          "committingEndpoint": "initiator",
+          "session": "s1",
+          "interactionIdentity": "i1",
+          "commitIndex": 1
+        }
+      ],
+      "delivery": [
+        {
+          "step": "ctl",
+          "disposition": "delivered",
+          "receivingEndpoint": "recipient",
+          "arrivalOrdinal": 1
+        }
+      ],
+      "observations": {
+        "unseenRefusals": [
+          {
+            "recordedBy": "recipient",
+            "provenance": "rejected-protocol",
+            "detailedReason": "unopened-interaction-identity",
+            "effectCertainty": "unknown",
+            "refusedFrame": {
+              "kind": "cancellation-control",
+              "session": "s1",
+              "interactionIdentity": "i1",
+              "committingEndpoint": "initiator",
+              "arrivalOrdinal": 1
+            }
+          }
+        ],
+        "recipientAdmittedIdentities": [
+          {
+            "session": "s1",
+            "identities": []
+          }
+        ],
+        "lateTrafficLatches": []
+      },
       "expected": {
         "I4": "red"
       }
@@ -2868,8 +2957,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -2993,8 +3080,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -3118,8 +3203,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i2",
           "accepted": true
         },
@@ -3254,8 +3337,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -3379,8 +3460,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -3509,8 +3588,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": [
             "i1",
             "i2"
@@ -3647,8 +3724,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -3700,8 +3775,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -3790,8 +3864,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -3848,8 +3920,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -3938,8 +4009,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -3991,8 +4060,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -4081,8 +4149,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -4134,8 +4200,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -4224,8 +4289,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -4277,8 +4340,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -4367,8 +4429,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -4420,8 +4480,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -4510,8 +4569,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "cancellation-acknowledgement",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -4563,8 +4620,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -4653,8 +4709,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -4706,7 +4760,6 @@
           "provenanceForm": "peer-protocol-fault",
           "observationComplete": true,
           "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true,
           "provenanceFormActually": "local-loss-observation"
         }
       ],
@@ -4796,8 +4849,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -4853,8 +4904,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -4943,8 +4993,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -4996,8 +5044,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -5086,8 +5133,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -5139,8 +5184,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -5266,8 +5310,7 @@
           "provenanceForm": "local-pre-dispatch-refusal",
           "provenanceFormActually": "local-pre-dispatch-refusal",
           "observationComplete": true,
-          "possiblePostDispatchPath": false,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": false
         }
       ],
       "sessionEvents": [
@@ -5282,6 +5325,11 @@
           "creates": []
         }
       ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [],
+        "lateTrafficLatches": []
+      },
       "expected": {
         "C5-P1": "red",
         "I4": "red"
@@ -5392,8 +5440,7 @@
           "provenanceForm": "local-pre-dispatch-refusal",
           "provenanceFormActually": "local-pre-dispatch-refusal",
           "observationComplete": true,
-          "possiblePostDispatchPath": false,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": false
         }
       ],
       "sessionEvents": [
@@ -5518,8 +5565,7 @@
           "provenanceForm": "local-pre-dispatch-refusal",
           "provenanceFormActually": "local-pre-dispatch-refusal",
           "observationComplete": true,
-          "possiblePostDispatchPath": false,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": false
         }
       ],
       "sessionEvents": [
@@ -5643,8 +5689,7 @@
           "provenanceForm": "local-pre-dispatch-refusal",
           "provenanceFormActually": "local-pre-dispatch-refusal",
           "observationComplete": true,
-          "possiblePostDispatchPath": false,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": false
         }
       ],
       "sessionEvents": [
@@ -5769,8 +5814,7 @@
           "provenanceForm": "local-pre-dispatch-refusal",
           "provenanceFormActually": "local-pre-dispatch-refusal",
           "observationComplete": true,
-          "possiblePostDispatchPath": false,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": false
         }
       ],
       "sessionEvents": [
@@ -5859,8 +5903,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -5912,8 +5954,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -6002,8 +6043,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -6063,8 +6102,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -6154,8 +6192,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -6207,8 +6243,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -6298,8 +6333,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -6351,8 +6384,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -6441,8 +6473,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -6494,8 +6524,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -6584,8 +6613,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -6637,8 +6664,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -6727,8 +6753,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -6780,8 +6804,7 @@
           "provenanceForm": "peer-inference",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -6870,8 +6893,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -6923,8 +6944,146 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": false,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "C10-P1": "red"
+      },
+      "deterministicExpectedObservation": true
+    },
+    {
+      "id": "C10-observation-omits-direction",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "C10-P1"
+      ],
+      "role": "named-mutation",
+      "summary": "BF. An interaction records an observation that asserts its own completeness and omits its direction, one of the facts C10 requires every interaction's local observation to be sufficient to distinguish. The direction was stated on thirty records and read by no property, because C3-P1 compares it against the profile through a Boolean the vector asserts; this is the one item on C10's list that C10-P1 now checks itself.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          },
+          "establishedProfiles": 1,
+          "profileFactsMatchExpected": true,
+          "dispatchable": true,
+          "requiredFacets": [
+            "core"
+          ],
+          "supportedFacets": [
+            "core"
+          ],
+          "facetChangesCore": false
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "outcome",
+              "semanticSuccess": true,
+              "effectCertainty": "known"
+            }
+          ],
+          "phasePredicate": true,
+          "profileMatch": true,
+          "boundsChecked": true,
+          "positionalShapeChecked": true,
+          "authorityDecision": "permitted",
+          "authorityRecord": {
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
+            "effectCertainty": "known-none"
+          },
+          "inPreReadyWindow": true,
+          "provenanceForm": "semantic-outcome",
+          "provenanceFormActually": "semantic-outcome",
+          "observationComplete": true,
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -7013,8 +7172,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -7066,8 +7223,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
@@ -7150,8 +7306,6 @@
           "session": "s1",
           "step": "terminal",
           "identity": "i1",
-          "form": "outcome",
-          "semanticSuccess": true,
           "closes": "i1",
           "accepted": true
         },
@@ -7203,8 +7357,7 @@
           "provenanceForm": "semantic-outcome",
           "provenanceFormActually": "semantic-outcome",
           "observationComplete": true,
-          "possiblePostDispatchPath": true,
-          "deterministicExpectedObservation": true
+          "possiblePostDispatchPath": true
         }
       ],
       "sessionEvents": [
