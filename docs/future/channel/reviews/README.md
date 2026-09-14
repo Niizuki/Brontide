@@ -187,6 +187,7 @@ dependency instead of narrowing it.
 | BB | iteration | verification | sixteenth W1-W3 verification-foundation iteration review |
 | BC | iteration | verification | seventeenth W1-W3 verification-foundation iteration review |
 | BD | iteration | verification | eighteenth W1-W3 verification-foundation iteration review |
+| BE | iteration | verification | nineteenth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -282,7 +283,7 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Eighteen such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
+Nineteen such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
 nothing it can fix. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
@@ -300,16 +301,17 @@ nothing it can fix. They are retained as the
 [fourteenth](./channel-0.2-az-iteration-review.md) (**AZ1**-**AZ2**),
 [fifteenth](./channel-0.2-ba-iteration-review.md) (**BA1**-**BA7**),
 [sixteenth](./channel-0.2-bb-iteration-review.md) (**BB1**-**BB7**),
-[seventeenth](./channel-0.2-bc-iteration-review.md) (**BC1**-**BC3**) and
-[eighteenth](./channel-0.2-bd-iteration-review.md) (**BD1**-**BD3**) W1-W3 verification-foundation
+[seventeenth](./channel-0.2-bc-iteration-review.md) (**BC1**-**BC3**),
+[eighteenth](./channel-0.2-bd-iteration-review.md) (**BD1**-**BD3**) and
+[nineteenth](./channel-0.2-be-iteration-review.md) (**BE1**-**BE5**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
-**A nineteenth pass over the same scope is the live path, and it is the first of two consecutive
+**A twentieth pass over the same scope is the live path, and it is the first of two consecutive
 clean passes that are owed again from zero.** It starts by running the frozen instrument set — the
 probe corpus, the coverage gate, the generated-vector run, the return-channel census, the
-read-provenance census, the declaration-polarity check and the declaration-citation check, whose
-sizes the plan's section 4 owns and recomputes rather than this paragraph — and records what it
-reports before building anything.
+read-provenance census, the declaration-polarity check, the declaration-citation check and the
+closed-vocabulary census, whose sizes the plan's section 4 owns and recomputes rather than this
+paragraph — and records what it reports before building anything.
 
 **The fifteenth pass was to be the first of those two and was not.** Its frozen set reported nothing,
 for the ninth consecutive pass. The instrument it built — a census of what every consumer in these
@@ -373,14 +375,31 @@ the vector must state. Both are in the verification and neither in the design, a
 the pass's own new check: its first loop was written with its body on the header line, and the coverage
 measure refused it on the first run over the branch — BA7's class, reported by BA7's instrument.
 
-**The nineteenth pass's method is the same question put to every field rather than to the five that
-carried a reason.** A `Read-Required` read claims that the design says the vector carries the field,
-and that claim is a comment checked by nothing; which fields the brief's format requires, against
-which fields the corpus's records state, is AX2's unit from the other side. Beside it is the narrower
-unit with a known instance: the gate's closed vocabularies are checked only at the one evaluator that
-reads each, over that evaluator's group, which is how five interaction records carried a provenance
-form outside the set of four and no property saw them. Every closed-set field of every record against
-its set, regardless of group, is the unit.
+**The nineteenth pass was to be the first of those two and was not either.** Its frozen set reported
+nothing, for the thirteenth consecutive pass. It took the narrower of the two units the eighteenth
+named — every closed-vocabulary field of every record against the set the design states, regardless
+of which property's group the vector is in — and built it total, so that a string field the census was
+not told about fails rather than passing unseen. It raised **BE1**-**BE5** on its first run, all in the
+verification and none in the design. **BE1** is every session record in the corpus, and every
+generated one, stating an initial interaction state `idle` that no artifact has, read by no property:
+AX2's shape with a wrong value in it, green under thirteen clean frozen sets because none of their
+instruments asks whether a value is one the design has. **BE2** is the one to weigh: the `unseen`
+refusal record's provenance was `recipient` where C10's owned fact states `rejected-protocol`, the
+design's value was carried under a field the record does not have, and the corpus, `C4-P2`'s selector
+in the declaration and in the evaluator, the generator and the shape check agreed with each other and
+none with the artifact — stated as the artifact states it, `C4-P2` was green on its own named mutation.
+**BE3**-**BE5** are an effect certainty, two session events and a latch category the design has no
+word for, on mutation records and in the generator.
+
+**The twentieth pass's method is the wider question the eighteenth named and the nineteenth left
+open: which fields the corpus states that no property reads, against which the brief's format
+requires.** The nineteenth recorded a first look — `initialSessionState`, `establishedProfile` and
+both `recordedBy` fields are read by no property, and `S2` and `C2-P1` default a session's initial
+state in code while twelve session records state it and nobody reads them — and the limit that makes
+it harder than it looks: the read-provenance census walks green-expected inputs only, so a field read
+only on a mutation's path is read by nobody it can see. Beside it are the two vocabularies the census
+could classify and not check, `class` and `direction`, which the design says a profile owns and no
+record in the corpus declares.
 
 Nothing in this paragraph resumes the closure cycle or authorizes a closure-review dispatch.
 
@@ -1275,6 +1294,20 @@ context elsewhere — never as evidence that their conclusions are right.
   pass's own, found by the coverage measure on its first run over the branch: the new check's first
   loop had its body on the header line, where that measure cannot decide whether it ran, which is BA7's
   class reported by BA7's instrument.
+- [Nineteenth W1-W3 verification-foundation iteration review](./channel-0.2-be-iteration-review.md) —
+  the same scope at `0a43917`; raised **BE1**-**BE5** and corrected all five, so it is **not** the
+  first of the two consecutive clean passes and the count stays at zero. Its frozen set reported
+  nothing, for the thirteenth consecutive pass. Its instrument classifies every string field of every
+  record and checks each closed-vocabulary field against the set the design states, over every
+  declared vector regardless of group and over every generated one, and all five findings are in the
+  package and in the verification: **BE1** is every session record stating an initial interaction
+  state `idle` that no artifact has, read by no property; **BE2** is the `unseen` refusal record's
+  provenance carrying `recipient` where C10's owned fact states `rejected-protocol`, with `C4-P2`'s
+  selector agreeing with the corpus rather than with the artifact, so that stated as the artifact
+  states it the property was green on its own named mutation; **BE3**, **BE4** and **BE5** are an
+  effect certainty, session events and a latch category the design has no word for. BE2 was pinned
+  with the records corrected before the selectors, and ten probes keep the census honest. Nothing was
+  raised against the pass's own new code by a frozen instrument.
 
 ## Disclosed process deviation in the T1-T4 correction
 

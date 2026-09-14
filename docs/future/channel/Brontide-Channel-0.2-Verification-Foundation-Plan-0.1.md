@@ -1623,6 +1623,73 @@ side. And the closed sets the gate declares are checked over one property's grou
 five wrong values survived; checking every closed-set field of every record against its set is the
 obvious unit and it has a known instance waiting for it.
 
+## 2v. What the nineteenth condition 4 pass found
+
+The nineteenth author-side pass has run, at `0a43917`, and is retained as the
+[nineteenth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-be-iteration-review.md).
+It was to be the **first of the two consecutive clean passes** the 2026-09-04 ruling requires from
+zero.
+
+**It is not clean. Its frozen set reported nothing -- thirteenth consecutive -- and the instrument it
+built raised BE1 through BE5 in the package on its first run, all five against the retained
+verification and none against the design, so the two-consecutive count stays at zero.** Nothing was
+raised against the pass's own new code by a frozen instrument.
+
+**The method was the narrower of the two section 2u named, built so that the walk is total.** Every
+string field of every record is classified by its path from the vector root: a closed vocabulary the
+design states, a vocabulary of the gate's own harness, one the design says a profile owns, or an
+identifier. A closed-vocabulary field is checked against its set over every declared vector whatever
+group it is in and over every generated vector, and where a set comes from is declared with it -- read
+from a machine's table, stated backticked in cited words, or spelled by the gate from a sentence that
+names the cases in prose, with the summary line counting each. A string field that is none of these
+fails, and so does a classification no record carries. One exemption exists, on the vector declared red
+for the property whose own clause is that the value be in the set.
+
+**BE1 is every session record stating an initial interaction state the design does not have.** All 58,
+and every generated session, carried `idle`; the interaction machine begins at `candidate` and
+`unseen` and no artifact uses the word for anything but the timeout core does not have. No property
+reads the field, which is AX2's shape with a wrong value in it, and what the design says about a
+session's initial interaction state is a constant of the machines rather than a per-vector fact -- so
+the field is deleted from the corpus and the generator, as BD1 deleted a field carrying a convention of
+its own, and a session record that reappears with it fails as unclassified.
+
+**BE2 is the `unseen` refusal record's provenance carrying a value the design's record does not
+state, with the property selecting on it.** C10's owned fact states *its provenance
+`rejected-protocol`*; the five corpus records carried `provenance: recipient` and the design's value
+under `frameDecision`, a field the record does not have. The corpus, the declaration's selector, the
+evaluator's selector, the generator and the shape check agreed with each other exactly and none with
+the artifact, which is AK1's shape one artifact further out. Pinned with the records corrected first:
+`C4-P2` went green on `C4-control-precedes-request` and the AK1 and AK5 operand mutations went green
+with it, because the selector skipped every record stated as the artifact states it. Every surface now
+reads the design's value, and the `BE-j` probe keeps the old selector value red.
+
+**BE3 is two mutation records carrying the effect certainty `possible`**, outside `known-none`,
+`known` and `unknown`; each was red through a value no realization can record. They carry `unknown`.
+
+**BE4 is session events the machine's table does not name.** Two mutations accepted their illegal
+edges on `reset` and `resume`, and the generator emitted `offer-profile`, `accept-profile` and
+`recognized-violation` on most of the population every property has reported green over. S1 reads the
+edge and not the event. The mutations use `receive-establish-proposal` and `accept-establishment`, and
+the generator the table's own three names.
+
+**BE5 is a clear latch carrying the fault category `none`.** The one fault a latch commits is
+`state-violation`, and a clear latch has committed none; the field is omitted there, and the
+alternative of an explicit absence value is section 5's fifth question rather than a decision here.
+
+**And two corrections on contact, unnumbered for the reason section 2u gave.** The vector file declared
+`frameKinds` and `latchValues` at its top level and nothing read either; both are deleted, the census
+cites the design for both sets, and the file's top level is refused anything but its vectors.
+
+**What the next pass inherits.** Eight of the fifteen vocabularies are the gate's spellings, checked
+for presence of a phrase and not for meaning, which is BD's limit at member granularity. Two are a
+profile's -- `class` and `direction` -- and the corpus carries no profile record to check them against,
+while `I6` and `C7-P1` select on the literal `relational`, a class name no artifact declares; deciding
+that means the profile record declaring its classes and `C3-P1` reading them. And the wider question
+the eighteenth named is still open: three classified fields are read by no property, `S2` and
+`C2-P1` default a session's initial state in code while twelve session records state it and nobody
+reads them, and "read by no property" is harder to measure than it looks because the read-provenance
+census walks green-expected inputs only.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -1681,14 +1748,15 @@ nothing means the package is sound *under what the programme can currently detec
 and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
-eighteen times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one,
-three, zero, three, seven, seven, three and **three** defects. Sections 2d through 2u record them. This
-tally counts what a reader counts -- the numbered findings in each pass's retained review. Where the
-2026-09-04 ruling's two populations differ from that total, the pass's own section states the split: of
-the fifteenth's seven, five are in the package and two are in the instrument that pass built; of the
-sixteenth's seven, four are in the package and three are in its own new code; of the seventeenth's
-three, two are in the package and one is in its own new code; and of the eighteenth's three, two are
-in the package and one is in its own new code.
+nineteen times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one,
+three, zero, three, seven, seven, three, three and **five** defects. Sections 2d through 2v record
+them. This tally counts what a reader counts -- the numbered findings in each pass's retained review.
+Where the 2026-09-04 ruling's two populations differ from that total, the pass's own section states the
+split: of the fifteenth's seven, five are in the package and two are in the instrument that pass built;
+of the sixteenth's seven, four are in the package and three are in its own new code; of the
+seventeenth's three, two are in the package and one is in its own new code; of the eighteenth's three,
+two are in the package and one is in its own new code; and the nineteenth's five are all in the
+package.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -1743,6 +1811,18 @@ header line -- BA7's rule, applied by BA7's instrument to the pass after the pas
 Twelve of these eighteen passes have now had a clean frozen set and a new instrument that found
 something.
 
+**The nineteenth was to be the first of the two owed from zero and is not either.** Its frozen set
+reported nothing -- the 107-probe corpus as it then stood, the coverage measure, both design gates, the
+return-channel census, the read-provenance census, the declaration-polarity and declaration-citation
+checks, and 52,000 evaluations over 2,000 generated vectors at 0 red with AZ3's sweep green -- which is
+the thirteenth consecutive clean frozen set and a strictly larger one again, having gained the citation
+check and that pass's two probes. The instrument it built found **BE1** through **BE5** in the package
+on its first run, and BE1 says what that clean frozen set was worth a fifth time, from the other side:
+every instrument in it asks whether something runs, fires, reads, or is present, and none asks whether
+a value a record carries is a value the design has -- so a word no artifact uses sat on every session
+record in the corpus, and on every generated one, under thirteen clean frozen sets. Thirteen of these
+nineteen passes have now had a clean frozen set and a new instrument that found something.
+
 **And BB7 is what the frozen set was worth in the other direction.** The coverage measure reported
 eleven constructs of the new census as never executed, which was that census reporting a clean zero
 over a package it had stopped reading. A frozen instrument caught a new one lying, which is the case
@@ -1787,27 +1867,30 @@ have been entitled to call blocking**, as does **AU1**, eleven obligations that 
 could distinguish an implementation honouring them from one that did not. The condition is doing what
 it was written to do; it has not yet run out of findings.
 
-The next work is therefore a nineteenth author-side pass, and it is the **first of the two
-consecutive passes** the 2026-09-04 ruling requires. The eighteenth took the half the seventeenth said
-polarity could not reach -- whether the artifact a declaration cites says what the declaration claims
--- and answered the half a machine can: two of the five declarations cited a rule no design artifact
-states, one of them a rule the artifact owning the vector format contradicts, and both were the gate
-reading a fact the vector already states through a second field of its own. Section 2u records what,
-and every meaning-carrying declaration now carries its citation, checked on every commit.
+The next work is therefore a twentieth author-side pass, and it is the **first of the two
+consecutive passes** the 2026-09-04 ruling requires. The nineteenth took the narrower of the two units
+the eighteenth named -- every closed-vocabulary field of every record against the set the design
+states, regardless of group -- and built it total, so that a string field the census was not told
+about fails rather than passing unseen. Section 2v records what it found: five findings, all in the
+verification, the largest on every session record in the corpus, and one that had the property
+twenty-one findings converged on green on its own named mutation when the record was stated as the
+artifact states it.
 
-**The nineteenth's method is the same question put to every field rather than to the five that carried
-a reason.** A `Read-Required` read claims that the design says the vector carries the field, and that
-claim is a comment: `provenanceFormActually` is required now on the strength of the brief's vector
-format, and nothing checks that sentence against the corpus. Which fields the brief's format requires,
-against which fields the corpus's records state, is AX2's unit from the other side -- AX2 asked which
-declared field no property reads. Beside it is the narrower unit with a known instance: the gate
-declares its closed vocabularies and checks each at the one evaluator that reads it, over that
-evaluator's group, which is how five interaction records carried a provenance form outside the set of
-four and no property saw them. Every closed-set field of every record against its set, regardless of
-group, is a check that can be written in an afternoon and has already found something by hand. That is
-where the next pass should spend its increment, and the plan's rule about the two is unchanged: the
-instrument is built, run over the package as found, and its first-run findings recorded before they are
-corrected.
+**The twentieth's method is the wider question the eighteenth named and the nineteenth left open:
+which fields the corpus states that no property reads, against which the brief's format requires.** The
+nineteenth's classification puts one question to every field -- what kind of field is it, and where
+does the design say so -- and recorded a first look at the other: `initialSessionState`,
+`establishedProfile` and both `recordedBy` fields are read by no property, and `S2` and `C2-P1`
+default a session's initial state to `unestablished` in code while twelve session records state it and
+nobody reads them -- one fact, two surfaces, the record's read by nobody, which is AX2's own shape on
+the field beside the one BE1 deleted. The unit is known to be harder than it looks: the read-provenance
+census walks green-expected inputs only, so a field read only on a mutation's path is read by nobody it
+can see, and a measure of "read by no property" has to walk both polarities or say which it walked.
+Beside it, and smaller, are the two vocabularies the nineteenth could classify and not check: `class`
+and `direction` are a profile's, the corpus carries no profile record to check them against, and `I6`
+and `C7-P1` select on a class name no artifact declares. The plan's rule about the two is unchanged:
+the instrument is built, run over the package as found, and its first-run findings recorded before they
+are corrected.
 
 What the fourteenth left undone is narrower and should not be confused with the above: the seven inert
 droppings are inert because the generated population carries one frame shape per session, and the
@@ -1838,14 +1921,15 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,342** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,339** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
-  commits, which was never the value at any commit; it is corrected under **AM3**. It has moved six
+  commits, which was never the value at any commit; it is corrected under **AM3**. It has moved seven
   times since: five times by four characters, for the same reason — registering a new
-  iteration-review family in the Design reviews row — and once by minus two, when registering BD took
-  that row past the 300-character bound W3 set on a cell and its wording was shortened to fit. On
-  each occasion the check that recomputes it failed the figure on the commit that wrote it, which is
-  the check working rather than a defect in it; and
+  iteration-review family in the Design reviews row — once by minus two, when registering BD took
+  that row past the 300-character bound W3 set on a cell and its wording was shortened to fit, and
+  once by minus three, when registering BE did the same. On each occasion the check that recomputes it
+  failed the figure on the commit that wrote it, which is the check working rather than a defect in
+  it; and
 - **repository-gate minutes** — **13** before this pass, **23 to 25** with the gate self-checks in it,
   and **9 to 10** with them behind a switch, against an unchanged 30-minute ceiling. All measured on the
   two CI lanes rather than locally. The last figure is below the first because the two gates were
@@ -1906,7 +1990,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   nothing, and cutting the return-channel census from about a hundred syntax-tree walks per gate to one
   moved it from 530 traced seconds to 318 — real, but a fifth of what the walk count suggested, because
   what costs is executed statements and not walks; and
-- **guard probes executable** — currently **107 of 107**, run by
+- **guard probes executable** — currently **117 of 117**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
