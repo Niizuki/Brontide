@@ -370,8 +370,7 @@ function Invoke-C4P2 {
     foreach ($refusal in (Get-List $observations 'unseenRefusals')) {
         if ($null -eq $refusal) { continue }
         $selectors = @(
-            @{ Path = 'provenance'; Value = 'recipient' },
-            @{ Path = 'frameDecision'; Value = 'rejected-protocol' },
+            @{ Path = 'provenance'; Value = 'rejected-protocol' },
             @{ Path = 'detailedReason'; Value = 'unopened-interaction-identity' },
             @{ Path = 'refusedFrame.kind'; Value = 'cancellation-control' })
         $selected = $true
@@ -502,6 +501,10 @@ $legalSessionTransitions = @(
     # cross-check further down is what keeps this list and the artifact in step, in both directions.
     'unestablished>faulted', 'establishing>faulted', 'established>faulted')
 $terminalSessionStates = @('closed', 'faulted')
+# The four terminal forms I3 states are not a semantic success. I3 reads it, and the closed-vocabulary
+# census below adds the semantic Outcome to it as the set of terminal forms a record may carry, so the
+# forms are listed once.
+$nonSemanticTerminalForms = @('cancellation-acknowledgement', 'drain', 'timeout', 'protocol-fault')
 
 # BB1. A `Read-Optional` reason two properties give for the same field is stated once, for the reason
 # W1 states any fact once: the second copy is the one that goes stale while both gates stay green.
@@ -944,14 +947,13 @@ function Invoke-I2 {
 
 function Invoke-I3 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
-    $nonSemantic = @('cancellation-acknowledgement', 'drain', 'timeout', 'protocol-fault')
     $interactionSubject = 'an interaction record'
     foreach ($interaction in (Get-Interactions $Vector)) {
         foreach ($history in (Get-List $interaction 'terminalHistories')) {
             if ($null -eq $history) { continue }
             $historySubject = 'an interaction terminal history'
             $form = [string](Read-Required $history 'form' $historySubject)
-            if (($nonSemantic -contains $form) -and (Read-Required $history 'semanticSuccess' $historySubject)) {
+            if (($nonSemanticTerminalForms -contains $form) -and (Read-Required $history 'semanticSuccess' $historySubject)) {
                 return New-Red "interaction $(Read-Required $interaction 'identity' $interactionSubject) records a $form terminal as a semantic success"
             }
         }
@@ -1102,8 +1104,6 @@ function Get-DispatchedKeys {
 # implementations of one claim is the duplication W1 exists to retire, and it is no better inside a
 # verifier than inside prose -- the second copy is what goes stale.
 # ---------------------------------------------------------------------------------------------
-
-$provenanceForms = @('local-pre-dispatch-refusal', 'semantic-outcome', 'peer-protocol-fault', 'local-loss-observation')
 
 function Invoke-C1P1 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
@@ -1571,6 +1571,393 @@ else {
         $failures.Add("The verification foundation plan says '$claimedWord of twenty-six' properties are executable in the gate, and $actualExecutable execute here.")
     }
 }
+
+# ---------------------------------------------------------------------------------------------
+# BE: the closed-vocabulary census. Every closed-set field of every record, against the set the
+# design states for it, regardless of which property's group the vector is in.
+#
+# WHY. Five interaction records carried the provenance form `local-refusal`, outside the closed set
+# of four, and no property saw them: `provenanceForm` is read by `C9-P1` alone, and the five vectors
+# are in `C5-P1`, `C6-P1` and `I4`'s groups. That is AX2's shape with a wrong value in it -- a field
+# nobody reads, on a vector nobody reads it on -- and until this census the gate declared each closed
+# set at the one evaluator that reads it and checked it over that evaluator's group. The vector file
+# also declared two closed sets of its own, `frameKinds` and `latchValues`, and nothing read either.
+#
+# WHAT A VOCABULARY IS HERE. Each entry names the set, the record fields that carry it as PATHS from
+# the vector root -- `[]` for an element of a collection -- and where the design states it. The
+# members come from the design in one of three ways, and the summary line counts each:
+#
+#   * READ from the artifact's own table. The session states, the session events and the interaction
+#     states are parsed from the machines' tables exactly as S1's transition table is, so this file
+#     restates none of them.
+#   * STATED by a cited sentence. Each member appears backticked in the words the entry cites, and the
+#     citation is checked the way a reader's declaration is under BD: the artifact must be one of the
+#     design's and must contain the words.
+#   * SPELLED by this file from a cited sentence that names the cases in prose -- `semantic-outcome`
+#     for the contract's "semantic Outcome". Each member, or the phrase it declares itself the
+#     spelling of, must appear in the cited words as a whole phrase. That is the weakest of the three
+#     and it is labelled as such, because a spelling is this file's and not the design's.
+#
+# Two further classes are declared so that the walk is TOTAL. A string-valued field is a closed
+# vocabulary, an identifier or free text, a vocabulary of this gate's own harness -- a vector's
+# `role`, a timeline step's `step`, a delivery's `disposition` -- or a vocabulary the design says a
+# PROFILE owns and Channel core does not close. A field that is none of these fails. That is AL1's and
+# AT1's lesson: a check keyed to the fields someone listed certifies its own completeness, so the walk
+# visits every field and requires each one to have been classified.
+#
+# WHAT AN OUT-OF-SET VALUE MEANS. On a record no property reads, it is the vector stating a world the
+# design has no word for, and it is a failure against the vector. Where a property's own clause is
+# that the value be in the set -- `C9-P1`'s first clause, over `provenanceForm` -- a value outside it
+# is that clause's own red, and it is permitted on exactly the vectors declared red for that property:
+# `Enforced` names the property per field, and the declared-corpus loop below already requires the
+# property to be red there. Nothing else is exempt, and a generated vector has no declared verdict, so
+# a generator emitting a value outside a set fails outright.
+# ---------------------------------------------------------------------------------------------
+
+$sessionMachineArtifact = 'docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md'
+$interactionMachineArtifact = 'docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md'
+$briefArtifact = 'docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md'
+
+# The first backticked token of every row of the table under one heading, read from the artifact. A
+# heading that has no such table reads as an empty set, and an empty set is refused below rather than
+# checked against, because a vocabulary of nothing fails every value and reads as the design having
+# no such vocabulary -- AO1's row reader, which saw eight rows of ten and reported the lists identical.
+function Get-ArtifactTableTokens {
+    param([Parameter(Mandatory = $true)][string]$Text, [Parameter(Mandatory = $true)][string]$Heading)
+
+    $section = [regex]::Match($Text, "(?ms)^## $([regex]::Escape($Heading))\r?\n(.+?)(?=^## |\z)").Groups[1].Value
+    return ,@([regex]::Matches($section, '(?m)^\| `([a-z-]+)` \|') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+}
+$sessionEventTokens = Get-ArtifactTableTokens -Text $sessionMachineText -Heading 'Events'
+
+# Which artifacts a vocabulary or a reader's declaration may cite: derived from the declaration file
+# this gate already executes rather than listed a second time. The artifacts its statements name as
+# stating them, and the ones its authority block names -- except the verification foundation plan,
+# which that block lists as the authority for this gate's own history and which the Channel index
+# records as not a design artifact and assessed by no closure review. A declaration citing the plan
+# cites the gate's own convention written down one document over, which is the second surface W1
+# exists to retire. BD.
+$citableArtifacts = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+# BD3. The body is on its own line because the coverage measure decides whether a `foreach` body ran
+# by whether its first line ran, and a body on the header line reports as covered either way -- BA7,
+# the frozen instrument that reported this loop as unmeasurable on the first run over that pass's
+# own code.
+foreach ($statingProperty in $properties.properties) {
+    [void]$citableArtifacts.Add([string]$statingProperty.statedIn)
+}
+foreach ($authorityEntry in $properties.authority.PSObject.Properties) {
+    if ($authorityEntry.Name -eq 'plan') { continue }
+    [void]$citableArtifacts.Add([string]$authorityEntry.Value)
+}
+
+# A member is a string, or `@{ Value; Spells }` where `Spells` is the phrase in the cited words this
+# file's spelling stands for -- `pre-dispatch` for the contract's "before handler dispatch".
+$closedVocabularies = @(
+    @{ Name = 'session state'
+       Fields = @('sessionTimeline[].from', 'sessionTimeline[].to', 'sessions[].initialSessionState')
+       Members = $declaredSessionStates
+       Table = "the session state machine's state table"
+       Citations = @(@{ Artifact = $sessionMachineArtifact; Words = '| State | Terminal | Admits a new interaction? | Meaning |' }) }
+    @{ Name = 'session event'
+       Fields = @('sessionTimeline[].event', 'sessionEvents[].event')
+       Members = $sessionEventTokens
+       Table = "the session state machine's event table"
+       Citations = @(@{ Artifact = $sessionMachineArtifact; Words = '| Event | Initiator | Peer transmission | Application/provider effect possible? |' }) }
+    @{ Name = 'effect certainty'
+       Fields = @('interactions[].authorityRecord.effectCertainty', 'interactions[].refusal.effectCertainty',
+                  'interactions[].terminalHistories[].effectCertainty', 'observations.unseenRefusals[].effectCertainty')
+       Members = @('known-none', 'known', 'unknown')
+       Citations = @(@{ Artifact = $contractArtifact; Words = '`known-none`, `known`, or `unknown`, with a reason where unknown. Channel owns the certainty form' }) }
+    @{ Name = 'provenance form'
+       Fields = @('interactions[].provenanceForm', 'interactions[].provenanceFormActually')
+       # What the realization RECORDED may be outside the four on the one vector written to show
+       # C9-P1's first clause catching that; what the vector says the observation actually WAS never
+       # may be, because a vector whose expectation is outside the design states no expectation.
+       Enforced = @{ 'interactions[].provenanceForm' = 'C9-P1' }
+       Members = @('local-pre-dispatch-refusal', 'semantic-outcome', 'peer-protocol-fault', 'local-loss-observation')
+       Citations = @(@{ Artifact = $contractArtifact; Words = "Channel separates four forms: 1. local pre-dispatch refusal, which emits no peer frame; 2. semantic Outcome, which asserts the Operation's terminal result; 3. peer protocol fault, which asserts only that the peer endpoint rejected Channel processing; and 4. local loss observation, used when no valid peer terminal fact is available." }) }
+    @{ Name = 'terminal form'
+       Fields = @('interactions[].terminalHistories[].form', 'sessionTimeline[].form')
+       # I3's four non-semantic forms, which the evaluator reads, and the semantic Outcome. Stated
+       # once here and read by I3 rather than listed twice.
+       Members = @($nonSemanticTerminalForms) + @('outcome')
+       Citations = @(
+           @{ Artifact = $interactionMachineArtifact; Words = 'I3. No cancellation acknowledgement, drain event, timeout, or protocol fault becomes semantic success.' },
+           @{ Artifact = $contractArtifact; Words = 'An interaction reaches exactly one terminal history: local refusal before dispatch, semantic Outcome, peer protocol fault, locally observed loss, or cancellation completed by a valid terminal Outcome.' }) }
+    @{ Name = 'late-traffic latch value'
+       Fields = @('observations.lateTrafficLatches[].latchValue')
+       Members = @('clear', 'fault-committed', 'fault-unavailable', 'not-applicable')
+       Citations = @(
+           @{ Artifact = $interactionMachineArtifact; Words = 'a `late-traffic-fault` latch with exactly three values: - `clear`: no post-terminal violation has been handled; - `fault-committed`: one interaction-scoped `state-violation` peer fault was committed; and - `fault-unavailable`: the fault could not be committed' },
+           @{ Artifact = $contractArtifact; Words = 'Where a route reaches no terminal interaction the latch is the explicit value `not-applicable`' }) }
+    @{ Name = 'late-traffic fault category'
+       Fields = @('observations.lateTrafficLatches[].category')
+       # The one fault a settled latch records. A `clear` latch has committed no fault and states no
+       # category; the latch value already says so.
+       Members = @('state-violation')
+       Citations = @(@{ Artifact = $interactionMachineArtifact; Words = 'attempts exactly one interaction-scoped `state-violation` peer fault. Successful commit sets `fault-committed`; inability to commit sets `fault-unavailable`.' }) }
+    @{ Name = 'unseen refusal provenance'
+       Fields = @('observations.unseenRefusals[].provenance')
+       Members = @('rejected-protocol')
+       Citations = @(@{ Artifact = $contractArtifact; Words = 'its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`' }) }
+    @{ Name = 'unseen refusal detailed reason'
+       Fields = @('observations.unseenRefusals[].detailedReason')
+       Members = @('unopened-interaction-identity')
+       Citations = @(@{ Artifact = $contractArtifact; Words = 'its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`' }) }
+    @{ Name = 'frame kind'
+       Fields = @('declaredSteps[].kind', 'observations.lateTrafficLatches[].settlingFrame.kind',
+                  'observations.lateTrafficLatches[].terminalFrame.kind', 'observations.unseenRefusals[].refusedFrame.kind')
+       Members = @('request', 'cancellation-control', 'cancellation-acknowledgement', 'outcome')
+       Citations = @(
+           @{ Artifact = $briefArtifact; Words = 'Carries Channel version, session identity, interaction identity, interaction class, direction, and one of request, cancellation control, or semantic Outcome.' },
+           @{ Artifact = $interactionMachineArtifact; Words = 'I3. No cancellation acknowledgement, drain event, timeout, or protocol fault becomes semantic success.' }) }
+    @{ Name = 'endpoint role'
+       Fields = @('declaredSteps[].committingEndpoint', 'delivery[].receivingEndpoint',
+                  'observations.lateTrafficLatches[].settlingFrame.committingEndpoint', 'observations.lateTrafficLatches[].terminalFrame.committingEndpoint',
+                  'observations.unseenRefusals[].refusedFrame.committingEndpoint',
+                  'observations.lateTrafficLatches[].recordedBy', 'observations.unseenRefusals[].recordedBy')
+       Members = @('initiator', 'recipient')
+       Citations = @(@{ Artifact = $contractArtifact; Words = 'The profile declares its initiator role, recipient role, Operation/Shape positions, authority mode, allowed external phase predicate, and terminal forms.' }) }
+    @{ Name = 'authority decision'
+       Fields = @('interactions[].authorityDecision')
+       Members = @('permitted', @{ Value = 'denied'; Spells = 'denial' }, 'unevaluatable')
+       Citations = @(@{ Artifact = $contractArtifact; Words = 'unless one exact local authority decision is `permitted`; every denial or unevaluatable presentation records the decision point, initiator attribution, and `known-none`.' }) }
+    @{ Name = 'authority decision point'
+       Fields = @('interactions[].authorityRecord.decisionPoint')
+       Members = @(@{ Value = 'pre-dispatch'; Spells = 'before handler dispatch' })
+       Citations = @(@{ Artifact = $contractArtifact; Words = 'Authority is evaluated for every interaction after structural admission and before handler dispatch.' }) }
+    @{ Name = 'refusal stage'
+       Fields = @('interactions[].refusal.stage')
+       Members = @('pre-dispatch', 'post-dispatch')
+       Citations = @(@{ Artifact = $interactionMachineArtifact; Words = 'I4. Every pre-dispatch refusal is `known-none`; every possible post-dispatch loss is `unknown` unless explicit evidence narrows it.' }) }
+    @{ Name = 'external phase predicate'
+       Fields = @('interactions[].phasePredicate')
+       Members = @('true', 'false', 'unknown')
+       Citations = @(
+           @{ Artifact = $sessionMachineArtifact; Words = 'relational-initialisation: interconnected = true ready = false ordinary: released = true' },
+           @{ Artifact = $sessionMachineArtifact; Words = 'Channel treats `false` and `unknown` identically for admission: refuse before dispatch.' }) }
+)
+# C9-P1 reads the four provenance forms through this, so the set is declared once.
+$provenanceForms = @(@($closedVocabularies | Where-Object { $_.Name -eq 'provenance form' })[0].Members)
+
+# Vocabularies the design says a PROFILE declares. Channel core does not close them, so a value here
+# is checked for nothing but its classification; C3-P1 compares each against the session's own
+# established profile, and a profile is not a record this corpus carries.
+$profileOwnedFields = @{
+    'interactions[].class'     = @{ Artifact = $contractArtifact; Words = 'Every interaction names one profile-declared class.' }
+    'interactions[].direction' = @{ Artifact = $contractArtifact; Words = 'The profile declares its initiator role, recipient role, Operation/Shape positions, authority mode, allowed external phase predicate, and terminal forms.' }
+}
+
+# This gate's own harness vocabularies: what a vector says about ITSELF and about the run, never what
+# a realization observed. None is a fact the design states, so none cites it.
+$harnessVocabularies = @{
+    'role'                    = @('required-green', 'additional-green', 'named-mutation', 'generated-conforming')
+    'expected.*'              = @('green', 'red')
+    'sessionTimeline[].step'  = @('transition', 'admit', 'dispatch', 'terminal')
+    'delivery[].disposition'  = @('delivered', 'lost')
+}
+
+# Identifiers and free text. Opaque values a vector chooses -- a session id, an interaction identity,
+# a step id, a profile name, a facet name, a summary -- and the one field whose value is a property id.
+$identifierFields = @(
+    'id', 'capability', 'summary', 'raisedBy', 'reorderingInjection', 'propertyMemberships[]', 'expected.conjunct',
+    'declaredSteps[].id', 'declaredSteps[].session', 'declaredSteps[].interactionIdentity', 'delivery[].step',
+    'interactions[].identity', 'interactions[].session', 'interactions[].authorityRecord.initiatorAttribution',
+    'observations.lateTrafficLatches[].session', 'observations.lateTrafficLatches[].interactionIdentity',
+    'observations.lateTrafficLatches[].settlingFrame.session', 'observations.lateTrafficLatches[].settlingFrame.interactionIdentity',
+    'observations.lateTrafficLatches[].terminalFrame.session', 'observations.lateTrafficLatches[].terminalFrame.interactionIdentity',
+    'observations.unseenRefusals[].refusedFrame.session', 'observations.unseenRefusals[].refusedFrame.interactionIdentity',
+    'observations.recipientAdmittedIdentities[].session', 'observations.recipientAdmittedIdentities[].identities[]',
+    'sessionEvents[].session', 'sessionEvents[].creates[]',
+    'sessions[].id', 'sessions[].establishedProfile', 'sessions[].requiredFacets[]', 'sessions[].supportedFacets[]',
+    'sessions[].establishedProfileRecord.fixed.version', 'sessions[].establishedProfileRecord.fixed.facets[]',
+    'sessions[].establishedProfileRecord.negotiated.version', 'sessions[].establishedProfileRecord.negotiated.facets[]',
+    'sessionTimeline[].session', 'sessionTimeline[].identity', 'sessionTimeline[].closes', 'sessionTimeline[].closes[]'
+)
+
+# The citations, checked once. A table set's citation is the table's header row, so that a table that
+# moved or was renamed fails here rather than reading as empty; a stated or spelled set's citation
+# must name every member.
+$vocabularyByField = @{}
+$vocabularySourceCounts = @{ 'read from an artifact table' = 0; 'stated by the cited words' = 0; 'spelled from the cited words' = 0 }
+foreach ($vocabulary in $closedVocabularies) {
+    $vocabularyName = [string]$vocabulary.Name
+    $memberValues = [System.Collections.Generic.List[string]]::new()
+    $memberSpellings = @{}
+    foreach ($member in @($vocabulary.Members)) {
+        if ($member -is [hashtable]) {
+            $memberValues.Add([string]$member.Value)
+            $memberSpellings[[string]$member.Value] = [string]$member.Spells
+        }
+        else {
+            $memberValues.Add([string]$member)
+        }
+    }
+    if ($memberValues.Count -eq 0) {
+        $failures.Add("The closed vocabulary '$vocabularyName' has no members. A set read from $($vocabulary.Table) that comes back empty is a table this gate could not read, and checking values against an empty set would fail every record while reporting the design as having no such vocabulary.")
+    }
+    $vocabulary['MemberValues'] = @($memberValues)
+    foreach ($field in @($vocabulary.Fields)) {
+        if ($vocabularyByField.ContainsKey($field)) {
+            $failures.Add("The field '$field' is declared to carry both the closed vocabulary '$($vocabularyByField[$field].Name)' and '$vocabularyName'. One field carries one vocabulary.")
+        }
+        $vocabularyByField[$field] = $vocabulary
+    }
+
+    $citedTexts = [System.Collections.Generic.List[string]]::new()
+    foreach ($citation in @($vocabulary.Citations)) {
+        $citedArtifact = [string]$citation.Artifact
+        $citedWords = [string]$citation.Words
+        if (-not $citableArtifacts.Contains($citedArtifact)) {
+            $failures.Add("The closed vocabulary '$vocabularyName' cites '$citedArtifact' for the words `"$citedWords`", and that is not a design artifact: it is none of the artifacts channel-0.2-properties.json names as stating a property or as its authority for the design. A vocabulary the design does not state is the gate's own convention, and checking records against it certifies nothing about the design.")
+            continue
+        }
+        if ((Get-ArtifactPlain $citedArtifact).IndexOf($citedWords, [System.StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("The closed vocabulary '$vocabularyName' cites '$citedArtifact' for the words `"$citedWords`", and that artifact does not contain them. Either the sentence moved and the vocabulary did not, which is AP1's class arriving through a citation, or the vocabulary claims a sentence the design never had.")
+            continue
+        }
+        $citedTexts.Add($citedWords)
+    }
+    if ($vocabulary.ContainsKey('Table')) {
+        $vocabularySourceCounts['read from an artifact table']++
+        continue
+    }
+    # Every member of a stated or spelled set is found in the cited words: backticked, which is the
+    # design naming the value; or as a whole phrase with each hyphen a space or a hyphen, which is
+    # this file spelling a case the design names in prose. Bounded so that `none` is not found
+    # inside `known-none`.
+    $stated = $true
+    foreach ($memberValue in $memberValues) {
+        $phrase = if ($memberSpellings.ContainsKey($memberValue)) { $memberSpellings[$memberValue] } else { $memberValue }
+        $phrasePattern = '(?<![\w-])' + ([regex]::Escape($phrase) -replace '-', '[- ]') + '(?![\w-])'
+        $namedBackticked = $false
+        $namedInProse = $false
+        foreach ($citedText in $citedTexts) {
+            if ($citedText.IndexOf("``$memberValue``", [System.StringComparison]::Ordinal) -ge 0) { $namedBackticked = $true }
+            if ([regex]::IsMatch($citedText, $phrasePattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)) { $namedInProse = $true }
+        }
+        if ($namedBackticked) { continue }
+        $stated = $false
+        if ($namedInProse) { continue }
+        $failures.Add("The closed vocabulary '$vocabularyName' declares the member '$memberValue' and none of the words it cites name it, backticked or as the phrase '$phrase'. A member the design does not name is this file's own, and a record carrying it would pass a check that certifies nothing about the design.")
+    }
+    if ($stated) { $vocabularySourceCounts['stated by the cited words']++ } else { $vocabularySourceCounts['spelled from the cited words']++ }
+}
+foreach ($profileOwnedField in ($profileOwnedFields.Keys | Sort-Object)) {
+    $profileCitation = $profileOwnedFields[$profileOwnedField]
+    if ((Get-ArtifactPlain ([string]$profileCitation.Artifact)).IndexOf([string]$profileCitation.Words, [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add("The field '$profileOwnedField' is declared profile-owned on the words `"$($profileCitation.Words)`" and '$($profileCitation.Artifact)' does not contain them. A field left unchecked on the design's say-so needs the design to have said so.")
+    }
+}
+
+# Every leaf of a vector, with its path from the root. A collection contributes `[]` to the path of
+# each element, so every record of one shape shares one path and one classification.
+function Get-VectorLeaves {
+    param($Node, [string]$Path, [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.List[object]]$Leaves)
+
+    if ($null -eq $Node) { return }
+    if ($Node -is [string] -or $Node -is [System.ValueType]) {
+        $Leaves.Add([pscustomobject]@{ Path = $Path; Value = $Node })
+        return
+    }
+    if ($Node -is [System.Collections.IEnumerable]) {
+        foreach ($element in $Node) {
+            Get-VectorLeaves -Node $element -Path "$Path[]" -Leaves $Leaves
+        }
+        return
+    }
+    foreach ($member in $Node.PSObject.Properties) {
+        Get-VectorLeaves -Node $member.Value -Path $(if ($Path) { "$Path.$($member.Name)" } else { $member.Name }) -Leaves $Leaves
+    }
+}
+
+function Test-VectorVocabularies {
+    # Walks one vector and adds a finding for every field outside its vocabulary and every string
+    # field with no classification. `Expected` is the vector's own declared verdicts, or `$null` for
+    # a generated vector, which has none. `Tally` counts what was checked so the summary line states
+    # what was measured rather than what a passing run would imply. `Seen` collects the classification
+    # keys the walk met, so that a key declared above and carried by no record is reported below.
+    param(
+        [Parameter(Mandatory = $true)]$Vector,
+        [Parameter(Mandatory = $true)][string]$VectorId,
+        $Expected,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.List[string]]$Findings,
+        [Parameter(Mandatory = $true)][hashtable]$Tally,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.HashSet[string]]$Seen)
+
+    $leaves = [System.Collections.Generic.List[object]]::new()
+    Get-VectorLeaves -Node $Vector -Path '' -Leaves $leaves
+    foreach ($leaf in $leaves) {
+        $path = [string]$leaf.Path
+        # The keys under `expected` are property ids, so they are one path to the classification.
+        $classificationKey = $path
+        if ($path.StartsWith('expected.') -and $path -ne 'expected.conjunct') { $classificationKey = 'expected.*' }
+        [void]$Seen.Add($classificationKey)
+
+        if ($vocabularyByField.ContainsKey($classificationKey)) {
+            $vocabulary = $vocabularyByField[$classificationKey]
+            # A Boolean carried where the design's vocabulary includes `true` and `false` is rendered as
+            # the word, so the phase predicate's three values are compared in one form.
+            $value = if ($leaf.Value -is [bool]) { ([string]$leaf.Value).ToLowerInvariant() } else { [string]$leaf.Value }
+            $Tally['vocabulary fields']++
+            if (@($vocabulary.MemberValues) -ccontains $value) { continue }
+            $enforcingProperty = $null
+            if ($vocabulary.ContainsKey('Enforced')) { $enforcingProperty = $vocabulary.Enforced[$classificationKey] }
+            if ($null -ne $enforcingProperty -and $null -ne $Expected) {
+                if ([string](Get-Field $Expected $enforcingProperty) -eq 'red') {
+                    $Tally['out-of-set values the enforcing property is declared red on']++
+                    continue
+                }
+            }
+            $Findings.Add("Vector '$VectorId' carries '$value' at '$path', which is outside the closed vocabulary '$($vocabulary.Name)' the design states for that field: $($vocabulary.MemberValues -join ', '). A value the design has no word for is not a realization violating the design; it is the vector describing a world the design does not describe, and no property that reads the field can tell the two apart.")
+            continue
+        }
+        if ($leaf.Value -isnot [string]) { continue }
+        if ($harnessVocabularies.ContainsKey($classificationKey)) {
+            $Tally['harness fields']++
+            if (@($harnessVocabularies[$classificationKey]) -ccontains [string]$leaf.Value) { continue }
+            $Findings.Add("Vector '$VectorId' carries '$($leaf.Value)' at '$path', which is outside this gate's own vocabulary for that field: $($harnessVocabularies[$classificationKey] -join ', ').")
+            continue
+        }
+        if ($profileOwnedFields.ContainsKey($classificationKey)) {
+            $Tally['profile-owned fields']++
+            continue
+        }
+        if ($identifierFields -ccontains $classificationKey) {
+            $Tally['identifier fields']++
+            continue
+        }
+        $Findings.Add("Vector '$VectorId' carries the string '$($leaf.Value)' at '$path', and that field is classified as nothing: not a closed vocabulary the design states, not one this gate's harness owns, not one the design says a profile owns, and not an identifier. Classify it, so that a value outside a vocabulary cannot enter the corpus through a field the census was never told about.")
+    }
+}
+
+# The vector file carries vectors and nothing else. Two closed sets were declared at its top level
+# and read by nothing, which is a second surface for facts the design owns; the vocabularies above
+# cite the design, and a list here would be the copy that drifts.
+foreach ($vectorFileMember in $vectorFile.PSObject.Properties) {
+    if (@('schemaVersion', 'note', 'vectors') -contains $vectorFileMember.Name) { continue }
+    $failures.Add("channel-0.2-property-vectors.json declares '$($vectorFileMember.Name)' at its top level. The file carries vectors, and a vocabulary declared beside them is a second surface for a fact the design owns and the census above cites -- the copy that goes stale while both stay green.")
+}
+
+$vocabularyTally = @{ 'vocabulary fields' = 0; 'harness fields' = 0; 'profile-owned fields' = 0; 'identifier fields' = 0; 'out-of-set values the enforcing property is declared red on' = 0 }
+$vocabularyFindings = [System.Collections.Generic.List[string]]::new()
+$declaredPathsSeen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+foreach ($vector in $vectorFile.vectors) {
+    Test-VectorVocabularies -Vector $vector -VectorId ([string]$vector.id) -Expected $vector.expected -Findings $vocabularyFindings -Tally $vocabularyTally -Seen $declaredPathsSeen
+}
+foreach ($vocabularyFinding in ($vocabularyFindings | Sort-Object -Unique)) {
+    $failures.Add($vocabularyFinding)
+}
+# Every classification above is carried by some record of the declared corpus. A key no record
+# carries is a declaration nothing exercises -- BB5's unit, and AP1's class: a key correct when
+# written and stale when the field it named was deleted, still certifying a set no value is checked
+# against. Over the generated population the same walk runs but the rule does not, since a generated
+# vector carries the fields the generator emits and no more.
+foreach ($declaredKey in (@($vocabularyByField.Keys) + @($harnessVocabularies.Keys) + @($profileOwnedFields.Keys) + @($identifierFields) | Sort-Object -Unique)) {
+    if ($declaredPathsSeen.Contains($declaredKey)) { continue }
+    $failures.Add("The closed-vocabulary census classifies '$declaredKey' and no record of the declared corpus carries that field. A classification nothing exercises is a declaration the suite cannot distinguish from a wrong one; delete it, or add the record that carries the field.")
+}
+Write-Host "Channel 0.2 closed-vocabulary census: $($vocabularyTally['vocabulary fields']) fields of $(@($vectorFile.vectors).Count) declared inputs checked against $($closedVocabularies.Count) closed vocabularies -- $($vocabularySourceCounts['read from an artifact table']) read from an artifact table, $($vocabularySourceCounts['stated by the cited words']) stated by the cited words, $($vocabularySourceCounts['spelled from the cited words']) spelled from them -- with $($vocabularyTally['out-of-set values the enforcing property is declared red on']) out-of-set values on a vector declared red for the property that enforces the set, $($vocabularyTally['harness fields']) harness fields, $($vocabularyTally['profile-owned fields']) profile-owned fields and $($vocabularyTally['identifier fields']) identifier fields classified, and $($vocabularyFindings.Count) findings."
 
 # ---------------------------------------------------------------------------------------------
 # The run.
@@ -2155,18 +2542,6 @@ foreach ($obligationDeclaration in ($script:ObligationReads.Keys | Sort-Object))
 # authority for this gate's own history and which the Channel index records as not a design artifact
 # and assessed by no closure review. A declaration citing the plan cites the gate's own convention
 # written down one document over, which is the second surface W1 exists to retire.
-$citableArtifacts = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
-# BD3. The body is on its own line because the coverage measure decides whether a `foreach` body ran
-# by whether its first line ran, and a body on the header line reports as covered either way -- BA7,
-# the frozen instrument that reported this loop as unmeasurable on the first run over this pass's
-# own code.
-foreach ($statingProperty in $properties.properties) {
-    [void]$citableArtifacts.Add([string]$statingProperty.statedIn)
-}
-foreach ($authorityEntry in $properties.authority.PSObject.Properties) {
-    if ($authorityEntry.Name -eq 'plan') { continue }
-    [void]$citableArtifacts.Add([string]$authorityEntry.Value)
-}
 foreach ($citedDeclaration in (@($script:OptionalReads.Keys) + @($script:ObligationReads.Keys) | Sort-Object)) {
     $citation = $script:DeclarationCitations[$citedDeclaration]
     $citedArtifact = [string]$citation.Artifact
@@ -2322,7 +2697,6 @@ if ($GeneratedCount -gt 0) {
                 id = $sessionId
                 establishedProfile = "neutral-fixed-$sessionOrdinal"
                 initialSessionState = 'unestablished'
-                initialInteractionState = 'idle'
                 establishedBound = $bound
                 establishedProfileRecord = $profileRecord
                 establishedProfiles = 1
@@ -2339,8 +2713,8 @@ if ($GeneratedCount -gt 0) {
                 $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'unestablished'; to = 'established'; event = 'validate-fixed-profile'; accepted = $true })
             }
             else {
-                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'unestablished'; to = 'establishing'; event = 'offer-profile'; accepted = $true })
-                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'establishing'; to = 'established'; event = 'accept-profile'; accepted = $true })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'unestablished'; to = 'establishing'; event = 'send-establish-proposal'; accepted = $true })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'establishing'; to = 'established'; event = 'accept-establishment'; accepted = $true })
             }
 
             # Admitted interactions, in waves that run up to but never past the session's own
@@ -2445,7 +2819,7 @@ if ($GeneratedCount -gt 0) {
             #     endpoint's own terminal frame. Here the settling frame is committed after it, which
             #     is what late traffic is, so the comparison runs and finds nothing.
             #
-            # The refusal's `detailedReason`, `provenance` and `frameDecision` are the selectors the
+            # The refusal's `detailedReason` and `provenance` are the selectors the
             # conjunct narrows on; a record missing them would be skipped and prove nothing.
             # AZ2. The arrival ordinal is "its arrival ordinal FOR THAT INTERACTION IDENTITY", and the
             # declared corpus counts it per receiving endpoint, per session, per identity: in
@@ -2514,8 +2888,7 @@ if ($GeneratedCount -gt 0) {
             # conforming -- an identity is opened within a session, so one opened elsewhere is unopened
             # here -- and the second is the shape that makes the session operand load-bearing.
             $unseenRefusals.Add([pscustomobject]@{
-                provenance = 'recipient'
-                frameDecision = 'rejected-protocol'
+                provenance = 'rejected-protocol'
                 detailedReason = 'unopened-interaction-identity'
                 effectCertainty = 'known-none'
                 refusedFrame = [pscustomobject]@{
@@ -2532,8 +2905,7 @@ if ($GeneratedCount -gt 0) {
             # WHICH control was refused. Drop that ordinal and the reference binds to the later control
             # as well, which the request does precede.
             $unseenRefusals.Add([pscustomobject]@{
-                provenance = 'recipient'
-                frameDecision = 'rejected-protocol'
+                provenance = 'rejected-protocol'
                 detailedReason = 'unopened-interaction-identity'
                 effectCertainty = 'known-none'
                 refusedFrame = [pscustomobject]@{
@@ -2571,8 +2943,8 @@ if ($GeneratedCount -gt 0) {
                 # fact the timeline does not support. The machine's `any nonterminal` fault rows are
                 # wider than that, and their width is exercised by the establishment route above
                 # rather than pretended at here.
-                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'established'; to = 'faulted'; event = 'recognized-violation'; accepted = $true })
-                $sessionEvents.Add([pscustomobject]@{ session = $sessionId; event = 'recognized-violation'; creates = @() })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'established'; to = 'faulted'; event = 'fatal-protocol-fault'; accepted = $true })
+                $sessionEvents.Add([pscustomobject]@{ session = $sessionId; event = 'fatal-protocol-fault'; creates = @() })
             }
             else {
                 $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'established'; to = 'draining'; event = 'begin-drain'; accepted = $true })
@@ -2670,10 +3042,18 @@ if ($GeneratedCount -gt 0) {
 
     $generatedEvaluations = 0
     $generatedRed = [System.Collections.Generic.List[string]]::new()
+    # BE. The generated population is censused against the same closed vocabularies as the declared
+    # corpus, on every vector. A generator emitting a value the design has no word for -- a session
+    # event no table names -- would otherwise report a large green number over records that state a
+    # world the design does not describe, and no property that reads the field could tell.
+    $generatedVocabularyTally = @{ 'vocabulary fields' = 0; 'harness fields' = 0; 'profile-owned fields' = 0; 'identifier fields' = 0; 'out-of-set values the enforcing property is declared red on' = 0 }
+    $generatedVocabularyFindings = [System.Collections.Generic.List[string]]::new()
+    $generatedPathsSeen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     foreach ($generatedOrdinal in 1..$GeneratedCount) {
         $generatedId = "generated-$generatedOrdinal"
         $generatedVector = New-ConformingVector -Id $generatedId -Random $random
         $generatedSteps = New-GeneratedStepIndex -Vector $generatedVector
+        Test-VectorVocabularies -Vector $generatedVector -VectorId $generatedId -Expected $null -Findings $generatedVocabularyFindings -Tally $generatedVocabularyTally -Seen $generatedPathsSeen
 
         $generatedTimeline = @($generatedVector.sessionTimeline)
         foreach ($shapeTo in @($generatedTimeline | Where-Object { [string]$_.step -eq 'transition' } | ForEach-Object { [string]$_.to })) {
@@ -2694,8 +3074,7 @@ if ($GeneratedCount -gt 0) {
         # a refusal the conjunct skips proves as little as no refusal at all.
         foreach ($shapeRefusal in @($generatedVector.observations.unseenRefusals)) {
             if ($null -eq $shapeRefusal) { continue }
-            if ([string]$shapeRefusal.provenance -eq 'recipient' -and
-                [string]$shapeRefusal.frameDecision -eq 'rejected-protocol' -and
+            if ([string]$shapeRefusal.provenance -eq 'rejected-protocol' -and
                 [string]$shapeRefusal.detailedReason -eq 'unopened-interaction-identity' -and
                 [string]$shapeRefusal.refusedFrame.kind -eq 'cancellation-control') { $shapesSeen['unseen-refusal'] = $true }
         }
@@ -2832,6 +3211,12 @@ if ($GeneratedCount -gt 0) {
     foreach ($generatedFinding in $generatedRed) {
         $failures.Add("$generatedFinding. Reproduce with -GeneratedSeed $GeneratedSeed -GeneratedCount $GeneratedCount. Either the property is red on conforming behaviour, which is AE1's class, or the generator builds a vector the design does not permit -- read the witness against the artifact, which is the authority here exactly as it is for a probe.")
     }
+    # One finding per distinct value and path rather than per vector: the generator emits the same
+    # value on every vector it builds, and two thousand copies of one finding are one finding.
+    foreach ($generatedVocabularyFinding in ($generatedVocabularyFindings | ForEach-Object { $_ -replace "^Vector 'generated-[0-9]+' ", 'A generated vector ' } | Sort-Object -Unique)) {
+        $failures.Add("$generatedVocabularyFinding Reproduce with -GeneratedSeed $GeneratedSeed -GeneratedCount $GeneratedCount. The generator is what emits it, so the correction is to the generator, not to a vector.")
+    }
+    Write-Host "Channel 0.2 closed-vocabulary census over the generated population: $($generatedVocabularyTally['vocabulary fields']) fields of $GeneratedCount generated vectors checked against the same $($closedVocabularies.Count) closed vocabularies, $($generatedVocabularyTally['harness fields']) harness fields, $($generatedVocabularyTally['profile-owned fields']) profile-owned fields and $($generatedVocabularyTally['identifier fields']) identifier fields classified, and $($generatedVocabularyFindings.Count) findings."
     # The rate AZ3 reports, stated per outcome class rather than as one number: "no drop misbehaved"
     # says nothing about how many of them could have. A drop with no discriminating vector behind it
     # is the vacuity this instrument was built to end, so it is a failure and not a footnote.
