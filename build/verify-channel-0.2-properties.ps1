@@ -1794,7 +1794,7 @@ foreach ($vocabulary in $closedVocabularies) {
         }
     }
     if ($memberValues.Count -eq 0) {
-        $failures.Add("The closed vocabulary '$vocabularyName' has no members. A set read from $($vocabulary.Table) that comes back empty is a table this gate could not read, and checking values against an empty set would fail every record while reporting the design as having no such vocabulary.")
+        $failures.Add("The closed vocabulary '$vocabularyName' has no members. A set read from an artifact table that comes back empty is a table this gate could not read, and a set declared empty here is a declaration of nothing; either way, checking values against it would fail every record while reporting the design as having no such vocabulary.")
     }
     $vocabulary['MemberValues'] = @($memberValues)
     foreach ($field in @($vocabulary.Fields)) {
