@@ -2789,9 +2789,11 @@ $readershipObserved = [System.Collections.Generic.HashSet[string]]::new([System.
 # state the field and which vectors, which is what a finding names.
 #
 # `return ,$fieldValue` is BA5's lesson at the getter: a getter's output is a pipeline, so a
-# collection returned bare is unrolled -- one element comes back as a scalar and none as `$null` --
-# and `Read-Required` would then report an empty collection as an unpublished field. The unary comma
-# is what makes the copy publish exactly what the vector published.
+# collection returned bare is unrolled -- one element comes back as a scalar and none as `$null`.
+# The unary comma is what makes the copy publish exactly what the vector published. No reader in the
+# suite today tells a scalar from a one-element list or an empty list from an absent field --
+# `Get-List` wraps the one and empties the other -- so the comma is kept for the copy's fidelity and
+# not because a run without it fails, which the `BF-b` probe records rather than claims away.
 #
 # `GetNewClosure` is BB7's subject and is used here within its stated limit: the getter calls no
 # function this file defines, only a method on the set it captured and a return of the value it

@@ -1928,10 +1928,9 @@
     },
     {
       "id": "BF-b",
-      "claim": "a recording getter that unrolls what it returns, so a one-element collection comes back a scalar and an empty one comes back null -- BA5 at the getter",
+      "claim": "a recording getter that unrolls what it returns, so a one-element collection comes back a scalar and an empty one comes back null, is NOT caught: no reader in the suite tells the two apart, so the unary comma is kept for the copy's fidelity and this records the limit rather than a guard",
       "gate": "verify-channel-0.2-properties.ps1",
-      "expect": "fail",
-      "guardMessage": "the copy does not publish a field the declared loop\u0027s evaluation read",
+      "expect": "pass",
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
