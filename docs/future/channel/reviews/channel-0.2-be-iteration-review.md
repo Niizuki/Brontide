@@ -181,9 +181,10 @@ machine's event table has eleven events and neither of those. The generator, rea
 `offer-profile` and `accept-profile` for its establishing route and `recognized-violation` for its
 fault, where the table says `send-establish-proposal`, `accept-establishment` and
 `fatal-protocol-fault` -- so the population every property has reported green over, at 52,000
-evaluations, carried three event names the design does not have on most of its vectors. S1 reads the
-edge and not the event, which is why the properties never noticed; it is also why the event name is
-data a reader of the record trusts and nothing checks. The two mutations now accept their illegal edges
+evaluations, carried three event names the design does not have: one on every session that
+established through `establishing` and one on every session that faulted. S1 reads the edge and not
+the event, which is why the properties never noticed; it is also why the event name is data a reader
+of the record trusts and nothing checks. The two mutations now accept their illegal edges
 on `receive-establish-proposal` and `accept-establishment`, inputs the design does recognize and a
 conforming realization would leave the state unchanged or fault on, and the generator emits the
 table's own names; the `BE-f` probe puts `offer-profile` back and requires the census to report it
