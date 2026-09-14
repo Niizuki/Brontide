@@ -435,11 +435,30 @@ expected provenance, and expected observations are complete data -- so the corpu
 expected form on exactly the record that disagreed with it. Both reads now take what the vector states
 the way the design says it carries it. **BD3** is the coverage measure refusing the new check's first
 loop for having its body on its header line -- BA7's class, caught by BA7's own frozen instrument on
-the first run over the branch. The two consecutive clean passes stay owed from zero, and a
-nineteenth pass is the next work -- it puts the same question to every field rather than to the five
-that carried a reason, and to the closed vocabularies the gate checks only where one property reads
-them, which is how five records carried a provenance form outside the set of four unseen. The
-closure-review hold remains in force.
+the first run over the branch. The two consecutive clean passes stayed owed from zero.
+
+**The nineteenth pass then put that question to every closed-vocabulary field of every record**, and
+is retained as the
+[nineteenth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-be-iteration-review.md).
+Its frozen set reported nothing -- thirteenth consecutive -- and it raised **BE1**-**BE5**, all in the
+package, all in the verification and none in the design. The gate had declared each closed set at the
+one evaluator that reads it and checked it over that evaluator's group; every string field of every
+record is now classified, each closed-vocabulary field is checked against the set the design states
+whatever group the vector is in and over the generated population too, and a field the census was not
+told about fails. **BE1** is every session record in the corpus, and every generated one, stating an
+initial interaction state `idle` that no artifact has, read by no property -- AX2's shape with a wrong
+value in it, on 58 records, under thirteen clean frozen sets whose instruments ask whether something
+runs, fires or reads and never whether a value is one the design has. **BE2** is the one to weigh: the
+`unseen` refusal record's provenance was `recipient` where C10's owned fact states
+`rejected-protocol`, the design's value was carried under a field the record does not have, and the
+corpus, `C4-P2`'s selector in the declaration and in the evaluator, the generator and the shape check
+agreed with each other exactly and none with the artifact -- so stated as the artifact states it, the
+property twenty-one findings converged on was **green on its own named mutation**, which is AK1's
+shape one artifact further out. **BE3**-**BE5** are an effect certainty, two session events and a
+latch category the design has no word for. The two consecutive clean passes stay owed from zero, and
+a twentieth pass is the next work -- the wider question the eighteenth named, which fields the corpus
+states that no property reads, of which the nineteenth recorded a first look. The closure-review hold
+remains in force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition

@@ -98,6 +98,14 @@
           "reason": "The declared loop's drain of AZ1's channel, empty on a passing run for the same reason the generated one beside it is: a declared input the property can evaluate produces no errors. It was on its header line until BA7, so this measure reported it covered without being able to see its body -- it is the instance that finding was raised for, and it is declared here rather than left to look measured."
         },
         {
+          "anchor": "foreach ($vocabularyFinding in ($vocabularyFindings | Sort-Object -Unique)) {",
+          "reason": "BE's report loop over the declared corpus. The closed-vocabulary census adds a finding for every field outside its vocabulary and every string field with no classification, and this loop raises each one. Every record of a passing corpus carries values inside the sets the design states, so the collection is empty. It fires the moment a vector carries a value the design has no word for, which is what the BE-a probe pins, and on the field nobody classified, which is BE-d."
+        },
+        {
+          "anchor": "foreach ($generatedVocabularyFinding in ($generatedVocabularyFindings | ForEach-Object { $_ -replace \"^Vector 'generated-[0-9]+' \", 'A generated vector ' } | Sort-Object -Unique)) {",
+          "reason": "The same loop over the generated population, collapsed to one finding per value and path. A passing generator emits the machine's own event names and the design's own values, so the collection is empty; it fires the moment the generator emits outside a set, which is what the BE-f probe pins."
+        },
+        {
           "anchor": "foreach ($inheritedError in $Inherited) {",
           "reason": "BA1's inheritance, in `New-Red` and `New-Green`. A composed evaluator passes its delegate's `Errors` forward through this loop, and on a passing run no delegate reports any: `Invoke-C4P2` is the only evaluator that fills that collection and nothing delegates to `C4-P2`. The loop is the correction for a latent defect, so an empty run of it is what latent means -- it fires the moment any other evaluator learns to report an unevaluable record, which is the sixteenth pass's brief."
         },

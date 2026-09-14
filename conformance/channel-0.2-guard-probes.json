@@ -1724,6 +1724,189 @@
         "-GeneratedCount",
         "0"
       ]
+    },
+    {
+      "id": "BE-a",
+      "claim": "a declared vector carrying a value outside a closed vocabulary the design states, on a field no property reads on that vector",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "which is outside the closed vocabulary 'effect certainty' the design states for that field",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "            \"effectCertainty\": \"known-none\"",
+          "occurrence": 0,
+          "replace": "            \"effectCertainty\": \"possible\""
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BE-b",
+      "claim": "a closed vocabulary whose cited words the cited artifact does not contain, which is a citation whose sentence moved or never existed",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "and that artifact does not contain them. Either the sentence moved and the vocabulary did not",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "Words = '`known-none`, `known`, or `unknown`, with a reason where unknown. Channel owns the certainty form'",
+          "replace": "Words = '`known-none`, `known`, or `unknowable`, with a reason where unknown. Channel owns the certainty form'"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BE-c",
+      "claim": "a closed vocabulary declaring a member that none of the words it cites name, backticked or as a phrase, which is a value of this file's own",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "declares the member 'unassessable' and none of the words it cites name it",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "       Members = @('permitted', @{ Value = 'denied'; Spells = 'denial' }, 'unevaluatable')",
+          "replace": "       Members = @('permitted', @{ Value = 'denied'; Spells = 'denial' }, 'unassessable')"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BE-d",
+      "claim": "a string field the census was never told about, which is the door a wrong value would otherwise enter the corpus through",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "at 'observations.lateTrafficLatches[].observer', and that field is classified as nothing",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "            \"recordedBy\": \"initiator\",\n            \"session\": \"s1\",",
+          "occurrence": 0,
+          "replace": "            \"recordedBy\": \"initiator\",\n            \"observer\": \"initiator\",\n            \"session\": \"s1\","
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BE-e",
+      "claim": "a closed set declared at the vector file's top level, beside the vectors, which is a second surface for a fact the design owns and nothing reads",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "declares 'frameKinds' at its top level",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "  \"schemaVersion\": 1,\n",
+          "replace": "  \"schemaVersion\": 1,\n  \"frameKinds\": [\"request\"],\n"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BE-f",
+      "claim": "the generator emitting a session event the machine's table does not name, over a population every property reports green",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "A generated vector carries 'offer-profile' at 'sessionTimeline[].event', which is outside the closed vocabulary 'session event'",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "from = 'unestablished'; to = 'establishing'; event = 'send-establish-proposal'; accepted = $true })",
+          "replace": "from = 'unestablished'; to = 'establishing'; event = 'offer-profile'; accepted = $true })"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "15",
+        "-SweptCount",
+        "4"
+      ]
+    },
+    {
+      "id": "BE-g",
+      "claim": "a classification key no record of the declared corpus carries, which is a declaration nothing exercises and the key a deleted field leaves behind",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "classifies 'sessions[].initialInteractionState' and no record of the declared corpus carries that field",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "    'sessions[].id', 'sessions[].establishedProfile', 'sessions[].requiredFacets[]', 'sessions[].supportedFacets[]',",
+          "replace": "    'sessions[].id', 'sessions[].establishedProfile', 'sessions[].initialInteractionState', 'sessions[].requiredFacets[]', 'sessions[].supportedFacets[]',"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BE-h",
+      "claim": "an out-of-set recorded provenance form on the vector declared red for C9-P1 is that clause's own red and not a census finding, whatever the value is",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "pass",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "\"provenanceForm\": \"peer-inference\"",
+          "replace": "\"provenanceForm\": \"peer-guess\""
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BE-i",
+      "claim": "the exemption for C9-P1's own mutation covers what the realization recorded and never what the vector says the observation actually was, because a vector whose expectation is outside the design states no expectation",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "carries 'peer-inference' at 'interactions[].provenanceFormActually', which is outside the closed vocabulary 'provenance form'",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "\"provenanceForm\": \"peer-inference\",\n          \"provenanceFormActually\": \"semantic-outcome\"",
+          "replace": "\"provenanceForm\": \"peer-inference\",\n          \"provenanceFormActually\": \"peer-inference\""
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BE-j",
+      "claim": "C4-P2's first conjunct selecting the unseen refusal record by a provenance value the design's record does not state, which skips every record the corpus states as the design states it and takes the property green on its own named mutation",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "Property 'C4-P2' is green on 'C4-control-precedes-request' (named-mutation) and must be red",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "            @{ Path = 'provenance'; Value = 'rejected-protocol' },",
+          "replace": "            @{ Path = 'provenance'; Value = 'recipient' },"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
     }
   ]
 }

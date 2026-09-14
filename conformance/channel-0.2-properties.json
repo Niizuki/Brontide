@@ -55,12 +55,6 @@
                 {
                   "equals": {
                     "field": "provenance",
-                    "value": "recipient"
-                  }
-                },
-                {
-                  "equals": {
-                    "field": "frameDecision",
                     "value": "rejected-protocol"
                   }
                 },
