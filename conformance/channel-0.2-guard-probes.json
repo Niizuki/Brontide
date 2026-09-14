@@ -1687,6 +1687,43 @@
         "-GeneratedCount",
         "0"
       ]
+    },
+    {
+      "id": "BD-a",
+      "claim": "a meaning-carrying declaration whose cited words the cited artifact does not contain, which is a citation whose sentence moved or never existed",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "and that artifact does not contain them",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "    Words    = 'every denial or unevaluatable presentation records the decision point, initiator attribution, and `known-none`'",
+          "replace": "    Words    = 'every denial or unevaluatable presentation records the decision point, initiator attribution, and known-nothing'"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BD-b",
+      "claim": "a meaning-carrying declaration citing the verification foundation plan, which is the gate's own convention written down one document over and not a design artifact",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "and that is not a design artifact",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "    Artifact = $contractArtifact",
+          "occurrence": 0,
+          "replace": "    Artifact = 'docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md'"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
     }
   ]
 }
