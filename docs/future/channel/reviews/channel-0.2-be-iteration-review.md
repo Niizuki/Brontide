@@ -247,11 +247,15 @@ its five `local-refusal` values.
   generated population reported on the first run and which is the totality rule catching its own
   author. Neither is numbered: neither was found by a frozen instrument, and the ruling's populations
   count what the frozen set and a new instrument report about the package.
-- **The coverage measure was run over the corrected package**, and the two report loops a passing run
-  leaves empty are declared to it with the probes that pin each, in the form the file uses for the
-  generated-findings loop beside them. Every other conditional and operand the pass added is
-  evaluated by the passing run: the `Enforced` exemption's two operands are both reached on `C9-P1`'s
-  mutation, and the walk's leaf test reaches both of its operands on a string and on a Boolean.
+- **The coverage measure over the corrected package had not finished when this record was written**,
+  and this record says so rather than asserting it: the frozen run over `0a43917` was still executing
+  in the clone at the time, and the run over the branch head follows it. The two report loops a passing
+  run leaves empty are declared to that measure with the probes that pin each, in the form the file
+  uses for the generated-findings loop beside them, and every other conditional and operand the pass
+  added was written to be evaluated by a passing run -- the `Enforced` exemption's two operands on
+  `C9-P1`'s mutation, the walk's leaf test on a string and on a Boolean. What the measure reports over
+  the branch is recorded in the pull request's verification, and anything it reports against this
+  pass's own code is recorded here in the way BD3 was.
 - **The return-channel census sees nothing new to police.** The census walks a vector into a list it
   is handed and adds findings to a list it is handed, returns no record, and declares no `$script:`
   accumulator; the `Seen` set is local to the run that owns it. The census is green over the change.
