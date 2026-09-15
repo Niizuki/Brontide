@@ -454,6 +454,11 @@
           "vector": "S-conforming-fault-from-established",
           "raisedBy": "AO1",
           "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        },
+        {
+          "vector": "S-established-at-start",
+          "raisedBy": "BF",
+          "member": "a session the vector carries in `established` from its start, dispatching with no transition in its timeline, which is the initial session state the brief's vector format says every vector states and which this property now reads from the session record rather than assuming"
         }
       ]
     },
@@ -818,6 +823,12 @@
           "expected": "red",
           "conjunct": "I4-clause-1",
           "note": "AT1. The first clause had no input that reached it: no vector in I4's group carried a pre-dispatch refusal at all, so `$certainty -ne 'known-none'` was evaluated by nothing and the clause could be deleted outright with both gates green. That is AR1's finding on `C5-P1`, found here by the operand measure rather than by a reading -- and it is the same input, because C5-P1's second clause and I4's first say the same thing about the same record. One named mutation per clause, on the rule C4's audit row already states."
+        },
+        {
+          "vector": "I4-unseen-refusal-not-known-none",
+          "expected": "red",
+          "conjunct": "I4-clause-1",
+          "note": "BF. The other pre-dispatch refusal: the record C10 owns for a control refused at `unseen` states its effect certainty `known-none` beside the provenance and detailed reason C4-P2 selects on, and that field was stated on every such record in the corpus and read by no property. The first clause quantifies over every pre-dispatch refusal, so it reads this record too, and this is the input that shows it doing so."
         }
       ],
       "requiredGreen": [
@@ -845,6 +856,11 @@
           "vector": "S-conforming-fault-from-established",
           "raisedBy": "AO1",
           "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        },
+        {
+          "vector": "C4-control-for-unopened-identity",
+          "raisedBy": "BF",
+          "member": "a conforming refusal at `unseen`, recording `known-none` as the record C10 owns states, so the clause that reads that record is observed staying green and not only going red on its own mutation"
         }
       ]
     },
@@ -1160,6 +1176,11 @@
           "vector": "S-conforming-fault-from-established",
           "raisedBy": "AO1",
           "member": "a session that faults from `established` on a fatal recognized Channel violation, which the machine's `any nonterminal` rows make legal"
+        },
+        {
+          "vector": "S-established-at-start",
+          "raisedBy": "BF",
+          "member": "a session the vector carries in `established` from its start, dispatching with no transition in its timeline, which is the initial session state the brief's vector format says every vector states and which this property now reads from the session record rather than assuming"
         }
       ]
     },
@@ -1542,6 +1563,11 @@
           "vector": "C10-observation-incomplete",
           "expected": "red",
           "note": "AU1. Both declared mutations fabricate a `known-none` effect certainty, and the completeness obligation is read before either of them, so nothing reached it. AT3 added the second of those two and did not reach this one."
+        },
+        {
+          "vector": "C10-observation-omits-direction",
+          "expected": "red",
+          "note": "BF. The completeness obligation above reads a Boolean the vector asserts. C10 lists what an interaction's local observation must be sufficient to distinguish, and the direction was the one item on that list no property read through any surface -- C3-P1 compares it against the profile through `profileMatch`, another asserted Boolean -- so this obligation reads the field itself, and this vector asserts completeness while omitting it."
         }
       ],
       "requiredGreen": [

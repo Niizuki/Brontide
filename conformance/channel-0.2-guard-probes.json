@@ -543,8 +543,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "run in the gate on every commit: **71** evaluations over **32** declared inputs",
-          "replace": "run in the gate on every commit: **55** evaluations over **32** declared inputs"
+          "find": "run in the gate on every commit: **74** evaluations over **34** declared inputs",
+          "replace": "run in the gate on every commit: **55** evaluations over **34** declared inputs"
         }
       ],
       "gateArguments": [
@@ -884,7 +884,7 @@
       "edits": [
         {
           "path": "docs/future/README.md",
-          "find": "review has yet seen the AU corrections.",
+          "find": "review has yet seen the BF corrections.",
           "replace": "review has yet seen the AB corrections."
         }
       ]
@@ -1730,7 +1730,7 @@
       "claim": "a declared vector carrying a value outside a closed vocabulary the design states, on a field no property reads on that vector",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
-      "guardMessage": "which is outside the closed vocabulary 'effect certainty' the design states for that field",
+      "guardMessage": "which is outside the closed vocabulary 'unseen refusal effect certainty' the design states for that field",
       "edits": [
         {
           "path": "conformance/channel-0.2-property-vectors.json",
@@ -1906,6 +1906,242 @@
       "gateArguments": [
         "-GeneratedCount",
         "0"
+      ]
+    },
+    {
+      "id": "BF-a",
+      "claim": "a field the corpus states on every session record and nothing reads, after the one property that names it stops naming it",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "The declared corpus states \u0027sessions[].establishedProfile\u0027 on 61 record(s) of 59 vector(s) and nothing reads it",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": " of its own declared profile $(Read-Required $session \u0027establishedProfile\u0027 \u0027a session record\u0027)\"",
+          "replace": " of its own declared profile\""
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BF-b",
+      "claim": "a recording getter that unrolls what it returns, so a one-element collection comes back a scalar and an empty one comes back null, is NOT caught: no reader in the suite tells the two apart, so the unary comma is kept for the copy's fidelity and this records the limit rather than a guard",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "pass",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "{ [void]$Observed.Add($fieldPath); return ,$fieldValue }.GetNewClosure()",
+          "replace": "{ [void]$Observed.Add($fieldPath); return $fieldValue }.GetNewClosure()"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BF-c",
+      "claim": "a field declared reconciled on a line the gate no longer contains, which is the reconciliation deleted with the declaration left standing",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "declares \u0027interactions[].dispatched\u0027 reconciled by the harness at the line",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        if ([bool]$declaredDispatch.Value -ne $timelineDispatches) {",
+          "replace": "        if (([bool]$declaredDispatch.Value) -ne $timelineDispatches) {"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BF-d",
+      "claim": "a member declared the vector\u0027s own statement about itself that no vector carries, which is a declaration nothing exercises",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "declares \u0027reviewer\u0027 a vector\u0027s own statement about itself and no vector of the declared corpus carries that member",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "    \u0027expected\u0027            = \u0027the vector\u0027\u0027s own statement of each verdict, which the harness compares against the property\u0027\u0027s\u0027",
+          "replace": "    \u0027expected\u0027            = \u0027the vector\u0027\u0027s own statement of each verdict, which the harness compares against the property\u0027\u0027s\u0027\n    \u0027reviewer\u0027            = \u0027who read it\u0027"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BF-e",
+      "claim": "the generator emitting a field no declared vector states, whose readership nothing has measured",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "The generator emits \u0027sessions[].sessionOpen\u0027 and no declared vector states that field",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "                establishedBound = $bound",
+          "replace": "                establishedBound = $bound; sessionOpen = $true"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "15",
+        "-SweptCount",
+        "4"
+      ]
+    },
+    {
+      "id": "BF-f",
+      "claim": "a late-traffic latch whose own interaction identity differs from the one its terminal-frame reference names",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "records a late-traffic latch whose own \u0027interactionIdentity\u0027 is \u0027i9\u0027 and whose terminal-frame reference names \u0027i1\u0027",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "            \"recordedBy\": \"initiator\",\n            \"session\": \"s1\",\n            \"interactionIdentity\": \"i1\",\n            \"latchValue\": \"clear\",",
+          "occurrence": 0,
+          "replace": "            \"recordedBy\": \"initiator\",\n            \"session\": \"s1\",\n            \"interactionIdentity\": \"i9\",\n            \"latchValue\": \"clear\","
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BF-g",
+      "claim": "a settled latch recorded by the endpoint that committed the frame it settled against, which the contract says is never the endpoint that records it",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "records a late-traffic latch as recorded by \u0027recipient\u0027 and settled against \u0027ack\u0027, which was delivered to \u0027initiator\u0027",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "            \"recordedBy\": \"initiator\",\n            \"session\": \"s1\",\n            \"interactionIdentity\": \"i1\",\n            \"category\": \"state-violation\",\n            \"latchValue\": \"fault-committed\",\n            \"settlingFrame\": {\n              \"kind\": \"cancellation-acknowledgement\",",
+          "replace": "            \"recordedBy\": \"recipient\",\n            \"session\": \"s1\",\n            \"interactionIdentity\": \"i1\",\n            \"category\": \"state-violation\",\n            \"latchValue\": \"fault-committed\",\n            \"settlingFrame\": {\n              \"kind\": \"cancellation-acknowledgement\","
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BF-h",
+      "claim": "a refusal at unseen recorded by the endpoint that committed the refused frame",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "records a refusal at unseen as recorded by \u0027initiator\u0027 of \u0027ctl\u0027, which was delivered to \u0027recipient\u0027",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "            \"recordedBy\": \"recipient\",",
+          "occurrence": 1,
+          "replace": "            \"recordedBy\": \"initiator\","
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BF-i",
+      "claim": "a session stated to start in a state its timeline\u0027s first transition does not depart from -- the stated initial state and the timeline disagreeing about the state before anything happened",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "states that session \u0027s1\u0027 starts in \u0027established\u0027 and its timeline\u0027s first transition for that session departs from \u0027unestablished\u0027",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "          \"initialSessionState\": \"unestablished\",",
+          "occurrence": 0,
+          "replace": "          \"initialSessionState\": \"established\","
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BF-j",
+      "claim": "S2 defaulting the state before a session\u0027s first transition in code again, so the legal input whose session begins established is red",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "Property \u0027S2\u0027 is red on \u0027S-established-at-start\u0027 (additional-green) and must be green",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { Get-InitialSessionState $Vector $sessionId }",
+          "occurrence": 0,
+          "replace": "        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { \u0027unestablished\u0027 }"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BF-k",
+      "claim": "C2-P1 defaulting the same state in code again, on the same legal input",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "Property \u0027C2-P1\u0027 is red on \u0027S-established-at-start\u0027 (additional-green) and must be green",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { Get-InitialSessionState $Vector $sessionId }",
+          "occurrence": 1,
+          "replace": "        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { \u0027unestablished\u0027 }"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BF-l",
+      "claim": "an unseen refusal\u0027s effect certainty inside the three-member certainty set and outside the one value C10\u0027s fact states, on a vector I4 is not declared over",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "carries \u0027unknown\u0027 at \u0027observations.unseenRefusals[].effectCertainty\u0027, which is outside the closed vocabulary \u0027unseen refusal effect certainty\u0027",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "            \"effectCertainty\": \"known-none\",\n            \"refusedFrame\": {",
+          "occurrence": 0,
+          "replace": "            \"effectCertainty\": \"unknown\",\n            \"refusedFrame\": {"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BF-m",
+      "claim": "a narrative introducing a closure review by what it raised rather than by the word review -- the Channel index\u0027s own phrasing, which the AJ2 key must go on accepting",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "pass",
+      "edits": [
+        {
+          "path": "docs/future/README.md",
+          "find": "The thirteenth closure review returned `does-not-conform` with blocking **AI1**",
+          "replace": "The thirteenth returned `does-not-conform` with blocking **AI1**"
+        }
       ]
     }
   ]

@@ -106,6 +106,18 @@
           "reason": "The same loop over the generated population, collapsed to one finding per value and path. A passing generator emits the machine's own event names and the design's own values, so the collection is empty; it fires the moment the generator emits outside a set, which is what the BE-f probe pins."
         },
         {
+          "anchor": "foreach ($readershipFinding in $readershipFindings) {",
+          "reason": "BF's report loop over the declared corpus. The field-readership census adds a finding for every stated field that no property on any declared input, the step index, or a declared reconciliation reads, and this loop raises each one. Every field of a passing corpus is read by something, so the collection is empty; it fires the moment a stated field loses its last reader, which is what the BF-a probe pins."
+        },
+        {
+          "anchor": "foreach ($generatedFieldUnmeasured in $generatedFieldsUnmeasured) {",
+          "reason": "The generator's half of the same census. A field the generator emits that no declared vector states has a readership nothing measured, and this loop raises each one. A passing generator emits only fields the declared corpus states, so the collection is empty; it fires the moment the generator emits a field of its own, which is what the BF-e probe pins."
+        },
+        {
+          "anchor": "foreach ($evaluationError in $replayResult.Errors) {",
+          "reason": "The readership replay draining an evaluator's error channel, on BA2's rule that every dispatch reads it. The replay runs each property over a recording copy of an input the declared loop already evaluated without error, and the copy returns the vector's own values, so a passing run records no error here; a non-empty channel would mean the recording changed what the evaluator saw."
+        },
+        {
           "anchor": "foreach ($inheritedError in $Inherited) {",
           "reason": "BA1's inheritance, in `New-Red` and `New-Green`. A composed evaluator passes its delegate's `Errors` forward through this loop, and on a passing run no delegate reports any: `Invoke-C4P2` is the only evaluator that fills that collection and nothing delegates to `C4-P2`. The loop is the correction for a latent defect, so an empty run of it is what latent means -- it fires the moment any other evaluator learns to report an unevaluable record, which is the sixteenth pass's brief."
         },
