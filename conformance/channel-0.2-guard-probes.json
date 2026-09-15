@@ -884,7 +884,7 @@
       "edits": [
         {
           "path": "docs/future/README.md",
-          "find": "review has yet seen the AU corrections.",
+          "find": "review has yet seen the BF corrections.",
           "replace": "review has yet seen the AB corrections."
         }
       ]
