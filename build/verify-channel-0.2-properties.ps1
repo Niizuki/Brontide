@@ -20,13 +20,15 @@ param(
     # vector carries one session or several, so forty vectors cover each declared case many times
     # over. `verify-gate-self-checks.ps1` raises it for the deep run, exactly as it does the other.
     [int]$SweptCount = 40,
-    # How many (property, input) pairs BB1's read-provenance census walks, counted from the first and
-    # never more than the corpus holds. Zero, the default, means all of them.
+    # How many (property, input) pairs BB1's read-provenance census walks PER POLARITY of each
+    # property, counted from the first and never more than the corpus holds. Zero, the default, means
+    # all of them.
     #
     # It exists for the same reason `SweptCount` does and it is a COST dial, not a fidelity one. The
     # coverage measure runs this gate under a line trace where every executed statement costs about a
     # millisecond, and the census is thousands of evaluator calls -- so tracing the whole of it was ten
-    # minutes of one probe. Coverage needs each construct REACHED once, which two pairs do.
+    # minutes of one probe. Coverage needs each construct REACHED once, which one pair of each
+    # polarity does; the cap is per polarity since BG for exactly that reason.
     #
     # What a cap does NOT weaken: the `Read-Optional` exercise check below is fed by the declared
     # corpus loop rather than by the census -- census reads are suppressed from it deliberately -- so a
@@ -2376,11 +2378,13 @@ foreach ($site in ($obligationSites | Sort-Object -Unique)) {
 #
 # THREE LIMITS, STATED WHERE THEY APPLY RATHER THAN CLAIMED AWAY.
 #
-#   * It measures the reads a declared GREEN-EXPECTED input provokes. A read on a path no such input
-#     reaches is invisible here, exactly as an unreached guard is invisible to the probe corpus, and
-#     the `BB1-c` probe is what demonstrates that rather than asserting it. Green-expected because on
-#     a declared mutation the property is supposed to be red, and a poisoned field that leaves it red
-#     says nothing about whether the record could be read.
+#   * It measures the reads a DECLARED input provokes, of either polarity since BG. From BB1 to BF it
+#     walked green-expected inputs only, on the reasoning that a poisoned field leaving a declared
+#     mutation red says nothing about whether the record could be read -- which is true of the
+#     outcome and was never the question, since the census classifies by reader. A read on a path no
+#     declared input reaches is still invisible here, exactly as an unreached guard is invisible to
+#     the probe corpus; the generated population is where such a path would be reached, and the
+#     sixteenth pass's note on that trade stands.
 #   * `declaredSteps` is outside the poisoned set. The harness builds the step index from it once,
 #     before any evaluator runs, so no evaluator reads those fields and poisoning them would measure
 #     the harness rather than the properties. AZ3's dropped-field sweep is what covers that surface.
@@ -2449,6 +2453,9 @@ function Get-CensusFields {
 $censusSiteCount = 0
 $censusRawCount = 0
 $censusReadCount = 0
+# The pairs walked, per polarity, for the summary line: a census that reports one total over both
+# would read as a full walk of either when one had been capped or emptied.
+$censusPairsByPolarity = @{ green = 0; red = 0 }
 # One finding per (property, input, field, reading site). A vector carries many records of one shape
 # and each is its own site, so the same raw read is found once per record; the finding names the
 # reading line and the field, and a reader cannot act on the copies differently.
@@ -2457,30 +2464,62 @@ foreach ($property in $properties.properties) {
     $propertyId = [string]$property.id
     if (-not $evaluators.ContainsKey($propertyId)) { continue }
     $evaluator = $evaluators[$propertyId]
-    $censusPairsWalked = 0
 
-    # Green-expected inputs only. On a declared mutation the property is SUPPOSED to be red, and a
-    # poisoned field that leaves it red says nothing about whether the record could be read.
-    $censusInputs = [System.Collections.Generic.List[string]]::new()
+    # BG. Both polarities, each walked against its own baseline. From BB1 to BF this walked
+    # green-expected inputs only, on the reasoning that a poisoned field leaving a declared mutation
+    # red says nothing about whether the record could be read. That is true of the OUTCOME and was
+    # never the question: the census classifies by READER, for the reason its header gives, and a
+    # raw read is a raw read on whichever polarity reaches it. The field-readership census reported
+    # ten fields read only where a property is declared red, and the `BB1-c` probe recorded that a
+    # raw read on such a path was invisible here -- a read there, and a raw read nowhere. So the
+    # named mutations are walked too, against a baseline that must be red through the declared
+    # conjunct, and what a raw read on that polarity did has one more class than it had on green: it
+    # can move the verdict to GREEN, which is an unreadable record passing as a conforming one -- the
+    # failure BB1 was raised to end, reached from the polarity BB1 could not see.
+    $censusInputs = @{}
     foreach ($member in @($property.requiredGreen) + @($property.additionalGreen)) {
-        if ($null -ne $member) { [void]$censusInputs.Add([string]$member.vector) }
+        if ($null -ne $member) { $censusInputs[[string]$member.vector] = @{ Verdict = 'green'; Conjunct = $null } }
     }
+    foreach ($mutation in @($property.namedMutations)) {
+        if ($null -ne $mutation) { $censusInputs[[string]$mutation.vector] = @{ Verdict = [string]$mutation.expected; Conjunct = [string]$mutation.conjunct } }
+    }
+    # The cap counts per polarity, so a capped run still walks both: the coverage measure runs this
+    # gate at one pair, and one pair of one polarity would leave the other polarity's constructs
+    # unreached in the run whose purpose is to reach them.
+    $censusPairsWalked = @{ green = 0; red = 0 }
 
-    foreach ($vectorId in ($censusInputs | Sort-Object -Unique)) {
+    foreach ($vectorId in ($censusInputs.Keys | Sort-Object)) {
         if (-not $vectorsById.ContainsKey($vectorId)) { continue }
-        if ($CensusPairs -gt 0 -and $censusPairsWalked -ge $CensusPairs) { break }
-        $censusPairsWalked++
+        $censusExpected = $censusInputs[$vectorId]
+        $censusPolarity = [string]$censusExpected.Verdict
+        if ($CensusPairs -gt 0 -and $censusPairsWalked[$censusPolarity] -ge $CensusPairs) { continue }
+        $censusPairsWalked[$censusPolarity]++
+        $censusPairsByPolarity[$censusPolarity]++
         $censusVector = $vectorsById[$vectorId]
         $censusSteps = $vectorIndex[$vectorId]
         $script:UnpublishedFields.Clear()
-        $censusBaselineResult = & $evaluator -VectorId $vectorId -Vector $censusVector -Steps $censusSteps
+        # The declared verdict is in scope for the baseline exactly as it is in the declared loop, so
+        # the two meaning-carrying readers record the polarity they recorded there rather than
+        # `undeclared`, and the baseline adds nothing to the declaration record it did not already
+        # hold. The poisoned runs below suppress those readers' records altogether.
+        $script:DeclaredExpectation = $censusPolarity
+        try { $censusBaselineResult = & $evaluator -VectorId $vectorId -Vector $censusVector -Steps $censusSteps }
+        finally { $script:DeclaredExpectation = $null }
         # BA2's rule at its own dispatch: a baseline the property could not evaluate is not a baseline,
         # and every member of the record is read here for the reason AZ1 and BA1 were raised.
         foreach ($evaluationError in $censusBaselineResult.Errors) {
             $failures.Add("The read-provenance census cannot evaluate '$propertyId' over the unpoisoned form of '$vectorId': $evaluationError Every poisoned run below is compared against this one.")
         }
-        if ([string]$censusBaselineResult.Verdict -eq 'red') {
-            $failures.Add("The read-provenance census takes '$propertyId' red on '$vectorId' before poisoning anything, through '$($censusBaselineResult.Conjunct)': $($censusBaselineResult.Witness) It measures green-expected inputs, so a red baseline means the input's declared role and its verdict disagree.")
+        # The baseline must carry the declared verdict, and on the red polarity the declared conjunct:
+        # what a poisoned field DID is measured as a difference from this baseline, so a baseline that
+        # is not the declared verdict reached the declared way is not the baseline the finding claims.
+        # The declared loop refuses both already; this is BA2's rule at this dispatch, as it is at the
+        # readership census's.
+        if ([string]$censusBaselineResult.Verdict -ne $censusPolarity) {
+            $failures.Add("The read-provenance census takes '$propertyId' $($censusBaselineResult.Verdict) on '$vectorId' before poisoning anything, through '$($censusBaselineResult.Conjunct)': $($censusBaselineResult.Witness) The input is declared $censusPolarity for this property, so its declared role and its verdict disagree, and every poisoned run below would be measured against the wrong polarity.")
+        }
+        elseif ($censusExpected.Conjunct -and [string]$censusBaselineResult.Conjunct -ne [string]$censusExpected.Conjunct) {
+            $failures.Add("The read-provenance census takes '$propertyId' red on '$vectorId' through '$($censusBaselineResult.Conjunct)' before poisoning anything, and the mutation is declared against '$($censusExpected.Conjunct)'. What a poisoned field did is measured as a difference from this baseline, so a baseline red the undeclared way is not the red the mutation pins.")
         }
         $censusBaseline = [string]$censusBaselineResult.Verdict
         $censusVectorReads = 0
@@ -2544,22 +2583,30 @@ foreach ($property in $properties.properties) {
                 # what this one missed, and the conjunct and witness are BA4's diagnosis -- the
                 # counterexample a reader can act on without re-deriving which clause produced it.
                 $censusWitness = if ($censusResult.Witness) { " Witness: $($censusResult.Witness)$(if ($censusResult.Conjunct) { ", through '$($censusResult.Conjunct)'" })." } else { '' }
+                # On the red polarity "moved the verdict" means moved to GREEN: the declared mutation
+                # became invisible over an unreadable record. A red that stays red is one class here
+                # whichever obligation or conjunct it now arrives through -- no declared vector carries
+                # records for two clauses of one property, so a raw read that moved the red between
+                # conjuncts could not be provoked, and a branch nothing can reach is a hypothesis rather
+                # than a check. Measured: `C5-P1` reading `boundsChecked` raw moves the red between two
+                # obligations of one conjunct on `C5-positional-shape-unchecked`, and is reported as
+                # having left the property red, which is true.
                 $censusObserved = if ([string]$censusResult.Verdict -ne $censusBaseline) { "moved the verdict to $([string]$censusResult.Verdict).$censusWitness" }
                     elseif (@($censusResult.Errors).Count -gt 0 -or $script:UnpublishedFields.Count -gt 0) { 'was reported, but by another reader on the same record.' }
-                    else { 'left the property green and reported nothing.' }
-                $failures.Add("Property '$propertyId' reads '$censusName' off a record of '$vectorId' at $censusReader without a sanctioned reader, and making that field unreadable $censusObserved A raw read cannot say it could not read the record, so the property's green over an unreadable record is indistinguishable from its green over a conforming one. Read it through Read-Required, Read-Optional with the reason absence is a fact, Read-Obligation where the absence is the violation, or Get-List.")
+                    else { "left the property $censusBaseline and reported nothing." }
+                $failures.Add("Property '$propertyId' reads '$censusName' off a record of '$vectorId', an input it is declared $censusPolarity on, at $censusReader without a sanctioned reader, and making that field unreadable $censusObserved A raw read cannot say it could not read the record, so the property's verdict over an unreadable record is indistinguishable from its verdict over one it read: a green from a green over a conforming record, and a red from a red over a violating one. Read it through Read-Required, Read-Optional with the reason absence is a fact, Read-Obligation where the absence is the violation, or Get-List.")
             }
         }
 
         # BB7's second half, and the one that does not depend on another instrument noticing. Every
-        # property reads SOMETHING off every input it is declared green on -- the least any of them
-        # reads is one field of the vector -- so a walk that poisoned this vector's fields and
+        # property reads SOMETHING off every input it declares, of either polarity -- the least any of
+        # them reads is one field of the vector -- so a walk that poisoned this vector's fields and
         # observed no read at all did not measure this property: it measured its own machinery
         # failing. Reported per property and input rather than as one total, because a census blinded
         # for one property and working for the rest is the partial case BA6 was, and a total would
         # hide it.
         if ($censusVectorReads -le 0) {
-            $failures.Add("The read-provenance census poisoned every field of '$vectorId' and observed '$propertyId' reading none of them. Every property reads at least one field of every input it is declared green on, so this is the census failing to observe rather than the property failing to read -- a green from it here would be a clean report over a package it had stopped reading.")
+            $failures.Add("The read-provenance census poisoned every field of '$vectorId' and observed '$propertyId' reading none of them. Every property reads at least one field of every input it declares, so this is the census failing to observe rather than the property failing to read -- a clean report from it here would be one over a package it had stopped reading.")
         }
     }
 }
@@ -2623,7 +2670,7 @@ $censusScope = if ($CensusPairs -gt 0) { " -- CAPPED at $CensusPairs pairs per p
 # not what a passing run would imply about it. "Exercised by a conforming input" is the verdict of the
 # check, not a property of the count, and printing it here would have the measure assert on a failing
 # run exactly what that run had just contradicted.
-Write-Host "Channel 0.2 read-provenance census: $censusReadCount of $censusSiteCount poisoned fields were read by an evaluator, $censusSanctioned of those through a sanctioned reader and $censusRawCount raw, over $($script:OptionalReads.Count) Read-Optional and $($script:ObligationReads.Count) Read-Obligation declarations, each checked against the declared verdict of the inputs whose silence exercises it and against the words of the design artifact it cites.$censusScope"
+Write-Host "Channel 0.2 read-provenance census: $censusReadCount of $censusSiteCount poisoned fields were read by an evaluator over $($censusPairsByPolarity['green']) green-expected and $($censusPairsByPolarity['red']) red-expected (property, input) pairs, $censusSanctioned of those reads through a sanctioned reader and $censusRawCount raw, over $($script:OptionalReads.Count) Read-Optional and $($script:ObligationReads.Count) Read-Obligation declarations, each checked against the declared verdict of the inputs whose silence exercises it and against the words of the design artifact it cites.$censusScope"
 
 # ---------------------------------------------------------------------------------------------
 # BF: the field-readership census. Every field the declared corpus states, against whether anything
