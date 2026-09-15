@@ -1589,15 +1589,20 @@
     },
     {
       "id": "BB1-c",
-      "claim": "a raw read on a path no green-expected input reaches is NOT reported, which is the census's first declared limit",
+      "claim": "a raw read on a path only a red-expected input reaches -- S1's own witness -- which was the census's first declared limit and an expect-pass record of it from BB to BF, and is reported since BG walked the red polarity",
       "gate": "verify-channel-0.2-properties.ps1",
-      "expect": "pass",
+      "expect": "fail",
+      "guardMessage": "reads 'event' off a record of 'S1-illegal-transition-accepted', an input it is declared red on",
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
           "find": "            return New-Red \"session $(Read-Required $sessionEvent 'session' $timelineSubject) accepted the transition $edge on event $(Read-Required $sessionEvent 'event' $timelineSubject), which the legal table does not contain\"",
           "replace": "            return New-Red \"session $($sessionEvent.session) accepted the transition $edge on event $($sessionEvent.event), which the legal table does not contain\""
         }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
       ]
     },
     {
@@ -2142,6 +2147,78 @@
           "find": "The thirteenth closure review returned `does-not-conform` with blocking **AI1**",
           "replace": "The thirteenth returned `does-not-conform` with blocking **AI1**"
         }
+      ]
+    },
+    {
+      "id": "BG-a",
+      "claim": "a raw read on the red polarity that makes the declared mutation invisible -- I4 reading a refusal's stage raw, which no green-expected input of I4 reads at all, so that an unreadable record passes as a conforming one and the frozen census could not have seen the read",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "reads 'stage' off a record of 'I4-post-dispatch-loss-known-none', an input it is declared red on",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        $stage = [string](Read-Required $refusal 'stage' $refusalSubject)",
+          "replace": "        $stage = [string]$refusal.stage"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BG-b",
+      "claim": "the same raw read classified by what it did: on the red polarity an unreadable field moved the verdict to green, which is the class the green polarity cannot produce",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "and making that field unreadable moved the verdict to green. A raw read cannot say it could not read the record",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        $stage = [string](Read-Required $refusal 'stage' $refusalSubject)",
+          "replace": "        $stage = [string]$refusal.stage"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BG-c",
+      "claim": "a red-polarity baseline that is red through a conjunct other than the one the mutation is declared against, refused at the census's own dispatch as it is at the declared loop's",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "The read-provenance census takes 'C5-P1' red on 'C5-pre-dispatch-refusal-possible-effect' through 'C5-P1-clause-2' before poisoning anything, and the mutation is declared against 'C5-P1-clause-1'",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-properties.json",
+          "find": "\"conjunct\": \"C5-P1-clause-2\"",
+          "replace": "\"conjunct\": \"C5-P1-clause-1\""
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BG-d",
+      "claim": "a red-polarity baseline that is green -- the mutation vector made conforming -- refused at the census's own dispatch, since every poisoned run would otherwise be measured against the wrong polarity",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "The read-provenance census takes 'S3' green on 'S3-admit-after-drain' before poisoning anything",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "          \"to\": \"draining\",\n          \"event\": \"begin-drain\",\n          \"accepted\": true\n        },\n        {\n          \"session\": \"s1\",\n          \"step\": \"admit\",\n          \"identity\": \"i2\"",
+          "replace": "          \"to\": \"established\",\n          \"event\": \"begin-drain\",\n          \"accepted\": true\n        },\n        {\n          \"session\": \"s1\",\n          \"step\": \"admit\",\n          \"identity\": \"i2\""
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
       ]
     }
   ]
