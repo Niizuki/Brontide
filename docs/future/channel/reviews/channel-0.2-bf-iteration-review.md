@@ -304,10 +304,15 @@ corpus's `gate` field takes a file name and not a path, which the harness said o
   red for the same reason; `BF-e` was written as a two-line edit to a `.ps1` file, which the clone
   checks out with CRLF line endings, so its anchor could not match -- AZ4's lesson, the probe is one
   line now; and `AO2-a` anchored on the plan's section 2a counts, which this pass's three inputs
-  moved, and is re-anchored. The deep run was green: 52,000 evaluations at 0 red. All three are run
-  again over the final branch head before the pull request is opened, and the result is recorded there.
-  Every conditional and operand the pass added was written to be evaluated by a passing run; the three
-  report loops a passing run leaves empty are declared to the measure with the probes that pin each.
+  moved, and is re-anchored. The deep run was green: 52,000 evaluations at 0 red. A second run over the
+  records found `AQ4-a` anchored on the future index's sentence naming the family no independent review
+  has seen, which the design family moved from AU to BF; re-anchored. **The whole set was then run a
+  third time over `5baff39`, the head before this bullet was written, in the same clone: the design
+  and text gates, the corpus at 130 of 130 over 22 workers, the deep run at 52,000 evaluations and 0
+  red with the sweep green over 500, and the coverage measure over four gates, all exit 0.** The one
+  commit above that head changes this paragraph. Every conditional and operand the pass added was
+  written to be evaluated by a passing run; the three report loops a passing run leaves empty are
+  declared to the measure with the probes that pin each.
 - **The return-channel census sees the new dispatch and passes.** The replay reads every member the
   evaluator hands back and clears and drains the per-evaluation accumulator; the census reports twenty
   consumers where it reported nineteen.
