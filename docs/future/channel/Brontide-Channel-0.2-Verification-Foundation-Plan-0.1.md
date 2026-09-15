@@ -1724,7 +1724,7 @@ reconciles are declared, each reconciliation anchored on its line; everything el
 property or the index, or fails. The generator's surface is checked against the corpus's the same
 way. It costs about two seconds at `-GeneratedCount 0` and walks both polarities uncapped.
 
-**On its first run it reported eleven fields on 148 records read by nothing.** **BF3** is the one to
+**On its first run it reported eleven fields, stated 285 times across the corpus, read by nothing.** **BF3** is the one to
 weigh: `sessions[].initialSessionState`, stated on sixty records because the brief's format says
 every vector states it, while `S2` and `C2-P1` began every session at `unestablished` by a literal --
 so a conforming realization whose window opens mid-session was red on both, AE1's class. Both read the
@@ -1944,9 +1944,9 @@ citation checks, the closed-vocabulary census, and 52,000 evaluations over 2,000
 the nineteenth pass's own narrative had darkened was pinned by a probe that pass merged without
 running. The streak of clean frozen sets ends at thirteen. The instrument it built -- every field of
 a recording copy of each declared vector recording its own reads, over every (property, input) pair
-of both polarities -- found **BF2** through **BF9** in the package on its first run, eleven fields on
-148 records read by nothing, and BF3 among them is a property red on a legal input the brief's own
-format describes. Fourteen of these twenty passes have now had a new instrument that found something,
+of both polarities -- found **BF2** through **BF9** in the package on its first run, eleven fields,
+stated 285 times across the corpus, read by nothing, and BF3 among them is a property red on a legal
+input the brief's own format describes. Fourteen of these twenty passes have now had a new instrument that found something,
 and this is the first since the sixth whose frozen set found something too.
 
 The next work is therefore a twenty-first author-side pass, and it is the **first of the two

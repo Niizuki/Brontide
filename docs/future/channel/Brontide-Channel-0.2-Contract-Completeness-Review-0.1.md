@@ -927,7 +927,7 @@ instrument the nineteenth had named and left: every field of a recording copy of
 is replaced by a getter that records its path and returns the value it replaced, so one run per
 (property, input) pair over both polarities records every field an evaluator dereferenced, and a field
 that no property, the step index, or a declared reconciliation reads fails. **On its first run it
-reported eleven fields on 148 records read by nothing.**
+reported eleven fields, stated 285 times across the corpus, read by nothing.**
 
 **BF2** is the interaction's direction, which C10 lists among what every local observation must be
 sufficient to distinguish and which was stated on thirty records and read by no property, because

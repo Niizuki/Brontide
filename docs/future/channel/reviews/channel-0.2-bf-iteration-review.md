@@ -87,7 +87,7 @@ over 137 (property, input) pairs of both polarities -- 85 read by a property on 
 own statements, and 0 read by nothing**; and 113 fields emitted by the generator, every one stated by
 the corpus.
 
-**The first run over the package as found reported eleven fields on 148 records read by nothing.**
+**The first run over the package as found reported eleven fields, stated 285 times across the corpus, read by nothing.**
 They are the eight findings below, four of them the fields the nineteenth named.
 
 ### BF1 -- the AJ2 narrative guard's ordinal key was satisfied by "thirteenth consecutive", and the pass that wrote it merged without running the probe that says so

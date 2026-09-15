@@ -404,7 +404,7 @@ question the eighteenth named and the nineteenth left open: every field of a rec
 declared vector is replaced by a getter that records its path and returns the value it replaced, one
 run per (property, input) pair over both polarities records every field an evaluator dereferenced,
 the step index is replayed over the same copy, and a field nothing reads fails. It raised
-**BF2**-**BF9** in the package on its first run — eleven fields on 148 records read by nothing —
+**BF2**-**BF9** in the package on its first run — eleven fields, stated 285 times across the corpus, read by nothing —
 and **BF3** is the one to weigh: `S2` and `C2-P1` began every session at `unestablished` by a literal
 while sixty records stated the initial state the brief's format requires, so a conforming realization
 whose window opens mid-session was red on both, which is AE1's class. **BF2** and **BF4** reach the
@@ -1060,9 +1060,10 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `verification: record the twentieth condition-4 pass
-and its design-family dispositions`, committed 2026-09-15, which is the head of the correction
-sequence beginning at `fix(channel): make C4-P2 falsifiable`. It moves the pin off `verification: pin
+The current review target is the commit titled `verification: count the twentieth pass's first-run
+fields as stated 285 times rather than on 148 records`, committed 2026-09-15, which is the head of
+the correction sequence beginning at `fix(channel): make C4-P2 falsifiable` and corrects one figure
+in the completeness review's record of the twentieth pass. It moves the pin off `verification: pin
 the eleven property obligations no input reached` because the twentieth pass's **BF2** and **BF4**
 corrections reach a design artifact -- the completeness review's per-capability audit rows for `C10`
 and `I4`, which now name a mutation for the direction on C10's list and for the `unseen` refusal
@@ -1337,7 +1338,7 @@ context elsewhere — never as evidence that their conclusions are right.
   narrative guard's ordinal key was satisfied by the nineteenth pass's "thirteenth consecutive", in a
   corpus the nineteenth merged without running. Its instrument records every field an evaluator
   dereferences over a recording copy of each declared vector, on both polarities, and found
-  **BF2**-**BF9** in the package on its first run: eleven fields on 148 records read by nothing, among
+  **BF2**-**BF9** in the package on its first run: eleven fields, stated 285 times across the corpus, read by nothing, among
   them the four the nineteenth had named. **BF3** is the one to weigh — `S2` and `C2-P1` began every
   session at `unestablished` in code while sixty records stated the initial state the brief's format
   requires, so a legal input whose window opens mid-session was red on both. **BF2** and **BF4** give

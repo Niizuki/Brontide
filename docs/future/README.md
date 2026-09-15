@@ -469,7 +469,7 @@ the nineteenth had merged without running over its branch. The key now names wha
 The instrument the pass built replaces every field of a recording copy of each declared vector with a
 getter that records its path and returns the value it replaced, replays every (property, input) pair
 of both polarities and the step index over the copy, and fails on a field nothing reads. **On its first
-run it reported eleven fields on 148 records read by nothing**, four of them the ones the nineteenth
+run it reported eleven fields, stated 285 times across the corpus, read by nothing**, four of them the ones the nineteenth
 had named. **BF3** is the one to weigh: the brief's vector format says every vector states the initial
 session state of each session it carries, sixty records did, and `S2` and `C2-P1` began every session
 at `unestablished` by a literal in the evaluator -- so a conforming realization whose window opens
