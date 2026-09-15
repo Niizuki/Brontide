@@ -2758,7 +2758,12 @@ foreach ($vector in $vectorFile.vectors) {
         $settlingReference = Get-Field $latch 'settlingFrame'
         if ($null -ne $settlingReference) {
             foreach ($settlingStep in (Resolve-FrameReference -Steps $reconcileSteps -Reference $settlingReference)) {
-                if ($settlingStep.Delivered -and [string]$settlingStep.ReceivingEndpoint -ne [string](Get-Field $latch 'recordedBy')) {
+                # BF12. The anchored line carries no logical operator, because the coverage measure's operand
+                # unit runs this gate from a copy in which every -and/-or operand is rewritten, and a
+                # reconciliation anchored on such a line is one that copy no longer contains -- which is
+                # what that frozen instrument reported on its first run over this pass.
+                if (-not $settlingStep.Delivered) { continue }
+                if ([string]$settlingStep.ReceivingEndpoint -ne [string](Get-Field $latch 'recordedBy')) {
                     $failures.Add("Vector '$vectorId' records a late-traffic latch as recorded by '$(Get-Field $latch 'recordedBy')' and settled against '$($settlingStep.Id)', which was delivered to '$($settlingStep.ReceivingEndpoint)'. A latch settles against a frame its endpoint received, so the recorder and the receiving endpoint are one fact stated twice.")
                 }
             }
@@ -2771,7 +2776,8 @@ foreach ($vector in $vectorFile.vectors) {
         $refusedReference = Get-Field $refusal 'refusedFrame'
         if ($null -eq $refusedReference) { continue }
         foreach ($refusedStep in (Resolve-FrameReference -Steps $reconcileSteps -Reference $refusedReference)) {
-            if ($refusedStep.Delivered -and [string]$refusedStep.ReceivingEndpoint -ne [string](Get-Field $refusal 'recordedBy')) {
+            if (-not $refusedStep.Delivered) { continue }
+            if ([string]$refusedStep.ReceivingEndpoint -ne [string](Get-Field $refusal 'recordedBy')) {
                 $failures.Add("Vector '$vectorId' records a refusal at unseen as recorded by '$(Get-Field $refusal 'recordedBy')' of '$($refusedStep.Id)', which was delivered to '$($refusedStep.ReceivingEndpoint)'. The refusal is the receiving endpoint's own observation, so the recorder and the receiving endpoint are one fact stated twice.")
             }
         }
@@ -2842,7 +2848,9 @@ $vectorSelfMembers = @{
 # Fields the harness reconciles against the surface a property reads, rather than any property
 # reading them. Each is anchored on the reconciling line, which must be in this file: a
 # reconciliation deleted with its anchor fails here as stale rather than leaving the field declared
-# reconciled and read by nothing, which is AP1's class.
+# reconciled and read by nothing, which is AP1's class. An anchor is a line with no logical operator in
+# it, for BF12's reason: the coverage measure's operand unit rewrites every `-and`/`-or` operand in the
+# copy it runs, and this check reads the file it is running from.
 $reconciledFields = @(
     @{ Field = 'interactions[].dispatched'
        Anchor = 'if ([bool]$declaredDispatch.Value -ne $timelineDispatches) {'
@@ -2854,10 +2862,10 @@ $reconciledFields = @(
        Anchor = 'if ([string](Get-Field $latch $identityField) -ne [string](Get-Field $terminalReference $identityField)) {'
        Why = 'BF. As the session: the latch''s own identity restates the terminal-frame reference''s.' }
     @{ Field = 'observations.lateTrafficLatches[].recordedBy'
-       Anchor = 'if ($settlingStep.Delivered -and [string]$settlingStep.ReceivingEndpoint -ne [string](Get-Field $latch ''recordedBy'')) {'
+       Anchor = 'if ([string]$settlingStep.ReceivingEndpoint -ne [string](Get-Field $latch ''recordedBy'')) {'
        Why = 'BF. A settled latch''s recorder is the endpoint that received the frame it settled against, which the delivery states. A clear latch names no received frame, so on those records the field has no second surface and is what a reader of the record sees.' }
     @{ Field = 'observations.unseenRefusals[].recordedBy'
-       Anchor = 'if ($refusedStep.Delivered -and [string]$refusedStep.ReceivingEndpoint -ne [string](Get-Field $refusal ''recordedBy'')) {'
+       Anchor = 'if ([string]$refusedStep.ReceivingEndpoint -ne [string](Get-Field $refusal ''recordedBy'')) {'
        Why = 'BF. The refusal at unseen is the receiving endpoint''s own observation of the frame it refused, which the delivery states.' }
 )
 $gateSourceLines = Get-Content -LiteralPath $PSCommandPath -Encoding UTF8

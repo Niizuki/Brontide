@@ -1195,7 +1195,7 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-ax-iteration-review.md', 'channel-0.2-ay-iteration-review.md', 'channel-0.2-az-iteration-review.md', 'channel-0.2-ba-iteration-review.md', 'channel-0.2-bb-iteration-review.md', 'channel-0.2-bc-iteration-review.md', 'channel-0.2-bd-iteration-review.md', 'channel-0.2-be-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-ax-iteration-review.md', 'channel-0.2-ay-iteration-review.md', 'channel-0.2-az-iteration-review.md', 'channel-0.2-ba-iteration-review.md', 'channel-0.2-bb-iteration-review.md', 'channel-0.2-bc-iteration-review.md', 'channel-0.2-bd-iteration-review.md', 'channel-0.2-be-iteration-review.md', 'channel-0.2-bf-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
     $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, every retained attestation, every retained iteration review, and the disposition index the status blocks point at, before the next closure review. The expected list above is the authority for which those are: a retained record added or removed without editing it is the mismatch this reports. It no longer states a tally, because the one it carried had been wrong by two since the AV pass.')
@@ -1432,17 +1432,30 @@ else {
     # Written out here rather than read from `$numberWords`, which this file defines nine hundred
     # lines below: PowerShell runs top to bottom, and a check that reads a map declared after it
     # reads `$null` and throws where it meant to compare.
+    # BF11. Both lists ended at twenty, and the two branches below treated running off the end
+    # differently: the cardinal branch fails loudly, and the ordinal branch set `$nextOrdinal` to
+    # `$null` and skipped the check -- so the pass that retained the twentieth review would have been
+    # the first whose "next work is the twenty-first" sentence nothing read, with the gate green.
+    # That is AP1's class in the guard written against AP1's class, found by reading rather than by
+    # an instrument, and the correction is the one the cardinal branch already had: an absent word
+    # fails, and the lists reach further than the programme has.
     $passCardinals = @('zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
         'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen',
-        'eighteen', 'nineteen', 'twenty')
+        'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four',
+        'twenty-five', 'twenty-six', 'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty')
     $ordinalWords = @('first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth',
         'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth',
-        'seventeenth', 'eighteenth', 'nineteenth', 'twentieth')
+        'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'twenty-first', 'twenty-second',
+        'twenty-third', 'twenty-fourth', 'twenty-fifth', 'twenty-sixth', 'twenty-seventh',
+        'twenty-eighth', 'twenty-ninth', 'thirtieth')
     $cardinalWord = if ($conditionFourPasses -lt $passCardinals.Count) { $passCardinals[$conditionFourPasses] } else { $null }
     $nextOrdinal = if ($conditionFourPasses -lt $ordinalWords.Count) { $ordinalWords[$conditionFourPasses] } else { $null }
 
     if (-not $cardinalWord) {
         $failures.Add("There are $conditionFourPasses retained condition-4 passes and this file has no number word for that count, so the tallies below cannot be checked. Teach it the word rather than dropping the check.")
+    }
+    if (-not $nextOrdinal) {
+        $failures.Add("There are $conditionFourPasses retained condition-4 passes and this file has no ordinal word for the next one, so the sentences naming the next pass cannot be checked. Teach it the word rather than dropping the check; this branch used to skip silently, which is BF11.")
     }
     else {
         $countClaims = @(

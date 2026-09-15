@@ -1690,6 +1690,74 @@ the eighteenth named is still open: three classified fields are read by no prope
 reads them, and "read by no property" is harder to measure than it looks because the read-provenance
 census walks green-expected inputs only.
 
+## 2w. What the twentieth condition 4 pass found
+
+The twentieth author-side pass has run, at `4557704`, and is retained as the
+[twentieth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-bf-iteration-review.md).
+It was to be the **first of the two consecutive clean passes** the 2026-09-04 ruling requires from
+zero.
+
+**It is not clean, and for the first time in fourteen passes the frozen set is a reason as well.**
+The frozen set reported **BF1**; the instrument the pass built raised **BF2** through **BF9** in the
+package on its first run; **BF10** and **BF12** are against the pass's own new code and were found by
+frozen instruments; **BF11** is against a frozen instrument and was found by reading. The family
+reaches the completeness review's audit rows and is classified `design` whole, so its dispositions
+live in that review's history; this section records the pass.
+
+**BF1 is the AJ2 narrative guard dark again, and the probe that says so unrun by the pass that
+darkened it.** Probe `AQ1-a` returned pass at `4557704`. The guard's key was a bare ordinal with the
+noun `pass` excluded -- AX3's correction -- and the nineteenth pass's narrative counted clean frozen
+sets, *thirteenth consecutive*, which the exclusion did not cover; the same holds for the ninth through
+twelfth reviews. The nineteenth's pull request recorded the corpus over its branch as not yet run and
+was merged, which is the case `verify-gate-self-checks.ps1` states in its own header. The key now
+names what introduces a review -- the word itself, or the review's own family token within eighty
+characters -- so a streak count, a pass and an iteration-review link satisfy nothing, and a new
+phrasing fails loudly.
+
+**The method was the one section 2v named.** Every field of a recording copy of each declared
+vector is replaced by a getter that records its path and returns the value it replaced, so one run
+per (property, input) pair over both polarities records every field an evaluator dereferenced, and
+the step index is replayed over the copy. The replay checks that every pair reaches the declared
+loop's verdict through its conjunct with both channels empty, so the recording is shown not to have
+changed what it measured. The vector's own statements about itself and the fields the harness
+reconciles are declared, each reconciliation anchored on its line; everything else is read by a
+property or the index, or fails. The generator's surface is checked against the corpus's the same
+way. It costs about two seconds at `-GeneratedCount 0` and walks both polarities uncapped.
+
+**On its first run it reported eleven fields on 148 records read by nothing.** **BF3** is the one to
+weigh: `sessions[].initialSessionState`, stated on sixty records because the brief's format says
+every vector states it, while `S2` and `C2-P1` began every session at `unestablished` by a literal --
+so a conforming realization whose window opens mid-session was red on both, AE1's class. Both read the
+record now, the legal input joins both properties, and the record and the timeline's first transition
+are reconciled. **BF2** is the interaction's direction, on C10's list and read by no property because
+`C3-P1` compares it through an asserted Boolean; `C10-P1` reads it as an obligation with a mutation.
+**BF4** is the `unseen` refusal record's effect certainty, fixed at `known-none` by C10's fact and
+inside the three-member set; `I4`'s first clause reads it with a mutation, and it is a one-member
+vocabulary. **BF5**-**BF8** are second surfaces -- the timeline's copy of the terminal history on
+eighty-four fields, the latch's copy of its reference's identity, both `recordedBy` fields, and the
+per-interaction copy of the vector's deterministic-observation fact -- deleted or reconciled in AX2's
+form. **BF9** is the declared profile, brief-required and read by nothing; `S5` names it, and the
+comparison against the profile's own declaration stays the owner-sized unit section 2v named.
+
+**BF10, BF11 and BF12 are the machinery.** BF10 is the new session-record read refusing the empty
+session id the frozen read-provenance census poisons, thrown on the first run. BF11 is this gate's
+own next-pass ordinal check: its word lists ended at `twentieth`, and where the cardinal branch fails
+loudly the ordinal branch set the next ordinal to null and skipped -- so the pass that retained the
+twentieth review would have been the first whose next-work sentences nothing read, with the gate
+green. AP1's class in the guard written against AP1's class, found by reading. BF12 is the coverage
+measure's operand unit on its first run over the branch: the reconciliation declarations anchor on
+the reconciling line and the check reads the file it runs from, and two of those lines carried an
+`-and` the instrumented copy rewrites, so the copy no longer contained them and the gate failed under
+instrumentation where it passes without. The anchored lines carry no logical operator now.
+
+**What the next pass inherits.** Ten fields are read only where a property is declared red, and the
+read-provenance census cannot see those reads -- `BB1-c`'s declared limit -- so a raw read on such a
+path is a read here and a raw read nowhere; the poisoning walk over the red polarity is the
+instrument. A read is a dereference and not an operand, and BF9 is exactly that; whether a value can
+move a verdict is the dropped-field sweep's question, asked over frame references and nowhere else.
+And the profile record behind BF2, BF9 and the two vocabularies the nineteenth could not check is
+still the owner's.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -1748,15 +1816,16 @@ nothing means the package is sound *under what the programme can currently detec
 and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
-nineteen times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one,
-three, zero, three, seven, seven, three, three and **five** defects. Sections 2d through 2v record
-them. This tally counts what a reader counts -- the numbered findings in each pass's retained review.
-Where the 2026-09-04 ruling's two populations differ from that total, the pass's own section states the
-split: of the fifteenth's seven, five are in the package and two are in the instrument that pass built;
-of the sixteenth's seven, four are in the package and three are in its own new code; of the
-seventeenth's three, two are in the package and one is in its own new code; of the eighteenth's three,
-two are in the package and one is in its own new code; and the nineteenth's five are all in the
-package.
+twenty times**: the passes found three, six, three, two, five, one, seven, seven, five, three, one,
+three, zero, three, seven, seven, three, three, five and **twelve** defects. Sections 2d through 2w
+record them. This tally counts what a reader counts -- the numbered findings in each pass's retained
+review. Where the 2026-09-04 ruling's two populations differ from that total, the pass's own section
+states the split: of the fifteenth's seven, five are in the package and two are in the instrument that
+pass built; of the sixteenth's seven, four are in the package and three are in its own new code; of
+the seventeenth's three, two are in the package and one is in its own new code; of the eighteenth's
+three, two are in the package and one is in its own new code; the nineteenth's five are all in the
+package; and of the twentieth's twelve, one is the frozen set's, eight are the new instrument's in the
+package, two are in its own new code, and one is in a frozen instrument by reading.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -1867,30 +1936,29 @@ have been entitled to call blocking**, as does **AU1**, eleven obligations that 
 could distinguish an implementation honouring them from one that did not. The condition is doing what
 it was written to do; it has not yet run out of findings.
 
-The next work is therefore a twentieth author-side pass, and it is the **first of the two
-consecutive passes** the 2026-09-04 ruling requires. The nineteenth took the narrower of the two units
-the eighteenth named -- every closed-vocabulary field of every record against the set the design
-states, regardless of group -- and built it total, so that a string field the census was not told
-about fails rather than passing unseen. Section 2v records what it found: five findings, all in the
-verification, the largest on every session record in the corpus, and one that had the property
-twenty-one findings converged on green on its own named mutation when the record was stated as the
-artifact states it.
+**The twentieth was to be the first of the two owed from zero and is not either, and for the first
+time in fourteen passes its frozen set is a reason.** That set -- the 117-probe corpus, the coverage
+measure, both design gates, the return-channel census, the read-provenance census, the polarity and
+citation checks, the closed-vocabulary census, and 52,000 evaluations over 2,000 generated vectors at
+0 red with AZ3's sweep green -- reported **BF1**: one probe, `AQ1-a`, returned pass, because a guard
+the nineteenth pass's own narrative had darkened was pinned by a probe that pass merged without
+running. The streak of clean frozen sets ends at thirteen. The instrument it built -- every field of
+a recording copy of each declared vector recording its own reads, over every (property, input) pair
+of both polarities -- found **BF2** through **BF9** in the package on its first run, eleven fields on
+148 records read by nothing, and BF3 among them is a property red on a legal input the brief's own
+format describes. Fourteen of these twenty passes have now had a new instrument that found something,
+and this is the first since the sixth whose frozen set found something too.
 
-**The twentieth's method is the wider question the eighteenth named and the nineteenth left open:
-which fields the corpus states that no property reads, against which the brief's format requires.** The
-nineteenth's classification puts one question to every field -- what kind of field is it, and where
-does the design say so -- and recorded a first look at the other: `initialSessionState`,
-`establishedProfile` and both `recordedBy` fields are read by no property, and `S2` and `C2-P1`
-default a session's initial state to `unestablished` in code while twelve session records state it and
-nobody reads them -- one fact, two surfaces, the record's read by nobody, which is AX2's own shape on
-the field beside the one BE1 deleted. The unit is known to be harder than it looks: the read-provenance
-census walks green-expected inputs only, so a field read only on a mutation's path is read by nobody it
-can see, and a measure of "read by no property" has to walk both polarities or say which it walked.
-Beside it, and smaller, are the two vocabularies the nineteenth could classify and not check: `class`
-and `direction` are a profile's, the corpus carries no profile record to check them against, and `I6`
-and `C7-P1` select on a class name no artifact declares. The plan's rule about the two is unchanged:
-the instrument is built, run over the package as found, and its first-run findings recorded before they
-are corrected.
+The next work is therefore a twenty-first author-side pass, and it is the **first of the two
+consecutive passes** the 2026-09-04 ruling requires. The twentieth took the wider question the
+eighteenth named and the nineteenth left open and built it over both polarities; section 2w records
+what it found and what it leaves: the read-provenance census's poisoning walk over the red polarity,
+where ten fields are read and no instrument asks which reader read them; the operand-mutation unit
+generalised from frame references to every field, since a read is a dereference and not an operand;
+and the profile record, the owner-sized unit behind BF2 and BF9 and the two vocabularies the
+nineteenth could classify and not check. The plan's rule is unchanged: the instrument is built, run
+over the package as found, and its first-run findings recorded before they are corrected -- and the
+whole probe corpus is run over the branch before the pass reports, which BF1 is the cost of not doing.
 
 What the fourteenth left undone is narrower and should not be confused with the above: the seven inert
 droppings are inert because the generated population carries one frame shape per session, and the
@@ -1921,10 +1989,10 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,339** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,343** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
-  commits, which was never the value at any commit; it is corrected under **AM3**. It has moved seven
-  times since: five times by four characters, for the same reason — registering a new
+  commits, which was never the value at any commit; it is corrected under **AM3**. It has moved eight
+  times since: six times by four characters, for the same reason — registering a new
   iteration-review family in the Design reviews row — once by minus two, when registering BD took
   that row past the 300-character bound W3 set on a cell and its wording was shortened to fit, and
   once by minus three, when registering BE did the same. On each occasion the check that recomputes it
@@ -1990,13 +2058,13 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   nothing, and cutting the return-channel census from about a hundred syntax-tree walks per gate to one
   moved it from 530 traced seconds to 318 — real, but a fifth of what the walk count suggested, because
   what costs is executed statements and not walks; and
-- **guard probes executable** — currently **117 of 117**, run by
+- **guard probes executable** — currently **130 of 130**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
-- **design-verifier lines** — **2,895** now, recomputed by the verifier against itself. Every step
+- **design-verifier lines** — **2,925** now, recomputed by the verifier against itself. Every step
   of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
   the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
   `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491**, `138af11` **2,626** — counted the way this verifier counts
@@ -2018,7 +2086,10 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   still absorbing the cost of a structural problem. It did not move for BA: that pass added a gate and
   changed one line here, the review-file roster. It did not move for BB either, and for the same
   reason -- that pass's work is all in the properties gate, the return-channel census and their
-  declarations, and the one line it changed here is again the review-file roster.
+  declarations, and the one line it changed here is again the review-file roster. It rose by thirty
+  for BF, and all thirty are in two guards that pass found dark or darkening: the AJ2 narrative key
+  that names what introduces a review rather than what does not, and the next-pass ordinal check that
+  fails when it has no word rather than skipping, with word lists that now reach thirty.
 
 ## 5. Open questions for the owner
 

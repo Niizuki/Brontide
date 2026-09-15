@@ -188,6 +188,7 @@ dependency instead of narrowing it.
 | BC | iteration | verification | seventeenth W1-W3 verification-foundation iteration review |
 | BD | iteration | verification | eighteenth W1-W3 verification-foundation iteration review |
 | BE | iteration | verification | nineteenth W1-W3 verification-foundation iteration review |
+| BF | iteration | design | twentieth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -283,7 +284,7 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Nineteen such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
+Twenty such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
 nothing it can fix. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
@@ -302,16 +303,19 @@ nothing it can fix. They are retained as the
 [fifteenth](./channel-0.2-ba-iteration-review.md) (**BA1**-**BA7**),
 [sixteenth](./channel-0.2-bb-iteration-review.md) (**BB1**-**BB7**),
 [seventeenth](./channel-0.2-bc-iteration-review.md) (**BC1**-**BC3**),
-[eighteenth](./channel-0.2-bd-iteration-review.md) (**BD1**-**BD3**) and
-[nineteenth](./channel-0.2-be-iteration-review.md) (**BE1**-**BE5**) W1-W3 verification-foundation
+[eighteenth](./channel-0.2-bd-iteration-review.md) (**BD1**-**BD3**),
+[nineteenth](./channel-0.2-be-iteration-review.md) (**BE1**-**BE5**) and
+[twentieth](./channel-0.2-bf-iteration-review.md) (**BF1**-**BF11**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised.
 
-**A twentieth pass over the same scope is the live path, and it is the first of two consecutive
+**A twenty-first pass over the same scope is the live path, and it is the first of two consecutive
 clean passes that are owed again from zero.** It starts by running the frozen instrument set — the
 probe corpus, the coverage gate, the generated-vector run, the return-channel census, the
-read-provenance census, the declaration-polarity check, the declaration-citation check and the
-closed-vocabulary census, whose sizes the plan's section 4 owns and recomputes rather than this
-paragraph — and records what it reports before building anything.
+read-provenance census, the declaration-polarity check, the declaration-citation check, the
+closed-vocabulary census and the field-readership census, whose sizes the plan's section 4 owns and
+recomputes rather than this paragraph — and records what it reports before building anything. It runs
+the whole corpus over its own branch before it reports, which the twentieth found the nineteenth had
+not.
 
 **The fifteenth pass was to be the first of those two and was not.** Its frozen set reported nothing,
 for the ninth consecutive pass. The instrument it built — a census of what every consumer in these
@@ -391,15 +395,31 @@ none with the artifact — stated as the artifact states it, `C4-P2` was green o
 **BE3**-**BE5** are an effect certainty, two session events and a latch category the design has no
 word for, on mutation records and in the generator.
 
-**The twentieth pass's method is the wider question the eighteenth named and the nineteenth left
-open: which fields the corpus states that no property reads, against which the brief's format
-requires.** The nineteenth recorded a first look — `initialSessionState`, `establishedProfile` and
-both `recordedBy` fields are read by no property, and `S2` and `C2-P1` default a session's initial
-state in code while twelve session records state it and nobody reads them — and the limit that makes
-it harder than it looks: the read-provenance census walks green-expected inputs only, so a field read
-only on a mutation's path is read by nobody it can see. Beside it are the two vocabularies the census
-could classify and not check, `class` and `direction`, which the design says a profile owns and no
-record in the corpus declares.
+**The twentieth pass was to be the first of those two and was not, and for the first time in
+fourteen passes its frozen set is a reason too.** The frozen set reported **BF1**: one probe of the
+117, `AQ1-a`, returned pass at the head, because the AJ2 narrative guard's ordinal key had been
+satisfied by the nineteenth pass's own "thirteenth consecutive" — AX3's class a fourth time — and the
+nineteenth had merged with the corpus over its branch unrun. The instrument it built answers the
+question the eighteenth named and the nineteenth left open: every field of a recording copy of each
+declared vector is replaced by a getter that records its path and returns the value it replaced, one
+run per (property, input) pair over both polarities records every field an evaluator dereferenced,
+the step index is replayed over the same copy, and a field nothing reads fails. It raised
+**BF2**-**BF9** in the package on its first run — eleven fields on 148 records read by nothing —
+and **BF3** is the one to weigh: `S2` and `C2-P1` began every session at `unestablished` by a literal
+while sixty records stated the initial state the brief's format requires, so a conforming realization
+whose window opens mid-session was red on both, which is AE1's class. **BF2** and **BF4** reach the
+completeness review's audit rows with a mutation each, so the family is classified `design` whole;
+**BF10** is the pass's own code caught by the frozen read-provenance census; **BF11** is the design
+gate's next-pass ordinal check, which would have skipped silently past the twentieth pass; and
+**BF12** is the pass's own anchors caught by the coverage measure's operand unit on its first run
+over the branch.
+
+**The twenty-first pass's method is not chosen here.** The twentieth left three units named: the
+read-provenance census's poisoning walk over the red polarity, where ten fields are read and no
+instrument asks which reader read them; the operand-mutation unit generalised from frame references
+to every field, since a read is a dereference and not an operand; and the profile record, which is
+the owner-sized unit behind BF2 and BF9 and the two vocabularies the nineteenth could classify and not
+check.
 
 Nothing in this paragraph resumes the closure cycle or authorizes a closure-review dispatch.
 
@@ -1040,15 +1060,17 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `verification: pin the eleven property obligations no
-input reached`, committed 2026-09-03, which is the head of the correction sequence beginning at
-`fix(channel): make C4-P2 falsifiable`. It moves the pin off `ci: put the gate self-checks behind an
-explicit switch` because the ninth pass's **AU1** corrections reach a design artifact -- the
-completeness review's per-capability audit rows for `C2`, `C3`, `C5`, `C7`, `C8`, `C9`, `C10`, `C11`
-and `I6`, which now name a mutation for each obligation rather than for each clause. The pin was
-previously moved off `feat(channel): retain the coverage instrument and close AR1` for the eighth
-pass's **AT1**-**AT3** corrections, which reached the same audit for `I4`, `C6` and `C10`. The other commits above
-the previous pin are verification-foundation work done under the hold rather than corrections to a
+The current review target is the commit titled `verification: record the twentieth condition-4 pass
+and its design-family dispositions`, committed 2026-09-15, which is the head of the correction
+sequence beginning at `fix(channel): make C4-P2 falsifiable`. It moves the pin off `verification: pin
+the eleven property obligations no input reached` because the twentieth pass's **BF2** and **BF4**
+corrections reach a design artifact -- the completeness review's per-capability audit rows for `C10`
+and `I4`, which now name a mutation for the direction on C10's list and for the `unseen` refusal
+record's effect certainty, and its review-disposition history, which records the BF family whole. The pin was previously moved off `ci: put the gate
+self-checks behind an explicit switch` for the ninth pass's **AU1** corrections, which reached the
+same audit for nine properties, and before that off `feat(channel): retain the coverage instrument and
+close AR1` for the eighth pass's **AT1**-**AT3** corrections. The other commits above
+the earlier pins are verification-foundation work done under the hold rather than corrections to a
 finding: all twenty-six properties now execute in
 the gate with their required-green sets stated, the three frame references and the recipient `unseen`
 refusal record are rendered from one declaration into the twenty-one artifact sites that publish them,
@@ -1308,6 +1330,22 @@ context elsewhere — never as evidence that their conclusions are right.
   effect certainty, session events and a latch category the design has no word for. BE2 was pinned
   with the records corrected before the selectors, and ten probes keep the census honest. Nothing was
   raised against the pass's own new code by a frozen instrument.
+- [Twentieth W1-W3 verification-foundation iteration review](./channel-0.2-bf-iteration-review.md) —
+  the same scope at `4557704`; raised **BF1**-**BF12** and corrected all twelve, so it is **not** the
+  first of the two consecutive clean passes and the count stays at zero. Its frozen set reported
+  **BF1**, the first frozen-set finding in fourteen passes: probe `AQ1-a` returned pass because the AJ2
+  narrative guard's ordinal key was satisfied by the nineteenth pass's "thirteenth consecutive", in a
+  corpus the nineteenth merged without running. Its instrument records every field an evaluator
+  dereferences over a recording copy of each declared vector, on both polarities, and found
+  **BF2**-**BF9** in the package on its first run: eleven fields on 148 records read by nothing, among
+  them the four the nineteenth had named. **BF3** is the one to weigh — `S2` and `C2-P1` began every
+  session at `unestablished` in code while sixty records stated the initial state the brief's format
+  requires, so a legal input whose window opens mid-session was red on both. **BF2** and **BF4** give
+  `C10-P1` and `I4` a mutation each in the completeness review's audit rows, which is why the family
+  is `design`; **BF5**-**BF8** are second surfaces deleted or reconciled; **BF9** is the declared
+  profile `S5` now names. **BF10** and **BF12** are the pass's own code caught by frozen instruments,
+  and **BF11** is a frozen guard that would have gone silent on this pass, found by reading. Thirteen
+  probes keep the census honest, one of them recording a limit rather than a guard.
 
 ## Disclosed process deviation in the T1-T4 correction
 

@@ -543,8 +543,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "run in the gate on every commit: **71** evaluations over **32** declared inputs",
-          "replace": "run in the gate on every commit: **55** evaluations over **32** declared inputs"
+          "find": "run in the gate on every commit: **74** evaluations over **34** declared inputs",
+          "replace": "run in the gate on every commit: **55** evaluations over **34** declared inputs"
         }
       ],
       "gateArguments": [
@@ -1988,8 +1988,8 @@
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "                establishedBound = $bound\n                establishedProfileRecord = $profileRecord",
-          "replace": "                establishedBound = $bound\n                sessionOpen = $true\n                establishedProfileRecord = $profileRecord"
+          "find": "                establishedBound = $bound",
+          "replace": "                establishedBound = $bound; sessionOpen = $true"
         }
       ],
       "gateArguments": [
