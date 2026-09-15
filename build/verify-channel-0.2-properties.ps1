@@ -2665,7 +2665,7 @@ foreach ($citedDeclaration in (@($script:OptionalReads.Keys) + @($script:Obligat
     }
 }
 $censusSanctioned = $censusReadCount - $censusRawCount
-$censusScope = if ($CensusPairs -gt 0) { " -- CAPPED at $CensusPairs pairs per property by -CensusPairs, so this is not a census of the corpus" } else { '' }
+$censusScope = if ($CensusPairs -gt 0) { " -- CAPPED at $CensusPairs pairs per polarity of each property by -CensusPairs, so this is not a census of the corpus" } else { '' }
 # This line runs whether or not the checks above added a failure, so it states what was MEASURED and
 # not what a passing run would imply about it. "Exercised by a conforming input" is the verdict of the
 # check, not a property of the count, and printing it here would have the measure assert on a failing
