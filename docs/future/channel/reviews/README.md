@@ -189,6 +189,7 @@ dependency instead of narrowing it.
 | BD | iteration | verification | eighteenth W1-W3 verification-foundation iteration review |
 | BE | iteration | verification | nineteenth W1-W3 verification-foundation iteration review |
 | BF | iteration | design | twentieth W1-W3 verification-foundation iteration review |
+| BG | iteration | verification | twenty-first W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -284,9 +285,9 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Twenty such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
-nothing it can fix. They are retained as the
-[first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM3**),
+Twenty-one such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
+nothing it can fix, with the twenty-first's standing under that condition an open owner question. They are retained as the
+[first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM5**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
 [third](./channel-0.2-ao-iteration-review.md) (**AO1**-**AO3**),
 [fourth](./channel-0.2-ap-iteration-review.md) (**AP1**-**AP2**),
@@ -299,23 +300,28 @@ nothing it can fix. They are retained as the
 [eleventh](./channel-0.2-aw-iteration-review.md) (**AW1**),
 [twelfth](./channel-0.2-ax-iteration-review.md) (**AX1**-**AX3**),
 [thirteenth](./channel-0.2-ay-iteration-review.md) (no finding),
-[fourteenth](./channel-0.2-az-iteration-review.md) (**AZ1**-**AZ2**),
+[fourteenth](./channel-0.2-az-iteration-review.md) (**AZ1**-**AZ2**, **AZ4**),
 [fifteenth](./channel-0.2-ba-iteration-review.md) (**BA1**-**BA7**),
 [sixteenth](./channel-0.2-bb-iteration-review.md) (**BB1**-**BB7**),
 [seventeenth](./channel-0.2-bc-iteration-review.md) (**BC1**-**BC3**),
 [eighteenth](./channel-0.2-bd-iteration-review.md) (**BD1**-**BD3**),
-[nineteenth](./channel-0.2-be-iteration-review.md) (**BE1**-**BE5**) and
-[twentieth](./channel-0.2-bf-iteration-review.md) (**BF1**-**BF11**) W1-W3 verification-foundation
-iteration reviews, each of which corrected everything it raised.
+[nineteenth](./channel-0.2-be-iteration-review.md) (**BE1**-**BE5**),
+[twentieth](./channel-0.2-bf-iteration-review.md) (**BF1**-**BF12**) and
+[twenty-first](./channel-0.2-bg-iteration-review.md) (**BG1**-**BG2**) W1-W3 verification-foundation
+iteration reviews, each of which corrected everything it raised. The ranges in that list are read
+back against each review's finding headings by the design verifier since **BG2**, which found this
+list understating three of them.
 
-**A twenty-first pass over the same scope is the live path, and it is the first of two consecutive
-clean passes that are owed again from zero.** It starts by running the frozen instrument set — the
-probe corpus, the coverage gate, the generated-vector run, the return-channel census, the
-read-provenance census, the declaration-polarity check, the declaration-citation check, the
-closed-vocabulary census and the field-readership census, whose sizes the plan's section 4 owns and
-recomputes rather than this paragraph — and records what it reports before building anything. It runs
-the whole corpus over its own branch before it reports, which the twentieth found the nineteenth had
-not.
+**A twenty-second pass over the same scope is the live path.** Whether it is the second of the two
+consecutive clean passes owed from zero, or the first again, is **AW2**'s question: the twenty-first's
+frozen set reported nothing and the instrument it built found nothing in the package, and its two
+findings were found by reading, which the 2026-09-04 ruling counts in neither population. It starts by
+running the frozen instrument set — the probe corpus, the coverage gate, the generated-vector run, the
+return-channel census, the read-provenance census over both polarities, the declaration-polarity
+check, the declaration-citation check, the closed-vocabulary census, the field-readership census and
+the roster check, whose sizes the plan's section 4 owns and recomputes rather than this paragraph —
+and records what it reports before building anything. It runs the whole corpus over its own branch
+before it reports, which the twentieth found the nineteenth had not.
 
 **The fifteenth pass was to be the first of those two and was not.** Its frozen set reported nothing,
 for the ninth consecutive pass. The instrument it built — a census of what every consumer in these
@@ -1347,6 +1353,20 @@ context elsewhere — never as evidence that their conclusions are right.
   profile `S5` now names. **BF10** and **BF12** are the pass's own code caught by frozen instruments,
   and **BF11** is a frozen guard that would have gone silent on this pass, found by reading. Thirteen
   probes keep the census honest, one of them recording a limit rather than a guard.
+- [Twenty-first W1-W3 verification-foundation iteration review](./channel-0.2-bg-iteration-review.md) —
+  the same scope at `06f9547`; raised **BG1**-**BG2** and corrected both, and both were found by
+  reading rather than by either population the 2026-09-04 ruling counts. Its frozen set reported
+  nothing, the first clean frozen set since the twentieth. Its instrument is the read-provenance
+  census walked over the red-expected inputs as well -- the polarity `BB1-c` had recorded as
+  invisible -- and it found **nothing in the package** on its first run: 48 more pairs, 503 more
+  reads, none raw. **BG1** is that census's own baseline recording a declared input's absences as
+  `undeclared`, the value BC1 reserves for dispatches with no declared verdict. **BG2** is this
+  policy's next-work roster listing the twentieth pass as `BF1`-`BF11` against twelve headings, and
+  the guard written to pin it finding the first pass listed as `AM1`-`AM3` against five and the
+  fourteenth without `AZ4`; the AM size is corrected on four surfaces. Whether a pass whose only
+  findings were found by reading is the first of the two owed is **AW2**'s open question, stated
+  both ways in the review and not decided. Five probes keep the census honest, one of them the
+  flipped `BB1-c`.
 
 ## Disclosed process deviation in the T1-T4 correction
 

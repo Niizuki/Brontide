@@ -1195,7 +1195,7 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-ax-iteration-review.md', 'channel-0.2-ay-iteration-review.md', 'channel-0.2-az-iteration-review.md', 'channel-0.2-ba-iteration-review.md', 'channel-0.2-bb-iteration-review.md', 'channel-0.2-bc-iteration-review.md', 'channel-0.2-bd-iteration-review.md', 'channel-0.2-be-iteration-review.md', 'channel-0.2-bf-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-ax-iteration-review.md', 'channel-0.2-ay-iteration-review.md', 'channel-0.2-az-iteration-review.md', 'channel-0.2-ba-iteration-review.md', 'channel-0.2-bb-iteration-review.md', 'channel-0.2-bc-iteration-review.md', 'channel-0.2-bd-iteration-review.md', 'channel-0.2-be-iteration-review.md', 'channel-0.2-bf-iteration-review.md', 'channel-0.2-bg-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
     $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, every retained attestation, every retained iteration review, and the disposition index the status blocks point at, before the next closure review. The expected list above is the authority for which those are: a retained record added or removed without editing it is the mismatch this reports. It no longer states a tally, because the one it carried had been wrong by two since the AV pass.')
@@ -1499,6 +1499,66 @@ else {
             elseif ($ordinalMatch.Groups[1].Value -cne $nextOrdinal) {
                 $failures.Add("$($ordinalClaim.Where) calls the next pass the '$($ordinalMatch.Groups[1].Value)' and $conditionFourPasses have been retained, so the next one is the '$nextOrdinal'. A pass named after one that has already run sends the next agent to repeat it.")
             }
+        }
+    }
+
+    # BG2. The review policy's next-work section lists every condition-4 pass with the findings it
+    # raised -- `[twentieth](./channel-0.2-bf-iteration-review.md) (**BF1**-**BF11**)` -- and the
+    # twentieth raised twelve. The commit that recorded that pass updated five surfaces stating the
+    # family's size and left this one, which is AX1's class a fourth time: the entry points that go
+    # stale are the ones only prose carries. On its first run this found two more: the first pass
+    # listed as `AM1`-`AM3` with headings to `AM5`, and the fourteenth as `AZ1`-`AZ2` with `AZ4`
+    # left off. Each listed entry is read back here against the finding headings of the review it
+    # links to: every id it states must have a heading, and the largest it states must be the
+    # largest the review carries. An omission strictly inside the range is not caught, and that is
+    # deliberate rather than a gap -- `AZ3` is a numbered non-finding the fourteenth review declares
+    # as such, so the roster lists `AZ1`-`AZ2`, `AZ4` and a set-equality rule would fail the truth.
+    # A pass listed as `(no finding)` must carry no heading at all, which is the declaration the
+    # disposition check above requires of it in the review itself.
+    #
+    # Scoped to the roster because its form is precise. The Channel index's range list and the
+    # future index's per-pass sentences state the same ranges in prose, and a check over every
+    # `**XX1**-**XXn**` in a narrative reports two legitimate sub-ranges -- a commit correcting
+    # `AT1`-`AT3`, and `BA1`-`BA4` as the subset a pass found in the package -- so those surfaces are
+    # read for the family token by the AJ2 check and not for the range.
+    $rosterEntries = @([regex]::Matches($reviewReadme, '\[[a-z-]+\]\(\./(channel-0\.2-[a-z]+-iteration-review\.md)\)\s*\(((?:\*\*[A-Z]{1,2}[0-9]+\*\*(?:-\*\*[A-Z]{1,2}[0-9]+\*\*)?(?:, )?)+|no finding)\)'))
+    if ($rosterEntries.Count -lt $conditionFourPasses) {
+        $failures.Add("The review policy's next-work section lists $($rosterEntries.Count) condition-4 passes with what they raised and $conditionFourPasses are retained. Every retained pass is listed there, so a pass missing from the list is one a reader of the policy never learns ran.")
+    }
+    foreach ($rosterEntry in $rosterEntries) {
+        $rosterFile = Join-Path $reviewDirectory $rosterEntry.Groups[1].Value
+        if (-not (Test-Path -LiteralPath $rosterFile)) {
+            $failures.Add("The review policy's next-work section links '$($rosterEntry.Groups[1].Value)' and no such review is retained.")
+            continue
+        }
+        $rosterReview = Get-Content -Raw -LiteralPath $rosterFile -Encoding UTF8
+        $rosterHeadings = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        $rosterHeadingMax = 0
+        foreach ($rosterHeading in [regex]::Matches($rosterReview, '(?m)^### ([A-Z]{1,2}([0-9]+)) ')) {
+            [void]$rosterHeadings.Add($rosterHeading.Groups[1].Value)
+            if ([int]$rosterHeading.Groups[2].Value -gt $rosterHeadingMax) { $rosterHeadingMax = [int]$rosterHeading.Groups[2].Value }
+        }
+        $rosterStated = $rosterEntry.Groups[2].Value
+        if ($rosterStated -ceq 'no finding') {
+            if ($rosterHeadings.Count -gt 0) {
+                $failures.Add("The review policy's next-work section lists '$($rosterEntry.Groups[1].Value)' as having raised no finding, and that review carries $($rosterHeadings.Count) finding heading(s). The list is where a reader learns what each pass raised, and it says the opposite of the review it links.")
+            }
+            continue
+        }
+        $rosterStatedMax = 0
+        foreach ($rosterToken in [regex]::Matches($rosterStated, '\*\*([A-Z]{1,2})([0-9]+)\*\*(?:-\*\*[A-Z]{1,2}([0-9]+)\*\*)?')) {
+            $rosterFamily = $rosterToken.Groups[1].Value
+            $rosterFrom = [int]$rosterToken.Groups[2].Value
+            $rosterTo = if ($rosterToken.Groups[3].Success) { [int]$rosterToken.Groups[3].Value } else { $rosterFrom }
+            for ($rosterId = $rosterFrom; $rosterId -le $rosterTo; $rosterId++) {
+                if (-not $rosterHeadings.Contains("$rosterFamily$rosterId")) {
+                    $failures.Add("The review policy's next-work section lists '$($rosterEntry.Groups[1].Value)' as having raised $rosterFamily$rosterId, and that review has no such finding heading. The list is where a reader learns what each pass raised, and it names a finding the review does not.")
+                }
+            }
+            if ($rosterTo -gt $rosterStatedMax) { $rosterStatedMax = $rosterTo }
+        }
+        if ($rosterStatedMax -ne $rosterHeadingMax) {
+            $failures.Add("The review policy's next-work section lists '$($rosterEntry.Groups[1].Value)' as having raised $rosterStated, and that review's finding headings run to $rosterHeadingMax. The list is where a reader learns what each pass raised, and a range only prose carries is the one that goes stale in the commit recording the pass -- BG2, and AX1's class.")
         }
     }
     # DESIGN families only, under the 2026-08-20 ruling. This set is the anchor for five freshness

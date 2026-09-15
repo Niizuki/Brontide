@@ -207,14 +207,16 @@ a fact's own words cannot see a passage that states a third of it.
 
 **Condition 4 has now run four times and is met by none of them.** The author-side pass over W1-W3 is retained as the
 [W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-am-iteration-review.md);
-it raised **AM1**-**AM3** and corrected all three, and that condition asks for a pass that finds
+it raised **AM1**-**AM5** and corrected all five, and that condition asks for a pass that finds
 nothing it can fix. **AM1** is the W3 status-block length bound measuring to the first blank line while
 the disposition history it excludes sat one blank line beneath it -- a paragraph appended there passed
 every check in the gate. **AM2** and **AM3** are two of the plan's five section 4 measures stating
 numbers the repository does not produce; the measures the gates compute were right and both left to
 prose were wrong. The bound is now over the whole region above the first heading with a declared
 front-matter permit list, and both measures are recomputed by the design verifier, historical halves
-included.
+included. **AM4** and **AM5** were raised inside the same pass against its own correction and by CI,
+and the surfaces stating the family's size were written before them -- which is the shape **BG2**
+found, twenty passes later, on the review policy's own roster.
 
 **The second pass has run and is not met either**, retained as the
 [second W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-an-iteration-review.md);
@@ -484,6 +486,27 @@ coverage measure's operand unit -- and **BF11** is the design gate's next-pass o
 word lists ended at twenty and whose ordinal branch would have skipped silently on this very pass. The
 two consecutive clean passes stay owed from zero, a twenty-first pass is the next work, and the
 closure-review hold remains in force.
+
+**The twenty-first pass then walked the polarity the read-provenance census could not see, and found
+nothing there.** It is retained as the
+[twenty-first W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-bg-iteration-review.md)
+and raised **BG1**-**BG2**. Its frozen set reported nothing at the head -- the first clean frozen set
+since the twentieth ended a streak of thirteen. The census had poisoned fields on green-expected inputs
+only, so a raw read on a path only a declared mutation reaches was a read to the field-readership
+census and a raw read to nothing, which the `BB1-c` probe had recorded as an expect-pass since the
+sixteenth pass; the named mutations are walked too now, each against a baseline that must be red through
+its declared conjunct, with one class the green polarity cannot produce -- a raw read that moves the
+verdict to **green**, an unreadable record passing as conforming. On its first run over the package
+it reported 48 more pairs and 503 more reads, none raw; falsified, it reports `S1`'s own witness read
+raw and `I4` reading a refusal's `stage` on a path no green-expected input reaches at all. Both
+findings came from reading. **BG1** is the frozen census's baseline recording a declared input's
+absences as `undeclared`, the value BC1 reserves for dispatches with no declared verdict; **BG2** is
+the review policy's next-work roster listing the twentieth pass as `BF1`-`BF11` against twelve
+headings, and the guard written to pin it finding the first pass listed as `AM1`-`AM3` against five
+-- **AM4** and **AM5** having been raised inside that pass after every surface stating its size was
+written -- and the fourteenth without `AZ4`. Whether a pass whose only findings were found by reading
+is the first of the two owed is **AW2**, put to the owner by the eleventh and still open; a
+twenty-second pass is the next work either way, and the closure-review hold remains in force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
