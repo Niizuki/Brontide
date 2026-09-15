@@ -2035,9 +2035,9 @@ them for twenty passes. BF11 was recorded the same way one pass earlier and coun
 population. **AW2** asked, after the eleventh, whether a finding found by reading fails a pass both of
 the ruling's tests pass; it has not been answered, and this pass does not answer it. Read one way the
 count is at one; read the other, BG2's guard is an instrument built during the pass whose first run
-found something in the package, and the count stays at zero. Fifteen of these twenty-one passes have
-now built an instrument that found something, and the twenty-first is the first since the thirteenth
-to build one that did not.
+found something in the package, and the count stays at zero. Fourteen of these twenty-one passes have
+built an instrument that found something in the package, and the twenty-first is the first since the
+thirteenth whose named instrument did not.
 
 The next work is therefore a twenty-second author-side pass, and it is either the **second of the two
 consecutive passes** the 2026-09-04 ruling requires or the first again, as AW2 is ruled. Section 2x

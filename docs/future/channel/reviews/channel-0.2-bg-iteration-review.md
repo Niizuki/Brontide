@@ -178,9 +178,14 @@ closing.
   reported AM and AZ before anyone had read those entries. The AM and AZ headings were then read to
   confirm what it said: five corrected findings, and a declared non-finding at `AZ3`.
 - **The frozen instruments were run over the branch as it was built.** The return-channel census
-  passes over the extended gate with the same twenty consumers. The coverage measure over the
-  instrument commit, the whole corpus and the deep run over the final branch head are recorded in
-  the last bullet of this section once they report.
+  passes over the extended gate with the same twenty consumers. **The whole set was then run over
+  `490fd81`, the head that records this pass, in the same clone: the text, link, design, owned-fact
+  and return-channel gates, the properties gate at its default count, the corpus at 134 of 134 over
+  22 workers in 1,433 seconds, the coverage measure over four gates in 1,275 seconds with the same
+  41 condition and 6 operand exemptions it declared before this pass -- so nothing the pass added
+  needed one -- and the deep run at 52,000 evaluations and 0 red with the sweep green over 500, all
+  exit 0.** The one commit above that head changes this paragraph and one arithmetic sentence in the
+  plan's section 3, and the text, link, design, owned-fact and properties gates were re-run over it.
 
 ## What remains outside the pass
 
