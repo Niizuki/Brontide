@@ -285,8 +285,8 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Twenty-one such passes have run, and the thirteenth is the only one to meet the plan's condition 4, which asks for a pass that finds
-nothing it can fix, with the twenty-first's standing under that condition an open owner question. They are retained as the
+Twenty-one such passes have run, and the thirteenth and -- under the 2026-09-16 ruling on AW2 -- the eleventh are the only two to meet the plan's condition 4, which asks for a pass that finds
+nothing it can fix, and neither was followed by a second. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM5**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
 [third](./channel-0.2-ao-iteration-review.md) (**AO1**-**AO3**),
@@ -312,10 +312,13 @@ iteration reviews, each of which corrected everything it raised. The ranges in t
 back against each review's finding headings by the design verifier since **BG2**, which found this
 list understating three of them.
 
-**A twenty-second pass over the same scope is the live path.** Whether it is the second of the two
-consecutive clean passes owed from zero, or the first again, is **AW2**'s question: the twenty-first's
-frozen set reported nothing and the instrument it built found nothing in the package, and its two
-findings were found by reading, which the 2026-09-04 ruling counts in neither population. It starts by
+**A twenty-second pass over the same scope is the live path, and it is the first of two consecutive
+clean passes that are owed again from zero.** The twenty-first's frozen set reported nothing and the
+instrument it built found nothing in the package, and its two findings were found by reading, which
+the 2026-09-04 ruling counts in neither population; the
+[2026-09-16 ruling on **AW2**](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md#6-resolved-questions)
+holds that a pin built for such a finding is an instrument, and BG2's pin found two roster entries the
+pass did not know were wrong, so the count stays at zero. It starts by
 running the frozen instrument set — the probe corpus, the coverage gate, the generated-vector run, the
 return-channel census, the read-provenance census over both polarities, the declaration-polarity
 check, the declaration-citation check, the closed-vocabulary census, the field-readership census and

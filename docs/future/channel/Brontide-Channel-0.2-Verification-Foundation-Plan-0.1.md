@@ -1986,10 +1986,11 @@ seven previous clean frozen sets were worth. It made a whole class of failure �
 not be evaluated over its record at all — **invisible to the generated run**, so every "N generated
 vectors, 0 red" this programme has recorded is a floor against the failures that run could see, and
 not against that one. Whether the **eleventh** met the
-condition is the open question **AW2** puts to the owner: under the 2026-09-04 ruling both of its
-tests passed, and under the previous reading its one finding fails it. The twelfth does not meet it
-under either reading, because the instrument it extended found a real defect in the package — which is
-that ruling working rather than failing.
+condition was the question **AW2** put to the owner: under the 2026-09-04 ruling both of its tests
+passed, and under the previous reading its one finding fails it. The 2026-09-16 ruling in section 6
+settles it: the eleventh met the condition, since AW1's pin found nothing beyond AW1. The twelfth does
+not meet it under either reading, because the instrument it extended found a real defect in the
+package — which is that ruling working rather than failing.
 
 The thirteen are not the same pass repeated. AM recomputed numbers; AN asked where else each corrected
 fact was stated; AO read each guard's comment as a claim and tested it against the code; AP asked
@@ -2020,7 +2021,8 @@ stated 285 times across the corpus, read by nothing, and BF3 among them is a pro
 input the brief's own format describes. Fourteen of these twenty passes have now had a new instrument that found something,
 and this is the first since the sixth whose frozen set found something too.
 
-**The twenty-first was to be the first of the two owed from zero, and whether it is turns on AW2.**
+**The twenty-first was to be the first of the two owed from zero, and under the 2026-09-16 ruling on
+AW2 it is not.**
 Its frozen set -- the 130-probe corpus, the coverage measure, both design gates, the return-channel
 census, the read-provenance census, the polarity and citation checks, the closed-vocabulary and
 field-readership censuses, and 52,000 evaluations over 2,000 generated vectors at 0 red with AZ3's
@@ -2033,20 +2035,23 @@ the same, both by reading: a frozen instrument's baseline recording a polarity B
 dispatches with no declared verdict, and an entry point understating three families' sizes, one of
 them for twenty passes. BF11 was recorded the same way one pass earlier and counted in neither
 population. **AW2** asked, after the eleventh, whether a finding found by reading fails a pass both of
-the ruling's tests pass; it has not been answered, and this pass does not answer it. Read one way the
-count is at one; read the other, BG2's guard is an instrument built during the pass whose first run
-found something in the package, and the count stays at zero. Fourteen of these twenty-one passes have
-built an instrument that found something in the package, and the twenty-first is the first since the
-thirteenth whose named instrument did not.
+the ruling's tests pass; the pass recorded both readings and did not answer it. Read one way the count
+is at one; read the other, BG2's guard is an instrument built during the pass whose first run found
+something in the package, and the count stays at zero. **The 2026-09-16 ruling in section 6 adopts
+the second reading**: a pin built for a by-reading finding is an instrument, BG2's found two roster
+entries the pass did not know were wrong, and the count stays at zero. Fourteen of these twenty-one
+passes have built an instrument that found something in the package, and the twenty-first is the first
+since the thirteenth whose named instrument did not.
 
-The next work is therefore a twenty-second author-side pass, and it is either the **second of the two
-consecutive passes** the 2026-09-04 ruling requires or the first again, as AW2 is ruled. Section 2x
-records what the twenty-first found and what it leaves: the census still poisons the declared corpus
-only; the conjunct-moving class is unpinned because no declared vector can provoke it; the three
-narratives' finding ranges are read by no guard for the range; and the profile record behind BF2 and
-BF9 is still the owner's. The plan's rule is unchanged: the instrument is built, run over the package
-as found, and its first-run findings recorded before they are corrected -- and the whole probe corpus
-is run over the branch before the pass reports, which BF1 is the cost of not doing.
+The next work is therefore a twenty-second author-side pass, and it is the **first of the two
+consecutive passes** the 2026-09-04 ruling requires, owed again from zero. Section 2x records what the
+twenty-first found and what it leaves: the census still poisons the declared corpus only; the
+conjunct-moving class is unpinned because no declared vector can provoke it; and the three narratives'
+finding ranges are read by no guard for the range. The profile record behind BF2 and BF9 is no longer
+an inherited unit: the 2026-09-16 ruling in section 6 defers it to Batch 2 with its trigger stated. The
+plan's rule is unchanged: the instrument is built, run over the package as found, and its first-run
+findings recorded before they are corrected -- and the whole probe corpus is run over the branch before
+the pass reports, which BF1 is the cost of not doing.
 
 What the fourteenth left undone is narrower and should not be confused with the above: the seven inert
 droppings are inert because the generated population carries one frame shape per session, and the
@@ -2198,11 +2203,74 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
    with each new guard is an acceptance criterion someone can fail, as W1's registry deletion was, or a
    habit that decays the first time a pass is in a hurry. The measure in section 4 makes the decay
    visible either way, which is the argument for leaving it as a practice.
-5. **Should a vector state a realization's omission positively?** **BC1** added `Read-Obligation` for a
-   field whose absence is the violation a clause detects, and the reader names an ambiguity it does not
-   close: a vector that omits `decisionPoint` because the realization omitted it is byte-identical to
-   one whose author did not write it down, which is what **AU2** says an obligation cannot tell apart.
-   Closing it means the authority record carrying what the realization recorded rather than the reader
-   inferring it from what is missing. That changes what a conforming record must state, and therefore
-   what the neutral brief's vector format says, so it is a choice between defensible designs rather than
-   an author's call — the trigger **S1** and **R1** established for a ruling.
+
+## 6. Resolved questions
+
+Each ruling below was recommended by the agent that ran the twenty-first pass and adopted by the owner
+on that recommendation on 2026-09-16, which is disclosed because the first of them decides whether that
+agent's own pass counts, and it decides against it.
+
+**Owner ruling, 2026-09-16 — AW2: a finding found by reading does not by itself fail a pass; a guard
+built to pin one is an instrument, and what it finds beyond the instance it was written for counts.**
+The 2026-09-04 ruling counts what the frozen set reports and what a newly built instrument reports on
+its first run, and **AW2** asked whether a finding in neither -- one found by reading -- fails a pass
+that passes both tests. Three readings were on the table: that it does not; that any recorded finding
+fails the pass, which is the condition's pre-ruling wording; and that it does not, but a pin built for
+it is an instrument. The second is rejected because the hold's own diagnosis was that the only detector
+here was a person reading prose, and condition 4 measures whether the *instrumented* detection has
+converged; reading is unbounded, a careful reader will always find a stale sentence somewhere in these
+entry points, and under that reading the condition can never be met -- the failure the 2026-09-04
+ruling was written against. The first is rejected because it lets a by-reading finding be closed by
+hand with nothing pinning its class, which is the AA, AJ2 and AX1 cycles. The third is adopted. A
+by-reading finding is corrected and its class pinned where a pin can be written. If the pin's first run
+confirms only the instance it was written for, the instruments had converged there and the pass is
+clean of it; if it finds siblings the pass did not know about, the instruments had not converged, and
+those are first-run findings under the 2026-09-04 ruling's own definition -- a measure of what was
+previously undetectable. A by-reading finding whose class cannot be pinned is corrected and recorded and
+does not fail the pass; the next pass's frozen set is where its recurrence is found.
+
+Applied to the two passes that raised the question. The eleventh's **AW1** was corrected in a frozen
+guard whose rerun found only AW1, so the eleventh met the condition; the twelfth's instrument then
+found **AX2** in the package and the count reset there, as section 3 already records, so nothing in
+that tally moves. The twenty-first's **BG1** was corrected in a frozen instrument and pinned by
+observation and finds nothing beyond itself; **BG2**'s guard found the first and fourteenth passes'
+roster entries wrong as well as the twentieth's -- two siblings the pass did not know about -- so the
+twenty-first does not meet the condition, the count stays at zero, and the twenty-second pass is the
+first of the two owed.
+
+**Owner ruling, 2026-09-16 — a vector does not state a realization's omission positively; the brief's
+completeness rule already makes an omitted field a stated omission.** **BC1** added `Read-Obligation`
+for a field whose absence is the violation a clause detects and named the ambiguity it does not close:
+a vector that omits `decisionPoint` because the realization omitted it is byte-identical to one whose
+author did not write it down. The alternative was a positive marker on the authority record -- what
+the realization recorded rather than what the vector leaves out -- which changes what a conforming
+record must state and therefore the brief's vector format: a design change put in front of a closure
+review that has been on hold for a month. It is not adopted, because the ambiguity moves no verdict in
+the declared corpus and the brief already resolves it for Batch 2's vectors. The brief says *expected
+observations are complete data, not prose interpreted by adapters*, and that a vector never says
+implementation-defined for a normative field; under that rule a vector that omits a field the contract
+says is always recorded states that the realization recorded nothing, and an author who leaves one out
+has written a vector that says so. On a green-expected input that silence takes the property red,
+which the declared loop refuses, so an authoring omission on a conforming input is a failing gate and
+not a misread; on a named mutation the omission is the mutation's own subject, declared in its summary;
+and the generated population sets every field by construction. Where the question would bite -- a
+harness that drops a field the realization did record -- is a fidelity defect in the harness rather
+than in the vector format, and it is Batch 2's to guard when real observations are produced.
+`Read-Obligation`'s comment cites this ruling rather than an open question.
+
+**Owner ruling, 2026-09-16 — the comparison against the profile's own declaration is Batch 2 work,
+and the asserted Booleans are a stated limit of the hand-authored corpus until then.** `C3-P1`
+compares an interaction's class, direction and phase against the established profile through a
+`profileMatch` the vector asserts; `C10-P1` reads `observationComplete` for every item of C10's list
+but the direction, which **BF2** made it read itself; and `S5` names the declared profile without
+opening it -- the unit **BE** named and **BF** left. Making those comparisons executable means the
+profile record a session carries declaring the classes, directions and phases it admits, which is not
+a property of the corpus but of what a realization profile declares: the crossing artifact Batch 2
+authors against the responsibility matrix, with the session record and the brief's vector format
+following it. Deciding that shape here, ahead of the profiles it describes, would put a design change
+in front of the closure review for the sake of three evaluators reading a Boolean the vector already
+asserts. It is deferred to Batch 2 with the trigger stated: when the realization profile's declaration
+of admitted classes, directions and phases exists as a neutral artifact, `C3-P1`, `C10-P1` and `S5`
+read it and the two Booleans leave the vector format. Until then the properties gate records each
+Boolean as an asserted operand where it reads it, and no condition-4 pass names this as an inherited
+unit of its own.
