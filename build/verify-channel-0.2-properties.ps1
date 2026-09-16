@@ -742,9 +742,12 @@ function Read-Optional {
 # WHAT IT DOES NOT FIX, STATED HERE BECAUSE IT IS THE HALF A READER WILL LOOK FOR. A vector that
 # omits the field because it models a realization that omitted it, and a vector that omits it because
 # its author did not write it down, are still the same bytes. This reader names that rather than
-# closing it; closing it needs the vector to state the omission POSITIVELY, which changes what a
-# conforming authority record must carry and is an owner question rather than an author's. It is
-# recorded as this pass's open question.
+# closing it; closing it would need the vector to state the omission POSITIVELY, which changes what a
+# conforming authority record must carry. The owner ruled on 2026-09-16, in the verification
+# foundation plan's resolved questions, that it does not: the brief's rule that expected observations
+# are complete data makes an omitted field a stated omission, an authoring omission on a conforming
+# input is refused by the declared loop as a red where green is declared, and a harness that drops a
+# field a realization recorded is Batch 2's fidelity defect to guard, not this format's.
 function Read-Obligation {
     param($Record, [Parameter(Mandatory = $true)][string]$Field,
           [Parameter(Mandatory = $true)][hashtable]$Declares)
@@ -1362,7 +1365,11 @@ function Invoke-C10P1 {
         # C3-P1, standing in for a comparison the gate cannot make without the profile record. The
         # direction is the one item on C10's list that no property read through any surface, so this
         # clause checks that one item itself: an observation that omits it is not sufficient to
-        # distinguish it, whatever the Boolean asserts.
+        # distinguish it, whatever the Boolean asserts. Both Booleans are a stated limit of the
+        # hand-authored corpus by the owner ruling of 2026-09-16 in the verification foundation plan's
+        # resolved questions: the comparison becomes executable when Batch 2's realization profile
+        # declares the classes, directions and phases it admits as a neutral artifact, and the two
+        # Booleans then leave the vector format.
         if ($null -eq (Read-Obligation $interaction 'direction' $observationOmitsDirection)) {
             return New-Red "interaction $identity records an observation that omits its direction, which C10 requires the observation to be sufficient to distinguish"
         }

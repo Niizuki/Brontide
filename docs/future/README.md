@@ -505,8 +505,15 @@ the review policy's next-work roster listing the twentieth pass as `BF1`-`BF11` 
 headings, and the guard written to pin it finding the first pass listed as `AM1`-`AM3` against five
 -- **AM4** and **AM5** having been raised inside that pass after every surface stating its size was
 written -- and the fourteenth without `AZ4`. Whether a pass whose only findings were found by reading
-is the first of the two owed is **AW2**, put to the owner by the eleventh and still open; a
-twenty-second pass is the next work either way, and the closure-review hold remains in force.
+is the first of the two owed was **AW2**, put to the owner by the eleventh; the
+[2026-09-16 ruling](./channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md#6-resolved-questions)
+holds that such a finding does not fail a pass by itself, but that a pin built for one is an
+instrument and what it finds beyond its own instance counts -- so BG2's guard finding two more stale
+roster entries keeps the count at zero, and the eleventh, whose pin found nothing beyond AW1, met the
+condition after all. Two further rulings of the same date close the plan's open question on stating a
+realization's omission positively -- the brief's completeness rule already does -- and defer the
+profile record behind BF2 and BF9 to Batch 2 with its trigger stated. A twenty-second pass is the next
+work, the first of the two owed from zero, and the closure-review hold remains in force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
