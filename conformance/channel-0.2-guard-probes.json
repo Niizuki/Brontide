@@ -2317,7 +2317,7 @@
       "claim": "an evaluator that throws on a well-formed wrong value -- S1 throwing when a transition's target is establishing, which no declared transition has and the closed set permits -- is reported once per property, field and exception rather than left as a gate crash",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
-      "guardMessage": "Property 'S1' throws on 'S-conforming-single-session' when 'sessionTimeline[].to' carries 'establishing' instead of",
+      "guardMessage": "when 'sessionTimeline[].to' carries 'establishing' instead of 'established': probe: unexpected target state An evaluator that throws on a well-formed wrong value has not judged the record",
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
