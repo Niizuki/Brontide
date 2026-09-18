@@ -3443,16 +3443,32 @@ foreach ($trialPath in ($operandTrials.Keys | Sort-Object)) {
     }
     $operandInertPaths.Add("The declared corpus states '$trialPath', $(($trial.Readers | Sort-Object) -join ', ') read it, and over $($trial.Trials) trials giving it a wrong value of its own kind -- $($trial.WitnessOnly) of which moved only the witness text -- no property's verdict, conjunct, error or unpublished field moved on any input it declares, green-expected or red-expected. A read whose value decides nothing is a field a wrong value cannot fail: either the corpus lacks the input on which the value matters, which is the mutation to add; or the property compares it in a way that cannot fail, which is AU1's class at the operand; or it is read for reporting alone, which is declared inert here with the reason, so that a reader knows the corpus does not distinguish its value.")
 }
-foreach ($inertFinding in $operandInertPaths) {
-    $failures.Add($inertFinding)
-}
+$operandUnexercised = [System.Collections.Generic.List[string]]::new()
 foreach ($declared in $operandInertDeclared) {
     if (-not $operandTrials.ContainsKey([string]$declared.Field)) {
-        $failures.Add("The operand census declares '$($declared.Field)' inert and no trial reached that field: no property read it on any input, or no mutation of its kind exists. A declaration nothing exercises is one the suite cannot distinguish from a wrong one; delete it.")
+        $operandUnexercised.Add("The operand census declares '$($declared.Field)' inert and no trial reached that field: no property read it on any input, or no mutation of its kind exists. A declaration nothing exercises is one the suite cannot distinguish from a wrong one; delete it.")
     }
 }
-$operandScope = if ($CensusPairs -gt 0) { " -- CAPPED at $CensusPairs pairs per polarity of each property by -CensusPairs, so this is not a census of the corpus" } else { '' }
-Write-Host "Channel 0.2 operand census: $operandTrialCount trials gave a wrong value of its own kind to a field a property had read, over $($operandPairs['green']) green-expected and $($operandPairs['red']) red-expected (property, input) pairs, $operandIndexPairs of them reading the step index; $($operandTrials.Count) distinct fields tried, $operandDecisivePaths decisive on some input, $operandReconciledPaths reconciled by the harness, $operandDeclaredInertPaths declared inert by the design's words, $($operandInertPaths.Count) inert and undeclared, and $($operandThrown.Count) evaluator exceptions.$operandScope"
+# BH4. Under a cap the walk is not a census of the corpus, and two of its verdicts are only sound
+# over the whole of it: a field decisive only on a pair the cap left out reads as inert, and a
+# declaration exercised only there reads as unexercised. The coverage measure runs this gate at one
+# pair per polarity and found both -- `requiredFacets` and `supportedFacets` inert, decisive on the
+# pair the cap dropped -- so the gate exited 1 under the measure's own arguments and could not be
+# measured. Both verdicts are therefore drawn from an uncapped run alone, exactly as the
+# read-provenance census feeds its declaration checks from the uncapped declared loop rather than
+# from itself; the stale-declaration check above stands under a cap, since a field decisive on a
+# walked pair is decisive. A capped run still walks, counts and reports both, and its summary line
+# says it was capped.
+if ($CensusPairs -le 0) {
+    foreach ($inertFinding in $operandInertPaths) {
+        $failures.Add($inertFinding)
+    }
+    foreach ($unexercised in $operandUnexercised) {
+        $failures.Add($unexercised)
+    }
+}
+$operandScope = if ($CensusPairs -gt 0) { " -- CAPPED at $CensusPairs pairs per polarity of each property by -CensusPairs, so this is not a census of the corpus and its inert and unexercised counts are reported rather than failed" } else { '' }
+Write-Host "Channel 0.2 operand census: $operandTrialCount trials gave a wrong value of its own kind to a field a property had read, over $($operandPairs['green']) green-expected and $($operandPairs['red']) red-expected (property, input) pairs, $operandIndexPairs of them reading the step index; $($operandTrials.Count) distinct fields tried, $operandDecisivePaths decisive on some input, $operandReconciledPaths reconciled by the harness, $operandDeclaredInertPaths declared inert by the design's words, $($operandInertPaths.Count) inert and undeclared, $($operandUnexercised.Count) declarations no trial reached, and $($operandThrown.Count) evaluator exceptions.$operandScope"
 
 # The generator's half. The generator emits one field set, shaped by the same design the corpus is
 # written against, and the same evaluators read it -- so a field it emits is read if the declared

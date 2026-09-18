@@ -1834,8 +1834,8 @@ The twenty-second author-side pass has run, at `ad5a6b4`, and is retained as the
 It was to be the **first of the two consecutive clean passes** the 2026-09-04 ruling requires from
 zero, and it is not: its frozen set reported nothing -- the second consecutive clean frozen set -- and
 the instrument it built found **BH1**, **BH2** and **BH3** in the package on its first run, all in the
-verification and none in the design. The family is `verification` and this section is its
-disposition record.
+verification and none in the design; **BH4** is the pass's own code, caught by the frozen coverage
+measure. The family is `verification` and this section is its disposition record.
 
 **The instrument asks the question every census here stopped short of.** The field-readership census
 ends at the dereference and said so -- a read is a dereference, not an operand -- and whether a value
@@ -1901,6 +1901,20 @@ no value. `interactions[].direction` and `sessions[].establishedProfile` are rea
 in a witness respectively, because the comparison against the profile is the one the 2026-09-16 ruling
 in section 6 defers to Batch 2. The fifth declaration is `sessionTimeline[].event`, which is BH3 and
 whose reason names the open question rather than a fact the design states.
+
+**BH4 is the pass's own code, caught by the frozen coverage measure on its first run over the branch.**
+That measure runs the properties gate at one (property, input) pair per polarity of each property, and
+over the committed instrument it reported the gate exiting 1, so nothing in it could be measured. The
+census had called `sessions[].requiredFacets` and `sessions[].supportedFacets` inert: each is decisive
+on a `C11-P1` pair the cap left out and read on the one it walked. A capped walk is not a census of the
+corpus, and two of its verdicts are sound only over the whole of it -- a field decisive only on a
+dropped pair reads as inert, and a declaration exercised only there reads as unexercised. The
+read-provenance census feeds its declaration checks from the uncapped declared loop for exactly this
+reason and says so at its parameter; the first draft of the operand census did not follow it. Both
+verdicts are now drawn from an uncapped run alone, the stale-declaration check stands under a cap, and
+a capped run walks, counts and reports both under a summary line that says it was capped. It is BD3's
+and BF12's class -- a frozen instrument refusing the pass's own new code on its first run over the
+branch -- and it is the third time the coverage measure has been the one to do it.
 
 **What the next pass inherits.** The operand census, like the read-provenance census, walks the
 declared corpus only and one field at a time; a wrong value on a path only a generated vector reaches,
@@ -1968,7 +1982,7 @@ and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
 twenty-two times**: the passes found five, six, three, two, five, one, seven, seven, five, three, one,
-three, zero, three, seven, seven, three, three, five, twelve, two and **three** defects. Sections 2d
+three, zero, three, seven, seven, three, three, five, twelve, two and **four** defects. Sections 2d
 through 2y record them. This tally counts what a reader counts -- the numbered findings in each pass's
 retained review; the first figure said three until BG2, and the first pass's review carries five.
 Where the 2026-09-04 ruling's two populations differ from that total, the pass's own section states
@@ -1978,8 +1992,9 @@ seventeenth's three, two are in the package and one is in its own new code; of t
 three, two are in the package and one is in its own new code; the nineteenth's five are all in the
 package; of the twentieth's twelve, one is the frozen set's, eight are the new instrument's in the
 package, two are in its own new code, and one is in a frozen instrument by reading; the
-twenty-first's two are both by reading, one in a frozen instrument and one in an entry point; and the
-twenty-second's three are all in the package, by the instrument's first run.
+twenty-first's two are both by reading, one in a frozen instrument and one in an entry point; and of the
+twenty-second's four, three are in the package by the instrument's first run and one is in its own new
+code.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -2133,8 +2148,8 @@ and field-readership censuses, the roster check, and 52,000 evaluations over 2,0
 0 red with AZ3's sweep green -- reported nothing, the second consecutive clean frozen set. The
 instrument it built -- every field a property was seen to read, given a wrong value of its own kind --
 found **BH1**, **BH2** and **BH3** in the package on its first run, all in the verification and none in
-the design, and BH1 says what twenty-one passes' instruments were worth against one class: a field
-present, read, in its closed set and reconciled against nothing carried a live disagreement with the
+the design, and **BH4** in its own code by the frozen coverage measure; BH1 says what twenty-one passes'
+instruments were worth against one class: a field present, read, in its closed set and reconciled against nothing carried a live disagreement with the
 timeline on a conforming vector, under every census that asks whether something is present, read, or
 in a set. Fifteen of these twenty-two passes have now built an instrument that found something in the
 package.

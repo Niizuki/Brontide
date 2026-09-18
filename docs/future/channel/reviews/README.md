@@ -309,7 +309,7 @@ nothing it can fix, and neither was followed by a second. They are retained as t
 [nineteenth](./channel-0.2-be-iteration-review.md) (**BE1**-**BE5**),
 [twentieth](./channel-0.2-bf-iteration-review.md) (**BF1**-**BF12**),
 [twenty-first](./channel-0.2-bg-iteration-review.md) (**BG1**-**BG2**) and
-[twenty-second](./channel-0.2-bh-iteration-review.md) (**BH1**-**BH3**) W1-W3 verification-foundation
+[twenty-second](./channel-0.2-bh-iteration-review.md) (**BH1**-**BH4**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised. The ranges in that list are read
 back against each review's finding headings by the design verifier since **BG2**, which found this
 list understating three of them.
@@ -318,7 +318,8 @@ list understating three of them.
 clean passes that are owed again from zero.** The twenty-second's frozen set reported nothing -- the
 second consecutive clean frozen set -- and the instrument it built, every field a property reads given
 a wrong value of its own kind, found **BH1**, **BH2** and **BH3** in the package on its first run, all
-in the verification and none in the design, so the count stays at zero. It starts by
+in the verification and none in the design, so the count stays at zero; **BH4** is the pass's own code
+caught by the frozen coverage measure. It starts by
 running the frozen instrument set — the probe corpus, the coverage gate, the generated-vector run, the
 return-channel census, the read-provenance census over both polarities, the declaration-polarity
 check, the declaration-citation check, the closed-vocabulary census, the field-readership census, the
@@ -1375,7 +1376,7 @@ context elsewhere — never as evidence that their conclusions are right.
   both ways in the review and not decided. Five probes keep the census honest, one of them the
   flipped `BB1-c`.
 - [Twenty-second W1-W3 verification-foundation iteration review](./channel-0.2-bh-iteration-review.md) —
-  the same scope at `ad5a6b4`; raised **BH1**-**BH3** and corrected or dispositioned all three, so it
+  the same scope at `ad5a6b4`; raised **BH1**-**BH4** and corrected or dispositioned all four, so it
   is **not** the first of the two consecutive clean passes and the count stays at zero. Its frozen set
   reported nothing, the second consecutive clean frozen set. Its instrument is the operand census:
   every field a property was seen to read on a declared input is given a wrong value of its own kind,
@@ -1387,8 +1388,10 @@ context elsewhere — never as evidence that their conclusions are right.
   declaring `begin-drain` and `close` for a session that faulted from `established`; **BH2** is the
   receiving endpoint compared only where a refusal or latch named the step; **BH3** is the transition
   event read into the witness alone because no artifact publishes which event token routes which
-  legal-table row, declared inert and put to the owner as open question 5. Seven probes keep the
-  census and the two reconciliations honest.
+  legal-table row, declared inert and put to the owner as open question 5; **BH4** is the pass's own
+  code caught by the frozen coverage measure, the census failing the gate under the measure's one-pair
+  cap on two fields decisive only on a pair the cap dropped. Seven probes keep the census and the two
+  reconciliations honest.
 
 ## Disclosed process deviation in the T1-T4 correction
 

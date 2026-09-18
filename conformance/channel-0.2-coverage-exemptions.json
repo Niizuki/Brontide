@@ -159,7 +159,11 @@
         },
         {
           "anchor": "foreach ($inertFinding in $operandInertPaths) {",
-          "reason": "The operand census reporting fields read and never decisive that no declaration covers. A passing run has none: every field a property reads is decisive on some declared input, reconciled by the harness, or declared inert on the design's own words. `BH-a` reaches it."
+          "reason": "The operand census reporting fields read and never decisive that no declaration covers. A passing run has none: every field a property reads is decisive on some declared input, reconciled by the harness, or declared inert on the design's own words. `BH-a` reaches it. Under this measure's own capped arguments the loop is not entered at all, by BH4: a capped walk is not a census of the corpus, and its inert verdict is reported rather than failed."
+        },
+        {
+          "anchor": "foreach ($unexercised in $operandUnexercised) {",
+          "reason": "The operand census reporting inert declarations no trial reached. A passing run has none: every declared field is read by some property on some declared input and has a mutation of its kind. `BH-g` reaches it, and under this measure's capped arguments the loop is not entered, by BH4."
         }
       ],
       "operandExemptions": [

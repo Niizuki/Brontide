@@ -6,7 +6,7 @@ Reviewed work: the value of every field a property reads -- each given a wrong v
 on every declared input of both polarities, against whether any verdict moved -- and the two
 reconciliations and four declarations that answer what it found, at `ad5a6b4`, `Merge pull request
 #156 from Niizuki/claude/aw2-and-owner-rulings`; raised and dispositioned the BH1-BH3 findings this
-document records
+document records, and BH4 against its own code
 
 Date: 2026-09-18
 
@@ -23,12 +23,14 @@ requires from zero.
 **It is not.** The frozen set reported nothing at `ad5a6b4` -- the second consecutive clean frozen set
 -- and the instrument this pass built found **three things in the package** on its first run, all in
 the verification and none in the design. Under the ruling's two populations that is the outcome that
-resets the count, and the count stays at zero.
+resets the count, and the count stays at zero. **BH4** is the pass's own code, caught by the frozen
+coverage measure on its first run over the branch.
 
 ## Section numbering
 
 **BH1**, **BH2** and **BH3** are what the instrument reported on its first run over the package as
-found, before anything was corrected. It reported eight fields; the three findings account for four
+found, before anything was corrected. **BH4** is against the instrument itself and was reported by a
+frozen instrument, which is the population BD3, BF10 and BF12 were counted in. It reported eight fields; the three findings account for four
 of them, and the other four are recorded below under *What was declared on contact*, because reading
 each against the artifact that owns it found the field inert by the design's own words or by an owner
 ruling, and a limit the design states is a declaration to write down rather than a defect to number. That judgement is this pass's and is
@@ -136,6 +138,24 @@ the question is put to the owner as open question 5 of the verification foundati
 options and a recommendation. Nothing in the design is changed by this pass, which is why the family
 is `verification`; a ruling that publishes the routing is a design change for the pass that lands it.
 
+### BH4 -- under the coverage measure's own cap, the census failed the gate it lives in
+
+The coverage measure runs the properties gate at one (property, input) pair per polarity of each
+property, and over the committed instrument it reported that the gate exits 1, so nothing in it could
+be measured. The census had reported `sessions[].requiredFacets` and `sessions[].supportedFacets`
+inert: each is decisive on a `C11-P1` pair the cap left out and read on the one it walked. A capped
+walk is not a census of the corpus, and two of its verdicts are sound only over the whole of it -- a
+field decisive only on a dropped pair reads as inert, and a declaration exercised only there reads as
+unexercised. The read-provenance census avoids exactly this by feeding its declaration checks from the
+uncapped declared loop rather than from itself, and its parameter comment says so; the first draft of
+this census did not follow it.
+
+Corrected: both verdicts are drawn from an uncapped run alone, the stale-declaration check stands under
+a cap since a field decisive on a walked pair is decisive, and a capped run walks, counts and reports
+both with a summary line that says it was capped. Under the measure's arguments the gate now reports
+two inert and zero unexercised and passes; uncapped it reports none of either; `BH-a` and `BH-g` were
+re-run by hand and still fire.
+
 ## What was declared on contact
 
 Four of the eight fields the instrument reported are inert because the design, or a ruling on it,
@@ -165,6 +185,7 @@ question rather than a fact the design states.
 | **BH1** | the corpus and the gate, by the instrument's first run | `sessionEvents[].event` and `.session` read by `S6` into its witness alone and reconciled against nothing, and `S-conforming-fault-from-established` declaring `begin-drain` and `close` for a session that faulted from `established`; reconciled against the timeline, and the vector corrected |
 | **BH2** | the gate, by the instrument's first run | `delivery[].receivingEndpoint` read by the step index and compared by no property, reconciled against `recordedBy` only where a refusal or latch names the step; reconciled against the committing endpoint on every delivered step |
 | **BH3** | the gate and a silence in the design, by the instrument's first run | `sessionTimeline[].event` read by `S1` and `C2-P1` into the witness alone, because no artifact publishes which event token routes which legal-table row; declared inert on the table's header and put to the owner as open question 5 |
+| **BH4** | the pass's own code, by the frozen coverage measure | the census's inert and unexercised verdicts failing the gate under the measure's one-pair cap, on two fields decisive only on a pair the cap dropped; both verdicts are now drawn from an uncapped run alone |
 
 ## What this pass verified rather than believed
 
@@ -225,14 +246,16 @@ seven probes at that count.
 
 **Whether this pass is the first of the two owed is not in question.** The instrument found BH1, BH2
 and BH3 in the package on its first run, which is the ruling's second population, and the count
-stays at zero. The closure review remains on hold. The finding count by condition-4 pass is now
+stays at zero; BH4 is in the pass's own code and would not have counted either way. The closure
+review remains on hold. The finding count by condition-4 pass is now
 five, six, three, two, five, one, seven, seven, five, three, one, three, zero, three, seven, seven,
-three, three, five, twelve, two and **three**.
+three, three, five, twelve, two and **four**.
 
 ## Where this family is dispositioned
 
-No finding reaches a design artifact: BH1 and BH2 are in the properties gate and the corpus, and BH3
-is in the properties gate and the verification foundation plan's open questions. The family is
+No finding reaches a design artifact: BH1 and BH2 are in the properties gate and the corpus, BH3 is
+in the properties gate and the verification foundation plan's open questions, and BH4 is in the
+properties gate and the coverage exemptions. The family is
 classified `verification` and is dispositioned in the
 [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md), whose
 section 2y carries the pass; this document is its evidence.
