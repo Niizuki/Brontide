@@ -1380,8 +1380,9 @@ context elsewhere — never as evidence that their conclusions are right.
   reported nothing, the second consecutive clean frozen set. Its instrument is the operand census:
   every field a property was seen to read on a declared input is given a wrong value of its own kind,
   and a field whose value moves no verdict, conjunct, error or unpublished field on any input is
-  reported. On its first run it reported eight of eighty-four fields; five are limits the design or a
-  ruling states and are declared with the words that settle each. **BH1** is the declared session
+  reported. On its first run it reported eight of eighty-four fields; four are limits the design or a
+  ruling states and are declared with the words that settle each, and four are the subjects of the
+  three findings. **BH1** is the declared session
   events read by `S6` into its witness alone and reconciled against nothing, with one conforming vector
   declaring `begin-drain` and `close` for a session that faulted from `established`; **BH2** is the
   receiving endpoint compared only where a refusal or latch named the step; **BH3** is the transition

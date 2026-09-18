@@ -1893,13 +1893,14 @@ the fault row is a decision the design has not made. The field is declared inert
 own header with the reason naming the silence, and the question is open question 5 in section 5. No
 design artifact is changed by this pass.
 
-**Five of the eight were declared on contact, and the judgement is stated so a reader can disagree
-with it.** `declaredSteps[].commitIndex` has been reconciled against the declared order at load since
-the loader was written, and is declared so. `interactions[].authorityRecord.initiatorAttribution` is
+**Four of the eight were declared on contact without a finding, and the judgement is stated so a
+reader can disagree with it.** `declaredSteps[].commitIndex` has been reconciled against the declared
+order at load since the loader was written, and is declared so. `interactions[].authorityRecord.initiatorAttribution` is
 read by `C6-P1` through `Read-Obligation` because the contract says every denial records it and fixes
 no value. `interactions[].direction` and `sessions[].establishedProfile` are read for presence and named
 in a witness respectively, because the comparison against the profile is the one the 2026-09-16 ruling
-in section 6 defers to Batch 2. And `sessionTimeline[].event` is BH3.
+in section 6 defers to Batch 2. The fifth declaration is `sessionTimeline[].event`, which is BH3 and
+whose reason names the open question rather than a fact the design states.
 
 **What the next pass inherits.** The operand census, like the read-provenance census, walks the
 declared corpus only and one field at a time; a wrong value on a path only a generated vector reaches,

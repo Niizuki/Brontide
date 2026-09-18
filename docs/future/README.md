@@ -522,9 +522,9 @@ and raised **BH1**-**BH3**. Its frozen set reported nothing -- the second consec
 -- and the instrument it built gives every field a property was seen to read on a declared input a
 wrong value of its own kind, a negated Boolean, another member of the field's closed set, a sibling
 identifier, and reports a field whose value moves no verdict, conjunct, error or unpublished field on
-any input. On its first run over the package it reported eight of eighty-four fields; five are limits
-the design or the 2026-09-16 rulings state, declared with the words that settle each, and three are
-findings, all in the verification. **BH1** is the one to weigh: `S6` reads the declared session events
+any input. On its first run over the package it reported eight of eighty-four fields; four are limits
+the design or the 2026-09-16 rulings state, declared with the words that settle each, and four are the
+subjects of three findings, all in the verification. **BH1** is the one to weigh: `S6` reads the declared session events
 into its witness alone, nothing reconciled them against the timeline, and one conforming vector declared
 `begin-drain` and `close` for a session that faulted from `established` and never drained -- AX2's
 shape with a live instance in the corpus under twenty-one passes. **BH2** is the receiving endpoint

@@ -28,10 +28,10 @@ resets the count, and the count stays at zero.
 ## Section numbering
 
 **BH1**, **BH2** and **BH3** are what the instrument reported on its first run over the package as
-found, before anything was corrected. It reported eight fields; the other five are recorded below
-under *What was declared on contact*, because reading each against the artifact that owns it found
-the field inert by the design's own words or by an owner ruling, and a limit the design states is a
-declaration to write down rather than a defect to number. That judgement is this pass's and is
+found, before anything was corrected. It reported eight fields; the three findings account for four
+of them, and the other four are recorded below under *What was declared on contact*, because reading
+each against the artifact that owns it found the field inert by the design's own words or by an owner
+ruling, and a limit the design states is a declaration to write down rather than a defect to number. That judgement is this pass's and is
 stated so a reader can disagree with it.
 
 ## The frozen set, run first
@@ -71,8 +71,9 @@ verdict whatever it says, so a wrong value there is invisible to the gate in exa
 field's is, which is AU1's shape at the operand and W1's class on the corpus one level below BF's.
 
 **On its first run over the package as found it reported eight of eighty-four fields inert**, over
-3,540 trials and 137 pairs, seven of them reading the index. Three are findings. Five are limits the
-design or an owner ruling states, and are declared with the words that settle each.
+3,540 trials and 137 pairs, seven of them reading the index. Four of the eight are the subjects of
+three findings. The other four are limits the design or an owner ruling states, and are declared with
+the words that settle each; BH3's field is declared too, on the silence it names.
 
 ### BH1 -- the declared session events were read into a witness alone, and one conforming vector declared two that never happened
 
@@ -137,9 +138,9 @@ is `verification`; a ruling that publishes the routing is a design change for th
 
 ## What was declared on contact
 
-Five of the eight fields the instrument reported are inert because the design, or a ruling on it,
-says so, and each is declared with the artifact and the words that settle it -- checked as BD checks
-a reader's declaration, and checked against the measure so that a declared field that becomes
+Four of the eight fields the instrument reported are inert because the design, or a ruling on it,
+says so and no finding is raised for them; each is declared with the artifact and the words that
+settle it -- checked as BD checks a reader's declaration, and checked against the measure so that a declared field that becomes
 decisive fails as stale and one no trial reaches fails as unexercised.
 
 - `declaredSteps[].commitIndex` is reconciled against the declared order at load, where the loader
@@ -153,7 +154,9 @@ decisive fails as stale and one no trial reaches fails as unexercised.
   2026-09-16 defers that comparison to Batch 2 with `profileMatch` standing in for it.
 - `sessions[].establishedProfile` is named in `S5`'s witness and opened by nothing, under the same
   ruling.
-- `sessionTimeline[].event` is BH3 above, and its declaration names the open question.
+
+The fifth declaration is `sessionTimeline[].event`, which is BH3 above; its reason names the open
+question rather than a fact the design states.
 
 ## Findings
 
