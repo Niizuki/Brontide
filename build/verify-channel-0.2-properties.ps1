@@ -2836,6 +2836,38 @@ foreach ($vector in $vectorFile.vectors) {
             }
         }
     }
+
+    # BH. A delivered step's receiving endpoint is the endpoint that did not commit it: a frame is
+    # committed by one endpoint and delivered to its peer, and the session has two. The step index
+    # reads the field for the arrival ordinal's scope and `C4-P2` never compares it, so a step recorded
+    # as received by its own committer decided nothing until this line -- the operand census found it
+    # inert on every trial. Reconciled against the committing endpoint rather than read by a property,
+    # in AX2's form, because it is a second surface for a fact the step already states.
+    foreach ($deliveredStep in $reconcileSteps) {
+        if (-not $deliveredStep.Delivered) { continue }
+        if ([string]$deliveredStep.ReceivingEndpoint -eq [string]$deliveredStep.CommittingEndpoint) {
+            $failures.Add("Vector '$vectorId' delivers step '$($deliveredStep.Id)' to '$($deliveredStep.ReceivingEndpoint)', the endpoint that committed it. A frame is delivered to the committing endpoint's peer, so the receiving endpoint restates the committing one and the two disagree here.")
+        }
+    }
+
+    # BH. A declared session event is an event that occurred in that session: `S6` reads what each one
+    # created and never which event or which session it names, so both fields were stated on every
+    # such record and decided nothing -- and one conforming vector recorded `begin-drain` and `close`
+    # for a session whose timeline faults from `established` and never drains. The timeline is the
+    # surface the session properties read, so each declared event is reconciled against an accepted
+    # transition of its session on that event.
+    $acceptedEvents = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($sessionEvent in (Get-Timeline $vector)) {
+        if ([string]$sessionEvent.step -ne 'transition') { continue }
+        if (-not $sessionEvent.accepted) { continue }
+        [void]$acceptedEvents.Add("$($sessionEvent.session)|$($sessionEvent.event)")
+    }
+    foreach ($declaredEvent in (Get-List $vector 'sessionEvents')) {
+        if ($null -eq $declaredEvent) { continue }
+        if (-not $acceptedEvents.Contains("$($declaredEvent.session)|$($declaredEvent.event)")) {
+            $failures.Add("Vector '$vectorId' declares a session event '$($declaredEvent.event)' in session '$($declaredEvent.session)' and that session's timeline accepts no transition on that event. S6 reads what the event created and nothing reads which event it was, so the declared event and the timeline are two statements of what happened in the session and they disagree.")
+        }
+    }
 }
 
 # The paths the run now in progress has dereferenced. A closure-captured local for BA3's reason next
@@ -2921,6 +2953,22 @@ $reconciledFields = @(
     @{ Field = 'observations.unseenRefusals[].recordedBy'
        Anchor = 'if ([string]$refusedStep.ReceivingEndpoint -ne [string](Get-Field $refusal ''recordedBy'')) {'
        Why = 'BF. The refusal at unseen is the receiving endpoint''s own observation of the frame it refused, which the delivery states.' }
+    # BH. Four fields the operand census found read and never decisive: the step index reads the first
+    # two and no property compares them, and `S6` reads the last two into its witness alone. Each is a
+    # second surface for a fact another field states, reconciled against that field before any verdict
+    # is believed, and the census counts a reconciled field as declared rather than inert.
+    @{ Field = 'declaredSteps[].commitIndex'
+       Anchor = 'if ($groupStep.CommitIndex -ne $expectedIndex) {'
+       Why = 'BH. The step''s position in its endpoint''s commit sequence restates its position in the declared order, which is the only ordering `Test-Precedes` reads; the loader reconciles the two.' }
+    @{ Field = 'delivery[].receivingEndpoint'
+       Anchor = 'if ([string]$deliveredStep.ReceivingEndpoint -eq [string]$deliveredStep.CommittingEndpoint) {'
+       Why = 'BH. A frame is delivered to the committing endpoint''s peer, so the receiving endpoint restates the committing one; the step index reads it for the arrival ordinal''s scope and no property compares it.' }
+    @{ Field = 'sessionEvents[].event'
+       Anchor = 'if (-not $acceptedEvents.Contains("$($declaredEvent.session)|$($declaredEvent.event)")) {'
+       Why = 'BH. A declared session event names an event the session''s timeline accepts a transition on; S6 reads what it created and nothing reads which event it was, and one conforming vector declared two that never happened.' }
+    @{ Field = 'sessionEvents[].session'
+       Anchor = 'if (-not $acceptedEvents.Contains("$($declaredEvent.session)|$($declaredEvent.event)")) {'
+       Why = 'BH. As the event: the session a declared event names is the session whose timeline accepts it.' }
 )
 $gateSourceLines = Get-Content -LiteralPath $PSCommandPath -Encoding UTF8
 foreach ($reconciledField in $reconciledFields) {
@@ -2948,6 +2996,9 @@ function Add-Readership {
 }
 
 $readershipStated = @{}
+# BH. The paths each (property, input) pair dereferenced, kept per pair as well as per path: the
+# operand census below mutates, for each pair, exactly the fields that pair was seen to read.
+$readershipByPair = @{}
 $readershipCopies = @{}
 $readershipPairs = 0
 foreach ($property in $properties.properties) {
@@ -3010,6 +3061,7 @@ foreach ($property in $properties.properties) {
         foreach ($readPath in $readershipObserved) {
             Add-Readership -Table $readership -Path $readPath -Reader $propertyId -Polarity ([string]$expected.Verdict)
         }
+        $readershipByPair["$propertyId|$vectorId"] = [System.Collections.Generic.HashSet[string]]::new($readershipObserved, [System.StringComparer]::Ordinal)
     }
 }
 
@@ -3045,6 +3097,362 @@ foreach ($selfMember in ($vectorSelfMembers.Keys | Sort-Object)) {
     $failures.Add("The field-readership census declares '$selfMember' a vector's own statement about itself and no vector of the declared corpus carries that member. A declaration nothing exercises is one the suite cannot distinguish from a wrong one; delete it, or add the vector that carries the member.")
 }
 Write-Host "Channel 0.2 field-readership census: $($readershipStated.Count) distinct fields stated by $($readershipCopies.Count) declared vectors, replayed over $readershipPairs (property, input) pairs of both polarities -- $($readershipTally['read on a green-expected input']) read by a property on a green-expected input, $($readershipTally['read only on a red-expected input']) read by a property only on a red-expected input, $($readershipTally['read by the step index only']) read by the step index alone, $($readershipTally['reconciled by the harness']) reconciled by the harness, $($readershipTally['the vector''s own statements']) the vector's own statements about itself, and $($readershipFindings.Count) read by nothing."
+
+# ---------------------------------------------------------------------------------------------
+# BH: the operand census. Every field a property reads, against whether the VALUE it carries decides
+# anything -- the question BF and BG each stated as their limit and left: a read is a dereference, not
+# an operand.
+#
+# WHY. The field-readership census above asks whether anything reads a field, and the read-provenance
+# census asks which reader performed the read. Neither asks whether the value read is used. A field
+# read on every input and compared in a way that cannot fail, or read only into a witness string, or
+# read into a branch no declared input takes the other way, is one whose WRONG value is invisible to
+# the gate in exactly the way an unread field's is -- AU1's shape at the operand rather than at the
+# obligation, and W1's class on the corpus one level below BF's. AZ3's dropped-field sweep asks this
+# question of eighteen droppings from three frame references, over the generated population and by
+# removal; nothing asked it of the other hundred and thirty fields the corpus states, or by a wrong
+# value rather than an absent one.
+#
+# HOW IT MEASURES. For each (property, input) pair of both polarities, each leaf field that property
+# read on that input -- the readership census recorded which, per pair -- is given a WRONG value of its
+# own kind, in place and restored in a `finally`: a Boolean is negated; a number is moved one up and one
+# down; a value in a closed vocabulary becomes each other member of its set; an identifier becomes each
+# other value the same field carries elsewhere in the vector, and one no record carries; a list of
+# scalars loses its first member and gains a foreign one. The evaluator runs, and the trial is DECISIVE
+# if the verdict, the conjunct, the errors, the unpublished fields or a thrown exception differ from
+# the baseline this run observed over the unmutated input -- which is required to be the declared
+# verdict -- and WITNESS-ONLY if only the witness text moved. A field beneath
+# `declaredSteps` or `delivery` is read through the step index, so for a pair whose evaluation was seen
+# to read the index -- measured by replaying it over a recording copy of the index, not assumed from
+# the parameter every evaluator takes -- those fields are mutated too and the index is rebuilt over the
+# mutated vector.
+#
+# WHAT IS REPORTED. Per field path over the whole corpus: how many trials, how many decisive, how many
+# witness-only. A path with trials and no decisive trial is INERT -- every property that reads it
+# reaches the same verdict, through the same clause, with the same errors, whatever the field says --
+# and is a finding unless declared inert below with the reason, each declaration checked against the
+# measure so that a field that becomes decisive fails the stale declaration rather than hiding it.
+#
+# THREE LIMITS, STATED WHERE THEY APPLY.
+#
+#   * It measures the declared corpus, both polarities, and one field at a time. A field whose value
+#     decides only jointly with another is inert here, and a field whose wrong value the corpus happens
+#     never to need is inert here too: inert says the CORPUS does not distinguish the value, not that
+#     the design does not. The declared inert table is where the second reading is written down with
+#     its reason, and a declaration is checked, not trusted.
+#   * A wrong value is wrong in KIND, drawn from the field's own classification in the closed-vocabulary
+#     census: a Boolean's negation, a set's other members, a sibling identifier. A value the design has
+#     no word for is that census's subject and is not tried here; a value that is well-formed and wrong
+#     is this one's.
+#   * The cap `-CensusPairs` bounds it exactly as it bounds the read-provenance census, per polarity of
+#     each property, and the summary line says so on a capped run rather than reading like a census.
+# ---------------------------------------------------------------------------------------------
+
+# The wrong values a leaf can be given, by its kind. Returned as a list of candidate values; a leaf
+# with none -- a null, an unclassified string, an empty list of scalars -- has no trial and is not the
+# census's business, since the vocabulary census beside this one refuses an unclassified string
+# already.
+function Get-OperandMutations {
+    param([Parameter(Mandatory = $true)][string]$Path, $Value, [Parameter(Mandatory = $true)][hashtable]$SiblingValues)
+
+    $mutations = [System.Collections.Generic.List[object]]::new()
+    if ($null -eq $Value) { return ,@($mutations) }
+    if ($Value -is [bool]) {
+        $mutations.Add(-not $Value)
+        return ,@($mutations)
+    }
+    if ($Value -is [int] -or $Value -is [long] -or $Value -is [double] -or $Value -is [decimal]) {
+        $mutations.Add($Value + 1)
+        $mutations.Add($Value - 1)
+        return ,@($mutations)
+    }
+    if ($Value -is [string]) {
+        $current = [string]$Value
+        if ($vocabularyByField.ContainsKey($Path)) {
+            foreach ($member in @($vocabularyByField[$Path].MemberValues)) {
+                if ($member -cne $current) { $mutations.Add($member) }
+            }
+            return ,@($mutations)
+        }
+        if ($harnessVocabularies.ContainsKey($Path)) {
+            foreach ($member in @($harnessVocabularies[$Path])) {
+                if ($member -cne $current) { $mutations.Add($member) }
+            }
+            return ,@($mutations)
+        }
+        if ($profileOwnedFields.ContainsKey($Path) -or $identifierFields -ccontains $Path) {
+            # Each other value the same field carries in this vector -- a record re-attributed to a
+            # sibling session, identity or step, which is where AK1's and AK5's collisions live -- and
+            # one value no record carries, which is a record attributed to nothing.
+            if ($SiblingValues.ContainsKey($Path)) {
+                foreach ($sibling in @($SiblingValues[$Path] | Sort-Object)) {
+                    if ($sibling -cne $current) { $mutations.Add($sibling) }
+                }
+            }
+            $mutations.Add("$current-mutated")
+            return ,@($mutations)
+        }
+        return ,@($mutations)
+    }
+    if ($Value -is [System.Collections.IEnumerable]) {
+        # A list of scalars -- `Get-OperandSites` hands this function a list only when every member is
+        # one, and walks a list of records instead. The mutations are the list without its first member
+        # and the list with a member no record carries.
+        $elements = @($Value)
+        if ($elements.Count -gt 0) { $mutations.Add(@($elements | Select-Object -Skip 1)) }
+        $mutations.Add(@($elements) + @('mutated-member'))
+        return ,@($mutations)
+    }
+    return ,@($mutations)
+}
+
+# Every leaf site of a vector -- the record that holds it, the member name, and the schema path the
+# readership census records reads under -- so a site can be mutated in place and looked up by path.
+# A list of scalars is one site at the member; a list of records is walked per element.
+function Get-OperandSites {
+    param($Node, [string]$Path, [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.List[object]]$Sites)
+
+    if ($null -eq $Node -or $Node -is [string] -or $Node -is [System.ValueType]) { return }
+    if ($Node -is [System.Collections.IEnumerable]) {
+        foreach ($element in $Node) {
+            Get-OperandSites -Node $element -Path "$Path[]" -Sites $Sites
+        }
+        return
+    }
+    foreach ($member in @($Node.PSObject.Properties | Where-Object { $_ -is [System.Management.Automation.PSNoteProperty] })) {
+        $memberPath = if ($Path) { "$Path.$($member.Name)" } else { $member.Name }
+        $memberValue = $member.Value
+        $isScalarList = $false
+        if ($null -ne $memberValue -and $memberValue -isnot [string] -and $memberValue -is [System.Collections.IEnumerable]) {
+            $isScalarList = $true
+            foreach ($element in @($memberValue)) {
+                if ($null -ne $element -and $element -isnot [string] -and $element -isnot [System.ValueType]) { $isScalarList = $false }
+            }
+        }
+        if ($null -eq $memberValue -or $memberValue -is [string] -or $memberValue -is [System.ValueType] -or $isScalarList) {
+            $Sites.Add([pscustomobject]@{ Record = $Node; Name = $member.Name; Path = $memberPath })
+            continue
+        }
+        Get-OperandSites -Node $memberValue -Path $memberPath -Sites $Sites
+    }
+}
+
+# Fields read and declared inert by the design's own words, each with the artifact and the words that
+# settle it, checked as BD checks a reader's declaration: the artifact must be one of the design's and
+# must contain the words. Each is also checked against the measure below -- a declared field that turns
+# out to be decisive fails as stale, and one no trial reaches fails as unexercised -- so the table
+# cannot outlive what it describes. A field the harness reconciles is declared in `$reconciledFields`
+# above instead, and the census reads that table too.
+$operandInertDeclared = @(
+    @{ Field = 'interactions[].authorityRecord.initiatorAttribution'
+       Why = 'C6-P1''s second clause requires every denial to RECORD its initiator attribution and fixes no value for it, so the obligation is the field''s presence and its value is opaque to the property.'
+       Artifact = $contractArtifact
+       Words = 'every denial or unevaluatable presentation records the decision point, initiator attribution, and `known-none`' }
+    @{ Field = 'interactions[].direction'
+       Why = 'C3-P1 compares the direction against the established profile of its own session, and the corpus carries no profile record to compare it against: by the owner ruling of 2026-09-16 in the verification foundation plan, the comparison is Batch 2''s and `profileMatch` stands in for it, so C10-P1 reads the direction for its presence alone until then.'
+       Artifact = $contractArtifact
+       Words = 'No vector dispatches an interaction unless its class, direction, and external phase predicate all exactly match the established profile of its own session.' }
+    @{ Field = 'sessions[].establishedProfile'
+       Why = 'the brief''s vector format requires each session to state the profile it established, and S5 names it in its witness without opening it: comparing the record against the profile''s own declaration is the unit the owner ruling of 2026-09-16 defers to Batch 2, so no property compares the value until the profile exists as a neutral artifact.'
+       Artifact = $briefArtifact
+       Words = 'the established profile and initial session/interaction state of each session the vector carries' }
+    @{ Field = 'sessionTimeline[].event'
+       Why = 'the session state machine''s legal transition table keys each row on a From state, a prose event-and-guard cell and a To state, and no artifact publishes which event token of its Events table routes which row, so S1 and C2-P1 judge an accepted transition by its edge, which the brief''s operator set offers, and read the event into the witness alone; a transition taking a legal edge on an event the design does not route there is therefore green, which is open question 5 of the verification foundation plan.'
+       Artifact = $sessionMachineArtifact
+       Words = '| From | Event and guard | To | Required observation |' }
+)
+foreach ($declared in $operandInertDeclared) {
+    $declaredArtifact = [string]$declared.Artifact
+    if (-not $citableArtifacts.Contains($declaredArtifact)) {
+        $failures.Add("The operand census declares '$($declared.Field)' inert on '$declaredArtifact', and that is not a design artifact: it is none of the artifacts channel-0.2-properties.json names as stating a property or as its authority for the design. A field the gate leaves undecided on its own say-so is the gate's convention; cite the design artifact whose words leave it undecided.")
+        continue
+    }
+    if ((Get-ArtifactPlain $declaredArtifact).IndexOf([string]$declared.Words, [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add("The operand census declares '$($declared.Field)' inert on the words `"$($declared.Words)`" and '$declaredArtifact' does not contain them. Either the sentence moved and the declaration did not, which is AP1's class arriving through a citation, or the declaration claims a sentence the design never had.")
+    }
+}
+
+$operandTrials = @{}
+$operandPairs = @{ green = 0; red = 0 }
+$operandIndexPairs = 0
+$operandTrialCount = 0
+$operandThrown = [System.Collections.Generic.List[string]]::new()
+$operandThrownKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+$operandIndexObserved = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+foreach ($property in $properties.properties) {
+    $propertyId = [string]$property.id
+    if (-not $evaluators.ContainsKey($propertyId)) { continue }
+    $evaluator = $evaluators[$propertyId]
+
+    $operandInputs = @{}
+    foreach ($member in @($property.requiredGreen) + @($property.additionalGreen)) {
+        if ($null -ne $member) { $operandInputs[[string]$member.vector] = @{ Verdict = 'green'; Conjunct = $null } }
+    }
+    foreach ($mutation in @($property.namedMutations)) {
+        if ($null -ne $mutation) { $operandInputs[[string]$mutation.vector] = @{ Verdict = [string]$mutation.expected; Conjunct = [string]$mutation.conjunct } }
+    }
+    $operandPairsWalked = @{ green = 0; red = 0 }
+
+    foreach ($vectorId in ($operandInputs.Keys | Sort-Object)) {
+        if (-not $vectorsById.ContainsKey($vectorId)) { continue }
+        $operandExpected = $operandInputs[$vectorId]
+        $operandPolarity = [string]$operandExpected.Verdict
+        if ($CensusPairs -gt 0 -and $operandPairsWalked[$operandPolarity] -ge $CensusPairs) { continue }
+        $operandPairsWalked[$operandPolarity]++
+        $operandPairs[$operandPolarity]++
+        $operandVector = $vectorsById[$vectorId]
+        $pairReads = $readershipByPair["$propertyId|$vectorId"]
+        if ($null -eq $pairReads) { $pairReads = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal) }
+
+        # Whether this evaluation reads the step index at all, measured rather than assumed: the index
+        # is rebuilt as a recording copy and the evaluator replayed over it. Every evaluator takes
+        # `-Steps`, three take it only to hand it to a delegate, and one resolves frame references
+        # against it; a mutation of a declared step is a trial only where something read the index.
+        $operandIndexObserved.Clear()
+        $recordingIndex = @(New-StepIndex -Vector $operandVector)
+        ConvertTo-ReadingRecord -Node $recordingIndex -Path 'index' -VectorId $vectorId -Stated @{} -Observed $operandIndexObserved
+        $script:CensusPoisoning = $true
+        $script:UnpublishedFields.Clear()
+        try { $indexReplay = & $evaluator -VectorId $vectorId -Vector $operandVector -Steps $recordingIndex }
+        finally { $script:CensusPoisoning = $false }
+        # The replay's own channels are read and required silent: it is the declared loop's evaluation
+        # over the declared loop's values, and a difference is the recording changing what the
+        # evaluator saw, exactly as the readership census requires of its copies.
+        foreach ($evaluationError in $indexReplay.Errors) {
+            $failures.Add("The operand census replays '$propertyId' over '$vectorId' with a recording step index and the evaluator reports an error the declared loop did not: $evaluationError")
+        }
+        foreach ($unpublished in ($script:UnpublishedFields | Sort-Object -Unique)) {
+            $failures.Add("The operand census replays '$propertyId' over '$vectorId' with a recording step index and the evaluator reads a field the declared loop's evaluation did not find missing: $unpublished")
+        }
+        if ([string]$indexReplay.Verdict -ne $operandPolarity) {
+            $failures.Add("The operand census replays '$propertyId' over '$vectorId' with a recording step index and reaches $($indexReplay.Verdict) where the declared loop declares $operandPolarity, through '$($indexReplay.Conjunct)': '$($indexReplay.Witness)'. Either the recording changed what the evaluator saw, or the evaluator disagrees with the declaration and the declared loop reports that beside this; every trial below is measured against this baseline.")
+        }
+        $pairReadsIndex = ($operandIndexObserved.Count -gt 0)
+        if ($pairReadsIndex) { $operandIndexPairs++ }
+        # What a wrong value DID is measured as a difference from the baseline this run observed, not
+        # from the declared verdict: the two agree on a passing run, the check above says so, and on a
+        # run where they do not, measuring against the declaration would report every trial decisive
+        # for an evaluator that had stopped reading the field at all.
+        $baselineVerdict = [string]$indexReplay.Verdict
+        $baselineConjunct = [string]$indexReplay.Conjunct
+        $baselineWitness = [string]$indexReplay.Witness
+
+        $operandSites = [System.Collections.Generic.List[object]]::new()
+        Get-OperandSites -Node $operandVector -Path '' -Sites $operandSites
+        # The other values each field carries in this vector, for the identifier mutations.
+        $siblingValues = @{}
+        foreach ($site in $operandSites) {
+            $siteValue = $site.Record.PSObject.Properties[$site.Name].Value
+            if ($siteValue -isnot [string]) { continue }
+            if (-not $siblingValues.ContainsKey($site.Path)) { $siblingValues[$site.Path] = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal) }
+            [void]$siblingValues[$site.Path].Add([string]$siteValue)
+        }
+
+        foreach ($site in $operandSites) {
+            $sitePath = [string]$site.Path
+            $siteTopLevel = $sitePath.Split('.')[0] -replace '\[\]$', ''
+            if ($vectorSelfMembers.ContainsKey($siteTopLevel)) { continue }
+            $siteThroughIndex = ($siteTopLevel -eq 'declaredSteps' -or $siteTopLevel -eq 'delivery')
+            if ($siteThroughIndex) {
+                if (-not $pairReadsIndex) { continue }
+            }
+            elseif (-not $pairReads.Contains($sitePath)) { continue }
+
+            $siteMember = $site.Record.PSObject.Properties[$site.Name]
+            $siteOriginal = $siteMember.Value
+            foreach ($wrongValue in (Get-OperandMutations -Path $sitePath -Value $siteOriginal -SiblingValues $siblingValues)) {
+                if (-not $operandTrials.ContainsKey($sitePath)) {
+                    $operandTrials[$sitePath] = @{ Trials = 0; Decisive = 0; WitnessOnly = 0; Readers = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal) }
+                }
+                $operandTrials[$sitePath].Trials++
+                $operandTrialCount++
+                [void]$operandTrials[$sitePath].Readers.Add($propertyId)
+
+                $script:CensusPoisoning = $true
+                $script:UnpublishedFields.Clear()
+                $trialThrew = $null
+                $trialResult = $null
+                try {
+                    $siteMember.Value = $wrongValue
+                    $trialSteps = if ($siteThroughIndex) { @(New-StepIndex -Vector $operandVector) } else { $vectorIndex[$vectorId] }
+                    try { $trialResult = & $evaluator -VectorId $vectorId -Vector $operandVector -Steps $trialSteps }
+                    catch { $trialThrew = $_.Exception.Message }
+                }
+                finally {
+                    $siteMember.Value = $siteOriginal
+                    $script:CensusPoisoning = $false
+                }
+
+                # Every channel the evaluator hands back is read, and a difference in any of them is the
+                # value deciding something. A thrown exception is decisive too, and is reported on its
+                # own: an evaluator that crashes on a well-formed wrong value has not judged it.
+                $trialDecisive = $false
+                if ($null -ne $trialThrew) {
+                    $trialDecisive = $true
+                    # One finding per property, field and exception rather than per trial: the same
+                    # throw on every input and every wrong value is one defect, and the first input and
+                    # value that provoked it are what a reader needs to reproduce it.
+                    if ($operandThrownKeys.Add("$propertyId|$sitePath|$trialThrew")) {
+                        $operandThrown.Add("Property '$propertyId' throws on '$vectorId' when '$sitePath' carries '$wrongValue' instead of '$siteOriginal': $trialThrew An evaluator that throws on a well-formed wrong value has not judged the record, and the gate stops at the exception rather than at a verdict.")
+                    }
+                }
+                else {
+                    if ([string]$trialResult.Verdict -ne $baselineVerdict) { $trialDecisive = $true }
+                    if ([string]$trialResult.Conjunct -ne $baselineConjunct) { $trialDecisive = $true }
+                    if (@($trialResult.Errors).Count -gt 0) { $trialDecisive = $true }
+                    if ($script:UnpublishedFields.Count -gt 0) { $trialDecisive = $true }
+                }
+                if ($trialDecisive) {
+                    $operandTrials[$sitePath].Decisive++
+                }
+                elseif ([string]$trialResult.Witness -ne $baselineWitness) {
+                    $operandTrials[$sitePath].WitnessOnly++
+                }
+            }
+        }
+    }
+}
+
+foreach ($thrown in $operandThrown) {
+    $failures.Add($thrown)
+}
+$operandInertPaths = [System.Collections.Generic.List[string]]::new()
+$operandDecisivePaths = 0
+$operandDeclaredInertPaths = 0
+$operandReconciledPaths = 0
+foreach ($trialPath in ($operandTrials.Keys | Sort-Object)) {
+    $trial = $operandTrials[$trialPath]
+    $declaredInert = @($operandInertDeclared | Where-Object { [string]$_.Field -ceq $trialPath })
+    if ($trial.Decisive -gt 0) {
+        $operandDecisivePaths++
+        if ($declaredInert.Count -gt 0) {
+            $failures.Add("The operand census declares '$trialPath' inert -- $($declaredInert[0].Why) -- and $($trial.Decisive) of its $($trial.Trials) trials moved a verdict, a conjunct, an error or an unpublished field. The declaration is stale; delete it, since the field now decides something.")
+        }
+        continue
+    }
+    # A field the harness reconciles against the surface a property reads is declared in the readership
+    # census's table, whose anchors are checked there; its value decides nothing in an evaluation because
+    # it was already required to agree with the field that does.
+    if (@($reconciledFields | Where-Object { [string]$_.Field -ceq $trialPath }).Count -gt 0) {
+        $operandReconciledPaths++
+        continue
+    }
+    if ($declaredInert.Count -gt 0) {
+        $operandDeclaredInertPaths++
+        continue
+    }
+    $operandInertPaths.Add("The declared corpus states '$trialPath', $(($trial.Readers | Sort-Object) -join ', ') read it, and over $($trial.Trials) trials giving it a wrong value of its own kind -- $($trial.WitnessOnly) of which moved only the witness text -- no property's verdict, conjunct, error or unpublished field moved on any input it declares, green-expected or red-expected. A read whose value decides nothing is a field a wrong value cannot fail: either the corpus lacks the input on which the value matters, which is the mutation to add; or the property compares it in a way that cannot fail, which is AU1's class at the operand; or it is read for reporting alone, which is declared inert here with the reason, so that a reader knows the corpus does not distinguish its value.")
+}
+foreach ($inertFinding in $operandInertPaths) {
+    $failures.Add($inertFinding)
+}
+foreach ($declared in $operandInertDeclared) {
+    if (-not $operandTrials.ContainsKey([string]$declared.Field)) {
+        $failures.Add("The operand census declares '$($declared.Field)' inert and no trial reached that field: no property read it on any input, or no mutation of its kind exists. A declaration nothing exercises is one the suite cannot distinguish from a wrong one; delete it.")
+    }
+}
+$operandScope = if ($CensusPairs -gt 0) { " -- CAPPED at $CensusPairs pairs per polarity of each property by -CensusPairs, so this is not a census of the corpus" } else { '' }
+Write-Host "Channel 0.2 operand census: $operandTrialCount trials gave a wrong value of its own kind to a field a property had read, over $($operandPairs['green']) green-expected and $($operandPairs['red']) red-expected (property, input) pairs, $operandIndexPairs of them reading the step index; $($operandTrials.Count) distinct fields tried, $operandDecisivePaths decisive on some input, $operandReconciledPaths reconciled by the harness, $operandDeclaredInertPaths declared inert by the design's words, $($operandInertPaths.Count) inert and undeclared, and $($operandThrown.Count) evaluator exceptions.$operandScope"
 
 # The generator's half. The generator emits one field set, shaped by the same design the corpus is
 # written against, and the same evaluators read it -- so a field it emits is read if the declared
