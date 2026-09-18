@@ -512,8 +512,28 @@ instrument and what it finds beyond its own instance counts -- so BG2's guard fi
 roster entries keeps the count at zero, and the eleventh, whose pin found nothing beyond AW1, met the
 condition after all. Two further rulings of the same date close the plan's open question on stating a
 realization's omission positively -- the brief's completeness rule already does -- and defer the
-profile record behind BF2 and BF9 to Batch 2 with its trigger stated. A twenty-second pass is the next
-work, the first of the two owed from zero, and the closure-review hold remains in force.
+profile record behind BF2 and BF9 to Batch 2 with its trigger stated.
+
+**The twenty-second pass then asked the question every instrument here had stopped short of: not
+whether a field is present, read or in a set, but whether the value read decides anything.** It is
+retained as the
+[twenty-second W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-bh-iteration-review.md)
+and raised **BH1**-**BH3**. Its frozen set reported nothing -- the second consecutive clean frozen set
+-- and the instrument it built gives every field a property was seen to read on a declared input a
+wrong value of its own kind, a negated Boolean, another member of the field's closed set, a sibling
+identifier, and reports a field whose value moves no verdict, conjunct, error or unpublished field on
+any input. On its first run over the package it reported eight of eighty-four fields; five are limits
+the design or the 2026-09-16 rulings state, declared with the words that settle each, and three are
+findings, all in the verification. **BH1** is the one to weigh: `S6` reads the declared session events
+into its witness alone, nothing reconciled them against the timeline, and one conforming vector declared
+`begin-drain` and `close` for a session that faulted from `established` and never drained -- AX2's
+shape with a live instance in the corpus under twenty-one passes. **BH2** is the receiving endpoint
+reconciled only where a refusal or latch happened to name the step. **BH3** is the transition event
+read into the witness alone because no artifact publishes which event token routes which row of the
+legal table, so a legal edge taken on the wrong event is green; that is a silence in the design as much
+as a gap in the evaluator, and it is put to the owner as the plan's open question 5 rather than
+decided. The count stays at zero, a twenty-third pass is the next work, the first of the two owed from
+zero, and the closure-review hold remains in force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition

@@ -190,6 +190,7 @@ dependency instead of narrowing it.
 | BE | iteration | verification | nineteenth W1-W3 verification-foundation iteration review |
 | BF | iteration | design | twentieth W1-W3 verification-foundation iteration review |
 | BG | iteration | verification | twenty-first W1-W3 verification-foundation iteration review |
+| BH | iteration | verification | twenty-second W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -285,7 +286,7 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Twenty-one such passes have run, and the thirteenth and -- under the 2026-09-16 ruling on AW2 -- the eleventh are the only two to meet the plan's condition 4, which asks for a pass that finds
+Twenty-two such passes have run, and the thirteenth and -- under the 2026-09-16 ruling on AW2 -- the eleventh are the only two to meet the plan's condition 4, which asks for a pass that finds
 nothing it can fix, and neither was followed by a second. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM5**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
@@ -306,25 +307,28 @@ nothing it can fix, and neither was followed by a second. They are retained as t
 [seventeenth](./channel-0.2-bc-iteration-review.md) (**BC1**-**BC3**),
 [eighteenth](./channel-0.2-bd-iteration-review.md) (**BD1**-**BD3**),
 [nineteenth](./channel-0.2-be-iteration-review.md) (**BE1**-**BE5**),
-[twentieth](./channel-0.2-bf-iteration-review.md) (**BF1**-**BF12**) and
-[twenty-first](./channel-0.2-bg-iteration-review.md) (**BG1**-**BG2**) W1-W3 verification-foundation
+[twentieth](./channel-0.2-bf-iteration-review.md) (**BF1**-**BF12**),
+[twenty-first](./channel-0.2-bg-iteration-review.md) (**BG1**-**BG2**) and
+[twenty-second](./channel-0.2-bh-iteration-review.md) (**BH1**-**BH3**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised. The ranges in that list are read
 back against each review's finding headings by the design verifier since **BG2**, which found this
 list understating three of them.
 
-**A twenty-second pass over the same scope is the live path, and it is the first of two consecutive
-clean passes that are owed again from zero.** The twenty-first's frozen set reported nothing and the
-instrument it built found nothing in the package, and its two findings were found by reading, which
-the 2026-09-04 ruling counts in neither population; the
-[2026-09-16 ruling on **AW2**](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md#6-resolved-questions)
-holds that a pin built for such a finding is an instrument, and BG2's pin found two roster entries the
-pass did not know were wrong, so the count stays at zero. It starts by
+**A twenty-third pass over the same scope is the live path, and it is the first of two consecutive
+clean passes that are owed again from zero.** The twenty-second's frozen set reported nothing -- the
+second consecutive clean frozen set -- and the instrument it built, every field a property reads given
+a wrong value of its own kind, found **BH1**, **BH2** and **BH3** in the package on its first run, all
+in the verification and none in the design, so the count stays at zero. It starts by
 running the frozen instrument set — the probe corpus, the coverage gate, the generated-vector run, the
 return-channel census, the read-provenance census over both polarities, the declaration-polarity
-check, the declaration-citation check, the closed-vocabulary census, the field-readership census and
-the roster check, whose sizes the plan's section 4 owns and recomputes rather than this paragraph —
-and records what it reports before building anything. It runs the whole corpus over its own branch
-before it reports, which the twentieth found the nineteenth had not.
+check, the declaration-citation check, the closed-vocabulary census, the field-readership census, the
+operand census and the roster check, whose sizes the plan's section 4 owns and recomputes rather than
+this paragraph — and records what it reports before building anything. It runs the whole corpus over
+its own branch before it reports, which the twentieth found the nineteenth had not. The twenty-second
+left three units named: the operand census walked over the generated population, where the sixteenth
+pass's trade stands unmade for the read-provenance census too; per-property inertness, a field one
+property reads and another decides on; and **BH3**, whose disposition is the owner's under open
+question 5 of the plan.
 
 **The fifteenth pass was to be the first of those two and was not.** Its frozen set reported nothing,
 for the ninth consecutive pass. The instrument it built — a census of what every consumer in these
@@ -1370,6 +1374,20 @@ context elsewhere — never as evidence that their conclusions are right.
   findings were found by reading is the first of the two owed is **AW2**'s open question, stated
   both ways in the review and not decided. Five probes keep the census honest, one of them the
   flipped `BB1-c`.
+- [Twenty-second W1-W3 verification-foundation iteration review](./channel-0.2-bh-iteration-review.md) —
+  the same scope at `ad5a6b4`; raised **BH1**-**BH3** and corrected or dispositioned all three, so it
+  is **not** the first of the two consecutive clean passes and the count stays at zero. Its frozen set
+  reported nothing, the second consecutive clean frozen set. Its instrument is the operand census:
+  every field a property was seen to read on a declared input is given a wrong value of its own kind,
+  and a field whose value moves no verdict, conjunct, error or unpublished field on any input is
+  reported. On its first run it reported eight of eighty-four fields; five are limits the design or a
+  ruling states and are declared with the words that settle each. **BH1** is the declared session
+  events read by `S6` into its witness alone and reconciled against nothing, with one conforming vector
+  declaring `begin-drain` and `close` for a session that faulted from `established`; **BH2** is the
+  receiving endpoint compared only where a refusal or latch named the step; **BH3** is the transition
+  event read into the witness alone because no artifact publishes which event token routes which
+  legal-table row, declared inert and put to the owner as open question 5. Seven probes keep the
+  census and the two reconciliations honest.
 
 ## Disclosed process deviation in the T1-T4 correction
 
