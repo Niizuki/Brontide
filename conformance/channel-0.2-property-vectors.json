@@ -1287,12 +1287,7 @@
       "sessionEvents": [
         {
           "session": "s1",
-          "event": "begin-drain",
-          "creates": []
-        },
-        {
-          "session": "s1",
-          "event": "close",
+          "event": "fatal-protocol-fault",
           "creates": []
         }
       ],

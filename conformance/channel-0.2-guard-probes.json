@@ -2221,6 +2221,132 @@
         "-GeneratedCount",
         "0"
       ]
+    },
+    {
+      "id": "BH-a",
+      "claim": "an evaluator that reads a field and no longer uses its value -- C5-P1 keeping the read of positionalShapeChecked and testing it for presence rather than truth -- is reported by the operand census as a field read and never decisive, beside the declared loop's own red-expected failure",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "The declared corpus states 'interactions[].positionalShapeChecked', C5-P1 read it, and over",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "            if (-not (Read-Required $interaction 'positionalShapeChecked' $subject)) {",
+          "replace": "            if ($null -eq (Read-Required $interaction 'positionalShapeChecked' $subject)) {"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BH-b",
+      "claim": "an inert declaration on a field that is decisive is stale and fails, so the table cannot outlive the reads it describes",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "The operand census declares 'interactions[].authorityDecision' inert -- ",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "    @{ Field = 'interactions[].authorityRecord.initiatorAttribution'",
+          "replace": "    @{ Field = 'interactions[].authorityDecision'"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BH-c",
+      "claim": "an inert declaration citing words its artifact does not contain fails, as BD requires of a reader's declaration",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "The operand census declares 'sessions[].establishedProfile' inert on the words \"the negotiated profile and initial session/interaction state of each session the vector carries\" and 'docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md' does not contain them.",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "       Words = 'the established profile and initial session/interaction state of each session the vector carries' }",
+          "replace": "       Words = 'the negotiated profile and initial session/interaction state of each session the vector carries' }"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BH-d",
+      "claim": "a declared session event that the session's timeline never accepts -- the corpus as the operand census found it, where a session faulting from established declared begin-drain and close -- is refused by the reconciliation",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "Vector 'S-conforming-fault-from-established' declares a session event 'begin-drain' in session 's1' and that session's timeline accepts no transition on that event.",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "          \"session\": \"s1\",\n          \"event\": \"fatal-protocol-fault\",\n          \"creates\": []",
+          "replace": "          \"session\": \"s1\",\n          \"event\": \"begin-drain\",\n          \"creates\": []"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BH-e",
+      "claim": "a step delivered to the endpoint that committed it, on a request no refusal or latch references so that the recordedBy reconciliation cannot see it, is refused by the receiving-endpoint reconciliation alone",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "delivers step 's2-req' to 'initiator', the endpoint that committed it.",
+      "edits": [
+        {
+          "path": "conformance/channel-0.2-property-vectors.json",
+          "find": "          \"step\": \"s2-req\",\n          \"disposition\": \"delivered\",\n          \"receivingEndpoint\": \"recipient\",",
+          "replace": "          \"step\": \"s2-req\",\n          \"disposition\": \"delivered\",\n          \"receivingEndpoint\": \"initiator\","
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BH-f",
+      "claim": "an evaluator that throws on a well-formed wrong value -- S1 throwing when a transition's target is establishing, which no declared transition has and the closed set permits -- is reported once per property, field and exception rather than left as a gate crash",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "when 'sessionTimeline[].to' carries 'establishing' instead of 'established': probe: unexpected target state An evaluator that throws on a well-formed wrong value has not judged the record",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        $edge = \"$(Read-Required $sessionEvent 'from' $timelineSubject)>$(Read-Required $sessionEvent 'to' $timelineSubject)\"",
+          "replace": "        $edge = \"$(Read-Required $sessionEvent 'from' $timelineSubject)>$(Read-Required $sessionEvent 'to' $timelineSubject)\"; if ($edge -like '*>establishing') { throw 'probe: unexpected target state' }"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BH-g",
+      "claim": "an inert declaration no trial reaches -- a field no property reads, or one with no mutation of its kind -- fails as unexercised, on BE-g's rule that a declaration nothing carries is one the suite cannot tell from a wrong one",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "The operand census declares 'sessions[].establishedProfileDigest' inert and no trial reached that field",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "    @{ Field = 'sessions[].establishedProfile'",
+          "replace": "    @{ Field = 'sessions[].establishedProfileDigest'"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
     }
   ]
 }

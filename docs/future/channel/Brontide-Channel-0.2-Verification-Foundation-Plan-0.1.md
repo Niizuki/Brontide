@@ -1827,6 +1827,115 @@ because no declared vector can provoke it; a vector carrying records for two cla
 would make it a check. The three narratives' finding ranges are corrected by hand and read by no
 guard for the range. And the profile record behind BF2 and BF9 is still the owner's.
 
+## 2y. What the twenty-second condition 4 pass found
+
+The twenty-second author-side pass has run, at `ad5a6b4`, and is retained as the
+[twenty-second W1-W3 verification-foundation iteration review](./reviews/channel-0.2-bh-iteration-review.md).
+It was to be the **first of the two consecutive clean passes** the 2026-09-04 ruling requires from
+zero, and it is not: its frozen set reported nothing -- the second consecutive clean frozen set -- and
+the instrument it built found **BH1**, **BH2** and **BH3** in the package on its first run, all in the
+verification and none in the design; **BH4** and **BH5** are the pass's own code, caught by the frozen
+coverage measure. The family is `verification` and this section is its disposition record.
+
+**The instrument asks the question every census here stopped short of.** The field-readership census
+ends at the dereference and said so -- a read is a dereference, not an operand -- and whether a value
+can move a verdict was asked by AZ3's sweep over three frame references and nowhere else. The operand
+census asks it of every field: for each (property, input) pair of both polarities, each leaf field the
+property was seen to read on that input -- the readership census now keeps its reads per pair -- is
+given a wrong value of its own kind, in place and restored. A Boolean is negated; a number moved one
+up and one down; a closed-vocabulary value becomes each other member of its set; an identifier becomes
+each other value the same field carries in the vector and one no record carries; a list of scalars
+loses its first member and gains a foreign one. A trial is decisive if the verdict, conjunct, errors,
+unpublished fields or a thrown exception differ from the baseline the run observed over the unmutated
+input, which must be the declared verdict. Fields under `declaredSteps` and `delivery` are read
+through the step index, so for a pair seen to read the index -- replayed over a recording copy of it
+rather than assumed from the parameter every evaluator takes -- they are mutated too and the index
+rebuilt. A field with trials and no decisive trial is inert, and is a finding unless the harness
+reconciles it or the design's own words leave it undecided, each declaration cited and checked as BD
+checks a reader's. Over the package as found it made 3,540 trials on 84 fields over 137 pairs, and
+reported eight inert. Falsified before it was believed, by seven probes: an evaluator keeping a read
+and testing the Boolean for presence rather than truth is reported inert beside the declared loop's
+own failure; a stale declaration, an uncited one and an unexercised one are each refused; the corpus
+as found and a step delivered to its own committer are each refused by the reconciliation written
+for it; and an evaluator that throws on a wrong value is reported once per property, field and
+exception. The first draft measured trials against the declared polarity, and the first probe is what
+showed that wrong: an evaluator that has stopped using a field reaches the undeclared verdict on its
+own mutation, so every trial differed from the declaration and the field read as decisive.
+
+**BH1 is the declared session events, read by `S6` into its witness alone, and one conforming vector
+declaring two that never happened.** `sessionEvents[].event` and `sessionEvents[].session` were stated
+on 104 records of 46 vectors and compared by nothing; `S6` reads what each event created. Reading the
+corpus for an instance found `S-conforming-fault-from-established`, whose session transitions
+`unestablished` to `established` and `established` to `faulted` on `fatal-protocol-fault` while its
+declared events are `begin-drain` and `close`. Each declared event is now reconciled against an
+accepted transition of its session on that event, in AX2's form, the vector declares the fault its
+timeline accepts, and both fields are declared reconciled on the reconciling line. The reconciliation
+was red on that vector alone before the corpus was touched.
+
+**BH2 is the receiving endpoint compared only where a record named the step.** `delivery[].receivingEndpoint`
+is read by the step index and compared by no property; BF reconciled it against `recordedBy` for the
+steps a refusal or latch resolves to, and on the other delivered steps a frame received by its own
+committer decided nothing. A frame is delivered to its committer's peer, so every delivered step's
+receiving endpoint is now reconciled against its committing endpoint. The corpus was consistent, so
+this is a gap in the verification and not a defect in the corpus.
+
+**BH3 is the transition event, read by `S1` and `C2-P1` into the witness alone, and a silence in the
+design underneath it.** `sessionTimeline[].event` is stated on 140 transition records. `S1` judges an
+accepted transition by its edge against the legal table, which is the unit the brief's operator set
+offers, so an accepted transition taking a legal edge on an event the design does not route there --
+`established` to `draining` on `close` -- is green. The machine's legal table keys each row on a From
+state, a prose event-and-guard cell and a To state; its Events table names eleven tokens; the grid
+routes by event class in prose cells; and no artifact publishes which token routes which row. A gate
+that wrote that mapping itself would be a twelfth surface for a fact the design does not state, and
+the `any nonterminal` rows are why it is not a clarification: whether a premature close at
+`established` is `close` routed to `faulted` by a detailed row or a recognized violation routed through
+the fault row is a decision the design has not made. The field is declared inert on the legal table's
+own header with the reason naming the silence, and the question is open question 5 in section 5. No
+design artifact is changed by this pass.
+
+**Four of the eight were declared on contact without a finding, and the judgement is stated so a
+reader can disagree with it.** `declaredSteps[].commitIndex` has been reconciled against the declared
+order at load since the loader was written, and is declared so. `interactions[].authorityRecord.initiatorAttribution` is
+read by `C6-P1` through `Read-Obligation` because the contract says every denial records it and fixes
+no value. `interactions[].direction` and `sessions[].establishedProfile` are read for presence and named
+in a witness respectively, because the comparison against the profile is the one the 2026-09-16 ruling
+in section 6 defers to Batch 2. The fifth declaration is `sessionTimeline[].event`, which is BH3 and
+whose reason names the open question rather than a fact the design states.
+
+**BH4 is the pass's own code, caught by the frozen coverage measure on its first run over the branch.**
+That measure runs the properties gate at one (property, input) pair per polarity of each property, and
+over the committed instrument it reported the gate exiting 1, so nothing in it could be measured. The
+census had called `sessions[].requiredFacets` and `sessions[].supportedFacets` inert: each is decisive
+on a `C11-P1` pair the cap left out and read on the one it walked. A capped walk is not a census of the
+corpus, and two of its verdicts are sound only over the whole of it -- a field decisive only on a
+dropped pair reads as inert, and a declaration exercised only there reads as unexercised. The
+read-provenance census feeds its declaration checks from the uncapped declared loop for exactly this
+reason and says so at its parameter; the first draft of the operand census did not follow it. Both
+verdicts are now drawn from an uncapped run alone, the stale-declaration check stands under a cap, and
+a capped run walks, counts and reports both under a summary line that says it was capped. It is BD3's
+and BF12's class -- a frozen instrument refusing the pass's own new code on its first run over the
+branch -- and it is the third time the coverage measure has been the one to do it.
+
+**BH5 is the same measure on the run BH4 had blocked.** With the census no longer failing the gate under
+the cap, the coverage measure reached it and reported one construct never evaluated by a passing run:
+the conditional that keeps one thrown-exception finding per property, field and exception, inside the
+branch only a throwing evaluator enters. It is correctly unreachable and was owed a declared exemption,
+as every witness-building branch in the file carries; it is declared, with `BH-f` as the probe that
+reaches it.
+
+**Over `81eeffd`, the head that records this pass, the whole set is green**: the corpus at 141 of 141,
+the coverage measure with 46 condition and 6 operand exemptions, the deep run at 52,000 evaluations and
+0 red, and every cheap gate, all in two short-path clones. The properties gate at its default count is
+about 45 seconds on an idle machine against about 36 at `ad5a6b4`, measured twice each, the operand
+census being the difference; the corpus gains seven probes at `-GeneratedCount 0`.
+
+**What the next pass inherits.** The operand census, like the read-provenance census, walks the
+declared corpus only and one field at a time; a wrong value on a path only a generated vector reaches,
+or one that decides only jointly with another, is invisible to it, and the sixteenth pass's trade
+stands unmade for both censuses. Per-property inertness -- a field one property reads and another
+decides on -- was counted and not failed on. BH3's disposition is the owner's. The three narratives'
+finding ranges are read by no guard for the range, as the twenty-first left them.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -1885,9 +1994,9 @@ nothing means the package is sound *under what the programme can currently detec
 and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
-twenty-one times**: the passes found five, six, three, two, five, one, seven, seven, five, three, one,
-three, zero, three, seven, seven, three, three, five, twelve and **two** defects. Sections 2d through
-2x record them. This tally counts what a reader counts -- the numbered findings in each pass's
+twenty-two times**: the passes found five, six, three, two, five, one, seven, seven, five, three, one,
+three, zero, three, seven, seven, three, three, five, twelve, two and **five** defects. Sections 2d
+through 2y record them. This tally counts what a reader counts -- the numbered findings in each pass's
 retained review; the first figure said three until BG2, and the first pass's review carries five.
 Where the 2026-09-04 ruling's two populations differ from that total, the pass's own section states
 the split: of the fifteenth's seven, five are in the package and two are in the instrument that pass
@@ -1895,8 +2004,10 @@ built; of the sixteenth's seven, four are in the package and three are in its ow
 seventeenth's three, two are in the package and one is in its own new code; of the eighteenth's
 three, two are in the package and one is in its own new code; the nineteenth's five are all in the
 package; of the twentieth's twelve, one is the frozen set's, eight are the new instrument's in the
-package, two are in its own new code, and one is in a frozen instrument by reading; and the
-twenty-first's two are both by reading, one in a frozen instrument and one in an entry point.
+package, two are in its own new code, and one is in a frozen instrument by reading; the
+twenty-first's two are both by reading, one in a frozen instrument and one in an entry point; and of the
+twenty-second's five, three are in the package by the instrument's first run and two are in its own new
+code.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -2043,15 +2154,29 @@ entries the pass did not know were wrong, and the count stays at zero. Fourteen 
 passes have built an instrument that found something in the package, and the twenty-first is the first
 since the thirteenth whose named instrument did not.
 
-The next work is therefore a twenty-second author-side pass, and it is the **first of the two
-consecutive passes** the 2026-09-04 ruling requires, owed again from zero. Section 2x records what the
-twenty-first found and what it leaves: the census still poisons the declared corpus only; the
-conjunct-moving class is unpinned because no declared vector can provoke it; and the three narratives'
-finding ranges are read by no guard for the range. The profile record behind BF2 and BF9 is no longer
-an inherited unit: the 2026-09-16 ruling in section 6 defers it to Batch 2 with its trigger stated. The
-plan's rule is unchanged: the instrument is built, run over the package as found, and its first-run
-findings recorded before they are corrected -- and the whole probe corpus is run over the branch before
-the pass reports, which BF1 is the cost of not doing.
+**The twenty-second was to be the first of the two owed from zero and is not either.** Its frozen set
+-- the 134-probe corpus, the coverage measure, both design gates, the return-channel census, the
+read-provenance census over both polarities, the polarity and citation checks, the closed-vocabulary
+and field-readership censuses, the roster check, and 52,000 evaluations over 2,000 generated vectors at
+0 red with AZ3's sweep green -- reported nothing, the second consecutive clean frozen set. The
+instrument it built -- every field a property was seen to read, given a wrong value of its own kind --
+found **BH1**, **BH2** and **BH3** in the package on its first run, all in the verification and none in
+the design, and **BH4** and **BH5** in its own code by the frozen coverage measure; BH1 says what twenty-one passes'
+instruments were worth against one class: a field present, read, in its closed set and reconciled against nothing carried a live disagreement with the
+timeline on a conforming vector, under every census that asks whether something is present, read, or
+in a set. Fifteen of these twenty-two passes have now built an instrument that found something in the
+package.
+
+The next work is therefore a twenty-third author-side pass, and it is the **first of the two
+consecutive passes** the 2026-09-04 ruling requires, owed again from zero. Section 2y records what the
+twenty-second found and what it leaves: both censuses walk the declared corpus only, and the operand
+census one field at a time; per-property inertness is counted and not failed on; BH3's disposition is
+the owner's under open question 5; and the three narratives' finding ranges are read by no guard for
+the range. The profile record behind BF2 and BF9 is no longer an inherited unit: the 2026-09-16 ruling
+in section 6 defers it to Batch 2 with its trigger stated. The plan's rule is unchanged: the instrument
+is built, run over the package as found, and its first-run findings recorded before they are corrected
+-- and the whole probe corpus is run over the branch before the pass reports, which BF1 is the cost of
+not doing.
 
 What the fourteenth left undone is narrower and should not be confused with the above: the seven inert
 droppings are inert because the generated population carries one frame shape per session, and the
@@ -2151,7 +2276,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   nothing, and cutting the return-channel census from about a hundred syntax-tree walks per gate to one
   moved it from 530 traced seconds to 318 — real, but a fifth of what the walk count suggested, because
   what costs is executed statements and not walks; and
-- **guard probes executable** — currently **134 of 134**, run by
+- **guard probes executable** — currently **141 of 141**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
@@ -2203,6 +2328,24 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
    with each new guard is an acceptance criterion someone can fail, as W1's registry deletion was, or a
    habit that decays the first time a pass is in a hurry. The measure in section 4 makes the decay
    visible either way, which is the argument for leaving it as a practice.
+5. **Which event token routes which row of the session machine's legal transition table?** **BH3**:
+   the table keys each row on a From state, a prose event-and-guard cell and a To state; the Events
+   table names eleven tokens; the coverage grid routes by event class in prose cells; and the brief's
+   vector format has every transition state its event. No artifact says which token takes which row,
+   so `S1` judges an accepted transition by its edge -- the unit the brief's operator set offers --
+   and a legal edge taken on an event the design does not route there, `established` to `draining` on
+   `close`, is green in the gate and on every generated vector. Three options are on the table. (a)
+   The legal table names the token or tokens beside each row's guard, `S1` reads the triple, and the
+   gate's cross-check reads the tokens from the table as it reads the edges today; the two `any
+   nonterminal` rows then have to say which tokens they route, and the grid's `established` Close cell
+   -- premature close, `faulted` -- has to say whether that is `close` on a detailed row or a
+   recognized violation through the fault row. (b) The vector format drops the event from a transition
+   record, since the edge is what the operator set compares and the field is then a reader's
+   annotation the gate cannot check. (c) The field stays, declared inert, as it is now. The
+   recommendation is (a), because the design already states the routing in prose and a fact stated
+   only in prose is the class this plan exists to retire; but (a) is a design change to the artifact
+   that owns the machine, and the `any nonterminal` question inside it is a decision rather than a
+   transcription, which is why it is put here rather than made.
 
 ## 6. Resolved questions
 
