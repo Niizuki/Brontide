@@ -1923,6 +1923,12 @@ branch only a throwing evaluator enters. It is correctly unreachable and was owe
 as every witness-building branch in the file carries; it is declared, with `BH-f` as the probe that
 reaches it.
 
+**Over `81eeffd`, the head that records this pass, the whole set is green**: the corpus at 141 of 141,
+the coverage measure with 46 condition and 6 operand exemptions, the deep run at 52,000 evaluations and
+0 red, and every cheap gate, all in two short-path clones. The properties gate at its default count is
+about 45 seconds on an idle machine against about 36 at `ad5a6b4`, measured twice each, the operand
+census being the difference; the corpus gains seven probes at `-GeneratedCount 0`.
+
 **What the next pass inherits.** The operand census, like the read-provenance census, walks the
 declared corpus only and one field at a time; a wrong value on a path only a generated vector reaches,
 or one that decides only jointly with another, is invisible to it, and the sixteenth pass's trade

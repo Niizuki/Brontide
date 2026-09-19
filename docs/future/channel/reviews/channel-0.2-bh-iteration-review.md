@@ -231,6 +231,18 @@ question rather than a fact the design states.
 - **BH1's instance was found by reading the corpus for what the instrument implied**, and the
   reconciliation was seen red on that vector alone before the vector was corrected. **BH2's
   reconciliation was seen green over the whole corpus and red on the probe.**
+- **The whole set was then run over `81eeffd`, the head that records this pass**, in two short-path
+  clones: the text, link, design, owned-fact and return-channel gates, the properties gate at its
+  default count, the corpus at 141 of 141 over 22 workers in 2,294 seconds, the coverage measure over
+  four gates in 1,997 seconds with 46 condition and 6 operand exemptions -- the 41 and 6 it declared
+  before this pass plus the five this pass owed, three for loops only a failing run enters, one for
+  the census's unexercised-declaration loop and one for BH5's conditional -- and the deep run at
+  52,000 evaluations and 0 red with the sweep green over 500, all exit 0. Two earlier runs over the
+  branch were not clean and are what BH4 and BH5 record: coverage over `d1d1713` reported the
+  properties gate exiting 1 under the measure's arguments, and coverage over `64afa42` reported the
+  dedupe conditional never evaluated. The one commit above `81eeffd` changes this paragraph and one
+  in the plan's section 2y, and the text, link, design, owned-fact, return-channel and properties
+  gates were re-run over it.
 
 ## What remains outside the pass
 
@@ -252,9 +264,9 @@ never decides on it itself, is a weaker signal this pass counted and did not fai
 **The three narratives' finding ranges** are still read by no guard for the range, as the
 twenty-first left them.
 
-**Cost.** The operand census adds 3,540 evaluations to the properties gate at `-GeneratedCount 0`:
-about ten seconds on this machine, measured with the frozen set running beside it. The corpus gains
-seven probes at that count.
+**Cost.** The operand census adds about 3,540 evaluations to the properties gate: about nine seconds,
+the gate at its default count measuring 43 and 46 seconds on the branch against 35 and 36 at `ad5a6b4`
+on an idle machine. The corpus gains seven probes at `-GeneratedCount 0`.
 
 **Whether this pass is the first of the two owed is not in question.** The instrument found BH1, BH2
 and BH3 in the package on its first run, which is the ruling's second population, and the count
