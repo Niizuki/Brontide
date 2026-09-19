@@ -882,6 +882,16 @@
           "vector": "I5-concurrency-exceeds-bound",
           "expected": "red",
           "note": "See the vector's own summary for why this input violates the statement."
+        },
+        {
+          "vector": "I5-refused-terminal-holds-slot",
+          "expected": "red",
+          "note": "BI1. Fires through the accepted operand of the terminal handling: a refused terminal fact frees no slot. Until this mutation no input of I5 made that operand decisive."
+        },
+        {
+          "vector": "I5-terminal-closes-other-identity",
+          "expected": "red",
+          "note": "BI1. Fires through the closes operand of the terminal handling: an accepted terminal frees the slots of the admitted identities it closes and no other. Until this mutation no input of I5 made that operand decisive, and the evaluator counted terminal facts rather than tracking the identities they close."
         }
       ],
       "requiredGreen": [

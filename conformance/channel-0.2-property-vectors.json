@@ -2884,6 +2884,248 @@
       }
     },
     {
+      "id": "I5-refused-terminal-holds-slot",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "I5"
+      ],
+      "role": "named-mutation",
+      "raisedBy": "BI1",
+      "summary": "A terminal fact for i1 arrives and is refused -- it is not an accepted terminal, so i1 stays nonterminal and its slot stays taken -- and the session then admits i2 against an established bound of one. Two interactions are nonterminal at once. The mutation fires through the accepted operand of I5's terminal handling: an evaluator that freed the slot on any terminal fact, refused or not, would take this input green.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "establishedBound": 1,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 1
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 1
+              }
+            }
+          }
+        }
+      ],      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "closes": "i1",
+          "accepted": false
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i2"
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": []
+        },
+        {
+          "session": "s1",
+          "identity": "i2",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": false,
+          "refusal": null,
+          "terminalHistories": []
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "I5": "red"
+      }
+    },    {
+      "id": "I5-terminal-closes-other-identity",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "I5"
+      ],
+      "role": "named-mutation",
+      "raisedBy": "BI1",
+      "summary": "The accepted terminal fact for i1 closes i2, an identity the session never admitted, so i1 stays nonterminal; the session then admits i2 against an established bound of one, and two interactions are nonterminal at once. The mutation fires through the closes operand of I5's terminal handling: an evaluator that counted terminal facts rather than tracking which admitted identities they close would take this input green, because one terminal arrived before the second admission.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "unestablished",
+          "establishedBound": 1,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 1
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 1
+              }
+            }
+          }
+        }
+      ],      "sessionTimeline": [
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "unestablished",
+          "to": "established",
+          "event": "validate-fixed-profile",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "step": "terminal",
+          "identity": "i1",
+          "closes": "i2",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "admit",
+          "identity": "i2"
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": []
+        },
+        {
+          "session": "s1",
+          "identity": "i2",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": false,
+          "refusal": null,
+          "terminalHistories": []
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "I5": "red"
+      }
+    },    {
       "id": "I5-concurrency-exceeds-bound",
       "capability": "C2/C4",
       "propertyMemberships": [
