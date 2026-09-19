@@ -162,6 +162,10 @@
           "reason": "The operand census reporting fields read and never decisive that no declaration covers. A passing run has none: every field a property reads is decisive on some declared input, reconciled by the harness, or declared inert on the design's own words. `BH-a` reaches it. Under this measure's own capped arguments the loop is not entered at all, by BH4: a capped walk is not a census of the corpus, and its inert verdict is reported rather than failed."
         },
         {
+          "anchor": "if ($operandThrownKeys.Add(\"$propertyId|$sitePath|$trialThrew\")) {",
+          "reason": "Inside the operand census's branch for an evaluator that threw on a well-formed wrong value, which a passing run never enters: it keeps one finding per property, field and exception rather than one per trial. `BH-f` reaches it. BH5: the measure reported it on its first run over the corrected instrument, the run BH4 had kept it from reaching."
+        },
+        {
           "anchor": "foreach ($unexercised in $operandUnexercised) {",
           "reason": "The operand census reporting inert declarations no trial reached. A passing run has none: every declared field is read by some property on some declared input and has a mutation of its kind. `BH-g` reaches it, and under this measure's capped arguments the loop is not entered, by BH4."
         }

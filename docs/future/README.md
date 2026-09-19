@@ -518,7 +518,7 @@ profile record behind BF2 and BF9 to Batch 2 with its trigger stated.
 whether a field is present, read or in a set, but whether the value read decides anything.** It is
 retained as the
 [twenty-second W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-bh-iteration-review.md)
-and raised **BH1**-**BH4**. Its frozen set reported nothing -- the second consecutive clean frozen set
+and raised **BH1**-**BH5**. Its frozen set reported nothing -- the second consecutive clean frozen set
 -- and the instrument it built gives every field a property was seen to read on a declared input a
 wrong value of its own kind, a negated Boolean, another member of the field's closed set, a sibling
 identifier, and reports a field whose value moves no verdict, conjunct, error or unpublished field on
@@ -534,7 +534,8 @@ legal table, so a legal edge taken on the wrong event is green; that is a silenc
 as a gap in the evaluator, and it is put to the owner as the plan's open question 5 rather than
 decided. **BH4** is the pass's own code, caught by the frozen coverage measure on its first run over the
 branch: under the measure's one-pair cap the census called two fields inert that are decisive on a pair
-the cap dropped, and failed the gate it lives in. The count stays at zero, a twenty-third pass is the
+the cap dropped, and failed the gate it lives in; **BH5** is the same measure, on its next run, refusing
+a conditional only a throwing evaluator reaches that no exemption declared. The count stays at zero, a twenty-third pass is the
 next work, the first of the two owed from zero, and the closure-review hold remains in force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
