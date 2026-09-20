@@ -13,6 +13,10 @@ $mojibakeMarkers = @(
     [string][char]0x00C2,
     ([string][char]0x00E2 + [string][char]0x20AC)
 )
+# Every C0 control character except tab, line feed and carriage return. One compiled expression
+# rather than an interpreted loop over each character of each file: the loop was thirty seconds
+# over fourteen megabytes of text, and this is a tenth of one.
+$controlCharacter = [regex]::new('[\x00-\x08\x0B\x0C\x0E-\x1F]', [System.Text.RegularExpressions.RegexOptions]::Compiled)
 
 $files = Get-ChildItem -Path $repositoryRoot -Recurse -File | Where-Object {
     $_.FullName -notmatch '[\\/](\.git|bin|obj)[\\/]' -and
@@ -36,12 +40,9 @@ foreach ($file in $files) {
         }
     }
 
-    for ($index = 0; $index -lt $text.Length; $index++) {
-        $code = [int]$text[$index]
-        if ($code -lt 32 -and $code -notin @(9, 10, 13)) {
-            $failures.Add("'$($file.FullName)' contains control character U+$($code.ToString('X4')).")
-            break
-        }
+    $control = $controlCharacter.Match($text)
+    if ($control.Success) {
+        $failures.Add("'$($file.FullName)' contains control character U+$(([int]$control.Value[0]).ToString('X4')).")
     }
 }
 
