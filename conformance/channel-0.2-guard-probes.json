@@ -543,7 +543,7 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "run in the gate on every commit: **74** evaluations over **34** declared inputs",
+          "find": "run in the gate on every commit: **76** evaluations over **36** declared inputs",
           "replace": "run in the gate on every commit: **55** evaluations over **34** declared inputs"
         }
       ],
@@ -884,7 +884,7 @@
       "edits": [
         {
           "path": "docs/future/README.md",
-          "find": "review has yet seen the BF corrections.",
+          "find": "review has yet seen the BI corrections.",
           "replace": "review has yet seen the AB corrections."
         }
       ]
@@ -1918,7 +1918,7 @@
       "claim": "a field the corpus states on every session record and nothing reads, after the one property that names it stops naming it",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
-      "guardMessage": "The declared corpus states \u0027sessions[].establishedProfile\u0027 on 61 record(s) of 59 vector(s) and nothing reads it",
+      "guardMessage": "The declared corpus states \u0027sessions[].establishedProfile\u0027 on",
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",

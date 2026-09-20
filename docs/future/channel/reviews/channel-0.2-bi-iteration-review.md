@@ -45,7 +45,7 @@ where declared, the read-provenance census over both polarities at 0 raw, the fi
 at 0 read by nothing, the operand census at 84 fields tried and 0 inert and undeclared, the
 closed-vocabulary census over both populations, the declaration-polarity and declaration-citation
 checks -- the coverage measure over four gates with the 46 condition and 6 operand exemptions it
-declared before this pass, and the 141-probe corpus at FROZEN-CORPUS over 22 workers. All exit 0.
+declared before this pass, and the 141-probe corpus at 141 of 141 over 22 workers. All exit 0.
 The streak of clean frozen sets stands at three.
 
 ## The instrument
@@ -100,8 +100,9 @@ identity `i1` -- is stated at `sessionTimeline[].identity` and never at `closes`
 the spaces those identifiers belong to, so the census now draws an identifier's siblings from its
 identity space: session identities, interaction identities and stimulus-step identities, each space
 declared with the brief's words, checked to list identifier fields only and no field twice. Trials
-went from 3,540 to 3,652 and no field changed class at the field level; `closes` became decisive for
-`I5` through the mutation written for it.
+went from 3,539 at the head to 3,652 with the two vectors declared and the wider siblings, no field
+changed class at the field level, and `closes` became decisive for `I5` through the mutation written
+for it.
 
 ### BI2 -- I6's witness named the interaction identity alone
 
@@ -138,7 +139,9 @@ there and this finding does not count against the pass under the 2026-09-16 ruli
 
 - **The frozen set was run at `ed2145a` before any of this work existed**, in a short-path clone, and
   everything reported above was read from that run's output. The deep properties run took 873
-  seconds; the coverage measure and the corpus figures are in the frozen-set paragraph above.
+  seconds, the coverage measure 2,243 and the corpus 2,665 over 22 workers -- the last two on a machine
+  also running this pass's own coverage and corpus, and after a session break that cut the first attempt
+  at both short, so the pass ran them a second time from the start.
 - **The instrument was made to fail for each of its claimed reasons before its verdict was believed**,
   and six probes keep the corpus honest about it: `BI-a`, `I5` freeing a slot on any terminal fact,
   reported as reading `accepted` and never deciding on it beside the declared loop's own failure;
@@ -177,8 +180,9 @@ wave is a shape the generator does not yet produce.
 
 **The three narratives' finding ranges** are still read by no guard for the range.
 
-**Cost.** The per-property tallies add nothing measurable to the properties gate; the identity-space
-siblings add 112 trials. The corpus gains six probes at `-GeneratedCount 0`.
+**Cost.** The per-property tallies add nothing measurable to the properties gate; the two vectors and
+the identity-space siblings add 113 trials between them. The corpus gains six probes at
+`-GeneratedCount 0`.
 
 **Whether this pass is the first of the two owed is not in question.** The instrument found BI1 and
 BI2 in the package on its first run, which is the ruling's second population, and the count stays at
