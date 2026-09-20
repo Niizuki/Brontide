@@ -134,7 +134,7 @@ four are corrected: every property of the session state machine now names its se
 structurally rather than lexically, the declared fact list is checked against the neutral brief's
 vector format rather than against itself, the grid's cells are registered as surfaces of their own,
 and the package-wide sweep is keyed to the record rather than to the reference's name. No independent
-review has yet seen the BF corrections. No Channel 0.2 schema or implementation is authorized until the
+review has yet seen the BI corrections. No Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
 **The next closure review is on hold by owner decision of 2026-08-17**, recorded in the
@@ -535,8 +535,30 @@ as a gap in the evaluator, and it is put to the owner as the plan's open questio
 decided. **BH4** is the pass's own code, caught by the frozen coverage measure on its first run over the
 branch: under the measure's one-pair cap the census called two fields inert that are decisive on a pair
 the cap dropped, and failed the gate it lives in; **BH5** is the same measure, on its next run, refusing
-a conditional only a throwing evaluator reaches that no exemption declared. The count stays at zero, a twenty-third pass is the
-next work, the first of the two owed from zero, and the closure-review hold remains in force.
+a conditional only a throwing evaluator reaches that no exemption declared. The count stays at zero and
+the closure-review hold remains in force.
+
+**The twenty-third pass then asked the same question of each property over its own inputs.** It is
+retained as the
+[twenty-third W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-bi-iteration-review.md)
+and raised **BI1**-**BI3**. Its frozen set reported nothing -- the third consecutive clean frozen set
+-- and the instrument it built keeps the operand census's tallies per (property, field): every field a
+property reads on its declared inputs must decide that property's verdict on one of them or be named
+in its witness, which is AU1's unfalsifiable obligation one operand down. On its first run it reported
+three of 166 pairs. **BI1** is the one to weigh, and the first family since BF to reach a design
+artifact: `I5` read whether a terminal step was accepted and which identities it closed, and on every
+input it declared neither ever decided the verdict -- each green member holds one interaction against
+a bound of two, and its one mutation admits two before any terminal arrives -- so an evaluator that
+freed a slot on any terminal fact would have passed every input the property declares. Writing the two
+mutations the property was owed found the evaluator counting terminal facts rather than tracking the
+identities they close, green on a terminal for `i1` that closed an identity the session never
+admitted; it tracks the set now, the completeness review's audit row names both mutations, and the
+census draws an identifier's wrong values from the identity space the design names rather than from
+its own path. **BI2** is `I6`'s witness naming the identity and not the session. **BI3** is this
+index's own Channel row naming the next pass the twenty-first for three passes, found by reading and
+pinned by the design gate's ordinal check, which now reads the row and found nothing else. The count
+stays at zero, a twenty-fourth pass is the next work, the first of the two owed from zero, and the
+closure-review hold remains in force.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
@@ -2120,7 +2142,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, AV1-AV3, AW1, AX1-AX3, AZ1-AZ2, BA1-BA7, BB1-BB7, BC1-BC3, BD1-BD3, BE1-BE5 and BF1-BF12 families; the closure cycle remains on hold while a twenty-first verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, AV1-AV3, AW1, AX1-AX3, AZ1-AZ2, BA1-BA7, BB1-BB7, BC1-BC3, BD1-BD3, BE1-BE5 and BF1-BF12 and BI1-BI3 families; the closure cycle remains on hold while a twenty-fourth verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

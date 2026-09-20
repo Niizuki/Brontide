@@ -166,6 +166,10 @@
           "reason": "Inside the operand census's branch for an evaluator that threw on a well-formed wrong value, which a passing run never enters: it keeps one finding per property, field and exception rather than one per trial. `BH-f` reaches it. BH5: the measure reported it on its first run over the corrected instrument, the run BH4 had kept it from reaching."
         },
         {
+          "anchor": "foreach ($propertyInertFinding in $operandPropertyInert) {",
+          "reason": "The per-property operand census reporting fields a property reads and never decides on while another property does. A passing run has none: every such pair is decisive for its property on some declared input or named in its witness. `BI-a`, `BI-b` and `BI-c` reach it, and under this measure's capped arguments the loop is not entered, by BH4."
+        },
+        {
           "anchor": "foreach ($unexercised in $operandUnexercised) {",
           "reason": "The operand census reporting inert declarations no trial reached. A passing run has none: every declared field is read by some property on some declared input and has a mutation of its kind. `BH-g` reaches it, and under this measure's capped arguments the loop is not entered, by BH4."
         }

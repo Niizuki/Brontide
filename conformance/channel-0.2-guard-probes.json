@@ -543,7 +543,7 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "run in the gate on every commit: **74** evaluations over **34** declared inputs",
+          "find": "run in the gate on every commit: **76** evaluations over **36** declared inputs",
           "replace": "run in the gate on every commit: **55** evaluations over **34** declared inputs"
         }
       ],
@@ -884,7 +884,7 @@
       "edits": [
         {
           "path": "docs/future/README.md",
-          "find": "review has yet seen the BF corrections.",
+          "find": "review has yet seen the BI corrections.",
           "replace": "review has yet seen the AB corrections."
         }
       ]
@@ -1210,8 +1210,8 @@
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "return New-Red \"relational interaction $identity creates Ready or Release\"",
-          "replace": "if ($false) { $null = New-Red \"AU1-b\" }; return New-Red \"relational interaction $identity creates Ready or Release\""
+          "find": "return New-Red \"relational interaction $identity in session $sessionId creates Ready or Release\"",
+          "replace": "if ($false) { $null = New-Red \"AU1-b\" }; return New-Red \"relational interaction $identity in session $sessionId creates Ready or Release\""
         }
       ],
       "gateArguments": [
@@ -1918,7 +1918,7 @@
       "claim": "a field the corpus states on every session record and nothing reads, after the one property that names it stops naming it",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
-      "guardMessage": "The declared corpus states \u0027sessions[].establishedProfile\u0027 on 61 record(s) of 59 vector(s) and nothing reads it",
+      "guardMessage": "The declared corpus states \u0027sessions[].establishedProfile\u0027 on",
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
@@ -2341,6 +2341,119 @@
           "path": "build/verify-channel-0.2-properties.ps1",
           "find": "    @{ Field = 'sessions[].establishedProfile'",
           "replace": "    @{ Field = 'sessions[].establishedProfileDigest'"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BI-a",
+      "claim": "a property that ignores an operand its own inputs are supposed to exercise -- I5 freeing a slot on any terminal fact whether or not it was accepted -- is reported by the per-property operand census as reading accepted and never deciding on it, beside the declared loop's own red-expected failure",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "Property 'I5' reads 'sessionTimeline[].accepted' on its declared inputs, and over",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        elseif ($step -eq 'terminal' -and (Read-Required $sessionEvent 'accepted' $timelineSubject)) {",
+          "replace": "        elseif ($step -eq 'terminal' -and ($null -ne (Read-Required $sessionEvent 'accepted' $timelineSubject))) {"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BI-b",
+      "claim": "the I5 defect as the census found it -- an accepted terminal freeing its own interaction's slot whatever identity it says it closes -- is reported as I5 reading closes and never deciding on it, beside the declared loop's failure on the mutation written for it",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "Property 'I5' reads 'sessionTimeline[].closes' on its declared inputs, and over",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "                if ($null -ne $closed) { [void]$live[$sessionId].Remove([string]$closed) }",
+          "replace": "                if ($null -ne $closed) { [void]$live[$sessionId].Remove([string](Read-Required $sessionEvent 'identity' $timelineSubject)) }"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BI-c",
+      "claim": "a field a property reads into a diagnostic and names in no witness -- I6's session before BI2 -- is reported as read and never decisive for that property once neither witness names it",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "Property 'I6' reads 'interactions[].session' on its declared inputs, and over",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "            return New-Red \"relational interaction $identity in session $sessionId matches $matches declarations\"",
+          "replace": "            return New-Red \"relational interaction $identity matches $matches declarations\""
+        },
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "            return New-Red \"relational interaction $identity in session $sessionId creates Ready or Release\"",
+          "replace": "            return New-Red \"relational interaction $identity creates Ready or Release\""
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BI-d",
+      "claim": "an identity space listing a field the vocabulary census does not classify as an identifier is refused",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "The identity space 'stimulus step identity' lists 'delivery[].disposition', which the closed-vocabulary census does not classify as an identifier field.",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "       Paths = @('declaredSteps[].id', 'delivery[].step')",
+          "replace": "       Paths = @('declaredSteps[].id', 'delivery[].disposition')"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BI-e",
+      "claim": "an identity space citing words its artifact does not contain is refused, as every declaration here is",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "The identity space 'stimulus step identity' cites 'docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md' for the words \"unordered stimulus steps, each naming its committing endpoint, its session, and, where it carries one, its interaction identity\", and that artifact does not contain them.",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "       Words = 'ordered stimulus steps, each naming its committing endpoint, its session, and, where it carries one, its interaction identity' }",
+          "replace": "       Words = 'unordered stimulus steps, each naming its committing endpoint, its session, and, where it carries one, its interaction identity' }"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0"
+      ]
+    },
+    {
+      "id": "BI-f",
+      "claim": "a field listed in two identity spaces is refused: one field carries one identity",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "The field 'sessions[].id' is listed in both the identity space 'session identity' and 'stimulus step identity'. One field carries one identity.",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "       Paths = @('declaredSteps[].id', 'delivery[].step')",
+          "replace": "       Paths = @('declaredSteps[].id', 'delivery[].step', 'sessions[].id')"
         }
       ],
       "gateArguments": [

@@ -196,7 +196,7 @@ second copy drift. Section 4's count of executable properties is checked against
 executes, so the measure cannot go stale in the direction that flatters the work.
 
 **All fifteen properties condition 2 names now execute.** `C4-P1`, `C4-P2`, `S1`-`S6` and `I1`-`I7`
-run in the gate on every commit: **74** evaluations over **34** declared inputs, plus the nine operand
+run in the gate on every commit: **76** evaluations over **36** declared inputs, plus the nine operand
 mutations. Each has at least one named mutation it goes red on and a required-green set it stays green
 on, and a property green on every input fails the gate as a finding against the property.
 
@@ -231,7 +231,7 @@ Both were probed.
 
 **All twenty-six properties now execute, and no cell in either audit table reads `owed`.** The eleven
 per-capability properties outside condition 2 -- `C1-P1`, `C2-P1`, `C3-P1`, `C5-P1` through `C12-P1`
--- were the last of them. The gate runs **137** evaluations over **59** declared inputs plus the nine operand
+-- were the last of them. The gate runs **139** evaluations over **61** declared inputs plus the nine operand
 mutations, and each property is red on the mutation the completeness review already named for it and
 green on both required-green members.
 
@@ -1936,6 +1936,71 @@ stands unmade for both censuses. Per-property inertness -- a field one property 
 decides on -- was counted and not failed on. BH3's disposition is the owner's. The three narratives'
 finding ranges are read by no guard for the range, as the twenty-first left them.
 
+## 2z. What the twenty-third condition 4 pass found
+
+The twenty-third author-side pass has run, at `ed2145a`, and is retained as the
+[twenty-third W1-W3 verification-foundation iteration review](./reviews/channel-0.2-bi-iteration-review.md).
+It was to be the **first of the two consecutive clean passes** the 2026-09-04 ruling requires from
+zero, and it is not: its frozen set reported nothing -- the third consecutive clean frozen set -- and
+the instrument it built found **BI1** and **BI2** in the package on its first run. **BI3** was found by
+reading and pinned, and the pin found only its instance. BI1 reaches the completeness review's audit
+row for `I5`, so the family is `design` and is dispositioned in that review's history; this section
+records the pass.
+
+**The instrument is the operand census asked of each property over its own inputs.** The twenty-second
+pass's census asks whether a field's value decides some property's verdict on some input, and left
+named the case it cannot see: a field one property decides on and another only reads is decisive in
+the corpus and inert for the second property. The census now keeps its tallies per (property, field),
+and every field a property reads on its declared inputs must decide that property's verdict on one of
+them or be named in its witness -- shown by a red input whose witness text moved and nothing else did.
+It is AU1 one operand down: an obligation can fire on every red input because of one operand while the
+other is read, compared, and never the reason, and an evaluator that ignored it would pass every input
+the property declares. On its first run it reported three of 166 pairs, 137 being decisive for their
+property and 17 named in its witness.
+
+**BI1 is `I5`'s terminal handling, exercised by nothing `I5` declared, with the evaluator wrong beneath
+it.** `I5` reads whether a terminal step was accepted and which identities it closes, and on every
+input it declared neither decided the verdict: each required-green member holds one interaction against
+a bound of two, and `I5-concurrency-exceeds-bound` admits two before any terminal arrives. No terminal
+step in the corpus was unaccepted. Writing the two owed mutations found the evaluator counting terminal
+facts rather than tracking the identities they close, so `I5-terminal-closes-other-identity` -- the
+accepted terminal for `i1` closes `i2`, never admitted, and the session then admits `i2` against a
+bound of one -- was green, seen before the evaluator was touched. The evaluator tracks the set of
+admitted identities no accepted terminal has closed; `I5-refused-terminal-holds-slot` fires through
+`accepted` and the other through `closes`; the audit row names both. The correction reached the
+instrument too: the census drew an identifier's wrong values from its own path, and the value that
+repairs the second mutation is stated at `identity` and never at `closes`, so identifier siblings are
+now drawn from the identity space the design names -- session, interaction and stimulus step -- each
+declared with the brief's words and checked to list identifier fields once.
+
+**BI2 is `I6`'s witness naming the identity alone**, so the session it read decided nothing and named
+nothing; one identity may be open in two sessions, and both witnesses name the session now.
+
+**BI3 is the future index's Channel row naming the next pass the twenty-first for three passes** --
+written when the twentieth landed, read by the design gate for the newest design family's token and
+for nothing else, and left by two verification-family passes that moved every other surface. The row
+joins the next-pass ordinal check; the pin fired on the stale ordinal and reported nothing else.
+
+**Over the branch the whole set is green**: at `8b6a9cd`, the head that records the pass, the coverage
+measure with 47 condition and 6 operand exemptions and the deep run at 52,000 evaluations and 0 red;
+at `7c8fad0`, which re-anchors three probes this pass's own edits had moved and changes no gate, the
+corpus at 147 of 147 and every cheap gate. The properties gate at its default count measures 48 and
+48 seconds on the branch against 52 and 48 at `ed2145a` on an idle machine, so the per-property
+tallies, the two vectors and the wider siblings add nothing the variance can distinguish.
+
+**What was measured about the generated population.** The coverage measure, run over the properties
+gate with the generated count at zero, reports as never evaluated only constructs inside the generated
+block: no evaluator conditional is reached by a generated vector and by no declared one. What a
+generated walk of either census would still reach is a branch body with no conditional of its own,
+which that measure does not see, and the generator emits accepted terminals only, so the operand BI1
+made decisive is exercised over the generated population by nothing.
+
+**What the next pass inherits.** The witness criterion is a proxy that cannot separate a field named in
+a witness from one compared in a test that never fails. Both censuses walk the declared corpus, with
+the generated population's expected yield now bounded as above. The generator emits no refused
+terminal. BH3's disposition is the owner's. The three narratives' finding ranges are read by no guard
+for the range.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -1994,9 +2059,9 @@ nothing means the package is sound *under what the programme can currently detec
 and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
-twenty-two times**: the passes found five, six, three, two, five, one, seven, seven, five, three, one,
-three, zero, three, seven, seven, three, three, five, twelve, two and **five** defects. Sections 2d
-through 2y record them. This tally counts what a reader counts -- the numbered findings in each pass's
+twenty-three times**: the passes found five, six, three, two, five, one, seven, seven, five, three,
+one, three, zero, three, seven, seven, three, three, five, twelve, two, five and **three** defects.
+Sections 2d through 2z record them. This tally counts what a reader counts -- the numbered findings in each pass's
 retained review; the first figure said three until BG2, and the first pass's review carries five.
 Where the 2026-09-04 ruling's two populations differ from that total, the pass's own section states
 the split: of the fifteenth's seven, five are in the package and two are in the instrument that pass
@@ -2005,9 +2070,10 @@ seventeenth's three, two are in the package and one is in its own new code; of t
 three, two are in the package and one is in its own new code; the nineteenth's five are all in the
 package; of the twentieth's twelve, one is the frozen set's, eight are the new instrument's in the
 package, two are in its own new code, and one is in a frozen instrument by reading; the
-twenty-first's two are both by reading, one in a frozen instrument and one in an entry point; and of the
+twenty-first's two are both by reading, one in a frozen instrument and one in an entry point; of the
 twenty-second's five, three are in the package by the instrument's first run and two are in its own new
-code.
+code; and of the twenty-third's three, two are in the package by the instrument's first run and one is
+by reading, pinned.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -2167,12 +2233,25 @@ timeline on a conforming vector, under every census that asks whether something 
 in a set. Fifteen of these twenty-two passes have now built an instrument that found something in the
 package.
 
-The next work is therefore a twenty-third author-side pass, and it is the **first of the two
-consecutive passes** the 2026-09-04 ruling requires, owed again from zero. Section 2y records what the
-twenty-second found and what it leaves: both censuses walk the declared corpus only, and the operand
-census one field at a time; per-property inertness is counted and not failed on; BH3's disposition is
-the owner's under open question 5; and the three narratives' finding ranges are read by no guard for
-the range. The profile record behind BF2 and BF9 is no longer an inherited unit: the 2026-09-16 ruling
+**The twenty-third was to be the first of the two owed from zero and is not either.** Its frozen set
+-- the 141-probe corpus, the coverage measure, both design gates, the return-channel census, the
+read-provenance, field-readership and operand censuses, the polarity and citation checks, the
+closed-vocabulary census, the roster check, and 52,000 evaluations over 2,000 generated vectors at 0
+red with AZ3's sweep green -- reported nothing, the third consecutive clean frozen set. The instrument
+it built -- the operand census asked of each property over its own inputs -- found **BI1** and **BI2**
+in the package on its first run, and BI1 is the one to weigh: a property's two operands that no input
+of the property exercised, and an evaluator beneath them that was green on a session holding two
+against a bound of one, under twenty-two passes whose instruments asked whether an obligation fires
+and never whether each operand of it is why. Sixteen of these twenty-three passes have now built an
+instrument that found something in the package.
+
+The next work is therefore a twenty-fourth author-side pass, and it is the **first of the two
+consecutive passes** the 2026-09-04 ruling requires, owed again from zero. Section 2z records what the
+twenty-third found and what it leaves: the per-property census's witness criterion is a proxy; both
+censuses walk the declared corpus, with what a generated walk could reach bounded to branch bodies
+with no conditional of their own; the generator emits no refused terminal; BH3's disposition is the
+owner's under open question 5; and the three narratives' finding ranges are read by no guard for the
+range. The profile record behind BF2 and BF9 is no longer an inherited unit: the 2026-09-16 ruling
 in section 6 defers it to Batch 2 with its trigger stated. The plan's rule is unchanged: the instrument
 is built, run over the package as found, and its first-run findings recorded before they are corrected
 -- and the whole probe corpus is run over the branch before the pass reports, which BF1 is the cost of
@@ -2207,13 +2286,14 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,343** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,340** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
-  commits, which was never the value at any commit; it is corrected under **AM3**. It has moved eight
+  commits, which was never the value at any commit; it is corrected under **AM3**. It has moved nine
   times since: six times by four characters, for the same reason — registering a new
   iteration-review family in the Design reviews row — once by minus two, when registering BD took
-  that row past the 300-character bound W3 set on a cell and its wording was shortened to fit, and
-  once by minus three, when registering BE did the same. On each occasion the check that recomputes it
+  that row past the 300-character bound W3 set on a cell and its wording was shortened to fit, once
+  by minus three, when registering BE did the same, not at all for BH, which traded four characters of
+  wording for its four of family, and once by minus three, when registering BI did the same again. On each occasion the check that recomputes it
   failed the figure on the commit that wrote it, which is the check working rather than a defect in
   it; and
 - **repository-gate minutes** — **13** before this pass, **23 to 25** with the gate self-checks in it,
@@ -2276,13 +2356,13 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   nothing, and cutting the return-channel census from about a hundred syntax-tree walks per gate to one
   moved it from 530 traced seconds to 318 — real, but a fifth of what the walk count suggested, because
   what costs is executed statements and not walks; and
-- **guard probes executable** — currently **141 of 141**, run by
+- **guard probes executable** — currently **147 of 147**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
-- **design-verifier lines** — **2,985** now, recomputed by the verifier against itself. Every step
+- **design-verifier lines** — **2,992** now, recomputed by the verifier against itself. Every step
   of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
   the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
   `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491**, `138af11` **2,626** — counted the way this verifier counts
@@ -2310,7 +2390,9 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   fails when it has no word rather than skipping, with word lists that now reach thirty. It rose by
   sixty for BG, all of it the guard that reads the review policy's roster of passes back against each
   review's finding headings -- a range only prose carried, on the surface that had understated three
-  families, one of them for twenty passes.
+  families, one of them for twenty passes. It did not move for BH, whose work is all in the properties
+  gate. It rose by seven for BI, the future index's Channel row joining the next-pass ordinal check after
+  naming the next pass the twenty-first for three passes.
 
 ## 5. Open questions for the owner
 

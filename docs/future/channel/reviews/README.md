@@ -191,6 +191,7 @@ dependency instead of narrowing it.
 | BF | iteration | design | twentieth W1-W3 verification-foundation iteration review |
 | BG | iteration | verification | twenty-first W1-W3 verification-foundation iteration review |
 | BH | iteration | verification | twenty-second W1-W3 verification-foundation iteration review |
+| BI | iteration | design | twenty-third W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -286,7 +287,7 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Twenty-two such passes have run, and the thirteenth and -- under the 2026-09-16 ruling on AW2 -- the eleventh are the only two to meet the plan's condition 4, which asks for a pass that finds
+Twenty-three such passes have run, and the thirteenth and -- under the 2026-09-16 ruling on AW2 -- the eleventh are the only two to meet the plan's condition 4, which asks for a pass that finds
 nothing it can fix, and neither was followed by a second. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM5**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
@@ -308,28 +309,30 @@ nothing it can fix, and neither was followed by a second. They are retained as t
 [eighteenth](./channel-0.2-bd-iteration-review.md) (**BD1**-**BD3**),
 [nineteenth](./channel-0.2-be-iteration-review.md) (**BE1**-**BE5**),
 [twentieth](./channel-0.2-bf-iteration-review.md) (**BF1**-**BF12**),
-[twenty-first](./channel-0.2-bg-iteration-review.md) (**BG1**-**BG2**) and
-[twenty-second](./channel-0.2-bh-iteration-review.md) (**BH1**-**BH5**) W1-W3 verification-foundation
+[twenty-first](./channel-0.2-bg-iteration-review.md) (**BG1**-**BG2**),
+[twenty-second](./channel-0.2-bh-iteration-review.md) (**BH1**-**BH5**) and
+[twenty-third](./channel-0.2-bi-iteration-review.md) (**BI1**-**BI3**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised. The ranges in that list are read
 back against each review's finding headings by the design verifier since **BG2**, which found this
 list understating three of them.
 
-**A twenty-third pass over the same scope is the live path, and it is the first of two consecutive
-clean passes that are owed again from zero.** The twenty-second's frozen set reported nothing -- the
-second consecutive clean frozen set -- and the instrument it built, every field a property reads given
-a wrong value of its own kind, found **BH1**, **BH2** and **BH3** in the package on its first run, all
-in the verification and none in the design, so the count stays at zero; **BH4** and **BH5** are the pass's own
-code caught by the frozen coverage measure. It starts by
+**A twenty-fourth pass over the same scope is the live path, and it is the first of two consecutive
+clean passes that are owed again from zero.** The twenty-third's frozen set reported nothing -- the
+third consecutive clean frozen set -- and the instrument it built, the operand census sharpened from
+the field to the property, found **BI1** and **BI2** in the package on its first run, so the count
+stays at zero; **BI3** is an entry point found by reading whose pin found nothing beyond it. It starts by
 running the frozen instrument set — the probe corpus, the coverage gate, the generated-vector run, the
 return-channel census, the read-provenance census over both polarities, the declaration-polarity
 check, the declaration-citation check, the closed-vocabulary census, the field-readership census, the
 operand census and the roster check, whose sizes the plan's section 4 owns and recomputes rather than
 this paragraph — and records what it reports before building anything. It runs the whole corpus over
-its own branch before it reports, which the twentieth found the nineteenth had not. The twenty-second
-left three units named: the operand census walked over the generated population, where the sixteenth
-pass's trade stands unmade for the read-provenance census too; per-property inertness, a field one
-property reads and another decides on; and **BH3**, whose disposition is the owner's under open
-question 5 of the plan.
+its own branch before it reports, which the twentieth found the nineteenth had not. The twenty-third
+left these named: the witness criterion of the per-property census is a proxy that cannot separate a
+field named in a witness from one compared in a test that never fails; both censuses walk the declared
+corpus, and the coverage measure at zero generated vectors says the generated population reaches no
+evaluator conditional the declared corpus does not, so what a generated walk would still reach is a
+branch body with no conditional of its own; the generator emits accepted terminals only; and **BH3**,
+whose disposition is the owner's under open question 5 of the plan.
 
 **The fifteenth pass was to be the first of those two and was not.** Its frozen set reported nothing,
 for the ninth consecutive pass. The instrument it built — a census of what every consumer in these
@@ -1074,14 +1077,16 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `verification: count the twentieth pass's first-run
-fields as stated 285 times rather than on 148 records`, committed 2026-09-15, which is the head of
-the correction sequence beginning at `fix(channel): make C4-P2 falsifiable` and corrects one figure
-in the completeness review's record of the twentieth pass. It moves the pin off `verification: pin
-the eleven property obligations no input reached` because the twentieth pass's **BF2** and **BF4**
-corrections reach a design artifact -- the completeness review's per-capability audit rows for `C10`
-and `I4`, which now name a mutation for the direction on C10's list and for the `unseen` refusal
-record's effect certainty, and its review-disposition history, which records the BF family whole. The pin was previously moved off `ci: put the gate
+The current review target is the commit titled `verification: give I5 the two terminal-operand
+mutations its inputs never exercised (BI1)`, committed 2026-09-20, which is the head of the
+correction sequence beginning at `fix(channel): make C4-P2 falsifiable`. It moves the pin off
+`verification: count the twentieth pass's first-run fields as stated 285 times rather than on 148
+records` because the twenty-third pass's **BI1** correction reaches a design artifact -- the
+completeness review's per-capability audit row for `I5`, which now names a mutation for each operand
+of the property's terminal handling, and its review-disposition history, which records the BI family
+whole. Before that the pin sat on the twentieth pass's commit for its **BF2** and **BF4** corrections,
+which reached the same audit for `C10` and `I4`, and had been moved there off `verification: pin the
+eleven property obligations no input reached`. The pin was previously moved off `ci: put the gate
 self-checks behind an explicit switch` for the ninth pass's **AU1** corrections, which reached the
 same audit for nine properties, and before that off `feat(channel): retain the coverage instrument and
 close AR1` for the eighth pass's **AT1**-**AT3** corrections. The other commits above
@@ -1393,6 +1398,20 @@ context elsewhere — never as evidence that their conclusions are right.
   cap on two fields decisive only on a pair the cap dropped, and **BH5** the same measure refusing an
   undeclared conditional only a throwing evaluator reaches. Seven probes keep the census and the two
   reconciliations honest.
+- [Twenty-third W1-W3 verification-foundation iteration review](./channel-0.2-bi-iteration-review.md) —
+  the same scope at `ed2145a`; raised **BI1**-**BI3** and corrected all three, so it is **not** the
+  first of the two consecutive clean passes and the count stays at zero. Its frozen set reported
+  nothing, the third consecutive clean frozen set. Its instrument is the operand census sharpened from
+  the field to the property: every field a property reads on its own declared inputs must decide that
+  property's verdict on one of them or be named in its witness, and on its first run it reported three
+  (property, field) pairs. **BI1** is `I5`'s terminal handling -- whether a terminal fact was accepted
+  and which identities it closes -- decisive on no input `I5` declared, with the evaluator underneath
+  counting terminal facts and green on a terminal closing an unadmitted identity; two mutations in the
+  completeness review's audit row, a set-tracking evaluator, and identifier siblings drawn from the
+  identity space, which is why the family is `design`. **BI2** is `I6`'s witness naming the identity
+  and not the session. **BI3** is the future index's Channel row naming the next pass the twenty-first
+  for three passes, found by reading, corrected, and pinned by the ordinal check that now reads the
+  row; the pin found only that instance. Six probes keep the census and its declarations honest.
 
 ## Disclosed process deviation in the T1-T4 correction
 

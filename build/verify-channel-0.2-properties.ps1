@@ -1044,16 +1044,27 @@ function Invoke-I5 {
     foreach ($session in (Get-Sessions $Vector)) {
         $bounds[[string](Read-Required $session 'id' $sessionSubject)] = [int](Read-Required $session 'establishedBound' $sessionSubject)
     }
+    # BI1. The live interactions of a session are the SET of identities it admitted and no accepted
+    # terminal fact has yet closed, not a count. This counted: an admission added one and an accepted
+    # terminal subtracted however many identities it named, so a terminal fact for `i1` that closed
+    # `i2` -- an identity the session never admitted -- freed i1's slot in the count and the property
+    # was green on a session holding two against a bound of one. The per-property operand census is
+    # what found it: on every input I5 declared, neither whether a terminal was accepted nor what it
+    # closed ever decided the verdict, so both operands could be ignored with every gate green.
     $live = @{}
     $timelineSubject = 'a session-timeline event'
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
         $sessionId = [string](Read-Required $sessionEvent 'session' $timelineSubject)
         $step = [string](Read-Required $sessionEvent 'step' $timelineSubject)
-        if (-not $live.ContainsKey($sessionId)) { $live[$sessionId] = 0 }
-        if ($step -eq 'admit') { $live[$sessionId]++ }
-        elseif ($step -eq 'terminal' -and (Read-Required $sessionEvent 'accepted' $timelineSubject)) { $live[$sessionId] = [Math]::Max(0, $live[$sessionId] - (Get-List $sessionEvent 'closes').Count) }
-        if ($bounds.ContainsKey($sessionId) -and $live[$sessionId] -gt $bounds[$sessionId]) {
-            return New-Red "session $sessionId held $($live[$sessionId]) nonterminal interactions against its own established bound of $($bounds[$sessionId])"
+        if (-not $live.ContainsKey($sessionId)) { $live[$sessionId] = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal) }
+        if ($step -eq 'admit') { [void]$live[$sessionId].Add([string](Read-Required $sessionEvent 'identity' $timelineSubject)) }
+        elseif ($step -eq 'terminal' -and (Read-Required $sessionEvent 'accepted' $timelineSubject)) {
+            foreach ($closed in (Get-List $sessionEvent 'closes')) {
+                if ($null -ne $closed) { [void]$live[$sessionId].Remove([string]$closed) }
+            }
+        }
+        if ($bounds.ContainsKey($sessionId) -and $live[$sessionId].Count -gt $bounds[$sessionId]) {
+            return New-Red "session $sessionId held $($live[$sessionId].Count) nonterminal interactions against its own established bound of $($bounds[$sessionId])"
         }
     }
     return New-Green
@@ -1065,13 +1076,19 @@ function Invoke-I6 {
     foreach ($interaction in (Get-Interactions $Vector)) {
         if ([string](Read-Required $interaction 'class' $interactionSubject) -ne 'relational') { continue }
         $identity = [string](Read-Required $interaction 'identity' $interactionSubject)
-        $subject = "interaction $identity in session $(Read-Required $interaction 'session' $interactionSubject)"
+        # BI2. The witness names the session as well as the identity: one interaction identity may be
+        # open in two sessions at once, which is AK1's lesson, and a witness naming the identity alone
+        # does not say which interaction it means. Until this the session was read into the diagnostic
+        # subject alone, and the per-property operand census reported it as read by I6 and deciding
+        # nothing for it.
+        $sessionId = [string](Read-Required $interaction 'session' $interactionSubject)
+        $subject = "interaction $identity in session $sessionId"
         $matches = [int](Read-Required $interaction 'declarationMatches' $subject)
         if ($matches -ne 1) {
-            return New-Red "relational interaction $identity matches $matches declarations"
+            return New-Red "relational interaction $identity in session $sessionId matches $matches declarations"
         }
         if (Read-Required $interaction 'createsReadyOrRelease' $subject) {
-            return New-Red "relational interaction $identity creates Ready or Release"
+            return New-Red "relational interaction $identity in session $sessionId creates Ready or Release"
         }
     }
     return New-Green
@@ -3148,6 +3165,50 @@ Write-Host "Channel 0.2 field-readership census: $($readershipStated.Count) dist
 #     each property, and the summary line says so on a capped run rather than reading like a census.
 # ---------------------------------------------------------------------------------------------
 
+# BI1. The identity spaces the vector format's identifier fields belong to. An identifier's wrong
+# values are the other values of its SPACE in the vector, not of its own path: the value that repairs
+# `I5-terminal-closes-other-identity` is the admitted identity `i1`, which the vector states at
+# `sessionTimeline[].identity` and never at `closes`, so a census drawing siblings from the field's own
+# path could not make `closes` decisive for `I5` through the mutation written for exactly that. The
+# brief's parity profile names the two spaces; the stimulus steps are the brief's own record and their
+# ids are a space of the harness's. A path listed here must be an identifier field, and an identifier
+# field listed in no space keeps its own-path siblings.
+$identitySpaces = @(
+    @{ Name = 'session identity'
+       Paths = @('sessions[].id', 'sessionTimeline[].session', 'sessionEvents[].session', 'interactions[].session',
+                 'declaredSteps[].session', 'observations.recipientAdmittedIdentities[].session',
+                 'observations.lateTrafficLatches[].session', 'observations.lateTrafficLatches[].settlingFrame.session',
+                 'observations.lateTrafficLatches[].terminalFrame.session', 'observations.unseenRefusals[].refusedFrame.session')
+       Artifact = $briefArtifact
+       Words = 'session and interaction identity spaces (shape/scope, not opaque values across runs)' }
+    @{ Name = 'interaction identity'
+       Paths = @('interactions[].identity', 'sessionTimeline[].identity', 'sessionTimeline[].closes', 'sessionTimeline[].closes[]',
+                 'declaredSteps[].interactionIdentity', 'observations.recipientAdmittedIdentities[].identities[]',
+                 'observations.lateTrafficLatches[].interactionIdentity', 'observations.lateTrafficLatches[].settlingFrame.interactionIdentity',
+                 'observations.lateTrafficLatches[].terminalFrame.interactionIdentity', 'observations.unseenRefusals[].refusedFrame.interactionIdentity')
+       Artifact = $briefArtifact
+       Words = 'session and interaction identity spaces (shape/scope, not opaque values across runs)' }
+    @{ Name = 'stimulus step identity'
+       Paths = @('declaredSteps[].id', 'delivery[].step')
+       Artifact = $briefArtifact
+       Words = 'ordered stimulus steps, each naming its committing endpoint, its session, and, where it carries one, its interaction identity' }
+)
+$identitySpaceByPath = @{}
+foreach ($identitySpace in $identitySpaces) {
+    if ((Get-ArtifactPlain ([string]$identitySpace.Artifact)).IndexOf([string]$identitySpace.Words, [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add("The identity space '$($identitySpace.Name)' cites '$($identitySpace.Artifact)' for the words `"$($identitySpace.Words)`", and that artifact does not contain them. Either the sentence moved and the declaration did not, which is AP1's class arriving through a citation, or the space claims a sentence the design never had.")
+    }
+    foreach ($spacePath in @($identitySpace.Paths)) {
+        if ($identifierFields -cnotcontains $spacePath) {
+            $failures.Add("The identity space '$($identitySpace.Name)' lists '$spacePath', which the closed-vocabulary census does not classify as an identifier field. A space over a field that is not an identifier would hand a vocabulary value or a Boolean the other identifiers of the vector as its wrong values.")
+        }
+        if ($identitySpaceByPath.ContainsKey($spacePath)) {
+            $failures.Add("The field '$spacePath' is listed in both the identity space '$($identitySpaceByPath[$spacePath])' and '$($identitySpace.Name)'. One field carries one identity.")
+        }
+        $identitySpaceByPath[$spacePath] = [string]$identitySpace.Name
+    }
+}
+
 # The wrong values a leaf can be given, by its kind. Returned as a list of candidate values; a leaf
 # with none -- a null, an unclassified string, an empty list of scalars -- has no trial and is not the
 # census's business, since the vocabulary census beside this one refuses an unclassified string
@@ -3181,11 +3242,13 @@ function Get-OperandMutations {
             return ,@($mutations)
         }
         if ($profileOwnedFields.ContainsKey($Path) -or $identifierFields -ccontains $Path) {
-            # Each other value the same field carries in this vector -- a record re-attributed to a
-            # sibling session, identity or step, which is where AK1's and AK5's collisions live -- and
-            # one value no record carries, which is a record attributed to nothing.
-            if ($SiblingValues.ContainsKey($Path)) {
-                foreach ($sibling in @($SiblingValues[$Path] | Sort-Object)) {
+            # Each other value the field's identity space carries in this vector -- a record
+            # re-attributed to a sibling session, identity or step, which is where AK1's and AK5's
+            # collisions live -- and one value no record carries, which is a record attributed to
+            # nothing. A field in no declared space draws from its own path. BI1.
+            $siblingKey = if ($identitySpaceByPath.ContainsKey($Path)) { $identitySpaceByPath[$Path] } else { $Path }
+            if ($SiblingValues.ContainsKey($siblingKey)) {
+                foreach ($sibling in @($SiblingValues[$siblingKey] | Sort-Object)) {
                     if ($sibling -cne $current) { $mutations.Add($sibling) }
                 }
             }
@@ -3273,6 +3336,7 @@ foreach ($declared in $operandInertDeclared) {
 }
 
 $operandTrials = @{}
+$operandPropertyTrials = @{}
 $operandPairs = @{ green = 0; red = 0 }
 $operandIndexPairs = 0
 $operandTrialCount = 0
@@ -3339,13 +3403,20 @@ foreach ($property in $properties.properties) {
 
         $operandSites = [System.Collections.Generic.List[object]]::new()
         Get-OperandSites -Node $operandVector -Path '' -Sites $operandSites
-        # The other values each field carries in this vector, for the identifier mutations.
+        # The other values each identity space, or each field in no space, carries in this vector, for
+        # the identifier mutations. A list of scalars contributes its members under the list's path.
         $siblingValues = @{}
         foreach ($site in $operandSites) {
             $siteValue = $site.Record.PSObject.Properties[$site.Name].Value
-            if ($siteValue -isnot [string]) { continue }
-            if (-not $siblingValues.ContainsKey($site.Path)) { $siblingValues[$site.Path] = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal) }
-            [void]$siblingValues[$site.Path].Add([string]$siteValue)
+            $siteMembers = @()
+            $siteMemberPath = [string]$site.Path
+            if ($siteValue -is [string]) { $siteMembers = @([string]$siteValue) }
+            elseif ($null -ne $siteValue -and $siteValue -is [System.Collections.IEnumerable]) { $siteMembers = @(@($siteValue) | Where-Object { $_ -is [string] }); $siteMemberPath = "$($site.Path)[]" }
+            foreach ($siteMember in $siteMembers) {
+                $siblingKey = if ($identitySpaceByPath.ContainsKey($siteMemberPath)) { $identitySpaceByPath[$siteMemberPath] } else { $siteMemberPath }
+                if (-not $siblingValues.ContainsKey($siblingKey)) { $siblingValues[$siblingKey] = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal) }
+                [void]$siblingValues[$siblingKey].Add([string]$siteMember)
+            }
         }
 
         foreach ($site in $operandSites) {
@@ -3367,6 +3438,14 @@ foreach ($property in $properties.properties) {
                 $operandTrials[$sitePath].Trials++
                 $operandTrialCount++
                 [void]$operandTrials[$sitePath].Readers.Add($propertyId)
+                # BI. The same tallies per (property, field), for the per-property verdict below: a
+                # field one property decides on and another only reads is decisive at the field and
+                # inert for the second property, and the field-level table cannot tell.
+                $operandPairKey = "$propertyId|$sitePath"
+                if (-not $operandPropertyTrials.ContainsKey($operandPairKey)) {
+                    $operandPropertyTrials[$operandPairKey] = @{ Property = $propertyId; Path = $sitePath; Trials = 0; Decisive = 0; WitnessOnly = 0 }
+                }
+                $operandPropertyTrials[$operandPairKey].Trials++
 
                 $script:CensusPoisoning = $true
                 $script:UnpublishedFields.Clear()
@@ -3404,9 +3483,11 @@ foreach ($property in $properties.properties) {
                 }
                 if ($trialDecisive) {
                     $operandTrials[$sitePath].Decisive++
+                    $operandPropertyTrials[$operandPairKey].Decisive++
                 }
                 elseif ([string]$trialResult.Witness -ne $baselineWitness) {
                     $operandTrials[$sitePath].WitnessOnly++
+                    $operandPropertyTrials[$operandPairKey].WitnessOnly++
                 }
             }
         }
@@ -3467,6 +3548,52 @@ if ($CensusPairs -le 0) {
         $failures.Add($unexercised)
     }
 }
+# ---------------------------------------------------------------------------------------------
+# BI: the per-property operand census. The field-level verdict above asks whether a field decides
+# SOME property's verdict on SOME input; this asks it of each property over its own inputs.
+#
+# WHY. A property's required-green set and named mutations are the inputs that are supposed to
+# exercise it, and AU1's check requires each of its obligations to fire on one of them. An obligation
+# fires when its expression is true, and an expression with two operands can be true on every red
+# input because of one of them: the other is read, compared, and never the reason. `I5` reads whether
+# a terminal step was accepted and which identities it closes, and on every one of its own inputs the
+# live count stays under the bound whatever those two say -- so an evaluator that freed a slot on any
+# terminal, accepted or not, whatever it closed, would pass every input `I5` declares. The field-level
+# census cannot see it: `accepted` is decisive for `S1` and `closes` for `C4-P1`, so both fields are
+# decisive in the corpus while being inert for the property whose statement they are operands of.
+#
+# THE RULE. Every field a property reads on its declared inputs decides that property's verdict,
+# conjunct, errors or unpublished fields on at least one of them, or it is named in the property's
+# witness, which the trials show as a red input whose witness text moved and nothing else did. There
+# is no declaration table: on its first run the census reported three pairs, two were the corpus
+# lacking I5's mutations and the third was a witness that did not name its session, and a table with
+# nothing in it would be a mechanism nothing exercises. A field inert for every property is the
+# field-level finding above and is not reported here a second time.
+#
+# TWO LIMITS. The witness criterion is a proxy: a field a property both names in its witness and
+# compares in a test that never fails reads as witness-named here, because the trials cannot separate
+# the two uses. And under `-CensusPairs` the verdict is not drawn at all, for BH4's reason -- a
+# property's decisive input may be the one the cap left out -- and the summary line says so.
+# ---------------------------------------------------------------------------------------------
+$operandPropertyInert = [System.Collections.Generic.List[string]]::new()
+$operandPropertyWitnessNamed = 0
+$operandPropertyDecisive = 0
+foreach ($operandPairKey in ($operandPropertyTrials.Keys | Sort-Object)) {
+    $pairTrial = $operandPropertyTrials[$operandPairKey]
+    $pairProperty = [string]$pairTrial.Property
+    $pairPath = [string]$pairTrial.Path
+    if ($pairTrial.Decisive -gt 0) { $operandPropertyDecisive++; continue }
+    # Inert for everyone is the field-level verdict's subject, reported or declared there.
+    if ($operandTrials[$pairPath].Decisive -le 0) { continue }
+    if ($pairTrial.WitnessOnly -gt 0) { $operandPropertyWitnessNamed++; continue }
+    $operandPropertyInert.Add("Property '$pairProperty' reads '$pairPath' on its declared inputs, and over $($pairTrial.Trials) trials giving it a wrong value of its own kind, none moved that property's verdict, conjunct, error or unpublished field and none moved its witness -- while the same field decides another property's verdict, so the field is not inert in the corpus, only for this property. No input of '$pairProperty' exercises this operand: an evaluator that ignored it would pass every input the property declares, which is the unfalsifiable obligation AU1 was raised against, one operand down. Give the property a named mutation the operand decides, or have its witness name the field.")
+}
+if ($CensusPairs -le 0) {
+    foreach ($propertyInertFinding in $operandPropertyInert) {
+        $failures.Add($propertyInertFinding)
+    }
+}
+Write-Host "Channel 0.2 per-property operand census: $($operandPropertyTrials.Count) (property, field) pairs tried, $operandPropertyDecisive decisive for the property on some input, $operandPropertyWitnessNamed named in the property's witness alone, and $($operandPropertyInert.Count) inert for the property while decisive elsewhere.$(if ($CensusPairs -gt 0) { ' -- CAPPED, so the per-property verdict is reported rather than failed' } else { '' })"
 $operandScope = if ($CensusPairs -gt 0) { " -- CAPPED at $CensusPairs pairs per polarity of each property by -CensusPairs, so this is not a census of the corpus and its inert and unexercised counts are reported rather than failed" } else { '' }
 Write-Host "Channel 0.2 operand census: $operandTrialCount trials gave a wrong value of its own kind to a field a property had read, over $($operandPairs['green']) green-expected and $($operandPairs['red']) red-expected (property, input) pairs, $operandIndexPairs of them reading the step index; $($operandTrials.Count) distinct fields tried, $operandDecisivePaths decisive on some input, $operandReconciledPaths reconciled by the harness, $operandDeclaredInertPaths declared inert by the design's words, $($operandInertPaths.Count) inert and undeclared, $($operandUnexercised.Count) declarations no trial reached, and $($operandThrown.Count) evaluator exceptions.$operandScope"
 
