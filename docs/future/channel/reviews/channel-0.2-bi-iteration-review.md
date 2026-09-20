@@ -156,6 +156,19 @@ there and this finding does not count against the pass under the 2026-09-16 ruli
   `I5-refused-terminal-holds-slot`.
 - **BI3's pin was seen red on the stale ordinal** in a copy of the index before the row was
   corrected, and reported nothing else over the package.
+- **The whole set was then run over the branch**, in two short-path clones. Over `8b6a9cd`, the head
+  that records the pass: the text, link, design, owned-fact and return-channel gates, the properties
+  gate at its default count, the coverage measure over four gates in 2,510 seconds with 47 condition
+  and 6 operand exemptions -- the 46 and 6 it declared before this pass plus one for the per-property
+  census's loop that only a failing run enters -- and the deep run at 52,000 evaluations and 0 red with
+  the sweep green over 500, all exit 0. The corpus over that head reported three probes this pass's own
+  edits had moved: `BF-a` asserting a session-record count two vectors changed, `AO2-a` anchored on the
+  evaluation counts the same two vectors changed, and `AQ4-a` anchored on the newest design family.
+  They are re-anchored in `7c8fad0`, whose gates and declarations are byte-identical to `8b6a9cd`'s,
+  and over that head the six cheap gates and the corpus at 147 of 147 over 22 workers in 2,049 seconds
+  ran green. Running the corpus before reporting is what found them, which is the rule BF1 is the cost
+  of not following. The one commit above `7c8fad0` changes this paragraph and one in the plan's section
+  2z, and the six cheap gates were re-run over it.
 - **What the generated population would reach was measured rather than argued.** The coverage measure,
   run over the properties gate with the generated count set to zero, reports as never evaluated only
   constructs inside the generated block itself: no conditional of any evaluator is reached by a
@@ -180,9 +193,10 @@ wave is a shape the generator does not yet produce.
 
 **The three narratives' finding ranges** are still read by no guard for the range.
 
-**Cost.** The per-property tallies add nothing measurable to the properties gate; the two vectors and
-the identity-space siblings add 113 trials between them. The corpus gains six probes at
-`-GeneratedCount 0`.
+**Cost.** The per-property tallies, the two vectors and the identity-space siblings add 113 trials
+between them and nothing the variance can distinguish: the properties gate at its default count
+measures 48 and 48 seconds on the branch against 52 and 48 at `ed2145a` on an idle machine. The corpus
+gains six probes at `-GeneratedCount 0`.
 
 **Whether this pass is the first of the two owed is not in question.** The instrument found BI1 and
 BI2 in the package on its first run, which is the ruling's second population, and the count stays at

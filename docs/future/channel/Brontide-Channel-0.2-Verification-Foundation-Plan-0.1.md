@@ -1981,6 +1981,13 @@ written when the twentieth landed, read by the design gate for the newest design
 for nothing else, and left by two verification-family passes that moved every other surface. The row
 joins the next-pass ordinal check; the pin fired on the stale ordinal and reported nothing else.
 
+**Over the branch the whole set is green**: at `8b6a9cd`, the head that records the pass, the coverage
+measure with 47 condition and 6 operand exemptions and the deep run at 52,000 evaluations and 0 red;
+at `7c8fad0`, which re-anchors three probes this pass's own edits had moved and changes no gate, the
+corpus at 147 of 147 and every cheap gate. The properties gate at its default count measures 48 and
+48 seconds on the branch against 52 and 48 at `ed2145a` on an idle machine, so the per-property
+tallies, the two vectors and the wider siblings add nothing the variance can distinguish.
+
 **What was measured about the generated population.** The coverage measure, run over the properties
 gate with the generated count at zero, reports as never evaluated only constructs inside the generated
 block: no evaluator conditional is reached by a generated vector and by no declared one. What a
