@@ -265,7 +265,7 @@ public sealed class DurableProviderRestartOwnership : IDisposable
             output.Write(SHA256.HashData(record));
             output.Flush(flushToDisk: true);
             output.Dispose();
-            File.Move(temporary, path, overwrite: true);
+            DurableRecordReplacement.Replace(temporary, path);
             return true;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or NotSupportedException)

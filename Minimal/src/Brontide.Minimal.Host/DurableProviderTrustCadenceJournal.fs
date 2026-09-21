@@ -269,7 +269,7 @@ module private ProviderTrustCadenceJournalRecord =
                 output.Write bytes
                 output.Flush true
                 output.Dispose()
-                File.Move(temporary, path, true)
+                DurableRecordReplacement.replace temporary path
                 true
         with
         | :? IOException

@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased - Component Management durable record replacement
+
+### Fixed
+
+- Every durable store in Host commits a write by renaming a flushed temporary over its record. A
+  transient handle on either file, which a scanner or indexer holds for milliseconds after a write,
+  made that rename fail and was reported as the store's permanent write-failed code; the rename now
+  waits out such a hold over a bounded budget of about half a second before reporting it. A
+  permanent condition is reported as before, after that budget. Pinned by native evidence for both
+  the transient and the permanent case.
+
 ## Unreleased - Portable Binding PB8 review corrections
 
 ### Changed

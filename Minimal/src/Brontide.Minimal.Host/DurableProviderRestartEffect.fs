@@ -129,7 +129,7 @@ module private ProviderRestartEffectRecord =
                 output.Write(tag, 0, tag.Length)
                 output.Flush true
                 output.Dispose()
-                File.Move(temporary, path, true)
+                DurableRecordReplacement.replace temporary path
                 true
         with :? IOException | :? UnauthorizedAccessException | :? NotSupportedException ->
             tryDelete temporary

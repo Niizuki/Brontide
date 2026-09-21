@@ -243,6 +243,7 @@
     <Compile Include="ComponentPolicyDistributionWireTests.fs" />
     <Compile Include="ComponentPolicyPollTests.fs" />
     <Compile Include="ComponentPolicyFloorCustodyTests.fs" />
+    <Compile Include="DurableRecordReplacementTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>
