@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased - Component Management durable record replacement
+## Unreleased - Component Management transient file holds
 
 ### Fixed
 
@@ -10,6 +10,12 @@
   waits out such a hold over a bounded budget of about half a second before reporting it. A
   permanent condition is reported as before, after that budget. Pinned by native evidence for both
   the transient and the permanent case.
+- Removing a staged artifact set after its provider was killed could report
+  `artifact-set-removal-failed` while Windows was still letting go of the killed process's
+  image, which it does a little after the process is gone and later still when many are torn
+  down at once. The store now waits that out over a bounded budget of about two seconds; a hold
+  that outlasts it is reported as before and the set stays where a later removal finds it.
+  Pinned by native evidence for both cases.
 
 ## Unreleased - Portable Binding PB8 review corrections
 

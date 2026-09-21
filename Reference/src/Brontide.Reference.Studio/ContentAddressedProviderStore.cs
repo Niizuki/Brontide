@@ -499,6 +499,14 @@ public sealed class ContentAddressedProviderStore
         }
     }
 
+    // A removal follows the release of the set's last lease, and after a withdrawal that is the kill
+    // of the provider whose image the set holds. Windows lets go of a killed process's files a little
+    // after the process is gone, and later still when many are torn down at once, so the wait doubles
+    // from one millisecond to about two seconds in all. A hold that outlasts it is reported as the
+    // failed removal it is, and the set stays where a later removal can find it.
+    private static readonly TimeSpan[] DeleteDelays =
+        [.. new[] { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024 }.Select(milliseconds => TimeSpan.FromMilliseconds(milliseconds))];
+
     private static void DeleteTree(string path)
     {
         for (var attempt = 0; ; attempt++)
@@ -519,9 +527,9 @@ public sealed class ContentAddressedProviderStore
                 return;
             }
             catch (Exception exception) when (
-                attempt < 4 && exception is IOException or UnauthorizedAccessException)
+                attempt < DeleteDelays.Length && exception is IOException or UnauthorizedAccessException)
             {
-                Thread.Sleep(25);
+                Thread.Sleep(DeleteDelays[attempt]);
             }
         }
     }

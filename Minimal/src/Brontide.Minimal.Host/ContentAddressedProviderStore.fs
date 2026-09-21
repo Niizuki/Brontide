@@ -134,6 +134,14 @@ type ContentAddressedProviderStore(rootPath: string) =
 
     let expectedRoot identity = Path.Combine(storeRoot, ProviderArtifactSetId.value identity)
 
+    // A removal follows the release of the set's last lease, and after a withdrawal that is the kill
+    // of the provider whose image the set holds. Windows lets go of a killed process's files a little
+    // after the process is gone, and later still when many are torn down at once, so the wait doubles
+    // from one millisecond to about two seconds in all. A hold that outlasts it is reported as the
+    // failed removal it is, and the set stays where a later removal can find it.
+    let deleteDelays =
+        [| 1; 2; 4; 8; 16; 32; 64; 128; 256; 512; 1024 |] |> Array.map (float >> TimeSpan.FromMilliseconds)
+
     let deleteTree path =
         let rec remove attempt =
             if Directory.Exists path then
@@ -142,11 +150,9 @@ type ContentAddressedProviderStore(rootPath: string) =
                     |> Seq.iter (fun file -> File.SetAttributes(file, FileAttributes.Normal))
                     Directory.Delete(path, true)
                 with
-                | :? IOException when attempt < 4 ->
-                    Threading.Thread.Sleep 25
-                    remove (attempt + 1)
-                | :? UnauthorizedAccessException when attempt < 4 ->
-                    Threading.Thread.Sleep 25
+                | :? IOException
+                | :? UnauthorizedAccessException when attempt < deleteDelays.Length ->
+                    Threading.Thread.Sleep deleteDelays[attempt]
                     remove (attempt + 1)
         remove 0
 
