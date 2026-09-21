@@ -3830,6 +3830,21 @@ if ($GeneratedCount -gt 0) {
                 $waveIdentities.Add([pscustomobject]@{ Identity = $identity; Form = $terminalForm })
                 if (-not $isRefused) {
                     $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'dispatch'; identity = $identity })
+                    # BJ. One in four dispatched interactions receives a terminal fact that is REFUSED
+                    # before the one that closes it. The contract's failure clause for terminal facts
+                    # is what this is: a missing, extra, wrong-session or mismatched identity rejects
+                    # the claimed fact, and an interaction whose claimed fact was rejected stays
+                    # nonterminal, awaiting a valid one. So the identity keeps its slot -- it is
+                    # still in the wave and still counted live -- and reaches its one terminal history
+                    # when the wave closes, exactly as it would have. Until this the generated
+                    # population carried accepted terminals only, and the operand BI1 made decisive on
+                    # the declared corpus -- whether a terminal fact was accepted -- was exercised over
+                    # the population by nothing; every evaluator that reads a terminal step now meets a
+                    # refused one on a conforming vector, which is the side of it the declared
+                    # mutations cannot reach.
+                    if ($Random.Next(0, 4) -eq 0) {
+                        $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $identity; accepted = $false })
+                    }
                 }
                 # The wave closes when it is full or when the last interaction has been admitted, and
                 # each terminal names the one identity it closes. The form that identity reached is
@@ -4083,6 +4098,9 @@ if ($GeneratedCount -gt 0) {
         # without the second, dropping the arrival ordinal binds to the same single control.
         'a refusal naming an identity another session opened'      = 'carried-identity-refusal'
         'a refusal of the earlier of two controls naming one identity' = 'two-control-refusal'
+        # BJ. Keyed on the refusal itself, not on a terminal step existing: a population whose
+        # every terminal fact is accepted evaluates I5's `accepted` operand on one side only.
+        'a terminal fact refused before the one that closes the interaction' = 'refused-terminal'
     }
 
     $generatedEvaluations = 0
@@ -4115,6 +4133,11 @@ if ($GeneratedCount -gt 0) {
             # The wave filled the bound when the session admitted at least that many, which is the
             # boundary I5 and C4-P1's third clause are evaluated at from the legal side.
             if ($sessionAdmits -ge [int]$shapeSession.establishedBound) { $shapesSeen['bound-filled'] = $true }
+        }
+        # BJ. Keyed on a terminal step the realization refused, which is the value I5's `accepted`
+        # operand turns on; a terminal step merely existing is what every vector already carries.
+        foreach ($shapeTerminal in @($generatedTimeline | Where-Object { [string]$_.step -eq 'terminal' })) {
+            if ($shapeTerminal.accepted -eq $false) { $shapesSeen['refused-terminal'] = $true }
         }
         foreach ($shapeInteraction in @(if ($null -eq $generatedVector.interactions) { @() } else { $generatedVector.interactions })) {
             if ($null -ne $shapeInteraction.refusal -and [string]$shapeInteraction.refusal.stage -eq 'pre-dispatch') { $shapesSeen['pre-dispatch-refusal'] = $true }
