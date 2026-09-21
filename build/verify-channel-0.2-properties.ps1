@@ -1941,22 +1941,37 @@ foreach ($profileOwnedField in ($profileOwnedFields.Keys | Sort-Object)) {
 
 # Every leaf of a vector, with its path from the root. A collection contributes `[]` to the path of
 # each element, so every record of one shape shares one path and one classification.
+#
+# The walk keeps its own stack rather than recursing. A function call costs about eighty microseconds
+# here whatever its shape, and a generated vector is some three hundred nodes, so the recursive walk
+# was most of what the closed-vocabulary census over the generated population cost. Children are
+# pushed last-first so the leaves come out in the same order the recursion produced them.
 function Get-VectorLeaves {
     param($Node, [string]$Path, [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.List[object]]$Leaves)
 
-    if ($null -eq $Node) { return }
-    if ($Node -is [string] -or $Node -is [System.ValueType]) {
-        $Leaves.Add([pscustomobject]@{ Path = $Path; Value = $Node })
-        return
-    }
-    if ($Node -is [System.Collections.IEnumerable]) {
-        foreach ($element in $Node) {
-            Get-VectorLeaves -Node $element -Path "$Path[]" -Leaves $Leaves
+    $pending = [System.Collections.Generic.Stack[object]]::new()
+    $pending.Push(@($Node, $Path))
+    while ($pending.Count -gt 0) {
+        $frame = $pending.Pop()
+        $current = $frame[0]
+        $currentPath = [string]$frame[1]
+        if ($null -eq $current) { continue }
+        if ($current -is [string] -or $current -is [System.ValueType]) {
+            $Leaves.Add([pscustomobject]@{ Path = $currentPath; Value = $current })
+            continue
         }
-        return
-    }
-    foreach ($member in $Node.PSObject.Properties) {
-        Get-VectorLeaves -Node $member.Value -Path $(if ($Path) { "$Path.$($member.Name)" } else { $member.Name }) -Leaves $Leaves
+        if ($current -is [System.Collections.IEnumerable]) {
+            $elements = @($current)
+            for ($index = $elements.Count - 1; $index -ge 0; $index--) {
+                $pending.Push(@($elements[$index], "$currentPath[]"))
+            }
+            continue
+        }
+        $members = @($current.PSObject.Properties)
+        for ($index = $members.Count - 1; $index -ge 0; $index--) {
+            $member = $members[$index]
+            $pending.Push(@($member.Value, $(if ($currentPath) { "$currentPath.$($member.Name)" } else { $member.Name })))
+        }
     }
 }
 
@@ -3602,21 +3617,29 @@ Write-Host "Channel 0.2 operand census: $operandTrialCount trials gave a wrong v
 # census found it read, and a field it emits that NO declared vector states is one whose readership
 # nothing here has measured: a convention of the generator's own, which is BB2's `admitted` event
 # one instrument later. The walk collects paths only, without wrapping, because the question is
-# about the generator's surface and not about a replay.
+# about the generator's surface and not about a replay. It keeps its own stack rather than recursing,
+# for the reason `Get-VectorLeaves` gives; the set it fills has no order to preserve.
 function Add-StatedFields {
     param($Node, [string]$Path, [Parameter(Mandatory = $true)][AllowEmptyCollection()][System.Collections.Generic.HashSet[string]]$Stated)
 
-    if ($null -eq $Node -or $Node -is [string] -or $Node -is [System.ValueType]) { return }
-    if ($Node -is [System.Collections.IEnumerable]) {
-        foreach ($element in $Node) {
-            Add-StatedFields -Node $element -Path "$Path[]" -Stated $Stated
+    $pending = [System.Collections.Generic.Stack[object]]::new()
+    $pending.Push(@($Node, $Path))
+    while ($pending.Count -gt 0) {
+        $frame = $pending.Pop()
+        $current = $frame[0]
+        $currentPath = [string]$frame[1]
+        if ($null -eq $current -or $current -is [string] -or $current -is [System.ValueType]) { continue }
+        if ($current -is [System.Collections.IEnumerable]) {
+            foreach ($element in $current) {
+                $pending.Push(@($element, "$currentPath[]"))
+            }
+            continue
         }
-        return
-    }
-    foreach ($member in $Node.PSObject.Properties) {
-        $fieldPath = if ($Path) { "$Path.$($member.Name)" } else { $member.Name }
-        [void]$Stated.Add($fieldPath)
-        Add-StatedFields -Node $member.Value -Path $fieldPath -Stated $Stated
+        foreach ($member in $current.PSObject.Properties) {
+            $fieldPath = if ($currentPath) { "$currentPath.$($member.Name)" } else { $member.Name }
+            [void]$Stated.Add($fieldPath)
+            $pending.Push(@($member.Value, $fieldPath))
+        }
     }
 }
 

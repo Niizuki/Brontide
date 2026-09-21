@@ -186,7 +186,7 @@ and DurableProviderStopAttributionStore private (path: string, initial: Provider
                 output.Write bytes
                 output.Flush true
                 output.Dispose()
-                File.Move(temporary, path, true)
+                DurableRecordReplacement.replace temporary path
                 true
         with
         | :? IOException | :? UnauthorizedAccessException | :? NotSupportedException ->

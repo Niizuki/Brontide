@@ -243,6 +243,8 @@
     <Compile Include="ComponentPolicyDistributionWireTests.fs" />
     <Compile Include="ComponentPolicyPollTests.fs" />
     <Compile Include="ComponentPolicyFloorCustodyTests.fs" />
+    <Compile Include="DurableRecordReplacementTests.fs" />
+    <Compile Include="ParallelismConfiguration.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

@@ -514,6 +514,12 @@ type ComponentBindingIntegrationTests() =
                     exited
         }
 
+    // The tree holds the image of a provider the test has just killed, and Windows lets go of a
+    // killed process's files a little after the process is gone -- later still when the tests run
+    // together and many are torn down at once. Doubling from one millisecond to about four seconds.
+    let cbi32DeleteDelays =
+        [| 1; 2; 4; 8; 16; 32; 64; 128; 256; 512; 1024; 2048 |] |> Array.map (float >> TimeSpan.FromMilliseconds)
+
     let cbi32DeleteTree path =
         let rec remove attempt =
             if Directory.Exists path then
@@ -522,11 +528,9 @@ type ComponentBindingIntegrationTests() =
                     |> Seq.iter (fun file -> File.SetAttributes(file, FileAttributes.Normal))
                     Directory.Delete(path, true)
                 with
-                | :? IOException when attempt < 9 ->
-                    Threading.Thread.Sleep 25
-                    remove (attempt + 1)
-                | :? UnauthorizedAccessException when attempt < 9 ->
-                    Threading.Thread.Sleep 25
+                | :? IOException
+                | :? UnauthorizedAccessException when attempt < cbi32DeleteDelays.Length ->
+                    Thread.Sleep cbi32DeleteDelays[attempt]
                     remove (attempt + 1)
         remove 0
 
@@ -7373,6 +7377,62 @@ type ComponentBindingIntegrationTests() =
                 Assert.That(observation.RemovalCode, Is.EqualTo "removed")
                 Assert.That(observation.Residue, Is.False))
         }
+
+    /// A staged set is removed the moment its last lease is released, which after a withdrawal is
+    /// the moment its provider was killed -- and Windows lets go of a killed process's image a
+    /// little after the process is gone, later still when many are torn down at once. A hold that
+    /// ends is a wait, not a failure.
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI32 removal outwaits a transient hold on a staged file``() =
+        let testRoot = Path.Combine(Path.GetTempPath(), $"brontide-cbi32-{Guid.NewGuid():N}")
+        try
+            let store = ContentAddressedProviderStore(Path.Combine(testRoot, "store"))
+            let declaration = cbi32Declaration "minimal" (Path.Combine(testRoot, "source")) "none"
+            let staged =
+                match store.Stage declaration with
+                | ProviderArtifactStagingResult.Refused failure -> failwithf "Stage failed: %s" failure.Code
+                | ProviderArtifactStagingResult.Staged value -> value
+            let stagedFile = Directory.EnumerateFiles(staged.RootPath, "*", SearchOption.AllDirectories) |> Seq.head
+            let holder = new FileStream(stagedFile, FileMode.Open, FileAccess.Read, FileShare.Read)
+            let release =
+                Task.Run(fun () ->
+                    Task.Delay(TimeSpan.FromMilliseconds 300.0).Wait()
+                    holder.Dispose())
+            try
+                Assert.That((store.Remove declaration.Identity).Code, Is.EqualTo "removed")
+            finally
+                release.Wait()
+                holder.Dispose()
+            Assert.That(Directory.Exists staged.RootPath, Is.False)
+        finally
+            cbi32DeleteTree testRoot
+
+    [<Test>]
+    [<Category("CrossProcess")>]
+    member _.``CBI32 removal reports a hold that does not end within a bound``() =
+        // The refused case, and the bound on it: a hold that outlasts the wait is reported as the
+        // removal failure it always was, and the set stays where a later removal can find it.
+        let testRoot = Path.Combine(Path.GetTempPath(), $"brontide-cbi32-{Guid.NewGuid():N}")
+        try
+            let store = ContentAddressedProviderStore(Path.Combine(testRoot, "store"))
+            let declaration = cbi32Declaration "minimal" (Path.Combine(testRoot, "source")) "none"
+            let staged =
+                match store.Stage declaration with
+                | ProviderArtifactStagingResult.Refused failure -> failwithf "Stage failed: %s" failure.Code
+                | ProviderArtifactStagingResult.Staged value -> value
+            let stagedFile = Directory.EnumerateFiles(staged.RootPath, "*", SearchOption.AllDirectories) |> Seq.head
+            let elapsed = Stopwatch.StartNew()
+            let removal =
+                use _holder = new FileStream(stagedFile, FileMode.Open, FileAccess.Read, FileShare.Read)
+                store.Remove declaration.Identity
+            elapsed.Stop()
+            multiple (fun () ->
+                Assert.That(removal.Code, Is.EqualTo "artifact-set-removal-failed")
+                Assert.That(elapsed.Elapsed, Is.LessThan(TimeSpan.FromSeconds 15.0)))
+            Assert.That((store.Remove declaration.Identity).Code, Is.EqualTo "removed")
+        finally
+            cbi32DeleteTree testRoot
 
     [<Test>]
     [<Category("CrossProcess")>]

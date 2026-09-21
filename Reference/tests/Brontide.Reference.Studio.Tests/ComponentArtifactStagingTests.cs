@@ -17,9 +17,15 @@ public sealed partial class ComponentBindingIntegrationTests
         string RemovalCode,
         bool Residue);
 
+    // The tree holds the image of a provider the test has just killed, and Windows lets go of a
+    // killed process's files a little after the process is gone -- later still when the tests run
+    // together and many are torn down at once. Doubling from one millisecond to about four seconds.
+    private static readonly TimeSpan[] Cbi32DeleteDelays =
+        [.. new[] { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048 }.Select(milliseconds => TimeSpan.FromMilliseconds(milliseconds))];
+
     private static void Cbi32DeleteTree(string path)
     {
-        for (var attempt = 0; attempt < 10; attempt++)
+        for (var attempt = 0; ; attempt++)
         {
             if (!Directory.Exists(path))
             {
@@ -37,9 +43,9 @@ public sealed partial class ComponentBindingIntegrationTests
                 return;
             }
             catch (Exception exception) when (
-                attempt < 9 && exception is IOException or UnauthorizedAccessException)
+                attempt < Cbi32DeleteDelays.Length && exception is IOException or UnauthorizedAccessException)
             {
-                Thread.Sleep(25);
+                Thread.Sleep(Cbi32DeleteDelays[attempt]);
             }
         }
     }

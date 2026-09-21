@@ -136,7 +136,7 @@ public sealed class DurableProviderPublisherTrustPolicyFloorStore : IProviderPub
                 output.Write(bytes);
                 output.Flush(true);
             }
-            File.Move(temporary, path, true);
+            DurableRecordReplacement.Replace(temporary, path);
             return true;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or NotSupportedException)

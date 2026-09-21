@@ -326,7 +326,7 @@ public sealed class DurableProviderDistributionEndpointRotation
                 output.Write(SHA256.HashData(record));
                 output.Flush(true);
             }
-            File.Move(temporary, path, true);
+            DurableRecordReplacement.Replace(temporary, path);
             return true;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or NotSupportedException)

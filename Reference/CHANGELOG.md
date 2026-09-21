@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased - Component Management transient file holds
+
+### Fixed
+
+- Every durable store in Studio commits a write by renaming a flushed temporary over its record. A
+  transient handle on either file, which a scanner or indexer holds for milliseconds after a write,
+  made that rename fail and was reported as the store's permanent write-failed code; the rename now
+  waits out such a hold over a bounded budget of about half a second before reporting it. A
+  permanent condition is reported as before, after that budget. Pinned by native evidence for both
+  the transient and the permanent case.
+- Removing a staged artifact set after its provider was killed could report
+  `artifact-set-removal-failed` while Windows was still letting go of the killed process's
+  image, which it does a little after the process is gone and later still when many are torn
+  down at once. The store now waits that out over a bounded budget of about two seconds; a hold
+  that outlasts it is reported as before and the set stays where a later removal finds it.
+  Pinned by native evidence for both cases.
+
 ## Unreleased - Portable Binding PB8 review corrections
 
 ### Changed
