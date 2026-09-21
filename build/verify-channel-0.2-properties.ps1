@@ -3630,7 +3630,9 @@ function Add-StatedFields {
         $currentPath = [string]$frame[1]
         if ($null -eq $current -or $current -is [string] -or $current -is [System.ValueType]) { continue }
         if ($current -is [System.Collections.IEnumerable]) {
-            foreach ($element in $current) { $pending.Push(@($element, "$currentPath[]")) }
+            foreach ($element in $current) {
+                $pending.Push(@($element, "$currentPath[]"))
+            }
             continue
         }
         foreach ($member in $current.PSObject.Properties) {
