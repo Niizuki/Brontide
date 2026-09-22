@@ -2460,6 +2460,60 @@
         "-GeneratedCount",
         "0"
       ]
+    },
+    {
+      "id": "BJ-a",
+      "claim": "a generator that quietly stops refusing any terminal fact is reported by the population's required-shape check, so the operand BI1 made decisive cannot go back to being exercised over the generated population by nothing",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "No generated vector carried a terminal fact refused before the one that closes the interaction over",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "                    if ($Random.Next(0, 4) -eq 0) {",
+          "replace": "                    if ($Random.Next(0, 4) -eq 4) {"
+        }
+      ],
+      "gateArguments": [
+        "-CensusPairs",
+        "1"
+      ]
+    },
+    {
+      "id": "BJ-b",
+      "claim": "a realization that frees an interaction's slot on a refused terminal fact -- the count-based defect BI1 found in the evaluator, built into the generator's own accounting instead -- is reported by I5 and by C4-P1's third clause over the generated population, which is the side of the accepted operand the declared mutations cannot reach",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "'I5' is red on generated conforming vector 'generated-1': session s2 held 4 nonterminal interactions against its own established bound of 3",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "                        $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $identity; accepted = $false })",
+          "replace": "                        $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $identity; accepted = $false }); $waveLive--"
+        }
+      ],
+      "gateArguments": [
+        "-CensusPairs",
+        "1"
+      ]
+    },
+    {
+      "id": "BJ-c",
+      "claim": "an evaluator that is red on a refused terminal fact the design permits -- I5 rejecting the conforming half of its own accepted operand -- is reported over the generated population, which no declared input of I5 carries on the green side",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "'I5' is red on generated conforming vector 'generated-1': session s2 refused a terminal fact",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        elseif ($step -eq 'terminal' -and (Read-Required $sessionEvent 'accepted' $timelineSubject)) {",
+          "replace": "        elseif ($step -eq 'terminal' -and -not (Read-Required $sessionEvent 'accepted' $timelineSubject)) { return New-Red \"session $sessionId refused a terminal fact\" } elseif ($step -eq 'terminal') {"
+        }
+      ],
+      "gateArguments": [
+        "-CensusPairs",
+        "1"
+      ]
     }
   ]
 }

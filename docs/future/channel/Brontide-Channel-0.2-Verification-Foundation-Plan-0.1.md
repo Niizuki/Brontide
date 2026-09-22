@@ -2001,6 +2001,64 @@ the generated population's expected yield now bounded as above. The generator em
 terminal. BH3's disposition is the owner's. The three narratives' finding ranges are read by no guard
 for the range.
 
+## 2aa. What the twenty-fourth condition 4 pass found
+
+The twenty-fourth author-side pass has run, at `30e3f10`, and is retained as the
+[twenty-fourth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-bj-iteration-review.md).
+It was to be the **first of the two consecutive clean passes** the 2026-09-04 ruling requires from
+zero, **and it is**: its frozen set reported nothing -- the fourth consecutive clean frozen set, and a
+strictly larger one by the twenty-third's six probes -- and the instrument it built found nothing in
+the package on its first run. It raises no family; this section and the review are its record.
+
+**The head is the twenty-third pass's merge plus the seven commits that took the repository gate from
+735 to 235 seconds.** None of those touches a design artifact or a conformance declaration, and the
+one Channel 0.2 gate they touch is the properties gate, whose two recursive tree walks became
+stack-based with every summary line identical and the old and new leaf walks compared equal, in
+order, over the declared corpus; the coverage measure and the corpus were run over that change before
+it merged, and the frozen set here is green above it.
+
+**The instrument is the shape the twenty-third named.** The generator emitted accepted terminals only,
+so the operand **BI1** made decisive on the declared corpus -- whether a terminal fact was accepted --
+was exercised over the generated population by nothing: every evaluator that reads a terminal step
+met the refused value on red-expected declared inputs alone, which is one side of the operand. One
+dispatched interaction in four now receives a terminal fact that is refused before the one that
+closes it. That is the capability contract's failure clause for terminal facts, "missing, extra,
+wrong-session, or mismatched identities reject the claimed terminal fact," applied to a dispatched
+interaction: the rejected claim leaves the interaction nonterminal, awaiting a valid one, so the
+identity keeps its slot -- still in the wave, still counted live -- and reaches its one terminal
+history when the wave closes. The population is required to carry the shape, keyed on the refusal
+rather than on a terminal step existing.
+
+**On its first run it reported nothing**: 0 red over 100 generated vectors carrying the shape and 0
+red over 2,000, 26 of 26 properties, with the required-shape check satisfied and every census
+reporting what it reported at the head. The population at seed 20260904 is a different population
+now, since the draw is taken on every dispatched interaction and every draw after the first moves, so
+the deep run over the branch is a fresh measurement.
+
+**It was made to fail three ways before that was believed**, each kept as a probe run alone over the
+committed instrument: `BJ-a`, a generator that never refuses, refused by the required-shape check;
+`BJ-b`, a realization that frees the slot on the refused fact -- BI1's count-based defect built into
+the generator's accounting instead of the evaluator -- red through `I5` and through `C4-P1`'s third
+clause on five vectors of the hundred; `BJ-c`, an evaluator red on a refused fact the design permits,
+red on the same five. What the population can see of this operand is stated with them: a generated
+vector is conforming, so the population catches an evaluator too strict on a refused fact and a
+realization that mis-accounts one, and cannot catch an evaluator too permissive, which stays green on
+every conforming input -- that side is the declared mutations', kept honest by `BI-a` and `BI-b`, and
+between the two the operand is exercised from both sides.
+
+**Over the branch**: at `d9dbbc0`, the commit that carries the instrument and its probes and the last
+to touch a gate or a declaration, the three probes alone and the deep run at 52,000 evaluations and 0
+red with the sweep green over 500; the corpus and the coverage measure over the head that records the
+pass are recorded in the commit above it.
+
+**What the next pass inherits.** The witness criterion is a proxy. Both censuses walk the declared
+corpus; this pass added a value on the other side of a conditional the declared corpus already
+reaches, not a conditional. The refused terminal fact is one shape -- refused once, for the identity
+it was claimed for, before the wave closes -- so a fact refused for a mismatched identity, refused
+twice, or refused after its wave has closed, which the contract classes as a duplicate and a
+protocol fault, is a conforming shape the population does not yet carry. BH3's disposition is the
+owner's. The three narratives' finding ranges are read by no guard for the range.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -2059,9 +2117,9 @@ nothing means the package is sound *under what the programme can currently detec
 and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
-twenty-three times**: the passes found five, six, three, two, five, one, seven, seven, five, three,
-one, three, zero, three, seven, seven, three, three, five, twelve, two, five and **three** defects.
-Sections 2d through 2z record them. This tally counts what a reader counts -- the numbered findings in each pass's
+twenty-four times**: the passes found five, six, three, two, five, one, seven, seven, five, three,
+one, three, zero, three, seven, seven, three, three, five, twelve, two, five, three and **zero**
+defects. Sections 2d through 2aa record them. This tally counts what a reader counts -- the numbered findings in each pass's
 retained review; the first figure said three until BG2, and the first pass's review carries five.
 Where the 2026-09-04 ruling's two populations differ from that total, the pass's own section states
 the split: of the fifteenth's seven, five are in the package and two are in the instrument that pass
@@ -2072,8 +2130,8 @@ package; of the twentieth's twelve, one is the frozen set's, eight are the new i
 package, two are in its own new code, and one is in a frozen instrument by reading; the
 twenty-first's two are both by reading, one in a frozen instrument and one in an entry point; of the
 twenty-second's five, three are in the package by the instrument's first run and two are in its own new
-code; and of the twenty-third's three, two are in the package by the instrument's first run and one is
-by reading, pinned.
+code; of the twenty-third's three, two are in the package by the instrument's first run and one is by
+reading, pinned; and the twenty-fourth's zero is zero in both populations.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -2245,17 +2303,36 @@ against a bound of one, under twenty-two passes whose instruments asked whether 
 and never whether each operand of it is why. Sixteen of these twenty-three passes have now built an
 instrument that found something in the package.
 
-The next work is therefore a twenty-fourth author-side pass, and it is the **first of the two
-consecutive passes** the 2026-09-04 ruling requires, owed again from zero. Section 2z records what the
-twenty-third found and what it leaves: the per-property census's witness criterion is a proxy; both
-censuses walk the declared corpus, with what a generated walk could reach bounded to branch bodies
-with no conditional of their own; the generator emits no refused terminal; BH3's disposition is the
-owner's under open question 5; and the three narratives' finding ranges are read by no guard for the
-range. The profile record behind BF2 and BF9 is no longer an inherited unit: the 2026-09-16 ruling
-in section 6 defers it to Batch 2 with its trigger stated. The plan's rule is unchanged: the instrument
-is built, run over the package as found, and its first-run findings recorded before they are corrected
--- and the whole probe corpus is run over the branch before the pass reports, which BF1 is the cost of
-not doing.
+**The twenty-fourth was to be the first of the two owed from zero, and it is.** Its frozen set -- the
+147-probe corpus, the coverage measure, both design gates, the return-channel census, the
+read-provenance, field-readership and operand censuses, the polarity and citation checks, the
+closed-vocabulary census, the roster check, and 52,000 evaluations over 2,000 generated vectors at 0
+red with AZ3's sweep green -- reported nothing, the fourth consecutive clean frozen set and a strictly
+larger one by the twenty-third's six probes. The instrument it built -- the generated population
+given terminal facts that are refused before the one that closes the interaction, the shape the
+twenty-third named as the one thing BI1's operand was exercised over the population by -- found
+nothing in the package on its first run, over a hundred vectors and then over two thousand, and was
+made to fail three ways before that was believed. Under the ruling's two populations that is the
+first of the two, and the count is one. What that is worth is what the ruling says it is worth: a
+floor under what the programme can currently detect, over a population that reaches no evaluator
+conditional the declared corpus does not, and it is the fourteenth pass's lesson that the second of
+the two is where such counts have reset before.
+
+The next work is therefore a twenty-fifth author-side pass, and it is the **second of the two
+consecutive passes** the 2026-09-04 ruling requires: its frozen set is strictly larger by the
+twenty-fourth's three probes, and it meets the condition if that set reports nothing and the
+instrument it builds finds nothing in the package -- an instrument it must build, since a pass that
+builds nothing satisfies the first half trivially. Section 2aa records what the twenty-fourth did and
+what it leaves: the per-property census's witness criterion is a proxy; both censuses walk the
+declared corpus, with what a generated walk could reach bounded to branch bodies with no conditional
+of their own; the refused terminal fact is one shape, refused once for the identity it was claimed
+for, so a fact refused for a mismatched identity, refused twice, or refused after its wave has closed
+is a conforming shape the population does not yet carry; BH3's disposition is the owner's under open
+question 5; and the three narratives' finding ranges are read by no guard for the range. The profile
+record behind BF2 and BF9 is no longer an inherited unit: the 2026-09-16 ruling in section 6 defers
+it to Batch 2 with its trigger stated. The plan's rule is unchanged: the instrument is built, run over
+the package as found, and its first-run findings recorded before they are corrected -- and the whole
+probe corpus is run over the branch before the pass reports, which BF1 is the cost of not doing.
 
 What the fourteenth left undone is narrower and should not be confused with the above: the seven inert
 droppings are inert because the generated population carries one frame shape per session, and the
@@ -2286,14 +2363,15 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,340** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,341** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved nine
   times since: six times by four characters, for the same reason — registering a new
   iteration-review family in the Design reviews row — once by minus two, when registering BD took
   that row past the 300-character bound W3 set on a cell and its wording was shortened to fit, once
   by minus three, when registering BE did the same, not at all for BH, which traded four characters of
-  wording for its four of family, and once by minus three, when registering BI did the same again. On each occasion the check that recomputes it
+  wording for its four of family, once by minus three, when registering BI did the same again, and
+  once by one, when registering BJ traded the list's "and" for a comma. On each occasion the check that recomputes it
   failed the figure on the commit that wrote it, which is the check working rather than a defect in
   it; and
 - **repository-gate minutes** — **13** before this pass, **23 to 25** with the gate self-checks in it,
@@ -2356,7 +2434,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   nothing, and cutting the return-channel census from about a hundred syntax-tree walks per gate to one
   moved it from 530 traced seconds to 318 — real, but a fifth of what the walk count suggested, because
   what costs is executed statements and not walks; and
-- **guard probes executable** — currently **147 of 147**, run by
+- **guard probes executable** — currently **150 of 150**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
