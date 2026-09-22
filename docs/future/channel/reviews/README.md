@@ -287,8 +287,10 @@ runs next. **No agent dispatches a closure review while this paragraph stands.**
 iteration pass over the plan's work is not a closure review and remains available, under the same rules
 as every other iteration pass.
 
-Twenty-three such passes have run, and the thirteenth and -- under the 2026-09-16 ruling on AW2 -- the eleventh are the only two to meet the plan's condition 4, which asks for a pass that finds
-nothing it can fix, and neither was followed by a second. They are retained as the
+Twenty-four such passes have run, and the thirteenth, the twenty-fourth and -- under the 2026-09-16
+ruling on AW2 -- the eleventh are the only three to meet the plan's condition 4, which asks for a
+pass that finds nothing it can fix; the first two were each followed by a pass that found something,
+and the twenty-fourth awaits its second. They are retained as the
 [first](./channel-0.2-am-iteration-review.md) (**AM1**-**AM5**),
 [second](./channel-0.2-an-iteration-review.md) (**AN1**-**AN6**),
 [third](./channel-0.2-ao-iteration-review.md) (**AO1**-**AO3**),
@@ -310,29 +312,35 @@ nothing it can fix, and neither was followed by a second. They are retained as t
 [nineteenth](./channel-0.2-be-iteration-review.md) (**BE1**-**BE5**),
 [twentieth](./channel-0.2-bf-iteration-review.md) (**BF1**-**BF12**),
 [twenty-first](./channel-0.2-bg-iteration-review.md) (**BG1**-**BG2**),
-[twenty-second](./channel-0.2-bh-iteration-review.md) (**BH1**-**BH5**) and
-[twenty-third](./channel-0.2-bi-iteration-review.md) (**BI1**-**BI3**) W1-W3 verification-foundation
+[twenty-second](./channel-0.2-bh-iteration-review.md) (**BH1**-**BH5**),
+[twenty-third](./channel-0.2-bi-iteration-review.md) (**BI1**-**BI3**) and
+[twenty-fourth](./channel-0.2-bj-iteration-review.md) (no finding) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised. The ranges in that list are read
 back against each review's finding headings by the design verifier since **BG2**, which found this
 list understating three of them.
 
-**A twenty-fourth pass over the same scope is the live path, and it is the first of two consecutive
-clean passes that are owed again from zero.** The twenty-third's frozen set reported nothing -- the
-third consecutive clean frozen set -- and the instrument it built, the operand census sharpened from
-the field to the property, found **BI1** and **BI2** in the package on its first run, so the count
-stays at zero; **BI3** is an entry point found by reading whose pin found nothing beyond it. It starts by
-running the frozen instrument set — the probe corpus, the coverage gate, the generated-vector run, the
-return-channel census, the read-provenance census over both polarities, the declaration-polarity
-check, the declaration-citation check, the closed-vocabulary census, the field-readership census, the
-operand census and the roster check, whose sizes the plan's section 4 owns and recomputes rather than
-this paragraph — and records what it reports before building anything. It runs the whole corpus over
-its own branch before it reports, which the twentieth found the nineteenth had not. The twenty-third
+**A twenty-fifth pass over the same scope is the live path, and it is the second of the two
+consecutive clean passes the 2026-09-04 ruling requires.** The twenty-fourth was the first: its frozen
+set reported nothing -- the fourth consecutive clean frozen set -- and the instrument it built, the
+generated population given refused terminal facts, found nothing in the package on its first run, so
+the count under the ruling is one. The twenty-fifth meets the condition if its frozen set, which is
+strictly larger by the twenty-fourth's three probes, reports nothing and the instrument it builds finds
+nothing in the package; a pass that builds nothing new satisfies the first half trivially and proves
+nothing, which the ruling says in so many words. It starts by running the frozen instrument set — the
+probe corpus, the coverage gate, the generated-vector run, the return-channel census, the
+read-provenance census over both polarities, the declaration-polarity check, the
+declaration-citation check, the closed-vocabulary census, the field-readership census, the operand
+census and the roster check, whose sizes the plan's section 4 owns and recomputes rather than this
+paragraph — and records what it reports before building anything. It runs the whole corpus over its
+own branch before it reports, which the twentieth found the nineteenth had not. The twenty-fourth
 left these named: the witness criterion of the per-property census is a proxy that cannot separate a
 field named in a witness from one compared in a test that never fails; both censuses walk the declared
-corpus, and the coverage measure at zero generated vectors says the generated population reaches no
-evaluator conditional the declared corpus does not, so what a generated walk would still reach is a
-branch body with no conditional of its own; the generator emits accepted terminals only; and **BH3**,
-whose disposition is the owner's under open question 5 of the plan.
+corpus, and the generated population reaches no evaluator conditional the declared corpus does not,
+this pass having added a value on the other side of a conditional rather than a conditional; the
+refused terminal fact is one shape, refused once for the identity it was claimed for, so a fact
+refused for a mismatched identity, refused twice, or refused after its wave has closed is a conforming
+shape the population does not yet carry; and **BH3**, whose disposition is the owner's under open
+question 5 of the plan.
 
 **The fifteenth pass was to be the first of those two and was not.** Its frozen set reported nothing,
 for the ninth consecutive pass. The instrument it built — a census of what every consumer in these
@@ -1412,6 +1420,19 @@ context elsewhere — never as evidence that their conclusions are right.
   and not the session. **BI3** is the future index's Channel row naming the next pass the twenty-first
   for three passes, found by reading, corrected, and pinned by the ordinal check that now reads the
   row; the pin found only that instance. Six probes keep the census and its declarations honest.
+- [Twenty-fourth W1-W3 verification-foundation iteration review](./channel-0.2-bj-iteration-review.md) —
+  the same scope at `30e3f10`; **the second pass here to find nothing**, and the first of the two
+  consecutive clean passes the 2026-09-04 ruling requires from zero: its frozen set reported nothing,
+  the fourth consecutive clean frozen set and a strictly larger one, and the instrument it built found
+  nothing in the package. The generator emitted accepted terminals only, so the operand **BI1** made
+  decisive -- whether a terminal fact was accepted -- was exercised over the generated population by
+  nothing; one dispatched interaction in four now receives a terminal fact that is refused before the
+  one that closes it, the contract's failure clause for terminal facts, with the identity keeping its
+  slot until the wave closes, and the population is required to carry the shape. 0 red over 2,000
+  generated vectors carrying it. Made to fail three ways before its green was believed -- a generator
+  that never refuses, a realization that frees the slot on the refused fact, an evaluator red on a
+  refused fact the design permits -- and each is kept as a probe. It raises no family, so there is
+  none to disposition; the count under the ruling is one, and the twenty-fifth pass decides the second.
 
 ## Disclosed process deviation in the T1-T4 correction
 
