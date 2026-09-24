@@ -1195,7 +1195,7 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-ax-iteration-review.md', 'channel-0.2-ay-iteration-review.md', 'channel-0.2-az-iteration-review.md', 'channel-0.2-ba-iteration-review.md', 'channel-0.2-bb-iteration-review.md', 'channel-0.2-bc-iteration-review.md', 'channel-0.2-bd-iteration-review.md', 'channel-0.2-be-iteration-review.md', 'channel-0.2-bf-iteration-review.md', 'channel-0.2-bg-iteration-review.md', 'channel-0.2-bh-iteration-review.md', 'channel-0.2-bi-iteration-review.md', 'channel-0.2-bj-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-ax-iteration-review.md', 'channel-0.2-ay-iteration-review.md', 'channel-0.2-az-iteration-review.md', 'channel-0.2-ba-iteration-review.md', 'channel-0.2-bb-iteration-review.md', 'channel-0.2-bc-iteration-review.md', 'channel-0.2-bd-iteration-review.md', 'channel-0.2-be-iteration-review.md', 'channel-0.2-bf-iteration-review.md', 'channel-0.2-bg-iteration-review.md', 'channel-0.2-bh-iteration-review.md', 'channel-0.2-bi-iteration-review.md', 'channel-0.2-bj-iteration-review.md', 'channel-0.2-bk-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
     $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, every retained attestation, every retained iteration review, and the disposition index the status blocks point at, before the next closure review. The expected list above is the authority for which those are: a retained record added or removed without editing it is the mismatch this reports. It no longer states a tally, because the one it carried had been wrong by two since the AV pass.')
@@ -1482,29 +1482,47 @@ else {
     # And the ordinal the next pass is named by, which is where the staleness actually shows: both
     # entry points still called the next pass the eleventh after the eleventh had run and been
     # retained beside the sentence.
+    #
+    # BK. Each sentence has a second form, for the one outcome that makes "the next pass" false: a
+    # pass that meets condition 4. The next work is then the owner's decision to lift the hold rather
+    # than another pass, and a check that accepted only the first form would have required the
+    # entry points to name a pass nobody owes. The second form names the pass that met the condition,
+    # and that must be the LATEST retained pass -- so if another pass is run after it, every sentence
+    # still saying the earlier one met the condition fails here, which is the staleness this check was
+    # written for arriving from the other direction. What it cannot do is judge the claim: whether a
+    # pass met condition 4 is the 2026-09-04 ruling's question, answered in that pass's own review,
+    # and this reads only that the entry points agree on which pass the answer is about.
     if ($nextOrdinal) {
+        $lastOrdinal = $ordinalWords[$conditionFourPasses - 1]
         $ordinalClaims = @(
             @{ Text = Get-FlowedText $verificationPlanText
-               Pattern = 'The next work is therefore an? ([a-z-]+) author-side pass'
+               Pattern = 'The next work is therefore an? ([a-z-]+) author-side pass|Condition 4 was met by the ([a-z-]+) pass'
                Where = "the verification foundation plan's next-work sentence" }
             @{ Text = Get-FlowedText $reviewReadme
-               Pattern = 'An? ([a-z-]+) pass over the same scope is the live path'
+               Pattern = 'An? ([a-z-]+) pass over the same scope is the live path|The ([a-z-]+) pass met condition 4'
                Where = "the review policy's live-path sentence" }
             # BI3. The future index's Channel row names the next pass too, and said "twenty-first"
             # for three passes: it is read by the AG5 check for the newest design family's token and by
             # nothing for its ordinal, so two verification-family passes moved every other surface and
             # left it. The row is the one a reader consults while choosing what to work on.
             @{ Text = Get-FlowedText (Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot 'docs\future\README.md') -Encoding UTF8)
-               Pattern = 'while an? ([a-z-]+) verification-foundation pass is next'
+               Pattern = 'while an? ([a-z-]+) verification-foundation pass is next|after the ([a-z-]+) verification-foundation pass met condition 4'
                Where = "the future-work index's Channel row" }
         )
         foreach ($ordinalClaim in $ordinalClaims) {
             $ordinalMatch = [regex]::Match($ordinalClaim.Text, $ordinalClaim.Pattern)
+            $ordinalMet = $ordinalMatch.Groups[2].Success
+            $claimedOrdinal = $ordinalMatch.Groups[$(if ($ordinalMet) { 2 } else { 1 })].Value
+            $owedOrdinal = if ($ordinalMet) { $lastOrdinal } else { $nextOrdinal }
+            # Chosen before the branch rather than inside it: a conditional in a failure body is one
+            # no passing run evaluates, and the coverage measure refused the first draft for exactly
+            # that.
+            $ordinalMismatch = if ($ordinalMet) { "$($ordinalClaim.Where) says the '$claimedOrdinal' pass met condition 4, and $conditionFourPasses have been retained, so the latest is the '$lastOrdinal'. A condition met by a pass that has since been followed by another is a claim about a count that has moved on." } else { "$($ordinalClaim.Where) calls the next pass the '$claimedOrdinal' and $conditionFourPasses have been retained, so the next one is the '$nextOrdinal'. A pass named after one that has already run sends the next agent to repeat it." }
             if (-not $ordinalMatch.Success) {
-                $failures.Add("$($ordinalClaim.Where) no longer names the next pass in the form this check recomputes. That sentence is what the next agent reads to know which pass it is running.")
+                $failures.Add("$($ordinalClaim.Where) no longer names the next pass in the form this check recomputes, nor the pass that met condition 4. That sentence is what the next agent reads to know which pass it is running, or that none is owed.")
             }
-            elseif ($ordinalMatch.Groups[1].Value -cne $nextOrdinal) {
-                $failures.Add("$($ordinalClaim.Where) calls the next pass the '$($ordinalMatch.Groups[1].Value)' and $conditionFourPasses have been retained, so the next one is the '$nextOrdinal'. A pass named after one that has already run sends the next agent to repeat it.")
+            elseif ($claimedOrdinal -cne $owedOrdinal) {
+                $failures.Add($ordinalMismatch)
             }
         }
     }

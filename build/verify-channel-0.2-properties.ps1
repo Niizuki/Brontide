@@ -3746,8 +3746,14 @@ if ($GeneratedCount -gt 0) {
         $dropTally[[string]$referenceDrop.Drop] = @{ Discriminating = 0; Inert = 0 }
     }
 
+    # BK. The refused terminal fact's shape is drawn from a stream of its own. Every draw on `$Random`
+    # moves every draw after it, so a shape drawn there would make the whole population a different
+    # one -- which is what the twenty-fourth pass's draw did -- and every probe anchored on a generated
+    # witness would move with it. Drawn here, the population is the one it was, carrying the new shapes.
+    $shapeRandom = [System.Random]::new($GeneratedSeed -bxor 0x5BD1E995)
+
     function New-ConformingVector {
-        param([Parameter(Mandatory = $true)][string]$Id, [Parameter(Mandatory = $true)][System.Random]$Random)
+        param([Parameter(Mandatory = $true)][string]$Id, [Parameter(Mandatory = $true)][System.Random]$Random, [Parameter(Mandatory = $true)][System.Random]$ShapeRandom)
 
         $sessions = [System.Collections.Generic.List[object]]::new()
         $timeline = [System.Collections.Generic.List[object]]::new()
@@ -3842,8 +3848,31 @@ if ($GeneratedCount -gt 0) {
                     # the population by nothing; every evaluator that reads a terminal step now meets a
                     # refused one on a conforming vector, which is the side of it the declared
                     # mutations cannot reach.
+                    #
+                    # BK. And the refused fact is given each of the shapes that clause names, not only
+                    # the one BJ gave it. A fact refused while closing its own identity leaves every
+                    # evaluator's `accepted` test undecided but I5's: I7 and C4-P1's first clause skip a
+                    # refused fact before reading what it closes, and a fact closing exactly its own
+                    # identity is one they would have passed anyway. So the claim closes its own
+                    # identity, a MISMATCHED one -- a live sibling where the wave holds one, otherwise
+                    # an identity this session never admits, which another session may -- an EXTRA one
+                    # beside its own, or NONE; and one refused claim in four is followed by a second
+                    # before the fact that closes the interaction. The realization rejects each, and the
+                    # interaction is as nonterminal after two rejected claims as after one.
                     if ($Random.Next(0, 4) -eq 0) {
-                        $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $identity; accepted = $false })
+                        $refusedClaims = 1 + [int]($ShapeRandom.Next(0, 4) -eq 0)
+                        for ($refusedClaim = 1; $refusedClaim -le $refusedClaims; $refusedClaim++) {
+                            $otherIdentity = "i$($interactionCount + 1)"
+                            foreach ($waveMember in $waveIdentities) {
+                                if ($waveMember.Identity -ne $identity) { $otherIdentity = $waveMember.Identity }
+                            }
+                            $refusedShape = $ShapeRandom.Next(0, 4)
+                            $refusedCloses = $identity
+                            if ($refusedShape -eq 1) { $refusedCloses = $otherIdentity }
+                            elseif ($refusedShape -eq 2) { $refusedCloses = @($identity, $otherIdentity) }
+                            elseif ($refusedShape -eq 3) { $refusedCloses = [string[]]@() }
+                            $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false })
+                        }
                     }
                 }
                 # The wave closes when it is full or when the last interaction has been admitted, and
@@ -4101,6 +4130,14 @@ if ($GeneratedCount -gt 0) {
         # BJ. Keyed on the refusal itself, not on a terminal step existing: a population whose
         # every terminal fact is accepted evaluates I5's `accepted` operand on one side only.
         'a terminal fact refused before the one that closes the interaction' = 'refused-terminal'
+        # BK. Each keyed on what makes a skipped `accepted` test decide something: a refused fact
+        # closing one identity other than its own is what I7 would call a changed sibling, and one
+        # closing none or two is what C4-P1's first clause would count. The second refused claim is
+        # keyed on the session and identity it was claimed for.
+        'a refused terminal fact closing one identity other than its own' = 'refused-terminal-mismatched'
+        'a refused terminal fact closing more than one identity'  = 'refused-terminal-extra'
+        'a refused terminal fact closing no identity'              = 'refused-terminal-missing'
+        'an interaction refused a terminal fact twice before the one that closes it' = 'refused-terminal-twice'
     }
 
     $generatedEvaluations = 0
@@ -4117,7 +4154,7 @@ if ($GeneratedCount -gt 0) {
     $generatedFieldsStated = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     foreach ($generatedOrdinal in 1..$GeneratedCount) {
         $generatedId = "generated-$generatedOrdinal"
-        $generatedVector = New-ConformingVector -Id $generatedId -Random $random
+        $generatedVector = New-ConformingVector -Id $generatedId -Random $random -ShapeRandom $shapeRandom
         $generatedSteps = New-StepIndex -Vector $generatedVector
         Test-VectorVocabularies -Vector $generatedVector -VectorId $generatedId -Expected $null -Findings $generatedVocabularyFindings -Tally $generatedVocabularyTally -Seen $generatedPathsSeen
         Add-StatedFields -Node $generatedVector -Path '' -Stated $generatedFieldsStated
@@ -4136,8 +4173,17 @@ if ($GeneratedCount -gt 0) {
         }
         # BJ. Keyed on a terminal step the realization refused, which is the value I5's `accepted`
         # operand turns on; a terminal step merely existing is what every vector already carries.
+        $shapeRefusedClaims = @{}
         foreach ($shapeTerminal in @($generatedTimeline | Where-Object { [string]$_.step -eq 'terminal' })) {
-            if ($shapeTerminal.accepted -eq $false) { $shapesSeen['refused-terminal'] = $true }
+            if ($shapeTerminal.accepted -ne $false) { continue }
+            $shapesSeen['refused-terminal'] = $true
+            $shapeClosed = @(if ($null -ne $shapeTerminal.closes) { $shapeTerminal.closes })
+            if ($shapeClosed.Count -eq 0) { $shapesSeen['refused-terminal-missing'] = $true }
+            elseif ($shapeClosed.Count -gt 1) { $shapesSeen['refused-terminal-extra'] = $true }
+            elseif ([string]$shapeClosed[0] -ne [string]$shapeTerminal.identity) { $shapesSeen['refused-terminal-mismatched'] = $true }
+            $shapeClaimKey = "$($shapeTerminal.session)|$($shapeTerminal.identity)"
+            if ($shapeRefusedClaims.ContainsKey($shapeClaimKey)) { $shapesSeen['refused-terminal-twice'] = $true }
+            $shapeRefusedClaims[$shapeClaimKey] = $true
         }
         foreach ($shapeInteraction in @(if ($null -eq $generatedVector.interactions) { @() } else { $generatedVector.interactions })) {
             if ($null -ne $shapeInteraction.refusal -and [string]$shapeInteraction.refusal.stage -eq 'pre-dispatch') { $shapesSeen['pre-dispatch-refusal'] = $true }

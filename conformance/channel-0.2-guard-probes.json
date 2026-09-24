@@ -1244,8 +1244,8 @@
       "edits": [
         {
           "path": "docs/future/channel/reviews/README.md",
-          "find": "pass over the same scope is the live path",
-          "replace": "pass over the same scope is the current path"
+          "find": "pass met condition 4, and no further pass is owed",
+          "replace": "pass met the fourth condition, and no further pass is owed"
         }
       ]
     },
@@ -2488,8 +2488,8 @@
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "                        $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $identity; accepted = $false })",
-          "replace": "                        $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $identity; accepted = $false }); $waveLive--"
+          "find": "                            $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false })",
+          "replace": "                            $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false }); $waveLive--"
         }
       ],
       "gateArguments": [
@@ -2513,6 +2513,112 @@
       "gateArguments": [
         "-CensusPairs",
         "1"
+      ]
+    },
+    {
+      "id": "BK-a",
+      "claim": "a generator whose refused terminal facts quietly go back to closing their own identity only is reported by the population's required-shape check, so I7's and C4-P1's accepted tests cannot go back to being exercised from the conforming side by nothing",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "No generated vector carried a refused terminal fact closing one identity other than its own over",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "                            $refusedShape = $ShapeRandom.Next(0, 4)",
+          "replace": "                            $refusedShape = 0 * $ShapeRandom.Next(0, 4)"
+        }
+      ],
+      "gateArguments": [
+        "-CensusPairs",
+        "1"
+      ]
+    },
+    {
+      "id": "BK-b",
+      "claim": "an evaluator that counts what a refused terminal fact closes -- C4-P1's first clause with its accepted test gone -- is reported over the generated population on the facts closing none or two, where at the head only the uncapped per-property census reported it and the corpus, which caps that census, did not",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "'C4-P1' is red on generated conforming vector 'generated-1': an accepted terminal fact in session s2 closes 0 admitted interactions",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        if (-not (Read-Required $sessionEvent 'accepted' $timelineSubject)) { continue }",
+          "replace": "        if ($false) { continue }",
+          "occurrence": 3
+        }
+      ],
+      "gateArguments": [
+        "-CensusPairs",
+        "1"
+      ]
+    },
+    {
+      "id": "BK-c",
+      "claim": "an evaluator that reads a refused terminal fact's closed identities as a changed sibling -- I7 with its accepted test gone -- is reported over the generated population, where at the head nothing reported it: once the test is gone I7 no longer reads the field, so no census has anything to measure",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "'I7' is red on generated conforming vector 'generated-3': the terminal fact for interaction i2 in session s1 changed sibling i1's terminal history",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        if (-not (Read-Required $sessionEvent 'accepted' $timelineSubject)) { continue }",
+          "replace": "        if ($false) { continue }",
+          "occurrence": 2
+        }
+      ],
+      "gateArguments": [
+        "-CensusPairs",
+        "1"
+      ]
+    },
+    {
+      "id": "BK-d",
+      "claim": "a generator that quietly stops refusing a second terminal fact for one interaction is reported by the population's required-shape check",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "No generated vector carried an interaction refused a terminal fact twice before the one that closes it over",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "                        $refusedClaims = 1 + [int]($ShapeRandom.Next(0, 4) -eq 0)",
+          "replace": "                        $refusedClaims = 1 + [int]($ShapeRandom.Next(0, 4) -eq 4)"
+        }
+      ],
+      "gateArguments": [
+        "-CensusPairs",
+        "1"
+      ]
+    },
+    {
+      "id": "BK-e",
+      "claim": "a realization that keeps an interaction's slot across its first refused terminal fact and frees it on the second is reported by I5 and by C4-P1's third clause over the generated population, which BJ-b, freeing it on the first, cannot distinguish from a realization that is right about the first and wrong about the second",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "'I5' is red on generated conforming vector 'generated-3': session s1 held 4 nonterminal interactions against its own established bound of 3",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "                            $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false })",
+          "replace": "                            $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false }); if ($refusedClaim -gt 1) { $waveLive-- }"
+        }
+      ],
+      "gateArguments": [
+        "-CensusPairs",
+        "1"
+      ]
+    },
+    {
+      "id": "BK-f",
+      "claim": "an entry point saying condition 4 was met by a pass other than the latest retained one is refused, so the second form of the next-pass sentence cannot outlive the count it was met against",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "guardMessage": "the review policy's live-path sentence says the 'twenty-fourth' pass met condition 4",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/README.md",
+          "find": "The twenty-fifth pass met condition 4",
+          "replace": "The twenty-fourth pass met condition 4"
+        }
       ]
     }
   ]

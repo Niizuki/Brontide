@@ -2059,6 +2059,60 @@ twice, or refused after its wave has closed, which the contract classes as a dup
 protocol fault, is a conforming shape the population does not yet carry. BH3's disposition is the
 owner's. The three narratives' finding ranges are read by no guard for the range.
 
+## 2ab. What the twenty-fifth condition 4 pass found
+
+The twenty-fifth author-side pass has run, at `cad30af`, and is retained as the
+[twenty-fifth W1-W3 verification-foundation iteration review](./reviews/channel-0.2-bk-iteration-review.md).
+It was to be the **second of the two consecutive clean passes** the 2026-09-04 ruling requires, **and
+it is**: its frozen set reported nothing -- the fifth consecutive clean frozen set, and a strictly
+larger one by the twenty-fourth's three probes -- and the instrument it built found nothing in the
+package on its first run. It raises one finding, **BK1**, in its own new code, and this section is
+where that family is dispositioned.
+
+**The instrument is the rest of the shape the twenty-fourth named.** Every refused terminal fact the
+twenty-fourth generated closed its own identity, which exercised `I5`'s `accepted` test from the
+conforming side and no other evaluator's: `I7` and `C4-P1`'s first clause skip a refused fact before
+reading what it closes, and a fact closing exactly its own identity is one each would have passed with
+the skip gone. Measured at the head, `I7` with its test deleted passed every check the properties gate
+runs, and `C4-P1` with its test deleted failed only the uncapped per-property census. A refused fact
+now closes its own identity, a mismatched one -- a live sibling, or an identity its session never
+admits -- an extra one beside its own, or none, which are the contract's failure clause for terminal
+facts, and one refused claim in four is followed by a second. The shapes are drawn from a stream of
+their own, so the population at seed 20260904 is the head's, carrying them, and every probe anchored on
+a generated witness reads the witness it recorded.
+
+**On its first run it reported nothing**: 0 red over 100 generated vectors and 0 red over 2,000, 26 of
+26 properties, every required shape present at the default count and at the coverage measure's, and
+the sweep's figures identical to the head's -- 8,541 evaluations where declared to discriminate and
+459 where declared inert -- which is the separate stream shown rather than asserted.
+
+**It was made to fail five ways before that was believed**, each kept as a probe run alone over the
+committed instrument: `BK-a` and `BK-d`, a generator that stops drawing the new shapes or the second
+claim, refused by the required-shape check; `BK-b` and `BK-c`, `C4-P1` and `I7` with their `accepted`
+tests deleted, red on generated conforming vectors; and `BK-e`, a realization right about the first
+refused claim and wrong about the second, red through `I5` and `C4-P1`'s third clause. `BJ-b` is
+re-anchored on the line its edit now belongs to and returns the witness it recorded. The design gate's
+next-pass check gained a second form for the one outcome that makes "the next pass" false, pinned to
+the latest retained pass and kept honest by `BK-f`; `AX1-b` is re-anchored on the sentence the review
+policy now carries.
+
+**BK1 is that second form's own code**, and it is dispositioned here because it was raised against a
+gate. The form chose between two failure messages with an inline `if` inside the mismatch branch's
+`$failures.Add(...)`, which no passing run enters, and the frozen coverage measure refused it when the
+whole set was run over `c2e64dd`, the commit recording the pass -- BH5's shape, a conditional only a
+failing run reaches. The message is chosen before the branch now, and the measure passes with no
+exemption added. It is recorded as a finding because this programme numbers a defect in a pass's own
+new code caught by a frozen instrument, as it numbered BH4 and BH5; it bears on condition 4 as the
+split in section 3 states, being in neither of the 2026-09-04 ruling's populations.
+
+**What the next pass inherits, if one is run.** A rejected session transition is the same question one
+record over: `S1` and `S4` skip a transition the realization rejected, no declared or generated vector
+carries one, and with either skip deleted every check passes -- measured, at this branch. A duplicate
+terminal is not generated, because a fact refused after its wave has closed owes a late-traffic latch,
+a frame-level record the generator keeps on identities disjoint from the timeline's. The witness
+criterion is a proxy; both censuses walk the declared corpus; BH3's disposition is the owner's; and
+the three narratives' finding ranges are read by no guard for the range.
+
 ## 3. How the hold ends
 
 The cycle resumes when, in this order:
@@ -2117,9 +2171,9 @@ nothing means the package is sound *under what the programme can currently detec
 and not a proof — the same limit the coverage measure states about itself.
 
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
-twenty-four times**: the passes found five, six, three, two, five, one, seven, seven, five, three,
-one, three, zero, three, seven, seven, three, three, five, twelve, two, five, three and **zero**
-defects. Sections 2d through 2aa record them. This tally counts what a reader counts -- the numbered findings in each pass's
+twenty-five times**: the passes found five, six, three, two, five, one, seven, seven, five, three,
+one, three, zero, three, seven, seven, three, three, five, twelve, two, five, three, zero and
+**one** defects. Sections 2d through 2ab record them. This tally counts what a reader counts -- the numbered findings in each pass's
 retained review; the first figure said three until BG2, and the first pass's review carries five.
 Where the 2026-09-04 ruling's two populations differ from that total, the pass's own section states
 the split: of the fifteenth's seven, five are in the package and two are in the instrument that pass
@@ -2131,7 +2185,8 @@ package, two are in its own new code, and one is in a frozen instrument by readi
 twenty-first's two are both by reading, one in a frozen instrument and one in an entry point; of the
 twenty-second's five, three are in the package by the instrument's first run and two are in its own new
 code; of the twenty-third's three, two are in the package by the instrument's first run and one is by
-reading, pinned; and the twenty-fourth's zero is zero in both populations.
+reading, pinned; the twenty-fourth's zero is zero in both populations; and the twenty-fifth's one is
+in its own new code, caught by the frozen coverage measure, and in neither population.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -2318,21 +2373,34 @@ floor under what the programme can currently detect, over a population that reac
 conditional the declared corpus does not, and it is the fourteenth pass's lesson that the second of
 the two is where such counts have reset before.
 
-The next work is therefore a twenty-fifth author-side pass, and it is the **second of the two
-consecutive passes** the 2026-09-04 ruling requires: its frozen set is strictly larger by the
-twenty-fourth's three probes, and it meets the condition if that set reports nothing and the
-instrument it builds finds nothing in the package -- an instrument it must build, since a pass that
-builds nothing satisfies the first half trivially. Section 2aa records what the twenty-fourth did and
-what it leaves: the per-property census's witness criterion is a proxy; both censuses walk the
-declared corpus, with what a generated walk could reach bounded to branch bodies with no conditional
-of their own; the refused terminal fact is one shape, refused once for the identity it was claimed
-for, so a fact refused for a mismatched identity, refused twice, or refused after its wave has closed
-is a conforming shape the population does not yet carry; BH3's disposition is the owner's under open
-question 5; and the three narratives' finding ranges are read by no guard for the range. The profile
-record behind BF2 and BF9 is no longer an inherited unit: the 2026-09-16 ruling in section 6 defers
-it to Batch 2 with its trigger stated. The plan's rule is unchanged: the instrument is built, run over
-the package as found, and its first-run findings recorded before they are corrected -- and the whole
-probe corpus is run over the branch before the pass reports, which BF1 is the cost of not doing.
+**The twenty-fifth was to be the second of the two, and it is.** Its frozen set -- the 150-probe
+corpus, the coverage measure, both design gates, the return-channel census, the read-provenance,
+field-readership and operand censuses, the polarity and citation checks, the closed-vocabulary census,
+the roster check, and 52,000 evaluations over 2,000 generated vectors at 0 red with AZ3's sweep green
+-- reported nothing, the fifth consecutive clean frozen set and a strictly larger one by the
+twenty-fourth's three probes. The instrument it built -- the refused terminal facts given every
+identity shape the contract's failure clause names, which is what reaches the conforming half of
+`I7`'s and `C4-P1`'s `accepted` tests, exercised by nothing until then -- found nothing in the package
+on its first run, over a hundred vectors and then over two thousand, and was made to fail five ways
+before that was believed. Under the ruling's two populations that is the second consecutive clean
+pass over a strictly larger frozen set, which is the condition as the ruling states it. Its one
+finding, **BK1**, is a conditional its own new guard code put where no passing run reaches it, caught by
+the frozen coverage measure over the branch and corrected: neither in the package as found nor the
+instrument's first run, so it is in neither population, and that reading is stated here for the owner
+to overrule rather than assumed.
+
+**Condition 4 was met by the twenty-fifth pass**, and with it the four conditions this section sets.
+What that is worth is exactly what the ruling said it would be worth when it was made: a floor under
+what the programme can currently detect and not a proof, and the pass names, in section 2ab, the
+next unit of the class it and the twenty-fourth each closed a record's worth of -- a session
+transition the realization rejects, which no declared or generated vector carries, so `S1`'s and
+`S4`'s `accepted` tests are exercised from the conforming side by nothing. **Meeting the condition
+does not lift the hold.** Lifting it is the owner's decision, recorded at the head of this document
+by changing the closure-cycle state and removing the review policy's do-not-dispatch marker, and the
+owner has kept the hold in force while that decision is taken; until it is, no closure review is
+dispatched and a further author-side pass remains available under the same rules as every other. If
+one is run, it is a twenty-sixth pass, and the design gate then requires every entry point to stop
+saying that the twenty-fifth met the condition, since the count it was met against has moved on.
 
 What the fourteenth left undone is narrower and should not be confused with the above: the seven inert
 droppings are inert because the generated population carries one frame shape per session, and the
@@ -2363,15 +2431,16 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   No cell in the completeness review's two property tables reads `owed`;
 - **status-block lines across the nine artifacts** — **265** at `9ce01a0` and **45** now, both
   recomputed by the design verifier rather than read;
-- **Channel index row characters** — **8,746** at `2684ec7` and **1,341** now, summed over the eleven
+- **Channel index row characters** — **8,746** at `2684ec7` and **1,340** now, summed over the eleven
   per-artifact state cells and recomputed by the design verifier. This measure said 1,208 for three
   commits, which was never the value at any commit; it is corrected under **AM3**. It has moved nine
   times since: six times by four characters, for the same reason — registering a new
   iteration-review family in the Design reviews row — once by minus two, when registering BD took
   that row past the 300-character bound W3 set on a cell and its wording was shortened to fit, once
   by minus three, when registering BE did the same, not at all for BH, which traded four characters of
-  wording for its four of family, once by minus three, when registering BI did the same again, and
-  once by one, when registering BJ traded the list's "and" for a comma. On each occasion the check that recomputes it
+  wording for its four of family, once by minus three, when registering BI did the same again,
+  once by one, when registering BJ traded the list's "and" for a comma, and once by minus one, when
+  registering BK shortened the row's link text to fit its four of family. On each occasion the check that recomputes it
   failed the figure on the commit that wrote it, which is the check working rather than a defect in
   it; and
 - **repository-gate minutes** — **13** before this pass, **23 to 25** with the gate self-checks in it,
@@ -2434,13 +2503,13 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   nothing, and cutting the return-channel census from about a hundred syntax-tree walks per gate to one
   moved it from 530 traced seconds to 318 — real, but a fifth of what the walk count suggested, because
   what costs is executed statements and not walks; and
-- **guard probes executable** — currently **150 of 150**, run by
+- **guard probes executable** — currently **156 of 156**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
-- **design-verifier lines** — **2,992** now, recomputed by the verifier against itself. Every step
+- **design-verifier lines** — **3,010** now, recomputed by the verifier against itself. Every step
   of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
   the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
   `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491**, `138af11` **2,626** — counted the way this verifier counts
@@ -2470,7 +2539,10 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   review's finding headings -- a range only prose carried, on the surface that had understated three
   families, one of them for twenty passes. It did not move for BH, whose work is all in the properties
   gate. It rose by seven for BI, the future index's Channel row joining the next-pass ordinal check after
-  naming the next pass the twenty-first for three passes.
+  naming the next pass the twenty-first for three passes. It rose by eighteen for BK, all of it the
+  second form that check gained for the outcome that makes "the next pass" false -- a pass that meets
+  condition 4 -- pinned to the latest retained pass so that it fails if another pass is run, four of
+  them the correction BK1 made when the coverage measure refused the form's first draft.
 
 ## 5. Open questions for the owner
 
@@ -2509,9 +2581,12 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
 
 ## 6. Resolved questions
 
-Each ruling below was recommended by the agent that ran the twenty-first pass and adopted by the owner
-on that recommendation on 2026-09-16, which is disclosed because the first of them decides whether that
-agent's own pass counts, and it decides against it.
+The three rulings of 2026-09-16 below were recommended by the agent that ran the twenty-first pass and
+adopted by the owner on that recommendation, which is disclosed because the first of them decides
+whether that agent's own pass counts, and it decides against it. The ruling of 2026-09-24 was put to
+the owner by the agent that ran the twenty-fifth pass, as a choice between three options with this one
+recommended, and is disclosed for the same reason: it is about what that pass's own result sets in
+motion.
 
 **Owner ruling, 2026-09-16 — AW2: a finding found by reading does not by itself fail a pass; a guard
 built to pin one is an instrument, and what it finds beyond the instance it was written for counts.**
@@ -2577,3 +2652,22 @@ of admitted classes, directions and phases exists as a neutral artifact, `C3-P1`
 read it and the two Booleans leave the vector format. Until then the properties gate records each
 Boolean as an asserted operand where it reads it, and no condition-4 pass names this as an inherited
 unit of its own.
+
+**Owner ruling, 2026-09-24 — condition 4 met does not lift the hold by itself; the hold stays in force
+until the owner lifts it.** The twenty-fifth pass met condition 4 as the 2026-09-04 ruling states it,
+which makes all four of section 3's conditions met. Section 3 says the cycle resumes when they are, and
+the head of this document says resuming means changing the closure-cycle state and removing the review
+policy's marker -- so the question was whether the pass that meets the condition does that itself.
+Three options were put: record the pass and keep the hold, leaving the lifting to a separate owner
+decision; lift it in the same change, naming one fresh independent closure review as the next work; or
+run a twenty-sixth pass first, over the units the twenty-fifth named. The owner chose the first,
+which the agent had recommended. The reasons below are the agent's, written after the choice, and not
+the owner's: against the second, that the hold was an owner decision and the design gate already says
+lifting it is one, so an author-side pass flipping the state that governs its own review would be the
+author deciding its work is ready for the review that judges it; against the third, that it would
+re-scope condition 4 after it was met, which is the move the 2026-09-04 ruling was written to stop in
+the other direction. The closure-cycle state stays `on-hold`, the review policy's marker stays, the
+entry points say condition 4 was met by the twenty-fifth pass and that no further pass is owed, and
+the design gate's next-pass check accepts that form only while the twenty-fifth is the latest retained
+pass. A further author-side pass stays available and, if run, returns every entry point to naming the
+pass after it.
