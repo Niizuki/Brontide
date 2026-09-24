@@ -192,6 +192,7 @@ dependency instead of narrowing it.
 | BG | iteration | verification | twenty-first W1-W3 verification-foundation iteration review |
 | BH | iteration | verification | twenty-second W1-W3 verification-foundation iteration review |
 | BI | iteration | design | twenty-third W1-W3 verification-foundation iteration review |
+| BK | iteration | verification | twenty-fifth W1-W3 verification-foundation iteration review |
 
 **Owner ruling, 2026-08-20 — why the second axis exists, and what was rejected.** Until AM every family
 had been raised against the design, so one ledger served both populations. AM1-AM3 were raised against
@@ -288,7 +289,7 @@ iteration pass over the plan's work is not a closure review and remains availabl
 as every other iteration pass.
 
 Twenty-five such passes have run, and the thirteenth, the twenty-fourth, the twenty-fifth and --
-under the 2026-09-16 ruling on AW2 -- the eleventh are the only four to find nothing they could fix;
+under the 2026-09-16 ruling on AW2 -- the eleventh are the only four to find nothing in the package;
 the eleventh and the thirteenth were each followed by a pass that found something, and the
 twenty-fourth was followed by the twenty-fifth, which is the two consecutive the plan's condition 4
 asks for. They are retained as the
@@ -316,7 +317,7 @@ asks for. They are retained as the
 [twenty-second](./channel-0.2-bh-iteration-review.md) (**BH1**-**BH5**),
 [twenty-third](./channel-0.2-bi-iteration-review.md) (**BI1**-**BI3**),
 [twenty-fourth](./channel-0.2-bj-iteration-review.md) (no finding) and
-[twenty-fifth](./channel-0.2-bk-iteration-review.md) (no finding) W1-W3 verification-foundation
+[twenty-fifth](./channel-0.2-bk-iteration-review.md) (**BK1**) W1-W3 verification-foundation
 iteration reviews, each of which corrected everything it raised. The ranges in that list are read
 back against each review's finding headings by the design verifier since **BG2**, which found this
 list understating three of them.
@@ -1442,8 +1443,10 @@ context elsewhere — never as evidence that their conclusions are right.
   nothing -- `I7` with its test deleted passed every check at the head; refused facts now close a
   mismatched identity, an extra one, or none, and one claim in four is refused twice, drawn from a
   stream of their own so the population is otherwise the head's. 0 red over 2,000 generated vectors.
-  Made to fail five ways before its green was believed, each kept as a probe. It raises no family, so
-  there is none to disposition; the hold stays in force until the owner lifts it.
+  Made to fail five ways before its green was believed, each kept as a probe. **BK1** is its own new
+  code, a conditional the design gate's new next-pass form put in a failure body, caught by the frozen
+  coverage measure over the branch and corrected; it is in neither of the ruling's two populations.
+  The hold stays in force until the owner lifts it.
 
 ## Disclosed process deviation in the T1-T4 correction
 

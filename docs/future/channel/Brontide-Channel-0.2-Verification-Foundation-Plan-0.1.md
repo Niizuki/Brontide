@@ -2066,7 +2066,8 @@ The twenty-fifth author-side pass has run, at `cad30af`, and is retained as the
 It was to be the **second of the two consecutive clean passes** the 2026-09-04 ruling requires, **and
 it is**: its frozen set reported nothing -- the fifth consecutive clean frozen set, and a strictly
 larger one by the twenty-fourth's three probes -- and the instrument it built found nothing in the
-package on its first run. It raises no family; this section and the review are its record.
+package on its first run. It raises one finding, **BK1**, in its own new code, and this section is
+where that family is dispositioned.
 
 **The instrument is the rest of the shape the twenty-fourth named.** Every refused terminal fact the
 twenty-fourth generated closed its own identity, which exercised `I5`'s `accepted` test from the
@@ -2094,6 +2095,15 @@ re-anchored on the line its edit now belongs to and returns the witness it recor
 next-pass check gained a second form for the one outcome that makes "the next pass" false, pinned to
 the latest retained pass and kept honest by `BK-f`; `AX1-b` is re-anchored on the sentence the review
 policy now carries.
+
+**BK1 is that second form's own code**, and it is dispositioned here because it was raised against a
+gate. The form chose between two failure messages with an inline `if` inside the mismatch branch's
+`$failures.Add(...)`, which no passing run enters, and the frozen coverage measure refused it when the
+whole set was run over `c2e64dd`, the commit recording the pass -- BH5's shape, a conditional only a
+failing run reaches. The message is chosen before the branch now, and the measure passes with no
+exemption added. It is recorded as a finding because this programme numbers a defect in a pass's own
+new code caught by a frozen instrument, as it numbered BH4 and BH5; it bears on condition 4 as the
+split in section 3 states, being in neither of the 2026-09-04 ruling's populations.
 
 **What the next pass inherits, if one is run.** A rejected session transition is the same question one
 record over: `S1` and `S4` skip a transition the realization rejected, no declared or generated vector
@@ -2163,7 +2173,7 @@ and not a proof — the same limit the coverage measure states about itself.
 **Conditions 1, 2 and 3 are met**, each as its own section above records. **Condition 4 has run
 twenty-five times**: the passes found five, six, three, two, five, one, seven, seven, five, three,
 one, three, zero, three, seven, seven, three, three, five, twelve, two, five, three, zero and
-**zero** defects. Sections 2d through 2ab record them. This tally counts what a reader counts -- the numbered findings in each pass's
+**one** defects. Sections 2d through 2ab record them. This tally counts what a reader counts -- the numbered findings in each pass's
 retained review; the first figure said three until BG2, and the first pass's review carries five.
 Where the 2026-09-04 ruling's two populations differ from that total, the pass's own section states
 the split: of the fifteenth's seven, five are in the package and two are in the instrument that pass
@@ -2175,8 +2185,8 @@ package, two are in its own new code, and one is in a frozen instrument by readi
 twenty-first's two are both by reading, one in a frozen instrument and one in an entry point; of the
 twenty-second's five, three are in the package by the instrument's first run and two are in its own new
 code; of the twenty-third's three, two are in the package by the instrument's first run and one is by
-reading, pinned; and the twenty-fourth's zero and the twenty-fifth's are each zero in both
-populations.
+reading, pinned; the twenty-fourth's zero is zero in both populations; and the twenty-fifth's one is
+in its own new code, caught by the frozen coverage measure, and in neither population.
 
 **The thirteenth is the only pass so far to satisfy this condition as the 2026-09-04 ruling states
 it**: its frozen set reported nothing, and the instrument it extended found nothing in the package.
@@ -2373,7 +2383,11 @@ identity shape the contract's failure clause names, which is what reaches the co
 `I7`'s and `C4-P1`'s `accepted` tests, exercised by nothing until then -- found nothing in the package
 on its first run, over a hundred vectors and then over two thousand, and was made to fail five ways
 before that was believed. Under the ruling's two populations that is the second consecutive clean
-pass over a strictly larger frozen set, which is the condition as the ruling states it.
+pass over a strictly larger frozen set, which is the condition as the ruling states it. Its one
+finding, **BK1**, is a conditional its own new guard code put where no passing run reaches it, caught by
+the frozen coverage measure over the branch and corrected: neither in the package as found nor the
+instrument's first run, so it is in neither population, and that reading is stated here for the owner
+to overrule rather than assumed.
 
 **Condition 4 was met by the twenty-fifth pass**, and with it the four conditions this section sets.
 What that is worth is exactly what the ruling said it would be worth when it was made: a floor under
@@ -2495,7 +2509,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   place for a measure to live and is the cost that decision accepted. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
-- **design-verifier lines** — **3,006** now, recomputed by the verifier against itself. Every step
+- **design-verifier lines** — **3,010** now, recomputed by the verifier against itself. Every step
   of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
   the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
   `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491**, `138af11` **2,626** — counted the way this verifier counts
@@ -2525,9 +2539,10 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   review's finding headings -- a range only prose carried, on the surface that had understated three
   families, one of them for twenty passes. It did not move for BH, whose work is all in the properties
   gate. It rose by seven for BI, the future index's Channel row joining the next-pass ordinal check after
-  naming the next pass the twenty-first for three passes. It rose by fourteen for BK, all of it the
+  naming the next pass the twenty-first for three passes. It rose by eighteen for BK, all of it the
   second form that check gained for the outcome that makes "the next pass" false -- a pass that meets
-  condition 4 -- pinned to the latest retained pass so that it fails if another pass is run.
+  condition 4 -- pinned to the latest retained pass so that it fails if another pass is run, four of
+  them the correction BK1 made when the coverage measure refused the form's first draft.
 
 ## 5. Open questions for the owner
 

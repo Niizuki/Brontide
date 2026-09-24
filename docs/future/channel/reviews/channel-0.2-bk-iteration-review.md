@@ -20,16 +20,18 @@ It is the **twenty-fifth** pass condition 4 of the
 names, and it was to be the **second of the two consecutive clean passes** the 2026-09-04 ruling
 requires.
 
-This pass records no finding against the package.
-
 **It is the second of the two.** The frozen set reported nothing at `cad30af` -- the fifth
 consecutive clean frozen set, and a strictly larger one than the twenty-fourth's, having gained that
 pass's three probes -- and the instrument this pass built found nothing in the package on its first
 run. Under the ruling's two populations that is two consecutive clean passes, the second over a
-strictly larger frozen set, which is condition 4 as the ruling states it. **Meeting it does not lift
-the hold**: the owner ruled on 2026-09-24, in the plan's section 6, that lifting it stays a separate
-owner decision, and the closure-cycle state and the review policy's do-not-dispatch marker are left
-as they were.
+strictly larger frozen set, which is condition 4 as the ruling states it. **BK1** is the pass's own
+new code -- the second form it gave the design gate's next-pass check -- caught by the frozen coverage
+measure when the whole set was run over the branch, and corrected before the pass reported; it is in
+neither of the ruling's two populations, being neither in the package as the pass found it nor a
+first-run finding of the instrument, which is the reading this review takes and states rather than
+assumes, since the owner may rule otherwise. **Meeting the condition does not lift the hold**: the
+owner ruled on 2026-09-24, in the plan's section 6, that lifting it stays a separate owner decision,
+and the closure-cycle state and the review policy's do-not-dispatch marker are left as they were.
 
 ## The frozen set, run first
 
@@ -110,8 +112,22 @@ permissive, which stays green on every conforming input. That side stays the dec
 
 ## Findings
 
-None. The frozen set reported nothing, and the instrument this pass built found nothing in the
-package.
+The frozen set reported nothing, and the instrument this pass built found nothing in the package. One
+finding was raised in the pass's own new code.
+
+### BK1 A conditional the design gate's new next-pass form put in a failure body
+
+The second form this pass gave the design gate's next-pass check chose between two failure messages
+with an inline `if` written inside the `$failures.Add(...)` call of the mismatch branch. A passing run
+never enters that branch, so the conditional is never evaluated, and the frozen coverage measure
+refused it when the whole set was run over `c2e64dd`, the commit recording the pass: "this if is never
+evaluated by a passing run, so the check it guards did not run." That is BH5's shape, a conditional
+only a failing run reaches, in a guard written by the pass that the measure then ran over. The message
+is now chosen before the branch, where every run evaluates it, and the measure passes over the
+corrected gate with the exemptions it already declared -- no exemption was added for it. The 156-probe
+corpus had passed over `c2e64dd` beforehand, `BK-f` included, which is why the defect was a coverage
+finding and not a behavioural one: both messages were right, and one of them was chosen in a place
+nothing measured.
 
 ## What this pass verified rather than believed
 
@@ -130,8 +146,12 @@ package.
   it already declared: every construct the instrument adds is reached at the measure's count of 15.
 - **The deep run over that commit** is the figure above, 52,000 evaluations at 0 red.
 - **The design gate's second form is pinned by `BK-f`**, and `AX1-b` is re-anchored on the sentence
-  the review policy now carries. The corpus and the coverage measure over the head that records the
-  pass are recorded in the commit above it.
+  the review policy now carries.
+- **The whole set was run over `c2e64dd`**, the commit recording the pass, in a third short-path
+  clone: the 156-probe corpus at 156 of 156 over 16 workers, and then the coverage measure, which
+  refused the conditional that is **BK1** and stopped the self-checks before the deep run. The
+  correction is in the commit above that one, and the corpus, the coverage measure and the deep run
+  over the head carrying it are recorded in the commit above that.
 - **The normal path is unchanged**: 26 of 26 properties, 139 evaluations over 61 declared inputs,
   9 operand mutations, and every census reporting what it reported at the head.
 
@@ -176,5 +196,6 @@ probes, each at the default generated count with the census capped.
 
 ## Where this family is dispositioned
 
-No family is raised, so there is nothing to disposition. The pass's record is this document and the
-plan's section 2ab.
+**BK** is raised against the verification -- a gate -- and no design artifact names it, so under the
+2026-08-20 ruling its disposition is in the verification foundation plan's section 2ab, and the review
+policy's provenance table classifies it `verification`.

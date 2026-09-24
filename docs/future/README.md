@@ -578,14 +578,16 @@ frozen set larger by those three probes, and the closure-review hold remains in 
 **The twenty-fifth pass gave those refused facts the rest of the shape, and met condition 4.** It is
 retained as the
 [twenty-fifth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-bk-iteration-review.md)
-and raised nothing. Its frozen set reported nothing -- the fifth consecutive clean frozen set, and a
-strictly larger one by the twenty-fourth's three probes -- and the instrument it built found nothing in
-the package: every refused terminal fact the twenty-fourth generated closed its own identity, so the
+and raised **BK1**, in its own new code. Its frozen set reported nothing -- the fifth consecutive
+clean frozen set, and a strictly larger one by the twenty-fourth's three probes -- and the instrument
+it built found nothing in the package: every refused terminal fact the twenty-fourth generated closed its own identity, so the
 conforming half of `I7`'s and `C4-P1`'s `accepted` tests was exercised by nothing, and `I7` with its
 test deleted passed every check at the head; refused facts now close a mismatched identity, an extra
 one, or none, and one claim in four is refused twice. 0 red over 2,000 generated vectors carrying the
 shapes, with the five ways the instrument was made to fail kept as probes. That is the second of the
-two consecutive clean passes the 2026-09-04 ruling requires, so the plan's condition 4 is met. **The
+two consecutive clean passes the 2026-09-04 ruling requires, so the plan's condition 4 is met; BK1,
+a conditional the pass's new next-pass guard form put where no passing run reaches it, was caught by
+the frozen coverage measure over the branch and is in neither of that ruling's populations. **The
 hold is not lifted by it**: lifting it is the owner's decision, the owner has kept it in force while
 that decision is taken, and no closure review is dispatched until the plan's closure-cycle state says
 otherwise.

@@ -1514,11 +1514,15 @@ else {
             $ordinalMet = $ordinalMatch.Groups[2].Success
             $claimedOrdinal = $ordinalMatch.Groups[$(if ($ordinalMet) { 2 } else { 1 })].Value
             $owedOrdinal = if ($ordinalMet) { $lastOrdinal } else { $nextOrdinal }
+            # Chosen before the branch rather than inside it: a conditional in a failure body is one
+            # no passing run evaluates, and the coverage measure refused the first draft for exactly
+            # that.
+            $ordinalMismatch = if ($ordinalMet) { "$($ordinalClaim.Where) says the '$claimedOrdinal' pass met condition 4, and $conditionFourPasses have been retained, so the latest is the '$lastOrdinal'. A condition met by a pass that has since been followed by another is a claim about a count that has moved on." } else { "$($ordinalClaim.Where) calls the next pass the '$claimedOrdinal' and $conditionFourPasses have been retained, so the next one is the '$nextOrdinal'. A pass named after one that has already run sends the next agent to repeat it." }
             if (-not $ordinalMatch.Success) {
                 $failures.Add("$($ordinalClaim.Where) no longer names the next pass in the form this check recomputes, nor the pass that met condition 4. That sentence is what the next agent reads to know which pass it is running, or that none is owed.")
             }
             elseif ($claimedOrdinal -cne $owedOrdinal) {
-                $failures.Add($(if ($ordinalMet) { "$($ordinalClaim.Where) says the '$claimedOrdinal' pass met condition 4, and $conditionFourPasses have been retained, so the latest is the '$lastOrdinal'. A condition met by a pass that has since been followed by another is a claim about a count that has moved on." } else { "$($ordinalClaim.Where) calls the next pass the '$claimedOrdinal' and $conditionFourPasses have been retained, so the next one is the '$nextOrdinal'. A pass named after one that has already run sends the next agent to repeat it." }))
+                $failures.Add($ordinalMismatch)
             }
         }
     }
