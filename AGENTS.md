@@ -538,13 +538,17 @@ turn ordinary work-in-progress iterations into repeated full gates or formal rev
   and report deliberately deferred milestone work. Prefer fast-forward merges where history permits.
   Never force-push, merge, rewrite a pull-request title or description, or otherwise mutate remote
   state without user authorization.
-- **Push finished work, always.** When a unit of work is finished, push every commit on its working
-  branch to `origin` before reporting, because work left only in a local clone is invisible to the
-  next session and lost with the clone. This is the owner's standing authorization for that push and
-  is the one exception to the rule above: it covers an ordinary, fast-forward push of the working
-  branch only, not a force-push, a merge, a push to `main` the branch rules above do not permit, or
-  opening or editing a pull request. Run the pre-push checks above first; if they fail, push anyway
-  and report the failure rather than leaving the work unpushed.
+- **Push finished work and open its pull request, always.** When a unit of work is finished, push
+  every commit on its working branch to `origin` and open a pull request for that branch against
+  `main` before reporting, because work left only in a local clone is invisible to the next session
+  and lost with the clone, and a pushed branch with no pull request is work nobody is asked to review.
+  If the branch already has an open pull request, the push is enough. This is the owner's standing
+  authorization for both and is the one exception to the rule above: it covers an ordinary,
+  fast-forward push of the working branch and opening a new pull request whose title and description
+  describe the whole branch; it does not cover a force-push, a merge, a push to `main` the branch
+  rules above do not permit, or rewriting an existing pull request's title or description. Run the
+  pre-push checks above first; if they fail, push and open the pull request anyway and state the
+  failure in its description rather than leaving the work unpushed.
 
 ### Local mechanisms the doctrine refers to
 
