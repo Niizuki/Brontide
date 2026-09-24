@@ -1244,8 +1244,8 @@
       "edits": [
         {
           "path": "docs/future/channel/reviews/README.md",
-          "find": "pass over the same scope is the live path",
-          "replace": "pass over the same scope is the current path"
+          "find": "pass met condition 4, and no further pass is owed",
+          "replace": "pass met the fourth condition, and no further pass is owed"
         }
       ]
     },
@@ -2605,6 +2605,20 @@
       "gateArguments": [
         "-CensusPairs",
         "1"
+      ]
+    },
+    {
+      "id": "BK-f",
+      "claim": "an entry point saying condition 4 was met by a pass other than the latest retained one is refused, so the second form of the next-pass sentence cannot outlive the count it was met against",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "guardMessage": "the review policy's live-path sentence says the 'twenty-fourth' pass met condition 4",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/README.md",
+          "find": "The twenty-fifth pass met condition 4",
+          "replace": "The twenty-fourth pass met condition 4"
+        }
       ]
     }
   ]

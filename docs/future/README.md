@@ -575,6 +575,21 @@ kept as probes. Under the 2026-09-04 ruling this is the first of the two consecu
 from zero, so the count is one; a twenty-fifth pass is the next work and decides the second, over a
 frozen set larger by those three probes, and the closure-review hold remains in force.
 
+**The twenty-fifth pass gave those refused facts the rest of the shape, and met condition 4.** It is
+retained as the
+[twenty-fifth W1-W3 verification-foundation iteration review](./channel/reviews/channel-0.2-bk-iteration-review.md)
+and raised nothing. Its frozen set reported nothing -- the fifth consecutive clean frozen set, and a
+strictly larger one by the twenty-fourth's three probes -- and the instrument it built found nothing in
+the package: every refused terminal fact the twenty-fourth generated closed its own identity, so the
+conforming half of `I7`'s and `C4-P1`'s `accepted` tests was exercised by nothing, and `I7` with its
+test deleted passed every check at the head; refused facts now close a mismatched identity, an extra
+one, or none, and one claim in four is refused twice. 0 red over 2,000 generated vectors carrying the
+shapes, with the five ways the instrument was made to fail kept as probes. That is the second of the
+two consecutive clean passes the 2026-09-04 ruling requires, so the plan's condition 4 is met. **The
+hold is not lifted by it**: lifting it is the owner's decision, the owner has kept it in force while
+that decision is taken, and no closure review is dispatched until the plan's closure-cycle state says
+otherwise.
+
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
 history -- where every earlier family belongs -- made *the newest family* one that had touched no
@@ -2157,7 +2172,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, AV1-AV3, AW1, AX1-AX3, AZ1-AZ2, BA1-BA7, BB1-BB7, BC1-BC3, BD1-BD3, BE1-BE5 and BF1-BF12 and BI1-BI3 families; the closure cycle remains on hold while a twenty-fifth verification-foundation pass is next, and it still awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 16 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, AV1-AV3, AW1, AX1-AX3, AZ1-AZ2, BA1-BA7, BB1-BB7, BC1-BC3, BD1-BD3, BE1-BE5 and BF1-BF12 and BI1-BI3 families; the closure cycle remains on hold by owner decision after the twenty-fifth verification-foundation pass met condition 4, and it still awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |
