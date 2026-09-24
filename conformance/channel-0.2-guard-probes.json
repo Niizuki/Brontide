@@ -282,15 +282,15 @@
     },
     {
       "id": "C7 hold",
-      "claim": "the closure-cycle state is edited to resumed without meeting the conditions",
+      "claim": "the closure-cycle state is edited to a word outside the closed on-hold/open vocabulary",
       "gate": "verify-channel-0.2-design.ps1",
       "expect": "fail",
       "guardMessage": "A state outside a closed set cannot be acted on by this check or by a reader, which is the defect B4 was raised for in the migration ledger's categories",
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "Closure-cycle state: **on-hold** since 2026-08-17, at 16 retained attestations.",
-          "replace": "Closure-cycle state: **resumed** since 2026-08-17, at 16 retained attestations."
+          "find": "Closure-cycle state: **open** since 2026-09-24, at 16 retained attestations.",
+          "replace": "Closure-cycle state: **resumed** since 2026-09-24, at 16 retained attestations."
         }
       ]
     },
@@ -303,8 +303,8 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "Closure-cycle state: **on-hold** since 2026-08-17, at 16 retained attestations.",
-          "replace": "Closure-cycle state: **on-hold** since 2026-08-17, at 17 retained attestations."
+          "find": "Closure-cycle state: **open** since 2026-09-24, at 16 retained attestations.",
+          "replace": "Closure-cycle state: **on-hold** since 2026-09-24, at 17 retained attestations."
         }
       ]
     },
@@ -2618,6 +2618,34 @@
           "path": "docs/future/channel/reviews/README.md",
           "find": "The twenty-fifth pass met condition 4",
           "replace": "The twenty-fourth pass met condition 4"
+        }
+      ]
+    },
+    {
+      "id": "C9 hold",
+      "claim": "a closure cycle declared open while the review policy's step 4 still carries the do-not-dispatch marker is refused, so lifting the hold in the plan and not in the step the dispatching agent reads fails the gate",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "guardMessage": "The verification foundation plan declares the closure cycle `open` while the review policy's step 4 still carries the do-not-dispatch marker",
+      "edits": [
+        {
+          "path": "docs/future/channel/reviews/README.md",
+          "find": "4. **Live since 2026-09-24.**",
+          "replace": "4. **On hold since 2026-09-24 — do not dispatch.**"
+        }
+      ]
+    },
+    {
+      "id": "C10 hold",
+      "claim": "a closure cycle declared on hold without the matching do-not-dispatch marker in the review policy's step 4 is refused, which is the check dormant while the cycle is open",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "guardMessage": "The closure cycle is on hold and the review policy's step 4 does not carry the",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
+          "find": "Closure-cycle state: **open** since 2026-09-24, at 16 retained attestations.",
+          "replace": "Closure-cycle state: **on-hold** since 2026-09-24, at 16 retained attestations."
         }
       ]
     }

@@ -274,19 +274,21 @@ The author correction pass and ordinary documentation gates are not independent 
 
 ## Exact next work
 
-**The next closure review is on hold by owner decision of 2026-08-17, and step 4 is not the live path
-until it resumes.** The decision, its reasons, the work that has to land first, and the conditions that
-end the hold are in the
+**The closure-review hold of 2026-08-17 was lifted by owner decision on 2026-09-24, and step 4 is the
+live path.** The hold's decision, its reasons, the work that landed under it, the four conditions that
+ended it, and the ruling that lifted it are in the
 [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md). In one
-sentence: sixteen reviews have produced findings in every cycle, the only instrument here that finds a
-real defect is a person reading prose, and the surface that reading covers grows every time a defect is
-corrected — so the measuring instrument is being fixed before another cold context is spent.
+sentence: sixteen reviews had produced findings in every cycle, the only instrument that found a real
+defect was a person reading prose, and the surface that reading covered grew every time a defect was
+corrected — so the measuring instrument was fixed before another cold context was spent, and
+twenty-five author-side passes later two consecutive ones found nothing in the package.
 
-Nothing else in this policy changes. The independence requirements, the closure standard, the required
-scope and verdicts, and the retained records are all unchanged and apply unmodified to whichever review
-runs next. **No agent dispatches a closure review while this paragraph stands.** An author-side
-iteration pass over the plan's work is not a closure review and remains available, under the same rules
-as every other iteration pass.
+Nothing else in this policy changed under the hold. The independence requirements, the closure
+standard, the required scope and verdicts, and the retained records apply unmodified to the review that
+runs now. Every actor that authored a correction or a condition-4 pass is an implementation actor for
+that review's purposes, the twenty-fifth pass's included, and may not run it. An author-side iteration
+pass over the plan's work is not a closure review and remains available, under the same rules as every
+other iteration pass.
 
 Twenty-five such passes have run, and the thirteenth, the twenty-fourth, the twenty-fifth and --
 under the 2026-09-16 ruling on AW2 -- the eleventh are the only four to find nothing in the package;
@@ -327,10 +329,10 @@ first of the two consecutive clean passes the 2026-09-04 ruling requires and the
 second: its frozen set, strictly larger by the twenty-fourth's three probes, reported nothing -- the
 fifth consecutive clean frozen set -- and the instrument it built, the refused terminal facts given
 every identity shape the capability contract's failure clause names, found nothing in the package on
-its first run. **That does not lift the hold, and the do-not-dispatch marker above still stands.**
-Lifting it is the owner's decision, recorded in the plan by changing the closure-cycle state and
-removing the marker here; the owner has kept the hold in force while that decision is taken. Until
-then an author-side pass remains available under the same rules as every other, and one would start,
+its first run. The pass did not lift the hold itself; **the owner lifted it the same day**, by the
+second 2026-09-24 ruling in the plan's section 6, so step 4 below is the live path and one fresh
+independent closure review is the next work. An author-side pass remains available under the same
+rules as every other, and one would start,
 as every pass has, by running the frozen instrument set — the probe corpus, the coverage gate, the
 generated-vector run, the return-channel census, the read-provenance census over both polarities,
 the declaration-polarity check, the declaration-citation check, the closed-vocabulary census, the
@@ -866,16 +868,15 @@ is exactly what the AD and AE passes found separately.
    property. The mutation vector's expected observation is now the recipient's recorded refusal, which
    is a determinate portable observation under C12-P1, rather than the vector being rejected before it
    executes. The per-capability property audit registers `C4-P2` and its mutation.
-4. **On hold since 2026-08-17 — do not dispatch.** The state is declared in the
+4. **Live since 2026-09-24.** The state is declared in the
    [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md) and the
-   design verifier reads it from there: while the hold stands, retaining a seventeenth attestation
-   fails the gate. Obtain another fresh independent review of the
-   corrected pin, from a reviewer identity distinct from the correction author and all sixteen
-   retained reviewers, **in a fresh isolated clone**. Its
+   design verifier reads it from there; it was held from 2026-08-17 to 2026-09-24. Obtain another fresh
+   independent review of the corrected pin, from a reviewer identity distinct from every correction
+   and condition-4 pass author and all sixteen retained reviewers, **in a fresh isolated clone**. Its
    scope, verdicts, and probe requirements are unchanged from the sections above. It writes only its
-   own attestation. The hold and the four conditions that end it are in the
-   [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md); this
-   step is unchanged in substance and resumes exactly as written when they are met.
+   own attestation. The hold, the four conditions that ended it, and the ruling that lifted it are in
+   the [verification foundation plan](../Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md);
+   this step is unchanged in substance and resumes exactly as written.
 
    The reviewer should treat the U1 correction as the primary target, and should treat the disclosed
    process deviation below as a reason to weigh it harder rather than less. The lesson four cycles
@@ -1086,11 +1087,14 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `verification: give I5 the two terminal-operand
-mutations its inputs never exercised (BI1)`, committed 2026-09-20, which is the head of the
-correction sequence beginning at `fix(channel): make C4-P2 falsifiable`. It moves the pin off
-`verification: count the twentieth pass's first-run fields as stated 285 times rather than on 148
-records` because the twenty-third pass's **BI1** correction reaches a design artifact -- the
+The current review target is the commit titled `docs(channel): lift the closure-review hold by owner
+ruling of 2026-09-24`, committed 2026-09-24, which is the head of the correction sequence beginning at
+`fix(channel): make C4-P2 falsifiable`. It moves the pin off `verification: give I5 the two
+terminal-operand mutations its inputs never exercised (BI1)` because lifting the hold reaches a design
+artifact -- the redesign plan's status line, which named the hold as what the closure re-review was
+waiting under -- and no design fact changes with it. Before that the pin sat on the twenty-third pass's
+commit, which moved it off `verification: count the twentieth pass's first-run fields as stated 285
+times rather than on 148 records` because that pass's **BI1** correction reaches a design artifact -- the
 completeness review's per-capability audit row for `I5`, which now names a mutation for each operand
 of the property's terminal handling, and its review-disposition history, which records the BI family
 whole. Before that the pin sat on the twentieth pass's commit for its **BF2** and **BF4** corrections,
@@ -1446,7 +1450,7 @@ context elsewhere — never as evidence that their conclusions are right.
   Made to fail five ways before its green was believed, each kept as a probe. **BK1** is its own new
   code, a conditional the design gate's new next-pass form put in a failure body, caught by the frozen
   coverage measure over the branch and corrected; it is in neither of the ruling's two populations.
-  The hold stays in force until the owner lifts it.
+  It did not lift the hold; the owner lifted it the same day.
 
 ## Disclosed process deviation in the T1-T4 correction
 
