@@ -1087,11 +1087,14 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `verification: give I5 the two terminal-operand
-mutations its inputs never exercised (BI1)`, committed 2026-09-20, which is the head of the
-correction sequence beginning at `fix(channel): make C4-P2 falsifiable`. It moves the pin off
-`verification: count the twentieth pass's first-run fields as stated 285 times rather than on 148
-records` because the twenty-third pass's **BI1** correction reaches a design artifact -- the
+The current review target is the commit titled `docs(channel): lift the closure-review hold by owner
+ruling of 2026-09-24`, committed 2026-09-24, which is the head of the correction sequence beginning at
+`fix(channel): make C4-P2 falsifiable`. It moves the pin off `verification: give I5 the two
+terminal-operand mutations its inputs never exercised (BI1)` because lifting the hold reaches a design
+artifact -- the redesign plan's status line, which named the hold as what the closure re-review was
+waiting under -- and no design fact changes with it. Before that the pin sat on the twenty-third pass's
+commit, which moved it off `verification: count the twentieth pass's first-run fields as stated 285
+times rather than on 148 records` because that pass's **BI1** correction reaches a design artifact -- the
 completeness review's per-capability audit row for `I5`, which now names a mutation for each operand
 of the property's terminal handling, and its review-disposition history, which records the BI family
 whole. Before that the pin sat on the twentieth pass's commit for its **BF2** and **BF4** corrections,
