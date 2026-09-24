@@ -538,6 +538,13 @@ turn ordinary work-in-progress iterations into repeated full gates or formal rev
   and report deliberately deferred milestone work. Prefer fast-forward merges where history permits.
   Never force-push, merge, rewrite a pull-request title or description, or otherwise mutate remote
   state without user authorization.
+- **Push finished work, always.** When a unit of work is finished, push every commit on its working
+  branch to `origin` before reporting, because work left only in a local clone is invisible to the
+  next session and lost with the clone. This is the owner's standing authorization for that push and
+  is the one exception to the rule above: it covers an ordinary, fast-forward push of the working
+  branch only, not a force-push, a merge, a push to `main` the branch rules above do not permit, or
+  opening or editing a pull request. Run the pre-push checks above first; if they fail, push anyway
+  and report the failure rather than leaving the work unpushed.
 
 ### Local mechanisms the doctrine refers to
 
