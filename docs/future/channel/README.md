@@ -38,8 +38,8 @@ and corrected in four, the missed one being the state/event grid's two `unseen` 
 check could not read because both halves of it key on the reference's name and the cells never use it.
 **AL4** is `S5` comparing a per-session profile across the vector. All are corrected.
 
-**The next closure review is on hold by owner decision of 2026-08-17.** Every cycle since the seventh
-has produced findings, nine consecutive cycles have carried one instance of a single shape — a fact
+**The next closure review was on hold by owner decision from 2026-08-17 until the owner lifted it on
+2026-09-24, after the twenty-fifth condition-4 pass.** Every cycle since the seventh had produced findings, nine consecutive cycles have carried one instance of a single shape — a fact
 changed, its edit reaching some of the six artifacts that publish it — and the only instrument here
 that finds a real defect is a person reading prose. The
 [verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md) records the

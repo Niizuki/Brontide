@@ -17,14 +17,17 @@
         {
           "anchor": "if (-not $numberWords.ContainsKey($claimedWord) -or $numberWords[$claimedWord] -ne $owingCapabilities) {",
           "reason": "The body of the dormant AK3 claim loop above. Unreachable for the same reason and for exactly as long."
+        },
+        {
+          "anchor": "if ($holdAttestationCount -ne $holdCount) {",
+          "reason": "The attestation cap, inside the branch for a closure cycle declared `on-hold`. The owner lifted the hold on 2026-09-24 and the plan declares the cycle `open`, so a passing run never enters that branch. The guard is dormant because the hold it enforces has ended, not expired: it fires again the moment the state is declared `on-hold`, and the `C8 hold` probe declares exactly that with a count the directory does not hold. Delete this exemption if the cycle is held again, since the construct will then be evaluated."
+        },
+        {
+          "anchor": "if (-not $dispatchMarkerPresent) {",
+          "reason": "The requirement that a held cycle's review policy carry the do-not-dispatch marker, in the same `on-hold` branch and dormant for the same reason and for exactly as long. The `C10 hold` probe declares the cycle held without the marker, which is the input this check exists for."
         }
       ],
       "operandExemptions": [
-        {
-          "operand": "$holdState -ne 'open'",
-          "within": "$holdState -ne 'on-hold' -and $holdState -ne 'open'",
-          "reason": "The closed-vocabulary check on the closure-cycle state. The cycle is on hold, so the first operand is false on every clean run and short-circuiting never reaches this one. It is reached by the probe that declares a state outside the vocabulary, which is the input this operand exists for; it is exempt from the clean-run measure rather than unexercised."
-        },
         {
           "operand": "$operandVerdict -ne 'insufficient'",
           "within": "$operandVerdict -ne 'sufficient' -and $operandVerdict -ne 'insufficient'",

@@ -7,7 +7,7 @@ artifact**, it is not part of the reviewed package, and no closure review assess
 the closure cycle is being paused, what has to exist before it resumes, and how to tell whether that
 work succeeded.
 
-Closure-cycle state: **on-hold** since 2026-08-17, at 16 retained attestations.
+Closure-cycle state: **open** since 2026-09-24, at 16 retained attestations.
 
 That line is the declaration, and this document owns it. The design verifier reads the state from
 here, requires the review policy's step 4 to carry the matching do-not-dispatch marker, and **fails if
@@ -18,6 +18,13 @@ first moment the work becomes visible in this repository. The instruction in ste
 primary control. Resuming the cycle means changing the state here, against the conditions in section 3,
 and removing the marker there; editing the number to match a retained attestation is not resuming the
 cycle, and the check says so.
+
+**The hold was lifted on 2026-09-24 by owner decision**, recorded in section 6, after the twenty-fifth
+condition-4 pass met the last of section 3's four conditions. It had held since 2026-08-17 with sixteen
+attestations retained, and the state line above now reads `open` with that count, so the design
+verifier no longer caps the attestations and instead requires the review policy's step 4 to carry no
+do-not-dispatch marker. The next work is the one fresh independent closure review section 3 names,
+under the review policy's unchanged independence rules.
 
 Owner decision, stated first because everything below follows from it: **the next independent closure
 review is on hold until verifying this design is stable and cheap.** Sixteen reviews have run and
@@ -2402,6 +2409,15 @@ dispatched and a further author-side pass remains available under the same rules
 one is run, it is a twenty-sixth pass, and the design gate then requires every entry point to stop
 saying that the twenty-fifth met the condition, since the count it was met against has moved on.
 
+**The owner lifted the hold on 2026-09-24**, by the second ruling of that date in section 6, and the
+closure-cycle state at the head of this document reads `open`. The next work is therefore one fresh
+independent closure review of the package at the head that carries this change, dispatched under the
+review policy's step 4 from a fresh isolated clone by a reviewer identity distinct from every actor
+that authored the corrections and the condition-4 passes -- including the twenty-fifth's, which also
+wrote this paragraph -- and from all sixteen retained reviewers. It reviews the AL corrections together
+with the verification work done under the hold, and only an unqualified `conforms` closes the batch
+under the 2026-08-15 closure standard.
+
 What the fourteenth left undone is narrower and should not be confused with the above: the seven inert
 droppings are inert because the generated population carries one frame shape per session, and the
 generator still produces conforming vectors only, with the mutation direction applied by hand and
@@ -2411,8 +2427,8 @@ DECLARED corpus only, so whether an evaluator reads a generated record raw is th
 population a thousand times larger, at a thousand times the cost. That trade was not made and is left
 named rather than absorbed.
 
-Nothing in this section authorizes dispatching a closure review, and the closure-cycle state at the
-head of this document is what says so.
+What authorizes dispatching a closure review is the closure-cycle state at the head of this document,
+and since 2026-09-24 it is `open`.
 
 ## 4. What to measure
 
@@ -2503,7 +2519,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   nothing, and cutting the return-channel census from about a hundred syntax-tree walks per gate to one
   moved it from 530 traced seconds to 318 — real, but a fifth of what the walk count suggested, because
   what costs is executed statements and not walks; and
-- **guard probes executable** — currently **156 of 156**, run by
+- **guard probes executable** — currently **158 of 158**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
@@ -2583,10 +2599,11 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
 
 The three rulings of 2026-09-16 below were recommended by the agent that ran the twenty-first pass and
 adopted by the owner on that recommendation, which is disclosed because the first of them decides
-whether that agent's own pass counts, and it decides against it. The ruling of 2026-09-24 was put to
-the owner by the agent that ran the twenty-fifth pass, as a choice between three options with this one
-recommended, and is disclosed for the same reason: it is about what that pass's own result sets in
-motion.
+whether that agent's own pass counts, and it decides against it. The first ruling of 2026-09-24 was
+put to the owner by the agent that ran the twenty-fifth pass, as a choice between three options with
+that one recommended, and is disclosed for the same reason: it is about what that pass's own result
+sets in motion. The second ruling of that date was the owner's choice among three next items the same
+agent put, with no option recommended.
 
 **Owner ruling, 2026-09-16 — AW2: a finding found by reading does not by itself fail a pass; a guard
 built to pin one is an instrument, and what it finds beyond the instance it was written for counts.**
@@ -2671,3 +2688,13 @@ entry points say condition 4 was met by the twenty-fifth pass and that no furthe
 the design gate's next-pass check accepts that form only while the twenty-fifth is the latest retained
 pass. A further author-side pass stays available and, if run, returns every entry point to naming the
 pass after it.
+
+**Owner ruling, 2026-09-24 (second) — the hold is lifted.** Later the same day the owner chose, from
+three next items -- lifting the hold, a twenty-sixth author-side pass, or resuming Component Management
+/ Portable Binding integration -- to lift it. The first ruling of the date stands as the record of why
+the pass itself did not: lifting is the owner's act and this is it. The closure-cycle state at the
+head of this document is `open` since 2026-09-24 at the sixteen attestations retained under the hold,
+the review policy's step 4 no longer carries the do-not-dispatch marker, and the next work is one
+fresh independent closure review under that step's unchanged rules. The agent that ran the
+twenty-fifth pass and recorded this ruling is an implementation actor for that review's purposes and
+may not run it.
