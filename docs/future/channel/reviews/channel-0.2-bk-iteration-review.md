@@ -150,8 +150,12 @@ nothing measured.
 - **The whole set was run over `c2e64dd`**, the commit recording the pass, in a third short-path
   clone: the 156-probe corpus at 156 of 156 over 16 workers, and then the coverage measure, which
   refused the conditional that is **BK1** and stopped the self-checks before the deep run. The
-  correction is in the commit above that one, and the corpus, the coverage measure and the deep run
-  over the head carrying it are recorded in the commit above that.
+  correction is `24bc9e4`, and the whole set was run over it in a fourth short-path clone: the design,
+  owned-fact and return-channel gates and the properties gate at its default count, then the 156-probe
+  corpus at 156 of 156 over 16 workers, the coverage measure over four gates with the same 47 condition
+  and 6 operand exemptions, and the deep run at 52,000 evaluations over 2,000 generated vectors at 0 red
+  with the sweep at 8,541 and 459 and all eight load-bearing droppings where declared. All exit 0, in
+  5,895 seconds for the self-checks. The commit that adds this bullet changes this review alone.
 - **The normal path is unchanged**: 26 of 26 properties, 139 evaluations over 61 declared inputs,
   9 operand mutations, and every census reporting what it reported at the head.
 
