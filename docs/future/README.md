@@ -134,7 +134,7 @@ four are corrected: every property of the session state machine now names its se
 structurally rather than lexically, the declared fact list is checked against the neutral brief's
 vector format rather than against itself, the grid's cells are registered as surfaces of their own,
 and the package-wide sweep is keyed to the record rather than to the reference's name. No independent
-review has yet seen the BI corrections. No Channel 0.2 schema or implementation is authorized until the
+review has yet seen the BL corrections. No Channel 0.2 schema or implementation is authorized until the
 [review handoff](./channel/reviews/README.md#exact-next-work) closes cleanly.
 
 **The next closure review was on hold by owner decision from 2026-08-17 to 2026-09-24**, recorded in the
@@ -606,7 +606,8 @@ faulting the session, **BL2** a session control overtaking the same endpoint's e
 frame, which C4's order does not cover, and **BL3** `S2`, `S3`, `S4` and `C2-P1` scoped per session
 while the machine runs per endpoint. **BL6** is in the commit that lifted the hold and **BL11** in the generator the
 twenty-fourth and twenty-fifth passes built, both the work of the session that dispatched the review.
-The attestation is retained unmodified, and the BL findings are not yet corrected.
+The attestation is retained unmodified, and all twelve BL findings are corrected, four of them under
+owner rulings of 2026-09-25 recorded in the redesign plan.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
@@ -2190,7 +2191,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 17 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, AV1-AV3, AW1, AX1-AX3, AZ1-AZ2, BA1-BA7, BB1-BB7, BC1-BC3, BD1-BD3, BE1-BE5 and BF1-BF12 and BI1-BI3 families; the closure cycle resumed by owner decision after the twenty-fifth verification-foundation pass met condition 4, and it still awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 17 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, AV1-AV3, AW1, AX1-AX3, AZ1-AZ2, BA1-BA7, BB1-BB7, BC1-BC3, BD1-BD3, BE1-BE5, BF1-BF12, BI1-BI3 and BL1-BL12 families; the closure cycle resumed by owner decision after the twenty-fifth verification-foundation pass met condition 4, and it still awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

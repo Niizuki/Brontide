@@ -991,5 +991,52 @@ index's Channel row naming the next pass the twenty-first for three passes, foun
 pass was recorded and pinned by the design gate's next-pass ordinal check, which reads that row now;
 it reaches no design artifact either and is recorded here because the family is classified whole.
 
+The seventeenth review -- the first after the closure-review hold of 2026-08-17 to 2026-09-24 --
+returned `does-not-conform` with blocking **BL1**-**BL3** and nonblocking **BL4**-**BL12**, and confirmed
+`C4-P2` sound by an evaluator of its own that agrees with all eleven declared verdicts. Its three
+blocking findings are one question no earlier cycle asked: what happens when the two endpoints of one
+session each run the session machine legally at different instants. Four owner rulings of 2026-09-25,
+recorded in the redesign plan, settle the design choices four of the twelve needed.
+
+**BL1** is two endpoints that each began drain before the other's control arrived, each receiving the
+other's as a duplicate and faulting the session. Under its ruling drain is counted per endpoint: the
+peer's first drain control is legal in `draining` whichever side drained first, and only a second from
+the same peer faults. The session machine, C2 and the grid say so. **BL2** is a session control
+overtaking its own endpoint's earlier interaction frame -- a close ahead of the Outcome it follows, a
+drain ahead of the request admitted before it -- because C4's order binds one interaction. Under its
+ruling core promises **session-control order**, stated in C4, owned by `channel`, declared by the
+realization profile, relied on by the session machine's close and drain rules, and listed in the
+ledger's new-evidence inventory. No executable property witnesses it: the session timeline has no
+transport model, and until the event token routing each legal row -- an open question in the
+verification foundation plan -- is published, the properties gate cannot tell a crossing drain that
+wrongly faults from a second drain that rightly does, so both are pinned in the design gate
+rather than by an evaluator, which is a stated limit and not a closure of the evidence. **BL3** is
+`S2`, `S3`, `S4` and `C2-P1` reading the session where the machine runs per endpoint, red in the
+repository's own evaluator on a one-session vector conforming at both endpoints. Every session-machine
+property and `C2-P1` now names the endpoint's local history, C12's `session state` entry and the
+brief's vector format carry the endpoint, the executable timeline states it on every event, and
+`S-two-endpoints-one-session` is a required-green member of `S1`-`S4` and `C2-P1`; the design gate
+requires the endpoint of every such property, the class rather than today's members.
+
+**BL4** is the recipient never emitting the `accepted` cancellation acknowledgement the initiator
+consumes; both producing rows emit it now, and the grid's cell says so. **BL5** is the cost of a
+recipient-side frameless refusal after dispatch, stated as a limit under its ruling in the silence-probe
+table above and in the interaction machine. **BL6** is the lift of the hold reaching one status block
+of nine and leaving the Channel index's condition count; every status block is read against the
+declared closure-cycle state now. **BL7** is the redesign plan's section 7.8 and the repository README
+misstating the retained review count, with the check written for AI9 matching one literal value; both
+counts are recomputed. **BL8** is the owned-fact gate's record sweep keyed on the two co-terms the AL2
+instance carried, so the record's own pre-AK1 wording passed unfenced; the sweep reads the record's
+field terms now. **BL9** is the operand enumeration crediting `C4-P1` with a read of `session state`;
+the row names the properties that read it. **BL10** is `C4-P2`'s executable second conjunct selecting
+`fault-committed` latches only while the contract's statement reads every settled one; under its ruling
+the conjunct reads both, and `C4-outcome-precedes-ack-fault-unavailable` is the mutation the audit row
+above names for it. **BL11** is the generated population keeping an interaction nonterminal after a
+refused terminal fact, where the interaction machine routes that case to `lost`; the generator records
+the loss now, and that no property distinguishes the two routings is kept visible by a limit probe
+rather than claimed closed. **BL12** is the initiator's frame naming an identity it never opened, with
+no route; under its ruling the initiator drops it with the observation C10 requires, sends nothing,
+and retains nothing.
+
 These changes still need a fresh independent closure re-review and do not authorize Batch 2
 themselves.

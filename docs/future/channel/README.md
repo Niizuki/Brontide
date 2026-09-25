@@ -74,13 +74,15 @@ session machine, from the two endpoints of one session each running it at differ
 **BL1** is two endpoints that each legally begin drain
 faulting the session, **BL2** a session control overtaking the same endpoint's earlier interaction
 frame, which C4's order does not cover, and **BL3** `S2`, `S3`, `S4` and `C2-P1` scoped per session
-while the machine runs per endpoint. The attestation is retained unmodified; the BL findings are not yet
-corrected.
+while the machine runs per endpoint. The attestation is retained unmodified, and all twelve are
+corrected, four under owner rulings of 2026-09-25 -- drain counted per endpoint, session controls as
+ordering barriers, the initiator's unopened identity mirroring the recipient's, and `C4-P2` reading
+every settled latch.
 
 ## Channel 0.2 design foundation
 
 Every artifact below awaits the same cycle: one fresh independent closure re-review, now of the
-correction sequence that runs from S1 through **BI3**. That range is stated here rather than in the
+correction sequence that runs from S1 through **BL12**. That range is stated here rather than in the
 Design reviews row alone because AE4 corrected the row and left this sentence naming a sequence five
 families stale, and AF2 was that omission — a count is not the only thing in an index that goes
 stale. R1 was a disagreement between C8 and the recipient state/event grid about a cancellation
