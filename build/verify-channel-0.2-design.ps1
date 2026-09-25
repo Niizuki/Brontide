@@ -1312,6 +1312,21 @@ else {
     elseif ($dispatchMarkerPresent) {
         $failures.Add("The verification foundation plan declares the closure cycle ``open`` while the review policy's step 4 still carries the do-not-dispatch marker. One of the two is stale, and the dispatching agent reads the one that says stop -- so a resumed cycle that leaves this marker standing is a hold nobody lifted.")
     }
+    # BL6. The commit that lifted the hold changed the marker and one status block and left eight
+    # status blocks saying the re-review was "on hold", and the Channel index saying three of the four
+    # conditions were met. The state is read here; every surface that describes it is read against it,
+    # so the next change of state cannot reach some of its surfaces again.
+    if ($holdState -eq 'open') {
+        foreach ($holdStatusArtifact in $artifactNames) {
+            if ($holdStatusArtifact -eq 'README.md' -or $holdStatusArtifact -eq 'reviews\README.md') { continue }
+            if ((Get-FlowedText (Get-StatusBlock (Read-RequiredText $holdStatusArtifact))) -match '\bon hold\b') {
+                $failures.Add("'$holdStatusArtifact' says in its status block that the closure re-review is on hold, and the verification foundation plan declares the cycle ``open``. A status block describing a state the owning artifact no longer declares is what a reviewer reads first. This is BL6.")
+            }
+        }
+        if ((Get-FlowedText $channelReadme).IndexOf('Three of its four conditions are met', [System.StringComparison]::Ordinal) -ge 0) {
+            $failures.Add('The Channel index says three of the four conditions that end the hold are met, and the verification foundation plan declares the cycle `open`, which it is only when all four are. This is BL6.')
+        }
+    }
 }
 
 # AJ7: the retained-attestations list is what a reader scans for the most recent record, and it ran
@@ -2816,8 +2831,24 @@ if ($pinnedCommit -and $pinnedCommit[0] -and -not $pendingDesignEdits) {
 
 # AI9: S3's evidence named the plan's section 7.8, which still reported seven retained negative
 # attestations. A retained finding was therefore open while every index said all findings were closed.
-if ($plan -match 'Seven independent negative attestations') {
-    $failures.Add('The redesign plan still reports seven retained negative attestations. S3''s own evidence named this passage, so a retained finding has been open while every entry point claimed the programme''s findings were all closed. This is AI9.')
+#
+# BL7: this matched the literal "Seven independent negative attestations", which is the defect
+# recognised by its own words -- AL1's and AL2's warning -- and the passage went on to say "Fifteen"
+# with sixteen retained, while the repository README said "five" through twelve cycles. Both counts
+# are recomputed now against the directory, whatever number they state.
+$bl7CountClaims = @(
+    @{ Where = "the redesign plan's section 7.8"; Text = Get-FlowedText $plan; Pattern = '([A-Za-z-]+) independent attestations are retained' },
+    @{ Where = 'the repository README'; Text = Get-FlowedText (Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot 'README.md') -Encoding UTF8); Pattern = '([A-Za-z-]+) independent reviews are retained' })
+foreach ($bl7Claim in $bl7CountClaims) {
+    $bl7Match = [regex]::Match($bl7Claim.Text, $bl7Claim.Pattern)
+    if (-not $bl7Match.Success) {
+        $failures.Add("$($bl7Claim.Where) no longer states the retained review count in the form this check recomputes. S3's and AI9's evidence named that passage twice, and a count only prose carries is the one that goes stale.")
+        continue
+    }
+    $bl7Word = $bl7Match.Groups[1].Value.ToLowerInvariant()
+    if (-not $numberWords.ContainsKey($bl7Word) -or $numberWords[$bl7Word] -ne $attestationCount) {
+        $failures.Add("$($bl7Claim.Where) says '$bl7Word' independent reviews are retained and the reviews directory holds $attestationCount attestations. This is BL7, and S3's and AI9's before it.")
+    }
 }
 
 # The package's properties, counted from the artifacts that state them rather than from any sentence
@@ -3076,8 +3107,16 @@ else {
     }
     foreach ($fact in $sessionScopedFacts) {
         if ($operandSection.IndexOf($fact, [System.StringComparison]::Ordinal) -lt 0) {
-            $failures.Add("The `C4-P1`/`C4-P2` operand enumeration has no row naming the per-session fact '$fact', which C12 declares and `C4-P1` or `C4-P2` reads.")
+            $failures.Add("The `C4-P1`/`C4-P2` operand enumeration has no row naming the per-session fact '$fact', which C12 declares. A fact neither property reads still has a row, and the row says so -- which is BL9.")
         }
+    }
+    # BL9. The row this loop required for `session state` credited `C4-P1` with reading it, which
+    # neither of that property's named clauses does, because the message above assumed every declared
+    # fact is read by one of the two. The properties that do read it are the session machine's, per
+    # endpoint since BL3, and the row names them.
+    $sessionStateRow = @($operandRows | Where-Object { $_.Groups[1].Value.IndexOf('`session state`', [System.StringComparison]::Ordinal) -ge 0 })
+    if ($sessionStateRow.Count -ne 1 -or $sessionStateRow[0].Value.IndexOf('neither `C4-P1` nor `C4-P2`', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The operand enumeration''s `session state` row does not say that neither `C4-P1` nor `C4-P2` reads it. Neither property''s clauses read a session state, and a row crediting one of them points the next audit at the wrong property -- the properties that read it are `S2`, `S3`, `S4` and `C2-P1`, where BL3 sat. This is BL9.')
     }
 }
 

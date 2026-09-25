@@ -293,10 +293,12 @@ not derive expectations from one implementation's public API.
 ### 7.8 Fresh independent design review
 
 Review policy, retained attestations, and the exact continuation instructions:
-[`reviews/`](./reviews/README.md#exact-next-work). Fifteen independent attestations are retained —
-fourteen `does-not-conform` and one
+[`reviews/`](./reviews/README.md#exact-next-work). Seventeen independent attestations are retained —
+sixteen `does-not-conform` and one
 `conforms-with-nonblocking-findings`, which under the 2026-08-15 closure-standard ruling did not
-close the batch. This passage reported seven and stopped at the seventh review until **AI9**; it was
+close the batch. It said fifteen with sixteen retained until **BL7**, and the design verifier now
+recomputes the count rather than matching one stale value. This passage reported seven and stopped
+at the seventh review until **AI9**; it was
 S3's own evidence surface, so a retained finding stayed open for six cycles while every entry point
 reported the programme's findings closed. Their findings through T1-T4 and R1-R3 have correction passes, the last three confirmed
 closed by the seventh review at `3892c23a8dd4c7f298e877ba73710ee0ddc97bc4`. That review's blocking

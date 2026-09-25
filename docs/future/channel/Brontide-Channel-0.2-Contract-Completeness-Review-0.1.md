@@ -3,7 +3,7 @@
 Date: 2026-08-11
 
 Status: proposed first-batch completeness and silence review; awaiting a fresh independent
-closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+closure re-review, released on 2026-09-24 from the owner hold recorded in the
 [verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
 Correction history is not carried here; it is owned by the
 [disposition index](./reviews/channel-0.2-disposition-index.md#contract-completeness-review).
@@ -260,12 +260,14 @@ named the state/event grid's recipient `unseen` route among its publishing surfa
 `sufficient`, while the two cells on that route still published the pre-AK1 record — the row was
 verified against the artifact's prose, which does publish the reference, and a surface named at the
 granularity of a route is satisfied by any one passage inside it. The `session state` row above is
-**AL3** and is the other half: that fact is read by `C4-P1` and was in no row, because the enumeration
-took its per-session facts from C12's declared list and the declaration omitted it.
+**AL3** and is the other half: that fact was in no row, because the enumeration took its per-session
+facts from C12's declared list and the declaration omitted it. The row said the fact was read by
+`C4-P1`, which neither of that property's clauses does; **BL9** corrected the cell to name the
+properties that read it.
 
 | Operand | Read by | Scope the clause claims | Publishing surfaces | Sufficient |
 | --- | --- | --- | --- | --- |
-| the `session state` an interaction is admitted and dispatched in | `C4-P1` clauses 1 and 2 | that session's own state, and the vector may carry two | session state machine §States (the admits-a-new-interaction column) and §Drain protocol; state/event grid §Session coverage grid; C2 | sufficient |
+| the `session state` an interaction is admitted and dispatched in | neither `C4-P1` nor `C4-P2`: no clause of either reads a session state, and the properties that do are `S2`, `S3`, `S4` and `C2-P1`'s middle clause, each per endpoint since **BL3** -- this cell credited `C4-P1` until **BL9** | one endpoint's local history of one session, and the vector may carry two sessions and both endpoints of each | session state machine §States (the admits-a-new-interaction column) and §Drain protocol; state/event grid §Session coverage grid; C2 | sufficient |
 | accepted terminal fact, and the admitted interaction it closes | `C4-P1` clause 1 | one interaction, in one session | C10 first enumeration; interaction machine terminal states and terminal-provenance table; neutral brief parity profile (terminal provenance) | sufficient |
 | dispatch of an `interaction identity` | `C4-P1` clause 2 | not twice — **within one session**, which the property did not say until AK7 | C10 first enumeration (session and interaction identities, dispatch boundary); neutral brief parity profile (dispatch boundary crossed or not); interaction machine §Admission order and §Concurrent interactions | sufficient |
 | count of `nonterminal interactions` | `C4-P1` clause 3 | **within one session**, which the property did not say until AK7 | C10 first enumeration (state); interaction machine §Concurrent interactions; state/event grid initiator and recipient rows | sufficient |

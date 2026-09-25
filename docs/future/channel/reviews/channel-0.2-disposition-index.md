@@ -244,9 +244,8 @@ B1/B2/N2/F1/F2/D2-D4/T3/R1/R2/S2/W4/X1/X3/X5/Y3 corrected; `validating` carries 
 Status: proposed first-batch totality artifact; added after D1-D4, corrected for T3, R1, R3, S1, S2,
 U8, W4, X1, X2, X5, Z2, AC1, and AC2, and subject to a fresh independent closure re-review. Under AC1
 the latch section records the settling frame's arrival ordinal, which Y4 had stated in the neutral
-brief alone; under AC2 both `unseen` cells assert the detailed reason
-`unopened-interaction-identity` and the kind of frame refused, which one shared provenance could not
-distinguish. Under W4 the
+brief alone; under AC2 both `unseen` cells assert the refusal's detailed reason by value and the
+kind of the frame they refused, which one shared provenance could not distinguish. Under W4 the
 `unseen` cancellation refusal retains no history and no latch, so the `any terminal` row does not
 reach it; under X2 its cell asserts the latch as an explicit `not-applicable` rather than leaving a
 required field absent, under X5 it asserts the one local observation it does record, and under Z2 its
@@ -382,9 +381,8 @@ B4/N1/N3/F3/D5/T1/T2/S1/Z4 corrected; the ordering non-promise is **replaced**, 
 
 Status: proposed first-batch artifact boundary; no neutral schemas or generated code exist yet, and
 subject to a fresh independent closure re-review. Batch 2 opens only after that review conforms and
-its closure record exists. Under AC2 the parity profile names the detailed reason
-`unopened-interaction-identity` instead of describing it, and compares the kind of frame refused where
-a refusal opens no interaction. U3, V1, V2, W1, W2, W5, W6, X1, X2, X4, Y1, Y4, Z1, and AC2 corrected after
+its closure record exists. Under AC2 the parity profile names the refusal's detailed reason by value
+instead of describing it, and compares the refused frame's kind where a refusal opens no interaction. U3, V1, V2, W1, W2, W5, W6, X1, X2, X4, Y1, Y4, Z1, and AC2 corrected after
 independent review, the last restricting that ordinal to identification so the property language does
 not regain the observed arrival order W1 removed from it: the parity profile compares the frame a late-traffic latch settled against rather
 than only the latch value, that reference carries the settling frame's arrival ordinal so a duplicate

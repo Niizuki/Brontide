@@ -120,14 +120,18 @@
         "Brontide-Channel-0.2-State-Event-Coverage-0.1.md": 2
       },
       "unfencedSweep": {
-        "trigger": "`unopened-interaction-identity`",
+        "trigger": "unopened-interaction-identity",
         "coTerms": [
-          "provenance",
-          "effect certainty"
+          "provenance"
         ],
         "before": 240,
         "after": 640,
-        "why": "A surface may state this record without ever naming the reference inside it, and the two grid cells AL2 was raised for did exactly that -- so a sweep keyed to a reference's name cannot see them. The detailed reason identifies the record wherever it is stated, and a passage naming it together with the record's provenance and its effect certainty is enumerating what the record contains rather than talking about it: a disposition history saying what AC2 or AK1 did names the reason and neither of the other two. This is the design verifier's AL2 sweep, moved to the file that owns the record it is about and keyed to the declaration rather than to a hardcoded field list."
+        "why": "A surface may state this record without ever naming the reference inside it, and the two grid cells AL2 was raised for did exactly that -- so a sweep keyed to a reference's name cannot see them. The detailed reason identifies the record wherever it is stated, and a passage naming it together with the record's provenance and its effect certainty is enumerating what the record contains rather than talking about it: a disposition history saying what AC2 or AK1 did names the reason and neither of the other two. This is the design verifier's AL2 sweep, moved to the file that owns the record it is about and keyed to the declaration rather than to a hardcoded field list. BL8: the co-terms were `provenance` and `effect certainty`, the pair the AL2 instance happened to carry, so C10's own pre-AK1 statement of this record -- provenance and the kind of frame refused, no effect certainty -- passed unfenced, and so did the trigger written without backticks. The trigger is now the bare value, `provenance` stays required, and any one of the record's other fields beside it marks a statement of the record.",
+        "anyCoTerms": [
+          "effect certainty",
+          "kind of frame refused",
+          "frame kind"
+        ]
       }
     }
   ],

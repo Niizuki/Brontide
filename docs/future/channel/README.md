@@ -43,13 +43,15 @@ check could not read because both halves of it key on the reference's name and t
 changed, its edit reaching some of the six artifacts that publish it — and the only instrument here
 that finds a real defect is a person reading prose. The
 [verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md) records the
-diagnosis, the work that lands before the cycle resumes, and the conditions that end the hold. Three
-of its four conditions are met; the fourth asks for an author-side pass over that work which finds
-nothing it can fix; the thirteenth is the only one to find nothing, and the twelve before it and the nine after it raised **AM1**-**AM5**, **AN1**-**AN6**,
+diagnosis, the work that landed before the cycle resumed, and the conditions that ended the hold. All
+four were met; the fourth asked for an author-side pass over that work which finds nothing it can
+fix, twice running, and the twenty-fourth and twenty-fifth were those two. Of the twenty-five passes,
+the thirteenth, the twenty-fourth and the twenty-fifth found nothing in the package, and the others
+raised **AM1**-**AM5**, **AN1**-**AN6**,
 **AO1**-**AO3**, **AP1**-**AP2**, **AQ1**-**AQ5**, **AR1**, **AS1**-**AS7**, **AT1**-**AT7**,
 **AU1**-**AU5**, **AV1**-**AV3**, **AW1**, **AX1**-**AX3**, **AZ1**-**AZ2**, **AZ4**, **BA1**-**BA7**,
 **BB1**-**BB7**, **BC1**-**BC3**, **BD1**-**BD3**, **BE1**-**BE5**, **BF1**-**BF12**, **BG1**-**BG2** and
-**BH1**-**BH5** and **BI1**-**BI3** -- BF the
+**BH1**-**BH5**, **BI1**-**BI3** and **BK1**, the last in the twenty-fifth pass's own new code -- BF the
 first family since AU to reach a design artifact, giving C10-P1 and I4 a mutation each for a field the
 property corpus stated and nothing read, BG the first whose frozen set and new instrument both
 reported nothing while its two findings came from reading, BH the first to ask whether the value a
