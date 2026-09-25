@@ -304,7 +304,7 @@
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
           "find": "Closure-cycle state: **open** since 2026-09-24, at 16 retained attestations.",
-          "replace": "Closure-cycle state: **on-hold** since 2026-09-24, at 17 retained attestations."
+          "replace": "Closure-cycle state: **on-hold** since 2026-09-24, at 18 retained attestations."
         }
       ]
     },
@@ -2065,7 +2065,7 @@
       "claim": "a session stated to start in a state its timeline\u0027s first transition does not depart from -- the stated initial state and the timeline disagreeing about the state before anything happened",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
-      "guardMessage": "states that session \u0027s1\u0027 starts in \u0027established\u0027 and its timeline\u0027s first transition for that session departs from \u0027unestablished\u0027",
+      "guardMessage": "states that session \u0027s1\u0027 starts in \u0027established\u0027 and its timeline\u0027s first transition for that session at the initiator departs from \u0027unestablished\u0027",
       "edits": [
         {
           "path": "conformance/channel-0.2-property-vectors.json",
