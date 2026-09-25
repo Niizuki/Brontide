@@ -2519,7 +2519,7 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   nothing, and cutting the return-channel census from about a hundred syntax-tree walks per gate to one
   moved it from 530 traced seconds to 318 — real, but a fifth of what the walk count suggested, because
   what costs is executed statements and not walks; and
-- **guard probes executable** — currently **158 of 158**, run by
+- **guard probes executable** — currently **171 of 171**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did

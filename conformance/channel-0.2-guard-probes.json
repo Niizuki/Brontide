@@ -543,7 +543,7 @@
       "edits": [
         {
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
-          "find": "run in the gate on every commit: **76** evaluations over **36** declared inputs",
+          "find": "run in the gate on every commit: **81** evaluations over **38** declared inputs",
           "replace": "run in the gate on every commit: **55** evaluations over **34** declared inputs"
         }
       ],
@@ -870,7 +870,7 @@
       "edits": [
         {
           "path": "docs/future/channel/reviews/channel-0.2-disposition-index.md",
-          "find": "now runs to the sixteenth cycle",
+          "find": "now runs to the seventeenth cycle",
           "replace": "now runs to the eighth cycle"
         }
       ]
@@ -884,7 +884,7 @@
       "edits": [
         {
           "path": "docs/future/README.md",
-          "find": "review has yet seen the BI corrections.",
+          "find": "review has yet seen the BL corrections.",
           "replace": "review has yet seen the AB corrections."
         }
       ]
@@ -2088,9 +2088,9 @@
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { Get-InitialSessionState $Vector $sessionId }",
+          "find": "        $current = if ($state.ContainsKey($localKey)) { $state[$localKey] } else { Get-InitialSessionState $Vector $sessionId }",
           "occurrence": 0,
-          "replace": "        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { \u0027unestablished\u0027 }"
+          "replace": "        $current = if ($state.ContainsKey($localKey)) { $state[$localKey] } else { \u0027unestablished\u0027 }"
         }
       ],
       "gateArguments": [
@@ -2107,9 +2107,9 @@
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { Get-InitialSessionState $Vector $sessionId }",
+          "find": "        $current = if ($state.ContainsKey($localKey)) { $state[$localKey] } else { Get-InitialSessionState $Vector $sessionId }",
           "occurrence": 1,
-          "replace": "        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { \u0027unestablished\u0027 }"
+          "replace": "        $current = if ($state.ContainsKey($localKey)) { $state[$localKey] } else { \u0027unestablished\u0027 }"
         }
       ],
       "gateArguments": [
@@ -2481,15 +2481,15 @@
     },
     {
       "id": "BJ-b",
-      "claim": "a realization that frees an interaction's slot on a refused terminal fact -- the count-based defect BI1 found in the evaluator, built into the generator's own accounting instead -- is reported by I5 and by C4-P1's third clause over the generated population, which is the side of the accepted operand the declared mutations cannot reach",
+      "claim": "a realization that frees an interaction's slot at a refused terminal fact without committing the loss the interaction machine routes that refusal to -- so the identity is gone from its own count and never terminal in its record -- is reported by I5 and by C4-P1's third clause over the generated population. BL11 made freeing the slot at the refusal correct, because the loss frees it; freeing it with no loss recorded is what stays a defect",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
       "guardMessage": "'I5' is red on generated conforming vector 'generated-1': session s2 held 4 nonterminal interactions against its own established bound of 3",
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "                            $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false })",
-          "replace": "                            $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false }); $waveLive--"
+          "find": "                                $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'terminal'; identity = $identity; closes = $identity; accepted = $true })",
+          "replace": "                                $null = 0"
         }
       ],
       "gateArguments": [
@@ -2591,15 +2591,15 @@
     },
     {
       "id": "BK-e",
-      "claim": "a realization that keeps an interaction's slot across its first refused terminal fact and frees it on the second is reported by I5 and by C4-P1's third clause over the generated population, which BJ-b, freeing it on the first, cannot distinguish from a realization that is right about the first and wrong about the second",
+      "claim": "a realization that frees a second slot for the late second claim -- which arrives after the loss has already freed the first, and is late traffic rather than a terminal of anything -- is reported by I5 and by C4-P1's third clause over the generated population",
       "gate": "verify-channel-0.2-properties.ps1",
       "expect": "fail",
       "guardMessage": "'I5' is red on generated conforming vector 'generated-3': session s1 held 4 nonterminal interactions against its own established bound of 3",
       "edits": [
         {
           "path": "build/verify-channel-0.2-properties.ps1",
-          "find": "                            $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false })",
-          "replace": "                            $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false }); if ($refusedClaim -gt 1) { $waveLive-- }"
+          "find": "                            $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false })",
+          "replace": "                            $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false }); if ($refusedClaim -gt 1) { $waveLive-- }"
         }
       ],
       "gateArguments": [
@@ -2646,6 +2646,206 @@
           "path": "docs/future/channel/Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md",
           "find": "Closure-cycle state: **open** since 2026-09-24, at 16 retained attestations.",
           "replace": "Closure-cycle state: **on-hold** since 2026-09-24, at 16 retained attestations."
+        }
+      ]
+    },
+    {
+      "id": "BL1-a",
+      "claim": "the session machine's crossing-drain row reverted to the 'duplicate local or peer drain control' form BL1 corrected, which faults on the peer's first drain whenever this endpoint drained first, is refused",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "guardMessage": "the session machine still states 'duplicate local or peer drain control'",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
+          "find": "| `draining` | the peer's first drain control, received after this endpoint's own drain began | `draining` |",
+          "replace": "| `draining` | duplicate local or peer drain control | `draining` |"
+        }
+      ]
+    },
+    {
+      "id": "BL2-a",
+      "claim": "the responsibility matrix losing its Session-control order row owned by `channel` is refused, so the barrier BL2 made a core obligation cannot go back to having no owner",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "guardMessage": "The responsibility matrix carries no `Session-control order` row owned by `channel`",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Responsibility-Matrix-0.1.md",
+          "find": "| Session-control order | `channel` |",
+          "replace": "| Session-control sequencing | `channel` |"
+        }
+      ]
+    },
+    {
+      "id": "BL3-a",
+      "claim": "the session-machine evaluators keying local session state by the session alone again, merging the two endpoints' histories, are red on the required-green two-endpoint vector BL3 was raised with",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "Property 'S2' is red on 'S-two-endpoints-one-session' (required-green) and must be green",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "    return \"$(Read-Required $SessionEvent 'session' $Subject)|$(Read-Required $SessionEvent 'endpoint' $Subject)\"",
+          "replace": "    return \"$(Read-Required $SessionEvent 'session' $Subject)\""
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
+      ]
+    },
+    {
+      "id": "BL4-a",
+      "claim": "the recipient's executing row losing its `accepted` acknowledgement emission again, which is B2's class for the other acknowledgement value, is refused",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "guardMessage": "Channel 0.2 accepted cancellation acknowledgement (interaction machine, BL4) is missing",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Interaction-State-Machine-0.1.md",
+          "find": "| `executing` | valid cancellation control arrives | `cancel-requested` | possible/already occurred; emit nonterminal `accepted` acknowledgement |",
+          "replace": "| `executing` | valid cancellation control arrives | `cancel-requested` | possible/already occurred |"
+        }
+      ]
+    },
+    {
+      "id": "BL5-a",
+      "claim": "the silence-probe row stating the cost of a recipient-side frameless refusal after dispatch being dropped is refused, so that cost cannot go back to being unstated and unowned",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "guardMessage": "Channel 0.2 frameless recipient refusal (completeness review, BL5) is missing",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md",
+          "find": "| recipient-side frameless refusal after the request crossed dispatch",
+          "replace": "| recipient refusal after the request crossed dispatch"
+        }
+      ]
+    },
+    {
+      "id": "BL6-a",
+      "claim": "a design status block describing the closure re-review as on hold while the plan declares the cycle open is refused, which is the surface the commit lifting the hold missed eight times",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "guardMessage": "'Brontide-Channel-0.2-Capability-Contract-0.1.md' says in its status block that the closure re-review is on hold",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "find": "closure re-review, released on 2026-09-24 from the owner hold recorded in the",
+          "replace": "closure re-review, on hold under the owner decision of 2026-08-17 recorded in the"
+        }
+      ]
+    },
+    {
+      "id": "BL7-a",
+      "claim": "the repository README stating a retained review count the reviews directory does not hold is refused, whatever number it states, rather than one stale literal being matched",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "guardMessage": "the repository README says 'five' independent reviews are retained",
+      "edits": [
+        {
+          "path": "README.md",
+          "find": "seventeen independent reviews are retained",
+          "replace": "five independent reviews are retained"
+        }
+      ]
+    },
+    {
+      "id": "BL8-a",
+      "claim": "C10's own pre-AK1 statement of the unseen refusal record -- provenance and the kind of frame refused, no effect certainty -- written unfenced into a design artifact is reported by the owned-fact gate's record sweep",
+      "gate": "verify-channel-0.2-facts.ps1",
+      "expect": "fail",
+      "guardMessage": "has a passage that reads as a publication of 'unseen-refusal-record'",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md",
+          "append": "\nThe observation records the refusal, the kind of frame refused, and its provenance with the detailed reason `unopened-interaction-identity`.\n"
+        }
+      ]
+    },
+    {
+      "id": "BL8-b",
+      "claim": "the same record stated unfenced with its trigger written without backticks is reported by the record sweep too",
+      "gate": "verify-channel-0.2-facts.ps1",
+      "expect": "fail",
+      "guardMessage": "has a passage that reads as a publication of 'unseen-refusal-record'",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md",
+          "append": "\nThe refusal has provenance rejected-protocol, detailed reason unopened-interaction-identity, and effect certainty known-none.\n"
+        }
+      ]
+    },
+    {
+      "id": "BL9-a",
+      "claim": "the operand enumeration's session-state row crediting `C4-P1` with a read neither of its clauses makes is refused",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "guardMessage": "The operand enumeration's `session state` row does not say that neither `C4-P1` nor `C4-P2` reads it",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md",
+          "find": "| neither `C4-P1` nor `C4-P2`: no clause of either reads a session state",
+          "replace": "| `C4-P1` clauses 1 and 2: no clause of either reads a session state"
+        }
+      ]
+    },
+    {
+      "id": "BL10-a",
+      "claim": "C4-P2's second conjunct reading `fault-committed` latches only again is green on the named mutation whose reordering hides behind a failed fault commit, and the gate reports it",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "fail",
+      "guardMessage": "Property 'C4-P2' is green on 'C4-outcome-precedes-ack-fault-unavailable' (named-mutation) and must be red",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "        if ($null -ne $latchValue -and @('fault-committed', 'fault-unavailable') -notcontains [string]$latchValue) { continue }",
+          "replace": "        if ($null -ne $latchValue -and [string]$latchValue -ne 'fault-committed') { continue }"
+        }
+      ],
+      "gateArguments": [
+        "-GeneratedCount",
+        "0",
+        "-CensusPairs",
+        "1"
+      ]
+    },
+    {
+      "id": "BL11-a",
+      "claim": "a LIMIT, pinned so that it retires itself: the generator reverted to keeping a refused-terminal interaction nonterminal and accepting a later terminal for it -- the interaction machine's `unusable terminal frame -> lost` row mutated to ignore -- still passes the properties gate, because no property distinguishes the two routings. When a property is written that does, this probe starts failing and is replaced by one that expects the failure",
+      "gate": "verify-channel-0.2-properties.ps1",
+      "expect": "pass",
+      "edits": [
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "                            if ($refusedClaim -eq 1) {",
+          "replace": "                            if ($false) {"
+        },
+        {
+          "path": "build/verify-channel-0.2-properties.ps1",
+          "find": "                        [void]$waveIdentities.RemoveAt($waveIdentities.Count - 1)",
+          "replace": "                        $waveLive++"
+        }
+      ],
+      "gateArguments": [
+        "-CensusPairs",
+        "1"
+      ]
+    },
+    {
+      "id": "BL12-a",
+      "claim": "C10 losing its statement that the initiator drops a frame naming an identity it never opened, with the observation C10 owns, is refused",
+      "gate": "verify-channel-0.2-design.ps1",
+      "expect": "fail",
+      "guardMessage": "Channel 0.2 initiator unopened identity (C10, BL12) is missing",
+      "edits": [
+        {
+          "path": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
+          "find": "-- and, at the initiator, a well-formed",
+          "replace": "-- and, at the far end, a well-formed"
         }
       ]
     }
